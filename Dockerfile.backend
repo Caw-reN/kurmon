@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
+
+# Copy backend code
+COPY . .
+
+# Expose backend port
+EXPOSE 4174
+
+# Start the auth-server
+CMD ["npm", "run", "auth:server"]

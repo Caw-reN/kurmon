@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Sangat Mudah: Import Jadwal & Data</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f9fafb; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: #1e3a8a; font-size: 28px; text-align: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+        h2 { color: #15803d; font-size: 22px; margin-top: 30px; display: flex; align-items: center; gap: 10px; }
+        .step { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .step-number { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; background: #22c55e; color: white; border-radius: 50%; font-weight: bold; margin-right: 10px; }
+        .tip { background: #fffbeb; border: 1px solid #fde68a; padding: 15px; border-radius: 8px; margin: 20px 0; font-style: italic; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #b91c1c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
+        th { background-color: #f3f4f6; }
+        .highlight { font-weight: bold; color: #2563eb; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Buku Panduan: Cara Mudah Memasukkan Data & Jadwal dari Excel</h1>
+        <p class="text-center"><em>Panduan ini dibuat sangat sederhana agar bisa dipahami oleh siapa saja, dari Bapak/Ibu guru senior hingga staf muda.</em></p>
+
+        <h2><span class="step-number">1</span> Apa itu Fitur Import Excel?</h2>
+        <p>Daripada Anda harus mengetik jadwal atau data satu per satu di aplikasi, Anda bisa meng-copy (menyalin) data yang sudah Anda ketik di <strong>Microsoft Excel</strong> lalu mem-paste (menempelkan) data tersebut ke dalam aplikasi. Aplikasi akan membacanya secara otomatis dalam hitungan detik!</p>
+
+        <h2><span class="step-number">2</span> Langkah-Langkah Sangat Mudah</h2>
+        
+        <div class="step">
+            <h3>Langkah A: Buka Microsoft Excel Anda</h3>
+            <p>Siapkan data Anda di Excel. Pastikan urutan kolomnya sudah benar sesuai yang diminta aplikasi.</p>
+        </div>
+
+        <div class="step">
+            <h3>Langkah B: Blok dan Salin (Copy) Data di Excel</h3>
+            <p>Pilih (blok) baris dan kolom yang berisi data Anda di Excel (<strong>Tidak perlu mengeblok baris judul/header, cukup datanya saja</strong>).</p>
+            <p>Tekan tombol <code style="color:black">Ctrl</code> + <code style="color:black">C</code> di keyboard Anda bersamaan (atau klik kanan lalu pilih "Copy").</p>
+        </div>
+
+        <div class="step">
+            <h3>Langkah C: Tempel (Paste) di Aplikasi</h3>
+            <p>Buka aplikasi jadwal, klik tombol <strong>"Import Data"</strong> atau <strong>"Import Teks"</strong>.</p>
+            <p>Klik kotak putih kosong yang tersedia di layar, lalu tekan <code style="color:black">Ctrl</code> + <code style="color:black">V</code> di keyboard Anda (atau klik kanan pilih "Paste").</p>
+        </div>
+
+        <div class="step">
+            <h3>Langkah D: Klik Simpan</h3>
+            <p>Setelah teks muncul di kotak putih tersebut, klik tombol <strong>"Proses & Simpan Data"</strong>. Selesai!</p>
+        </div>
+
+        <h2><span class="step-number">3</span> Susunan Kolom Excel yang Wajib Diikuti</h2>
+        <p>Agar aplikasi tidak bingung, susunan kolom Excel Anda <strong>harus berurutan dari kiri ke kanan</strong> seperti tabel di bawah ini. Template sekarang juga memuat <b>7_Silabus</b> dan <b>8_Waktu</b>:</p>
+
+        <h3>1. Untuk Data Sesi Belajar (Waktu / Jam)</h3>
+        <table>
+            <tr>
+                <th>Kolom A</th>
+                <th>Kolom B</th>
+                <th>Kolom C</th>
+                <th>Kolom D</th>
+                <th>Kolom E</th>
+            </tr>
+            <tr>
+                <td><strong>Hari</strong><br>(Senin/Selasa/dst)</td>
+                <td><strong>Jam</strong><br>(07:00 - 07:45)</td>
+                <td><strong>Apakah Istirahat?</strong><br>(Ya / Tidak)</td>
+                <td><strong>Nama Istirahat</strong><br>(Misal: ISHOMA)</td>
+                <td><strong>Dihitung Berapa JP?</strong><br>(Misal: 1 atau 0)</td>
+            </tr>
+        </table>
+
+        <h3>2. Untuk Data Mata Pelajaran</h3>
+        <table>
+            <tr>
+                <th>Kolom A</th>
+                <th>Kolom B</th>
+                <th>Kolom C</th>
+                <th>Kolom D</th>
+                <th>Kolom E</th>
+            </tr>
+            <tr>
+                <td><strong>Nama Mapel</strong><br>(Matematika)</td>
+                <td><strong>Kelas Berapa?</strong><br>(X / XI / Semua)</td>
+                <td><strong>Jurusan Apa?</strong><br>(TKJ / TKR / Umum)</td>
+                <td><strong>Apakah Praktik?</strong><br>(Ya / Tidak)</td>
+                <td><strong>Durasi Sekali Main</strong><br>(Misal: 2)</td>
+            </tr>
+        </table>
+        
+        <h3>3. Untuk Data Beban Mengajar Guru</h3>
+        <table>
+            <tr>
+                <th>Kolom A</th>
+                <th>Kolom B</th>
+                <th>Kolom C</th>
+                <th>Kolom D</th>
+                <th>Kolom E</th>
+            </tr>
+            <tr>
+                <td><strong>Kode Guru</strong><br>(G01)</td>
+                <td><strong>Nama Mapel</strong><br>(Matematika)</td>
+                <td><strong>Target Kelas</strong><br>(X / XI / All)</td>
+                <td><strong>Target Jurusan</strong><br>(TKJ / TKR / All)</td>
+                <td><strong>Berapa JP Sekali Masuk?</strong><br>(Misal: 2)</td>
+            </tr>
+        </table>
+
+        <h3>4. Untuk Data Silabus</h3>
+        <table>
+            <tr>
+                <th>Kolom A</th>
+                <th>Kolom B</th>
+                <th>Kolom C</th>
+                <th>Kolom D</th>
+                <th>Kolom E</th>
+                <th>Kolom F</th>
+                <th>Kolom G</th>
+            </tr>
+            <tr>
+                <td><strong>Mata Pelajaran</strong></td>
+                <td><strong>Guru Pengajar</strong></td>
+                <td><strong>Judul Pertemuan / BAB</strong></td>
+                <td><strong>Kelas / Semester</strong></td>
+                <td><strong>Tujuan Pembelajaran</strong></td>
+                <td><strong>Materi Pembelajaran</strong></td>
+                <td><strong>Catatan</strong></td>
+            </tr>
+        </table>
+
+        <h3>5. Untuk Data Sesi Belajar & Kegiatan</h3>
+        <table>
+            <tr>
+                <th>Kolom A</th>
+                <th>Kolom B</th>
+                <th>Kolom C</th>
+                <th>Kolom D</th>
+                <th>Kolom E</th>
+            </tr>
+            <tr>
+                <td><strong>Hari</strong></td>
+                <td><strong>Waktu</strong></td>
+                <td><strong>Apakah Istirahat?</strong></td>
+                <td><strong>Nama Kegiatan / Istirahat</strong></td>
+                <td><strong>Jumlah JP</strong></td>
+            </tr>
+        </table>
+
+        <div class="tip">
+            <strong>💡 Tips Anti Gagal:</strong>
+            <ul>
+                <li>Jangan sampai ada kolom yang tertinggal/kosong di bagian tengah.</li>
+                <li>Jika kolom D atau E tidak ada isinya, Anda bisa mengisi dengan strip "-" atau biarkan kosong jika memang itu kolom terakhir.</li>
+                <li>Gunakan huruf besar/kecil tidak masalah, aplikasi sudah pintar menyesuaikan.</li>
+            </ul>
+        </div>
+        
+        <p style="text-align: center; margin-top: 40px; color: #6b7280; font-size: 14px;">
+            Dibuat untuk mempermudah Bapak/Ibu semua. Selamat mencoba!
+        </p>
+    </div>
+</body>
+</html>

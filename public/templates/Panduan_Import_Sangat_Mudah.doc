@@ -1,0 +1,61 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Panduan Import Data Sangat Mudah</title>
+</head>
+<body style="font-family:Calibri,Arial,sans-serif;font-size:14pt;line-height:1.7;max-width:900px;margin:24px auto;padding:0 12px;color:#333;">
+
+  <h1 style="color:#064e3b;border-bottom:2px solid #a3e635;padding-bottom:10px;">Panduan Import Data - Sangat Mudah</h1>
+  <p>Template ini dibuat khusus supaya bapak/ibu guru atau admin sekolah sangat mudah memasukkan data ke aplikasi TimeSchedule. Cukup ketik di Excel, lalu masukkan ke sistem!</p>
+  
+  <h2 style="color:#064e3b;">4 Langkah Cepat</h2>
+  <ol>
+    <li>Unduh (download) <b>Template Excel</b> dari aplikasi dengan menekan tombol "Template Excel".</li>
+    <li>Buka file tersebut. Anda akan melihat banyak Tab (Sheet) di bagian bawah Excel.</li>
+    <li>Mulai isi data dari baris ke-2 ke bawah. <b>PENTING: Jangan ubah atau hapus teks judul di baris pertama!</b></li>
+    <li>Jika sudah selesai, simpan (Save) file tersebut, lalu klik tombol <b>Import Data</b> di aplikasi dan masukkan file Excel-nya.</li>
+  </ol>
+
+  <h2 style="color:#064e3b;">Urutan Pengisian yang Disarankan</h2>
+  <p>Agar data saling terhubung dengan baik, sebaiknya isi berurutan mulai dari tab nomor 1 hingga nomor 8:</p>
+  <ol>
+    <li><b>1_Jurusan:</b> Daftar program keahlian yang ada.</li>
+    <li><b>2_Kelas:</b> Daftar semua kelas (misal X TKR 1, dll) beserta asal jurusannya.</li>
+    <li><b>3_Guru:</b> Daftar bapak/ibu pengajar. Jangan lupa berikan kode unik (misal G01, G02) untuk setiap guru.</li>
+    <li><b>4_Mapel:</b> Daftar mata pelajaran, target tingkat kelasnya, dan durasi minimal.</li>
+    <li><b>5_Ruangan:</b> Daftar ruangan teori atau lab/bengkel praktik yang tersedia.</li>
+    <li><b>6_Beban:</b> Memasangkan Guru dengan Mata Pelajarannya. Ini untuk menentukan guru mengajar apa dan berapa Jam Pelajaran (JP).</li>
+    <li><b>7_Silabus:</b> <i>(Terbaru!)</i> Daftar materi ajar dari setiap mata pelajaran dan setiap pertemuan.</li>
+    <li><b>8_Waktu:</b> <i>(Terbaru!)</i> Sesi belajar, jam, istirahat, dan kegiatan non-pelajaran.</li>
+  </ol>
+
+  <h2 style="color:#064e3b;">Cara Mengisi Tab 7_Silabus</h2>
+  <p>Untuk mengimpor silabus, pastikan mengisi kolom-kolom berikut:</p>
+  <ul>
+    <li><b>Mata Pelajaran (wajib):</b> Harus sama persis dengan nama mapel yang sudah dibuat.</li>
+    <li><b>Guru Pengajar (wajib):</b> Masukkan Kode Guru (misal G01).</li>
+    <li><b>Judul Pertemuan (wajib):</b> Contoh: <i>Pertemuan 1: Pengenalan Vektor</i>.</li>
+    <li><b>Kelas / Semester:</b> Contoh: <i>X / Ganjil</i>.</li>
+    <li><b>Tujuan Pembelajaran:</b> Penjelasan tujuan dari pertemuan tersebut.</li>
+    <li><b>Materi Pembelajaran:</b> Detail materi yang akan dipelajari. Jika ada beberapa baris materi, gunakan tombol <b>Alt + Enter</b> (di Excel) untuk membuat baris baru pada kotak yang sama.</li>
+  </ul>
+
+  <h2 style="color:#064e3b;">Cara Mengisi Tab 8_Waktu</h2>
+  <p>Untuk sesi belajar dan kegiatan, gunakan kolom berikut:</p>
+  <ul>
+    <li><b>Hari:</b> Senin, Selasa, dan seterusnya.</li>
+    <li><b>Waktu:</b> Contoh <i>07:00 - 07:45</i>.</li>
+    <li><b>Apakah Istirahat?:</b> Isi <b>Ya</b> jika itu waktu istirahat atau kegiatan, isi <b>Tidak</b> untuk jam pelajaran biasa.</li>
+    <li><b>Nama Kegiatan / Istirahat:</b> Contoh <i>ISHOMA</i>, <i>Upacara</i>, atau kosong jika jam biasa.</li>
+    <li><b>Jumlah JP:</b> Isi angka berapa JP yang dihitung untuk sesi tersebut.</li>
+  </ul>
+
+  <h2 style="color:#e63946;">Tips Biar Tidak Error</h2>
+  <ul>
+    <li>Kolom "Durasi" diisi menggunakan <b>angka saja</b> (misal: 2 atau 4). Jangan ditambahi huruf "JP".</li>
+    <li>Gunakan kata <b>Ya</b> atau <b>Tidak</b> pada kolom praktik sesuai format.</li>
+    <li>Selalu pastikan tulisan di excel sama persis dengan yang sudah diketik sebelumnya (misal "TKR" jangan ditulis "tkr" jika sebelumnya "TKR").</li>
+  </ul>
+
+</body>
+</html>

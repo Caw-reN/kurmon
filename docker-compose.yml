@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kurmon_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-kurmon_pass}
+      POSTGRES_DB: ${PG_DATABASE:-school_system_db}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Hanya diexpose ke localhost VPS untuk keamanan
+      - "127.0.0.1:5432:5432"
+
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: kurmon_backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=${PG_USER:-postgres}
+      - PG_PASSWORD=${PG_PASSWORD:-kurmon_pass}
+      - PG_DATABASE=${PG_DATABASE:-school_system_db}
+      - AUTH_PORT=4174
+      - NODE_ENV=production
+    volumes:
+      # Mount direktori data agar file yang digenerate backend tersimpan
+      - ./data:/app/data
+    ports:
+      # Hanya diexpose ke localhost VPS untuk keamanan
+      - "127.0.0.1:4174:4174"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: kurmon_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      # Port 80 bisa diakses dari local network (IP VPS)
+      - "80:80"
+
+volumes:
+  pgdata:

@@ -1,0 +1,24 @@
+<html><head><meta charset="utf-8"><title>Panduan Import Mudah</title></head>
+<body style="font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.5;">
+<h1>Panduan Import Data (Mudah)</h1>
+<p>Dokumen ini dibuat agar mudah dipakai semua kalangan umur.</p>
+<h2>Langkah Cepat</h2>
+<ol>
+<li>Buka file <b>Template_Import_Sekolah_Mudah.xlsx</b>.</li>
+<li>Isi data di sheet sesuai nama tab: Jurusan, Kelas, Guru, Mapel, Ruangan, Beban, Silabus, dan Waktu.</li>
+<li>Jangan ubah judul kolom di baris pertama.</li>
+<li>Simpan file lalu import ke aplikasi.</li>
+</ol>
+<h2>Contoh Ringkas</h2>
+<ul>
+<li>Kelas: <b>X TKR 1</b> | Jurusan: <b>TKR</b></li>
+<li>Mapel: <b>Matematika</b> | Grade: <b>Semua</b> | IsBlock: <b>Tidak</b></li>
+<li>Beban: <b>14 - Matematika - All - All - 2</b></li>
+</ul>
+<h2>Tips Aman</h2>
+<ul>
+<li>Isi durasi dengan angka saja.</li>
+<li>Untuk pilihan Ya/Tidak, tulis jelas.</li>
+<li>Kalau ragu, ikuti contoh pada baris kedua.</li>
+</ul>
+</body></html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi Sistem Manajemen Sekolah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Lexend', 'sans-serif'] },
+          colors: {
+            primary: '#064e3b',
+            secondary: '#a3e635'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #f8fafc; color: #0f172a; }
+    .sidebar-link.active { background-color: #ecfdf5; color: #064e3b; border-right: 3px solid #064e3b; font-weight: 700; }
+    .content-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+    .content-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .feature-card { transition: all 0.2s; }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased selection:bg-secondary selection:text-primary">
+  
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+    <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm">TS</div>
+      <div>
+        <h1 class="font-black text-slate-800 text-sm leading-tight">Docs</h1>
+        <p class="text-[10px] text-slate-500 font-bold">School Management</p>
+      </div>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-4 space-y-1">
+      <p class="px-3 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 mt-4">Panduan Pengguna</p>
+      <button onclick="showSection('intro')" class="sidebar-link active w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Pengantar</button>
+      <button onclick="showSection('umum')" class="sidebar-link w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Informasi Umum</button>
+      <button onclick="showSection('kesiswaan')" class="sidebar-link w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Kesiswaan & Data</button>
+      <button onclick="showSection('admin')" class="sidebar-link w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Konfigurasi Sistem (Admin)</button>
+      <button onclick="showSection('troubleshoot')" class="sidebar-link w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Troubleshooting</button>
+    </div>
+    
+    <div class="p-4 border-t border-slate-200 bg-slate-50">
+      <a href="/" class="flex items-center justify-center w-full bg-primary text-white text-sm font-bold py-2.5 rounded-xl hover:bg-emerald-900 transition-colors">
+        Kembali ke Aplikasi
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-8 md:p-12">
+    <div class="max-w-4xl mx-auto pb-20">
+      
+      <!-- Section: Pengantar -->
+      <section id="intro" class="content-section active">
+        <div class="mb-10">
+          <h2 class="text-3xl font-black text-slate-800 mb-3">Dokumentasi Sistem Manajemen Sekolah</h2>
+          <p class="text-slate-500 leading-relaxed text-lg">Panduan lengkap penggunaan fitur-fitur aplikasi untuk Admin, Tata Usaha, dan Guru.</p>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
+          <h3 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Selamat Datang di Sistem Baru
+          </h3>
+          <p class="text-blue-700 text-sm leading-relaxed">Aplikasi yang dulunya hanya berfokus pada jadwal, kini telah diekspansi menjadi Sistem Manajemen Sekolah terpadu yang mencakup Kesiswaan, Administrasi Surat, API Notifikasi, dan keamanan Audit Log.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 feature-card">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-emerald-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <h4 class="font-bold text-slate-800">100% Terintegrasi</h4>
+            <p class="text-sm text-slate-500 mt-2">Seluruh modul mulai dari Jadwal, Data Siswa, Surat-menyurat, hingga Keamanan saling terhubung dalam 1 database (PostgreSQL).</p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 feature-card">
+            <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-violet-600"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <h4 class="font-bold text-slate-800">Cepat & Responsif</h4>
+            <p class="text-sm text-slate-500 mt-2">Didesain dengan React dan navigasi tanpa loading antar halaman. Manajemen data masif dilakukan secara instan.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Umum -->
+      <section id="umum" class="content-section">
+        <h2 class="text-3xl font-black text-slate-800 mb-6">Informasi Umum</h2>
+        <div class="space-y-8">
+          
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+              <h3 class="font-bold text-slate-800">Profil Sekolah & Tahun Ajaran</h3>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-600 mb-4 leading-relaxed">Menu ini digunakan untuk mendefinisikan identitas sekolah dan mengontrol periode data yang sedang aktif.</p>
+              <ul class="space-y-3 text-sm text-slate-600">
+                <li class="flex items-start gap-2">
+                  <span class="text-secondary mt-1">✔</span> <strong>Identitas Sekolah:</strong> Nama, NPSN, Alamat, Logo, dan Tanda Tangan Kepala Sekolah yang akan digunakan sebagai *Kop Surat* otomatis pada semua laporan dan E-Surat.
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-secondary mt-1">✔</span> <strong>Tahun Ajaran:</strong> Anda dapat membuat Tahun Ajaran baru (Misal: 2026/2027) dan menentukan Semester (Ganjil/Genap). <strong>Penting:</strong> Hanya ada 1 (satu) Tahun Ajaran yang dapat di-set sebagai "Aktif". Semua data transaksi akan otomatis merujuk ke periode aktif ini.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+              <h3 class="font-bold text-slate-800">E-Surat & Template (Surat Panggilan)</h3>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-600 mb-4 leading-relaxed">Digunakan oleh Tata Usaha atau BP/BK untuk membuat surat administratif secara instan.</p>
+              <ul class="space-y-3 text-sm text-slate-600">
+                <li class="flex items-start gap-2">
+                  <span class="text-secondary mt-1">✔</span> <strong>Pencarian Siswa Otomatis:</strong> Cukup cari NIS atau nama siswa, sistem akan mengisi data diri dan orang tua mereka ke dalam template surat.
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-secondary mt-1">✔</span> <strong>Jenis Surat:</strong> Tersedia Surat Panggilan (SP1, SP2, SP3), Surat Pemberitahuan, dan Surat Mutasi.
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-secondary mt-1">✔</span> <strong>Kustomisasi Pesan:</strong> Tambahkan detail pelanggaran/keperluan secara langsung sebelum dicetak. Hasil cetak akan menyesuaikan ukuran kertas A4 secara otomatis.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Section: Kesiswaan -->
+      <section id="kesiswaan" class="content-section">
+        <h2 class="text-3xl font-black text-slate-800 mb-6">Kesiswaan & Data Master</h2>
+        <div class="space-y-8">
+          
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-slate-100 bg-emerald-50 text-emerald-800">
+              <h3 class="font-bold">Proses Kenaikan Kelas & Kelulusan</h3>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-600 mb-4 leading-relaxed">Menu kritis yang dijalankan di akhir Tahun Ajaran Genap. Proses ini memindahkan seluruh data siswa tingkat X ke XI, XI ke XII, dan XII menjadi Alumni/Lulus secara bersamaan.</p>
+              <ol class="list-decimal pl-5 space-y-2 text-sm text-slate-600">
+                <li>Buka menu <strong>Kenaikan Kelas</strong>.</li>
+                <li>Pilih <strong>Tahun Ajaran Baru</strong> (tujuan perpindahan).</li>
+                <li>Review data siswa. Jika ada siswa yang <strong>tinggal kelas</strong>, klik tombol "Tidak Naik" di baris siswa tersebut sebagai pengecualian.</li>
+                <li>Klik tombol <strong>Proses Kenaikan Kelas</strong>. Sistem akan mengubah kelas mereka secara otomatis di seluruh database dan membuat log riwayat proses.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+              <h3 class="font-bold text-slate-800">Kartu Pelajar Generator</h3>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-600 mb-4 leading-relaxed">Generator pembuatan ID Card Siswa secara massal tanpa memerlukan aplikasi eksternal (seperti Corel/Photoshop).</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div>
+                  <h4 class="font-bold text-sm text-slate-700 mb-2">Desain Kustom</h4>
+                  <ul class="space-y-1 text-sm text-slate-500 list-disc pl-4">
+                    <li>Ubah warna dominan kartu.</li>
+                    <li>Otomatisasi pas foto dari database.</li>
+                    <li>Sistem *Auto-Generate* QR Code dari NIS siswa yang terhubung ke mesin tap-absen.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-slate-700 mb-2">Pencetakan</h4>
+                  <ul class="space-y-1 text-sm text-slate-500 list-disc pl-4">
+                    <li>Dapat mencetak langsung 1 kelas penuh (disusun rapi pada kertas A4).</li>
+                    <li>Dapat mencari dan mencetak hanya 1 siswa jika kartu hilang.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Section: Admin -->
+      <section id="admin" class="content-section">
+        <h2 class="text-3xl font-black text-slate-800 mb-6">Konfigurasi Sistem Khusus Admin</h2>
+        
+        <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <p class="text-sm text-amber-800 font-medium">⚠️ Akses ke modul-modul ini sangat dibatasi dan dianjurkan hanya dilakukan oleh IT Support Sekolah atau Superadmin.</p>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Manajemen API Key</h3>
+            <p class="text-sm text-slate-600 mb-4">Gudang integrasi pihak ketiga. Anda menaruh kode/kredensial untuk WhatsApp dan Google Drive di sini.</p>
+            <ul class="text-sm text-slate-500 space-y-2 list-disc pl-4">
+              <li><strong>Fonnte (WhatsApp):</strong> Masukkan TOKEN akun fonnte Anda agar fitur blast WA terbuka.</li>
+              <li><strong>Google Drive:</strong> Masukkan file/teks JSON Service Account Google Cloud Anda agar backup otomatis dapat ditulis ke Drive.</li>
+            </ul>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Integrasi WhatsApp (Auto/Blast)</h3>
+            <p class="text-sm text-slate-600 mb-4">Memanfaatkan API yang sudah di-set di atas untuk mengirim pesan ke nomor WA orang tua/siswa.</p>
+            <ul class="text-sm text-slate-500 space-y-2 list-disc pl-4">
+              <li>Mendukung pesan massal (*Blast*) kepada spesifik kelas (Misal: Pengumuman libur).</li>
+              <li>Mendukung parameter dinamis (*Mail Merge*) seperti {NAMA_SISWA}, {KELAS}.</li>
+              <li>Terdapat Log Pengiriman untuk mengetahui pesan mana yang Gagal (*Failed*) karena nomor tidak valid.</li>
+            </ul>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Google Drive Backup (Terenkripsi)</h3>
+            <p class="text-sm text-slate-600 mb-4">Sistem menjadwalkan pencadangan (*dump*) seluruh database PostgreSQL setiap hari pukul 02:00 pagi (WIB) secara *background* jika API Key valid.</p>
+            <p class="text-sm text-slate-500">Anda juga dapat menekan tombol <strong>Backup Manual</strong> untuk langsung membuat *snapshot* saat itu juga sebelum melakukan perubahan berisiko (seperti Kenaikan Kelas).</p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 class="font-bold text-slate-800 mb-2 text-lg">Audit Log Keamanan</h3>
+            <p class="text-sm text-slate-600 mb-4">Sebuah "CCTV" aktivitas dalam aplikasi. Setiap kali *user* (terutama yang bukan admin utama) menambah, mengubah, atau menghapus data, sistem merekam:</p>
+            <ul class="text-sm text-slate-500 space-y-2 list-disc pl-4">
+              <li>Siapa pelakunya (Username).</li>
+              <li>Waktu kejadian (Timestamp).</li>
+              <li>Tindakan apa yang dilakukan (Misal: Menghapus siswa bernama Budi).</li>
+              <li>Dari IP Address mana mereka mengakses.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Troubleshoot -->
+      <section id="troubleshoot" class="content-section">
+        <h2 class="text-3xl font-black text-slate-800 mb-6">Troubleshooting (Masalah Umum)</h2>
+        
+        <div class="space-y-4">
+          <details class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer group">
+            <summary class="font-bold text-slate-800 outline-none select-none">Halaman 'Blank Screen' setelah login?</summary>
+            <p class="mt-3 text-sm text-slate-600 leading-relaxed">Ini terjadi jika *cache* browser Anda masih memegang versi lama, atau token di `sessionStorage` tidak sinkron dengan server. Solusinya:<br>1. Tekan CTRL + F5 (Hard Refresh).<br>2. Hapus *Cookies* dan *Local Storage*.<br>3. Relogin.</p>
+          </details>
+
+          <details class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer group">
+            <summary class="font-bold text-slate-800 outline-none select-none">WhatsApp gagal terkirim (Status: Error)?</summary>
+            <p class="mt-3 text-sm text-slate-600 leading-relaxed">Kemungkinan penyebab:<br>- Token Fonnte kedaluwarsa atau salah input di menu <strong>Manajemen API Key</strong>.<br>- Nomor tujuan tidak memiliki awalan yang benar (Sistem secara otomatis mencoba mengonversi '08' menjadi '628', namun nomor yang asal-asalan tetap ditolak provider).<br>- Kuota paket Fonnte (kredit) Anda sudah habis.</p>
+          </details>
+
+          <details class="bg-white border border-slate-200 rounded-xl p-4 cursor-pointer group">
+            <summary class="font-bold text-slate-800 outline-none select-none">Data yang dihapus muncul lagi (Bug Sinkronisasi)?</summary>
+            <p class="mt-3 text-sm text-slate-600 leading-relaxed">Aplikasi versi terbaru telah memastikan hanya menggunakan <strong>1 sumber kebenaran data yaitu PostgreSQL Server</strong> (kami menghapus penyimpanan lokal / JSON). Jika ini terjadi, pastikan Server Backend Node.js Anda (`auth-server.mjs`) tetap hidup dan tidak *error*. Cek terminal Laragon/NodeJS Anda jika koneksi *database* terputus.</p>
+          </details>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    function showSection(id) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(el => {
+        el.classList.remove('active');
+      });
+      // Remove active from links
+      document.querySelectorAll('.sidebar-link').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Show target section
+      document.getElementById(id).classList.add('active');
+      
+      // Add active to clicked link
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>

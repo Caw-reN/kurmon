@@ -1,0 +1,29 @@
+<html><head><meta charset="utf-8"><title>Panduan Sangat Mudah</title></head>
+<body style="font-family:Calibri,Arial,sans-serif;font-size:14pt;line-height:1.7;max-width:900px;margin:24px auto;padding:0 12px;">
+<h1>Panduan Import Data - Sangat Mudah</h1>
+<p>Template ini dibuat supaya semua usia mudah paham.</p>
+<h2>4 Langkah Cepat</h2>
+<ol>
+<li>Buka file <b>Template_Import_Sangat_Mudah.xlsx</b>.</li>
+<li>Isi data mulai baris ke-2 (baris pertama jangan diubah).</li>
+<li>Ikuti contoh yang sudah disediakan.</li>
+<li>Simpan file, lalu import di aplikasi.</li>
+</ol>
+<h2>Urutan Isi yang Disarankan</h2>
+<ol>
+<li>1_Jurusan</li>
+<li>2_Kelas</li>
+<li>3_Guru</li>
+<li>4_Mapel</li>
+<li>5_Ruangan</li>
+<li>6_Beban</li>
+<li>7_Silabus</li>
+<li>8_Waktu</li>
+</ol>
+<h2>Tips Biar Tidak Error</h2>
+<ul>
+<li>Durasi isi angka saja.</li>
+<li>Gunakan Ya/Tidak sesuai contoh.</li>
+<li>Jika ragu, lihat tab <b>Panduan_Mudah</b>.</li>
+</ul>
+</body></html>

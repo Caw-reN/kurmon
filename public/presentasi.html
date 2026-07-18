@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kurmon — Presentasi Sistem Informasi Sekolah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --accent: #f59e0b;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --card: #ffffff;
+      --bg: #f0fdfa;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(15,23,42,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(13,148,136,0.2);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: 900; color: #2dd4bf; letter-spacing: -0.5px; }
+    .nav-links { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+    .nav-links a {
+      color: #94a3b8; font-size: 0.7rem; font-weight: 600; padding: 6px 12px;
+      border-radius: 6px; text-decoration: none; transition: all 0.2s;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .nav-links a:hover { color: #2dd4bf; background: rgba(13,148,136,0.15); }
+
+    /* ===== SECTIONS ===== */
+    section { min-height: 100vh; padding: 6rem 2rem 4rem; position: relative; overflow: hidden; }
+
+    /* ===== HERO ===== */
+    #hero {
+      background: radial-gradient(ellipse at 20% 50%, rgba(13,148,136,0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 50%),
+                  #0f172a;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; flex-direction: column;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(13,148,136,0.15); border: 1px solid rgba(13,148,136,0.4);
+      color: #2dd4bf; padding: 6px 16px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 2rem;
+    }
+    .hero-badge::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+    h1.hero-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; line-height: 1.05;
+      letter-spacing: -2px; margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #2dd4bf 50%, #a78bfa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub { font-size: 1.1rem; color: #94a3b8; max-width: 600px; line-height: 1.7; margin-bottom: 3rem; }
+    .hero-stats { display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap; }
+    .stat-pill {
+      text-align: center;
+      padding: 1.5rem 2rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .stat-pill .num { font-size: 2.5rem; font-weight: 900; color: #2dd4bf; display: block; }
+    .stat-pill .lbl { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* ===== SECTION HEADER ===== */
+    .sec-header { text-align: center; margin-bottom: 4rem; }
+    .sec-label {
+      display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.2em;
+      text-transform: uppercase; color: #2dd4bf; margin-bottom: 1rem;
+      padding: 4px 14px; background: rgba(13,148,136,0.1); border-radius: 999px;
+    }
+    .sec-title { font-family: 'Montserrat', sans-serif; font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 900; color: #f1f5f9; letter-spacing: -0.5px; line-height: 1.2; }
+    .sec-desc { font-size: 1rem; color: #64748b; max-width: 600px; margin: 1rem auto 0; line-height: 1.7; }
+
+    /* ===== GRID & CARDS ===== */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; max-width: 1200px; margin: 0 auto; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-width: 1200px; margin: 0 auto; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 1.5rem;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: rgba(13,148,136,0.4); transform: translateY(-3px); background: rgba(13,148,136,0.06); }
+    .card-accent { border-left: 3px solid var(--c, #2dd4bf); }
+    .card-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1rem;
+      background: rgba(13,148,136,0.15);
+    }
+    .card h3 { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+
+    /* ===== ROLE CARDS ===== */
+    .role-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px; padding: 2rem;
+      position: relative; overflow: hidden;
+    }
+    .role-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--rc, #2dd4bf);
+    }
+    .role-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 999px;
+      font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 1rem; background: rgba(13,148,136,0.12); color: #2dd4bf;
+    }
+    .role-name { font-size: 1.2rem; font-weight: 800; color: #f1f5f9; margin-bottom: 0.25rem; }
+    .role-desc { font-size: 0.8rem; color: #64748b; margin-bottom: 1.25rem; }
+    .role-features { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .role-features li {
+      font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;
+    }
+    .role-features li::before { content: '→'; color: var(--rc, #2dd4bf); font-weight: 800; }
+
+    /* ===== FLOW DIAGRAM ===== */
+    .flow-container { max-width: 1100px; margin: 0 auto; }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 2rem;
+      padding: 2rem; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07); border-radius: 16px;
+      margin-bottom: 1rem; position: relative; transition: all 0.3s;
+    }
+    .flow-step:hover { border-color: rgba(13,148,136,0.3); background: rgba(13,148,136,0.05); }
+    .flow-num {
+      min-width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--c, #0d9488), var(--c2, #06b6d4));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 1rem; color: white;
+    }
+    .flow-step h4 { font-size: 0.95rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.25rem; }
+    .flow-step p { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+    .flow-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+    .tag {
+      font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1); color: #94a3b8;
+    }
+    .tag.green { border-color: rgba(34,197,94,0.4); color: #86efac; background: rgba(34,197,94,0.08); }
+    .tag.blue { border-color: rgba(59,130,246,0.4); color: #93c5fd; background: rgba(59,130,246,0.08); }
+    .tag.purple { border-color: rgba(139,92,246,0.4); color: #c4b5fd; background: rgba(139,92,246,0.08); }
+    .tag.amber { border-color: rgba(245,158,11,0.4); color: #fcd34d; background: rgba(245,158,11,0.08); }
+    .tag.red { border-color: rgba(239,68,68,0.4); color: #fca5a5; background: rgba(239,68,68,0.08); }
+    .tag.teal { border-color: rgba(20,184,166,0.4); color: #5eead4; background: rgba(20,184,166,0.08); }
+
+    /* ===== TECH STACK ===== */
+    .tech-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; transition: all 0.3s;
+    }
+    .tech-item:hover { border-color: rgba(13,148,136,0.3); background: rgba(13,148,136,0.06); }
+    .tech-icon { font-size: 1.5rem; }
+    .tech-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; }
+    .tech-type { font-size: 0.7rem; color: #64748b; }
+
+    /* ===== AUDIT TABLE ===== */
+    .audit-section { max-width: 1100px; margin: 0 auto; }
+    .audit-group { margin-bottom: 2rem; }
+    .audit-group-title {
+      font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em;
+      color: #64748b; margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .audit-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1rem 1.25rem; border-radius: 10px;
+      margin-bottom: 0.5rem;
+    }
+    .audit-item.ok { background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.15); }
+    .audit-item.warn { background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.15); }
+    .audit-item.info { background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.15); }
+    .audit-item.err { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.15); }
+    .audit-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; min-width: 42px; text-align: center; flex-shrink: 0; margin-top: 2px; }
+    .ok .audit-badge { background: rgba(34,197,94,0.2); color: #86efac; }
+    .warn .audit-badge { background: rgba(245,158,11,0.2); color: #fcd34d; }
+    .info .audit-badge { background: rgba(59,130,246,0.2); color: #93c5fd; }
+    .err .audit-badge { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .audit-text h4 { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.2rem; }
+    .audit-text p { font-size: 0.78rem; color: #94a3b8; line-height: 1.5; }
+
+    /* ===== SECTIONS BG ===== */
+    #arsitektur { background: linear-gradient(180deg, #0f172a 0%, #0d1526 100%); }
+    #fitur { background: linear-gradient(180deg, #0d1526 0%, #0b1220 100%); }
+    #roles { background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%); }
+    #alur { background: linear-gradient(180deg, #0f172a 0%, #0d1526 100%); }
+    #stack { background: linear-gradient(180deg, #0d1526 0%, #0b1220 100%); }
+    #audit { background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%); }
+
+    /* ===== BIG BADGE FEATURE ===== */
+    .feature-big {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px; padding: 2rem;
+      display: flex; gap: 1.5rem; align-items: flex-start;
+      transition: all 0.3s;
+    }
+    .feature-big:hover { border-color: rgba(13,148,136,0.3); background: rgba(13,148,136,0.05); }
+    .feature-big-icon {
+      width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+    }
+    .feature-big h3 { font-size: 1.05rem; font-weight: 800; color: #f1f5f9; margin-bottom: 0.35rem; }
+    .feature-big p { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; margin-bottom: 0.75rem; }
+
+    /* ===== ARCH DIAGRAM ===== */
+    .arch-layer {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 1.5rem;
+      margin-bottom: 1rem; max-width: 1100px; margin-left: auto; margin-right: auto;
+    }
+    .arch-layer-title {
+      font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.15em; color: #2dd4bf; margin-bottom: 1rem;
+    }
+    .arch-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .arch-box {
+      padding: 0.75rem 1.25rem; border-radius: 10px;
+      font-size: 0.8rem; font-weight: 600; color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .arch-box.teal { background: rgba(13,148,136,0.15); border-color: rgba(13,148,136,0.3); }
+    .arch-box.blue { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+    .arch-box.purple { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.3); }
+    .arch-box.amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); }
+    .arch-box.green { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); }
+    .arch-box.red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
+    .arch-arrow { text-align: center; font-size: 1.5rem; color: #334155; padding: 0.25rem 0; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #080f1a; border-top: 1px solid rgba(255,255,255,0.05);
+      text-align: center; padding: 2rem; font-size: 0.8rem; color: #334155;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      section { padding: 5rem 1rem 3rem; }
+      .hero-stats { gap: 1.5rem; }
+      .flow-step { flex-direction: column; gap: 1rem; }
+    }
+
+    /* ===== SCROLL PROGRESS ===== */
+    #progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,#0d9488,#8b5cf6); z-index: 9999; transition: width 0.1s; }
+
+    /* ===== DECORATIVE ===== */
+    .glow-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #2dd4bf;
+      display: inline-block; margin-right: 6px; animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-brand">🏫 Kurmon SIS</div>
+  <div class="nav-links">
+    <a href="#hero">Beranda</a>
+    <a href="#arsitektur">Arsitektur</a>
+    <a href="#fitur">Fitur</a>
+    <a href="#roles">Peran</a>
+    <a href="#alur">Alur</a>
+    <a href="#stack">Stack</a>
+    <a href="#audit">Audit</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-badge">
+    <span>Sistem Informasi Sekolah</span>
+    <span>v1.0.0</span>
+  </div>
+  <h1 class="hero-title">Kurmon<br/>School System</h1>
+  <p class="hero-sub">
+    Platform manajemen sekolah komprehensif berbasis web — mencakup penjadwalan otomatis, monitoring PKL, kehadiran berbasis fingerprint & GPS, kedisiplinan, dan komunikasi sekolah dalam satu ekosistem terintegrasi.
+  </p>
+  <div class="hero-stats">
+    <div class="stat-pill">
+      <span class="num">9+</span>
+      <span class="lbl">Role Pengguna</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num">50+</span>
+      <span class="lbl">Fitur & Modul</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num">7</span>
+      <span class="lbl">API Routes Backend</span>
+    </div>
+    <div class="stat-pill">
+      <span class="num">100+</span>
+      <span class="lbl">Komponen React</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ARSITEKTUR ===== -->
+<section id="arsitektur">
+  <div class="sec-header">
+    <span class="sec-label">Arsitektur Sistem</span>
+    <h2 class="sec-title">Dua Layer Aplikasi<br/>Satu Ekosistem</h2>
+    <p class="sec-desc">Frontend SPA + Backend Node.js + PostgreSQL + AWS S3 dengan integrasi perangkat Hikvision untuk absensi fingerprint.</p>
+  </div>
+
+  <div class="arch-layer">
+    <div class="arch-layer-title">🌐 Layer Klien (Browser)</div>
+    <div class="arch-row">
+      <div class="arch-box teal">⚛️ React 19 + Vite</div>
+      <div class="arch-box teal">🗂️ Zustand State</div>
+      <div class="arch-box teal">🎨 TailwindCSS v4</div>
+      <div class="arch-box teal">🛣️ React Router v7</div>
+      <div class="arch-box blue">📊 Recharts</div>
+      <div class="arch-box blue">🗺️ Leaflet Maps</div>
+      <div class="arch-box blue">📄 XLSX / jsPDF</div>
+    </div>
+  </div>
+
+  <div class="arch-arrow">⬇ HTTP / REST API (Proxy Vite)</div>
+
+  <div class="arch-layer">
+    <div class="arch-layer-title">⚙️ Layer Server (Node.js)</div>
+    <div class="arch-row">
+      <div class="arch-box purple">🔐 auth.mjs — JWT + bcrypt</div>
+      <div class="arch-box purple">📦 data.mjs — CRUD Payload</div>
+      <div class="arch-box purple">🎒 pkl.mjs — Monitoring PKL</div>
+      <div class="arch-box purple">👮 kedisiplinan.mjs</div>
+      <div class="arch-box purple">📝 jurnal.mjs — KBM Harian</div>
+      <div class="arch-box amber">📡 hikvision.mjs — Fingerprint</div>
+      <div class="arch-box amber">⚙️ settings.mjs</div>
+      <div class="arch-box green">⏰ node-cron — Scheduled Jobs</div>
+    </div>
+  </div>
+
+  <div class="arch-arrow">⬇ pg (PostgreSQL Driver) + S3 SDK</div>
+
+  <div class="arch-layer">
+    <div class="arch-layer-title">🗄️ Layer Data & Infrastruktur</div>
+    <div class="arch-row">
+      <div class="arch-box green">🐘 PostgreSQL</div>
+      <div class="arch-box blue">☁️ AWS S3 — Backup & Media</div>
+      <div class="arch-box amber">📡 Hikvision API — Device Absensi</div>
+      <div class="arch-box red">📁 Local JSON Fallback (offline)</div>
+      <div class="arch-box teal">🔑 JWT Token Auth</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FITUR UTAMA ===== -->
+<section id="fitur">
+  <div class="sec-header">
+    <span class="sec-label">Modul & Fitur</span>
+    <h2 class="sec-title">Seluruh Kebutuhan Sekolah<br/>Dalam Satu Platform</h2>
+    <p class="sec-desc">Dari penjadwalan otomatis, monitoring PKL, kehadiran biometrik, hingga administrasi akademik.</p>
+  </div>
+
+  <div class="grid-2" style="max-width:1100px; margin: 0 auto;">
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(13,148,136,0.15);">📅</div>
+      <div>
+        <h3>Generate Jadwal Otomatis</h3>
+        <p>Algoritma generate jadwal mengajar berbasis constraint — beban guru, ketersediaan waktu, kapasitas ruangan, aturan distribusi mata pelajaran, blok JP, dan konflik jadwal otomatis terdeteksi.</p>
+        <div class="flow-tags">
+          <span class="tag teal">Constraint-based</span>
+          <span class="tag blue">Konflik Detection</span>
+          <span class="tag green">Export Excel/PDF</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(139,92,246,0.15);">🎒</div>
+      <div>
+        <h3>Monitoring PKL Siswa</h3>
+        <p>Sistem lengkap Praktik Kerja Lapangan — penugasan guru pembimbing, logbook harian siswa, validasi jurnal, absensi GPS berbasis lokasi, laporan kunjungan, dan administrasi dokumen PKL.</p>
+        <div class="flow-tags">
+          <span class="tag purple">GPS Tracking</span>
+          <span class="tag blue">Logbook Digital</span>
+          <span class="tag amber">Validasi Guru</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(245,158,11,0.15);">👆</div>
+      <div>
+        <h3>Absensi Hikvision Fingerprint</h3>
+        <p>Integrasi langsung dengan perangkat biometrik Hikvision. Data kehadiran guru & karyawan real-time, rekap harian/mingguan/bulanan, laporan keterlambatan, dan export ke Excel/PDF siap cetak.</p>
+        <div class="flow-tags">
+          <span class="tag amber">Biometric</span>
+          <span class="tag teal">Real-time Sync</span>
+          <span class="tag green">Rekap Otomatis</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(239,68,68,0.15);">🛡️</div>
+      <div>
+        <h3>Kedisiplinan & BK</h3>
+        <p>Pencatatan pelanggaran siswa dengan sistem poin (skor kredit tatib), catatan BP/BK, riwayat prestasi, jadwal piket guru, panel piket harian, catatan wali kelas, dan rekap kedisiplinan komprehensif.</p>
+        <div class="flow-tags">
+          <span class="tag red">Skor Tatib</span>
+          <span class="tag purple">Catatan BK</span>
+          <span class="tag blue">Jadwal Piket</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(34,197,94,0.15);">📖</div>
+      <div>
+        <h3>Jurnal Harian KBM Guru</h3>
+        <p>Guru mengisi jurnal kegiatan belajar mengajar setiap hari berdasarkan jadwal mengajar. Tersinkron dengan data kelas, absensi siswa, metode pembelajaran, materi, dan catatan. Rekap per guru tersedia untuk kurikulum.</p>
+        <div class="flow-tags">
+          <span class="tag green">Auto-slot Jadwal</span>
+          <span class="tag teal">Rekap Per Guru</span>
+          <span class="tag blue">Export Excel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(6,182,212,0.15);">📱</div>
+      <div>
+        <h3>Portal Publik & Informasi</h3>
+        <p>Halaman publik untuk jadwal pelajaran, silabus, kalender akademik, denah ruangan, struktur organisasi, dan lokasi PKL siswa — dapat diakses tanpa login. QR Code untuk validasi siswa.</p>
+        <div class="flow-tags">
+          <span class="tag blue">Public Access</span>
+          <span class="tag teal">QR Code</span>
+          <span class="tag purple">Leaflet Maps</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(59,130,246,0.15);">🗂️</div>
+      <div>
+        <h3>Silabus & Modul Ajar</h3>
+        <p>Guru dapat mengelola silabus per mata pelajaran dan kelas, input batch via CSV, pengelompokan per kategori dan semester. Wali kelas dan kurikulum dapat memantau progress modul ajar secara terpusat.</p>
+        <div class="flow-tags">
+          <span class="tag blue">Batch Import CSV</span>
+          <span class="tag teal">Per Semester</span>
+          <span class="tag green">Kategori Custom</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-big">
+      <div class="feature-big-icon" style="background:rgba(245,158,11,0.15);">🎨</div>
+      <div>
+        <h3>Kustomisasi Tampilan Penuh</h3>
+        <p>Admin dapat mengubah nama aplikasi, logo, warna primer, tipografi, radius UI, dan branding sekolah. Tampilan website publik dapat dikelola langsung dari panel admin tanpa coding.</p>
+        <div class="flow-tags">
+          <span class="tag amber">Live Preview</span>
+          <span class="tag purple">Custom CSS</span>
+          <span class="tag teal">Branding Sekolah</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ROLES ===== -->
+<section id="roles">
+  <div class="sec-header">
+    <span class="sec-label">Manajemen Peran</span>
+    <h2 class="sec-title">9 Peran Pengguna<br/>Akses Berbasis Hak</h2>
+    <p class="sec-desc">Setiap peran memiliki tampilan sidebar dan akses fitur yang berbeda sesuai fungsi dan tanggung jawabnya.</p>
+  </div>
+
+  <div class="grid-3" style="max-width:1200px; margin: 0 auto;">
+
+    <div class="role-card" style="--rc:#ef4444;">
+      <div class="role-badge" style="color:#fca5a5;background:rgba(239,68,68,0.12);">SuperAdmin</div>
+      <div class="role-name">Admin / Super Admin</div>
+      <div class="role-desc">Akses penuh ke seluruh sistem termasuk manajemen database dan pengaturan global.</div>
+      <ul class="role-features" style="--rc:#ef4444;">
+        <li>Generate & kelola jadwal otomatis</li>
+        <li>Manajemen master data (guru, siswa, kelas)</li>
+        <li>Konfigurasi waktu & aturan jadwal</li>
+        <li>Monitoring absensi Hikvision</li>
+        <li>Manajemen PKL & hubin</li>
+        <li>Backup database & export data</li>
+        <li>Kustomisasi tampilan & branding</li>
+        <li>Pengaturan hak akses & fitur</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#8b5cf6;">
+      <div class="role-badge" style="color:#c4b5fd;background:rgba(139,92,246,0.12);">Waka</div>
+      <div class="role-name">Wakil Kepala Sekolah</div>
+      <div class="role-desc">4 divisi berbeda: Kurikulum, Kesiswaan, Sarpras, Humas, Hubin.</div>
+      <ul class="role-features" style="--rc:#8b5cf6;">
+        <li>Kurikulum: Jadwal, beban, silabus, jurnal</li>
+        <li>Kesiswaan: Absensi, kedisiplinan, BK</li>
+        <li>Sarpras: Ruangan, denah, kelas</li>
+        <li>Humas: Tampilan web, kalender, pesan</li>
+        <li>Hubin: Monitoring PKL & laporan</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#06b6d4;">
+      <div class="role-badge" style="color:#67e8f9;background:rgba(6,182,212,0.12);">Guru</div>
+      <div class="role-name">Guru / Tenaga Pengajar</div>
+      <div class="role-desc">Akses jadwal pribadi, jurnal KBM, absensi, modul ajar, dan piket.</div>
+      <ul class="role-features" style="--rc:#06b6d4;">
+        <li>Lihat jadwal mengajar pribadi</li>
+        <li>Isi jurnal harian KBM per slot</li>
+        <li>Kelola modul ajar & silabus</li>
+        <li>Cek absensi fingerprint pribadi</li>
+        <li>Jadwal piket harian</li>
+        <li>Laporan wali kelas (jika walas)</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#0d9488;">
+      <div class="role-badge" style="color:#2dd4bf;background:rgba(13,148,136,0.12);">Kepsek</div>
+      <div class="role-name">Kepala Sekolah</div>
+      <div class="role-desc">Monitoring keseluruhan sekolah tanpa akses edit data operasional.</div>
+      <ul class="role-features" style="--rc:#0d9488;">
+        <li>Pantau jadwal pelajaran</li>
+        <li>Rekap absensi seluruh sekolah</li>
+        <li>Monitoring PKL siswa</li>
+        <li>Laporan PKL & penugasan guru</li>
+        <li>Pesan dashboard</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#f59e0b;">
+      <div class="role-badge" style="color:#fcd34d;background:rgba(245,158,11,0.12);">TU</div>
+      <div class="role-name">Tata Usaha</div>
+      <div class="role-desc">Fokus pada data master siswa/guru dan administrasi dokumen.</div>
+      <ul class="role-features" style="--rc:#f59e0b;">
+        <li>Data Siswa, Guru, Karyawan</li>
+        <li>Rekap absensi siswa</li>
+        <li>E-Surat & administrasi</li>
+        <li>Kartu Pelajar</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#22c55e;">
+      <div class="role-badge" style="color:#86efac;background:rgba(34,197,94,0.12);">Karyawan</div>
+      <div class="role-name">Karyawan / Staf</div>
+      <div class="role-desc">Akses terbatas untuk melihat absensi fingerprint pribadi.</div>
+      <ul class="role-features" style="--rc:#22c55e;">
+        <li>Dashboard pribadi</li>
+        <li>Cek rekap absensi fingerprint</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#3b82f6;">
+      <div class="role-badge" style="color:#93c5fd;background:rgba(59,130,246,0.12);">Siswa</div>
+      <div class="role-name">Siswa PKL</div>
+      <div class="role-desc">Portal monitoring PKL berbasis lokasi dengan logbook digital.</div>
+      <ul class="role-features" style="--rc:#3b82f6;">
+        <li>Dashboard status PKL</li>
+        <li>Absensi berbasis GPS</li>
+        <li>Isi logbook harian</li>
+        <li>Lihat lokasi PKL di peta</li>
+        <li>Riwayat absensi & profil</li>
+        <li>Administrasi dokumen PKL</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#f97316;">
+      <div class="role-badge" style="color:#fdba74;background:rgba(249,115,22,0.12);">Guru PKL</div>
+      <div class="role-name">Guru Pembimbing PKL</div>
+      <div class="role-desc">Portal khusus untuk pembimbing PKL terpisah dari portal guru reguler.</div>
+      <ul class="role-features" style="--rc:#f97316;">
+        <li>Dashboard siswa binaan</li>
+        <li>Kunjungan lapangan PKL</li>
+        <li>Validasi jurnal siswa</li>
+        <li>Kelola administrasi PKL</li>
+        <li>Laporan monitoring</li>
+      </ul>
+    </div>
+
+    <div class="role-card" style="--rc:#ec4899;">
+      <div class="role-badge" style="color:#f9a8d4;background:rgba(236,72,153,0.12);">Piket</div>
+      <div class="role-name">Guru Piket</div>
+      <div class="role-desc">Akses panel piket harian untuk mencatat kehadiran dan pelanggaran siswa.</div>
+      <ul class="role-features" style="--rc:#ec4899;">
+        <li>Panel piket harian</li>
+        <li>Rekap kehadiran kelas</li>
+        <li>Catat pelanggaran siswa</li>
+        <li>Jadwal piket rotasi</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ALUR PENGGUNA ===== -->
+<section id="alur">
+  <div class="sec-header">
+    <span class="sec-label">Alur Sistem</span>
+    <h2 class="sec-title">Flow Lengkap<br/>Dari Login ke Fitur</h2>
+    <p class="sec-desc">Bagaimana sistem bekerja dari inisiasi pertama hingga penggunaan fitur-fitur utama.</p>
+  </div>
+
+  <div class="flow-container">
+
+    <h3 style="color:#64748b;font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem;padding-left:0.5rem;">🚀 Inisiasi & Login</h3>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#0d9488;--c2:#06b6d4;">1</div>
+      <div>
+        <h4>App Bootstrap & Database Load</h4>
+        <p>App.jsx memanggil <code>/api/data/public</code> untuk load snapshot database. Data publik (jadwal, kalender, silabus) di-cache ke localStorage sebagai offline fallback. Branding sekolah (warna, logo, nama) langsung diterapkan ke dokumen.</p>
+        <div class="flow-tags">
+          <span class="tag teal">Fetch /api/data/public</span>
+          <span class="tag blue">LocalStorage Cache</span>
+          <span class="tag green">Offline Fallback</span>
+          <span class="tag purple">Dynamic Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#8b5cf6;--c2:#ec4899;">2</div>
+      <div>
+        <h4>Halaman Login dengan Rate Limiting</h4>
+        <p>Form login di <code>Login.jsx</code> mengirim POST ke <code>/api/auth/login</code>. Server menerapkan rate limiting per-username dan per-IP (max 10 percobaan). Token JWT dikembalikan dan disimpan di sessionStorage. CAPTCHA tersedia untuk reset password.</p>
+        <div class="flow-tags">
+          <span class="tag red">Rate Limiting</span>
+          <span class="tag amber">CAPTCHA Verif</span>
+          <span class="tag teal">JWT Token</span>
+          <span class="tag purple">Session Storage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#06b6d4;--c2:#0d9488;">3</div>
+      <div>
+        <h4>Role-based Dashboard Routing</h4>
+        <p>Setelah login berhasil, <code>AdminApp.jsx</code> mendeteksi role pengguna (admin, waka, guru, kepsek, dll) dan merender sidebar serta konten yang sesuai. Setiap tab di sidebar dirender oleh <code>AdminContentRouter.jsx</code>.</p>
+        <div class="flow-tags">
+          <span class="tag blue">Role Detection</span>
+          <span class="tag teal">Dynamic Sidebar</span>
+          <span class="tag green">Feature Flags</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color:#64748b;font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;margin:2rem 0 1rem;padding-left:0.5rem;">📅 Alur Penjadwalan</h3>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#f59e0b;--c2:#ef4444;">4</div>
+      <div>
+        <h4>Input Master Data (Guru, Kelas, Mapel, Ruangan)</h4>
+        <p>Admin/Waka Kurikulum mengisi data master melalui tab terpisah. Tersedia bulk import via CSV atau Excel. Data tersinkron ke PostgreSQL melalui <code>saveDatabaseNow()</code> dan disinkronkan ke auth snapshot untuk login guru.</p>
+        <div class="flow-tags">
+          <span class="tag amber">Bulk Import CSV</span>
+          <span class="tag blue">PostgreSQL Sync</span>
+          <span class="tag green">Auth Snapshot Sync</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#22c55e;--c2:#06b6d4;">5</div>
+      <div>
+        <h4>Konfigurasi Beban & Ketersediaan</h4>
+        <p>Waka Kurikulum mengatur beban mengajar guru per mapel per kelas/jurusan (termasuk bulk multi-kelas), dan ketersediaan jam mengajar per hari. Aturan lanjutan (advanced rules) untuk distribusi mata pelajaran juga dapat dikonfigurasi.</p>
+        <div class="flow-tags">
+          <span class="tag green">Beban Mengajar</span>
+          <span class="tag teal">Availability Matrix</span>
+          <span class="tag purple">Advanced Rules</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#0d9488;--c2:#8b5cf6;">6</div>
+      <div>
+        <h4>Generate Jadwal Otomatis</h4>
+        <p>Sistem mengevaluasi kesiapan data (readiness check), kemudian menjalankan algoritma penjadwalan yang mempertimbangkan beban guru, ketersediaan, kapasitas ruangan, aturan blok JP, dan konflik. Hasil dapat diedit manual, dipreview, dan diekspor.</p>
+        <div class="flow-tags">
+          <span class="tag teal">Readiness Check</span>
+          <span class="tag purple">Constraint Algorithm</span>
+          <span class="tag blue">Manual Edit</span>
+          <span class="tag green">Export Excel/PDF</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color:#64748b;font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;margin:2rem 0 1rem;padding-left:0.5rem;">🎒 Alur PKL Siswa</h3>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#8b5cf6;--c2:#f97316;">7</div>
+      <div>
+        <h4>Pendaftaran & Penugasan PKL</h4>
+        <p>Admin/Hubin menginput data perusahaan mitra, mendaftarkan siswa ke program PKL secara manual, dan menugaskan guru pembimbing. Data siswa dari mst_students <em>tidak</em> otomatis terdaftar — harus manual untuk kontrol kualitas.</p>
+        <div class="flow-tags">
+          <span class="tag purple">Manual Register</span>
+          <span class="tag amber">Penugasan Guru</span>
+          <span class="tag blue">Data Perusahaan</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#06b6d4;--c2:#22c55e;">8</div>
+      <div>
+        <h4>Monitoring Harian Siswa PKL</h4>
+        <p>Siswa login ke portal <code>/student</code>, mengisi logbook harian, absensi berbasis GPS (verifikasi koordinat ke radius lokasi perusahaan). Guru pembimbing dapat memvalidasi jurnal dan mencatat kunjungan lapangan dari portal <code>/pkl-teacher</code>.</p>
+        <div class="flow-tags">
+          <span class="tag teal">GPS Absensi</span>
+          <span class="tag green">Logbook Digital</span>
+          <span class="tag blue">Validasi Guru</span>
+          <span class="tag amber">Kunjungan Lapangan</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color:#64748b;font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;margin:2rem 0 1rem;padding-left:0.5rem;">👆 Alur Absensi Hikvision</h3>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#f59e0b;--c2:#f97316;">9</div>
+      <div>
+        <h4>Sinkronisasi Perangkat Fingerprint</h4>
+        <p>Admin mengonfigurasi perangkat Hikvision melalui modul <code>hikvision.mjs</code>. Data absensi ditarik secara otomatis via <code>node-cron</code> (scheduled job). Enkripsi password perangkat menggunakan AES untuk keamanan.</p>
+        <div class="flow-tags">
+          <span class="tag amber">Hikvision API</span>
+          <span class="tag red">AES Encryption</span>
+          <span class="tag purple">Cron Job</span>
+          <span class="tag green">Auto-fetch</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="--c:#22c55e;--c2:#0d9488;">10</div>
+      <div>
+        <h4>Rekap & Laporan Kehadiran</h4>
+        <p>Data mentah dari mesin absensi diolah menjadi rekap harian, mingguan, dan bulanan per individu. Tersedia laporan terpisah untuk guru, karyawan, dan siswa. Export langsung ke Excel yang siap cetak/distribusi.</p>
+        <div class="flow-tags">
+          <span class="tag green">Rekap Harian</span>
+          <span class="tag teal">Per Individu</span>
+          <span class="tag blue">Export Excel</span>
+          <span class="tag purple">Print-ready</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== TECH STACK ===== -->
+<section id="stack">
+  <div class="sec-header">
+    <span class="sec-label">Technology Stack</span>
+    <h2 class="sec-title">Teknologi yang Digunakan</h2>
+    <p class="sec-desc">Stack modern yang dioptimasi untuk performa, maintainability, dan pengalaman developer.</p>
+  </div>
+
+  <div style="max-width:1100px;margin:0 auto;">
+    <h3 style="color:#2dd4bf;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">🖥️ Frontend</h3>
+    <div class="grid-4" style="margin-bottom:2rem;">
+      <div class="tech-item"><span class="tech-icon">⚛️</span><div><div class="tech-name">React 19</div><div class="tech-type">UI Library</div></div></div>
+      <div class="tech-item"><span class="tech-icon">⚡</span><div><div class="tech-name">Vite 8</div><div class="tech-type">Build Tool</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🎨</span><div><div class="tech-name">TailwindCSS v4</div><div class="tech-type">Styling</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🐻</span><div><div class="tech-name">Zustand v5</div><div class="tech-type">State Management</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🛣️</span><div><div class="tech-name">React Router v7</div><div class="tech-type">Routing</div></div></div>
+      <div class="tech-item"><span class="tech-icon">📊</span><div><div class="tech-name">Recharts</div><div class="tech-type">Visualisasi Data</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🗺️</span><div><div class="tech-name">Leaflet + React-Leaflet</div><div class="tech-type">Peta Interaktif</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🎯</span><div><div class="tech-name">Lucide React</div><div class="tech-type">Icon Library</div></div></div>
+      <div class="tech-item"><span class="tech-icon">📄</span><div><div class="tech-name">XLSX + jsPDF</div><div class="tech-type">Export Dokumen</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🖼️</span><div><div class="tech-name">html2canvas</div><div class="tech-type">Screenshot</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🔲</span><div><div class="tech-name">@tanstack/virtual</div><div class="tech-type">Virtual Scroll</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🎛️</span><div><div class="tech-name">Base UI / Radix</div><div class="tech-type">Headless UI</div></div></div>
+    </div>
+
+    <h3 style="color:#a78bfa;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">⚙️ Backend</h3>
+    <div class="grid-4" style="margin-bottom:2rem;">
+      <div class="tech-item"><span class="tech-icon">🟢</span><div><div class="tech-name">Node.js ESM</div><div class="tech-type">Runtime</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🐘</span><div><div class="tech-name">PostgreSQL (pg)</div><div class="tech-type">Database</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🔐</span><div><div class="tech-name">JWT + bcrypt</div><div class="tech-type">Autentikasi</div></div></div>
+      <div class="tech-item"><span class="tech-icon">⏰</span><div><div class="tech-name">node-cron</div><div class="tech-type">Scheduled Jobs</div></div></div>
+      <div class="tech-item"><span class="tech-icon">☁️</span><div><div class="tech-name">AWS S3 SDK</div><div class="tech-type">Cloud Storage</div></div></div>
+      <div class="tech-item"><span class="tech-icon">📊</span><div><div class="tech-name">XLSX (server)</div><div class="tech-type">Parsing Excel</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🌐</span><div><div class="tech-name">Google APIs</div><div class="tech-type">OAuth / Sheets</div></div></div>
+      <div class="tech-item"><span class="tech-icon">📡</span><div><div class="tech-name">WebSocket (ws)</div><div class="tech-type">Real-time</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🔍</span><div><div class="tech-name">QRCode</div><div class="tech-type">QR Generator</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🤖</span><div><div class="tech-name">Puppeteer</div><div class="tech-type">Headless Browser</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🔒</span><div><div class="tech-name">AES Encryption</div><div class="tech-type">Device Passwords</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🏗️</span><div><div class="tech-name">Laragon / Nginx</div><div class="tech-type">Web Server</div></div></div>
+    </div>
+
+    <h3 style="color:#6ee7b7;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">🛠️ Developer Tools</h3>
+    <div class="grid-4">
+      <div class="tech-item"><span class="tech-icon">🔍</span><div><div class="tech-name">ESLint</div><div class="tech-type">Code Quality</div></div></div>
+      <div class="tech-item"><span class="tech-icon">✅</span><div><div class="tech-name">Node.js Test</div><div class="tech-type">Unit Testing</div></div></div>
+      <div class="tech-item"><span class="tech-icon">📝</span><div><div class="tech-name">Babel / Traverse</div><div class="tech-type">Code Analysis</div></div></div>
+      <div class="tech-item"><span class="tech-icon">🔑</span><div><div class="tech-name">.env Config</div><div class="tech-type">Environment</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== AUDIT ===== -->
+<section id="audit">
+  <div class="sec-header">
+    <span class="sec-label">Audit Sistem</span>
+    <h2 class="sec-title">Keamanan, Performa<br/>& Temuan Bug</h2>
+    <p class="sec-desc">Hasil audit menyeluruh terhadap keamanan, performa, dan potensi bug pada sistem.</p>
+  </div>
+
+  <div class="audit-section">
+
+    <div class="audit-group">
+      <div class="audit-group-title">🔐 Keamanan (Security)</div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>JWT Token Auth + Rate Limiting</h4>
+          <p>Setiap request ke API dilindungi JWT. Rate limiting aktif per-username dan per-IP (max 10 percobaan login). CAPTCHA tersedia untuk fitur lupa password.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Password Hashing bcrypt</h4>
+          <p>Semua password disimpan dalam bentuk bcrypt hash. Verifikasi menggunakan timing-safe comparison. Password plaintext tidak pernah disimpan.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Enkripsi Password Perangkat Hikvision</h4>
+          <p>Password mesin fingerprint dienkripsi dengan AES sebelum disimpan ke database. Dekripsi hanya dilakukan server-side saat request ke perangkat.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>CORS Policy Diatur Ketat</h4>
+          <p>Konfigurasi CORS di <code>cors.mjs</code> mengizinkan origin yang terdaftar saja. Tidak ada wildcard CORS terbuka.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Password Strip dari Payload Publik</h4>
+          <p>Saat load data publik di App.jsx, field <code>password</code> admin dan guru di-strip sebelum disimpan ke localStorage (tidak ada password hash di client-side storage).</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>Password Default Lemah (123456 / 123)</h4>
+          <p>Guru dan karyawan baru dibuat dengan password default <code>123</code> (3 karakter). Meski bisa login dengan hash lama, sangat disarankan menambahkan mekanisme "force change password" untuk pengguna baru.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>LocalStorage Menyimpan Snapshot DB (tanpa enkripsi)</h4>
+          <p>Data publik (tanpa password) di-cache ke localStorage untuk offline mode. Jika perangkat diakses pihak lain, data sekolah seperti jadwal dan profil bisa dibaca. Perlu enkripsi atau TTL expiry.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>Token JWT Tidak Ada Revokasi (Blacklist)</h4>
+          <p>Token JWT valid sampai expire. Tidak ada mekanisme logout aktif yang menginvalidasi token di server. Logout hanya menghapus token dari client. Perlu implementasi token blacklist atau refresh token pattern.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="audit-group">
+      <div class="audit-group-title">⚡ Performa (Performance)</div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Code Splitting & Lazy Loading</h4>
+          <p>Seluruh halaman dimuat via <code>React.lazy() + Suspense</code>. Bundle dibagi per kategori: react, charts, icons, xlsx, pdf, maps melalui <code>manualChunks</code> di Vite config. Mengurangi initial bundle secara signifikan.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Virtual Scroll untuk Tabel Besar</h4>
+          <p>Menggunakan <code>@tanstack/react-virtual</code> untuk rendering tabel dengan data besar (siswa, jadwal, dll). Hanya baris yang terlihat di viewport yang di-render.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Offline Fallback dari LocalStorage</h4>
+          <p>Jika server tidak dapat dijangkau, data terakhir dari localStorage digunakan untuk tetap menampilkan konten (bukan halaman error kosong).</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>AdminApp.jsx Terlalu Besar (160KB, ~3716 Baris)</h4>
+          <p>File utama AdminApp.jsx sangat besar dan berisi terlalu banyak state, logic, dan komponen. Ini menyebabkan re-render tidak efisien dan menyulitkan maintenance. Perlu dipecah ke custom hooks dan komponen terpisah.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>DashboardPage.jsx Terlalu Besar (99KB)</h4>
+          <p>File dashboard juga sangat besar. Komponen stat cards, shortcuts, dan chart sebaiknya dipecah ke file terpisah untuk performa React reconciliation.</p>
+        </div>
+      </div>
+
+      <div class="audit-item info">
+        <span class="audit-badge">ℹ INFO</span>
+        <div class="audit-text">
+          <h4>Tidak Ada Server-Side Pagination di Beberapa Endpoint</h4>
+          <p>Beberapa endpoint mengembalikan seluruh data sekaligus. Untuk sekolah dengan data besar, perlu implementasi pagination server-side untuk endpoint seperti daftar siswa dan rekap absensi.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="audit-group">
+      <div class="audit-group-title">🐛 Bug & Potensi Masalah</div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ FIXED</span>
+        <div class="audit-text">
+          <h4>[DIPERBAIKI] Password Minimum 8 Karakter Memblokir Login Default</h4>
+          <p>Validasi minimum 8 karakter mencegah login dengan password lama <code>123456</code> (6 karakter). Sudah diperbaiki — minimum diturunkan ke 6 karakter di frontend dan backend.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ FIXED</span>
+        <div class="audit-text">
+          <h4>[DIPERBAIKI] Layout Mobile Jurnal Harian Guru Berantakan</h4>
+          <p>Filter dropdown dan statistik tidak responsif di mobile. Sudah diperbaiki — grid dan filter menyesuaikan ukuran layar.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>Auto-sync PKL Dihapus Tapi Comment Tidak Jelas</h4>
+          <p>Dalam <code>auth-server.mjs</code> terdapat komentar bahwa auto-sync siswa ke PKL dihapus karena menyebabkan semua siswa terhitung sebagai peserta PKL. Perlu dokumentasi yang lebih jelas untuk tim developer.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>Scratch Files di Folder src/</h4>
+          <p>Terdapat 3 file scratch (<code>scratch_find_teachers_state.mjs</code>, <code>scratch_search_adminapp_useeffect.mjs</code>, <code>scratch_search_loading_adminapp.mjs</code>) di dalam <code>src/</code> yang seharusnya tidak ada di production.</p>
+        </div>
+      </div>
+
+      <div class="audit-item warn">
+        <span class="audit-badge">⚠ WARN</span>
+        <div class="audit-text">
+          <h4>ESLint: Banyak Warning react-hooks/exhaustive-deps</h4>
+          <p>File besar seperti AdminApp.jsx dan AdminSidebar.jsx menggunakan <code>eslint-disable</code> global untuk menekan error. Ini menyembunyikan potensi bug seperti stale closure dan missing dependency di useEffect.</p>
+        </div>
+      </div>
+
+      <div class="audit-item info">
+        <span class="audit-badge">ℹ INFO</span>
+        <div class="audit-text">
+          <h4>Scroll Position Sidebar Memakai sessionStorage Langsung</h4>
+          <p>Di <code>AdminSidebar.jsx</code> posisi scroll disimpan langsung ke sessionStorage. Lebih baik menggunakan state management (Zustand) untuk konsistensi.</p>
+        </div>
+      </div>
+
+      <div class="audit-item info">
+        <span class="audit-badge">ℹ INFO</span>
+        <div class="audit-text">
+          <h4>Sidebar Fetch API di useEffect Tanpa AbortController</h4>
+          <p>Fetch jadwal piket di AdminSidebar.jsx tidak menggunakan <code>AbortController</code>. Jika komponen unmount sebelum response, akan terjadi memory leak / state update on unmounted component.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="audit-group">
+      <div class="audit-group-title">✅ Fitur & Completeness</div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Error Boundary Global</h4>
+          <p>App dibungkus <code>ErrorBoundary.jsx</code> sehingga crash komponen tidak merusak seluruh aplikasi. Pengguna melihat UI fallback yang informatif.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Feature Flags Terpusat</h4>
+          <p>Fitur dapat diaktifkan/nonaktifkan melalui <code>featureSettings</code> di database tanpa perlu deployment ulang. Admin dapat toggle fitur melalui UI manajemen fitur.</p>
+        </div>
+      </div>
+
+      <div class="audit-item ok">
+        <span class="audit-badge">✓ OK</span>
+        <div class="audit-text">
+          <h4>Cloud Backup ke AWS S3</h4>
+          <p>Data database dapat dibackup ke AWS S3. Mendukung restore dari backup cloud tanpa ketergantungan penuh pada storage lokal.</p>
+        </div>
+      </div>
+
+      <div class="audit-item info">
+        <span class="audit-badge">ℹ INFO</span>
+        <div class="audit-text">
+          <h4>Beberapa Modul Masih Placeholder</h4>
+          <p>Beberapa file seperti <code>BKDashboard.jsx</code> (1.2KB), <code>MasterPoin.jsx</code> (341B), <code>LaporanAbsensi.jsx</code>, <code>ManajemenPiket.jsx</code> masih sangat minimal — belum memiliki implementasi penuh.</p>
+        </div>
+      </div>
+
+      <div class="audit-item info">
+        <span class="audit-badge">ℹ INFO</span>
+        <div class="audit-text">
+          <h4>Tidak Ada Unit / Integration Tests</h4>
+          <p>Script <code>npm run test</code> ada di package.json namun tidak ditemukan file test yang terimplementasi. Perlu coverage test terutama untuk logika generate jadwal dan auth.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p>🏫 <strong style="color:#2dd4bf;">Kurmon School Information System</strong> — Sistem Informasi Sekolah Terintegrasi</p>
+  <p style="margin-top:0.5rem;">React 19 + Vite + Node.js + PostgreSQL + Hikvision | © 2026</p>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const el = document.getElementById('progress');
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    el.style.width = (window.scrollY / total * 100) + '%';
+  });
+
+  // Intersection Observer animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.card, .feature-big, .role-card, .flow-step, .tech-item, .audit-item, .arch-layer').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Panduan Import Silabus Guru</title>
+</head>
+<body style="font-family:Calibri,Arial,sans-serif;font-size:14pt;line-height:1.7;max-width:900px;margin:24px auto;padding:0 12px;color:#333;">
+
+  <h1 style="color:#064e3b;border-bottom:2px solid #a3e635;padding-bottom:10px;">Panduan Mengisi & Import Silabus</h1>
+  <p>Selamat datang Bapak/Ibu Guru! Template Excel ini dibuat agar Anda lebih cepat dalam menginput data silabus (materi pembelajaran) secara massal ke dalam aplikasi.</p>
+  
+  <h2 style="color:#064e3b;">3 Langkah Mudah:</h2>
+  <ol>
+    <li><b>Unduh Template Silabus</b> yang tersedia di aplikasi.</li>
+    <li><b>Isi data</b> silabus Anda mulai dari baris ke-2. (<b>Penting:</b> Jangan ubah teks judul di baris pertama).</li>
+    <li><b>Simpan (Save)</b> file tersebut, lalu di aplikasi tekan tombol <b>Import Silabus</b> dan pilih file Excel tadi.</li>
+  </ol>
+
+  <h2 style="color:#064e3b;">Cara Mengisi Kolom Excel</h2>
+  <ul>
+    <li><b>Mata Pelajaran (wajib):</b> Isi dengan nama mata pelajaran yang Anda ampu (contoh: <i>Pemrograman Dasar</i>).</li>
+    <li><b>Guru Pengajar (wajib):</b> Masukkan Kode Guru Anda sendiri (contoh: <i>G01</i>).</li>
+    <li><b>Judul Pertemuan (wajib):</b> Isi dengan urutan atau bab pertemuan (contoh: <i>Pertemuan 1: Pengenalan Algoritma</i>).</li>
+    <li><b>Kelas / Semester:</b> Sasaran kelas materi ini (contoh: <i>X / Ganjil</i> atau <i>XII / Genap</i>).</li>
+    <li><b>Tujuan Pembelajaran:</b> Apa yang diharapkan setelah sesi ini (contoh: <i>Siswa dapat membuat flowchart dasar</i>).</li>
+    <li><b>Materi Pembelajaran:</b> Detail materi yang dibahas. 
+        <br/><br/>
+        <span style="background-color:#fff3cd;padding:8px 12px;border-radius:4px;display:inline-block;border:1px solid #ffeeba;">
+        💡 <b>TIPS PENTING:</b> Jika materi ada banyak dan berbentuk poin-poin (seperti daftar), Anda bisa menggunakan <b>Alt + Enter</b> di keyboard saat mengetik di dalam kotak Excel untuk membuat baris baru ke bawah.
+        </span>
+    </li>
+  </ul>
+
+  <h2 style="color:#e63946;">Kesalahan yang Sering Terjadi</h2>
+  <ul>
+    <li>Pastikan Kode Guru yang dimasukkan adalah milik Anda, bukan nama lengkap.</li>
+    <li>Jangan menghapus baris paling atas (Header). Sistem menggunakannya untuk membaca data.</li>
+  </ul>
+
+  <p>Selamat mencoba! Jika butuh bantuan lebih lanjut, silakan hubungi Administrator sekolah Anda.</p>
+
+</body>
+</html>
