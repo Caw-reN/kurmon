@@ -4,6 +4,7 @@ import useAuthStore from'../../store/monitoring/authStore.js';
 import { CheckCircle2, Check, User, Search, X, History, ChevronRight, Trash2 } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { Button } from '../../components/ui.jsx';
+import useFiturStore from'../../store/monitoring/fiturStore.js';
 
 
 const getViolationStyle = (poin) => {
@@ -17,12 +18,16 @@ export default function PanelPiket({ students = [], classes = [] }) {
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
   
+  const { isFiturAktif } = useFiturStore();
+  const isWaAutoPelanggaran = isFiturAktif('wa_auto_pelanggaran') ?? true;
+
   // Selected students for POS operations
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedViolations, setSelectedViolations] = useState([]);
   
   const authToken = useAuthStore(state => state.user?.authToken);
   const [toast, setToast] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmViolation, setConfirmViolation] = useState(false);
   const [history, setHistory] = useState([]);
@@ -146,12 +151,13 @@ export default function PanelPiket({ students = [], classes = [] }) {
   };
 
   const submitViolation = async () => {
+    setErrorMsg("");
     if (selectedStudents.length === 0) {
-       showToast("Pilih minimal 1 siswa terlebih dahulu!","error");
+       setErrorMsg("Pilih minimal 1 siswa terlebih dahulu!");
        return;
     }
     if (selectedViolations.length === 0) {
-       showToast("Pilih minimal 1 pelanggaran!","error");
+       setErrorMsg("Pilih minimal 1 pelanggaran!");
        return;
     }
     setIsSubmitting(true);
@@ -189,31 +195,33 @@ export default function PanelPiket({ students = [], classes = [] }) {
          const totalPoin = selectedViolations.reduce((sum, v) => sum + v.nilai_poin, 0);
 
          // Trigger WA notifications asynchronously
-         selectedStudents.forEach(student => {
-            const phone = student.phone || student.wa_ortu;
-            if (phone) {
-               fetch("/api/whatsapp/send", {
-                 method:"POST",
-                 headers: {"Content-Type":"application/json","Authorization": `Bearer ${authToken}` },
-                 body: JSON.stringify({
-                   phone: phone,
-                   message: `[INFO KEDISIPLINAN]\nNama: ${student.namaSiswa || student.name}\nPelanggaran: ${violationsStr}\nPoin Tambahan: +${totalPoin}\n\nMohon kerjasamanya untuk membimbing putra/putri Bapak/Ibu. Terima kasih.`,
-                   trigger_type:'kedisiplinan_cepat'
-                 })
-               }).catch(e => console.error("WA Trigger error", e));
-            }
-         });
+         if (isWaAutoPelanggaran) {
+           selectedStudents.forEach(student => {
+              const phone = student.phone || student.wa_ortu;
+              if (phone) {
+                 fetch("/api/whatsapp/send", {
+                   method:"POST",
+                   headers: {"Content-Type":"application/json","Authorization": `Bearer ${authToken}` },
+                   body: JSON.stringify({
+                     phone: phone,
+                     message: `[INFO KEDISIPLINAN]\nNama: ${student.namaSiswa || student.name}\nPelanggaran: ${violationsStr}\nPoin Tambahan: +${totalPoin}\n\nMohon kerjasamanya untuk membimbing putra/putri Bapak/Ibu. Terima kasih.`,
+                     trigger_type:'kedisiplinan_cepat'
+                   })
+                 }).catch(e => console.error("WA Trigger error", e));
+              }
+           });
+         }
 
          setSelectedStudents([]); // Clear selection after success
          setSelectedViolations([]); // Clear selected violations
          fetchHistory(); // Refresh history
          setConfirmViolation(false); // Close modal
       } else {
-         showToast("Ada kesalahan saat menyimpan beberapa data.","error");
+         setErrorMsg("Ada kesalahan saat menyimpan beberapa data.");
       }
     } catch (e) {
       console.error(e);
-      showToast("Gagal terhubung ke server.","error");
+      setErrorMsg("Gagal terhubung ke server.");
     } finally {
       setIsSubmitting(false);
     }
@@ -271,7 +279,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                   </div>
                   <h3 className="text-xl font-black text-slate-800 text-center mb-2">Konfirmasi Tindakan</h3>
                   <p className="text-slate-500 text-center text-sm mb-6">
-                     Anda akan menyimpan <strong className="text-slate-700">{selectedViolations.length} pelanggaran</strong> untuk <strong className="text-slate-700">{selectedStudents.length} siswa</strong>. Notifikasi WhatsApp akan <strong className="text-red-500">langsung dikirimkan</strong> ke orang tua masing-masing siswa (jika nomor terdaftar). Lanjutkan?
+                     Anda akan menyimpan <strong className="text-slate-700">{selectedViolations.length} pelanggaran</strong> untuk <strong className="text-slate-700">{selectedStudents.length} siswa</strong>. {isWaAutoPelanggaran ? <span className="text-red-500 font-bold">Notifikasi WhatsApp akan langsung dikirimkan ke orang tua masing-masing siswa (jika nomor terdaftar).</span> :"Notifikasi WhatsApp otomatis saat ini dinonaktifkan."} Lanjutkan?
                   </p>
                   
                   <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-600 mb-2 border-none max-h-[80px] overflow-y-auto">
@@ -283,6 +291,13 @@ export default function PanelPiket({ students = [], classes = [] }) {
                      <span className="font-bold text-slate-700 block mb-1">Daftar Siswa:</span>
                      {selectedStudents.map(s => s.namaSiswa || s.name).join(",")}
                   </div>
+
+                  {errorMsg && (
+                    <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mb-4">
+                      <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{errorMsg}</span>
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                      <Button
@@ -448,6 +463,13 @@ export default function PanelPiket({ students = [], classes = [] }) {
                )}
             </div>
 
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mb-4">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{errorMsg}</span>
+              </div>
+            )}
+            
             <div className="flex justify-end pt-4 border-t border-slate-100">
                <Button
                   onClick={() => setConfirmViolation(true)}

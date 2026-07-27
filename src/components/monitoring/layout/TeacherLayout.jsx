@@ -77,7 +77,7 @@ const TeacherLayout = () => {
               end={item.end}
               className={({ isActive }) => ['flex items-center gap-3 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-[13px] font-bold transition-all',
                 isActive 
-                  ?'bg-[var(--ui-primary)] text-white shadow-sm' 
+                  ?'bg-[var(--ui-primary)] text-white' 
                   :'text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)]'
               ].join('')}
             >

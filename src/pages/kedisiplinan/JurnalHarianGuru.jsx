@@ -117,14 +117,20 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     }));
   };
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
     if (!form.materi_pokok || !form.kegiatan_pembelajaran) {
-      alert('Materi pokok dan kegiatan pembelajaran wajib diisi!');
+      setErrorMsg('Materi pokok dan kegiatan pembelajaran wajib diisi!');
       return;
     }
     setSaving(true);
-    await onSave(form);
+    const result = await onSave(form);
+    if (result?.error) {
+      setErrorMsg(result.error);
+    }
     setSaving(false);
   };
 
@@ -285,6 +291,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
             />
           </div>
+
+          {/* Error Message */}
+          {errorMsg && (
+            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+              <AlertCircle size={14} className="shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{errorMsg}</span>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 shrink-0">
@@ -605,11 +619,12 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         showToast('Jurnal berhasil disimpan!');
         setActiveModal(null);
         fetchJurnal();
+        return { success: true };
       } else {
-        showToast(data.error ||'Gagal menyimpan jurnal','error');
+        return { error: data.error || 'Gagal menyimpan jurnal' };
       }
     } catch (e) {
-      showToast('Gagal menghubungi server','error');
+      return { error: 'Gagal menghubungi server' };
     }
   };
 
@@ -693,9 +708,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     className="w-full py-2 bg-transparent border-none text-sm font-semibold text-slate-700 focus:outline-none"
                   />
                 </div>
-                <button onClick={fetchJurnal} className="cursor-pointer shrink-0 flex items-center justify-center" title="Refresh">
+                <Button variant="ghost" size="icon" onClick={fetchJurnal} title="Refresh">
                   <RefreshCw size={16} />
-                </button>
+                </Button>
               </div>
               
               {isKurikulum && (
@@ -710,9 +725,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               )}
             </div>
             
-            <button onClick={exportExcel} className="w-full md:w-auto flex justify-center items-center gap-2 cursor-pointer shrink-0">
+            <Button variant="outline" onClick={exportExcel} className="w-full md:w-auto flex justify-center items-center gap-2 shrink-0">
               <Download size={14} /> Export
-            </button>
+            </Button>
           </div>
 
           {/* Summary Stats Boxes */}

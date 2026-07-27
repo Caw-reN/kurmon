@@ -37,6 +37,9 @@ const AdministrasiSiswa = () => {
 
   // Form Mutasi
   const [formMutasi, setFormMutasi] = useState({ new_pt_name:"", alasan:"" });
+  const [suratError, setSuratError] = useState("");
+  const [konfirmasiError, setKonfirmasiError] = useState("");
+  const [mutasiError, setMutasiError] = useState("");
   const [toast, setToast] = useState(null);
   const [suratPage, setSuratPage] = useState(1);
   const SURAT_PER_PAGE = 12;
@@ -99,7 +102,8 @@ const AdministrasiSiswa = () => {
 
   const submitSurat = async (e) => {
     e.preventDefault();
-    if (!formSurat.pt_name) return showToast("Nama PT wajib diisi","error");
+    setSuratError("");
+    if (!formSurat.pt_name) return setSuratError("Nama PT wajib diisi");
     setLoading(true);
     try {
       const res = await fetch("/api/pkl/surat-pengantar", {
@@ -114,17 +118,18 @@ const AdministrasiSiswa = () => {
         fetchSurat();
         setViewMode("list");
       } else {
-        showToast(data.error ||"Gagal mengajukan","error");
+        setSuratError(data.error ||"Gagal mengajukan");
       }
     } catch {
-      showToast("Terjadi kesalahan sistem","error");
+      setSuratError("Terjadi kesalahan sistem");
     }
     setLoading(false);
   };
 
   const submitKonfirmasi = async (e) => {
     e.preventDefault();
-    if (!formKonfirmasi.start_date || !formKonfirmasi.end_date) return showToast("Tanggal wajib diisi","error");
+    setKonfirmasiError("");
+    if (!formKonfirmasi.start_date || !formKonfirmasi.end_date) return setKonfirmasiError("Tanggal wajib diisi");
     setLoading(true);
     try {
       const res = await fetch("/api/pkl/konfirmasi", {
@@ -136,17 +141,18 @@ const AdministrasiSiswa = () => {
       if (data.ok) {
         showToast("Berhasil konfirmasi jadwal PKL");
       } else {
-        showToast(data.error ||"Gagal konfirmasi","error");
+        setKonfirmasiError(data.error ||"Gagal konfirmasi");
       }
     } catch {
-      showToast("Terjadi kesalahan sistem","error");
+      setKonfirmasiError("Terjadi kesalahan sistem");
     }
     setLoading(false);
   };
 
   const submitMutasi = async (e) => {
     e.preventDefault();
-    if (!formMutasi.new_pt_name || !formMutasi.alasan) return showToast("PT Baru dan Alasan wajib diisi","error");
+    setMutasiError("");
+    if (!formMutasi.new_pt_name || !formMutasi.alasan) return setMutasiError("PT Baru dan Alasan wajib diisi");
     setLoading(true);
     try {
       const res = await fetch("/api/pkl/mutasi", {
@@ -161,10 +167,10 @@ const AdministrasiSiswa = () => {
         fetchMutasi();
         setViewMode("list");
       } else {
-        showToast(data.error ||"Gagal mengajukan mutasi","error");
+        setMutasiError(data.error ||"Gagal mengajukan mutasi");
       }
     } catch {
-      showToast("Terjadi kesalahan sistem","error");
+      setMutasiError("Terjadi kesalahan sistem");
     }
     setLoading(false);
   };
@@ -182,7 +188,7 @@ const AdministrasiSiswa = () => {
           <title>Surat Pengantar PKL - ${surat.nama_perusahaan || surat.pt_name_temp}</title>
           ${mode ==='pdf' ?'<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>' :''}
           <style>
-            @page { size: 215mm 330mm; margin: 15mm 20mm; } /* F4 Size */
+            @page { size: ${appSettings.defaultPaperSize === 'F4' ? '215mm 330mm' : 'A4'}; margin: 15mm 20mm; }
             body { 
               font-family:'Times New Roman', Times, serif; 
               font-size: 11pt; 
@@ -190,7 +196,7 @@ const AdministrasiSiswa = () => {
               color: black; 
               margin: ${mode ==='pdf' ?'0' :'0'}; 
               padding: ${mode ==='pdf' ?'15mm 20mm' :'0'}; 
-              width: ${mode ==='pdf' ?'175mm' :'auto'}; /* 215 - 40 */
+              width: ${mode ==='pdf' ? (appSettings.defaultPaperSize === 'F4' ? '175mm' : '170mm') :'auto'}; 
             }
             .header-container { display: flex; align-items: center; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 2px; position: relative; }
             .header-container::after { content:''; position: absolute; bottom: -3px; left: 0; width: 100%; border-bottom: 1px solid black; }
@@ -331,24 +337,37 @@ const AdministrasiSiswa = () => {
           </script>
           ` : `
           <script>
-            window.onload = () => {
-               const element = document.getElementById('surat-content');
-               const opt = {
-                 margin:       [0, 0, 0, 0],
-                 filename:'Surat_Pengantar_PKL.pdf',
-                 image:        { type:'jpeg', quality: 1 },
-                 html2canvas:  { scale: 2, useCORS: true },
-                 jsPDF:        { unit:'mm', format: [215, 330], orientation:'portrait' }
-               };
-               html2pdf().set(opt).from(element).save().then(() => {
-                  setTimeout(() => window.close(), 1000);
-               });
+            function runExportPDF() {
+              if (typeof html2pdf === 'undefined') {
+                setTimeout(runExportPDF, 200);
+                return;
+              }
+              const element = document.getElementById('surat-content');
+              const opt = {
+                margin:       [0, 0, 0, 0],
+                filename:     'Surat_Pengantar_PKL.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: ${paperFormatStr}, orientation: 'portrait' }
+              };
+              html2pdf().set(opt).from(element).save().then(() => {
+                 setTimeout(() => window.close(), 1000);
+              }).catch(function(err) {
+                 console.error(err);
+                 window.print();
+              });
+            }
+            if (document.readyState === 'complete') {
+              runExportPDF();
+            } else {
+              window.addEventListener('load', runExportPDF);
             }
           </script>`}
         </body>
       </html>
     `;
   };
+
 
   const handlePrintSurat = (surat) => {
     const printWindow = window.open('','_blank');
@@ -384,9 +403,9 @@ const AdministrasiSiswa = () => {
       </div>
 
       <div className="flex bg-white rounded-xl shadow-sm border-none p-1.5 mb-8 w-full overflow-x-auto no-scrollbar gap-1">
-        <Button variant="outline" onClick={() =>{ setActiveTab("surat"); setViewMode("list"); }} className={`flex-none md: md: ${activeTab ==="surat" ?"bg-[var(--ui-primary)] text-white" :"text-slate-600 hover:bg-slate-50"}`}>Surat Pengantar</Button>
-        <Button variant="outline" onClick={() =>{ setActiveTab("konfirmasi"); setViewMode("list"); }} className={`flex-none md: md: ${activeTab ==="konfirmasi" ?"bg-[var(--ui-primary)] text-white" :"text-slate-600 hover:bg-slate-50"}`}>Konfirmasi PKL</Button>
-        <Button variant="outline" onClick={() =>{ setActiveTab("mutasi"); setViewMode("list"); }} className={`flex-none md: md: ${activeTab ==="mutasi" ?"bg-[var(--ui-primary)] text-white" :"text-slate-600 hover:bg-slate-50"}`}>Pengajuan Pindah</Button>
+        <Button variant="outline" onClick={() =>{ setActiveTab("surat"); setViewMode("list"); }} className={`flex-1 md:flex-none ${activeTab ==="surat" ?"bg-[var(--ui-primary)] text-white border-transparent" :"text-slate-600 hover:bg-slate-50 border-slate-200"}`}>Surat Pengantar</Button>
+        <Button variant="outline" onClick={() =>{ setActiveTab("konfirmasi"); setViewMode("list"); }} className={`flex-1 md:flex-none ${activeTab ==="konfirmasi" ?"bg-[var(--ui-primary)] text-white border-transparent" :"text-slate-600 hover:bg-slate-50 border-slate-200"}`}>Konfirmasi PKL</Button>
+        <Button variant="outline" onClick={() =>{ setActiveTab("mutasi"); setViewMode("list"); }} className={`flex-1 md:flex-none ${activeTab ==="mutasi" ?"bg-[var(--ui-primary)] text-white border-transparent" :"text-slate-600 hover:bg-slate-50 border-slate-200"}`}>Pengajuan Pindah</Button>
       </div>
 
       {activeTab ==="surat" && viewMode ==="list" && (
@@ -536,6 +555,13 @@ const AdministrasiSiswa = () => {
               </div>
             </div>
 
+            {suratError && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-4">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{suratError}</span>
+              </div>
+            )}
+
             <Button type="submit" className="w-full flex items-center justify-center gap-2 mt-8">
               <Send size={18}/> {loading ?"Memproses Pengajuan..." :"Kirim Pengajuan Surat"}
             </Button>
@@ -627,6 +653,13 @@ const AdministrasiSiswa = () => {
                <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-600"/>
                <p className="text-xs md:text-sm font-medium leading-relaxed">Pastikan tanggal sesuai dengan kesepakatan antara pihak sekolah dan perusahaan. Jadwal ini akan digunakan untuk melacak periode aktif absensi Anda.</p>
              </div>
+
+             {konfirmasiError && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-4">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{konfirmasiError}</span>
+              </div>
+             )}
 
              <Button type="submit" className="w-full mt-6">
                 {loading ?"Menyimpan Jadwal..." :"Simpan Konfirmasi PKL"}
@@ -740,6 +773,13 @@ const AdministrasiSiswa = () => {
                <AlertCircle size={20} className="shrink-0 mt-0.5 text-blue-600"/>
                <p className="text-xs md:text-sm font-medium leading-relaxed">Pengajuan mutasi akan melalui tahapan persetujuan dari Wali Kelas, Guru Pembimbing, Kepala Program, hingga akhirnya disetujui oleh HUBIN.</p>
             </div>
+
+            {mutasiError && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-4">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{mutasiError}</span>
+              </div>
+            )}
 
             <Button type="submit" className="w-full flex items-center justify-center gap-2 mt-8">
               <Send size={18}/> {loading ?"Memproses..." :"Kirim Pengajuan Mutasi"}

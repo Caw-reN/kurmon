@@ -154,7 +154,7 @@ export default function App() {
                 const hasSched = res.data.some(s => {
                   let ids = s.guru_ids;
                   if (typeof ids === "string") {
-                    try { ids = JSON.parse(ids); } catch { }
+                    try { ids = JSON.parse(ids); } catch { /* intentionally ignored — ids stays as-is if not valid JSON */ }
                   }
                   return Array.isArray(ids) && ids.some(id => String(id).trim().toLowerCase() === String(teacherCode).trim().toLowerCase());
                 });
@@ -3650,7 +3650,7 @@ export default function App() {
       uiTheme={uiTheme} loginBrandTitle={loginBrandTitle}
     />;
   }
-  const activeTabLabel = activeTab === "kedisiplinan_piket" ? "Piket & Pelanggaran" : activeTab === "pengaturanuser" ? "Pengaturan User" : activeTab === "absensiguru" ? "Absen KBM (GPS)" : activeTab === "silabusguru" ? "Modul Ajar Saya" : activeTab === "silabus" ? "Modul Ajar" : activeTab === "modul_ajar" ? "Modul Ajar" : activeTab === "pkl_dashboard" ? "Dashboard PKL" : activeTab === "pkl_data_siswa" ? "Data Siswa PKL" : activeTab === "pkl_data_perusahaan" ? "Data Perusahaan" : activeTab === "pkl_administrasi" ? "Administrasi PKL" : activeTab === "pkl_jurnal" ? "Jurnal Siswa" : activeTab === "pkl_laporan" ? "Laporan PKL" : activeTab === "pkl_absensi_setting" ? "Pengaturan Absensi PKL" : activeTab.replace(/_/g, " ");
+  const activeTabLabel = activeTab === "kedisiplinan_piket" ? "Piket & Pelanggaran" : activeTab === "pengaturanuser" ? "Pengaturan User" : activeTab === "absensiguru" ? "Absen KBM (GPS)" : activeTab === "silabusguru" ? "Modul Ajar Saya" : activeTab === "silabus" ? "Modul Ajar" : activeTab === "modul_ajar" ? "Modul Ajar" : activeTab === "pkl_dashboard" ? "Dashboard PKL" : activeTab === "pkl_data_siswa" ? "Data Siswa PKL" : activeTab === "pkl_data_perusahaan" ? "Data Perusahaan" : activeTab === "pkl_administrasi" ? "Administrasi PKL" : activeTab === "pkl_jurnal" ? "Jurnal Siswa" : activeTab === "pkl_laporan" ? "Laporan PKL" : activeTab === "pkl_absensi_setting" ? "Pengaturan Absensi PKL" : activeTab === "laporan_absensi" ? "Semua Laporan Absensi" : activeTab.replace(/_/g, " ");
   const sidebarSummary = tabSubtitles[activeTab] || "Manage data, records, and system configuration.";
   const activeUserDivision = activeUserRole === "waka" ? (currentUser?.division || WAKA_DIVISION_OPTIONS[0].value).toLowerCase() : "";
   const activeRoleLabel = isSuperAdminRole(activeUserRole) ? "Admin Utama" : activeUserRole === "kepsek" ? "Kepala Sekolah" : activeUserRole === "waka" ? getWakaDivisionOption(activeUserDivision, appSettings).label : activeUserRole === "karyawan" ? "Karyawan" : activeUserRole === "tu" ? "Tata Usaha" : "Guru";

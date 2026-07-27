@@ -77,7 +77,7 @@ const getSession = () => {
     const raw = sessionStorage.getItem(SESSION_KEY);
     const s = raw ? JSON.parse(raw) : null;
     return s?.authToken && s?.role ? s : null;
-  } catch { return null; }
+  } catch { /* intentionally ignored — session parse failure means no session */ return null; }
 };
 
 // ── Protected route wrapper (for monitoring routes)
@@ -174,15 +174,14 @@ const LOADING_TIPS = [
   "💡 Buku bimbingan konseling membantu mencatat tindak lanjut setiap kejadian siswa secara terpadu."
 ];
 
+
+// Cache TTL constant — defined outside component to avoid useEffect dependency warning
+const OFFLINE_CACHE_KEY = "kurmon_offline_payload";
+const OFFLINE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
+
 export default function App() {
   const [dbLoaded, setDbLoaded] = useState(false);
   const [error, setError] = useState(null);
-  const [randomTip, setRandomTip] = useState("");
-
-  useEffect(() => {
-    const idx = Math.floor(Math.random() * LOADING_TIPS.length);
-    setRandomTip(LOADING_TIPS[idx]);
-  }, []);
 
   useEffect(() => {
     applyDocumentBranding(getDatabaseSnapshot().appSettings || {});
@@ -190,9 +189,6 @@ export default function App() {
       applyDocumentBranding(snapshot?.appSettings || {});
     });
   }, []);
-
-  const OFFLINE_CACHE_KEY = "kurmon_offline_payload";
-  const OFFLINE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
 
   useEffect(() => {
     const loadDbData = async () => {
@@ -239,7 +235,7 @@ export default function App() {
               setDatabaseSnapshot(parsed);
               recovered = true;
               console.warn("Offline backup sudah kadaluarsa (>24 jam). Digunakan sementara.");
-              try { localStorage.removeItem(OFFLINE_CACHE_KEY); } catch {}
+              try { localStorage.removeItem(OFFLINE_CACHE_KEY); } catch { /* intentionally ignored */ }
             }
           }
         } catch (recoverErr) {

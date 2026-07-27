@@ -135,24 +135,59 @@ async function syncAllUsersToModules() {
   }
 }
 
-async function pullHikvisionLogs() {
+async function pullHikvisionLogs(force = false) {
   if (!dbPool) return { logs_found: 0, logs_saved: 0 };
   const config = await getHikvisionConfig();
   let totalSaved = 0;
   let totalFound = 0;
   try {
+    // Check operating hours: find if current time is within ANY active attendance window
+    const nowLocal = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
+    let isActive = false;
+    for (const role of ['siswa', 'guru', 'karyawan']) {
+       const roleConf = config[role] || {};
+       const masukOpen = (roleConf.masuk_open || "05:00").substring(0, 5);
+       const masukClose = (roleConf.masuk_close || "12:00").substring(0, 5);
+       const pulangOpen = (roleConf.pulang_open || "14:00").substring(0, 5);
+       const pulangClose = (roleConf.pulang_close || "18:00").substring(0, 5);
+       
+       if ((nowLocal >= masukOpen && nowLocal <= masukClose) || (nowLocal >= pulangOpen && nowLocal <= pulangClose)) {
+         isActive = true;
+         break;
+       }
+    }
+    
+    // Stop pulling if current time is outside ALL attendance windows (e.g., night time or midday break)
+    if (!isActive && !force) {
+      console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active attendance windows.`);
+      return { logs_found: 0, logs_saved: 0 };
+    }
+
     const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
     for (const device of devices) {
       try {
         const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
         const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
-        const logs = await api.getLogs();
+        
+        // Find the last pulled log for this device
+        const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
+        let startTime = new Date();
+        startTime.setHours(0, 0, 0, 0); // Default to today 00:00:00
+        if (lastLogRes.rows[0].last_ts) {
+           startTime = new Date(lastLogRes.rows[0].last_ts);
+        } else {
+           startTime.setDate(startTime.getDate() - 3); // If no logs, fetch last 3 days
+        }
+        
+        const endTime = new Date();
+        const logs = await api.searchEvents(startTime, endTime);
         totalFound += logs.length;
         
         for (const log of logs) {
           const employeeNo = log.employeeNoString;
           if (!employeeNo) continue;
           const eventType = `${log.major}-${log.minor}`;
+          // Extract purely the local time string from device (e.g. "2026-07-20T15:44:00" -> "2026-07-20 15:44:00")
           const logTime = log.time.substring(0, 19).replace('T', ' ');
           
           const existing = await dbPool.query(
@@ -188,14 +223,31 @@ async function pullHikvisionLogs() {
               }
             }
 
+            // FILTER: Hanya masukkan log jika berada di dalam rentang waktu buka absen untuk role tersebut
+            if (personType !== 'unknown') {
+               const pConf = config[personType] || {};
+               const mOpen = (pConf.masuk_open || "05:00").substring(0, 5);
+               const mClose = (pConf.masuk_close || "12:00").substring(0, 5);
+               const pOpen = (pConf.pulang_open || "14:00").substring(0, 5);
+               const pClose = (pConf.pulang_close || "18:00").substring(0, 5);
+               const logHhmm = logTime.substring(11, 16);
+               
+               const isMasuk = logHhmm >= mOpen && logHhmm <= mClose;
+               const isPulang = logHhmm >= pOpen && logHhmm <= pClose;
+               
+               if (!isMasuk && !isPulang) {
+                  // Skip inserting log because it is outside attendance window
+                  continue;
+               }
+            }
+
             await dbPool.query(
-              "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)",
+              "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
               [device.id, employeeNo, logTime, eventType, personType]
             );
             totalSaved++;
 
-            const logDate = new Date(log.time);
-            const hhmm = logDate.toTimeString().substring(0,5);
+            const logHhmmStr = logTime.substring(11, 16);
             
             let lateLimit = null;
             let roleTarget = null;
@@ -203,12 +255,23 @@ async function pullHikvisionLogs() {
             else if (personType === 'guru') { lateLimit = config.guru?.masuk_late; roleTarget = 'kurikulum'; }
             else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late; roleTarget = 'tu'; }
 
-            if (lateLimit && hhmm > lateLimit && eventType === '5-75') { 
-               const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${hhmm} (terlambat, batas: ${lateLimit}).`;
-               await dbPool.query(
-                 "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-                 [roleTarget, message, `late_${personType}`]
-               );
+            if (lateLimit && logHhmmStr > lateLimit && eventType === '5-75') { 
+               // Check if they are scanning IN the morning (not afternoon!)
+               // We don't want "late" notifications sent when they are clocking out!
+               const closeLimit = (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00";
+               if (logHhmmStr <= closeLimit) {
+                 const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmmStr} (terlambat, batas: ${lateLimit}).`;
+                 
+                 const storeRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+                 const store = storeRes.rows[0]?.data ? (typeof storeRes.rows[0].data === 'string' ? JSON.parse(storeRes.rows[0].data) : storeRes.rows[0].data) : {};
+                 // Check if wa_auto_terlambat is ON
+                 if (store.featureSettings && store.featureSettings.wa_auto_terlambat !== false) {
+                   await dbPool.query(
+                     "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
+                     [roleTarget, message, `late_${personType}`]
+                   );
+                 }
+               }
             }
           }
         }
@@ -238,7 +301,7 @@ async function autoSyncGuruAttendanceToAppData() {
     });
 
     const { rows: logs } = await dbPool.query(`
-      SELECT l.employee_id, l.timestamp, l.event_type, d.ip_address, d.location, d.device_type
+      SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, d.ip_address, d.location, d.device_type
       FROM hikvision_logs l
       JOIN hikvision_devices d ON l.device_id = d.id
       WHERE d.device_type IN ('guru', 'karyawan')
@@ -281,12 +344,8 @@ async function autoSyncGuruAttendanceToAppData() {
       const teacherCode = nipToCode[empId.toLowerCase()] || null;
       if (!teacherCode) return;
 
-      const ts = new Date(log.timestamp);
-      const year = ts.getFullYear();
-      const month = String(ts.getMonth() + 1).padStart(2, '0');
-      const day = String(ts.getDate()).padStart(2, '0');
-      const date = `${year}-${month}-${day}`;
-      const time = ts.toTimeString().substring(0, 5); 
+      const date = log.time_str.substring(0, 10);
+      const time = log.time_str.substring(11, 16);
       
       const roleType = log.device_type === 'karyawan' ? 'karyawan' : 'guru';
       const roleConf = getRoleTimeConfigLocal(conf, roleType);
@@ -583,9 +642,13 @@ const initDb = async () => {
         employee_id VARCHAR(50) NOT NULL,
         timestamp TIMESTAMP NOT NULL,
         event_type VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(device_id, employee_id, timestamp)
       )
     `);
+
+    // Tambahkan indeks untuk optimasi performa dashboard
+    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_dash ON hikvision_logs (device_id, employee_id, (timestamp::date))`);
 
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS pkl_locations (
@@ -1435,6 +1498,7 @@ const server = createServer(async (req, res) => {
         let teacherAbsenceLogs = [];
         let latestStudentLogs = [];
         let problematicStudentLogs = [];
+        let achievingStudentLogs = [];
 
         // Fetch main store payload for student & teacher names
         let students = [];
@@ -1609,13 +1673,31 @@ const server = createServer(async (req, res) => {
 
         // 3. Late students (terlambat)
         try {
+          const configRes = await dbPool.query("SELECT * FROM app_settings WHERE key = 'hikvision_config'");
+          let hConfig = {};
+          if (configRes.rowCount > 0) hConfig = JSON.parse(configRes.rows[0].value);
+          const masukLate = hConfig?.siswa?.masuk_late || "07:15";
+          const masukClose = hConfig?.siswa?.masuk_close || "12:00";
+
           const lateRes = await dbPool.query(`
             SELECT student_nis as nis, status, created_at
             FROM attendances
             WHERE status = 'terlambat'
-            ORDER BY created_at DESC LIMIT 100
+            ORDER BY created_at DESC LIMIT 50
           `);
-          latestStudentLogs = lateRes.rows
+          
+          const hLateRes = await dbPool.query(`
+            SELECT employee_id as nis, 'terlambat' as status, timestamp as created_at
+            FROM hikvision_logs
+            WHERE person_type = 'siswa'
+            AND CAST(timestamp AS TIME) > $1
+            AND CAST(timestamp AS TIME) <= $2
+            ORDER BY timestamp DESC LIMIT 50
+          `, [masukLate + ":00", masukClose + ":00"]);
+          
+          const combined = [...lateRes.rows, ...hLateRes.rows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+          latestStudentLogs = combined
             .map(r => ({
               nis: r.nis,
               name: getStudentName(r.nis),
@@ -1625,7 +1707,8 @@ const server = createServer(async (req, res) => {
             }))
             .filter(r => !isDateHoliday(r.created_at))
             .slice(0, 20);
-        } catch {
+        } catch (err) {
+          console.error(err);
           latestStudentLogs = [];
         }
 
@@ -1808,7 +1891,30 @@ const server = createServer(async (req, res) => {
           problematicStudentLogs = [];
         }
 
+        // 5. Achieving students (Prestasi)
+        try {
+          const prestasiRes = await dbPool.query(`
+            SELECT siswa_nis as nis, nama_prestasi, peringkat, tingkat, penyelenggara, tanggal_prestasi, created_at
+            FROM kesiswaan_prestasi
+            ORDER BY created_at DESC LIMIT 20
+          `);
+          achievingStudentLogs = prestasiRes.rows.map(r => ({
+            nis: r.nis,
+            name: getStudentName(r.nis),
+            nama_prestasi: r.nama_prestasi,
+            peringkat: r.peringkat,
+            tingkat: r.tingkat,
+            penyelenggara: r.penyelenggara,
+            tanggal_prestasi: r.tanggal_prestasi,
+            created_at: r.created_at
+          }));
+        } catch (e) {
+          console.error("Failed to fetch achievingStudentLogs:", e);
+          achievingStudentLogs = [];
+        }
+
         let auditLogs = [];
+        let backupErrors = [];
         if (session.role === "admin" || session.role === "superadmin") {
           try {
             const auditRes = await dbPool.query(`
@@ -1817,9 +1923,18 @@ const server = createServer(async (req, res) => {
               ORDER BY created_at DESC LIMIT 20
             `);
             auditLogs = auditRes.rows;
+            
+            const backupErrRes = await dbPool.query(`
+              SELECT action, detail, created_at as time
+              FROM audit_logs
+              WHERE action LIKE '%BACKUP_ERROR%' AND created_at >= NOW() - INTERVAL '7 days'
+              ORDER BY created_at DESC
+            `);
+            backupErrors = backupErrRes.rows;
           } catch (e) {
             console.error("Failed to fetch auditLogs for dashboard:", e);
             auditLogs = [];
+            backupErrors = [];
           }
         }
 
@@ -1831,9 +1946,11 @@ const server = createServer(async (req, res) => {
             latestStudentLogs, 
             studentAbsenceLogs, 
             problematicStudentLogs, 
+            achievingStudentLogs,
             studentAttendanceRankings, 
             teacherAttendanceRankings,
-            auditLogs
+            auditLogs,
+            backupErrors
           }
         });
       } catch (err) {
@@ -3183,6 +3300,27 @@ const server = createServer(async (req, res) => {
         try {
           const { rows } = await dbPool.query("SELECT * FROM whatsapp_logs ORDER BY sent_at DESC LIMIT 200");
           send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: WHATSAPP CANCEL LOG ===
+    if (url.pathname === "/api/whatsapp/cancel-log") {
+      if (!requireAdmin(req, res)) return;
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          if (!body.id) {
+            return send(req, res, 400, { ok: false, error: "ID log wajib diisi." });
+          }
+          await dbPool.query("UPDATE whatsapp_logs SET status = 'cancelled' WHERE id = $1 AND status = 'pending'", [body.id]);
+          
+          const session = getSession(req);
+          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+            [session?.id || "system", session?.name || "System", session?.role || "admin", "CANCEL_WA", "whatsapp", `Membatalkan log WA antrean ID: ${body.id}`]);
+            
+          send(req, res, 200, { ok: true, message: "Log berhasil dibatalkan." });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;
       }

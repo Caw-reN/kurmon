@@ -143,8 +143,8 @@ export default function AdminContentRouter({ context }) {
             const div = roleKey.replace("waka_","");
             return (wakaTabsByDivision[div] || wakaTabsByDivision.kurikulum).includes(activeTab);
           }
-          if (roleKey ==="tu" || roleKey ==="tata_usaha") {
-            return ["dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar"].includes(activeTab);
+          if (roleKey === "tu" || roleKey === "tata_usaha") {
+            return ["dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"].includes(activeTab);
           }
           return false;
         }
@@ -354,7 +354,9 @@ export default function AdminContentRouter({ context }) {
         return <TabKategoriSilabus {...tabProps} />;
       case"silabus":
       case"silabusguru":
-        return <div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat...</div>;
+        // These tabs have been merged into modul_ajar — redirect automatically
+        setActiveTab("modul_ajar");
+        return null;
       case "absensiguru":
         // Guru/karyawan lihat kalender absensi pribadi; admin/waka/kepsek lihat rekap semua guru
         if (currentUser?.role === "guru" || currentUser?.role === "karyawan") {
@@ -373,7 +375,7 @@ export default function AdminContentRouter({ context }) {
         </Suspense>;
       case"pkl_import":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringImportData />
+          <MonitoringImportData teachers={teachers} students={students} authToken={currentUser?.authToken || ''} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_data_perusahaan":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
@@ -410,6 +412,10 @@ export default function AdminContentRouter({ context }) {
           Memuat Hikvision...
         </div>}>
           <HikvisionDashboard />
+        </Suspense>;
+      case"laporan_absensi":
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Laporan Absensi...</div>}>
+          <LaporanAbsensi classes={classes} />
         </Suspense>;
       case"hikvision_devices":
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">

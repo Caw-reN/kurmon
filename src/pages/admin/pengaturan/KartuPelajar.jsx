@@ -284,7 +284,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         
         const pdf = new jsPDF({
           orientation:'landscape',
-          unit:'px',
+          unit:'pt',
           format: [656, 200]
         });
 
@@ -293,12 +293,13 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           const canvas = await html2canvas(card, {
             scale: 2, 
             useCORS: true,
+            allowTaint: true,
             logging: false,
             backgroundColor:'#ffffff'
           });
-          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
           
-          if (i > 0) pdf.addPage([656, 200],'landscape');
+          if (i > 0) pdf.addPage([656, 200],'l');
           pdf.addImage(imgData,'JPEG', 0, 0, 656, 200);
         }
         
@@ -314,7 +315,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       } finally {
         setIsPrinting(false);
       }
-    }, 500);
+    }, 600);
   };
 
   const handleSaveManual = async (e) => {

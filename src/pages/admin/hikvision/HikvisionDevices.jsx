@@ -182,23 +182,25 @@ export default function HikvisionDevices() {
                   <td className="px-4 py-2.5">
                     <DeviceTypeBadge type={device.device_type ||'siswa'} />
                   </td>
-                  <td className="px-4 py-2.5 text-right space-x-2">
-                    <Button 
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenModal(device)} 
-                      title="Edit Mesin"
-                    >
-                      <Edit2 size={14} />
-                    </Button>
-                    <Button 
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(device.id)} 
-                      title="Hapus Mesin"
-                    >
-                      <Trash2 size={14} className="text-red-500" />
-                    </Button>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button 
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenModal(device)} 
+                        title="Edit Mesin"
+                      >
+                        <Edit2 size={14} />
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(device.id)} 
+                        title="Hapus Mesin"
+                      >
+                        <Trash2 size={14} className="text-rose-500" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

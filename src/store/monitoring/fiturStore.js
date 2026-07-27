@@ -13,6 +13,14 @@ import useAuthStore from './authStore.js';
 
 export const FITUR_CONFIG = [
   {
+    key: 'show_dashboard_logs_siswa',
+    label: 'Tampilkan Log Aktivitas (Siswa)',
+    description: 'Siswa dapat melihat log terbaru (terlambat, guru absen, prestasi) di Dashboard mereka.',
+    affectedRoles: ['siswa'],
+    icon: 'LayoutDashboard',
+    critical: false,
+  },
+  {
     key: 'absensi',
     label: 'Absensi Harian',
     description: 'Siswa dapat melakukan check-in dan check-out setiap hari kerja.',
@@ -67,7 +75,8 @@ const useFiturStore = create(
     (set, get) => ({
       // Semua fitur aktif by default
       fitur: FITUR_CONFIG.reduce((acc, f) => {
-        acc[f.key] = true;
+        // Set show_dashboard_logs_siswa default to false, others to true
+        acc[f.key] = f.key === 'show_dashboard_logs_siswa' ? false : true;
         return acc;
       }, {}),
 
@@ -94,7 +103,7 @@ const useFiturStore = create(
       resetFitur: async () => {
         set({
           fitur: FITUR_CONFIG.reduce((acc, f) => {
-            acc[f.key] = true;
+            acc[f.key] = f.key === 'show_dashboard_logs_siswa' ? false : true;
             return acc;
           }, {}),
         });

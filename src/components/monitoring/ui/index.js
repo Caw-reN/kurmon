@@ -13,3 +13,4 @@ export { default as Avatar } from './Avatar';
 export { default as StatCard } from './StatCard';
 export { default as EmptyState } from './EmptyState';
 export { default as PageHeader } from './PageHeader';
+export { SharedDashboardLogs } from './SharedDashboardLogs.jsx';

@@ -57,18 +57,16 @@ const RejectModal = ({ jurnal, siswa, onConfirm, onCancel }) => {
         />
 
         <div className="flex gap-3 mt-4">
-          <button
+          <Button variant="ghost"
             onClick={onCancel}
-            className="flex-1 py-3 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold
-              text-gray-600 hover:bg-bg transition-colors"
+            className="flex-1"
           >
             Batal
-          </button>
-          <Button variant="outline"
+          </Button>
+          <Button variant="danger"
             onClick={() =>catatan.trim() && onConfirm(catatan)}
             disabled={!catatan.trim()}
-            className="flex-1 py-3 bg-danger text-white rounded-[var(--ui-radius-small)] text-sm font-bold
-              disabled:opacity-50 hover:bg-red-600 transition-colors active:translate-y-[1px]"
+            className="flex-1"
           >
             Kirim Revisi</Button>
         </div>
@@ -139,7 +137,7 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
         localStatus ==='revision' ?'border-red-200 opacity-80' :'border-slate-200 hover:-card'}`}>
       {/* Card header */}
       <button
-        className="w-full flex items-start gap-4 text-left"
+        className="w-full flex items-start gap-4 text-left p-4 bg-transparent border-none cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <Avatar name={siswa?.nama ||'?'} size="md" />
@@ -209,20 +207,17 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
           {/* Action buttons — hanya tampil jika pending */}
           {localStatus ==='pending' && (
             <div className="flex gap-3 pt-2">
-              <Button variant="outline"
+              <Button variant="danger"
                 onClick={() =>onReject?.(jurnal, siswa, handleReject)}
                 disabled={loading !== null}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50
-                  border border-red-200 text-red-700 font-bold text-sm rounded-[var(--ui-radius-small)] hover:bg-red-100 transition-all active:translate-y-[1px] disabled:opacity-50"
+                className="flex-1"
               >
                 <XCircle size={16} />
                 Tolak / Revisi</Button>
-              <button
+              <Button variant="primary"
                 onClick={handleApprove}
                 disabled={loading !== null}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--ui-primary)]
-                  text-white font-bold text-sm rounded-[var(--ui-radius-small)] hover:opacity-90
-                  transition-all active:translate-y-[1px] disabled:opacity-50 shadow-sm"
+                className="flex-1"
               >
                 {loading ==='approve' ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -230,7 +225,7 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
                   <CheckCircle2 size={16} />
                 )}
                 {loading ==='approve' ?'Menyimpan...' :'Setujui'}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -317,14 +312,10 @@ const ValidasiJurnal = () => {
           { key:'revision', label:'Revisi', count: jurnalList.filter((j) => j.status ==='revision').length },
           { key:'all', label:'Semua', count: jurnalList.length },
         ].map((tab) => (
-          <Button variant="outline"
+          <Button variant={filterStatus === tab.key ? "primary" : "outline"}
             key={tab.key}
             onClick={() =>setFilterStatus(tab.key)}
-            className={['flex items-center gap-2 px-4 py-2 rounded-[var(--ui-radius-card)] text-sm font-semibold whitespace-nowrap','transition-all duration-150',
-              filterStatus === tab.key
-                ?'bg-[var(--ui-primary)] text-white shadow-sm'
-                :'bg-white border-none text-gray-600 hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)]',
-            ].join('')}
+            className="flex items-center gap-2 whitespace-nowrap"
           >
             {tab.label}
             {tab.count > 0 && (

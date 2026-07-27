@@ -134,7 +134,7 @@ export default function ValidasiSiswa() {
           )}
           
           <div className="pt-2">
-             <Link to="/" className="w-full flex justify-center bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-control)] transition-colors shadow-sm h-10 px-4 text-sm font-bold">
+             <Link to="/" className="w-full flex justify-center items-center bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-control)] transition-colors h-10 px-4 text-sm font-bold">
                Kembali ke Beranda
              </Link>
           </div>

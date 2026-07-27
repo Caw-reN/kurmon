@@ -4,6 +4,7 @@ import { useNavigate } from'react-router-dom';
 import useFiturStore from'../../../store/monitoring/fiturStore';
 import useAuthStore from'../../../store/monitoring/authStore.js';
 import { Loader2 } from'lucide-react';
+import { SharedDashboardLogs } from '../../../components/monitoring/ui/index.js';
 
 
 /**
@@ -99,7 +100,7 @@ const StudentDashboard = () => {
       {actions.length > 0 && (
         <div>
           <p className="text-sm font-bold text-slate-800 mb-3">Aksi Cepat</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {actions.map((action, index) => (
               <Button variant="outline"
                 key={action.key}
@@ -110,7 +111,7 @@ const StudentDashboard = () => {
                     navigate(action.route);
                   }
                 }}
-                className={`flex flex-col items-center justify-center cursor-pointer text-left ${index === 4 ?'col-span-2 sm:col-span-1' :''}`}
+                className={`flex flex-col items-center justify-center cursor-pointer text-left py-4 ${index === 4 ?'col-span-2 sm:col-span-1' :''}`}
               >
                 <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center flex-shrink-0 bg-slate-50 group-hover:bg-slate-100 transition-colors`}>
                   <img src={action.iconSrc} alt={action.label} className="w-8 h-8 object-contain transition-transform group-hover:scale-110" />
@@ -205,6 +206,11 @@ const StudentDashboard = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ─────── Shared Activity Logs ─────── */}
+      <div className="mt-4">
+        <SharedDashboardLogs />
       </div>
     </div>
   );

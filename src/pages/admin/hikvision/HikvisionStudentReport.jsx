@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useCallback } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2 } from 'lucide-react';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAppStore } from'../../../store/useAppStore';
-import { AlertTriangle, ShieldAlert, UserCheck, Filter, Search, X, CheckCircle2 } from'lucide-react';
-import AbsensiSiswa from'../../kedisiplinan/AbsensiSiswa.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
-import { UISelect, Button } from'../../../components/ui.jsx';
+import { UISelect, Button, TablePagination } from'../../../components/ui.jsx';
+import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
+import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
 
 
 export default function HikvisionStudentReport({ classes = [], students = [] }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   const [activeTab, setActiveTab] = useState("matriks"); //"matriks" |"surat"
+  const [exportMode, setExportMode] = useState("summary");
 
   
   const [data, setData] = useState([]);
@@ -226,131 +228,273 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
     fetchData();
   }, [fetchData, user?.isWalas, user?.walasClass]);
 
-  const handleExport = () => {
+  const handleExport = async (isDetailed = false) => {
     if (data.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
     
-    const exportData = data.map(item => {
-      const row = {"NIS": item.nis,"Nama Siswa": item.name,"Kelas": item.class_name ||"-","Total Hadir": item.total_hadir,"Terlambat": item.total_terlambat
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Laporan Absensi Siswa');
+
+    // Define columns
+    const columns = [
+      { header: 'NIS', key: 'nis', width: 15 },
+      { header: 'Nama Siswa', key: 'name', width: 35 },
+      { header: 'Kelas', key: 'class_name', width: 12 },
+      { header: 'H', key: 'h', width: 5 },
+      { header: 'T', key: 't', width: 5 },
+      { header: 'I', key: 'i', width: 5 },
+      { header: 'S', key: 's', width: 5 },
+      { header: 'A', key: 'a', width: 5 }
+    ];
+    for (let i = 1; i <= daysInMonth; i++) {
+      columns.push({ header: i.toString(), key: `d${i}`, width: isDetailed ? 10 : 5 });
+    }
+    sheet.columns = columns;
+
+    // Style Header Row
+    sheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF1F5F9' }
       };
-      for (let i = 1; i <= daysInMonth; i++) {
-         const dayData = item.days[i];
-         if (dayData) {
-            row[`Tgl ${i}`] = `${dayData.in ||'-'} / ${dayData.out ||'-'}${dayData.isLate ?' (T)' :''}`;
-         } else {
-            row[`Tgl ${i}`] ="";
-         }
-      }
-      return row;
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+      };
     });
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Laporan Absensi Siswa");
-    XLSX.writeFile(wb, `Laporan_Absensi_${filter.class_name}_${filter.year}_${filter.month}.xlsx`);
+    data.forEach(item => {
+      const rowData = {
+        nis: item.nis,
+        name: item.name,
+        class_name: item.class_name || "-",
+        h: item.total_hadir,
+        t: item.total_terlambat,
+        i: item.total_izin,
+        s: item.total_sakit,
+        a: item.total_alpa
+      };
+      
+      const row = sheet.addRow(rowData);
+      row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
+      row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
+      row.getCell('class_name').alignment = { vertical: 'middle', wrapText: true };
+      row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayData = item.days[i];
+        const cell = row.getCell(`d${i}`);
+        
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+        };
+
+        if (dayData) {
+          const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+          let content = "-";
+          let fgColor = "FFFFFFFF";
+          let fontColor = "FF334155";
+          
+          if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+            content = "A";
+            fgColor = "FF0F172A"; fontColor = "FFFFFFFF";
+          } else if (status === "Sakit") {
+            content = "S";
+            fgColor = "FFFEF3C7"; fontColor = "FF92400E";
+          } else if (status === "Izin") {
+            content = "I";
+            fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
+          } else if (status === "Terlambat" || dayData.isLate) {
+            if (isDetailed && (dayData.in || dayData.out)) {
+              content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+            } else {
+              content = "T";
+            }
+            fgColor = "FFFEE2E2"; fontColor = "FF991B1B";
+          } else if (dayData.in || dayData.out || status === "Hadir") {
+            if (isDetailed && (dayData.in || dayData.out)) {
+              content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+            } else {
+              content = "H";
+            }
+            fgColor = "FFDCFCE7"; fontColor = "FF166534";
+          }
+          
+          cell.value = content;
+          cell.font = { color: { argb: fontColor }, bold: true, size: isDetailed ? 8 : 10 };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
+        } else {
+          cell.value = "";
+        }
+      }
+    });
+
+    const legendRow = sheet.addRow([]);
+    const legendRow2 = sheet.addRow(['Keterangan:']);
+    legendRow2.font = { bold: true };
+    const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
+    
+    sheet.eachRow((row) => row.commit());
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.xlsx`);
   };
 
   const handleExportPDF = () => {
-    if (data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+    if (!data || data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
     
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    });
-    
-    const monthName = new Date(filter.year, filter.month - 1).toLocaleString('id-ID', { month: 'long' });
-    const startY = drawKopSurat(doc, true);
-
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text(`LAPORAN KINERJA & KEHADIRAN SISWA`, 14, startY + 6);
-    
-    doc.setFontSize(10);
-    doc.setFont("Helvetica", "normal");
-    doc.text(`Kelas: ${filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name} | Periode: ${monthName} ${filter.year}`, 14, startY + 12);
-
-    const headers = [["NIS", "Nama Siswa", "Kelas", "H", "T"]];
-    for (let i = 1; i <= daysInMonth; i++) {
-      headers[0].push(i.toString());
-    }
-
-    const body = data.map(item => {
-      const row = [
-        item.nis,
-        item.name.substring(0, 25), // Trim name slightly to fit
-        item.class_name || "-",
-        item.total_hadir.toString(),
-        item.total_terlambat.toString()
-      ];
+    try {
+      const isDetailed = exportMode === "detailed";
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: getDatabaseSnapshot()?.appSettings?.defaultPaperSize === 'F4' ? [215, 330] : 'a4'
+      });
       
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dayData = item.days[i];
-        if (!dayData) {
-          row.push("-");
-        } else {
-          const status = dayData.status;
-          if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") row.push("A");
-          else if (status === "Sakit") row.push("S");
-          else if (status === "Izin") row.push("I");
-          else if (dayData.isLate || status === "Terlambat") row.push("T");
-          else if (dayData.in || dayData.out) row.push("H");
-          else row.push("-");
-        }
-      }
-      return row;
-    });
+      const monthName = new Date(filter.year, filter.month - 1).toLocaleString('id-ID', { month: 'long' });
+      const startY = 15;
 
-    autoTable(doc, {
-      startY: startY + 16,
-      head: headers,
-      body: body,
-      theme: 'grid',
-      styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
-      headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 15 },
-        1: { halign: 'left', cellWidth: 35 },
-        2: { halign: 'left', cellWidth: 12 },
-        3: { cellWidth: 6 },
-        4: { cellWidth: 6 },
-      },
-      didParseCell: function (data) {
-        if (data.section === 'body' && data.column.index >= 5) {
-          const val = data.cell.raw;
-          if (val === 'H') {
-            data.cell.styles.fillColor = [220, 252, 231]; 
-            data.cell.styles.textColor = [22, 101, 52];   
-          } else if (val === 'T') {
-            data.cell.styles.fillColor = [254, 226, 226]; 
-            data.cell.styles.textColor = [185, 28, 28];   
-          } else if (val === 'S') {
-            data.cell.styles.fillColor = [254, 243, 199]; 
-            data.cell.styles.textColor = [146, 64, 14];   
-          } else if (val === 'I') {
-            data.cell.styles.fillColor = [219, 234, 254]; 
-            data.cell.styles.textColor = [30, 64, 175];   
-          } else if (val === 'A') {
-            data.cell.styles.fillColor = [15, 23, 42];      
-            data.cell.styles.textColor = [255, 255, 255]; 
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(`LAPORAN KINERJA & KEHADIRAN SISWA`, 14, startY + 6);
+      
+      doc.setFontSize(10);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`Kelas: ${filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name} | Periode: ${monthName} ${filter.year}`, 14, startY + 12);
+
+      const headers = [["NIS", "Nama Siswa", "Kelas", "H", "T"]];
+      for (let i = 1; i <= daysInMonth; i++) {
+        headers[0].push(i.toString());
+      }
+
+      const body = data.map(item => {
+        const row = [
+          item.nis || "-",
+          (item.name || "").substring(0, 25),
+          item.class_name || "-",
+          String(item.total_hadir ?? 0),
+          String(item.total_terlambat ?? 0)
+        ];
+        
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayData = (item.days || {})[i];
+          if (!dayData) {
+            row.push("-");
+          } else {
+            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            let content = "-";
+            let fillColor = [255, 255, 255];
+            let textColor = [51, 65, 85];
+            
+            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+              content = "A";
+              fillColor = [15, 23, 42]; textColor = [255, 255, 255];
+            } else if (status === "Sakit") {
+              content = "S";
+              fillColor = [254, 243, 199]; textColor = [146, 64, 14];
+            } else if (status === "Izin") {
+              content = "I";
+              fillColor = [219, 234, 254]; textColor = [30, 58, 138];
+            } else if (status === "Terlambat" || dayData.isLate) {
+              if (isDetailed && (dayData.in || dayData.out)) {
+                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+              } else {
+                content = "T";
+              }
+              fillColor = [254, 226, 226]; textColor = [153, 27, 27];
+            } else if (dayData.in || dayData.out || status === "Hadir") {
+              if (isDetailed && (dayData.in || dayData.out)) {
+                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+              } else {
+                content = "H";
+              }
+              fillColor = [220, 252, 231]; textColor = [22, 101, 52];
+            }
+            
+            if (content.includes(':')) {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
+               });
+            } else {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor }
+               });
+            }
           }
         }
-      }
-    });
+        return row;
+      });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(8);
-    doc.setFont("Helvetica", "bold");
-    doc.text("Keterangan:", 14, finalY);
-    
-    doc.setFont("Helvetica", "normal");
-    doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 3, 4, 4, 'F'); doc.text("Hadir (H)", 20, finalY + 6);
-    doc.setFillColor(254, 226, 226); doc.rect(40, finalY + 3, 4, 4, 'F'); doc.text("Terlambat (T)", 46, finalY + 6);
-    doc.setFillColor(254, 243, 199); doc.rect(70, finalY + 3, 4, 4, 'F'); doc.text("Sakit (S)", 76, finalY + 6);
-    doc.setFillColor(219, 234, 254); doc.rect(95, finalY + 3, 4, 4, 'F'); doc.text("Izin (I)", 101, finalY + 6);
-    doc.setFillColor(15, 23, 42);    doc.rect(120, finalY + 3, 4, 4, 'F'); doc.text("Alpa (A)", 126, finalY + 6);
-    doc.setDrawColor(200, 200, 200); doc.rect(145, finalY + 3, 4, 4, 'D'); doc.text("Kosong (-)", 151, finalY + 6);
-    
-    doc.save(`Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.pdf`);
+      autoTable(doc, {
+        startY: startY + 16,
+        head: headers,
+        body: body,
+        theme: 'grid',
+        styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
+        headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
+        columnStyles: {
+          0: { halign: 'left', cellWidth: 15 },
+          1: { halign: 'left', cellWidth: 35 },
+          2: { halign: 'left', cellWidth: 12 },
+          3: { cellWidth: 6 },
+          4: { cellWidth: 6 },
+        },
+        didParseCell: function (data) {
+          if (data.section === 'body' && data.column.index >= 5 && typeof data.cell.raw === 'string') {
+            const val = data.cell.raw;
+            if (val === 'H') {
+              data.cell.styles.fillColor = [220, 252, 231]; 
+              data.cell.styles.textColor = [22, 101, 52];
+            } else if (val === 'T') {
+              data.cell.styles.fillColor = [254, 226, 226]; 
+              data.cell.styles.textColor = [153, 27, 27];
+            } else if (val === 'S') {
+              data.cell.styles.fillColor = [254, 243, 199]; 
+              data.cell.styles.textColor = [146, 64, 14];
+            } else if (val === 'I') {
+              data.cell.styles.fillColor = [219, 234, 254]; 
+              data.cell.styles.textColor = [30, 58, 138];
+            } else if (val === 'A') {
+              data.cell.styles.fillColor = [15, 23, 42]; 
+              data.cell.styles.textColor = [255, 255, 255];
+            }
+          }
+        }
+      });
+
+      const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
+      doc.setFontSize(8);
+      doc.setFont("Helvetica", "bold");
+      doc.text("Keterangan:", 14, finalY);
+      
+      doc.setFont("Helvetica", "normal");
+      doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 3, 4, 4, 'F'); doc.text("Hadir (H)", 20, finalY + 6);
+      doc.setFillColor(254, 226, 226); doc.rect(40, finalY + 3, 4, 4, 'F'); doc.text("Terlambat (T)", 46, finalY + 6);
+      doc.setFillColor(254, 243, 199); doc.rect(70, finalY + 3, 4, 4, 'F'); doc.text("Sakit (S)", 76, finalY + 6);
+      doc.setFillColor(219, 234, 254); doc.rect(95, finalY + 3, 4, 4, 'F'); doc.text("Izin (I)", 101, finalY + 6);
+      doc.setFillColor(15, 23, 42);    doc.rect(120, finalY + 3, 4, 4, 'F'); doc.text("Alpa (A)", 126, finalY + 6);
+      doc.setDrawColor(200, 200, 200); doc.rect(145, finalY + 3, 4, 4, 'D'); doc.text("Kosong (-)", 151, finalY + 6);
+      
+      doc.save(`Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.pdf`);
+      showToast("Laporan PDF Siswa berhasil diunduh!", "success");
+    } catch (err) {
+      console.error("Gagal mengekspor PDF Siswa:", err);
+      showToast("Gagal mengunduh PDF Siswa: " + err.message, "error");
+    }
   };
 
   const filteredData = data.filter(d => {
@@ -359,7 +503,7 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Reset page when search or filters change
   useEffect(() => {
@@ -634,25 +778,33 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
               Rekap kehadiran siswa per bulan dalam bentuk matriks.
             </p>
           </div>
-          <div className="flex gap-2">
-             <Button variant="ghost" size="sm" 
-               onClick={handleExport}
-               disabled={loading || data.length === 0}
-               className="flex items-center gap-1.5"
+          <div className="flex flex-col sm:flex-row gap-2">
+             <UISelect 
+               value={exportMode}
+               onChange={(e) => setExportMode(e.target.value)}
+               className="text-xs py-1.5 h-auto px-3 border-slate-200"
              >
-               <FileSpreadsheet size={14} className="shrink-0" />
-               <span className="hidden sm:inline">Excel Export</span>
-               <span className="inline sm:hidden">Excel</span>
-             </Button>
-             <Button variant="ghost" size="sm" 
-               onClick={handleExportPDF}
-               disabled={loading || data.length === 0}
-               className="flex items-center gap-1.5"
-             >
-               <FileText size={14} className="shrink-0" />
-               <span className="hidden sm:inline">PDF Export</span>
-               <span className="inline sm:hidden">PDF</span>
-             </Button>
+               <option value="summary">Ringkas (H/T/I/S/A)</option>
+               <option value="detailed">Lengkap (Dengan Jam)</option>
+             </UISelect>
+             <div className="flex gap-2">
+               <Button variant="outline" size="sm" 
+                 onClick={() => handleExport(exportMode === 'detailed')}
+                 disabled={loading || data.length === 0}
+                 className="flex items-center gap-1.5 cursor-pointer"
+               >
+                 <FileSpreadsheet size={14} className="shrink-0" />
+                 <span className="hidden sm:inline">Excel</span>
+               </Button>
+               <Button variant="outline" size="sm" 
+                 onClick={() => handleExportPDF(exportMode === 'detailed')}
+                 disabled={loading || data.length === 0}
+                 className="flex items-center gap-1.5 cursor-pointer"
+               >
+                 <FileText size={14} className="shrink-0" />
+                 <span className="hidden sm:inline">PDF</span>
+               </Button>
+             </div>
           </div>
         </div>
 
@@ -752,9 +904,12 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
            <table className="w-full text-left border-collapse min-w-max">
              <thead>
                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider">
-                 <th className="px-4 py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200">Siswa</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">Σ Hdr</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">Σ Tlt</th>
+                 <th className="px-4 py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200">NAMA SISWA</th>
+                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">HDR</th>
+                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">TLT</th>
+                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">IZN</th>
+                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">SKT</th>
+                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">ALP</th>
                  {daysToRender.map((dayNum) => (
                     <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
                       {dayNum}
@@ -765,11 +920,11 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
              <tbody className="text-sm font-medium text-slate-700">
                {loading ? (
                  <tr>
-                   <td colSpan={3 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
+                   <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
                  </tr>
                ) : paginatedData.length === 0 ? (
                  <tr>
-                   <td colSpan={3 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
+                   <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
                  </tr>
                ) : (
                  paginatedData.map(d => (
@@ -778,8 +933,11 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
                          <div className="font-bold text-slate-800 text-xs truncate max-w-[150px]" title={d.name}>{d.name}</div>
                          <div className="text-[9px] text-slate-400 font-bold truncate max-w-[150px]">{d.class_name ||'Tanpa Kelas'}</div>
                       </td>
-                      <td className="px-3 py-3 text-center font-black text-slate-700 border-r border-slate-100">{d.total_hadir}</td>
+                      <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
                       <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
+                      <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
+                      <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
+                      <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">{d.total_alpa || 0}</td>
                       {daysToRender.map((dayNum) => {
                          const dayData = d.days[dayNum];
                          if (!dayData) {
@@ -803,7 +961,7 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] ${cellColors.className}`} style={cellColors.style}>
                                   {["Sakit","Izin","Alpa"].includes(dayData.status) ? (
                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
-                                      <span className="font-extrabold">{dayData.status}</span>
+                                      <span className="font-extrabold">{dayData.status.toUpperCase()}</span>
                                       {dayData.gdrive_url && (
                                         <a 
                                           href={dayData.gdrive_url} 
@@ -834,42 +992,14 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
            </table>
          </div>
 
-         {/* Pagination Controls */}
-         {totalPages > 1 && (
-           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs font-bold text-slate-500">
-             <div>
-               Menampilkan {Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length)} - {Math.min(currentPage * itemsPerPage, filteredData.length)} dari {filteredData.length} data
-             </div>
-             <div className="flex items-center gap-1.5 flex-wrap">
-               <Button variant="outline"
-                 type="button"
-                 disabled={currentPage === 1}
-                 onClick={() =>setCurrentPage(prev => Math.max(prev - 1, 1))}
-                 className="cursor-pointer"
-               >
-                 Sebelumnya</Button>
-               {Array.from({ length: totalPages }).map((_, idx) => {
-                 const pageNum = idx + 1;
-                 return (
-                   <Button variant="outline"
-                     key={pageNum}
-                     type="button"
-                     onClick={() =>setCurrentPage(pageNum)}
-                     className={`cursor-pointer`}
-                   >
-                     {pageNum}</Button>
-                 );
-               })}
-               <Button variant="outline"
-                 type="button"
-                 disabled={currentPage === totalPages}
-                 onClick={() =>setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                 className="cursor-pointer"
-               >
-                 Selanjutnya</Button>
-             </div>
-           </div>
-         )}
+        <TablePagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredData.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+        />
        </div>
 
        {/* Input Ketidakhadiran Modal */}

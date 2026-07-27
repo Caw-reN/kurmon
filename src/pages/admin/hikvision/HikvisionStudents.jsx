@@ -229,24 +229,25 @@ function TabSiswa({ classes, authToken, showToast }) {
 
       {/* toolbar */}
       <div className="flex gap-2 flex-wrap items-center">
-        <button
+        <Button variant="outline"
           onClick={handleSync}
           disabled={syncing}
           className="flex items-center gap-2"
         >
           {syncing
-            ? <><RefreshCw size={16} className="animate-spin" /> Menyinkronkan...</>
-            : <><Wifi size={16} /> Sinkron dari Mesin</>
+            ? <><RefreshCw size={14} strokeWidth={2.5} className="animate-spin" /> Menyinkronkan...</>
+            : <><Wifi size={14} strokeWidth={2.5} /> Sinkron dari Mesin</>
           }
-        </button>
-        <button onClick={handleAutoDetect} className="flex items-center gap-2">
-          <Sparkles size={16} /> Deteksi Otomatis
-        </button>
+        </Button>
+        <Button variant="outline" onClick={handleAutoDetect} className="flex items-center gap-2">
+          <Sparkles size={14} strokeWidth={2.5} /> Deteksi Otomatis
+        </Button>
         <Button variant="outline" onClick={() =>setShowImportModal(true)} className="flex items-center gap-2">
-          <Upload size={16} /> Import Excel</Button>
-        <button onClick={fetchStudents} className="flex items-center gap-2">
-          <RefreshCw size={16} className={loading ?"animate-spin" :""} /> Refresh
-        </button>
+          <Upload size={14} strokeWidth={2.5} /> Import Excel
+        </Button>
+        <Button variant="outline" onClick={fetchStudents} className="flex items-center gap-2">
+          <RefreshCw size={14} strokeWidth={2.5} className={loading ?"animate-spin" :""} /> Refresh
+        </Button>
         <p className="text-xs text-slate-400 font-semibold ml-auto">Klik &quot;Sinkron dari Mesin&quot; untuk menarik data terbaru dari perangkat fingerprint bertipe Siswa.</p>
       </div>
 
@@ -317,7 +318,7 @@ function TabSiswa({ classes, authToken, showToast }) {
                           </div>
                           <div className="text-[11px] text-slate-500 font-semibold">{s.nis}</div>
                         </td>
-                        <td className="px-4 py-3"><span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase">{s.group_name ||"Tanpa Grup"}</span></td>
+                        <td className="px-4 py-3"><span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase whitespace-nowrap">{s.group_name ||"Tanpa Grup"}</span></td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-40 md:w-56">

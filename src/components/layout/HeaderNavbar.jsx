@@ -138,17 +138,71 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   const [buttonHovered, setButtonHovered] = useState(false);
 
+  // Determine dynamic styles based on headerStyle config
+  const headerStyle = appSettings?.headerStyle || 'primary'; // 'primary', 'glass', 'solid', 'minimal'
+  
+  let headerBgColor = primaryColor;
+  let headerBorderColor = hexToRgba(surfaceColor, 0.15);
+  let headerTextColor = surfaceColor; 
+  let headerMutedTextColor = hexToRgba(surfaceColor, 0.8);
+  let headerBackdropFilter = 'blur(12px)';
+  let headerShadow = '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)';
+  
+  let buttonBorderColor = surfaceColor;
+  let buttonTextColor = surfaceColor;
+  let buttonBgColor = 'transparent';
+  let buttonHoverBgColor = surfaceColor;
+  let buttonHoverTextColor = primaryColor;
+
+  if (headerStyle === 'solid') {
+    headerBgColor = surfaceColor; // solid white/surface
+    headerBorderColor = 'rgba(0,0,0,0.08)';
+    headerTextColor = '#1e293b';
+    headerMutedTextColor = '#64748b';
+    headerBackdropFilter = 'none';
+    headerShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+    
+    buttonBorderColor = primaryColor;
+    buttonTextColor = primaryColor;
+    buttonHoverBgColor = primaryColor;
+    buttonHoverTextColor = surfaceColor;
+  } else if (headerStyle === 'glass') {
+    headerBgColor = hexToRgba(surfaceColor, 0.7); // translucent
+    headerBorderColor = 'rgba(0,0,0,0.05)';
+    headerTextColor = '#1e293b';
+    headerMutedTextColor = '#64748b';
+    headerBackdropFilter = 'blur(16px)';
+    headerShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+    
+    buttonBorderColor = primaryColor;
+    buttonTextColor = primaryColor;
+    buttonHoverBgColor = primaryColor;
+    buttonHoverTextColor = surfaceColor;
+  } else if (headerStyle === 'minimal') {
+    headerBgColor = hexToRgba(surfaceColor, 0.45); // subtle thin glass box
+    headerBorderColor = 'rgba(255, 255, 255, 0.25)';
+    headerTextColor = primaryColor;
+    headerMutedTextColor = hexToRgba(primaryColor, 0.8);
+    headerBackdropFilter = 'blur(12px)';
+    headerShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.04)';
+    
+    buttonBorderColor = primaryColor;
+    buttonTextColor = primaryColor;
+    buttonHoverBgColor = primaryColor;
+    buttonHoverTextColor = surfaceColor;
+  }
+
   return (
     <>
       <div 
         role="banner"
-        className="fixed top-4 left-6 md:left-8 right-6 md:right-8 mx-auto max-w-[1336px] z-50 py-2 pl-4 md:pl-5 pr-6 md:pr-8 flex items-center justify-between transition-all duration-300 border rounded-[var(--ui-radius-card)] md:rounded-2xl"
+        className="fixed top-4 left-6 md:left-8 right-6 md:right-8 mx-auto max-w-[1336px] z-50 py-2 pl-4 md:pl-5 pr-6 md:pr-8 flex items-center justify-between transition-all duration-300 border rounded-[var(--ui-radius-card)]"
         style={{
-          backgroundColor: primaryColor,
-          borderColor: hexToRgba(surfaceColor, 0.15),
-          backdropFilter:'blur(12px)',
-          WebkitBackdropFilter:'blur(12px)',
-          boxShadow:'0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          backgroundColor: headerBgColor,
+          borderColor: headerBorderColor,
+          backdropFilter: headerBackdropFilter,
+          WebkitBackdropFilter: headerBackdropFilter,
+          boxShadow: headerShadow,
         }}
       >
         <div className="w-full flex items-center justify-between">
@@ -166,8 +220,8 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 <div
                   className="h-full w-full rounded-md flex items-center justify-center font-black text-[10px] shrink-0 shadow-sm transition-colors duration-300"
                   style={{ 
-                    backgroundColor: surfaceColor,
-                    color: primaryColor
+                    backgroundColor: headerStyle === 'primary' ? surfaceColor : primaryColor,
+                    color: headerStyle === 'primary' ? primaryColor : surfaceColor
                   }}
                 >
                   {logoText}
@@ -178,13 +232,13 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             <div className="flex flex-col text-left justify-center leading-none">
               <span 
                 className="text-[9.5px] font-bold uppercase tracking-[0.18em] leading-none mb-[3px] transition-colors duration-300"
-                style={{ color: hexToRgba(surfaceColor, 0.8) }}
+                style={{ color: headerMutedTextColor }}
               >
                 {appSettings?.logoSmallText !== undefined ? appSettings.logoSmallText :"PORTAL"}
               </span>
               <span 
                 className="font-extrabold text-[15.5px] tracking-tight leading-none uppercase transition-colors duration-300"
-                style={{ color: surfaceColor }}
+                style={{ color: headerTextColor }}
               >
                 {appName}
               </span>
@@ -203,7 +257,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     onClick={(e) => handleLinkClick(e, link)}
                     className="text-[14px] font-medium transition-colors duration-300 no-underline tracking-wide"
                     style={{
-                      color: surfaceColor,
+                      color: headerTextColor,
                       opacity: isActive ? 1 : 0.75
                     }}
                     onMouseEnter={(e) => {
@@ -228,11 +282,11 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             {/* Tombol Masuk */}
             <button
               onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
-              className="rounded-[10px] border text-[13.5px] transition-all duration-300 cursor-pointer flex items-center gap-1.5 h-10 px-4 text-sm font-bold"
+              className="rounded-[var(--ui-radius-small)] border text-[13.5px] transition-all duration-300 cursor-pointer flex items-center gap-1.5 h-10 px-4 text-sm font-bold"
               style={{
-                borderColor: surfaceColor,
-                color: buttonHovered ? primaryColor : surfaceColor,
-                backgroundColor: buttonHovered ? surfaceColor :'transparent'
+                borderColor: buttonBorderColor,
+                color: buttonHovered ? buttonHoverTextColor : buttonTextColor,
+                backgroundColor: buttonHovered ? buttonHoverBgColor : buttonBgColor
               }}
               onMouseEnter={() => setButtonHovered(true)}
               onMouseLeave={() => setButtonHovered(false)}
@@ -255,8 +309,8 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-1.5 rounded-lg border transition-colors cursor-pointer bg-transparent"
               style={{
-                borderColor: hexToRgba(surfaceColor, 0.3),
-                color: surfaceColor
+                borderColor: hexToRgba(headerTextColor, 0.3),
+                color: headerTextColor
               }}
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -270,8 +324,8 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
         <div 
           className="md:hidden fixed top-[75px] left-4 right-4 backdrop-blur-md border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-xl"
           style={{
-            backgroundColor: primaryColor,
-            borderColor: hexToRgba(surfaceColor, 0.15)
+            backgroundColor: headerBgColor === 'transparent' ? primaryColor : headerBgColor,
+            borderColor: headerBorderColor
           }}
         >
           <nav className="flex flex-col gap-3.5">
@@ -282,10 +336,10 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   key={link.label}
                   to={link.to}
                   onClick={(e) => handleLinkClick(e, link)}
-                  className="text-[14px] rounded-lg transition-colors duration-200 no-underline text-left block h-10 px-4 text-sm font-bold"
+                  className="text-[14px] rounded-[var(--ui-radius-small)] transition-colors duration-200 no-underline text-left block h-10 px-4 text-sm font-bold"
                   style={{
-                    color: isActive ? primaryColor : hexToRgba(surfaceColor, 0.8),
-                    backgroundColor: isActive ? surfaceColor :'transparent'
+                    color: isActive ? (headerStyle === 'primary' ? primaryColor : surfaceColor) : headerTextColor,
+                    backgroundColor: isActive ? (headerStyle === 'primary' ? surfaceColor : primaryColor) : 'transparent'
                   }}
                 >
                   {link.label}
@@ -297,7 +351,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
           <div className="border-t border-slate-200/20 pt-4 flex items-center justify-between">
             <span 
               className="text-[12px] font-medium uppercase tracking-wider"
-              style={{ color: hexToRgba(surfaceColor, 0.5) }}
+              style={{ color: headerMutedTextColor }}
             >
               Portal & Akses
             </span>

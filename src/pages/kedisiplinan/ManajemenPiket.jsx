@@ -41,7 +41,7 @@ export default function ManajemenPiket({ teachers = [], students = [], classes =
                   if (String(s.hari).toLowerCase() === todayName.toLowerCase()) {
                     let ids = s.guru_ids;
                     if (typeof ids ==="string") {
-                      try { ids = JSON.parse(ids); } catch { }
+                      try { ids = JSON.parse(ids); } catch { /* intentionally ignored */ }
                     }
                     if (Array.isArray(ids) && ids.some(id => String(id).trim().toLowerCase() === String(myCode).trim().toLowerCase())) {
                       isOnDuty = true;

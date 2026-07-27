@@ -178,7 +178,7 @@ const LokasiPKL = () => {
           {!showForm ? (
             <div className="space-y-3">
               <Button variant="outline" onClick={() =>setShowForm(true)} disabled={updateCount >= 2}
-                className={`w-full flex items-center justify-center gap-2 cursor-not-allowed'`}>
+                className="w-full flex items-center justify-center gap-2">
                 <Edit3 size={18} />
                 Perbarui Lokasi GPS</Button>
               {updateCount >= 2 && (
@@ -202,12 +202,12 @@ const LokasiPKL = () => {
 
               <div>
                 <p className="text-sm font-bold text-slate-800 mb-2">1. Ambil Koordinat GPS</p>
-                <button onClick={handleGetGPS} disabled={gettingGPS}
-                  className={`   w-full flex items-center justify-center gap-2`}>
+                <Button variant="outline" onClick={handleGetGPS} disabled={gettingGPS}
+                  className="w-full flex items-center justify-center gap-2">
                   {gettingGPS ? <Loader2 size={16} className="animate-spin" /> :
                     coords ? <CheckCircle2 size={16} /> : <Navigation size={16} />}
                   {gettingGPS ?'Mencari...' : coords ?'Koordinat didapat' :'Dapatkan Lokasi GPS'}
-                </button>
+                </Button>
               </div>
 
               <div>
@@ -223,11 +223,10 @@ const LokasiPKL = () => {
                 <Button variant="outline" onClick={() =>setShowForm(false)}
                   className="flex-1">
                   Batal</Button>
-                <button onClick={handleSubmit} disabled={!canSubmit || submitting}
-                  className="flex-1 py-3 bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-small)] text-sm font-bold
-                    disabled:opacity-50 flex items-center justify-center gap-2">
+                <Button onClick={handleSubmit} disabled={!canSubmit || submitting}
+                  className="flex-1 flex items-center justify-center gap-2">
                   {submitting && <Loader2 size={15} className="animate-spin" />} Simpan Lokasi
-                </button>
+                </Button>
               </div>
             </div>
           )}

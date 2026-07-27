@@ -127,13 +127,10 @@ export default function AbsensiKBM({ classes = [], schedule = [] }) {
               placeholder="Pilih Kelas..."
             />
           </div>
-          <button
-            onClick={fetchAbsensi}
-            disabled={isLoading || !filterKelas}
-            className="flex items-center gap-1.5"
-          >
+          <Button variant="outline" onClick={fetchAbsensi} disabled={isLoading || !filterKelas}
+            className="flex items-center gap-1.5 shrink-0">
             <RefreshCw size={13} className={isLoading ?'animate-spin' :''} /> Refresh
-          </button>
+          </Button>
         </div>
         {lastUpdated && (
           <p className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">

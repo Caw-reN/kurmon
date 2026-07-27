@@ -98,17 +98,16 @@ export function CustomSelect({
         data-slot="select-trigger"
         type="button"
         onClick={handleOpen}
-        className="flex h-11 w-full items-center justify-between whitespace-nowrap bg-white pl-5 pr-4 text-xs font-black rounded-[var(--ui-radius-card)] border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/10 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-9 w-full items-center justify-between whitespace-nowrap bg-white pl-3 pr-2 text-xs font-bold rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className="truncate mr-2.5">{selectedOption.label}</span>
+        <span className="truncate mr-2 text-slate-700">{selectedOption.label}</span>
         <div 
-          className="w-6.5 h-6.5 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-transform duration-200 shadow-sm ml-2.5" 
+          className="flex items-center justify-center shrink-0 transition-transform duration-200 text-slate-400" 
           style={{ 
-            backgroundColor: accentColor, 
             transform: isOpen ?'rotate(180deg)' :'rotate(0)' 
           }}
         >
-          <ChevronDown size={15} style={{ color: primaryColor }} className="stroke-[3]" />
+          <ChevronDown size={14} className="stroke-[2.5]" />
         </div>
       </button>
       

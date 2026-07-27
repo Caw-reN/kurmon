@@ -160,6 +160,31 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
     }
   };
 
+  const handleDownloadBackup = async (type) => {
+    const token = authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken || '';
+    const url = `/api/backup/${type}?token=${encodeURIComponent(token)}`;
+    try {
+      const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        showToast(errJson?.error || `Gagal mengunduh backup ${type}.`, 'error');
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = type === 'excel' ? `kurmon_master_backup_${new Date().toISOString().slice(0,10)}.xlsx` : `kurmon_db_backup_${new Date().toISOString().slice(0,10)}.sql`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      showToast(`Berhasil mengunduh backup ${type.toUpperCase()}!`);
+    } catch (err) {
+      showToast(`Gagal mengunduh backup ${type}.`, 'error');
+    }
+  };
+
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
       <PageHeader 
@@ -212,9 +237,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 </div>
               </div>
               <Button variant="outline" 
-                onClick={() =>{
-                  window.open(`/api/backup/excel?token=${authToken ||''}`,'_blank');
-                }}
+                onClick={() => handleDownloadBackup('excel')}
                 className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download size={14} /> Unduh Master Data Excel (.xlsx)</Button>
@@ -234,9 +257,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 </div>
               </div>
               <Button variant="outline" 
-                onClick={() =>{
-                  window.open(`/api/backup/postgresql?token=${authToken ||''}`,'_blank');
-                }}
+                onClick={() => handleDownloadBackup('postgresql')}
                 className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download size={14} /> Unduh Database Dump SQL (.sql)</Button>
@@ -245,6 +266,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
           </div>
         </div>
       )}
+
 
       {/* TAB CONTENT: TELEGRAM */}
       {activeTab ==='telegram' && (

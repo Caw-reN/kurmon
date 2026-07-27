@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, TablePagination } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
 import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
@@ -46,6 +46,9 @@ export default function HikvisionDashboard() {
   const [activeConfigTab, setActiveConfigTab] = useState('siswa');
   const [savingConfig, setSavingConfig] = useState(false);
   const [toast, setToast] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -131,9 +134,13 @@ export default function HikvisionDashboard() {
     setSavingConfig(false);
   };
 
-  const filteredLogs = activeFilter ==='semua'
-    ? recentLogs
-    : recentLogs.filter(l => (l.device_type ||'siswa') === activeFilter);
+  const filteredLogs = (activeFilter ==='semua' 
+    ? recentLogs 
+    : recentLogs.filter(log => log.device_type === activeFilter)
+  );
+
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
 
   const filterOptions = [
     { value:'semua', label:'Semua' },
@@ -258,12 +265,12 @@ export default function HikvisionDashboard() {
             <div className="p-4 space-y-4">
               <div className="flex border-b border-slate-200 gap-4">
                 {['siswa','guru','karyawan'].map(tab => (
-                  <Button variant="outline" 
+                  <button 
                     key={tab}
                     onClick={() =>setActiveConfigTab(tab)}
-                    className={`${activeConfigTab === tab ?'border-[var(--ui-primary)] text-[var(--ui-primary)]' :'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    className={`pb-2 text-sm font-bold capitalize transition-colors border-b-2 bg-transparent cursor-pointer ${activeConfigTab === tab ?'border-[var(--ui-primary)] text-[var(--ui-primary)]' :'border-transparent text-slate-500 hover:text-slate-700'}`}
                   >
-                    {tab}</Button>
+                    {tab}</button>
                 ))}
               </div>
               
@@ -271,16 +278,16 @@ export default function HikvisionDashboard() {
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Absen Masuk (Pagi)</h4>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka</label>
-                    <input type="time" value={config[activeConfigTab]?.masuk_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_open: e.target.value}})} className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
+                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_open: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat</label>
-                    <input type="time" value={config[activeConfigTab]?.masuk_late ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_late: e.target.value}})} className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
+                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_late ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_late: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup</label>
-                    <input type="time" value={config[activeConfigTab]?.masuk_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_close: e.target.value}})} className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
+                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_close: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
                   </div>
                 </div>
               </div>
@@ -289,12 +296,12 @@ export default function HikvisionDashboard() {
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Absen Pulang (Sore)</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka</label>
-                    <input type="time" value={config[activeConfigTab]?.pulang_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_open: e.target.value}})} className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
+                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.pulang_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_open: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup</label>
-                    <input type="time" value={config[activeConfigTab]?.pulang_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_close: e.target.value}})} className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
+                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.pulang_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_close: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
                   </div>
                 </div>
               </div>
@@ -307,7 +314,7 @@ export default function HikvisionDashboard() {
                     <UISelect 
                       value={config.notify_role ||"none"} 
                       onChange={e => setConfig({...config, notify_role: e.target.value})} 
-                      className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold bg-white focus:bg-white focus:outline-[var(--ui-primary)]"
+                      className="w-full border border-slate-200 rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold bg-white focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none"
                     >
                       <option value="none">Tidak Ada (none)</option>
                       <option value="kepsek">Kepala Sekolah (kepsek)</option>
@@ -323,7 +330,7 @@ export default function HikvisionDashboard() {
                         type="text" 
                         value={config.notify_custom_phone ||""} 
                         onChange={e => setConfig({...config, notify_custom_phone: e.target.value})} 
-                        className="w-full border-none rounded-[var(--ui-radius-small)] p-2 text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]" 
+                        className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" 
                         placeholder="Contoh: 628123456789"
                       />
                     </div>
@@ -331,9 +338,9 @@ export default function HikvisionDashboard() {
                 </div>
               </div>
 
-              <button onClick={handleSaveConfig} disabled={savingConfig} className="w-full mt-2 cursor-pointer flex items-center justify-center">
+              <Button onClick={handleSaveConfig} disabled={savingConfig} className="w-full mt-2">
                 {savingConfig ?"Menyimpan..." :"Simpan Batas Waktu"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -351,7 +358,7 @@ export default function HikvisionDashboard() {
                 {filterOptions.map(opt => (
                   <Button variant="outline"
                     key={opt.value}
-                    onClick={() =>setActiveFilter(opt.value)}
+                    onClick={() => { setActiveFilter(opt.value); setCurrentPage(1); }}
                     className={`cursor-pointer`}
                   >
                     {opt.label}</Button>
@@ -371,7 +378,7 @@ export default function HikvisionDashboard() {
                 <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
                   {loading ? (
                     <tr><td colSpan={4} className="p-8 text-center text-slate-400">Memuat log...</td></tr>
-                  ) : filteredLogs.map(log => (
+                  ) : paginatedLogs.map(log => (
                     <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3.5">
                         {new Date(log.timestamp).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })}
@@ -386,12 +393,22 @@ export default function HikvisionDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {!loading && filteredLogs.length === 0 && (
+                  {!loading && paginatedLogs.length === 0 && (
                     <tr><td colSpan={4} className="p-8 text-center text-slate-400 font-medium">Tidak ada data log.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
+            
+            <TablePagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredLogs.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+              isLoading={loading}
+            />
           </div>
         </div>
       </div>

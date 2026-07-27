@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, TablePagination } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from'react';
 import { Activity, Trash2, User, Database, CheckCircle2, Edit2, LogOut, Send, ShieldCheck, Key, History } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
@@ -32,8 +32,8 @@ export default function AuditLog({ activeTab, setActiveTab }) {
   const [filterAction, setFilterAction] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
   const [toast, setToast] = useState(null);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const authToken = useAuthStore(state => state.user?.authToken);
-  const LIMIT = 50;
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -44,14 +44,14 @@ export default function AuditLog({ activeTab, setActiveTab }) {
     if (!authToken) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/audit-logs?page=${p}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${authToken}` } });
+      const res = await fetch(`/api/audit-logs?page=${p}&limit=${itemsPerPage}`, { headers: { Authorization: `Bearer ${authToken}` } });
       const data = await res.json();
       if (data.ok) { setLogs(data.data || []); setTotal(data.total || 0); }
     } catch (e) { console.error(e); }
     setIsLoading(false);
   };
 
-  useEffect(() => { fetchLogs(page); }, [authToken, page]);
+  useEffect(() => { fetchLogs(page); }, [authToken, page, itemsPerPage]);
 
   const handleClearLogs = async () => {
     if (!await window.confirmAsync('Hapus SEMUA log aktivitas? Tindakan ini tidak bisa dibatalkan.')) return;
@@ -76,7 +76,7 @@ export default function AuditLog({ activeTab, setActiveTab }) {
 
   const uniqueActions = useMemo(() => ['all', ...new Set(logs.map(l => l.action).filter(Boolean))], [logs]);
   const uniqueRoles = useMemo(() => ['all', ...new Set(logs.map(l => l.user_role).filter(Boolean))], [logs]);
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
@@ -181,18 +181,15 @@ export default function AuditLog({ activeTab, setActiveTab }) {
           </tbody>
         </table>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-            <p className="text-xs text-slate-500">Halaman {page} dari {totalPages} ({total} total)</p>
-            <div className="flex gap-2">
-              <Button variant="outline" disabled={page <= 1} onClick={() =>setPage(p => p - 1)}
-                >← Prev</Button>
-              <Button variant="outline" disabled={page  >= totalPages} onClick={() => setPage(p => p + 1)}
-                >Next →</Button>
-            </div>
-          </div>
-        )}
+        <TablePagination 
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={total}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setPage(1); }}
+          isLoading={isLoading}
+        />
       </div>
 
       {toast && (

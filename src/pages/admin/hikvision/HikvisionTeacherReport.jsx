@@ -1,15 +1,16 @@
-import { Button } from '../../../components/ui.jsx';
-import React, { useState, useEffect, useCallback } from'react';
+import { Button, TablePagination } from '../../../components/ui.jsx';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2 } from 'lucide-react';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { drawKopSurat } from '../../../utils/pdfHelpers.js';
 import { Modal } from'../../../components/ui.jsx';
 import { UISelect } from'../../../components/ui.jsx';
+import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 
 
 export default function HikvisionTeacherReport({ isNested = false }) {
@@ -20,7 +21,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const [toast, setToast] = useState(null);
   const [subTab, setSubTab] = useState("matriks"); //"matriks" |"perguru"
   const [selectedTeacherForRapor, setSelectedTeacherForRapor] = useState(null);
-  const [raporPaperSize, setRaporPaperSize] = useState('A4'); //'A4' |'F4'
+  const [raporPaperSize, setRaporPaperSize] = useState(() => getDatabaseSnapshot()?.appSettings?.defaultPaperSize || 'A4');
+
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -151,130 +153,274 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     fetchTeachers();
   }, [fetchData, fetchTeachers]);
 
-  const handleExport = () => {
-    if (data.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
-    
-    const exportData = data.map(item => {
-      const row = {"NIP / ID": item.nis,"Nama Guru": item.name,"Total Hadir": item.total_hadir,"Terlambat": item.total_terlambat,"Izin": item.total_izin,"Sakit": item.total_sakit,"Alpa": item.total_alpa
+  const handleExport = async () => {
+    if (data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Laporan Absensi Guru');
+
+    // Define columns
+    const columns = [
+      { header: 'NIP / ID', key: 'nis', width: 20 },
+      { header: 'Nama Guru', key: 'name', width: 35 },
+      { header: 'H', key: 'h', width: 5 },
+      { header: 'T', key: 't', width: 5 },
+      { header: 'I', key: 'i', width: 5 },
+      { header: 'S', key: 's', width: 5 },
+      { header: 'A', key: 'a', width: 5 }
+    ];
+    for (let i = 1; i <= daysInMonth; i++) {
+      columns.push({ header: i.toString(), key: `d${i}`, width: 10 });
+    }
+    sheet.columns = columns;
+
+    // Style Header Row
+    sheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF1F5F9' } // slate-100
       };
-      for (let i = 1; i <= daysInMonth; i++) {
-         const dayData = item.days[i];
-         if (dayData) {
-            row[`Tgl ${i}`] = dayData.isManual ? dayData.status : `${dayData.in ||'-'} / ${dayData.out ||'-'}${dayData.isLate ?' (T)' :''}`;
-         } else {
-            row[`Tgl ${i}`] ="";
-         }
-      }
-      return row;
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+      };
     });
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Laporan Absensi Guru");
-    XLSX.writeFile(wb, `Laporan_Absensi_Guru_${filter.year}_${filter.month}.xlsx`);
+    // Populate data
+    data.forEach((item, rowIndex) => {
+      const rowData = {
+        nis: item.nis,
+        name: item.name,
+        h: item.total_hadir,
+        t: item.total_terlambat,
+        i: item.total_izin,
+        s: item.total_sakit,
+        a: item.total_alpa
+      };
+      
+      const row = sheet.addRow(rowData);
+      row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
+      row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
+      row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayData = item.days[i];
+        const cell = row.getCell(`d${i}`);
+        
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+        };
+
+        if (dayData) {
+          let content = "-";
+          let fgColor = "FFFFFFFF"; // white
+          let fontColor = "FF334155"; // slate-700
+
+          if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+            content = dayData.taps.slice(0, 4).map(t => t.substring(0,5)).join('\n');
+          } else {
+            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
+            else if (status === "Sakit") content = "S";
+            else if (status === "Izin") content = "I";
+            else if (status === "Terlambat" || status === "Hadir") {
+              if (dayData.in || dayData.out) {
+                const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
+                const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
+                content = `${tIn}\n${tOut}`;
+              } else {
+                content = status === "Terlambat" ? "T" : "H";
+              }
+            }
+          }
+
+          const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+          
+          if (status === 'Hadir') {
+            fgColor = "FFDCFCE7"; // emerald-100
+            fontColor = "FF166534"; // emerald-800
+          } else if (status === 'Terlambat') {
+            fgColor = "FFFEE2E2"; // red-100
+            fontColor = "FF991B1B"; // red-800
+          } else if (status === 'Sakit') {
+            fgColor = "FFFEF3C7"; // amber-100
+            fontColor = "FF92400E"; // amber-800
+          } else if (status === 'Izin') {
+            fgColor = "FFDBEAFE"; // blue-100
+            fontColor = "FF1E3A8A"; // blue-800
+          } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
+            fgColor = "FF0F172A"; // slate-900
+            fontColor = "FFFFFFFF"; // white
+          }
+
+          cell.value = content;
+          cell.font = { color: { argb: fontColor }, bold: true, size: 8 };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
+        } else {
+          cell.value = "";
+        }
+      }
+    });
+
+    // Legend
+    const legendRow = sheet.addRow([]);
+    const legendRow2 = sheet.addRow(['Keterangan:']);
+    legendRow2.font = { bold: true };
+    const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
+    
+    // Auto fit rows
+    sheet.eachRow((row) => {
+      row.commit();
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Laporan_Absensi_Guru_${filter.year}_${filter.month}.xlsx`);
   };
 
   const handleExportPDF = () => {
-    if (data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+    if (!data || data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
     
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    });
-    
-    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-    const monthName = months[filter.month - 1] || "Bulan";
-    const startY = drawKopSurat(doc, true);
-
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(`LAPORAN KINERJA & KEHADIRAN GURU`, 14, startY + 6);
-    
-    doc.setFontSize(9);
-    doc.setFont("Helvetica", "normal");
-    doc.text(`Periode: ${monthName} ${filter.year}`, 14, startY + 12);
-    
-    const headers = [["NIP / Kode", "Nama Guru", "H", "T"]];
-    for (let i = 1; i <= daysInMonth; i++) {
-      headers[0].push(i.toString());
-    }
-
-    const body = data.map(item => {
-      const row = [
-        item.nis,
-        item.name.substring(0, 30),
-        item.total_hadir.toString(),
-        item.total_terlambat.toString()
-      ];
+    try {
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: getDatabaseSnapshot()?.appSettings?.defaultPaperSize === 'F4' ? [215, 330] : 'a4'
+      });
       
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dayData = item.days[i];
-        if (!dayData) {
-          row.push("-");
-        } else {
-          const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
-          if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") row.push("A");
-          else if (status === "Sakit") row.push("S");
-          else if (status === "Izin") row.push("I");
-          else if (status === "Terlambat") row.push("T");
-          else if (status === "Hadir") row.push("H");
-          else row.push("-");
-        }
-      }
-      return row;
-    });
+      const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+      const monthName = months[filter.month - 1] || "Bulan";
+      const startY = 15;
 
-    autoTable(doc, {
-      startY: startY + 16,
-      head: headers,
-      body: body,
-      theme: 'grid',
-      styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
-      headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 20 },
-        1: { halign: 'left', cellWidth: 40 },
-        2: { cellWidth: 6 },
-        3: { cellWidth: 6 },
-      },
-      didParseCell: function (data) {
-        if (data.section === 'body' && data.column.index >= 4) {
-          const val = data.cell.raw;
-          if (val === 'H') {
-            data.cell.styles.fillColor = [220, 252, 231]; 
-            data.cell.styles.textColor = [22, 101, 52];   
-          } else if (val === 'T') {
-            data.cell.styles.fillColor = [254, 226, 226]; 
-            data.cell.styles.textColor = [185, 28, 28];   
-          } else if (val === 'S') {
-            data.cell.styles.fillColor = [254, 243, 199]; 
-            data.cell.styles.textColor = [146, 64, 14];   
-          } else if (val === 'I') {
-            data.cell.styles.fillColor = [219, 234, 254]; 
-            data.cell.styles.textColor = [30, 64, 175];   
-          } else if (val === 'A') {
-            data.cell.styles.fillColor = [15, 23, 42];      
-            data.cell.styles.textColor = [255, 255, 255]; 
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(`LAPORAN KINERJA & KEHADIRAN GURU`, 14, startY + 6);
+      
+      doc.setFontSize(9);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`Periode: ${monthName} ${filter.year}`, 14, startY + 12);
+      
+      const headers = [["NIP / Kode", "Nama Guru", "H", "T"]];
+      for (let i = 1; i <= daysInMonth; i++) {
+        headers[0].push(i.toString());
+      }
+
+      const body = data.map(item => {
+        const row = [
+          item.nis || "-",
+          (item.name || "").substring(0, 30),
+          String(item.total_hadir ?? 0),
+          String(item.total_terlambat ?? 0)
+        ];
+        
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayData = (item.days || {})[i];
+          if (!dayData) {
+            row.push("-");
+          } else {
+            let content = "-";
+            let fillColor = [255, 255, 255];
+            let textColor = [51, 65, 85];
+            
+            if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+              content = dayData.taps.slice(0, 4).map(t => (t || "").substring(0,5)).join('\n');
+            } else {
+              const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+              if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
+              else if (status === "Sakit") content = "S";
+              else if (status === "Izin") content = "I";
+              else if (status === "Terlambat" || status === "Hadir") {
+                if (dayData.in || dayData.out) {
+                  const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
+                  const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
+                  content = `${tIn}\n${tOut}`;
+                } else {
+                  content = status === "Terlambat" ? "T" : "H";
+                }
+              }
+            }
+
+            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            
+            if (status === 'Hadir') {
+              fillColor = [220, 252, 231]; 
+              textColor = [22, 101, 52];
+            } else if (status === 'Terlambat') {
+              fillColor = [254, 226, 226]; 
+              textColor = [153, 27, 27];
+            } else if (status === 'Sakit') {
+              fillColor = [254, 243, 199]; 
+              textColor = [146, 64, 14];
+            } else if (status === 'Izin') {
+              fillColor = [219, 234, 254]; 
+              textColor = [30, 58, 138];
+            } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
+              fillColor = [15, 23, 42]; 
+              textColor = [255, 255, 255];
+            }
+
+            if (content.includes(':')) {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
+               });
+            } else {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor }
+               });
+            }
           }
         }
-      }
-    });
+        return row;
+      });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(8);
-    doc.setFont("Helvetica", "bold");
-    doc.text("Keterangan:", 14, finalY);
-    
-    doc.setFont("Helvetica", "normal");
-    doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 3, 4, 4, 'F'); doc.text("Hadir (H)", 20, finalY + 6);
-    doc.setFillColor(254, 226, 226); doc.rect(40, finalY + 3, 4, 4, 'F'); doc.text("Terlambat (T)", 46, finalY + 6);
-    doc.setFillColor(254, 243, 199); doc.rect(70, finalY + 3, 4, 4, 'F'); doc.text("Sakit (S)", 76, finalY + 6);
-    doc.setFillColor(219, 234, 254); doc.rect(95, finalY + 3, 4, 4, 'F'); doc.text("Izin (I)", 101, finalY + 6);
-    doc.setFillColor(15, 23, 42);    doc.rect(120, finalY + 3, 4, 4, 'F'); doc.text("Alpa (A)", 126, finalY + 6);
-    doc.setDrawColor(200, 200, 200); doc.rect(145, finalY + 3, 4, 4, 'D'); doc.text("Kosong (-)", 151, finalY + 6);
-    
-    doc.save(`Laporan_Absensi_Guru_${filter.year}_${filter.month}.pdf`);
+      autoTable(doc, {
+        startY: startY + 16,
+        head: headers,
+        body: body,
+        theme: 'grid',
+        styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
+        headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
+        columnStyles: {
+          0: { halign: 'left', cellWidth: 20 },
+          1: { halign: 'left', cellWidth: 40 },
+          2: { cellWidth: 6 },
+          3: { cellWidth: 6 },
+        }
+      });
+
+      const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
+      doc.setFontSize(8);
+      doc.setFont("Helvetica", "bold");
+      doc.text("Keterangan:", 14, finalY);
+      
+      doc.setFont("Helvetica", "normal");
+      doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 3, 4, 4, 'F'); doc.text("Hadir (H)", 20, finalY + 6);
+      doc.setFillColor(254, 226, 226); doc.rect(40, finalY + 3, 4, 4, 'F'); doc.text("Terlambat (T)", 46, finalY + 6);
+      doc.setFillColor(254, 243, 199); doc.rect(70, finalY + 3, 4, 4, 'F'); doc.text("Sakit (S)", 76, finalY + 6);
+      doc.setFillColor(219, 234, 254); doc.rect(95, finalY + 3, 4, 4, 'F'); doc.text("Izin (I)", 101, finalY + 6);
+      doc.setFillColor(15, 23, 42);    doc.rect(120, finalY + 3, 4, 4, 'F'); doc.text("Alpa (A)", 126, finalY + 6);
+      doc.setDrawColor(200, 200, 200); doc.rect(145, finalY + 3, 4, 4, 'D'); doc.text("Kosong (-)", 151, finalY + 6);
+      
+      doc.save(`Laporan_Absensi_Guru_${filter.year}_${filter.month}.pdf`);
+      showToast("Laporan PDF Guru berhasil diunduh!", "success");
+    } catch (err) {
+      console.error("Gagal mengekspor PDF Guru:", err);
+      showToast("Gagal mengunduh PDF Guru: " + err.message, "error");
+    }
   };
 
   const printRaporGuruPDF = (teacher, size ='A4') => {
@@ -439,7 +585,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Reset page when search or filters change
   useEffect(() => {
@@ -506,26 +652,42 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         </span>
       );
     }
+    const renderTaps = (dayData) => {
+      if (dayData.taps && dayData.taps.length > 0) {
+        return (
+          <div className="flex flex-col gap-0.5">
+            {dayData.taps.slice(0, 4).map((t, idx) => (
+              <React.Fragment key={idx}>
+                <div>{t.substring(0, 5)}</div>
+                {idx < Math.min(dayData.taps.length, 4) - 1 && <div className="border-t border-black/10 w-full my-0.5"></div>}
+              </React.Fragment>
+            ))}
+          </div>
+        );
+      }
+      return (
+        <div className="flex flex-col gap-0.5">
+          <div>{dayData.in?.substring(0,5) || '--:--'}</div>
+          <div className="border-t border-black/10 w-full my-0.5"></div>
+          <div>{dayData.out?.substring(0,5) || '--:--'}</div>
+        </div>
+      );
+    };
+
     if (status === "Terlambat" || dayData.isLate) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-red-100 text-red-800 border border-red-200 text-center" 
-          style={{ color: '#b91c1c' }}
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-red-100 text-red-800 border border-red-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
-          <div>{dayData.in?.substring(0,5) || '--:--'}</div>
-          <div className="border-t border-black/10 my-0.5"></div>
-          <div>{dayData.out?.substring(0,5) || '--:--'}</div>
+          {renderTaps(dayData)}
         </div>
       );
     }
     return (
       <div 
-        className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-green-100 text-green-800 border border-green-200 text-center" 
-        style={{ color: '#166534' }}
+        className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-green-100 text-green-800 border border-green-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
       >
-        <div>{dayData.in?.substring(0,5) || '--:--'}</div>
-        <div className="border-t border-black/10 my-0.5"></div>
-        <div>{dayData.out?.substring(0,5) || '--:--'}</div>
+        {renderTaps(dayData)}
       </div>
     );
   };
@@ -760,42 +922,14 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             </table>
           </div>
   
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs font-bold text-slate-500">
-              <div>
-                Menampilkan {Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length)} - {Math.min(currentPage * itemsPerPage, filteredData.length)} dari {filteredData.length} data
-              </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Button variant="outline"
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() =>setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  className="cursor-pointer"
-                >
-                  Sebelumnya</Button>
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  return (
-                    <Button variant="outline"
-                      key={pageNum}
-                      type="button"
-                      onClick={() =>setCurrentPage(pageNum)}
-                      className={`cursor-pointer`}
-                    >
-                      {pageNum}</Button>
-                  );
-                })}
-                <Button variant="outline"
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() =>setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  className="cursor-pointer"
-                >
-                  Selanjutnya</Button>
-              </div>
-            </div>
-          )}
+          <TablePagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredData.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+          />
         </div>
       )}
 

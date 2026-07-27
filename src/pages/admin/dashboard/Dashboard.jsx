@@ -1,7 +1,7 @@
 import { useState, useEffect } from'react';
 import { Users, Building2, GraduationCap, BarChart2, Home } from'lucide-react';
 import { Loader2, Badge, AlertTriangle } from'lucide-react';
-import { PageHeader, StatCard } from'../../../components/monitoring/ui/index.js';
+import { PageHeader, StatCard, SharedDashboardLogs } from'../../../components/monitoring/ui/index.js';
 
 
 /**
@@ -134,6 +134,12 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      
+      {/* ─────── Shared Activity Logs ─────── */}
+      <div className="mt-4">
+        <SharedDashboardLogs />
+      </div>
+
       </>
       )}
     </div>

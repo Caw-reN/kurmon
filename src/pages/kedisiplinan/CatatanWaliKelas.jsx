@@ -64,14 +64,20 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
     });
   };
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
     if (!form.siswa_nis || !form.isi_catatan) {
-      alert('Siswa dan isi catatan wajib diisi!');
+      setErrorMsg('Siswa dan isi catatan wajib diisi!');
       return;
     }
     setSaving(true);
-    await onSave(form);
+    const result = await onSave(form);
+    if (result?.error) {
+      setErrorMsg(result.error);
+    }
     setSaving(false);
   };
 
@@ -202,6 +208,13 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
           </div>
         )}
 
+        {errorMsg && (
+          <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-2">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{errorMsg}</span>
+          </div>
+        )}
+
         <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 shrink-0">
           <Button variant="outline" type="button" onClick={onClose}>Batal</Button>
           <Button type="submit" disabled={saving}>
@@ -326,11 +339,12 @@ export default function CatatanWaliKelas({ students = [], classes = [] }) {
         showToast('Catatan berhasil disimpan!');
         setActiveModal(null);
         fetchCatatan();
+        return { success: true };
       } else {
-        showToast(data.error || 'Gagal menyimpan catatan', 'error');
+        return { error: data.error || 'Gagal menyimpan catatan' };
       }
     } catch (e) {
-      showToast('Gagal menghubungi server', 'error');
+      return { error: 'Gagal menghubungi server' };
     }
   };
 
@@ -425,7 +439,7 @@ export default function CatatanWaliKelas({ students = [], classes = [] }) {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4'
+      format: appSettings.defaultPaperSize === 'F4' ? [215, 330] : 'a4'
     });
 
     const pageWidth = 210;
@@ -437,10 +451,16 @@ export default function CatatanWaliKelas({ students = [], classes = [] }) {
 
     // Header Kop Surat
     if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
-      doc.addImage(appSettings.kopSuratGambar, 'PNG', 15, 10, pageWidth - 30, 30);
+      try {
+        const format = String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(appSettings.kopSuratGambar, format, 15, 10, pageWidth - 30, 30);
+      } catch (e) { console.error(e); }
       yPos = 46;
     } else if (appSettings.kopSuratLogo) {
-      doc.addImage(appSettings.kopSuratLogo, 'PNG', 15, 10, 25, 25);
+      try {
+        const format = String(appSettings.kopSuratLogo).includes('data:image/jpeg') || String(appSettings.kopSuratLogo).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(appSettings.kopSuratLogo, format, 15, 10, 25, 25);
+      } catch (e) { console.error(e); }
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(10);
       doc.text(appSettings.kopSuratBaris1 || "", pageWidth / 2, 16, { align: "center" });
@@ -879,22 +899,22 @@ export default function CatatanWaliKelas({ students = [], classes = [] }) {
                       <span>Tambah Catatan</span>
                     </Button>
                   )}
-                  <button 
+                  <Button variant="outline"
                     onClick={exportExcel} 
-                    className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-650 text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm"
+                    className="flex items-center justify-center gap-1.5 h-8 px-3 shrink-0 shadow-sm cursor-pointer"
                     title="Export semua riwayat catatan wali kelas ke Excel"
                   >
                     <Download size={13} /> 
                     <span>Export Catatan</span>
-                  </button>
-                  <button 
+                  </Button>
+                  <Button variant="outline"
                     onClick={exportClassRecapExcel} 
-                    className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-650 text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm"
+                    className="flex items-center justify-center gap-1.5 h-8 px-3 shrink-0 shadow-sm cursor-pointer"
                     title="Export Rekapitulasi Kedisiplinan & Absensi Kelas ke Excel"
                   >
                     <Download size={13} className="text-violet-600" /> 
                     <span>Rekap Kedisiplinan Kelas</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

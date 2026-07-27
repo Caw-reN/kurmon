@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, TablePagination } from '../../../components/ui.jsx';
 import { useState, useMemo, useEffect, useRef } from'react';
 import { useNavigate } from'react-router-dom';
 import { Users, CheckCircle2, XCircle } from'lucide-react';
@@ -77,19 +77,20 @@ const ClickPicker = ({ value, onChange, options, placeholder ="Pilih..." }) => {
               <div className="px-3 py-2 text-xs text-slate-400 text-center">Tidak ditemukan</div>
             ) : (
               filteredOptions.map(opt => (
-                <Button variant="outline"
+                <button
                   key={opt.value}
                   type="button"
                   onClick={() =>{
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left flex items-center justify-between cursor-pointer`}
+                  className={`w-full text-left flex items-center justify-between px-3 py-2 text-[11px] font-bold text-slate-700 bg-transparent border-none hover:bg-slate-50 cursor-pointer transition-colors`}
                 >
                   <span>{opt.label}</span>
                   {String(opt.value) === String(value) && (
-                    <span className="w-1.5 h-1.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]"></span>
-                  )}</Button>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)]"></span>
+                  )}
+                </button>
               ))
             )}
           </div>
@@ -105,6 +106,9 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   const [filterJurusan, setFilterJurusan] = useState('Semua');
   const [filterKelas, setFilterKelas] = useState('Semua');
   const [selectedSiswa, setSelectedSiswa] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const [eligibleClass, setEligibleClass] = useState("XII");
 
@@ -159,6 +163,28 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     setIsSavingSettings(false);
   };
 
+  const handleImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        if (json && json.length > 0) {
+          showToast(`Berhasil membaca ${json.length} data siswa dari file.`, 'success');
+        } else {
+          showToast('File Excel kosong atau format tidak sesuai.', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal membaca file Excel.', 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
   const pklStudents = useMemo(() => {
      return students.filter(s => s.class_name && s.class_name.toUpperCase().startsWith(eligibleClass.toUpperCase()))
         .map(s => {
@@ -190,6 +216,9 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       return matchSearch && matchJurusan && matchKelas;
     });
   }, [pklStudents, search, filterJurusan, filterKelas]);
+
+  const paginatedData = useMemo(() => filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filtered, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   const stats = [
     { label:'Total Siswa PKL', value: pklStudents.length, icon: Users, iconBg:'bg-blue-100', iconColor:'text-blue-600' },
@@ -227,32 +256,30 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
              <span className="text-[11px] font-bold text-white uppercase tracking-wider">Kelas PKL:</span>
              <div className="flex bg-white/10 p-0.5 rounded-[var(--ui-radius-small)] border-none">
                 {["X","XI","XII"].map(lvl => (
-                  <Button variant="outline"
+                  <button
                     key={lvl}
                     type="button"
                     onClick={() =>setEligibleClass(lvl)}
-                    className={`cursor-pointer`}
+                    className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${eligibleClass === lvl ? 'bg-white text-[var(--ui-primary)] shadow-sm' : 'bg-transparent text-white hover:bg-white/10'}`}
                   >
-                    {lvl}</Button>
+                    {lvl}
+                  </button>
                 ))}
               </div>
-             <button onClick={saveSettings} disabled={isSavingSettings} className="ml-1 cursor-pointer" title="Simpan Pengaturan Kelas">
+             <button onClick={saveSettings} disabled={isSavingSettings} className="ml-1 cursor-pointer bg-transparent text-white border-none hover:bg-white/10 p-1.5 rounded-[var(--ui-radius-small)]" title="Simpan Pengaturan Kelas">
                 <Save size={13} />
              </button>
            </div>
            
            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() =>{
-                if (setActiveTab) {
-                  setActiveTab('pkl_import');
-                } else {
-                  navigate('/monitoring/import');
-                }
-              }} className="flex items-center gap-1.5 cursor-pointer">
-               <Upload size={16} /> Impor</Button>
-             <button onClick={handleExport} className="flex items-center gap-1.5 cursor-pointer">
-               <Download size={16} /> Ekspor
-             </button>
+              <button onClick={() => {
+                const f = document.createElement('input'); f.type = 'file'; f.accept = '.xlsx,.xls'; f.onchange = handleImport; f.click();
+              }} className="flex items-center gap-1.5 border-none h-8 px-3 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-bold text-xs hover:bg-slate-50 cursor-pointer active:scale-95 transition-all">
+                <Upload size={14} strokeWidth={2.5} /> Impor
+              </button>
+              <button onClick={handleExport} className="flex items-center gap-1.5 border-none h-8 px-3 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-bold text-xs hover:bg-slate-50 cursor-pointer active:scale-95 transition-all">
+                <Download size={14} strokeWidth={2.5} /> Ekspor
+              </button>
            </div>
         </div>
       </PageHeader>
@@ -320,7 +347,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filtered.map(s => {
+              {paginatedData.map(s => {
                 const guru = teachers.find(g => g.code === s.guruPembimbingCode);
                 const perusahaan = perusahaanPKL.find(p => p.id === s.perusahaanId);
                 return (
@@ -374,6 +401,14 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             <p className="font-semibold">Tidak ada siswa ditemukan</p>
           </div>
         )}
+        <TablePagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+        />
       </div>
 
       {/* Detail Panel (slide-over) */}

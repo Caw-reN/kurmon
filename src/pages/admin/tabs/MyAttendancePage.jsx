@@ -3,6 +3,7 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, Download, Send, X, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 
 const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_NAMES_FULL = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -106,118 +107,122 @@ export default function MyAttendancePage() {
 
   /* ---------- PDF DOWNLOAD ---------- */
   const handleDownloadPDF = () => {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const monthLabel = MONTH_NAMES[filter.month - 1];
+    try {
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: getDatabaseSnapshot()?.appSettings?.defaultPaperSize === 'F4' ? [215, 330] : 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const monthLabel = MONTH_NAMES[filter.month - 1];
 
-    // Header
-    doc.setFillColor(37, 99, 235);
-    doc.rect(0, 0, pageW, 32, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('LAPORAN REKAP ABSENSI GURU', pageW / 2, 12, { align: 'center' });
-    doc.setFontSize(10);
-    doc.text(`Periode: ${monthLabel} ${filter.year}`, pageW / 2, 20, { align: 'center' });
-    doc.setFontSize(9);
-    doc.setFont('Helvetica', 'normal');
-    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' })}`, pageW / 2, 27, { align: 'center' });
-
-    // Identity box
-    doc.setTextColor(30, 41, 59);
-    doc.setFillColor(248, 250, 252);
-    doc.rect(14, 36, pageW - 28, 22, 'F');
-    doc.setDrawColor(203, 213, 225);
-    doc.rect(14, 36, pageW - 28, 22);
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('Nama Guru', 18, 44);
-    doc.text('NIP / Kode', 18, 51);
-    doc.setFont('Helvetica', 'normal');
-    doc.text(`: ${teacherName || '-'}`, 55, 44);
-    doc.text(`: ${teacherNIP || teacherCode || '-'}`, 55, 51);
-
-    // Summary row
-    const sumLabels = ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa'];
-    const sumValues = [stats.hadir, stats.terlambat, stats.izin, stats.sakit, stats.alpa];
-    const sumColors = [[5,150,105],[245,158,11],[59,130,246],[234,179,8],[239,68,68]];
-    const cellW = (pageW - 28) / 5;
-    sumLabels.forEach((lbl, i) => {
-      const x = 14 + i * cellW;
-      doc.setFillColor(...sumColors[i]);
-      doc.rect(x, 62, cellW - 1, 14, 'F');
+      // Header
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, pageW, 32, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.text(String(sumValues[i]), x + cellW / 2 - 0.5, 71, { align: 'center' });
-      doc.setFontSize(7);
+      doc.setFontSize(14);
+      doc.text('LAPORAN REKAP ABSENSI GURU', pageW / 2, 12, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text(`Periode: ${monthLabel} ${filter.year}`, pageW / 2, 20, { align: 'center' });
+      doc.setFontSize(9);
       doc.setFont('Helvetica', 'normal');
-      doc.text(lbl, x + cellW / 2 - 0.5, 74.5, { align: 'center' });
-    });
+      doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' })}`, pageW / 2, 27, { align: 'center' });
 
-    // Table
-    const tableRows = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dd   = myData?.days?.[d];
-      const dateStr = `${String(d).padStart(2,'0')} ${monthLabel} ${filter.year}`;
-      const dayName = DAY_NAMES_FULL[new Date(filter.year, filter.month - 1, d).getDay()];
-      let statusStr = '-';
-      let masukStr  = '-';
-      let pulangStr = '-';
-      let ketStr    = '';
+      // Identity box
+      doc.setTextColor(30, 41, 59);
+      doc.setFillColor(248, 250, 252);
+      doc.rect(14, 36, pageW - 28, 22, 'F');
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(14, 36, pageW - 28, 22);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Nama Guru', 18, 44);
+      doc.text('NIP / Kode', 18, 51);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(`: ${teacherName || '-'}`, 55, 44);
+      doc.text(`: ${teacherNIP || teacherCode || '-'}`, 55, 51);
 
-      if (dd) {
-        if (dd.isManual) {
-          statusStr = dd.status;
-          ketStr    = dd.note || '';
-          masukStr  = '-';
-          pulangStr = '-';
-        } else {
-          statusStr = dd.isLate ? 'Terlambat' : (dd.in ? 'Hadir' : '-');
-          masukStr  = fmt5(dd.in);
-          pulangStr = fmt5(dd.out);
+      // Summary row
+      const sumLabels = ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa'];
+      const sumValues = [stats.hadir, stats.terlambat, stats.izin, stats.sakit, stats.alpa];
+      const sumColors = [[5,150,105],[245,158,11],[59,130,246],[234,179,8],[239,68,68]];
+      const cellW = (pageW - 28) / 5;
+      sumLabels.forEach((lbl, i) => {
+        const x = 14 + i * cellW;
+        doc.setFillColor(...sumColors[i]);
+        doc.rect(x, 62, cellW - 1, 14, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.text(String(sumValues[i]), x + cellW / 2 - 0.5, 71, { align: 'center' });
+        doc.setFontSize(7);
+        doc.setFont('Helvetica', 'normal');
+        doc.text(lbl, x + cellW / 2 - 0.5, 74.5, { align: 'center' });
+      });
+
+      // Table
+      const tableRows = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dd   = myData?.days?.[d];
+        const dateStr = `${String(d).padStart(2,'0')} ${monthLabel} ${filter.year}`;
+        const dayName = DAY_NAMES_FULL[new Date(filter.year, filter.month - 1, d).getDay()];
+        let statusStr = '-';
+        let masukStr  = '-';
+        let pulangStr = '-';
+        let ketStr    = '';
+
+        if (dd) {
+          if (dd.isManual) {
+            statusStr = dd.status;
+            ketStr    = dd.note || '';
+            masukStr  = '-';
+            pulangStr = '-';
+          } else {
+            statusStr = dd.isLate ? 'Terlambat' : (dd.in ? 'Hadir' : '-');
+            masukStr  = fmt5(dd.in);
+            pulangStr = fmt5(dd.out);
+          }
         }
+
+        tableRows.push([dateStr, dayName, masukStr, pulangStr, statusStr, ketStr]);
       }
 
-      tableRows.push([dateStr, dayName, masukStr, pulangStr, statusStr, ketStr]);
+      autoTable(doc, {
+        startY: 80,
+        head: [['Tanggal', 'Hari', 'Jam Masuk', 'Jam Pulang', 'Status', 'Keterangan']],
+        body: tableRows,
+        styles: { fontSize: 8, cellPadding: 2.5, valign: 'middle', textColor: [30, 41, 59] },
+        headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { cellWidth: 34 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 22, halign: 'center' },
+          3: { cellWidth: 22, halign: 'center' },
+          4: { cellWidth: 24, halign: 'center', fontStyle: 'bold' },
+          5: { cellWidth: 'auto' },
+        },
+        didParseCell(data) {
+          if (data.section === 'body' && data.column.index === 4) {
+            const v = data.cell.raw;
+            if (v === 'Hadir')      { data.cell.styles.textColor = [5, 150, 105]; }
+            else if (v === 'Terlambat') { data.cell.styles.textColor = [245, 158, 11]; }
+            else if (v === 'Izin')  { data.cell.styles.textColor = [59, 130, 246]; }
+            else if (v === 'Sakit') { data.cell.styles.textColor = [161, 98, 7]; }
+            else if (v === 'Alpa')  { data.cell.styles.textColor = [239, 68, 68]; }
+          }
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      // Footer
+      const finalY = (doc.lastAutoTable?.finalY || 120) + 8;
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(7);
+      doc.setFont('Helvetica', 'italic');
+      doc.text('* Data bersumber dari mesin fingerprint Hikvision. Dicetak otomatis oleh sistem.', 14, finalY);
+
+      doc.save(`Rekap_Absensi_${(teacherName || 'Guru').replace(/\s+/g,'_')}_${monthLabel}_${filter.year}.pdf`);
+    } catch (e) {
+      console.error("Gagal mendownload PDF absensi:", e);
     }
-
-    doc.autoTable({
-      startY: 80,
-      head: [['Tanggal', 'Hari', 'Jam Masuk', 'Jam Pulang', 'Status', 'Keterangan']],
-      body: tableRows,
-      styles: { fontSize: 8, cellPadding: 2.5, valign: 'middle', textColor: [30, 41, 59] },
-      headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      columnStyles: {
-        0: { cellWidth: 34 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 22, halign: 'center' },
-        3: { cellWidth: 22, halign: 'center' },
-        4: { cellWidth: 24, halign: 'center', fontStyle: 'bold' },
-        5: { cellWidth: 'auto' },
-      },
-      didParseCell(data) {
-        if (data.section === 'body' && data.column.index === 4) {
-          const v = data.cell.raw;
-          if (v === 'Hadir')      { data.cell.styles.textColor = [5, 150, 105]; }
-          else if (v === 'Terlambat') { data.cell.styles.textColor = [245, 158, 11]; }
-          else if (v === 'Izin')  { data.cell.styles.textColor = [59, 130, 246]; }
-          else if (v === 'Sakit') { data.cell.styles.textColor = [161, 98, 7]; }
-          else if (v === 'Alpa')  { data.cell.styles.textColor = [239, 68, 68]; }
-        }
-      },
-      margin: { left: 14, right: 14 },
-    });
-
-    // Footer
-    const finalY = doc.lastAutoTable.finalY + 8;
-    doc.setTextColor(100, 116, 139);
-    doc.setFontSize(7);
-    doc.setFont('Helvetica', 'italic');
-    doc.text('* Data bersumber dari mesin fingerprint Hikvision. Dicetak otomatis oleh sistem.', 14, finalY);
-
-    doc.save(`Rekap_Absensi_${teacherName.replace(/\s+/g,'_')}_${monthLabel}_${filter.year}.pdf`);
   };
 
   /* ---------- Form keterangan ---------- */

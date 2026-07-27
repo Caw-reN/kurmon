@@ -3,7 +3,7 @@ import { useSearchParams } from'react-router-dom';
 import { useAppStore } from'../store/useAppStore';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from'../utils/dataSource.js';
 import { loadInitialState } from'../utils/state.js';
-import { base64ToBlobUrl } from'../utils/fileHelper.js';
+import { base64ToBlobUrl, downloadFile } from'../utils/fileHelper.js';
 import { BookOpenText, Search, BookOpen, Eye, Download, X } from'lucide-react';
 import { UISelect, Button, Modal } from'../components/ui.jsx';
 
@@ -63,8 +63,8 @@ export default function SilabusPage() {
   const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
   const shellCard ="bg-white/60 backdrop-blur-xl rounded-[var(--ui-radius-card)] shadow-sm border border-white/50";
   const fieldClass ="bg-slate-50 border-none rounded-[var(--ui-radius-control)] py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-300 transition-all cursor-pointer shadow-sm";
-  const printButtonClass ="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] font-bold transition-all shadow-sm hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white";
-  const subjectButtonClass = (isActive) => `w-full text-left px-3 py-2.5 rounded-[var(--ui-radius-control)] font-bold transition-all flex items-center justify-between border cursor-pointer ${isActive ?"text-white border-transparent shadow-sm -emerald-600/15" :"bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`;
+  const printButtonClass ="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] font-bold transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white";
+  const subjectButtonClass = (isActive) => `w-full text-left px-3 py-2.5 rounded-[var(--ui-radius-control)] font-bold transition-all flex items-center justify-between border cursor-pointer ${isActive ?"text-white border-transparent -emerald-600/15" :"bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`;
   const searchFieldClass ="w-full bg-slate-50 border-none rounded-[var(--ui-radius-control)] py-2.5 pl-9 pr-3 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-300 transition-all shadow-sm";
 
   // Group Syllabus to get unique subject list from all sources
@@ -142,7 +142,10 @@ export default function SilabusPage() {
                   <h2 className="text-[20px] font-black text-slate-800 tracking-tight">{activeSubject}</h2>
                   <Button
                     onClick={() => window.print()}
-                    style={{ backgroundColor: primaryColor, color: '#fff' }}
+                    data-slot="button"
+                    data-variant="primary"
+                    className="btn-primary-theme"
+                    style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))', color: '#fff' }}
                   >
                     Cetak Modul
                   </Button>
@@ -223,9 +226,11 @@ export default function SilabusPage() {
                         <Button variant="outline"
                           key={session.id || index}
                           type="button"
-                          onClick={() =>setSelectedSessionId(session.id || String(index))}
-                          className={`shrink-0 text-left px-3 py-2 rounded-lg transition-all ${isActive ?"text-white shadow-sm" :"bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`}
-                          style={isActive ? { backgroundColor: primaryColor } : undefined}
+                          onClick={() => setSelectedSessionId(session.id || String(index))}
+                          className={`shrink-0 text-left px-3 py-2 rounded-lg transition-all ${isActive ? "text-white btn-primary-theme" : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`}
+                          data-slot={isActive ? "button" : undefined}
+                          data-variant={isActive ? "primary" : undefined}
+                          style={isActive ? { backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' } : undefined}
                         >
                           <span className="block text-[12px] font-black">Pertemuan {index + 1}</span>
                           <span className={`mt-1 block text-[10px] font-bold line-clamp-1 ${isActive ?"text-white/75" :"text-slate-400"}`}>
@@ -320,15 +325,16 @@ export default function SilabusPage() {
                             <Eye size={14} className="mr-1.5" />
                             Pratinjau
                           </Button>
-                          <a
-                            href={doc.file_url}
-                            download={doc.nama_dokumen}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-white rounded-[var(--ui-radius-small)] text-xs font-bold transition-all shadow-sm cursor-pointer no-underline text-center"
-                            style={{ backgroundColor: primaryColor }}
+                          <Button
+                            onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)}
+                            data-slot="button"
+                            data-variant="primary"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-white rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer no-underline text-center btn-primary-theme"
+                            style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
                           >
                             <Download size={14} />
                             Unduh
-                          </a>
+                          </Button>
                         </div>
                       </div>
                     ))}

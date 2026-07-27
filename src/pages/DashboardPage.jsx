@@ -26,6 +26,7 @@ import {  Users, HelpCircle, X as CloseIcon, FileText,
   Loader2, MessageSquare } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
+import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
 
 const DashboardCharts = lazy(() => import("./DashboardCharts.jsx"));
 const ACTIVITY_PAGE_SIZE = 6;
@@ -400,6 +401,12 @@ export default function DashboardPage({
             </div>
           )}
         </div>
+        
+        {/* ─────── Shared Activity Logs ─────── */}
+        <div className="mt-4">
+          <SharedDashboardLogs />
+        </div>
+
         <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
       </div>
     );
@@ -539,23 +546,48 @@ export default function DashboardPage({
 
           <div className="flex flex-wrap items-center gap-2">
             {dashboardMode.actions.map((action, i) => (
-              <Button variant="outline"
+              <button
                 key={action.tab}
                 onClick={() =>setActiveTab(action.tab)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
                   i === 0
-                    ?"bg-white text-[var(--ui-primary)] hover:bg-slate-50 hover:-lg shadow-sm"
-                    :"bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm"
+                    ? "bg-white text-[var(--ui-primary)] hover:bg-slate-50 shadow-sm"
+                    : "bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm"
                 }`}
               >
                 <action.icon size={14} />
-                {action.label}</Button>
+                {action.label}</button>
             ))}
-            <Button variant="outline" onClick={() =>setShowPanduan(true)} title="Panduan" className="flex items-center justify-center w-7 h-7 rounded-[var(--ui-radius-small)] bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all cursor-pointer ml-auto sm:ml-0">
-              <HelpCircle size={14} /></Button>
+            <button onClick={() =>setShowPanduan(true)} title="Panduan" className="flex items-center justify-center w-7 h-7 rounded-[var(--ui-radius-small)] bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all cursor-pointer ml-auto sm:ml-0">
+              <HelpCircle size={14} /></button>
           </div>
         </div>
       </div>
+
+      {/* Backup Error Alert */}
+      {dashLogs?.backupErrors?.length > 0 && isSuperAdmin && (
+        <div className="bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] p-4 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
+            <AlertTriangle size={20} strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-rose-800 text-sm mb-1">Peringatan: Proses Backup Gagal</h3>
+            <p className="text-xs text-rose-600 font-medium leading-relaxed mb-3">
+              Terdapat kegagalan saat melakukan backup otomatis ke Cloud dalam 7 hari terakhir. Mohon segera periksa ketersediaan Storage Cloud atau Kredensial API Anda.
+            </p>
+            <div className="space-y-1.5">
+              {dashLogs.backupErrors.map((err, i) => (
+                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/60 rounded-md">
+                  <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">
+                    {new Date(err.time).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {err.action}
+                  </span>
+                  <span className="text-[11px] font-medium text-slate-700">{err.detail}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dashboard Messages */}
       {dashboardMessages?.length > 0 && (
@@ -617,9 +649,9 @@ export default function DashboardPage({
             <button
               key={i}
               onClick={() => setActiveTab(shortcut.tab)}
-              className="bg-white p-3 rounded-[var(--ui-radius-card)] border-none shadow-sm flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer text-center w-full group aspect-square"
+              className="bg-white py-4 px-2 rounded-[var(--ui-radius-card)] border-none shadow-sm flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer text-center w-full group"
             >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 mb-1">
                 {typeof shortcut.icon === 'string' ? (
                   <img src={shortcut.icon} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" alt="" />
                 ) : (
@@ -641,7 +673,7 @@ export default function DashboardPage({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {/* 4 Stat Cards */}
           {topCards.map((card, idx) => (
-            <button key={idx} onClick={() => setActiveTab(card.tab)} className="bg-white p-3.5 sm:p-5 rounded-[var(--ui-radius-card)] border-none shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 group cursor-pointer text-left w-full">
+            <button key={idx} onClick={() => setActiveTab(card.tab)} className="bg-white p-3.5 sm:p-5 rounded-[var(--ui-radius-card)] border-none flex flex-col justify-between hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer text-left w-full">
               <div className="flex items-start justify-between w-full mb-1 sm:mb-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
                   {typeof card.icon === 'string' ? (
@@ -668,7 +700,7 @@ export default function DashboardPage({
         
         {/* Left Column: Ringkasan Sistem Sekolah */}
         <div className="lg:col-span-7 xl:col-span-7 flex flex-col gap-4">
-          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-6 flex flex-col h-full min-h-[400px]">
+          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-5 md:p-6 flex flex-col flex-1 min-h-[350px]">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-base font-black text-slate-800 tracking-tight">Ringkasan Sistem Sekolah</h2>
@@ -687,7 +719,7 @@ export default function DashboardPage({
                 { id:"proses", label:"Proses", count: summaryRows.filter(r => r.statusLabel ==="In Progress").length },
                 { id:"kosong", label:"Kosong", count: summaryRows.filter(r => r.statusLabel ==="Belum Ada").length },
               ].map((tab) => (
-                <Button variant="outline"
+                <button
                   key={tab.id}
                   onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
                   className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer border flex items-center gap-1.5 ${
@@ -701,7 +733,7 @@ export default function DashboardPage({
                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${activeDataTab === tab.id ?"bg-white/20 text-white" :"bg-slate-100 text-slate-500"}`}>
                       {tab.count}
                     </span>
-                  )}</Button>
+                  )}</button>
               ))}
             </div>
 
@@ -798,7 +830,7 @@ export default function DashboardPage({
           )}
 
           {/* Statistik Grafis Card */}
-          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-6 flex flex-col min-h-[300px] mt-4">
+          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-5 md:p-6 flex flex-col min-h-[250px]">
             <div className="mb-4">
               <h2 className="text-base font-black text-slate-800 tracking-tight">Statistik Pembelajaran & Fasilitas</h2>
               <p className="text-[11px] text-slate-400 font-medium mt-0.5">Analisis beban kerja guru dan pemanfaatan ruang</p>
@@ -855,213 +887,7 @@ export default function DashboardPage({
               alpa: Math.floor(i / 3)
             })).sort((a, b) => b.kehadiran - a.kehadiran);
 
-            return (
-              <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm border-none flex flex-col overflow-hidden h-full max-h-[700px]">
-                <div className="px-6 py-4 border-b border-slate-100 bg-white">
-                  <h2 className="text-base font-black text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">Pantauan log dan peringkat kehadiran</p>
-                </div>
-                
-                {/* Tabs */}
-                <div className="flex border-b border-slate-100 overflow-x-auto custom-scrollbar bg-slate-50/50">
-                  {[
-                    { id:'histori', label:'Histori Absen' },
-                    { id:'siswa', label:'Peringkat Siswa' },
-                    { id:'guru', label:'Peringkat Guru' },
-                    isSuperAdmin ? { id:'sistem', label:'Log Sistem' } : null
-                  ].filter(Boolean).map(tab => (
-                    <Button variant="outline"
-                      key={tab.id}
-                      onClick={() =>setActiveLogTab(tab.id)}
-                      className={`px-4 py-3 text-xs font-bold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
-                        activeLogTab === tab.id
-                          ?'border-[var(--ui-primary)] text-[var(--ui-primary)]'
-                          :'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
-                      }`}
-                    >
-                      {tab.label}</Button>
-                  ))}
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-white">
-                  
-                  {activeLogTab ==='histori' && (
-                    <div className="space-y-6">
-                      {/* Guru Absen */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded flex items-center justify-center bg-red-50 text-red-500">
-                            <UserX size={14} />
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800">Guru Tidak Hadir</h3>
-                        </div>
-                        {absenGuruLogs.length === 0 ? (
-                          <div className="p-4 rounded-[var(--ui-radius-small)] bg-slate-50 border border-dashed border-slate-200 text-center">
-                            <p className="text-xs text-slate-500">Semua guru hadir saat ini.</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden">
-                            {absenGuruLogs.slice(0, 5).map((item, i) => (
-                              <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                <div>
-                                  <p className="text-[13px] font-bold text-slate-800">{item.name || item.username}</p>
-                                  <p className="text-[11px] text-slate-500 mt-0.5">{item.date ? new Date(item.date).toLocaleDateString('id-ID') : fmtTime(item.created_at)}</p>
-                                </div>
-                                <span className={`text-[10px] font-black px-2 py-1 rounded-[var(--ui-radius-small)] uppercase ${
-                                  item.status ==='absen' ?'bg-red-100 text-red-700' : item.status ==='izin' ?'bg-amber-100 text-amber-700' :'bg-rose-100 text-rose-700'
-                                }`}>{item.status}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Siswa Terlambat */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded flex items-center justify-center bg-amber-50 text-amber-500">
-                            <Clock3 size={14} />
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800">Siswa Terlambat Terakhir</h3>
-                        </div>
-                        {terlambatSiswaLogs.length === 0 ? (
-                          <div className="p-4 rounded-[var(--ui-radius-small)] bg-slate-50 border border-dashed border-slate-200 text-center">
-                            <p className="text-xs text-slate-500">Tidak ada keterlambatan hari ini.</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden">
-                            {terlambatSiswaLogs.slice(0, 5).map((item, i) => (
-                              <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                <div>
-                                  <p className="text-[13px] font-bold text-slate-800">{item.name || item.nis}</p>
-                                  <p className="text-[11px] text-slate-500 mt-0.5">{item.date ? new Date(item.date).toLocaleDateString('id-ID') : fmtTime(item.created_at)}</p>
-                                </div>
-                                <span className="text-[10px] font-black px-2 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-700 uppercase">Terlambat</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeLogTab ==='siswa' && (
-                    <div className="space-y-6">
-                      {/* Peringkat Siswa Bermasalah */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded flex items-center justify-center bg-rose-50 text-rose-500">
-                            <ShieldAlert size={14} />
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800">Top 10 Siswa Bermasalah</h3>
-                        </div>
-                        {bermasalahLogs.length === 0 ? (
-                          <div className="p-6 rounded-[var(--ui-radius-small)] bg-slate-50 border border-dashed border-slate-200 text-center">
-                            <ShieldAlert className="mx-auto text-slate-300 mb-2" size={24} />
-                            <p className="text-sm font-bold text-slate-400">Belum ada data siswa bermasalah.</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            {bermasalahLogs.map((item, i) => (
-                              <div key={i} className="flex justify-between items-center p-3 rounded-[var(--ui-radius-small)] bg-rose-50/50 border border-rose-100 hover:bg-rose-50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-6 h-6 flex items-center justify-center rounded-full bg-rose-200 text-rose-800 text-xs font-black">
-                                    {i + 1}
-                                  </div>
-                                  <div>
-                                    <p className="text-[13px] font-bold text-slate-800">{item.name || item.nis}</p>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">Terakhir: {item.last_seen ? fmtTime(item.last_seen) :'-'}</p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-[13px] font-black text-rose-600">
-                                    {typeof item.total_alpha ==='number' || (!isNaN(item.total_alpha) && !isNaN(parseFloat(item.total_alpha))) ? `${item.total_alpha} Alpa` : item.total_alpha}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeLogTab ==='guru' && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 text-blue-500">
-                            <Activity size={14} />
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800">Peringkat Kehadiran Guru</h3>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col gap-2">
-                        {rankingGuru.map((item, i) => (
-                          <div key={i} className="flex justify-between items-center p-3 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-black ${
-                                i === 0 ?'bg-amber-100 text-amber-700' :
-                                i === 1 ?'bg-slate-200 text-slate-700' :
-                                i === 2 ?'bg-orange-100 text-orange-800' :'bg-slate-100 text-slate-500'
-                              }`}>
-                                #{i + 1}
-                              </div>
-                              <div>
-                                <p className="text-[13px] font-bold text-slate-800">{item.name}</p>
-                                <p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-[150px] sm:max-w-[200px]">{item.type ||'Umum'}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className={`text-[14px] font-black ${item.kehadiran >= 95 ?'text-emerald-600' : item.kehadiran >= 80 ?'text-amber-500' :'text-rose-500'}`}>
-                                {item.kehadiran}%
-                              </span>
-                              <p className="text-[10px] text-slate-400 mt-0.5">{item.alpa > 0 ? `${item.alpa} Alpa` :'Sempurna'}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeLogTab ==='sistem' && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded flex items-center justify-center bg-violet-50 text-violet-500">
-                          <LogIn size={14} />
-                        </div>
-                        <h3 className="text-sm font-bold text-slate-800">Log Aktivitas Terbaru</h3>
-                      </div>
-                      
-                      {loginLogs.length === 0 ? (
-                        <div className="p-6 rounded-[var(--ui-radius-small)] bg-slate-50 border border-dashed border-slate-200 text-center">
-                          <p className="text-sm text-slate-500">Belum ada aktivitas terekam.</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden">
-                          {loginLogs.map((item, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                              <div className="flex gap-3 items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${roleBadge(item.role)}`}>
-                                  {String(item.name || getUserName(item.username, item.role))[0].toUpperCase()}
-                                </div>
-                                <div>
-                                  <p className="text-[13px] font-bold text-slate-800">{item.name || getUserName(item.username, item.role)}</p>
-                                  <p className="text-[11px] text-slate-500 mt-0.5">{fmtTime(item.time)} • Login Sistem</p>
-                                </div>
-                              </div>
-                              <span className={`text-[10px] font-black px-2 py-1 rounded-[var(--ui-radius-small)] uppercase ${roleBadge(item.role)}`}>{roleLabel(item.role)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            );
+            return <SharedDashboardLogs />;
           })()}
         </div>
 
@@ -1195,7 +1021,7 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
           <p className="text-[10px] font-bold text-slate-400">
             Butuh bantuan lebih lanjut? Hubungi Tim IT / Administrator
           </p>
-          <button onClick={onClose} className="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-[var(--ui-radius-small)] font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center gap-2">
+          <button onClick={onClose} className="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-[var(--ui-radius-small)] font-bold text-xs transition-all cursor-pointer flex items-center border-none gap-2">
             <CheckCircle2 size={14} /> Saya Mengerti
           </button>
         </div>

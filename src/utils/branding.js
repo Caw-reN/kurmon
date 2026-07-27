@@ -70,15 +70,35 @@ export const applyDocumentBranding = (settings = {}) => {
   if (settings.uiRadius) {
     // Map radius settings from Tampilan WEB (sm, md, lg, full) to px sizes
     let radiusControl = '16px';
+    let radiusSmall = '12px';
     let radiusCard = '24px';
     let radiusVal = "0.45rem";
-    if (settings.uiRadius === 'sm') { radiusControl = '8px'; radiusCard = '12px'; radiusVal = "0.25rem"; }
-    if (settings.uiRadius === 'lg') { radiusControl = '24px'; radiusCard = '32px'; radiusVal = "0.85rem"; }
-    if (settings.uiRadius === 'full') { radiusControl = '999px'; radiusCard = '32px'; radiusVal = "9999px"; }
+    if (settings.uiRadius === 'sm') { radiusControl = '8px'; radiusSmall = '6px'; radiusCard = '12px'; radiusVal = "0.25rem"; }
+    if (settings.uiRadius === 'lg') { radiusControl = '24px'; radiusSmall = '16px'; radiusCard = '32px'; radiusVal = "0.85rem"; }
+    if (settings.uiRadius === 'full') { radiusControl = '999px'; radiusSmall = '999px'; radiusCard = '32px'; radiusVal = "9999px"; }
     root.style.setProperty('--ui-radius-control', radiusControl);
+    root.style.setProperty('--ui-radius-small', radiusSmall);
     root.style.setProperty('--ui-radius-card', radiusCard);
     root.style.setProperty('--radius', radiusVal);
   }
+
+  // Card Style CSS variables mapping
+  let cardBg = 'var(--ui-surface, #ffffff)';
+  let cardBorder = '1px solid rgba(0, 0, 0, 0.06)';
+  let cardShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.02)';
+
+  if (settings.cardStyle === 'shadow') {
+    cardBg = 'var(--ui-surface, #ffffff)';
+    cardBorder = '1px solid transparent';
+    cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)';
+  } else if (settings.cardStyle === 'flat') {
+    cardBg = '#f1f5f9';
+    cardBorder = '1px solid transparent';
+    cardShadow = 'none';
+  }
+  root.style.setProperty('--ui-card-bg', cardBg);
+  root.style.setProperty('--ui-card-border', cardBorder);
+  root.style.setProperty('--ui-card-shadow', cardShadow);
 
   // Dynamic Font Family
   if (settings.fontFamily) {
@@ -121,13 +141,15 @@ export const applyDocumentBranding = (settings = {}) => {
   }
 
   // Header Style Classes
-  root.classList.remove("header-glass", "header-solid", "header-minimal");
+  root.classList.remove("header-glass", "header-solid", "header-minimal", "header-primary");
   if (settings.headerStyle === "solid") {
     root.classList.add("header-solid");
   } else if (settings.headerStyle === "minimal") {
     root.classList.add("header-minimal");
-  } else {
+  } else if (settings.headerStyle === "glass") {
     root.classList.add("header-glass");
+  } else {
+    root.classList.add("header-primary");
   }
 
   // Card Style Classes
@@ -171,6 +193,35 @@ export const applyDocumentBranding = (settings = {}) => {
   } else {
     root.classList.add("transition-smooth");
   }
+
+  // Button Style Classes
+  root.classList.remove("btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient");
+  if (settings.buttonStyle === "outline") {
+    root.classList.add("btn-style-outline");
+  } else if (settings.buttonStyle === "shadow") {
+    root.classList.add("btn-style-shadow");
+  } else if (settings.buttonStyle === "gradient") {
+    root.classList.add("btn-style-gradient");
+  } else {
+    root.classList.add("btn-style-solid");
+  }
+
+  // Dynamic Print Size (A4 / F4)
+  let printStyle = document.getElementById("dynamic-print-style");
+  if (!printStyle) {
+    printStyle = document.createElement("style");
+    printStyle.id = "dynamic-print-style";
+    document.head.appendChild(printStyle);
+  }
+  const paperSize = settings.defaultPaperSize === "F4" ? "215mm 330mm" : "A4";
+  const landscapeSize = settings.defaultPaperSize === "F4" ? "330mm 215mm" : "A4";
+  printStyle.innerHTML = `
+    @media print {
+      @page { size: ${paperSize} portrait !important; margin: 10mm !important; }
+      @page landscape-layout { size: ${landscapeSize} landscape !important; margin: 10mm !important; }
+      @page portrait-layout { size: ${paperSize} portrait !important; margin: 10mm !important; }
+    }
+  `;
 };
 
 export const resetDocumentBranding = () => {
@@ -188,6 +239,9 @@ export const resetDocumentBranding = () => {
   root.style.removeProperty('--ui-text');
   root.style.removeProperty('--ui-radius-control');
   root.style.removeProperty('--ui-radius-card');
+  root.style.removeProperty('--ui-card-bg');
+  root.style.removeProperty('--ui-card-border');
+  root.style.removeProperty('--ui-card-shadow');
   root.style.removeProperty('--primary');
   root.style.removeProperty('--accent');
   root.style.removeProperty('--background');
@@ -200,10 +254,14 @@ export const resetDocumentBranding = () => {
   root.classList.remove(
     "accessibility-touch-large",
     "sidebar-white", "sidebar-gray", "sidebar-primary",
-    "header-glass", "header-solid", "header-minimal",
+    "header-glass", "header-solid", "header-minimal", "header-primary",
     "card-bordered", "card-elevated", "card-flat",
     "vibrancy-soft", "vibrancy-bright", "vibrancy-gradient",
     "bg-grid-lines", "bg-grid-dots", "bg-grid-gradient", "bg-grid-plain",
-    "transition-smooth", "transition-slide", "transition-none"
+    "transition-smooth", "transition-slide", "transition-none",
+    "btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient"
   );
+
+  const printStyle = document.getElementById("dynamic-print-style");
+  if (printStyle) printStyle.remove();
 };

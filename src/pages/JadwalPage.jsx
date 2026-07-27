@@ -208,7 +208,10 @@ export default function JadwalPage() {
                 </h3>
                 <Button 
                   onClick={() => window.print()}
-                  style={{ backgroundColor: primaryColor, color: '#fff' }}
+                  data-slot="button"
+                  data-variant="primary"
+                  className="btn-primary-theme"
+                  style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))', color: '#fff' }}
                 >
                   <Printer size={13} className="mr-1.5 stroke-[2.5]" />
                   Cetak Jadwal

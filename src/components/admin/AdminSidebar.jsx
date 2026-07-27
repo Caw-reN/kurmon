@@ -955,6 +955,12 @@ export default function AdminSidebar({
                     label:"Absensi Karyawan",
                     roles: ["admin","superadmin","tata_usaha"]
                   })}
+                  {renderNavItem({
+                    id:"laporan_absensi",
+                    icon: ClipboardList,
+                    label:"Semua Laporan Absensi",
+                    roles: ["admin","superadmin","tata_usaha"]
+                  })}
                   {renderNavItem({ id:"struktur", icon: Briefcase, label:"Struktur Organisasi" })}
                   {renderNavItem({ id:"esurat", icon: FileText, label:"Administrasi E-Surat" })}
                   {renderNavItem({

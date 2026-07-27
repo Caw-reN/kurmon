@@ -1,6 +1,6 @@
 import { memo } from'react';
 import { RefreshCw, CalendarDays, CheckCircle2, Users, Calendar, Clock, BookOpen, SlidersHorizontal, LayoutTemplate, Settings } from'lucide-react';
-import { Trash2, AlertCircle, Info, Printer, Search } from'lucide-react';
+import { Trash2, AlertCircle, Info, Printer, Search, Download } from'lucide-react';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { Button } from'../../../components/ui.jsx';
@@ -416,14 +416,44 @@ const MasterDataGenerate = memo(function MasterDataGenerate({
               <h3 className="font-extrabold text-[15px] text-slate-800 whitespace-nowrap">
                 Pratinjau Jadwal {scheduleFilterGrade !=="Semua" ? `Tingkat ${scheduleFilterGrade}` :""} {scheduleFilterMajor !=="Semua" ? `| ${scheduleFilterMajor}` :""} {selectedClassEffective !=="Semua" ? `| ${selectedClassEffective}` :""}
               </h3>
-              <Button 
-                onClick={() => window.print()}
-                className="gap-1.5"
-              >
-                <Printer size={13} className="stroke-[2.5]" />
-                Cetak
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const XLSX = await import("xlsx");
+                      const exportData = (schedule || []).map((s, idx) => ({
+                        No: idx + 1,
+                        Hari: s.day || s.hari || '',
+                        Kelas: s.className || s.kelas || '',
+                        Waktu: s.timeLabel || s.waktu || '',
+                        Mapel: s.subject || s.mapel || '',
+                        Guru: s.teacherCode || s.guru || '',
+                        Ruangan: s.roomId || s.ruangan || ''
+                      }));
+                      const ws = XLSX.utils.json_to_sheet(exportData.length > 0 ? exportData : [{ Info: "Belum ada jadwal yang di-generate" }]);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, "Jadwal Pelajaran");
+                      XLSX.writeFile(wb, `Jadwal_Pelajaran_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                  className="gap-1.5"
+                >
+                  <Download size={13} className="stroke-[2.5]" />
+                  Ekspor Excel
+                </Button>
+                <Button 
+                  onClick={() => window.print()}
+                  className="gap-1.5"
+                >
+                  <Printer size={13} className="stroke-[2.5]" />
+                  Cetak
+                </Button>
+              </div>
             </div>
+
             <div className="flex flex-col sm:flex-row gap-2 flex-1 xl:justify-end min-w-0">
               <div className="relative flex-1 min-w-[220px] xl:max-w-[300px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />

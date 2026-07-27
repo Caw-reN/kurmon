@@ -124,9 +124,9 @@ export default function KunjunganPKL() {
           <div className="space-y-3">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">1. Deteksi Lokasi (Wajib)</label>
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-slate-50 rounded-[var(--ui-radius-small)] border-none">
-              <button type="button" onClick={getGPSLocation} disabled={Loc} className="flex items-center gap-2 shrink-0">
+              <Button type="button" variant="outline" onClick={getGPSLocation} disabled={loadingLoc} className="flex items-center gap-2 shrink-0">
                 <Crosshair size={16} /> {loadingLoc ?'Mendeteksi...' :'Ambil Koordinat GPS'}
-              </button>
+              </Button>
               
               <div className="flex-1">
                 {location ? (
@@ -186,9 +186,9 @@ export default function KunjunganPKL() {
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">
-            <button type="submit" disabled={isSubmitting || !location || !photo} className="w-full sm:w-auto">
+            <Button type="submit" disabled={isSubmitting || !location || !photo} className="w-full sm:w-auto">
               {isSubmitting ?'Menyimpan...' :'Submit Check-in'}
-            </button>
+            </Button>
           </div>
         </form>
       )}

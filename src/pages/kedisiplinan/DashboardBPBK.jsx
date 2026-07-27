@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, Download, Users, TrendingUp, AlertOctagon, Printer, X, MonitorDot, Trash2 } from 'lucide-react';
-import { Button, Modal, UISelect } from '../../components/ui.jsx';
+import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
-import { PageHeader } from '../../components/monitoring/ui/index.js';
+import { PageHeader, StatCard, SharedDashboardLogs } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import * as XLSX from 'xlsx';
 
@@ -14,7 +14,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
   const [filterClass, setFilterClass] = useState("all");
   
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const authToken = useAuthStore(state => state.user?.authToken);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,9 +77,11 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
     }).sort((a, b) => b.total_poin - a.total_poin);
   }, [studentPoints, search, filterClass]);
 
-  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const safePage = Math.max(1, Math.min(currentPage, totalPages || 1));
-  const paginatedStudents = filteredStudents.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  const paginatedStudents = useMemo(() => {
+    return filteredStudents.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  }, [filteredStudents, safePage, itemsPerPage]);
 
   const openDetail = (s) => {
     setSelectedStudent(s);
@@ -192,43 +194,49 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
            </div>
         </div>
       )}
+      
+      {/* ─────── Shared Activity Logs ─────── */}
+      <div className="mt-4">
+        <SharedDashboardLogs />
+      </div>
+
       {/* ----------------------- */}
 
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:hidden">
-        <div className="ui-card p-5 flex items-center gap-4 relative group">
-          <div className="p-3 bg-yellow-100 text-yellow-600 rounded-[var(--ui-radius-small)] group-hover:scale-110 transition-transform">
-             <AlertOctagon size={24} />
-          </div>
-          <div>
-             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Siswa Dalam Pantauan</p>
-             <p className="text-2xl font-bold text-slate-800">{totalPantauan}</p>
-             <p className="text-[11px] text-slate-400 font-medium">Batas poin &gt;= 20 (SP1)</p>
-          </div>
-        </div>
-        
-        <div className="ui-card p-5 flex items-center gap-4 relative group">
-          <div className="p-3 bg-red-100 text-red-600 rounded-[var(--ui-radius-small)] group-hover:scale-110 transition-transform">
-             <ShieldAlert size={24} />
-          </div>
-          <div>
-             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Siswa Kritis</p>
-             <p className="text-2xl font-bold text-slate-800">{totalKritis}</p>
-             <p className="text-[11px] text-slate-400 font-medium">Batas poin &gt;= 100 (DO)</p>
-          </div>
-        </div>
+      <div className="print:hidden mb-2">
+        <PageHeader
+          icon={ShieldAlert}
+          title="Dashboard BP/BK"
+          description="Monitoring kedisiplinan dan poin pelanggaran siswa."
+        />
+      </div>
 
-        <div className="ui-card p-5 flex items-center gap-4 relative group">
-          <div className="p-3 bg-blue-100 text-blue-600 rounded-[var(--ui-radius-small)] group-hover:scale-110 transition-transform">
-             <TrendingUp size={24} />
-          </div>
-          <div>
-             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Pelanggaran Bulan Ini</p>
-             <p className="text-2xl font-bold text-slate-800">{logsThisMonth}</p>
-             <p className="text-[11px] text-slate-400 font-medium">Catatan selama bulan berjalan</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 print:hidden">
+        <StatCard
+          label="Siswa Dalam Pantauan"
+          value={totalPantauan}
+          sub="Batas poin >= 20 (SP1)"
+          icon={AlertOctagon}
+          iconBg="bg-amber-100"
+          iconColor="text-amber-600"
+        />
+        <StatCard
+          label="Siswa Kritis"
+          value={totalKritis}
+          sub="Batas poin >= 100 (DO)"
+          icon={ShieldAlert}
+          iconBg="bg-red-100"
+          iconColor="text-red-600"
+        />
+        <StatCard
+          label="Pelanggaran Bulan Ini"
+          value={logsThisMonth}
+          sub="Catatan selama bulan berjalan"
+          icon={TrendingUp}
+          iconBg="bg-blue-100"
+          iconColor="text-blue-600"
+        />
       </div>
 
       <div className="ui-card flex flex-col print:hidden">
@@ -313,7 +321,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                              <Printer size={14}/> <span>PDF SP</span>
                           </Button>
                         )}
-                        <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white shadow-sm hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] transition-all">
+                        <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] transition-all">
                           <BookOpen size={14} className="mr-1.5"/> Buku Konseling
                         </Button>
                       </div>
@@ -325,18 +333,15 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </table>
         </div>
 
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-b-[var(--ui-radius-card)]">
-            <span className="text-sm font-medium text-slate-500">
-              Menampilkan {((safePage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(safePage * ITEMS_PER_PAGE, filteredStudents.length)} dari {filteredStudents.length}
-            </span>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</Button>
-              <div className="px-3 text-sm font-bold text-slate-700">{currentPage} / {totalPages}</div>
-              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
-            </div>
-          </div>
-        )}
+        <TablePagination 
+          currentPage={safePage}
+          totalPages={totalPages}
+          totalItems={filteredStudents.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+          isLoading={isLoading}
+        />
       </div>
 
       <Modal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} title="Buku Konseling Siswa" maxWidth="max-w-4xl">
@@ -415,7 +420,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                       <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1.5">Hasil Pembinaan / Catatan</label>
                       <textarea required rows="3" value={formKonseling.catatan_konseling} onChange={e=>setFormKonseling({...formKonseling, catatan_konseling: e.target.value})} className="w-full px-3 py-2 text-sm bg-slate-50 border-none rounded-[var(--ui-radius-small)] outline-none focus:border-[var(--ui-primary)] focus:bg-white resize-none transition-colors" placeholder="Tuliskan rangkuman hasil wawancara, respon siswa, dan komitmen yang disepakati..."></textarea>
                     </div>
-                    <Button type="submit" className="w-full shadow-sm text-sm py-2.5">Simpan Catatan Konseling</Button>
+                    <Button type="submit" className="w-full text-sm py-2.5">Simpan Catatan Konseling</Button>
                   </form>
                </div>
 

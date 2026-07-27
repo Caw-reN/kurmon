@@ -107,10 +107,23 @@ export class HikvisionAPI {
     return res;
   }
 
-  async getLogs(startTime) {
+  async searchEvents(startTime, endTime) {
     let allLogs = [];
     let position = 0;
-    const startStr = startTime || new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, '+07:00'); // last 2 days
+
+    const formatDate = (date) => {
+      if (date instanceof Date) {
+        // Adjust for UTC+7 (WIB)
+        const local = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+        return local.toISOString().replace(/\.\d{3}Z$/, '+07:00');
+      }
+      if (typeof date === 'string') return date;
+      const local = new Date(Date.now() + (7 * 60 * 60 * 1000));
+      return local.toISOString().replace(/\.\d{3}Z$/, '+07:00');
+    };
+
+    const startStr = startTime ? formatDate(startTime) : new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, '+07:00');
+    const endStr = endTime ? formatDate(endTime) : new Date().toISOString().replace(/\.\d{3}Z$/, '+07:00');
 
     while(true) {
       const payload = {
@@ -119,8 +132,9 @@ export class HikvisionAPI {
           searchResultPosition: position,
           maxResults: 30, // keep it small per request
           major: 5,
-          minor: 75,
-          startTime: startStr
+          minor: 0,
+          startTime: startStr,
+          endTime: endStr
         }
       };
       const res = await this.request('/ISAPI/AccessControl/AcsEvent?format=json', {

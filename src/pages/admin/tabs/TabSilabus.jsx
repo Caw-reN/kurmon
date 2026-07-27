@@ -3,7 +3,7 @@ import { BookOpenText } from'lucide-react';
 import { useAppStore } from'../../../store/useAppStore';
 import { Search, Download, Upload, RefreshCw, Plus, FileText, BookOpen, ChevronRight, Edit2, Trash2 } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
+import { downloadFile } from '../../../utils/fileHelper.js';
 
 
 export default function TabSilabus(props) {
@@ -304,13 +304,12 @@ export default function TabSilabus(props) {
                                   {activeSilabus.pdfFile.name}
                                 </p>
                               </div>
-                              <a
-                                href={activeSilabus.pdfFile.base64}
-                                download={activeSilabus.pdfFile.name}
+                              <Button
+                                onClick={() => downloadFile(activeSilabus.pdfFile.base64, activeSilabus.pdfFile.name)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-small)] text-xs font-bold shadow-xs hover:opacity-90 transition-opacity cursor-pointer no-underline decoration-none"
                               >
                                 <Download size={14} /> Unduh PDF
-                              </a>
+                              </Button>
                             </div>
                           )}
                         </div>

@@ -75,19 +75,20 @@ const ClickPicker = ({ value, onChange, options, placeholder ="Pilih..." }) => {
               <div className="px-3 py-2 text-xs text-slate-400 text-center">Tidak ditemukan</div>
             ) : (
               filteredOptions.map(opt => (
-                <Button variant="outline"
+                <button
                   key={opt.value}
                   type="button"
                   onClick={() =>{
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left flex items-center justify-between cursor-pointer`}
+                  className={`w-full text-left flex items-center justify-between px-3 py-2 text-[11px] font-bold text-slate-700 bg-transparent border-none hover:bg-slate-50 cursor-pointer transition-colors`}
                 >
                   <span>{opt.label}</span>
                   {String(opt.value) === String(value) && (
-                    <span className="w-1.5 h-1.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]"></span>
-                  )}</Button>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)]"></span>
+                  )}
+                </button>
               ))
             )}
           </div>

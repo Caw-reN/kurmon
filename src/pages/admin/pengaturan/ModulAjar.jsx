@@ -2,7 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { base64ToBlobUrl } from '../../../utils/fileHelper.js';
+import { base64ToBlobUrl, downloadFile } from '../../../utils/fileHelper.js';
 import { Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, UploadCloud } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { UISelect } from '../../../components/ui.jsx';
@@ -44,6 +44,8 @@ export default function ModulAjar(props) {
     mapel: '', kelas_target: '', semester: 'Ganjil', tahun_ajaran: ''
   });
   const [isUploadingMateri, setIsUploadingMateri] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [materiUploadError, setMateriUploadError] = useState('');
 
   const [activeTab, setActiveTab] = useState('rekap');
   const [toast, setToast] = useState(null);
@@ -217,13 +219,14 @@ export default function ModulAjar(props) {
     if (!file) return;
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (ext !== '.pdf') {
-      showToast(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`, 'error');
+      setUploadError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
       e.target.value = ''; return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('File terlalu besar. Maksimal 5MB.', 'error');
+      setUploadError('File terlalu besar. Maksimal 5MB.');
       e.target.value = ''; return;
     }
+    setUploadError('');
     const reader = new FileReader();
     reader.onloadend = () => setForm(prev => ({ ...prev, file_url: reader.result, nama_dokumen: file.name }));
     reader.readAsDataURL(file);
@@ -234,13 +237,14 @@ export default function ModulAjar(props) {
     if (!file) return;
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (ext !== '.pdf') {
-      showToast(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`, 'error');
+      setMateriUploadError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
       e.target.value = ''; return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('File terlalu besar. Maksimal 5MB.', 'error');
+      setMateriUploadError('File terlalu besar. Maksimal 5MB.');
       e.target.value = ''; return;
     }
+    setMateriUploadError('');
     const reader = new FileReader();
     reader.onloadend = () => setMateriForm(prev => ({ ...prev, file_url: reader.result, nama_dokumen: file.name }));
     reader.readAsDataURL(file);
@@ -249,11 +253,12 @@ export default function ModulAjar(props) {
   // ── Upload Modul Ajar (RPP) ─────────────────────────────────
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!form.file_url) return showToast('Pilih file Modul Ajar terlebih dahulu.', 'error');
-    if (!form.tahun_ajaran) return showToast('Pilih Tahun Ajaran.', 'error');
-    if (!form.mapel) return showToast('Pilih Mata Pelajaran.', 'error');
-    if (!form.kelas) return showToast('Pilih Kelas.', 'error');
-    if (!form.semester) return showToast('Pilih Semester.', 'error');
+    setUploadError('');
+    if (!form.file_url) return setUploadError('Pilih file Modul Ajar terlebih dahulu.');
+    if (!form.tahun_ajaran) return setUploadError('Pilih Tahun Ajaran.');
+    if (!form.mapel) return setUploadError('Pilih Mata Pelajaran.');
+    if (!form.kelas) return setUploadError('Pilih Kelas.');
+    if (!form.semester) return setUploadError('Pilih Semester.');
     setIsUploading(true);
     try {
       const res = await fetch('/api/modul-ajar-guru', {
@@ -275,17 +280,18 @@ export default function ModulAjar(props) {
         if (fi) fi.value = '';
         fetchModulData();
         setActiveTab(userRole === 'guru' ? 'silabusguru' : 'daftar');
-      } else showToast(data.error || 'Gagal mengunggah', 'error');
-    } catch (e) { console.error(e); showToast('Terjadi kesalahan saat mengunggah', 'error'); }
+      } else setUploadError(data.error || 'Gagal mengunggah');
+    } catch (e) { console.error(e); setUploadError('Terjadi kesalahan saat mengunggah'); }
     finally { setIsUploading(false); }
   };
 
   // ── Upload Materi Ajar (Public) ─────────────────────────────
   const handleMateriUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!materiForm.judul.trim()) return showToast('Judul materi wajib diisi.', 'error');
-    if (materiForm.tipe === 'file' && !materiForm.file_url) return showToast('Pilih file PDF terlebih dahulu.', 'error');
-    if (materiForm.tipe === 'link' && !materiForm.link_url.trim()) return showToast('Masukkan URL link terlebih dahulu.', 'error');
+    setMateriUploadError('');
+    if (!materiForm.judul.trim()) return setMateriUploadError('Judul materi wajib diisi.');
+    if (materiForm.tipe === 'file' && !materiForm.file_url) return setMateriUploadError('Pilih file PDF terlebih dahulu.');
+    if (materiForm.tipe === 'link' && !materiForm.link_url.trim()) return setMateriUploadError('Masukkan URL link terlebih dahulu.');
     setIsUploadingMateri(true);
     try {
       const res = await fetch('/api/materi-ajar', {
@@ -311,8 +317,8 @@ export default function ModulAjar(props) {
         if (fi2) fi2.value = '';
         fetchMateriData();
         setActiveTab('materi-saya');
-      } else showToast(data.error || 'Gagal mengunggah materi', 'error');
-    } catch (e) { console.error(e); showToast('Terjadi kesalahan', 'error'); }
+      } else setMateriUploadError(data.error || 'Gagal mengunggah materi');
+    } catch (e) { console.error(e); setMateriUploadError('Terjadi kesalahan'); }
     finally { setIsUploadingMateri(false); }
   };
 
@@ -410,11 +416,11 @@ export default function ModulAjar(props) {
                 <Button variant="outline" onClick={() => handlePreviewPdf(item)} className="flex items-center gap-1 cursor-pointer text-xs" title="Pratinjau">
                   <Eye size={12} /> Lihat
                 </Button>
-                <a href={item.file_url} download={item.nama_dokumen}
-                  className="px-2.5 py-1.5 text-xs font-bold rounded-lg no-underline transition-colors text-white bg-[var(--ui-primary)] flex items-center gap-1"
+                <Button onClick={() => downloadFile(item.file_url, item.nama_dokumen)}
+                  className="px-2.5 py-1.5 text-xs font-bold rounded-lg no-underline transition-colors text-white bg-[var(--ui-primary)] flex items-center gap-1 cursor-pointer"
                   title="Unduh">
                   <Download size={12} /> Unduh
-                </a>
+                </Button>
               </>
             ) : (
               <a href={item.link_url} target="_blank" rel="noopener noreferrer"
@@ -548,7 +554,7 @@ export default function ModulAjar(props) {
                                   <span className="text-[11px] font-black text-slate-800">{d.mapel || 'Umum'} ({d.kelas || '-'} - {d.semester || '-'})</span>
                                   <div className="flex items-center gap-1.5">
                                     <FileText size={12} className="text-slate-400 shrink-0" />
-                                    <a href={d.file_url} download={d.nama_dokumen} className="text-blue-600 hover:underline text-[11px] truncate max-w-[140px] no-underline" title={d.nama_dokumen}>{d.nama_dokumen}</a>
+                                    <span onClick={() => downloadFile(d.file_url, d.nama_dokumen)} className="text-blue-600 hover:underline text-[11px] truncate max-w-[140px] cursor-pointer" title={d.nama_dokumen}>{d.nama_dokumen}</span>
                                     <Button variant="outline" onClick={() => handlePreviewPdf(d)} className="cursor-pointer flex items-center" title="Pratinjau"><Eye size={12} /></Button>
                                   </div>
                                 </div>
@@ -619,9 +625,9 @@ export default function ModulAjar(props) {
                         <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                           <Button variant="outline" onClick={() => handlePreviewPdf(doc)} className="flex items-center gap-1 cursor-pointer" title="Pratinjau berkas">
                             <Eye size={14} /> Pratinjau</Button>
-                          <a href={doc.file_url} download={doc.nama_dokumen}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1 text-xs font-bold no-underline"
-                            title="Unduh berkas"><Download size={14} /> Unduh</a>
+                          <Button onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
+                            title="Unduh berkas"><Download size={14} /> Unduh</Button>
                           {canDelete && (
                             <Button variant="outline" onClick={() => handleDelete(doc.id, doc.teacher_code)}
                               className="cursor-pointer" title="Hapus Modul"><Trash2 size={14} /></Button>
@@ -678,6 +684,12 @@ export default function ModulAjar(props) {
                 <div className="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
                   <p className="text-slate-500">File terpilih:</p>
                   <p className="font-bold text-slate-800 truncate">{form.nama_dokumen}</p>
+                </div>
+              )}
+              {uploadError && (
+                <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{uploadError}</span>
                 </div>
               )}
               <button type="submit" disabled={isUploading || !form.file_url}
@@ -884,6 +896,12 @@ export default function ModulAjar(props) {
                 </UISelect>
               </div>
 
+              {materiUploadError && (
+                <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{materiUploadError}</span>
+                </div>
+              )}
               <button type="submit" disabled={isUploadingMateri}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white text-sm font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed">
                 <BookOpenText size={14} /> {isUploadingMateri ? 'Mempublikasikan...' : 'Publikasikan Materi Ajar'}

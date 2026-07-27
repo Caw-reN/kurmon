@@ -130,22 +130,21 @@ export const UISelect = ({ value, onChange, children, className ="", required, d
         disabled={disabled}
         onClick={handleOpen}
         data-slot="select-trigger"
-        className={cn("w-full h-11 bg-white border border-slate-200 pl-5 pr-4 rounded-[var(--ui-radius-card)] text-xs font-black text-slate-800 transition-all cursor-pointer flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/10",
+        className={cn("w-full h-9 bg-white border border-slate-200 pl-3 pr-2 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] focus:border-[var(--ui-primary)]",
           disabled && "cursor-not-allowed opacity-50",
           buttonClass
         )}
       >
-        <span className="flex-1 text-left truncate">
+        <span className="flex-1 text-left truncate mr-2">
           {prefix}{displayLabel}
         </span>
         <div 
-          className="w-6.5 h-6.5 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-transform duration-200 shadow-sm ml-2.5" 
+          className="flex items-center justify-center shrink-0 transition-transform duration-200 text-slate-400" 
           style={{ 
-            backgroundColor: 'var(--ui-accent, #bef264)', 
             transform: open ? 'rotate(180deg)' : 'rotate(0)' 
           }}
         >
-          <ChevronDown size={15} className="stroke-[3]" style={{ color: 'var(--ui-primary, #14532d)' }} />
+          <ChevronDown size={14} className="stroke-[2.5]" />
         </div>
       </button>
 
@@ -222,7 +221,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
       <div data-slot="dialog-content" className={cn(
-        "bg-white w-full rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10 border border-slate-100 animate-in zoom-in-95 duration-200", 
+        "bg-white w-full rounded-[var(--ui-radius-card)] shadow-2xl overflow-hidden flex flex-col relative z-10 border border-slate-100 animate-in zoom-in-95 duration-200", 
         maxWidth,
         scrollable ? "max-h-[85vh]" : ""
       )}>
@@ -234,7 +233,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
             >
               <X size={15} strokeWidth={2.5} />
             </button>
@@ -243,7 +242,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 z-50 inline-flex items-center justify-center rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
+            className="absolute right-4 top-4 z-50 inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
           >
             <X size={15} strokeWidth={2.5} />
           </button>
@@ -259,22 +258,22 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
 
 export const Button = ({ children, variant = "primary", size = "default", className = "", ...props }) => {
   const variantStyles = {
-    primary: 'bg-[var(--ui-primary)] text-white hover:brightness-105 active:scale-95 shadow-sm',
-    default: 'bg-[var(--ui-primary)] text-white hover:brightness-105 active:scale-95 shadow-sm',
-    outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm',
-    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 shadow-sm',
-    accent: 'bg-[var(--ui-accent)] text-white hover:brightness-105 active:scale-95 shadow-sm',
-    danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm',
-    destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm',
+    primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
+    default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
+    outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50',
+    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200',
+    accent: 'bg-[var(--ui-accent)] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
+    danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95',
+    destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95',
     ghost: 'bg-transparent hover:bg-slate-100/80 text-slate-650',
   };
 
   const sizeStyles = {
-    default: 'h-10 px-4 py-2 text-sm font-bold rounded-xl gap-1.5',
-    sm: 'h-8 px-3 py-1.5 text-xs font-bold rounded-lg gap-1.5',
-    xs: 'h-6 px-2 py-1 text-[10px] font-bold rounded-md gap-1',
-    lg: 'h-11 px-5 py-2.5 text-base font-extrabold rounded-xl gap-2',
-    icon: 'w-10 h-10 p-2 flex-shrink-0 rounded-xl flex items-center justify-center',
+    default: 'h-10 px-4 py-2 text-sm font-bold rounded-[var(--ui-radius-small,12px)] gap-1.5',
+    sm: 'h-8 px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small,10px)] gap-1.5',
+    xs: 'h-6 px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-small,8px)] gap-1',
+    lg: 'h-11 px-5 py-2.5 text-base font-extrabold rounded-[var(--ui-radius-small,14px)] gap-2',
+    icon: 'w-10 h-10 p-2 flex-shrink-0 rounded-[var(--ui-radius-small,12px)] flex items-center justify-center',
   };
 
   const baseStyles = 'inline-flex items-center justify-center transition-all duration-200 outline-none select-none disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap cursor-pointer';
@@ -284,6 +283,8 @@ export const Button = ({ children, variant = "primary", size = "default", classN
 
   return (
     <button
+      data-slot="button"
+      data-variant={variant}
       className={cn(baseStyles, variantClass, sizeClass, "print:hidden", className)}
       {...props}
     >
@@ -388,6 +389,48 @@ export const DebouncedSearchInput = ({ value, onChange, placeholder, className, 
           IconComponent ?"pl-9 pr-3.5" :"px-3.5"
         )}
       />
+    </div>
+  );
+};
+
+export const TablePagination = ({ 
+  currentPage, 
+  totalPages, 
+  totalItems, 
+  itemsPerPage, 
+  onPageChange, 
+  onItemsPerPageChange,
+  isLoading 
+}) => {
+  if (isLoading || totalItems === 0) return null;
+
+  return (
+    <div className="px-5 py-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50 rounded-b-[var(--ui-radius-card)]">
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-500 font-medium">
+          Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems} data
+        </span>
+        <select 
+          value={itemsPerPage} 
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+          className="text-xs border border-slate-200 rounded p-1 text-slate-600 bg-white cursor-pointer font-bold outline-none focus:ring-1 focus:ring-primary"
+        >
+          <option value={20}>20 baris</option>
+          <option value={50}>50 baris</option>
+          <option value={100}>100 baris</option>
+        </select>
+      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}>
+            Sebelumnya
+          </Button>
+          <span className="text-xs font-bold text-slate-600 px-2">{currentPage} / {totalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}>
+            Selanjutnya
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

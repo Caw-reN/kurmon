@@ -274,20 +274,25 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
               }
             }
 
-            // Sync Log Wajah
-            const lastLogRes = await dbPool.query("SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1", [device.id]);
+            // Sync Log
+            const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
             let startTime = new Date();
-            startTime.setDate(startTime.getDate() - 3); // Tarik 3 hari terakhir by default
+            startTime.setHours(0, 0, 0, 0); // Default hari ini
             if (lastLogRes.rows[0].last_ts) {
-              startTime = new Date(lastLogRes.rows[0].last_ts);
+               startTime = new Date(lastLogRes.rows[0].last_ts);
+            } else {
+               startTime.setDate(startTime.getDate() - 3); // Selalu tarik 3 hari terakhir untuk amannya
             }
             const endTime = new Date();
             const logs = await api.searchEvents(startTime, endTime);
             
             if (logs && logs.length > 0) {
-              const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type) VALUES ($1, $2, $3, $4) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
-              for (const l of logs) {
-                await dbPool.query(query, [device.id, l.employeeNoString, new Date(l.time), l.minor]);
+              const validLogs = logs.filter(l => l.employeeNoString);
+              const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
+              for (const l of validLogs) {
+                // Determine person_type from device type as fallback, or query it if needed. For now, use device_type.
+                const personType = dtype === 'siswa' ? 'siswa' : (dtype === 'guru' ? 'guru' : 'karyawan');
+                await dbPool.query(query, [device.id, l.employeeNoString, new Date(l.time), `${l.major}-${l.minor}`, personType]);
                 logsSynced++;
               }
             }
@@ -729,7 +734,7 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         let logsQueryStr = "";
         if (reportType === 'siswa') {
           logsQueryStr = `
-            SELECT l.employee_id, l.timestamp, l.event_type, s.name, 
+            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, s.name, 
                    COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) as class_name
             FROM hikvision_logs l
             JOIN hikvision_students s ON l.employee_id = s.nis
@@ -740,7 +745,7 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         } else {
           const types = reportType === 'staff' ? ['guru', 'karyawan'] : [reportType];
           logsQueryStr = `
-            SELECT l.employee_id, l.timestamp, l.event_type, 
+            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, 
               COALESCE(
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR id = l.employee_id LIMIT 1),
@@ -802,30 +807,41 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
             const pulangOpen = roleConf.pulang_open + ":00";
             const pulangClose = roleConf.pulang_close + ":00";
             
-            const dateObj = new Date(log.timestamp);
-            const day = dateObj.getDate();
-            const timeStr = dateObj.toTimeString().substring(0, 8); // HH:MM:SS
+            const day = parseInt(log.time_str.substring(8, 10), 10);
+            const timeStr = log.time_str.substring(11, 19); // "HH:MM:SS"
             
             if (!matrix[nis].days[day]) {
                  matrix[nis].days[day] = { in: null, out: null, isLate: false };
             }
             
-            if (timeStr >= masukOpen && timeStr <= masukClose) {
-                if (!matrix[nis].days[day].in || timeStr < matrix[nis].days[day].in) {
-                    matrix[nis].days[day].in = timeStr;
-                    matrix[nis].days[day].isLate = timeStr > masukLate;
+            if (logRole === "guru") {
+                if (!matrix[nis].days[day].taps) matrix[nis].days[day].taps = [];
+                if (!matrix[nis].days[day].taps.includes(timeStr)) {
+                    matrix[nis].days[day].taps.push(timeStr);
+                    matrix[nis].days[day].taps.sort();
                 }
-            } else if (timeStr >= pulangOpen && timeStr <= pulangClose) {
-                if (!matrix[nis].days[day].out || timeStr > matrix[nis].days[day].out) {
-                    matrix[nis].days[day].out = timeStr;
+                matrix[nis].days[day].in = matrix[nis].days[day].taps[0];
+                if (matrix[nis].days[day].taps.length > 1) {
+                    matrix[nis].days[day].out = matrix[nis].days[day].taps[matrix[nis].days[day].taps.length - 1];
                 }
             } else {
-                if (!matrix[nis].days[day].in) {
-                    matrix[nis].days[day].in = timeStr;
-                    matrix[nis].days[day].isLate = timeStr > masukLate;
-                } else {
+                if (timeStr >= masukOpen && timeStr <= masukClose) {
+                    if (!matrix[nis].days[day].in || timeStr < matrix[nis].days[day].in) {
+                        matrix[nis].days[day].in = timeStr;
+                        matrix[nis].days[day].isLate = timeStr > masukLate;
+                    }
+                } else if (timeStr >= pulangOpen && timeStr <= pulangClose) {
                     if (!matrix[nis].days[day].out || timeStr > matrix[nis].days[day].out) {
                         matrix[nis].days[day].out = timeStr;
+                    }
+                } else {
+                    if (!matrix[nis].days[day].in) {
+                        matrix[nis].days[day].in = timeStr;
+                        matrix[nis].days[day].isLate = timeStr > masukLate;
+                    } else {
+                        if (!matrix[nis].days[day].out || timeStr > matrix[nis].days[day].out) {
+                            matrix[nis].days[day].out = timeStr;
+                        }
                     }
                 }
             }

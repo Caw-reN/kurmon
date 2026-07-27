@@ -19,6 +19,7 @@ export default function JadwalPiket({ teachers = [] }) {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ hari:'Senin', kampus:'Kampus A', guru_ids: [], pj_code:'' });
   
+  const [errorMsg, setErrorMsg] = useState("");
   const [toast, setToast] = useState(null);
 
   const fetchJadwal = useCallback(async () => {
@@ -45,25 +46,26 @@ export default function JadwalPiket({ teachers = [] }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
     const ids = form.guru_ids || [];
     if (!form.hari || ids.length === 0) {
-      showToast("Lengkapi form terlebih dahulu!","error");
+      setErrorMsg("Lengkapi form terlebih dahulu!");
       return;
     }
     
     if (!form.pj_code) {
-      showToast("Pilih penanggung jawab (PJ) piket!","error");
+      setErrorMsg("Pilih penanggung jawab (PJ) piket!");
       return;
     }
 
     if (!ids.includes(form.pj_code)) {
-      showToast("Penanggung jawab harus termasuk dalam daftar guru piket terpilih!","error");
+      setErrorMsg("Penanggung jawab harus termasuk dalam daftar guru piket terpilih!");
       return;
     }
     
     // Check if this day and campus already exists (when not editing)
     if (!editingId && schedules.some(s => s.hari === form.hari && s.kampus === form.kampus)) {
-       showToast("Jadwal untuk hari dan kampus ini sudah ada! Silakan edit jadwal yang sudah ada.","error");
+       setErrorMsg("Jadwal untuk hari dan kampus ini sudah ada! Silakan edit jadwal yang sudah ada.");
        return;
     }
 
@@ -80,10 +82,12 @@ export default function JadwalPiket({ teachers = [] }) {
         showToast("Berhasil menyimpan jadwal!");
         fetchJadwal();
         setShowFormModal(false);
+      } else {
+        setErrorMsg("Gagal menyimpan data.");
       }
     } catch (error) {
       console.error(error);
-      showToast("Gagal menyimpan data.","error");
+      setErrorMsg("Gagal menyimpan data.");
     }
   };
 
@@ -122,6 +126,7 @@ export default function JadwalPiket({ teachers = [] }) {
   };
 
   const openForm = (sched = null, defaultDay ="Senin") => {
+    setErrorMsg("");
     if (sched) {
       setEditingId(sched.id);
       setForm({ 
@@ -336,6 +341,13 @@ export default function JadwalPiket({ teachers = [] }) {
                      />
                   </div>
                </div>
+            )}
+            
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{errorMsg}</span>
+              </div>
             )}
             
             <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">

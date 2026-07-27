@@ -3,6 +3,7 @@ import useAuthStore from'../../../store/monitoring/authStore';
 import * as XLSX from'xlsx';
 import { FileText, Download, CalendarIcon, HardDrive, Search } from'lucide-react';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
+import { TablePagination } from'../../../components/ui.jsx';
 
 
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
@@ -11,6 +12,8 @@ export default function HikvisionReport({ type ='siswa' }) {
   const [logs, setLogs] = useState([]);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   const [filter, setFilter] = useState({
     startDate: new Date().toISOString().split('T')[0],
@@ -34,6 +37,7 @@ export default function HikvisionReport({ type ='siswa' }) {
       console.error(err);
     }
     setLoading(false);
+    setCurrentPage(1);
   }, [filter, type, authToken]);
 
   useEffect(() => {
@@ -62,6 +66,9 @@ export default function HikvisionReport({ type ='siswa' }) {
     XLSX.utils.book_append_sheet(wb, ws, `Laporan ${type ==='guru' ?'Guru' :'Siswa'}`);
     XLSX.writeFile(wb, `Laporan_Absensi_Hikvision_${type}_${filter.startDate}.xlsx`);
   };
+
+  const paginatedLogs = React.useMemo(() => logs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [logs, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil(logs.length / itemsPerPage);
 
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-300">
@@ -135,7 +142,7 @@ export default function HikvisionReport({ type ='siswa' }) {
             <tbody className="divide-y divide-slate-50">
               {loading ? (
                 <tr><td colSpan={6} className="p-8 text-center text-slate-400">Memuat laporan...</td></tr>
-              ) : logs.map(log => (
+              ) : paginatedLogs.map(log => (
                 <tr key={log.id} className="hover:bg-slate-50">
                   <td className="px-4 py-2.5 font-medium text-slate-700">
                     {new Date(log.timestamp).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })}
@@ -155,6 +162,15 @@ export default function HikvisionReport({ type ='siswa' }) {
             </tbody>
           </table>
         </div>
+        <TablePagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={logs.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+          isLoading={loading}
+        />
       </div>
     </div>
   );

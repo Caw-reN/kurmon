@@ -71,8 +71,10 @@ export default function DenahPage() {
             <h3 className="font-extrabold text-[17px] text-slate-800">Denah Tata Ruang Kelas - {selectedDayEffective}</h3>
             <Button variant="outline" 
               onClick={() =>window.print()}
-              className="flex items-center gap-1.5 cursor-pointer"
-              style={{ backgroundColor: primaryColor }}
+              data-slot="button"
+              data-variant="primary"
+              className="flex items-center gap-1.5 cursor-pointer btn-primary-theme"
+              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))', color: '#fff' }}
             >
               <Printer size={13} className="stroke-[2.5]" />
               Cetak Denah</Button>

@@ -107,7 +107,7 @@ const AdminLayout = () => {
                     title={!sidebarOpen && !mobile ? item.label : undefined}
                     className={({ isActive }) => cn('flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-all duration-150',
                       isActive
-                        ?'bg-primary text-primary-foreground shadow-sm'
+                        ?'bg-primary text-primary-foreground'
                         :'text-muted-foreground hover:bg-muted hover:text-foreground',
                       !sidebarOpen && !mobile &&'justify-center px-0'
                     )}

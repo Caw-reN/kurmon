@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { loadInitialState } from '../utils/state.js';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from '../utils/dataSource.js';
-import { base64ToBlobUrl } from '../utils/fileHelper.js';
+import { base64ToBlobUrl, downloadFile } from '../utils/fileHelper.js';
 import { BookOpenText, Search, BookOpen, Eye, Download, X, Video, Globe, Link2, ExternalLink } from 'lucide-react';
 import { UISelect, Button, Modal } from '../components/ui.jsx';
 
@@ -251,21 +251,24 @@ export default function MateriAjarPage() {
                               <Eye size={14} className="mr-1.5" />
                               Pratinjau
                             </Button>
-                            <a
-                              href={item.file_url}
-                              download={item.nama_dokumen}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-white rounded-[var(--ui-radius-small)] text-xs font-bold transition-all shadow-sm cursor-pointer no-underline text-center"
-                              style={{ backgroundColor: primaryColor }}
+                            <Button
+                              onClick={() => downloadFile(item.file_url, item.nama_dokumen)}
+                              data-slot="button"
+                              data-variant="primary"
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-white rounded-[var(--ui-radius-small)] text-xs font-bold transition-all shadow-sm cursor-pointer no-underline text-center btn-primary-theme"
+                              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
                             >
                               <Download size={14} />
                               Unduh
-                            </a>
+                            </Button>
                           </>
                         ) : (
                           <Button
                             onClick={() => handleOpenLink(item)}
-                            className="w-full flex items-center justify-center gap-1.5 text-white"
-                            style={{ backgroundColor: primaryColor }}
+                            data-slot="button"
+                            data-variant="primary"
+                            className="w-full flex items-center justify-center gap-1.5 text-white btn-primary-theme"
+                            style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
                           >
                             {getLinkIcon(item.link_url)}
                             {getLinkLabel(item.link_url)}

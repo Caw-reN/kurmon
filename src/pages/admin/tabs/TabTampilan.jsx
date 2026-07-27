@@ -277,7 +277,7 @@ export default function TabTampilan(props) {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Tampilan Web (Browser Title)</label>
                               <input type="text" placeholder="Contoh: KG2 School | Jadwal & Denah" value={appSettings.siteTitle ||""} onChange={(e) => setAppSettings({ ...appSettings, siteTitle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
@@ -285,6 +285,13 @@ export default function TabTampilan(props) {
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Deskripsi Web (Meta Description)</label>
                               <textarea placeholder="Deskripsi ringkas website untuk pencarian Google / SEO..." value={appSettings.siteDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, siteDescription: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm h-11 resize-none" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ukuran Kertas Default (PDF/Cetak)</label>
+                              <UISelect value={appSettings.defaultPaperSize ||"A4"} onChange={(e) => setAppSettings({ ...appSettings, defaultPaperSize: e.target.value })} className="w-full border-none bg-white p-2.5 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm h-11">
+                                <option value="A4">A4 (Standar)</option>
+                                <option value="F4">F4 (Folio/HVS)</option>
+                              </UISelect>
                             </div>
                           </div>
 
@@ -599,14 +606,14 @@ export default function TabTampilan(props) {
                                       <span className="text-[9px] font-mono font-bold uppercase text-slate-500">{selectedColor}</span>
                                     )}
                                   </div>
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-1.5">
                                     {BANNER_COLORS.map(c => (
-                                      <Button variant="outline" 
+                                      <button
                                         key={c.value} 
                                         type="button"
                                         title={c.label}
                                         onClick={() =>setAppSettings({ ...appSettings, [`partnerColor${number}`]: c.value })}
-                                        className={`${c.bg}${selectedColor === c.value ?'border-slate-800 scale-110' :'border-white hover:scale-110'}`}
+                                        className={`w-5 h-5 rounded-full block border-2 transition-transform cursor-pointer ${c.bg} ${selectedColor === c.value ?'border-slate-800 scale-110' :'border-transparent hover:scale-110'}`}
                                       />
                                     ))}
                                   </div>
@@ -620,7 +627,7 @@ export default function TabTampilan(props) {
                                     placeholder="Contoh: Rekayasa Perangkat Lunak"
                                     value={appSettings[`partner${number}`] ||""}
                                     onChange={(e) => setAppSettings({ ...appSettings, [`partner${number}`]: e.target.value })}
-                                    className="w-full border-none bg-slate-50 p-2.5 rounded-[var(--ui-radius-control)] focus:bg-white shadow-inner"
+                                    className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-bold text-slate-800"
                                   />
                                 </div>
                                 <div>
@@ -630,12 +637,12 @@ export default function TabTampilan(props) {
                                     placeholder="Penjelasan singkat jurusan..."
                                     value={appSettings[`partnerDesc${number}`] ||""}
                                     onChange={(e) => setAppSettings({ ...appSettings, [`partnerDesc${number}`]: e.target.value })}
-                                    className="w-full border-none bg-slate-50 p-2.5 rounded-[var(--ui-radius-control)] focus:bg-white shadow-inner"
+                                    className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-medium text-slate-600"
                                   />
                                 </div>
                                 <div>
                                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Ikon Banner</label>
-                                  <div className="flex flex-wrap gap-1.5 rounded-[var(--ui-radius-small)] border-none bg-slate-50 p-1.5 shadow-inner" aria-label={`Pilih ikon jurusan ${number}`}>
+                                  <div className="flex flex-wrap gap-1.5 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white p-1.5" aria-label={`Pilih ikon jurusan ${number}`}>
                                     {MAJOR_ICON_OPTIONS.map((option) => {
                                       const Icon = option.icon;
                                       const isSelected = selectedIcon === option.value;
@@ -645,13 +652,13 @@ export default function TabTampilan(props) {
                                           type="button"
                                           title={option.label}
                                           onClick={() => setAppSettings({ ...appSettings, [iconKey]: option.value })}
-                                          className={`flex items-center justify-center cursor-pointer ${
+                                          className={`flex items-center justify-center w-7 h-7 rounded-[var(--ui-radius-small)] transition-colors cursor-pointer border-none ${
                                             isSelected
-                                              ?"bg-slate-700 text-white border-slate-800 shadow-sm"
-                                              :"bg-white text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600"
+                                              ?"bg-slate-800 text-white shadow-sm"
+                                              :"bg-transparent text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                                           }`}
                                         >
-                                          <Icon size={14} strokeWidth={isSelected ? 3 : 2} /></button>
+                                          <Icon size={14} strokeWidth={isSelected ? 2.5 : 2} /></button>
                                       );
                                     })}
                                   </div>
@@ -682,15 +689,16 @@ export default function TabTampilan(props) {
                                             });
                                           }
                                         }} 
-                                        className="w-full text-[10px] file:mr-2 file:py-1 file:px-3 file:rounded-[var(--ui-radius-small)] file:border-0 file:text-[10px] file:font-black file:bg-[var(--ui-primary)] file:text-white file:cursor-pointer hover:file:opacity-90"
+                                        className="w-full text-[10px] file:mr-2 file:py-1.5 file:px-3 file:rounded-[var(--ui-radius-small)] file:border-0 file:text-[10px] file:font-black file:bg-[var(--ui-primary)] file:text-white file:cursor-pointer hover:file:bg-[var(--ui-primary)]/90 cursor-pointer"
                                       />
                                       {appSettings[`partnerImage${number}`] && (
-                                        <Button variant="outline" 
+                                        <button 
                                           type="button" 
                                           onClick={() =>setAppSettings({ ...appSettings, [`partnerImage${number}`]:"" })}
-                                          className="mt-1"
+                                          className="mt-2 text-[10px] font-bold text-rose-500 hover:text-rose-600 border border-rose-200 hover:border-rose-300 bg-rose-50 rounded-[var(--ui-radius-small)] px-3 py-1 cursor-pointer transition-colors w-max"
                                         >
-                                          Hapus Ilustrasi</Button>
+                                          Hapus Ilustrasi
+                                        </button>
                                       )}
                                     </div>
                                   </div>
@@ -927,7 +935,8 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Header Atas</label>
-                            <UISelect value={appSettings.headerStyle ||"glass"} onChange={(e) => setAppSettings({ ...appSettings, headerStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.headerStyle ||"primary"} onChange={(e) => setAppSettings({ ...appSettings, headerStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="primary">Berwarna Utama (Primary Brand)</option>
                               <option value="glass">Efek Transparan (Glassmorphism)</option>
                               <option value="solid">Putih Solid (Classic Card)</option>
                               <option value="minimal">Minimalis Tanpa Batas (Borderless)</option>
@@ -964,6 +973,37 @@ export default function TabTampilan(props) {
                               <option value="smooth">Fade-In Lambat (Slow Smooth)</option>
                               <option value="slide">Geser Halus (Slide In)</option>
                               <option value="none">Tanpa Animasi (Fast Instant)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Tombol (Button Style)</label>
+                            <UISelect value={appSettings.buttonStyle ||"solid"} onChange={(e) => setAppSettings({ ...appSettings, buttonStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="solid">Warna Padat (Solid Color)</option>
+                              <option value="flat">Datar Tanpa Bayangan (Flat No Shadow)</option>
+                              <option value="outline">Garis Tepi (Clean Outline)</option>
+                              <option value="shadow">Bayangan Bersinar (Glow Shadow)</option>
+                              <option value="gradient">Seni Gradasi (Vibrant Gradient)</option>
+                            </UISelect>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pt-4 border-t border-slate-200/60 mt-4 space-y-4">
+                        <p className="text-[11px] font-black text-slate-850 uppercase tracking-widest">Aksesibilitas & Ukuran Teks</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ukuran Teks Global</label>
+                            <UISelect value={appSettings.fontSizeScale || "normal"} onChange={(e) => setAppSettings({ ...appSettings, fontSizeScale: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="kecil">Kecil (Compact — 13px)</option>
+                              <option value="normal">Normal (Default — 15px)</option>
+                              <option value="besar">Besar (Comfortable — 16.5px)</option>
+                              <option value="sangat-besar">Sangat Besar (Accessible — 18px)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ukuran Tombol Sentuh</label>
+                            <UISelect value={appSettings.touchTargetSize || "normal"} onChange={(e) => setAppSettings({ ...appSettings, touchTargetSize: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="normal">Normal (Standard — 36px)</option>
+                              <option value="besar">Besar (Accessible — 48px)</option>
                             </UISelect>
                           </div>
                         </div>

@@ -44,7 +44,7 @@ export default function PageGuide({
             </div>
             
             <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end shrink-0">
-              <button onClick={() => setIsOpen(false)} className="bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-control)] hover:opacity-90 shadow-sm transition-colors h-10 px-4 text-sm font-bold">
+              <button onClick={() => setIsOpen(false)} className="bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-control)] hover:opacity-90 transition-colors h-10 px-4 text-sm font-bold border-none cursor-pointer">
                 Mengerti
               </button>
             </div>

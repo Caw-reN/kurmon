@@ -113,36 +113,56 @@ export default function LandingPage() {
     if (!showRulesModal) return null;
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl w-full max-w-4xl h-[85vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <ShieldCheck className="text-red-500" size={18} />
+        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+          
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+            <div className="text-left">
+              <h3 className="font-black text-slate-800 text-[16px] tracking-tight flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500">
+                  <ShieldCheck size={18} strokeWidth={2.5} />
+                </div>
                 Peraturan &amp; Tata Tertib Sekolah
               </h3>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">Dokumen resmi tata tertib dan kriteria poin sekolah</p>
+              <p className="text-[11.5px] text-slate-400 font-medium mt-1">Dokumen resmi tata tertib, kriteria pelanggaran, dan prestasi siswa</p>
             </div>
-            <Button variant="outline" onClick={() =>setShowRulesModal(false)} className="cursor-pointer"><X size={20} /></Button>
+            <button 
+              onClick={() => setShowRulesModal(false)} 
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none"
+            >
+              <X size={16} strokeWidth={2.5} />
+            </button>
           </div>
 
-          {/* Tabs header */}
-          <div className="flex border-b border-slate-200 bg-slate-50/50 shrink-0 px-6">
-            <Button variant="outline"
+          {/* Underline Tabs */}
+          <div className="flex border-b border-slate-100 bg-white shrink-0 px-6">
+            <button
               type="button"
-              onClick={() =>setActiveRulesTab("pdf")}
-              className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors cursor-pointer ${activeRulesTab === 'pdf' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setActiveRulesTab("pdf")}
+              className={`px-4 py-3 text-xs font-black transition-all duration-300 cursor-pointer border-b-2 ${
+                activeRulesTab === 'pdf'
+                  ? 'text-[var(--ui-primary)] border-[var(--ui-primary)]'
+                  : 'text-slate-500 border-transparent hover:text-slate-800'
+              }`}
             >
-              Dokumen Resmi (PDF)</Button>
-            <Button variant="outline"
+              Dokumen Resmi (PDF)
+            </button>
+            <button
               type="button"
-              onClick={() =>setActiveRulesTab("data")}
-              className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors cursor-pointer ${activeRulesTab === 'data' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setActiveRulesTab("data")}
+              className={`px-4 py-3 text-xs font-black transition-all duration-300 cursor-pointer border-b-2 ${
+                activeRulesTab === 'data'
+                  ? 'text-[var(--ui-primary)] border-[var(--ui-primary)]'
+                  : 'text-slate-500 border-transparent hover:text-slate-800'
+              }`}
             >
-              Kriteria Skor Poin &amp; Tatib (Data)</Button>
+              Kriteria Skor Poin (Data)
+            </button>
           </div>
 
-          <div className="flex-1 min-h-0 bg-slate-100">
-            {activeRulesTab ==="pdf" ? (
+          {/* Content Body */}
+          <div className="flex-1 min-h-0 bg-slate-50">
+            {activeRulesTab === "pdf" ? (
               hasPdf ? (
                 <iframe
                   src="/api/kedisiplinan/rules.pdf"
@@ -151,67 +171,82 @@ export default function LandingPage() {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-50 text-center">
-                  <ShieldCheck size={48} className="text-slate-300 mb-3" />
-                  <h4 className="text-sm font-bold text-slate-700">Dokumen PDF Belum Tersedia</h4>
-                  <p className="text-xs text-slate-400 max-w-sm mt-1">Admin belum mengunggah dokumen PDF peraturan sekolah. Silakan cek tab"Kriteria Skor Poin" untuk melihat daftar aturan.</p>
+                  <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <ShieldCheck size={32} strokeWidth={1.5} />
+                  </div>
+                  <h4 className="text-sm font-black text-slate-700">Dokumen PDF Belum Tersedia</h4>
+                  <p className="text-[12px] text-slate-400 max-w-sm mt-1.5 font-medium leading-relaxed">Admin belum mengunggah dokumen PDF peraturan sekolah. Silakan cek tab "Kriteria Skor Poin" untuk melihat daftar aturan.</p>
                 </div>
               )
             ) : (
               <div className="flex flex-col h-full bg-white p-6">
+                
+                {/* Search & Filter Header */}
                 <div className="flex flex-col md:flex-row gap-4 mb-4 justify-between items-center shrink-0">
-                  <div className="relative w-full md:w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <div className="relative w-full md:w-80">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                     <input
                       type="text"
                       placeholder="Cari aturan/tata tertib..."
                       value={rulesSearch}
                       onChange={e => setRulesSearch(e.target.value)}
-                      className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] font-medium"
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-[12px] focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/10 focus:border-[var(--ui-primary)] font-semibold transition-all"
                     />
                   </div>
-                  <div className="flex gap-1 bg-slate-100 p-0.5 rounded-[var(--ui-radius-small)] w-full md:w-auto">
-                    {['all','pelanggaran','prestasi'].map((type) => (
-                      <Button variant="outline"
+                  
+                  <div className="flex gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto">
+                    {['all', 'pelanggaran', 'prestasi'].map((type) => (
+                      <button
                         key={type}
                         type="button"
-                        onClick={() =>setRulesFilterType(type)}
-                        className={`flex-1 md:flex-none cursor-pointer px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all ${rulesFilterType === type ? 'bg-white text-[var(--ui-primary)] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => setRulesFilterType(type)}
+                        className={`flex-1 md:flex-none cursor-pointer px-4 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-black uppercase tracking-wider transition-all border-none ${
+                          rulesFilterType === type 
+                            ? 'bg-white shadow-xs' 
+                            : 'bg-transparent text-slate-500 hover:text-slate-700'
+                        }`}
+                        style={rulesFilterType === type ? { color: 'var(--ui-primary)' } : {}}
                       >
-                        {type ==='all' ?'Semua' : type}</Button>
+                        {type === 'all' ? 'Semua' : type}
+                      </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto border border-slate-150 rounded-[var(--ui-radius-card)] custom-scrollbar">
+                {/* Table Area */}
+                <div className="flex-1 overflow-y-auto border border-slate-100 rounded-[var(--ui-radius-card)] custom-scrollbar text-left">
                   {loadingRules ? (
                     <div className="p-12 text-center text-slate-400 text-xs font-semibold">Memuat kriteria poin...</div>
                   ) : filteredRules.length === 0 ? (
-                    <div className="p-12 text-center text-slate-400 text-xs">Tidak ditemukan kriteria poin.</div>
+                    <div className="p-12 text-center text-slate-400 text-xs font-medium">Tidak ditemukan kriteria poin.</div>
                   ) : (
                     <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 border-b border-slate-200">
+                      <thead className="bg-slate-50 text-slate-400 uppercase font-black tracking-wider sticky top-0 border-b border-slate-100 text-[10px]">
                         <tr>
-                          <th className="px-4 py-3">Tata Tertib / Tindakan</th>
-                          <th className="px-4 py-3 text-center w-28">Tipe</th>
-                          <th className="px-4 py-3 text-right w-24">Skor Poin</th>
+                          <th className="px-5 py-3">Tata Tertib / Tindakan</th>
+                          <th className="px-5 py-3 text-center w-28">Tipe</th>
+                          <th className="px-5 py-3 text-right w-24">Skor Poin</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                      <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
                         {filteredRules.map((r) => {
-                          const isPrestasi = r.jenis ==='prestasi';
+                          const isPrestasi = r.jenis === 'prestasi';
                           return (
                             <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-4 py-3.5 align-middle break-words">{r.nama_tindakan}</td>
-                              <td className="px-4 py-3.5 text-center align-middle">
-                                <span className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9px] font-bold border ${isPrestasi
-                                    ?'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                    :'bg-red-50 text-red-600 border-red-100'
-                                  }`}>
-                                  {isPrestasi ?'Prestasi' :'Pelanggaran'}
+                              <td className="px-5 py-3.5 align-middle break-words text-slate-700 text-[12px]">{r.nama_tindakan}</td>
+                              <td className="px-5 py-3.5 text-center align-middle">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-extrabold border ${
+                                  isPrestasi
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                    : 'bg-rose-50 text-rose-600 border-rose-100'
+                                }`}>
+                                  {isPrestasi ? 'Prestasi' : 'Pelanggaran'}
                                 </span>
                               </td>
-                              <td className={`px-4 py-3.5 text-right font-bold text-sm align-middle ${isPrestasi ?'text-emerald-600' :'text-red-600'}`}>
-                                {isPrestasi ?'-' :'+'}{r.nilai_poin}
+                              <td className={`px-5 py-3.5 text-right font-black text-sm align-middle ${
+                                isPrestasi ? 'text-emerald-600' : 'text-rose-600'
+                              }`}>
+                                {isPrestasi ? '-' : '+'}{r.nilai_poin}
                               </td>
                             </tr>
                           );
@@ -224,22 +259,26 @@ export default function LandingPage() {
             )}
           </div>
 
-          <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
-            {activeRulesTab ==="pdf" && hasPdf && (
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+            {activeRulesTab === "pdf" && hasPdf && (
               <a
                 href="/api/kedisiplinan/rules.pdf"
                 download="peraturan_sekolah.pdf"
-                className="px-4 py-2 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer text-center no-underline"
+                className="px-5 py-2 text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer text-center no-underline transition-all hover:opacity-90"
+                style={{ backgroundColor: 'var(--ui-primary)' }}
               >
                 Unduh PDF
               </a>
             )}
-            <Button variant="outline"
-              onClick={() =>setShowRulesModal(false)}
-              className="cursor-pointer"
+            <Button
+              variant="outline"
+              onClick={() => setShowRulesModal(false)}
             >
-              Tutup</Button>
+              Tutup
+            </Button>
           </div>
+
         </div>
       </div>
     );
@@ -866,8 +905,10 @@ export default function LandingPage() {
             <div className="flex flex-row items-center gap-4">
               <button 
                 onClick={() => setIsLoginModalOpen(true)} 
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-[var(--ui-radius-small)] text-white font-black text-xs uppercase tracking-wider shadow-sm hover:scale-[1.03] hover:shadow-md transition-all duration-300 cursor-pointer border-none"
-                style={{ backgroundColor: primaryColor }}
+                data-slot="button"
+                data-variant="primary"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-[var(--ui-radius-small)] text-white font-black text-xs uppercase tracking-wider hover:scale-[1.03] transition-all duration-300 cursor-pointer border-none btn-primary-theme"
+                style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
               >
                 Masuk ke Aplikasi <ArrowRight size={14} strokeWidth={3} />
               </button>
@@ -888,43 +929,44 @@ export default function LandingPage() {
         </div>
 
         {/* MIDDLE SECTION: LAYANAN PUBLIK */}
-        <div className="shrink-0 border-t border-slate-200/50 pt-5 pb-3.5 mt-3 middle-layanan-section">
-          <h2 className="text-sm lg:text-base font-extrabold text-slate-800 mb-2.5 text-left">Layanan Publik</h2>
-          <div className="grid grid-cols-7 gap-3 w-full">
-            {publicServices.map((service, idx) => {
-              const activeColor = service.customColor || service.defaultColor;
-              return (
-                <button
-                  key={idx}
-                  onClick={() =>{
-                    if (service.isPdfRules) {
-                      setShowRulesModal(true);
-                    } else {
-                      navigate(service.path);
-                    }
-                  }}
-                  className="w-24 h-24 rounded-[20px] bg-white border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-1.5 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer group relative mx-auto"
-                >
-                  <div 
-                    className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-[0.04] transition-all duration-300"
-                    style={{ backgroundColor: activeColor }}
-                  ></div>
-                  <div 
-                    className="w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-300 group-hover:scale-110 relative z-10 shrink-0"
-                    style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
+        <div className="shrink-0 border-t border-slate-200/50 pt-4 pb-3.5 mt-4 lg:mt-6 middle-layanan-section">
+          <h2 className="text-sm lg:text-base font-extrabold text-slate-800 mb-2 text-center">Layanan Publik</h2>
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.03)] py-6 px-4 md:px-8 w-full mt-1">
+            <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
+              {publicServices.map((service, idx) => {
+                const activeColor = service.customColor || service.defaultColor;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() =>{
+                      if (service.isPdfRules) {
+                        setShowRulesModal(true);
+                      } else {
+                        navigate(service.path);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center gap-2.5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer bg-transparent border-none py-1 group w-full relative mx-auto"
                   >
-                    {service.customIcon ? (
-                      <img src={service.customIcon} alt="" className="w-5.5 h-5.5 object-contain" />
-                    ) : (
-                      <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 object-contain" />
-                    )}
-                  </div>
-                  <span className="text-[10px] font-black text-slate-700 tracking-tight leading-none text-center w-full mt-1 truncate px-1 relative z-10">
-                    {service.label}
-                  </span>
-                </button>
-              );
-            })}
+                    <div 
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
+                      style={{ 
+                        backgroundColor: hexToRgba(activeColor, 0.08),
+                        border: `1px solid ${hexToRgba(activeColor, 0.12)}`
+                      }}
+                    >
+                      {service.customIcon ? (
+                        <img src={service.customIcon} alt="" className="w-5.5 h-5.5 object-contain" />
+                      ) : (
+                        <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 object-contain" />
+                      )}
+                    </div>
+                    <span className="text-[10.5px] lg:text-[11.5px] font-black text-slate-700 tracking-tight leading-none text-center w-full truncate px-1 relative z-10">
+                      {service.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -1039,11 +1081,10 @@ export default function LandingPage() {
 
         <button 
           onClick={() => setIsLoginModalOpen(true)} 
-          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all"
-          style={{ 
-            backgroundColor: primaryColor,
-            boxShadow: `0 4px 12px ${hexToRgba(primaryColor, 0.2)}`
-          }}
+          data-slot="button"
+          data-variant="primary"
+          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
+          style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
         >
           Masuk Sekarang
         </button>
@@ -1118,7 +1159,7 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
       svgIcon:"060-calendar.svg",
       tabIcon: CalendarDays,
       title:"1. Cek Jadwal Pelajaran",
-      desc:"Tekan menu'Jadwal Pelajaran' untuk melihat jadwal KBM aktif secara real-time. Pilih hari dan kelas untuk menyesuaikan.",
+      desc:"Tekan menu 'Jadwal Pelajaran' untuk melihat jadwal KBM aktif secara real-time. Pilih hari dan kelas untuk menyesuaikan.",
       color:"#D97706", // Orange
       actionLabel:"Buka Jadwal Pelajaran",
       action: () => { navigate("/jadwal"); onClose(); }
@@ -1128,7 +1169,7 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
       svgIcon:"016-map pin.svg",
       tabIcon: MapPin,
       title:"2. Cari Denah Kelas & Ruang",
-      desc:"Gunakan menu'Denah Kelas' untuk melihat tata letak ruang kelas, lab, bengkel, dan kantor secara interaktif di sekolah.",
+      desc:"Gunakan menu 'Denah Kelas' untuk melihat tata letak ruang kelas, lab, bengkel, dan kantor secara interaktif di sekolah.",
       color:"#0284C7", // Blue
       actionLabel:"Buka Denah Kelas",
       action: () => { navigate("/denah"); onClose(); }
@@ -1156,44 +1197,47 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300 p-0 md:p-4 text-left">
       {/* Backdrop overlay listener to close */}
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 
-      {/* Bottom Sheet Drawer */}
-      <div className="bg-white rounded-t-[32px] w-full max-w-md overflow-hidden shadow-2xl border-t border-slate-100 flex flex-col animate-in slide-in-from-bottom duration-300 ease-out z-10">
-        {/* iOS/Android drag handle bar */}
-        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0"></div>
+      {/* Sheet/Modal Drawer */}
+      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
+        {/* iOS/Android drag handle bar - hidden on desktop */}
+        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0 md:hidden"></div>
 
         {/* Header */}
-        <div className="px-6 pb-3 pt-1 flex items-center justify-between">
-          <span className="font-black text-slate-800 text-[16px] tracking-tight">Panduan Penggunaan</span>
-          <button onClick={onClose} className="cursor-pointer flex items-center justify-center">
+        <div className="px-6 pb-3 pt-4 md:pt-6 flex items-center justify-between">
+          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">Panduan Penggunaan</span>
+          <button onClick={onClose} className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none">
             <X size={16} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Tab-based Stepper Grid Row */}
-        <div className="grid grid-cols-4 gap-2 px-6 mb-2">
+        <div className="grid grid-cols-4 gap-2.5 px-6 mb-2">
           {steps.map((step, i) => {
             const isActive = activeStep === i;
+            const StepIcon = step.tabIcon;
             return (
               <button
                 key={i}
                 onClick={() => setActiveStep(i)}
-                className={`flex flex-col items-center justify-center gap-1 py-2 cursor-pointer border rounded-2xl transition-all duration-300 ${
+                className={`flex flex-col md:flex-row items-center gap-2 py-2.5 px-3 cursor-pointer border rounded-[var(--ui-radius-small)] transition-all duration-300 md:justify-center ${
                   isActive
                     ? 'bg-slate-50 border-slate-200/80 shadow-xs'
                     : 'bg-transparent border-transparent opacity-60 hover:opacity-100'
                 }`}
               >
-                <img
-                  src={`/icons/${step.svgIcon}`}
-                  className="w-5.5 h-5.5 object-contain"
-                  alt=""
-                  style={{ opacity: isActive ? 1 : 0.5 }}
-                />
-                <span className={`text-[10px] font-bold tracking-tight ${isActive ? 'text-slate-800' : 'text-slate-500'}`}>
+                <div 
+                  className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-all ${
+                    isActive ? 'bg-white shadow-xs' : 'bg-slate-100/50'
+                  }`}
+                  style={isActive ? { color: step.color } : { color: '#64748b' }}
+                >
+                  <StepIcon size={14} strokeWidth={2.5} />
+                </div>
+                <span className={`text-[10.5px] font-black tracking-tight leading-none ${isActive ? 'text-slate-800' : 'text-slate-500'}`}>
                   {step.tabLabel}
                 </span>
               </button>
@@ -1203,7 +1247,7 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
 
         {/* Active Step Details Panel */}
         <div className="px-6 py-4 flex flex-col gap-4 text-left">
-          <div className="bg-slate-50/40 border border-slate-100 rounded-3xl p-5 text-left relative overflow-hidden flex flex-col items-center text-center">
+          <div className="bg-slate-50/40 border border-slate-100 rounded-[var(--ui-radius-card)] p-6 text-left relative overflow-hidden flex flex-col items-center text-center">
             {/* Soft backdrop radial color glow matching active step theme */}
             <div
               className="absolute -top-[30%] -left-[30%] w-[150px] h-[150px] rounded-full blur-[45px] opacity-10 pointer-events-none transition-all duration-500"
@@ -1218,24 +1262,23 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
                 borderColor: `${steps[activeStep].color}25`
               }}
             >
-              <img
-                src={`/icons/${steps[activeStep].svgIcon}`}
-                className="w-7 h-7 object-contain"
-                alt=""
-              />
+              {React.createElement(steps[activeStep].tabIcon, {
+                className: "w-6 h-6",
+                style: { color: steps[activeStep].color },
+                strokeWidth: 2.2
+              })}
             </div>
 
             {/* Content info */}
-            <h3 className="text-[15px] font-black text-slate-800 tracking-tight leading-tight">{steps[activeStep].title}</h3>
-            <p className="text-[12px] font-medium text-slate-500 mt-2 max-w-[280px] leading-relaxed">{steps[activeStep].desc}</p>
+            <h3 className="text-[16px] md:text-[18px] font-black text-slate-800 tracking-tight leading-tight">{steps[activeStep].title}</h3>
+            <p className="text-[12.5px] font-medium text-slate-500 mt-2 max-w-[340px] leading-relaxed">{steps[activeStep].desc}</p>
 
             {/* Direct Action Trigger Button inside card */}
             <button
               onClick={steps[activeStep].action}
-              className="mt-4 w-full h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
+              className="mt-4 w-full h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
               style={{
-                backgroundColor: steps[activeStep].color,
-                boxShadow: `0 4px 12px ${steps[activeStep].color}30`
+                backgroundColor: steps[activeStep].color
               }}
             >
               <span>{steps[activeStep].actionLabel}</span>
@@ -1245,11 +1288,11 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="px-6 pb-8 pt-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/50">
+        <div className="px-6 pb-6 md:pb-6 pt-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/50">
           {activeStep > 0 && (
             <button
               onClick={() => setActiveStep(prev => prev - 1)}
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-xs"
+              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
             >
               <ChevronLeft size={14} strokeWidth={2.5} />
               <span>Kembali</span>
@@ -1258,11 +1301,10 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
           {activeStep < 3 ? (
             <button
               onClick={() => setActiveStep(prev => prev + 1)}
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
-              style={{ 
-                backgroundColor: primaryColor || '#064e3b',
-                boxShadow: `0 4px 12px ${hexToRgba(primaryColor || '#064e3b', 0.2)}`
-              }}
+              data-slot="button"
+              data-variant="primary"
+              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] btn-primary-theme"
+              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
             >
               <span>Lanjut</span>
               <ArrowRight size={13} strokeWidth={2.5} />
@@ -1270,11 +1312,10 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
           ) : (
             <button
               onClick={onClose}
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
-              style={{ 
-                backgroundColor: primaryColor || '#064e3b',
-                boxShadow: `0 4px 12px ${hexToRgba(primaryColor || '#064e3b', 0.2)}`
-              }}
+              data-slot="button"
+              data-variant="primary"
+              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] btn-primary-theme"
+              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
             >
               <Check size={14} strokeWidth={2.5} />
               <span>Selesai</span>
@@ -1288,48 +1329,81 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
 
 // ── Bantuan bottom sheet modal component for mobile view
 const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactEmail, appName, getWaLink }) => {
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+
   if (!isOpen) return null;
 
+  const faqs = [
+    {
+      q: "Bagaimana cara masuk ke sistem?",
+      a: "Klik tombol \"Masuk Sekarang\" di bar bawah (atau tombol \"Masuk\" di pojok kanan atas untuk desktop), lalu gunakan username dan password resmi yang diberikan oleh administrator sekolah."
+    },
+    {
+      q: "Lupa password atau tidak bisa login?",
+      a: "Silakan hubungi administrator IT sekolah atau wali kelas Anda untuk mereset password akun Anda."
+    },
+    {
+      q: "Apakah jadwal pelajaran real-time?",
+      a: "Ya, setiap perubahan jadwal piket, guru pengganti, atau perubahan kelas yang dilakukan oleh admin kurikulum akan langsung diperbarui seketika di portal ini."
+    }
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300 p-0 md:p-4 text-left">
       {/* Backdrop overlay listener to close */}
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 
-      {/* Bottom Sheet Drawer */}
-      <div className="bg-white rounded-t-[32px] w-full max-w-md overflow-hidden shadow-2xl border-t border-slate-100 flex flex-col animate-in slide-in-from-bottom duration-300 ease-out z-10 max-h-[85vh]">
-        {/* iOS/Android drag handle bar */}
-        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0"></div>
+      {/* Sheet/Modal Drawer */}
+      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10 max-h-[85vh]">
+        {/* iOS/Android drag handle bar - hidden on desktop */}
+        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0 md:hidden"></div>
 
         {/* Header */}
-        <div className="px-6 pb-3 pt-1 flex items-center justify-between">
-          <span className="font-black text-slate-800 text-[16px] tracking-tight">Hubungi & Bantuan</span>
-          <button onClick={onClose} className="cursor-pointer flex items-center justify-center">
+        <div className="px-6 pb-3 pt-4 md:pt-6 flex items-center justify-between">
+          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">Hubungi & Bantuan</span>
+          <button onClick={onClose} className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none">
             <X size={16} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Body content scroll area */}
-        <div className="px-6 py-4 space-y-4 text-xs font-semibold text-slate-600 overflow-y-auto select-text">
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-blue-800 flex items-start gap-2.5">
+        <div className="px-6 py-4 space-y-5 overflow-y-auto custom-scrollbar select-text max-h-[55vh]">
+          <div className="bg-blue-50 border border-blue-100 rounded-[var(--ui-radius-small)] p-4 text-blue-800 flex items-start gap-2.5">
             <Info size={16} className="shrink-0 mt-0.5" style={{ color:'#1d4ed8' }} />
-            <p className="leading-relaxed font-semibold text-left text-blue-900">
+            <p className="leading-relaxed font-semibold text-left text-blue-900 text-[11.5px]">
               Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
             </p>
           </div>
 
           <div className="space-y-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Pertanyaan Umum (FAQ)</p>
-            <div className="border border-slate-100 rounded-2xl p-3 bg-slate-50/40 text-left">
-              <p className="font-extrabold text-slate-800 mb-1">Bagaimana cara masuk ke sistem?</p>
-              <p className="leading-relaxed font-medium text-slate-500">Klik tombol"Masuk Sekarang" di bar bawah, lalu gunakan username dan password resmi yang diberikan sekolah.</p>
-            </div>
-            <div className="border border-slate-100 rounded-2xl p-3 bg-slate-50/40 text-left">
-              <p className="font-extrabold text-slate-800 mb-1">Lupa password atau tidak bisa login?</p>
-              <p className="leading-relaxed font-medium text-slate-500">Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pertanyaan Umum (FAQ)</p>
+            <div className="space-y-2">
+              {faqs.map((faq, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div key={idx} className="border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden bg-slate-50/40 text-left transition-all">
+                    <button
+                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                      className="w-full px-4 py-3.5 flex items-center justify-between bg-transparent border-none text-slate-800 font-extrabold text-[12px] cursor-pointer hover:bg-slate-100/50 transition-colors"
+                    >
+                      <span className="text-left leading-tight pr-4">{faq.q}</span>
+                      <ChevronLeft 
+                        size={15} 
+                        className={`text-slate-400 transition-transform duration-350 ${isOpen ? '-rotate-90' : 'rotate-180'}`} 
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 text-[11.5px] font-medium text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="space-y-2.5 pt-2 text-left">
+          <div className="space-y-2.5">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hubungi Admin Sekolah</p>
             
             {contactPhone && (
@@ -1337,10 +1411,10 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
                 href={getWaLink()} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-2xl transition-all text-slate-700 no-underline cursor-pointer group"
+                className="flex items-center gap-3 p-3 border border-slate-155 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
               >
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <MessageSquare size={16} />
+                <div className="w-8.5 h-8.5 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                  <MessageSquare size={16} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="font-extrabold text-[12px] text-slate-800 leading-none mb-1">WhatsApp Admin</p>
@@ -1352,10 +1426,10 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
             {contactEmail && (
               <a 
                 href={`mailto:${contactEmail}`}
-                className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-2xl transition-all text-slate-700 no-underline cursor-pointer group"
+                className="flex items-center gap-3 p-3 border border-slate-155 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
               >
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <Mail size={16} />
+                <div className="w-8.5 h-8.5 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                  <Mail size={16} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="font-extrabold text-[12px] text-slate-800 leading-none mb-1">Email Layanan</p>
@@ -1367,10 +1441,10 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
         </div>
 
         {/* Bottom Sheet Footer */}
-        <div className="px-6 pb-8 pt-4 border-t border-slate-100 bg-slate-50/50">
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <button 
             onClick={onClose}
-            className="w-full h-11 flex items-center justify-center cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-xs"
+            className="w-full h-11 flex items-center justify-center cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
           >
             Tutup
           </button>
@@ -1379,3 +1453,4 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
     </div>
   );
 };
+

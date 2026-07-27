@@ -45,8 +45,12 @@ export default function TabGenerate(props) {
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto">
-                    <button onClick={handleResetSchedule} className="w-full sm:w-auto"><Trash2 size={15} /> Kosongkan</button>
-                    <button onClick={handleGenerate} className="w-full sm:w-auto"><Settings size={15} /> Eksekusi Auto-Generate</button>
+                    <Button variant="danger" onClick={handleResetSchedule} className="w-full sm:w-auto flex items-center gap-1.5">
+                      <Trash2 size={15} /> Kosongkan
+                    </Button>
+                    <Button onClick={handleGenerate} className="w-full sm:w-auto flex items-center gap-1.5">
+                      <Settings size={15} /> Eksekusi Auto-Generate
+                    </Button>
                   </div>
                 </div>
               )}
@@ -141,10 +145,9 @@ export default function TabGenerate(props) {
               <h3 className="font-extrabold text-[15px] text-slate-800 whitespace-nowrap">
                 Pratinjau Jadwal {scheduleFilterGrade !=="Semua" ? `Tingkat ${scheduleFilterGrade}` :""} {scheduleFilterMajor !=="Semua" ? `| ${scheduleFilterMajor}` :""} {selectedClassEffective !=="Semua" ? `| ${selectedClassEffective}` :""}
               </h3>
-              <Button variant="outline" 
+              <Button variant="outline"
                 onClick={() =>window.print()}
-                className="flex items-center gap-1.5 cursor-pointer"
-                style={{ backgroundColor:"var(--ui-primary)" }}
+                className="flex items-center gap-1.5 cursor-pointer print:hidden"
               >
                 <Printer size={13} className="stroke-[2.5]" />
                 Cetak</Button>
@@ -202,32 +205,11 @@ export default function TabGenerate(props) {
             </div>
           </div>
           <div className="p-4 md:p-6 overflow-x-auto overflow-y-auto custom-scrollbar flex-1 min-w-0 bg-slate-50/30 print:block print:p-0 print:bg-transparent print:overflow-visible print-landscape">
-              {/* PRINT KOP SURAT (FULL BLEED, COMPACT) */}
-              <div className="hidden print:flex w-full overflow-hidden h-[60px] relative items-center bg-white border-b border-slate-300">
-                  {/* Left Content (Logo & Text) */}
-                  <div className="flex items-center px-6 shrink-0 max-w-[55%] h-full">
-                    {/* Logo */}
-                    {appSettings.kopSuratLogo && (
-                      <div className="w-10 h-10 shrink-0 flex items-center justify-center mr-3">
-                        <img src={appSettings.kopSuratLogo} alt="Logo Kop" className="w-full h-full object-contain" />
-                      </div>
-                    )}
-                    
-                    {/* Text */}
-                    <div className="flex flex-col justify-center">
-                      {appSettings.kopSuratBaris1 && <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest leading-tight">{appSettings.kopSuratBaris1}</span>}
-                      {appSettings.kopSuratBaris2 && <span className="text-[11px] font-black uppercase tracking-widest leading-tight" style={{ color: appSettings.primaryColor ||"var(--ui-primary)" }}>{appSettings.kopSuratBaris2}</span>}
-                      {appSettings.kopSuratBaris3 && <span className="text-[14px] font-black uppercase tracking-tight leading-tight" style={{ color: appSettings.primaryColor ||"var(--ui-primary)" }}>{appSettings.kopSuratBaris3}</span>}
-                    </div>
-                  </div>
-
-                  {/* Right Colored Bar */}
-                  <div className="flex-1 h-full flex items-center justify-end pl-6" style={{ backgroundColor: appSettings.primaryColor ||"var(--ui-primary)" }}>
-                    <div className="pr-6 text-right text-white flex flex-col justify-center">
-                      <h2 className="text-[12px] font-black uppercase tracking-wide">JADWAL PELAJARAN {scheduleFilterGrade !=="Semua" ? `TINGKAT ${scheduleFilterGrade}` :""}</h2>
-                      <p className="text-[8px] font-medium opacity-90 mt-0.5">T.P. {new Date().getFullYear()}/{new Date().getFullYear() + 1} &bull; Dicetak: {new Date().toLocaleDateString("id-ID")}</p>
-                    </div>
-                  </div>
+              {/* PRINT KOP SURAT REMOVED (Only for official letters) */}
+              <div className="hidden print:flex w-full items-center justify-center bg-white border-b border-slate-300 py-3 mb-4">
+                <h2 className="text-[14px] font-black uppercase tracking-wide">
+                  JADWAL PELAJARAN {scheduleFilterGrade !== "Semua" ? `TINGKAT ${scheduleFilterGrade}` : ""}
+                </h2>
               </div>
 
               {/* TABLE CONTAINER (Safe Area Padding) */}

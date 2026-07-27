@@ -145,13 +145,13 @@ const StudentAbsensi = () => {
               onChange={(val) => setFilter(prev => ({ ...prev, year: Number(val) }))}
             />
           </div>
-          <button 
+          <Button variant="ghost" size="icon"
             onClick={fetchData}
             className="shrink-0"
             title="Muat Ulang"
           >
             <RefreshCw size={16} className={loading ?"animate-spin" :""} />
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import { useAppStore } from'../../../store/useAppStore.js';
 import { getRoleOption, getWakaDivisionOption, ROLE_OPTIONS, WAKA_DIVISION_OPTIONS } from'../../../utils/constants.js';
+import useFiturStore from'../../../store/monitoring/fiturStore.js';
 import { Users, ShieldCheck, Key, History } from'lucide-react';
 import { Lock, Shield, Edit2, Search, Plus, Activity, Trash2 } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -90,29 +91,34 @@ export default function TabPengaturanUser(props) {
     if (success) {
       const whatsappMsg = `Halo ${targetName || request.username}, permintaan reset sandi Anda disetujui. Sandi baru Anda: ${newPassword}. Silakan gunakan sandi ini untuk masuk.`;
       
-      // Call Fonnte Gateway via backend
-      let waStatus ="proses";
-      try {
-        const res = await fetch("/api/whatsapp/send", {
-          method:"POST",
-          headers: {"Content-Type":"application/json","Authorization": `Bearer ${currentUser?.authToken}`
-          },
-          body: JSON.stringify({
-            phone: request.whatsapp,
-            recipient_name: targetName || request.username,
-            message: whatsappMsg,
-            trigger_type:"reset_password_admin"
-          })
-        });
-        const waData = await res.json();
-        waStatus = waData.ok ?"sent" :"failed";
-      } catch (err) {
-        console.error("Failed to send WhatsApp:", err);
-        waStatus ="failed";
+      const { isFiturAktif } = useFiturStore.getState();
+      const isWaAutoPassword = isFiturAktif('wa_auto_password') ?? true;
+
+      let waStatus ="dimatikan";
+      if (isWaAutoPassword) {
+        waStatus ="proses";
+        try {
+          const res = await fetch("/api/whatsapp/send", {
+            method:"POST",
+            headers: {"Content-Type":"application/json","Authorization": `Bearer ${currentUser?.authToken}`
+            },
+            body: JSON.stringify({
+              phone: request.whatsapp,
+              recipient_name: targetName || request.username,
+              message: whatsappMsg,
+              trigger_type:"reset_password_admin"
+            })
+          });
+          const waData = await res.json();
+          waStatus = waData.ok ?"sent" :"failed";
+        } catch (err) {
+          console.error("Failed to send WhatsApp:", err);
+          waStatus ="failed";
+        }
       }
 
       if (showNotification) {
-        showNotification(`Password baru (${newPassword}) untuk ${targetName || request.username} telah di-set & terkirim ke WhatsApp: ${request.whatsapp} (Status: ${waStatus})`,"success");
+        showNotification(`Password baru (${newPassword}) untuk ${targetName || request.username} telah di-set${isWaAutoPassword ? ` & terkirim ke WhatsApp: ${request.whatsapp} (Status: ${waStatus})` :''}`,"success");
       }
     } else {
       if (showNotification) {

@@ -29,8 +29,9 @@ const Logbook = () => {
   });
   const [photos, setPhotos] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitDone, setSubmitDone] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [photoError, setPhotoError] = useState('');
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type ='success') => {
@@ -49,9 +50,10 @@ const Logbook = () => {
   const handlePhotoAdd = (e) => {
     const files = Array.from(e.target.files);
     if (photos.length + files.length > 5) {
-      showToast('Maksimal 5 foto dokumentasi.','error');
+      setPhotoError('Maksimal 5 foto dokumentasi.');
       return;
     }
+    setPhotoError('');
     const newPhotos = files.map((file) => ({
       id: Date.now() + Math.random(),
       file,
@@ -85,6 +87,7 @@ const Logbook = () => {
 
   const handleSubmit = async () => {
     if (!validate()) return;
+    setSubmitError('');
     setIsSubmitting(true);
     try {
       const authToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1'))?.authToken;
@@ -97,10 +100,10 @@ const Logbook = () => {
       if (data.ok) {
         setSubmitDone(true);
       } else {
-        showToast(data.error ||'Gagal menyimpan logbook','error');
+        setSubmitError(data.error || 'Gagal menyimpan logbook');
       }
     } catch {
-      showToast('Terjadi kesalahan saat menyimpan','error');
+      setSubmitError('Terjadi kesalahan saat menyimpan');
     }
     setIsSubmitting(false);
   };
@@ -221,14 +224,13 @@ const Logbook = () => {
             rows={5}
             value={form.kegiatan}
             onChange={(e) => handleChange('kegiatan', e.target.value)}
-            placeholder="Ceritakan secara detail kegiatan yang Anda lakukan hari ini. Contoh: Melakukan konfigurasi switch cisco, membantu instalasi server, dll..."
             className={`w-full border rounded-[var(--ui-radius-small)] px-4 py-3 text-sm resize-none
               focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)] transition-all
-              ${errors.kegiatan ?'border-danger bg-red-50' :'border-slate-200'}`}
+              ${errors.kegiatan ?'border-rose-500 bg-rose-50' :'border-slate-200'}`}
           />
           <div className="flex items-center justify-between mt-1">
             {errors.kegiatan ? (
-              <p className="text-xs text-danger flex items-center gap-1">
+              <p className="text-xs text-rose-500 flex items-center gap-1 font-bold">
                 <AlertCircle size={11} /> {errors.kegiatan}
               </p>
             ) : (
@@ -250,10 +252,10 @@ const Logbook = () => {
             placeholder="Tuliskan kendala atau hambatan. Jika tidak ada, tulis'Tidak ada kendala'."
             className={`w-full border rounded-[var(--ui-radius-small)] px-4 py-3 text-sm resize-none
               focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)] transition-all
-              ${errors.kendala ?'border-danger bg-red-50' :'border-slate-200'}`}
+              ${errors.kendala ?'border-rose-500 bg-rose-50' :'border-slate-200'}`}
           />
           {errors.kendala && (
-            <p className="text-xs text-danger mt-1 flex items-center gap-1">
+            <p className="text-xs text-rose-500 mt-1 flex items-center gap-1 font-bold">
               <AlertCircle size={11} /> {errors.kendala}
             </p>
           )}
@@ -271,10 +273,10 @@ const Logbook = () => {
             placeholder="Bagaimana Anda mengatasi kendala di atas?"
             className={`w-full border rounded-[var(--ui-radius-small)] px-4 py-3 text-sm resize-none
               focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)] transition-all
-              ${errors.solusi ?'border-danger bg-red-50' :'border-slate-200'}`}
+              ${errors.solusi ?'border-rose-500 bg-rose-50' :'border-slate-200'}`}
           />
           {errors.solusi && (
-            <p className="text-xs text-danger mt-1 flex items-center gap-1">
+            <p className="text-xs text-rose-500 mt-1 flex items-center gap-1 font-bold">
               <AlertCircle size={11} /> {errors.solusi}
             </p>
           )}
@@ -297,12 +299,12 @@ const Logbook = () => {
                     alt="dokumentasi"
                     className="w-full h-full object-cover rounded-[var(--ui-radius-small)]"
                   />
-                  <Button variant="outline"
+                  <button type="button"
                     onClick={() =>removePhoto(p.id)}
-                    className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full
-                      flex items-center justify-center hover:bg-black/80 transition-colors"
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full
+                      flex items-center justify-center hover:bg-black/80 transition-colors border-none cursor-pointer"
                   >
-                    <X size={11} className="text-white" /></Button>
+                    <X size={11} className="text-white" /></button>
                 </div>
               ))}
 
@@ -342,20 +344,31 @@ const Logbook = () => {
               </div>
             </label>
           )}
+          {photoError && (
+            <p className="text-xs text-rose-500 mt-1.5 flex items-center gap-1 font-bold">
+              <AlertCircle size={11} /> {photoError}
+            </p>
+          )}
         </div>
 
         {/* ─────── Submit ─────── */}
-        <button
+        {submitError && (
+          <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-2">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{submitError}</span>
+          </div>
+        )}
+        <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className={`   w-full flex items-center justify-center gap-2 mt-2 cursor-not-allowed'`}
+          className="w-full flex items-center justify-center gap-2 mt-2"
         >
           {isSubmitting ? (
             <><Loader2 size={18} className="animate-spin" /> Menyimpan Jurnal...</>
           ) : (
             <><CheckCircle2 size={18} /> Kirim Jurnal Hari Ini</>
           )}
-        </button>
+        </Button>
       </div>
 
       {toast && (

@@ -1,7 +1,8 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, Modal, TablePagination } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from'react';
 import { MessageSquare, CheckCircle2, AlertCircle, Clock, Settings, LayoutDashboard, KeyRound, DatabaseBackup } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
+import useFiturStore from'../../../store/monitoring/fiturStore';
 import { INITIAL_CLASSES } from'../../../data.js';
 import { Send, Calendar, History, UserCog, Phone, Users, FileText, RefreshCw } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -22,9 +23,14 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [toast, setToast] = useState(null);
-  const [activeTab, setActiveTab] = useState('kirim');
+  const [activeTab, setActiveTab] = useState('pengaturan');
   const [filterStatus, setFilterStatus] = useState('all');
   const [students, setStudents] = useState([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  const { isFiturAktif, toggleFitur } = useFiturStore();
   
   // Broadcast form
   const [broadcastForm, setBroadcastForm] = useState({ phone:'', recipient_name:'', message:'' });
@@ -107,6 +113,25 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
     setIsSending(false);
   };
 
+  const handleCancelLog = async (id) => {
+    try {
+      const res = await fetch('/api/whatsapp/cancel-log', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('Antrean berhasil dibatalkan!');
+        fetchLogs();
+      } else {
+        showToast(data.error || 'Gagal membatalkan log', 'error');
+      }
+    } catch (e) {
+      showToast('Kesalahan jaringan saat membatalkan log', 'error');
+    }
+  };
+
   const handleBulkSend = async () => {
     if (selectedStudents.length === 0 || !bulkMessage) return showToast('Pilih penerima dan tulis pesan!','error');
     setIsSending(true);
@@ -158,6 +183,8 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
   };
 
   const filteredLogs = useMemo(() => filterStatus ==='all' ? logs : logs.filter(l => l.status === filterStatus), [logs, filterStatus]);
+  const paginatedLogs = useMemo(() => filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filteredLogs, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
 
   const stats = useMemo(() => ({
     total: logs.length,
@@ -206,6 +233,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-fit">
         {[
+          { key:'pengaturan', label:'Otomatisasi', icon: <Settings size={16} /> },
           { key:'kirim', label:'Kirim Pesan', icon: <Send size={16} /> },
           { key:'rekap', label:'Rekap Otomatis', icon: <Calendar size={16} /> },
           { key:'log', label:'Riwayat & Log', icon: <History size={16} /> },
@@ -216,6 +244,73 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
             {tab.icon} {tab.label}</Button>
         ))}
       </div>
+
+      {/* Pengaturan Tab */}
+      {activeTab === 'pengaturan' && (
+        <div className="bg-white rounded-[var(--ui-radius-card)] border-none shadow-sm p-6 space-y-6">
+          <div>
+            <h2 className="font-bold text-slate-700 flex items-center gap-2 mb-1"><Settings size={16} /> Pengaturan Otomatisasi WhatsApp</h2>
+            <p className="text-xs text-slate-500 mb-6">Atur kapan sistem harus mengirim pesan WhatsApp secara otomatis ke pihak terkait.</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border border-slate-100 rounded-[var(--ui-radius-small)] hover:bg-slate-50 transition-colors">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Notifikasi Pelanggaran (Orang Tua)</h3>
+                <p className="text-xs text-slate-500 mt-1">Kirim rincian pelanggaran dan poin kedisiplinan secara otomatis saat guru mencatat pelanggaran di Panel Piket.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={isFiturAktif('wa_auto_pelanggaran') ?? true} onChange={() => toggleFitur('wa_auto_pelanggaran')} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border border-slate-100 rounded-[var(--ui-radius-small)] hover:bg-slate-50 transition-colors">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Notifikasi Password Reset (Pengguna)</h3>
+                <p className="text-xs text-slate-500 mt-1">Kirim password baru ke nomor WhatsApp pengguna setelah Admin mereset kata sandi mereka.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={isFiturAktif('wa_auto_password') ?? true} onChange={() => toggleFitur('wa_auto_password')} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border border-slate-100 rounded-[var(--ui-radius-small)] hover:bg-slate-50 transition-colors">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Rekap Absensi Harian (Wali Kelas)</h3>
+                <p className="text-xs text-slate-500 mt-1">Kirim laporan harian otomatis kepada walikelas berisi daftar siswa yang tidak masuk di kelasnya.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={isFiturAktif('wa_auto_rekap_harian_walikelas') ?? true} onChange={() => toggleFitur('wa_auto_rekap_harian_walikelas')} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border border-slate-100 rounded-[var(--ui-radius-small)] hover:bg-slate-50 transition-colors">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Notifikasi Kehadiran / Terlambat (Orang Tua)</h3>
+                <p className="text-xs text-slate-500 mt-1">Kirim notifikasi otomatis ke nomor WA orang tua saat siswa hadir terlambat (melalui mesin Fingerprint Hikvision).</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={isFiturAktif('wa_auto_terlambat') ?? true} onChange={() => toggleFitur('wa_auto_terlambat')} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+              </label>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 border border-slate-100 rounded-[var(--ui-radius-small)] hover:bg-slate-50 transition-colors opacity-60">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Notifikasi Jurnal (Guru/Pembimbing)</h3>
+                <p className="text-xs text-slate-500 mt-1">Kirim notifikasi ringkasan jurnal PKL yang perlu divalidasi ke guru. (Fitur CronJob Server)</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={false} disabled />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-300"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Send Tab */}
       {activeTab ==='kirim' && (
@@ -255,9 +350,9 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                 className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" />
               <p className="text-xs text-slate-400 mt-1">{broadcastForm.message.length} karakter</p>
             </div>
-            <button onClick={handleSend} disabled={isSending} className="w-full flex items-center justify-center gap-2">
+            <Button onClick={handleSend} disabled={isSending} className="w-full flex items-center justify-center gap-2">
               <Send size={14} /> {isSending ?'Mengirim...' :'Kirim Sekarang'}
-            </button>
+            </Button>
           </div>
 
           {/* Broadcast */}
@@ -318,9 +413,9 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                 <Button variant="outline" onClick={() =>setSelectedStudents([])} >Batalkan</Button>
               </div>
             </div>
-            <button onClick={handleBulkSend} disabled={isSending || selectedStudents.length === 0} className="w-full flex items-center justify-center gap-2">
+            <Button onClick={handleBulkSend} disabled={isSending || selectedStudents.length === 0} className="w-full flex items-center justify-center gap-2">
               <Send size={14} /> {isSending ? `Mengirim...` : `Kirim ke ${selectedStudents.length} Penerima`}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -362,13 +457,13 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       {activeTab ==='log' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={fetchLogs} className="flex items-center gap-2">
+            <Button variant="outline" onClick={fetchLogs} className="flex items-center gap-2">
               <RefreshCw size={14} /> Refresh
-            </button>
-            {['all','sent','failed','pending'].map(s => (
-              <Button variant="outline" key={s} onClick={() =>setFilterStatus(s)}
+            </Button>
+            {['all','sent','failed','pending','cancelled'].map(s => (
+              <Button variant="outline" key={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }}
                 className={`${filterStatus === s ?'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' :'bg-white text-slate-600 border-slate-200 hover:border-[var(--ui-primary)]'}`}>
-                {s ==='all' ?'Semua' : s ==='sent' ?'Sukses' : s ==='failed' ?'Gagal' :'Pending'}</Button>
+                {s ==='all' ?'Semua' : s ==='sent' ?'Sukses' : s ==='failed' ?'Gagal' : s ==='cancelled' ? 'Dibatalkan' :'Pending'}</Button>
             ))}
           </div>
 
@@ -381,14 +476,15 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                   <th className="px-4 py-3 font-bold text-center">Status</th>
                   <th className="px-4 py-3 font-bold text-center">Tipe</th>
                   <th className="px-4 py-3 font-bold text-left">Waktu</th>
+                  <th className="px-4 py-3 font-bold text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">Memuat...</td></tr>
-                ) : filteredLogs.length === 0 ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">Belum ada riwayat pengiriman.</td></tr>
-                ) : filteredLogs.map(log => (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Memuat...</td></tr>
+                ) : paginatedLogs.length === 0 ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Belum ada riwayat pengiriman.</td></tr>
+                ) : paginatedLogs.map(log => (
                   <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-3">
                       <p className="font-bold text-slate-700">{log.recipient_name ||'-'}</p>
@@ -398,7 +494,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                       <p className="text-xs text-slate-600 line-clamp-2">{log.message}</p>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase ${log.status ==='sent' ?'bg-emerald-100 text-emerald-700' : log.status ==='failed' ?'bg-red-100 text-red-700' :'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase ${log.status ==='sent' ?'bg-emerald-100 text-emerald-700' : log.status ==='failed' ?'bg-red-100 text-red-700' : log.status === 'cancelled' ? 'bg-slate-100 text-slate-700' :'bg-amber-100 text-amber-700'}`}>
                         {log.status ==='sent' ? <CheckCircle2 size={10} /> : log.status ==='failed' ? <AlertCircle size={10} /> : <Clock size={10} />}
                         {log.status}
                       </span>
@@ -409,10 +505,29 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                     <td className="px-4 py-3 text-xs text-slate-400">
                       {new Date(log.sent_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      {log.status === 'pending' ? (
+                        <button onClick={() => handleCancelLog(log.id)} className="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors rounded text-[10px] font-bold border border-rose-200">
+                          Batalkan
+                        </button>
+                      ) : (
+                        <span className="text-slate-300 text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            <TablePagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredLogs.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       )}

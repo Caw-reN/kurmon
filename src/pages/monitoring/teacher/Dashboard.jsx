@@ -2,7 +2,7 @@ import { useState, useEffect } from'react';
 import { Users, Clock, CheckCircle2, AlertTriangle } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
 import { Badge, Loader2 } from'lucide-react';
-import { StatCard, Avatar } from'../../../components/monitoring/ui/index.js';
+import { StatCard, Avatar, PageHeader, SharedDashboardLogs } from'../../../components/monitoring/ui/index.js';
 
 
 /**
@@ -50,18 +50,18 @@ const TeacherDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Dashboard Guru</h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-0.5">{today}</p>
-        </div>
-        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0 mt-1 sm:mt-0 text-left sm:text-right bg-slate-50 sm:bg-transparent p-2.5 sm:p-0 rounded-[var(--ui-radius-small)]">
+      <PageHeader
+        icon={Users}
+        title="Dashboard Guru"
+        description={today}
+      >
+        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0 mt-1 sm:mt-0 text-left sm:text-right bg-slate-50 sm:bg-transparent p-2.5 sm:p-0 rounded-[var(--ui-radius-small)] border sm:border-none border-slate-100">
           <div>
             <p className="text-xs md:text-sm font-black text-[var(--ui-primary)]">{user?.name || user?.username ||'Guru'}</p>
             <p className="text-[10px] md:text-xs text-slate-400 sm:mt-0.5">Guru Pembimbing PKL</p>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
         {jadwalPiket.length > 0 && (
           <div className="bg-gradient-to-r from-amber-500 to-orange-400 rounded-[var(--ui-radius-small)] p-4 md:p-6 text-white shadow-sm flex items-center justify-between">
@@ -79,7 +79,7 @@ const TeacherDashboard = () => {
 
 
       {/* ─────── Stat Cards ─────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           label="Siswa Bimbingan"
           value={loading ?'-' : siswas.length}
@@ -146,6 +146,11 @@ const TeacherDashboard = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ─────── Shared Activity Logs ─────── */}
+      <div className="mt-4">
+        <SharedDashboardLogs />
       </div>
     </div>
   );

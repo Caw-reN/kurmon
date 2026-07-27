@@ -275,9 +275,9 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
           </div>
 
           <div className="flex justify-end pt-4 border-t border-slate-100">
-            <button onClick={handleSaveProfile} disabled={isSaving} className="flex items-center gap-2">
+            <Button onClick={handleSaveProfile} disabled={isSaving} className="flex items-center gap-2">
               <Save size={14} /> {isSaving ?'Menyimpan...' :'Simpan Profil'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -290,9 +290,9 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Manajemen Tahun Ajaran</h2>
               <p className="text-xs text-slate-500 mt-1">Kelola data tahun akademik aktif, semester ganjil/genap, dan rentang periode sekolah.</p>
             </div>
-            <button onClick={openAddYear} className="flex items-center gap-2 sm:self-center">
+            <Button onClick={openAddYear} className="flex items-center gap-2 sm:self-center">
               <Plus size={14} /> Tambah Tahun Ajaran
-            </button>
+            </Button>
           </div>
           <div className="overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
             <table className="w-full text-sm">
@@ -515,7 +515,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               </div>
               <div className="pt-4 flex justify-end gap-3">
                 <Button variant="outline" type="button" onClick={() =>setShowYearModal(false)}>Batal</Button>
-                <Button variant="outline" onClick={handleSaveYear} >Simpan</Button>
+                <Button onClick={handleSaveYear} >Simpan</Button>
               </div>
             </div>
           </div>

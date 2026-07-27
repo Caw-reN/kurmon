@@ -6,6 +6,8 @@ import autoTable from 'jspdf-autotable';
 import { loadInitialState } from '../../utils/state.js';
 import { FileSpreadsheet, Download, Search, Users, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
+import { getDatabaseSnapshot } from '../../utils/dataSource.js';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
 import { Button, Modal } from '../../components/ui.jsx';
 
@@ -32,7 +34,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const [filterKelas, setFilterKelas] = useState("all");
   const [searchSiswa, setSearchSiswa] = useState('');
   const [selectedStudentForRapor, setSelectedStudentForRapor] = useState(null);
-  const [raporPaperSize, setRaporPaperSize] = useState('A4'); //'A4' |'F4'
+  const [raporPaperSize, setRaporPaperSize] = useState(() => getDatabaseSnapshot()?.appSettings?.defaultPaperSize || 'A4');
+
   const [activeSection, setActiveSection] = useState('siswa');
   const [siswaPage, setSiswaPage] = useState(1);
   const [siswaPerPage, setSiswaPerPage] = useState(20);
@@ -270,10 +273,16 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
     // Header Kop Surat
     if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
-      doc.addImage(appSettings.kopSuratGambar, 'PNG', 15, 10, pageWidth - 30, 30);
+      try {
+        const format = String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(appSettings.kopSuratGambar, format, 15, 10, pageWidth - 30, 30);
+      } catch (e) { console.error(e); }
       yPos = 46;
     } else if (appSettings.kopSuratLogo) {
-      doc.addImage(appSettings.kopSuratLogo, 'PNG', 15, 10, 25, 25);
+      try {
+        const format = String(appSettings.kopSuratLogo).includes('data:image/jpeg') || String(appSettings.kopSuratLogo).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(appSettings.kopSuratLogo, format, 15, 10, 25, 25);
+      } catch (e) { console.error(e); }
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(10);
       doc.text(appSettings.kopSuratBaris1 || "", pageWidth / 2, 16, { align: "center" });

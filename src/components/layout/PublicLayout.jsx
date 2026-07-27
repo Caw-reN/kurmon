@@ -108,13 +108,13 @@ export default function PublicLayout() {
         }
         .glass-input:focus-within {
           border-color: var(--ui-primary);
-          boxShadow: 0 0 0 3px rgba(75, 123, 229, 0.1);
+          box-shadow: 0 0 0 3px rgba(75, 123, 229, 0.1);
         }`}</style>
 
       {/* GLOBAL DECORATIVE BACKGROUND */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-[-1]">
         {/* Soft Wash Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-purple-50/30 to-blue-50/40 backdrop-blur-[100px]"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-purple-50/30 to-blue-50/40 backdrop-blur-[100px] public-layout-bg"></div>
         {/* Glowing Blobs */}
         <div className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: primaryColor }}></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[700px] h-[700px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: accentDark }}></div>
@@ -122,31 +122,66 @@ export default function PublicLayout() {
       </div>
 
       {/* HEADER NAVBAR */}
-      {location.pathname !=='/' && (
-        <>
-          {/* Desktop Header */}
-          <div className="hidden md:block">
-            <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} schoolProfile={schoolProfile} />
-          </div>
+      {location.pathname !=='/' && (() => {
+        const headerStyle = appSettings?.headerStyle || 'primary';
+        const surfaceColor = appSettings?.surfaceColor || '#ffffff';
+        
+        let mobHeaderBg = 'bg-white/85 backdrop-blur-lg border-b border-slate-100/80';
+        let mobHeaderTextColor = 'text-slate-800';
+        let mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
+        let mobHeaderStyleAttr = {};
 
-          {/* Mobile Header (Sleek App-like header with Back Button and page title) */}
-          <header className="md:hidden w-full bg-white/85 backdrop-blur-lg border-b border-slate-100/80 fixed top-0 left-0 right-0 z-50 py-3.5 px-4 flex items-center justify-between print:hidden">
-            <Link to="/" className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/50 flex items-center justify-center text-slate-700 active:translate-y-[1px] transition-all shadow-sm">
-              <ChevronLeft size={18} strokeWidth={2.5} />
-            </Link>
-            <span className="font-black text-slate-800 text-[14.5px] tracking-tight">
-              {location.pathname ==='/jadwal' ?'Jadwal Pelajaran' :
-               location.pathname ==='/denah' ?'Denah Kelas' :
-               location.pathname ==='/silabus' ?'Modul Ajar' :
-               location.pathname ==='/materi-ajar' ?'Materi Ajar' :
-               location.pathname ==='/kalender' ?'Kalender Akademik' :
-               location.pathname ==='/pkl-locations' ?'Tempat PKL' :
-               location.pathname ==='/struktur' ?'Struktur Organisasi' :'Informasi'}
-            </span>
-            <div className="w-9 h-9 opacity-0"></div> {/* spacer to center the title */}
-          </header>
-        </>
-      )}
+        if (headerStyle === 'primary') {
+          mobHeaderBg = 'border-b';
+          mobHeaderTextColor = 'text-white';
+          mobBackButtonClass = 'bg-white/10 border border-white/20 text-white';
+          mobHeaderStyleAttr = { backgroundColor: primaryColor, borderColor: 'rgba(255, 255, 255, 0.15)' };
+        } else if (headerStyle === 'solid') {
+          mobHeaderBg = 'border-b border-slate-100';
+          mobHeaderTextColor = 'text-slate-800';
+          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
+          mobHeaderStyleAttr = { backgroundColor: surfaceColor };
+        } else if (headerStyle === 'glass') {
+          mobHeaderBg = 'backdrop-blur-lg border-b border-slate-100/80';
+          mobHeaderTextColor = 'text-slate-800';
+          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
+          mobHeaderStyleAttr = { backgroundColor: `rgba(255, 255, 255, 0.7)` };
+        } else if (headerStyle === 'minimal') {
+          mobHeaderBg = '';
+          mobHeaderTextColor = 'text-slate-800';
+          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
+          mobHeaderStyleAttr = { backgroundColor: 'transparent', borderBottom: 'none' };
+        }
+
+        return (
+          <>
+            {/* Desktop Header */}
+            <div className="hidden md:block">
+              <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} schoolProfile={schoolProfile} />
+            </div>
+
+            {/* Mobile Header */}
+            <header 
+              className={`md:hidden w-full fixed top-0 left-0 right-0 z-50 py-3.5 px-4 flex items-center justify-between print:hidden ${mobHeaderBg}`}
+              style={mobHeaderStyleAttr}
+            >
+              <Link to="/" className={`w-9 h-9 rounded-full flex items-center justify-center active:translate-y-[1px] transition-all no-underline ${mobBackButtonClass}`}>
+                <ChevronLeft size={18} strokeWidth={2.5} />
+              </Link>
+              <span className={`font-black text-[14.5px] tracking-tight ${mobHeaderTextColor}`}>
+                {location.pathname ==='/jadwal' ?'Jadwal Pelajaran' :
+                 location.pathname ==='/denah' ?'Denah Kelas' :
+                 location.pathname ==='/silabus' ?'Modul Ajar' :
+                 location.pathname ==='/materi-ajar' ?'Materi Ajar' :
+                 location.pathname ==='/kalender' ?'Kalender Akademik' :
+                 location.pathname ==='/pkl-locations' ?'Tempat PKL' :
+                 location.pathname ==='/struktur' ?'Struktur Organisasi' :'Informasi'}
+              </span>
+              <div className="w-9 h-9 opacity-0"></div>
+            </header>
+          </>
+        );
+      })()}
 
       {/* MAIN CONTENT AREA */}
       <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'max-w-[1400px] mx-auto px-4 md:px-8 pt-20 sm:pt-28 pb-24 md:pb-12'}`}>
@@ -212,7 +247,7 @@ export default function PublicLayout() {
                 </p>
               </div>
               
-              <button onClick={handleFeedbackClick} className="bg-white/20 hover:bg-white/30 text-white rounded-[var(--ui-radius-small)] transition-all flex items-center gap-2 shrink-0 shadow-sm cursor-pointer border-none h-10 px-4 text-sm font-bold">
+              <button onClick={handleFeedbackClick} className="bg-white/20 hover:bg-white/30 text-white rounded-[var(--ui-radius-small)] transition-all flex items-center gap-2 shrink-0 cursor-pointer border-none h-10 px-4 text-sm font-bold">
                  <MessageSquare size={18} /> Kirim Masukan
               </button>
             </div>
@@ -270,17 +305,17 @@ export default function PublicLayout() {
                     return (
                       <>
                         {appSettings.socialFacebook && (
-                          <a href={getAbsoluteUrl(appSettings.socialFacebook)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all shadow-sm" title="Facebook">
+                          <a href={getAbsoluteUrl(appSettings.socialFacebook)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all" title="Facebook">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                           </a>
                         )}
                         {appSettings.socialInstagram && (
-                          <a href={getAbsoluteUrl(appSettings.socialInstagram)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all shadow-sm" title="Instagram">
+                          <a href={getAbsoluteUrl(appSettings.socialInstagram)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all" title="Instagram">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                           </a>
                         )}
                         {appSettings.socialYoutube && (
-                          <a href={getAbsoluteUrl(appSettings.socialYoutube)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all shadow-sm" title="YouTube">
+                          <a href={getAbsoluteUrl(appSettings.socialYoutube)} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-[var(--ui-primary)] hover:text-white transition-all" title="YouTube">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
                           </a>
                         )}
