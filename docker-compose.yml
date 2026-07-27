@@ -34,6 +34,8 @@ services:
     volumes:
       # Mount direktori data agar file yang digenerate backend tersimpan
       - ./data:/app/data
+      # Mount .env agar semua variabel (AUTH_ALLOWED_ORIGINS, DEFAULT_ADMIN_PASSWORD, dll) terbaca backend
+      - ./.env:/app/.env:ro
     ports:
       # Hanya diexpose ke localhost VPS untuk keamanan
       - "127.0.0.1:4174:4174"

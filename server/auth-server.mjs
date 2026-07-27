@@ -632,9 +632,8 @@ const initDb = async () => {
     `);
     // Tipe mesin: siswa, guru, karyawan
     await dbPool.query(`ALTER TABLE hikvision_devices ADD COLUMN IF NOT EXISTS device_type VARCHAR(50) DEFAULT 'siswa'`);
-    // Kolom person_type di log untuk membedakan siswa/guru/karyawan
-    await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
 
+    // CREATE TABLE dulu sebelum ALTER
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS hikvision_logs (
         id SERIAL PRIMARY KEY,
@@ -649,6 +648,10 @@ const initDb = async () => {
 
     // Tambahkan indeks untuk optimasi performa dashboard
     await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_dash ON hikvision_logs (device_id, employee_id, (timestamp::date))`);
+
+    // Kolom person_type di log untuk membedakan siswa/guru/karyawan
+    await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
+
 
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS pkl_locations (

@@ -817,9 +817,9 @@ export default function App() {
   const uiFontClass = appSettings.fontFamily === "Poppins" ? "font-[Poppins]" : appSettings.fontFamily === "Nunito" ? "font-[Nunito]" : "font-sans";
   const uiTheme = {
     "--ui-primary": appSettings.primaryColor || "#064e3b",
-    "--ui-accent": appSettings.accentColor || "#a3e635",
+    "--ui-accent": appSettings.accentColor || "#bbf7d0",
     "--ui-primary-button": appSettings.primaryButtonColor || appSettings.primaryColor || "#064e3b",
-    "--ui-action": appSettings.actionButtonColor || appSettings.accentColor || "#a3e635",
+    "--ui-action": appSettings.actionButtonColor || appSettings.accentColor || "#bbf7d0",
     "--ui-bg": appSettings.bgColor || "#f8fafc",
     "--ui-surface": appSettings.surfaceColor || "#ffffff",
     "--ui-text": appSettings.textColor || "#0f172a",
