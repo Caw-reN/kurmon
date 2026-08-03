@@ -2341,7 +2341,10 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{guruStats.Terlambat}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin + guruStats.Sakit}</b>
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{guruStats.Sakit}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Dinas:</span> <b className="text-slate-800">{guruStats['Dinas Luar']}</b>
@@ -2402,9 +2405,12 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{siswaStats.Terlambat}</b>
                 </div>
                 <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin + siswaStats.Sakit}</b>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin}</b>
                 </div>
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{siswaStats.Sakit}</b>
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{siswaStats.Alpa}</b>
                 </div>
               </div>
