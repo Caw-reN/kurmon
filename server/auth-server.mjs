@@ -187,8 +187,9 @@ async function pullHikvisionLogs(force = false) {
           const employeeNo = log.employeeNoString;
           if (!employeeNo) continue;
           const eventType = `${log.major}-${log.minor}`;
-          // Extract purely the local time string from device (e.g. "2026-07-20T15:44:00" -> "2026-07-20 15:44:00")
-          const logTime = log.time.substring(0, 19).replace('T', ' ');
+          // Use standard JS Date parsing which respects ISO offsets (+00:00 vs +07:00) 
+          // and output strictly in WIB format (sv-SE gives YYYY-MM-DD HH:mm:ss)
+          const logTime = new Date(log.time).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' });
           
           const existing = await dbPool.query(
             "SELECT 1 FROM hikvision_logs WHERE device_id = $1 AND employee_id = $2 AND timestamp = $3 AND event_type = $4",
