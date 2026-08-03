@@ -469,6 +469,25 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
   if (!siswaNis) return;
   try {
     const cleanNis = String(siswaNis).trim();
+
+    // Fetch student's class name from mst_students
+    const stRes = await dbPool.query(`
+      SELECT payload FROM mst_students 
+      WHERE id = $1 OR payload->>'nis' = $1 OR payload->>'code' = $1 OR payload->>'nisn' = $1 LIMIT 1
+    `, [cleanNis]).catch(() => ({ rows: [] }));
+    const stPayload = stRes.rows[0]?.payload ? (typeof stRes.rows[0].payload === 'string' ? JSON.parse(stRes.rows[0].payload) : stRes.rows[0].payload) : {};
+    const className = String(stPayload.class_name || stPayload.kelas || '').toUpperCase();
+
+    // Fetch PKL eligible class setting
+    const pklRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'pkl_settings'").catch(() => ({ rows: [] }));
+    const pklSettings = pklRes.rows.length > 0 ? JSON.parse(pklRes.rows[0].data) : { eligibleClass: "XII" };
+    const eligibleClass = String(pklSettings.eligibleClass || "XII").toUpperCase();
+
+    // If student belongs to PKL class (e.g. Class XII), fingerprint attendance auto-sanksi does NOT apply!
+    if (className && className.startsWith(eligibleClass)) {
+      return;
+    }
+
     // Count total Alpa for this student from kedisiplinan_absensi
     const countRes = await dbPool.query(`
       SELECT COUNT(*) as total_alpa 

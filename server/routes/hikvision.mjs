@@ -1032,8 +1032,30 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         const systemStartDate = conf.system_start_date || mainData.system_start_date || "";
 
-        // Auto-generate Alpa for past/expired active days
+        // Fetch PKL eligible class setting and PKL logbooks
+        const pklRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'pkl_settings'").catch(() => ({ rows: [] }));
+        const pklSettings = pklRes.rows?.length > 0 ? JSON.parse(pklRes.rows[0].data) : { eligibleClass: "XII" };
+        const eligiblePklClass = String(pklSettings.eligibleClass || "XII").toUpperCase();
+
+        const pklLogbooksRes = await dbPool.query(`
+          SELECT student_nis, TO_CHAR(date, 'YYYY-MM-DD') as date_str, status, activity
+          FROM pkl_logbooks
+          WHERE EXTRACT(MONTH FROM date) = $1 AND EXTRACT(YEAR FROM date) = $2
+        `, [month, year]).catch(() => ({ rows: [] }));
+
+        const pklLogbookMap = {};
+        pklLogbooksRes.rows.forEach(r => {
+          const nisKey = String(r.student_nis || '').trim();
+          const dayNum = parseInt(r.date_str.substring(8, 10), 10);
+          pklLogbookMap[`${nisKey}_${dayNum}`] = r.status || 'Hadir';
+        });
+
+        // Auto-generate Alpa or PKL status for past/expired active days
         Object.values(matrix).forEach(item => {
+          const isPklStudent = reportType === 'siswa' && 
+            eligiblePklClass && 
+            String(item.class_name || '').toUpperCase().startsWith(eligiblePklClass);
+
           for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             
@@ -1043,7 +1065,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             // Skip future days
             if (dateStr > todayStr) continue;
 
-            // If it is today, only mark Alpa if we are past the late/close time limit (default: masukClose)
+            // If it is today, only mark Alpa/PKL if we are past the late/close time limit (default: masukClose)
             if (dateStr === todayStr) {
               let logRole = reportType || "siswa";
               if (item.class_name === "guru" || item.class_name === "teacher") {
@@ -1059,18 +1081,31 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             // Skip weekends & academic calendar holidays
             if (isHolidayOrWeekend(dateStr)) continue;
 
-            // If no record exists for this day, mark it as Alpa!
+            // If no fingerprint record exists for this day:
             const dayData = item.days[day];
             const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));
             if (!hasRecord) {
-              item.days[day] = {
-                in: "Alpa",
-                out: "Alpa",
-                isLate: false,
-                isManual: true,
-                status: "Alpa",
-                note: "Alpa Otomatis (Tidak Absen)"
-              };
+              if (isPklStudent) {
+                const pklLogStatus = pklLogbookMap[`${item.nis}_${day}`] || pklLogbookMap[`${String(item.nis).trim()}_${day}`];
+                const finalPklStatus = pklLogStatus === 'approved' || pklLogStatus === 'Hadir' ? 'PKL (Hadir)' : (pklLogStatus || 'PKL');
+                item.days[day] = {
+                  in: finalPklStatus,
+                  out: finalPklStatus,
+                  isLate: false,
+                  isPkl: true,
+                  status: finalPklStatus,
+                  note: "Peserta PKL (Bebas Absen Fingerprint)"
+                };
+              } else {
+                item.days[day] = {
+                  in: "Alpa",
+                  out: "Alpa",
+                  isLate: false,
+                  isManual: true,
+                  status: "Alpa",
+                  note: "Alpa Otomatis (Tidak Absen)"
+                };
+              }
             }
           }
         });
@@ -1082,13 +1117,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             let totalIzin = 0;
             let totalSakit = 0;
             let totalAlpa = 0;
+            let totalPkl = 0;
 
             Object.values(item.days).forEach(dayData => {
                 if (dayData.status) {
                   if (dayData.status === "Izin") totalIzin++;
                   else if (dayData.status === "Sakit") totalSakit++;
                   else if (dayData.status === "Alpa") totalAlpa++;
-                  else if (dayData.status === "Hadir" || dayData.status === "Terlambat") {
+                  else if (dayData.status === "PKL" || String(dayData.status).startsWith("PKL")) {
+                    totalPkl++;
+                    totalHadir++;
+                  } else if (dayData.status === "Hadir" || dayData.status === "Terlambat") {
                     totalHadir++;
                     if (dayData.status === "Terlambat") totalTerlambat++;
                   }
@@ -1099,11 +1138,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                     }
                 }
             });
+
             item.total_hadir = totalHadir;
             item.total_terlambat = totalTerlambat;
             item.total_izin = totalIzin;
             item.total_sakit = totalSakit;
             item.total_alpa = totalAlpa;
+            item.total_pkl = totalPkl;
         });
 
         send(req, res, 200, { 

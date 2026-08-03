@@ -176,6 +176,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const getCellStyle = (dayData) => {
     const status = dayData.status || (dayData.isLate ?"Terlambat" : (dayData.in || dayData.out ?"Hadir" :""));
     
+    if (status === "PKL" || String(status || '').startsWith("PKL") || dayData.isPkl) {
+      return {
+        className: "bg-indigo-100 text-indigo-900 font-black border border-indigo-200",
+        style: { color: "#3730a3" }
+      };
+    }
     if (status ==="Alpa") {
       return {
         className:"bg-slate-950 text-white font-bold",
@@ -1252,6 +1258,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-red-500 inline-block"></span> Terlambat</span>
                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-blue-500 inline-block"></span> Izin</span>
                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-amber-400 inline-block"></span> Sakit</span>
+               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-indigo-600 inline-block"></span> PKL</span>
                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-slate-900 inline-block"></span> Alpa</span>
                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-slate-200 inline-block"></span> Kosong</span>
             </div>
@@ -1330,9 +1337,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors"
                             >
                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] ${cellColors.className}`} style={cellColors.style}>
-                                  {["Sakit","Izin","Alpa"].includes(dayData.status) ? (
+                                  {["Sakit","Izin","Alpa"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
-                                      <span className="font-extrabold">{dayData.status.toUpperCase()}</span>
+                                      <span className="font-extrabold">{dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
                                       {dayData.gdrive_url && (
                                         <a 
                                           href={dayData.gdrive_url} 
