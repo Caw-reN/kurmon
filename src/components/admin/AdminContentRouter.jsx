@@ -209,8 +209,12 @@ export default function AdminContentRouter({ context }) {
           const hasModulAjarPerm = perms["modul_ajar"] && perms["modul_ajar"] !=="none" && perms["modul_ajar"] !=="nonaktif";
           return hasSyllabusPerm || hasSyllabusGuruPerm || hasModulAjarPerm;
         }
+        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
+          const defaultGuruTabs = ["dashboard", "generate", "akademik", "absensi", "jurnal_harian", "catatan_walikelas", "modul_ajar", "walas_report", "kedisiplinan_absensi", "absensiguru", "silabusguru", "ketersediaan", "beban", "pesan"];
+          if (defaultGuruTabs.includes(activeTab) && (level === undefined || level === "otomatis" || level === "edit" || level === "view")) return true;
+        }
         if (roleKey ==="waka_kesiswaan" || roleKey ==="kesiswaan") {
-          const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","laporan_absensi","hikvision_report_siswa","siswa"];
+          const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","laporan_absensi","hikvision_report_siswa","siswa","absensi"];
           if (defaultKesiswaanTabs.includes(activeTab) && (level === undefined || level ==="otomatis" || level ==="edit" || level ==="view")) return true;
         }
         if (roleKey ==="waka_kurikulum" || roleKey ==="kurikulum") {
@@ -507,8 +511,9 @@ export default function AdminContentRouter({ context }) {
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi karyawan...</div>}>
           <HikvisionStaffReport classes={classes} />
         </Suspense>;
-      case"hikvision_report_siswa":
-      case"walas_report":
+      case "absensi":
+      case "hikvision_report_siswa":
+      case "walas_report":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
           <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
         </Suspense>;

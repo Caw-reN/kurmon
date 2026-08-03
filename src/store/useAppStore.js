@@ -35,12 +35,12 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   guru: {
     dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis", akademik: "otomatis", absensiguru: "otomatis",
     silabusguru: "otomatis", walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis"
+    jurnal_harian: "otomatis", absensi: "otomatis", catatan_walikelas: "otomatis"
   },
   walikelas: {
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis", akademik: "otomatis",
     walas_report: "otomatis", catatan_walikelas: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis", ketersediaan: "otomatis"
+    jurnal_harian: "otomatis", ketersediaan: "otomatis", absensi: "otomatis"
   },
   karyawan: {
     dashboard: "otomatis", absensiguru: "otomatis"
