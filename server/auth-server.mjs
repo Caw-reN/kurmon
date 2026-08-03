@@ -2014,7 +2014,13 @@ const server = createServer(async (req, res) => {
             }
           } catch (e) {}
           const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
+          const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+
           const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
+          const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+
+          const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
+          const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
 
           const todayLogsRes = await dbPool.query(`
             SELECT l.*, d.ip_address, d.device_type,
@@ -2048,11 +2054,27 @@ const server = createServer(async (req, res) => {
           const allTodayRows = todayLogsRes.rows.map(r => {
             const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
             const personType = String(r.true_person_type).toLowerCase();
-            const lateLimit = (personType === 'siswa') ? siswaMasukLate : guruMasukLate;
-            const isLate = scanTime > lateLimit;
+            
+            let lateLimit = siswaMasukLate;
+            let closeLimit = siswaMasukClose;
+            if (personType === 'karyawan') {
+              lateLimit = karyawanMasukLate;
+              closeLimit = karyawanMasukClose;
+            } else if (personType === 'guru') {
+              lateLimit = guruMasukLate;
+              closeLimit = guruMasukClose;
+            }
+
+            let status = 'hadir';
+            if (closeLimit && scanTime > closeLimit) {
+              status = 'alpa';
+            } else if (lateLimit && scanTime > lateLimit) {
+              status = 'terlambat';
+            }
+
             return {
               ...r,
-              status: isLate ? 'terlambat' : 'hadir',
+              status,
               role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA')
             };
           });
