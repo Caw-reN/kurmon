@@ -774,11 +774,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             SELECT s.nis, s.name, 
                    COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) as class_name 
             FROM hikvision_students s
-            WHERE 1=1
+            WHERE s.class_name NOT IN ('guru', 'karyawan', 'staff')
+              AND NOT EXISTS (SELECT 1 FROM mst_teachers t WHERE t.payload->>'code' = s.nis OR t.payload->>'nip' = s.nis OR t.id = s.nis OR LOWER(t.payload->>'nama') = LOWER(s.name) OR LOWER(t.payload->>'name') = LOWER(s.name))
+              AND NOT EXISTS (SELECT 1 FROM mst_staffs st WHERE st.payload->>'staff_code' = s.nis OR st.payload->>'code' = s.nis OR st.id = s.nis OR LOWER(st.payload->>'nama') = LOWER(s.name) OR LOWER(st.payload->>'name') = LOWER(s.name))
           `;
-          if (className === 'all') {
-            studentsQueryStr += " AND s.class_name NOT IN ('guru', 'karyawan')";
-          } else {
+          if (className !== 'all') {
             studentsQueryStr += " AND COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) = $1";
             classFilter = "AND COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) = $3";
             queryParams.push(className);

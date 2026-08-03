@@ -8,13 +8,15 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
 
 const DEVICE_TYPE_CONFIG = {
-  siswa:    { label:'Siswa',    color:'bg-blue-100 text-blue-700 border-blue-200',    icon: Users },
-  guru:     { label:'Guru',     color:'bg-emerald-100 text-emerald-700 border-emerald-200', icon: UserCheck },
-  karyawan: { label:'Karyawan', color:'bg-amber-100 text-amber-700 border-amber-200', icon: Briefcase },
+  siswa:    { label:'Siswa',            color:'bg-blue-100 text-blue-700 border-blue-200',          icon: Users },
+  guru:     { label:'Guru',             color:'bg-emerald-100 text-emerald-700 border-emerald-200', icon: UserCheck },
+  karyawan: { label:'Karyawan',         color:'bg-amber-100 text-amber-700 border-amber-200',     icon: Briefcase },
+  staff:    { label:'Guru & Karyawan',  color:'bg-purple-100 text-purple-700 border-purple-200',  icon: UserCheck },
 };
 
 const DeviceTypeBadge = ({ type }) => {
-  const cfg = DEVICE_TYPE_CONFIG[type] || DEVICE_TYPE_CONFIG.siswa;
+  const isStaff = ['guru', 'karyawan', 'staff'].includes(type);
+  const cfg = isStaff ? DEVICE_TYPE_CONFIG.staff : (DEVICE_TYPE_CONFIG[type] || DEVICE_TYPE_CONFIG.siswa);
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold border ${cfg.color}`}>
