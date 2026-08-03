@@ -242,7 +242,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             console.warn("Gagal membaca tanggal mulai absensi:", err.message);
           }
 
-          let query = "SELECT * FROM kedisiplinan_absensi";
+          let query = "SELECT id, siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name, gdrive_url, created_at FROM kedisiplinan_absensi";
           let params = [];
           if (startDate) {
             query += " WHERE tanggal >= $1";

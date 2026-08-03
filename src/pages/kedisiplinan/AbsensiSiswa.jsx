@@ -116,6 +116,20 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     setTimeout(() => setToast(null), 3000);
   };
 
+  const getItemDateStr = useCallback((dateVal) => {
+    if (!dateVal) return "";
+    const str = String(dateVal).trim();
+    if (str.length >= 10 && str.includes('-')) {
+      const part = str.slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(part)) return part;
+    }
+    try {
+      return new Date(dateVal).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    } catch {
+      return str.slice(0, 10);
+    }
+  }, []);
+
   const filteredItems = useMemo(() => {
     return items.filter(item => {
       const student = students.find(s => {
@@ -127,12 +141,13 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
       const studentClass = student ? (student.class_name || student.kelas || "") : "";
       
+      const itemDateStr = getItemDateStr(item.tanggal);
       const mSearch = search === "" || studentName.toLowerCase().includes(search.toLowerCase()) || String(item.siswa_nis).includes(search);
       const mKelas = filterKelas === "all" || studentClass === filterKelas;
-      const mTanggal = filterTanggal === "" || item.tanggal.startsWith(filterTanggal);
+      const mTanggal = filterTanggal === "" || itemDateStr === filterTanggal;
       return mSearch && mKelas && mTanggal;
     });
-  }, [items, search, filterKelas, filterTanggal, students]);
+  }, [items, search, filterKelas, filterTanggal, students, getItemDateStr]);
 
   const [activeTab, setActiveTab] = useState('surat_izin');
   const [matrixMonth, setMatrixMonth] = useState(() => {
