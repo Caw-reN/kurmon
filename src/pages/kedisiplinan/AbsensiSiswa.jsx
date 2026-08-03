@@ -24,8 +24,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const [filterTanggal, setFilterTanggal] = useState(new Date().toISOString().split('T')[0]);
 
   const hasApprovalPermission = 
-    ["admin","superadmin","tu","tata_usaha"].includes(userRole) ||
-    (userRole ==="waka" && userDivision ==="kesiswaan");
+    ["admin", "superadmin", "tu", "tata_usaha", "kesiswaan"].includes(userRole) ||
+    (userRole === "waka" && userDivision === "kesiswaan");
 
   const [isLoading, setIsLoading] = useState(false);
   

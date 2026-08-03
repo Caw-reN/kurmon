@@ -256,7 +256,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/absensi") {
           const body = await readJsonBody(req);
           const session = getSession(req);
-          const hasApprovalPermission = true; // Auto approve manual entries submitted by logged in staff/teachers/admin
+          const hasApprovalPermission = 
+            ["admin", "superadmin", "tu", "tata_usaha", "kesiswaan"].includes(session?.role) ||
+            (session?.role === "waka" && (session?.division || "").toLowerCase() === "kesiswaan");
 
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = $1", [body.id]);
