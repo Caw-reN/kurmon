@@ -158,8 +158,6 @@ export default function PageHeader({
                 </button>
               ))}
    
-              {children}
-   
               {onGuideClick && (
                 <Button
                   variant="ghost"
@@ -174,6 +172,13 @@ export default function PageHeader({
                 </Button>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Children always rendered (e.g. action buttons like Tambah Mesin) */}
+        {children && (
+          <div className="flex items-center gap-2 relative z-10 shrink-0">
+            {children}
           </div>
         )}
       </div>
