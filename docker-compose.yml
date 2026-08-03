@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_PASSWORD: ${PG_PASSWORD:-kurmon_pass}
       POSTGRES_DB: ${PG_DATABASE:-school_system_db}
+      TZ: Asia/Jakarta
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -31,6 +32,7 @@ services:
       - PG_DATABASE=${PG_DATABASE:-school_system_db}
       - AUTH_PORT=4174
       - NODE_ENV=production
+      - TZ=Asia/Jakarta
     volumes:
       # Mount direktori data agar file yang digenerate backend tersimpan
       - ./data:/app/data
