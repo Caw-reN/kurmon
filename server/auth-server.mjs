@@ -2047,7 +2047,7 @@ const server = createServer(async (req, res) => {
             FROM hikvision_logs l 
             JOIN hikvision_devices d ON l.device_id = d.id 
             LEFT JOIN hikvision_students s ON l.employee_id = s.nis 
-            WHERE (timestamp AT TIME ZONE 'Asia/Jakarta')::date = $1::date
+            WHERE timestamp::date = $1::date
             ORDER BY l.timestamp DESC
           `, [todayJktDate]);
 

@@ -815,20 +815,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         let logsQueryStr = "";
         if (reportType === 'siswa') {
           logsQueryStr = `
-            SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, s.name, 
+            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, s.name, 
                    COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) as class_name
             FROM hikvision_logs l
             JOIN hikvision_students s ON l.employee_id = s.nis
-            WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
+            WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
             ${classFilter}
             ORDER BY l.timestamp ASC
           `;
         } else {
           const types = reportType === 'staff' ? ['guru', 'karyawan'] : [reportType];
           logsQueryStr = `
-            SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
+            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
             FROM hikvision_logs l
-            WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
+            WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
             ORDER BY l.timestamp ASC
           `;
         }
