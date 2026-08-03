@@ -1,26 +1,25 @@
-import { useState, useRef, useEffect } from'react';
-import { createPortal } from'react-dom';
-import { ChevronDown, Search } from'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronDown, Search, Check } from 'lucide-react';
 
 
 export function CustomSelect({ 
   value, 
   onChange, 
   options = [], 
-  placeholder ="Pilih...", 
-  accentColor ="#a3e635", 
-  primaryColor ="#064e3b", 
-  className ="",
-  searchable = true
+  placeholder = "Pilih...", 
+  className = "",
+  searchable = true,
+  disabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-
   const [dropdownStyle, setDropdownStyle] = useState({});
 
   const handleOpen = () => {
+    if (disabled) return;
     if (isOpen) {
       setIsOpen(false);
       setSearchTerm("");
@@ -28,8 +27,12 @@ export function CustomSelect({
     }
     if (dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const menuHeight = Math.min(260, options.length * 44 + (searchable ? 52 : 0));
+      const showAbove = spaceBelow < menuHeight && spaceAbove > spaceBelow;
       setDropdownStyle({
-        top: rect.bottom + 6,
+        top: showAbove ? rect.top - menuHeight - 6 : rect.bottom + 6,
         left: rect.left,
         width: rect.width,
       });
@@ -38,10 +41,8 @@ export function CustomSelect({
     setSearchTerm("");
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      // Don't close if clicking inside the dropdown menu (handled by portal ref)
       if (
         dropdownRef.current && 
         !dropdownRef.current.contains(event.target) &&
@@ -51,17 +52,14 @@ export function CustomSelect({
         setSearchTerm("");
       }
     }
-    
     function handleScroll(e) {
       if (isOpen && !e.target.closest('.custom-select-portal')) {
         setIsOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleScroll);
-    
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll, true);
@@ -69,10 +67,9 @@ export function CustomSelect({
     };
   }, [isOpen]);
 
-  // Handle keypress events (like Escape to close)
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key ==="Escape") {
+      if (event.key === "Escape") {
         setIsOpen(false);
         setSearchTerm("");
       }
@@ -87,47 +84,68 @@ export function CustomSelect({
     }
   }, [isOpen, searchable]);
 
-  const selectedOption = (options || []).find(opt => opt && opt.value === value) || { label: placeholder, value };
+  const selectedOption = (options || []).find(opt => opt && opt.value === value) || null;
+  const displayLabel = selectedOption?.label ?? placeholder;
+  const hasValue = selectedOption !== null;
+
   const filteredOptions = searchable 
     ? (options || []).filter(opt => opt && String(opt.label ?? opt.value ?? "").toLowerCase().includes(String(searchTerm || "").toLowerCase()))
     : (options || []);
 
   return (
     <div className={`relative min-w-0 ${className}`} ref={dropdownRef}>
+      {/* Trigger Button */}
       <button
         data-slot="select-trigger"
         type="button"
         onClick={handleOpen}
-        className="flex h-9 w-full items-center justify-between whitespace-nowrap bg-white pl-3 pr-2 text-xs font-bold rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={disabled}
+        className={`
+          flex h-9 w-full items-center justify-between gap-2
+          px-3 text-xs font-bold whitespace-nowrap
+          bg-white border border-[var(--ui-border-soft)]
+          rounded-[var(--ui-radius-control)]
+          shadow-[var(--ui-shadow-control)]
+          transition-all
+          focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${isOpen ? 'border-[var(--ui-primary)] shadow-[var(--ui-focus-ring)]' : 'hover:border-slate-300'}
+        `}
       >
-        <span className="truncate mr-2 text-slate-700">{selectedOption.label}</span>
-        <div 
-          className="flex items-center justify-center shrink-0 transition-transform duration-200 text-slate-400" 
-          style={{ 
-            transform: isOpen ?'rotate(180deg)' :'rotate(0)' 
-          }}
-        >
-          <ChevronDown size={14} className="stroke-[2.5]" />
-        </div>
+        <span className={`truncate ${hasValue ? 'text-slate-800' : 'text-slate-400'}`}>
+          {displayLabel}
+        </span>
+        <ChevronDown 
+          size={14} 
+          strokeWidth={2.5}
+          className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[var(--ui-primary)]' : ''}`} 
+        />
       </button>
       
+      {/* Dropdown Portal */}
       {isOpen && createPortal(
         <div 
-          className="custom-select-portal fixed z-[99999] flex flex-col bg-white/95 backdrop-blur-md border border-slate-100 rounded-[var(--ui-radius-small)] shadow-xl animate-fade-in"
+          className="custom-select-portal fixed z-[99999] flex flex-col bg-white border border-[var(--ui-border-muted,#e8edf5)] rounded-[var(--ui-radius-small)] overflow-hidden"
           style={{ 
             ...dropdownStyle,
-            animation:'dropdown-fade-in 0.15s ease-out',
-            maxHeight:'250px'
+            maxHeight: '260px',
+            boxShadow: 'var(--ui-shadow-popover, 0 24px 60px rgba(15,23,42,0.14), 0 0 0 1px rgba(255,255,255,0.5) inset)',
+            animation: 'cs-fade-in 0.15s ease-out',
           }}
         >
           <style>{`
-            @keyframes dropdown-fade-in {
-              from { opacity: 0; transform: translateY(-4px); }
-              to { opacity: 1; transform: translateY(0); }
-            }`}</style>
-          
+            @keyframes cs-fade-in {
+              from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+              to   { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .custom-select-portal .cs-opt:hover {
+              background-color: var(--ui-surface-muted, #f5f8fb);
+              color: #1e293b;
+            }
+          `}</style>
+
           {searchable && (
-            <div className="px-2 py-2 border-b border-slate-100 shrink-0">
+            <div className="px-2 pt-2 pb-1.5 border-b border-[var(--ui-border-muted,#e8edf5)] shrink-0">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
                 <input 
@@ -136,50 +154,40 @@ export function CustomSelect({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Ketik untuk mencari..."
-                  className="w-full pl-7 pr-3 py-1.5 bg-slate-50 border-none rounded text-xs focus:outline-none focus:ring-1 focus:ring-slate-200 text-slate-700 font-medium"
+                  className="w-full pl-7 pr-3 py-1.5 bg-[var(--ui-surface-muted,#f5f8fb)] border border-[var(--ui-border-muted,#e8edf5)] rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
                   onClick={e => e.stopPropagation()}
                 />
               </div>
             </div>
           )}
 
-          <div className="overflow-y-auto custom-scrollbar py-1" style={{ scrollbarWidth:'thin' }}>
+          <div className="overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-xs font-medium text-slate-400 text-center">
-                Pencarian tidak ditemukan
+              <div className="px-4 py-5 text-xs font-semibold text-slate-400 text-center">
+                Tidak ada pilihan ditemukan
               </div>
             ) : (
               filteredOptions.map((opt) => {
                 const isSelected = opt.value === value;
                 return (
                   <button
-                    key={opt.value}
+                    key={opt.value ?? opt.label}
                     type="button"
                     onClick={() => {
                       onChange(opt.value);
                       setIsOpen(false);
                       setSearchTerm("");
                     }}
-                    className="w-full text-left transition-colors duration-150 truncate cursor-pointer block border-none h-10 px-4 text-sm font-bold"
-                    style={{
-                      backgroundColor: isSelected ? `${primaryColor}15` :'transparent',
-                      color: isSelected ? primaryColor :'#475569',
-                      fontWeight: isSelected ?'700' :'500'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.backgroundColor ='#f1f5f9';
-                        e.currentTarget.style.color ='#1e293b';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.backgroundColor ='transparent';
-                        e.currentTarget.style.color ='#475569';
-                      }
-                    }}
+                    className={`cs-opt w-full text-left flex items-center justify-between gap-2 px-3.5 py-2.5 text-xs font-semibold border-none transition-colors cursor-pointer ${
+                      isSelected 
+                        ? 'bg-[color-mix(in_srgb,var(--ui-primary,#064e3b)_10%,transparent)] text-[var(--ui-primary,#064e3b)] font-black' 
+                        : 'text-slate-600'
+                    }`}
                   >
-                    {opt.label}
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && (
+                      <Check size={13} className="shrink-0 text-[var(--ui-primary,#064e3b)]" strokeWidth={3} />
+                    )}
                   </button>
                 );
               })

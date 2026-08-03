@@ -1,4 +1,5 @@
 import { Button, TablePagination } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -458,50 +459,43 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Kelas:</label>
-            <select
+            <CustomSelect
               value={filterKelas}
-              onChange={e => { setFilterKelas(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
-            >
-              {kelasOptions.map(k => (
-                <option key={k} value={k}>
-                  {k === 'Semua' ? 'Semua Kelas' : `Kelas ${k}`}
-                </option>
-              ))}
-            </select>
+              onChange={val => { setFilterKelas(val); setCurrentPage(1); }}
+              options={kelasOptions.map(k => ({ value: k, label: k === 'Semua' ? 'Semua Kelas' : `Kelas ${k}` }))}
+              placeholder="Semua Kelas"
+              searchable={kelasOptions.length > 6}
+            />
           </div>
 
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Jurusan:</label>
-            <select
+            <CustomSelect
               value={filterJurusan}
-              onChange={e => { setFilterJurusan(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
-            >
-              {jurusanOptions.map(j => (
-                <option key={j} value={j}>
-                  {j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}`}
-                </option>
-              ))}
-            </select>
+              onChange={val => { setFilterJurusan(val); setCurrentPage(1); }}
+              options={jurusanOptions.map(j => ({ value: j, label: j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}` }))}
+              placeholder="Semua Jurusan"
+              searchable={false}
+            />
           </div>
 
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
               <ArrowUpDown size={12} className="text-slate-400" /> Sortir & Urutan:
             </label>
-            <select
+            <CustomSelect
               value={sortBy}
-              onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
-            >
-              <option value="kelas_nis">Per Kelas & NIS (Standar Sekolah)</option>
-              <option value="nama_asc">Nama Siswa (A - Z)</option>
-              <option value="nama_desc">Nama Siswa (Z - A)</option>
-              <option value="nis_asc">Nomor NIS (Kecil - Besar)</option>
-              <option value="status_belum">Status: Belum PKL Dahulu</option>
-              <option value="status_sudah">Status: Sudah PKL Dahulu</option>
-            </select>
+              onChange={val => { setSortBy(val); setCurrentPage(1); }}
+              searchable={false}
+              options={[
+                { value: 'kelas_nis', label: 'Per Kelas & NIS (Standar Sekolah)' },
+                { value: 'nama_asc', label: 'Nama Siswa (A - Z)' },
+                { value: 'nama_desc', label: 'Nama Siswa (Z - A)' },
+                { value: 'nis_asc', label: 'Nomor NIS (Kecil - Besar)' },
+                { value: 'status_belum', label: 'Status: Belum PKL Dahulu' },
+                { value: 'status_sudah', label: 'Status: Sudah PKL Dahulu' },
+              ]}
+            />
           </div>
         </div>
       </div>

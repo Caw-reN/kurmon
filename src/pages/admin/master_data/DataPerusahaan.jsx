@@ -436,33 +436,30 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Jurusan Prioritas:</label>
-            <select
+            <CustomSelect
               value={filterJurusan}
-              onChange={e => setFilterJurusan(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
-            >
-              {jurusanOptions.map(j => (
-                <option key={j} value={j}>
-                  {j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}`}
-                </option>
-              ))}
-            </select>
+              onChange={val => setFilterJurusan(val)}
+              options={jurusanOptions.map(j => ({ value: j, label: j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}` }))}
+              placeholder="Semua Jurusan"
+              searchable={false}
+            />
           </div>
 
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
               <ArrowUpDown size={12} className="text-slate-400" /> Sortir & Urutan:
             </label>
-            <select
+            <CustomSelect
               value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
-            >
-              <option value="nama_asc">Nama Perusahaan (A - Z)</option>
-              <option value="nama_desc">Nama Perusahaan (Z - A)</option>
-              <option value="kuota_desc">Kuota Siswa (Terbanyak)</option>
-              <option value="status_pending">Status: Menunggu Verifikasi Dahulu</option>
-            </select>
+              onChange={val => setSortBy(val)}
+              searchable={false}
+              options={[
+                { value: 'nama_asc', label: 'Nama Perusahaan (A - Z)' },
+                { value: 'nama_desc', label: 'Nama Perusahaan (Z - A)' },
+                { value: 'kuota_desc', label: 'Kuota Siswa (Terbanyak)' },
+                { value: 'status_pending', label: 'Status: Menunggu Verifikasi Dahulu' },
+              ]}
+            />
           </div>
         </div>
       </div>

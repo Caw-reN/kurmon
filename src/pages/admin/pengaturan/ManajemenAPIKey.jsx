@@ -8,6 +8,7 @@ import {
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 const SERVICE_PRESETS = [
   { service_name_prefix: 'whatsapp_fonnte', service_label: 'WhatsApp (Fonnte)', icon: MessageSquare, color: 'emerald', description: 'API Gateway WhatsApp untuk notifikasi. Daftar di fonnte.com.', placeholder_key: 'TOKEN_FONNTE_ANDA' },
@@ -393,16 +394,15 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
           {form.service_name.startsWith('whatsapp') && (
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Peruntukan Jurusan</label>
-              <select
+              <CustomSelect
                 value={form.extra_config?.jurusan || 'default'}
-                onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, jurusan: e.target.value } }))}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              >
-                <option value="default">Default / Semua Jurusan</option>
-                {jurusans.map(j => (
-                  <option key={j.id} value={j.kode}>{j.kode} - {j.nama}</option>
-                ))}
-              </select>
+                onChange={val => setForm(p => ({ ...p, extra_config: { ...p.extra_config, jurusan: val } }))}
+                searchable={false}
+                options={[
+                  { value: 'default', label: 'Default / Semua Jurusan' },
+                  ...jurusans.map(j => ({ value: j.kode, label: `${j.kode} - ${j.nama}` }))
+                ]}
+              />
               <p className="text-[10px] text-slate-400 mt-1 font-semibold">Gunakan token/nomor ini khusus untuk jurusan tertentu. Jika "Default", akan dipakai untuk semua jurusan yang tidak memiliki nomor spesifik.</p>
             </div>
           )}
