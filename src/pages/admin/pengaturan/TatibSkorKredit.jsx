@@ -1,26 +1,25 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, ShieldAlert, Award, HelpCircle, Search, Plus, Edit2, Trash2, X, Save, AlertCircle, CheckCircle2, Upload, Download, Calendar, Settings2, ChevronDown, ChevronUp, FileText, Filter } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
-import { ShieldAlert, Award, HelpCircle, Search, Plus, Edit2, Trash2, X, Save, AlertCircle, CheckCircle2, Upload, Download } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import * as XLSX from 'xlsx';
 import { UISelect, Modal } from '../../../components/ui.jsx';
-
 
 export default function TatibSkorKredit() {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all'); //'all','pelanggaran','prestasi'
+  const [filterType, setFilterType] = useState('all'); // 'all','pelanggaran','prestasi'
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [toast, setToast] = useState(null);
-  const [form, setForm] = useState({ nama_tindakan:'', jenis:'pelanggaran', nilai_poin: 10 });
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false); // Collapsible on mobile
+
+  const [form, setForm] = useState({ nama_tindakan: '', jenis: 'pelanggaran', nilai_poin: 10 });
   const authToken = useAuthStore(state => state.user?.authToken);
-  const userRole = useAuthStore(state => state.user?.role ||'guru');
-  const isAdmin = ['admin','superadmin','waka_kesiswaan','guru'].includes(userRole);
+  const userRole = useAuthStore(state => state.user?.role || 'guru');
+  const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'guru'].includes(userRole);
 
   const { kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
   const [batasPoin, setBatasPoin] = useState(100);
@@ -73,7 +72,7 @@ export default function TatibSkorKredit() {
 
   const checkPdfExists = async () => {
     try {
-      const res = await fetch('/api/kedisiplinan/rules.pdf', { method:'HEAD' });
+      const res = await fetch('/api/kedisiplinan/rules.pdf', { method: 'HEAD' });
       setHasPdf(res.ok);
     } catch {
       setHasPdf(false);
@@ -87,8 +86,8 @@ export default function TatibSkorKredit() {
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.type !=='application/pdf') {
-      showToast('File harus format PDF!','error');
+    if (file.type !== 'application/pdf') {
+      showToast('File harus format PDF!', 'error');
       return;
     }
     
@@ -98,8 +97,10 @@ export default function TatibSkorKredit() {
       try {
         const fileData = evt.target.result;
         const res = await fetch('/api/kedisiplinan/upload-rules', {
-          method:'POST',
-          headers: {'Content-Type':'application/json','Authorization': `Bearer ${authToken}`
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
             fileData,
@@ -112,11 +113,11 @@ export default function TatibSkorKredit() {
           setHasPdf(true);
           updateKedisiplinanSettings({ hasRulesPdf: true });
         } else {
-          showToast('Gagal mengunggah PDF:' + (data.error ||'error'),'error');
+          showToast('Gagal mengunggah PDF: ' + (data.error || 'error'), 'error');
         }
       } catch (err) {
         console.error(err);
-        showToast('Gagal mengunggah PDF','error');
+        showToast('Gagal mengunggah PDF', 'error');
       } finally {
         setIsUploading(false);
       }
@@ -128,8 +129,8 @@ export default function TatibSkorKredit() {
     if (!await window.confirmAsync('Hapus dokumen PDF peraturan ini?')) return;
     try {
       const res = await fetch('/api/kedisiplinan/delete-rules', {
-        method:'POST',
-        headers: {'Authorization': `Bearer ${authToken}` }
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (res.ok) {
         showToast('Dokumen PDF Peraturan dihapus.');
@@ -138,11 +139,11 @@ export default function TatibSkorKredit() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Gagal menghapus PDF','error');
+      showToast('Gagal menghapus PDF', 'error');
     }
   };
 
-  const showToast = (message, type ='success') => {
+  const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
@@ -158,7 +159,7 @@ export default function TatibSkorKredit() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Gagal memuat tata tertib','error');
+      showToast('Gagal memuat tata tertib', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -168,36 +169,41 @@ export default function TatibSkorKredit() {
     fetchData();
   }, [authToken]);
 
+  // Counts for summary tabs
+  const countTotal = items.length;
+  const countPelanggaran = useMemo(() => items.filter(i => String(i.jenis || '').toLowerCase() === 'pelanggaran').length, [items]);
+  const countPrestasi = useMemo(() => items.filter(i => String(i.jenis || '').toLowerCase() === 'prestasi').length, [items]);
+
   const filteredItems = useMemo(() => {
     return items.filter(item => {
       const matchSearch = !searchTerm || item.nama_tindakan?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchType = filterType ==='all' || String(item.jenis ||'').toLowerCase() === filterType.toLowerCase();
+      const matchType = filterType === 'all' || String(item.jenis || '').toLowerCase() === filterType.toLowerCase();
       return matchSearch && matchType;
     });
   }, [items, searchTerm, filterType]);
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.nama_tindakan.trim()) return showToast('Nama tindakan wajib diisi','error');
-    if (form.nilai_poin <= 0) return showToast('Skor poin harus lebih besar dari 0','error');
+    if (!form.nama_tindakan.trim()) return showToast('Nama tindakan wajib diisi', 'error');
+    if (form.nilai_poin <= 0) return showToast('Skor poin harus lebih besar dari 0', 'error');
 
     try {
       const res = await fetch('/api/kedisiplinan/master', {
-        method:'POST',
-        headers: {'Content-Type':'application/json', Authorization: `Bearer ${authToken}` },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify(editingItem ? { ...form, id: editingItem.id } : form)
       });
       const data = await res.json();
       if (data.ok) {
-        showToast(editingItem ?'Tata tertib diperbarui!' :'Tata tertib ditambahkan!');
+        showToast(editingItem ? 'Tata tertib diperbarui!' : 'Tata tertib ditambahkan!');
         setShowModal(false);
         fetchData();
       } else {
-        showToast('Gagal menyimpan:' + (data.error ||''),'error');
+        showToast('Gagal menyimpan: ' + (data.error || ''), 'error');
       }
     } catch (e) {
       console.error(e);
-      showToast('Terjadi kesalahan','error');
+      showToast('Terjadi kesalahan', 'error');
     }
   };
 
@@ -205,261 +211,356 @@ export default function TatibSkorKredit() {
     if (!await window.confirmAsync('Hapus aturan tata tertib ini?')) return;
     try {
       const res = await fetch('/api/kedisiplinan/master', {
-        method:'POST',
-        headers: {'Content-Type':'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ action:'delete', id })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ action: 'delete', id })
       });
       const data = await res.json();
       if (data.ok) {
         showToast('Aturan berhasil dihapus!');
         fetchData();
       } else {
-        showToast('Gagal menghapus','error');
+        showToast('Gagal menghapus', 'error');
       }
     } catch (e) {
       console.error(e);
-      showToast('Terjadi kesalahan','error');
+      showToast('Terjadi kesalahan', 'error');
     }
   };
 
   const openAdd = () => {
     setEditingItem(null);
-    setForm({ nama_tindakan:'', jenis:'pelanggaran', nilai_poin: 10 });
+    setForm({ nama_tindakan: '', jenis: 'pelanggaran', nilai_poin: 10 });
     setShowModal(true);
   };
 
   const openEdit = (item) => {
     setEditingItem(item);
-    setForm({ nama_tindakan: item.nama_tindakan, jenis: String(item.jenis ||'pelanggaran').toLowerCase(), nilai_poin: item.nilai_poin });
+    setForm({ nama_tindakan: item.nama_tindakan, jenis: String(item.jenis || 'pelanggaran').toLowerCase(), nilai_poin: item.nilai_poin });
     setShowModal(true);
   };
 
   return (
-    <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
+    <div className="space-y-5 relative animate-in fade-in duration-300 z-10 pb-12">
+      {/* Top Header */}
       <PageHeader 
         title="Aturan & Tatib Skor Kredit"
         description="Daftar tata tertib sekolah beserta skor kredit poin pelanggaran dan penghargaan prestasi siswa."
         icon={BookOpen}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Info Poin */}
-        <div className="ui-card p-5 flex items-center gap-4 bg-red-50/60 border-red-150">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-red-100 flex items-center justify-center text-red-600 shrink-0">
-            <ShieldAlert size={22} />
+      {/* Settings Bar & Collapsible Trigger for Mobile */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <Settings2 size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800">Parameter & Dokumen Peraturan</h3>
+              <p className="text-[11px] text-slate-400 font-medium">Batas poin DO, tanggal mulai absensi, dan PDF Tatib</p>
+            </div>
           </div>
-          <div>
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tingkat Pelanggaran</h4>
-            <p className="text-sm font-black text-red-800 mt-1">Maksimal {batasPoin} Poin (Drop Out)</p>
-          </div>
+
+          <button 
+            onClick={() => setShowSettingsPanel(!showSettingsPanel)}
+            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+          >
+            {showSettingsPanel ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {showSettingsPanel ? 'Sembunyikan' : 'Atur Parameter'}
+          </button>
         </div>
 
-        <div className="ui-card p-5 flex items-center gap-4 bg-emerald-50/60 border-emerald-150">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-            <Award size={22} />
+        {/* Setting Cards Container (Always visible on Desktop, Collapsible on Mobile) */}
+        <div className={`${showSettingsPanel ? 'block' : 'hidden md:grid'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1 border-t border-slate-100`}>
+          {/* Card 1: Tingkat Pelanggaran */}
+          <div className="p-3.5 rounded-xl bg-red-50/70 border border-red-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-500">Tingkat Pelanggaran</span>
+              <p className="text-xs font-black text-red-800 mt-0.5">Maks. {batasPoin} Poin (Drop Out)</p>
+            </div>
           </div>
-          <div>
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Poin Penghargaan</h4>
-            <p className="text-sm font-black text-emerald-800 mt-1">Mengurangi akumulasi poin pelanggaran</p>
-          </div>
-        </div>
 
-        <div className="ui-card p-5 flex items-center gap-4 bg-blue-50/60 border-blue-150">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-            <HelpCircle size={22} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Batas Poin Bermasalah</h4>
-            {isAdmin ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={batasPoin}
-                  onChange={(e) => handleUpdateBatasPoin(parseInt(e.target.value.replace(/[^0-9]/g,'')) || 0)}
-                  className="w-16 px-1.5 py-0.5 text-xs font-bold border border-slate-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] text-slate-700"
-                />
-                <span className="text-[11px] font-bold text-blue-700 truncate">Poin (DO)</span>
-              </div>
-            ) : (
-              <p className="text-sm font-black text-blue-800 mt-1">{batasPoin} Poin (DO)</p>
-            )}
-          </div>
-        </div>
-
-        <div className="ui-card p-5 flex items-center gap-4 bg-amber-50/60 border-amber-150">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-            <BookOpen size={22} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mulai Hitung Absensi</h4>
-            {isAdmin ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => handleUpdateStartDate(e.target.value)}
-                  className="px-2 py-0.5 text-xs font-bold border border-slate-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] text-slate-700"
-                />
-              </div>
-            ) : (
-              <p className="text-sm font-black text-amber-800 mt-1">{startDate}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="ui-card p-5 flex items-center gap-4 bg-purple-50/60 border-purple-150">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-            <BookOpen size={22} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">PDF Peraturan Sekolah</h4>
-            <div className="mt-1 flex items-center gap-2">
-              {hasPdf ? (
-                <>
-                  <a
-                    href="/api/kedisiplinan/rules.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-bold text-purple-700 hover:underline flex items-center gap-1"
-                  >
-                    Lihat PDF
-                  </a>
-                  {isAdmin && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handlePdfDelete}
-                    >
-                      Hapus
-                    </Button>
-                  )}
-                </>
+          {/* Card 2: Batas Poin Bermasalah */}
+          <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+              <HelpCircle size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">Batas Poin DO</span>
+              {isAdmin ? (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={batasPoin}
+                    onChange={(e) => handleUpdateBatasPoin(parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0)}
+                    className="w-16 px-2 py-0.5 text-xs font-black border border-blue-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900"
+                  />
+                  <span className="text-[10px] font-bold text-blue-600">Poin</span>
+                </div>
               ) : (
-                <span className="text-xs font-bold text-slate-400">Belum diunggah</span>
+                <p className="text-xs font-black text-blue-800 mt-0.5">{batasPoin} Poin</p>
               )}
             </div>
-            {isAdmin && (
-              <div className="mt-1.5">
-                <label className="text-[10px] font-extrabold px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] cursor-pointer inline-block">
-                  {isUploading ?'Mengunggah...' : hasPdf ?'Ganti PDF' :'Unggah PDF'}
+          </div>
+
+          {/* Card 3: Mulai Hitung Absensi */}
+          <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+              <Calendar size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-600">Mulai Hitung Absensi</span>
+              {isAdmin ? (
+                <div className="mt-0.5">
                   <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handlePdfUpload}
-                    disabled={isUploading}
-                    className="hidden"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => handleUpdateStartDate(e.target.value)}
+                    className="px-2 py-0.5 text-xs font-bold border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-900"
                   />
-                </label>
+                </div>
+              ) : (
+                <p className="text-xs font-black text-amber-800 mt-0.5">{startDate}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Card 4: PDF Peraturan Sekolah */}
+          <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+              <FileText size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-500">PDF Tatib Sekolah</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                {hasPdf ? (
+                  <>
+                    <a
+                      href="/api/kedisiplinan/rules.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-extrabold text-purple-700 hover:underline flex items-center gap-1"
+                    >
+                      <Download size={12} /> Unduh PDF
+                    </a>
+                    {isAdmin && (
+                      <button
+                        onClick={handlePdfDelete}
+                        className="text-[10px] text-red-600 hover:underline font-bold"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xs font-bold text-slate-400">Belum diunggah</span>
+                )}
               </div>
-            )}
+              {isAdmin && (
+                <div className="mt-1">
+                  <label className="text-[10px] font-black px-2 py-0.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md cursor-pointer inline-block transition-all shadow-xs">
+                    {isUploading ? 'Mengunggah...' : hasPdf ? 'Ganti PDF' : 'Unggah PDF'}
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handlePdfUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="ui-card p-6 space-y-4">
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-          <div className="flex flex-wrap gap-2 flex-1 items-center">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Cari tata tertib..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)]" />
+      {/* Main Content Area */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Controls Toolbar: Search, Filter Tabs & Add Button */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 space-y-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Filter Tabs */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
+              <button
+                onClick={() => setFilterType('all')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  filterType === 'all'
+                    ? 'bg-white text-slate-800 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Semua ({countTotal})
+              </button>
+              <button
+                onClick={() => setFilterType('pelanggaran')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  filterType === 'pelanggaran'
+                    ? 'bg-red-500 text-white shadow-xs'
+                    : 'text-slate-500 hover:text-red-600'
+                }`}
+              >
+                Pelanggaran ({countPelanggaran})
+              </button>
+              <button
+                onClick={() => setFilterType('prestasi')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  filterType === 'prestasi'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-500 hover:text-emerald-700'
+                }`}
+              >
+                Prestasi ({countPrestasi})
+              </button>
             </div>
-            <UISelect value={filterType} onChange={e => setFilterType(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]">
-              <option value="all">Semua Tipe</option>
-              <option value="pelanggaran">Pelanggaran (Skor Minus)</option>
-              <option value="prestasi">Penghargaan (Skor Plus)</option>
-            </UISelect>
+
+            {/* Add Button */}
+            {isAdmin && (
+              <Button onClick={openAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                <Plus size={16} /> Tambah Aturan Baru
+              </Button>
+            )}
           </div>
 
-          {isAdmin && (
-            <Button onClick={openAdd} className="md:self-auto">
-              <Plus size={14} className="mr-2" /> Tambah Aturan Baru
-            </Button>
-          )}
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Cari nama tindakan, aturan, atau pelanggaran..."
+              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
-          <table className="w-full text-sm">
-            <thead className="text-xs text-slate-500 bg-slate-50 border-b border-slate-200 uppercase">
+        {/* Desktop View Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead className="bg-slate-50/80 text-slate-400 font-extrabold uppercase tracking-wider text-[11px] border-b border-slate-150">
               <tr>
-                <th className="px-6 py-4 font-bold text-left">Deskripsi Tindakan / Kriteria</th>
-                <th className="px-6 py-4 font-bold text-center w-36">Tipe Poin</th>
-                <th className="px-6 py-4 font-bold text-center w-36">Skor Kredit</th>
-                {isAdmin && <th className="px-6 py-4 font-bold text-right w-28">Aksi</th>}
+                <th className="px-6 py-3.5">Deskripsi Aturan & Kriteria</th>
+                <th className="px-6 py-3.5 text-center w-36">Tipe Poin</th>
+                <th className="px-6 py-3.5 text-center w-32">Skor Kredit</th>
+                {isAdmin && <th className="px-6 py-3.5 text-right w-28">Aksi</th>}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <tr><td colSpan={isAdmin ? 4 : 3} className="px-6 py-8 text-center text-slate-400">Memuat data tatib...</td></tr>
+                <tr>
+                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12 text-center text-slate-400 font-medium">
+                    Memuat data tata tertib...
+                  </td>
+                </tr>
               ) : filteredItems.length === 0 ? (
-                <tr><td colSpan={isAdmin ? 4 : 3} className="px-6 py-8 text-center text-slate-400">Tidak ada aturan ditemukan.</td></tr>
+                <tr>
+                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12 text-center text-slate-400 font-medium">
+                    Tidak ada aturan tata tertib ditemukan.
+                  </td>
+                </tr>
               ) : (
-                filteredItems.map(item => (
-                  <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-700">{item.nama_tindakan}</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-xs font-bold ${
-                        String(item.jenis ||'').toLowerCase() ==='pelanggaran' ?'bg-red-100 text-red-800' :'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {String(item.jenis ||'').toLowerCase() ==='pelanggaran' ?'Pelanggaran' :'Prestasi'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center font-black">
-                      <span className={String(item.jenis ||'').toLowerCase() ==='pelanggaran' ?'text-red-600' :'text-emerald-600'}>
-                        {String(item.jenis ||'').toLowerCase() ==='pelanggaran' ?'-' :'+'}{item.nilai_poin}
-                      </span>
-                    </td>
-                    {isAdmin && (
-                      <td className="px-6 py-4 text-right flex items-center justify-end gap-1.5">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(item)}  title="Edit">
-                          <Edit2 size={16} className="text-slate-500" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}  title="Hapus">
-                          <Trash2 size={16} className="text-red-500" />
-                        </Button>
+                filteredItems.map((item, idx) => {
+                  const isPelanggaran = String(item.jenis || '').toLowerCase() === 'pelanggaran';
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-6 py-4 font-bold text-slate-800">
+                        {item.nama_tindakan}
                       </td>
-                    )}
-                  </tr>
-                ))
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-black ${
+                          isPelanggaran ? 'bg-red-50 text-red-700 border border-red-200/60' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                        }`}>
+                          {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center font-black text-sm">
+                        <span className={isPelanggaran ? 'text-red-600' : 'text-emerald-600'}>
+                          {isPelanggaran ? `- ${item.nilai_poin}` : `+ ${item.nilai_poin}`}
+                        </span>
+                      </td>
+                      {isAdmin && (
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => openEdit(item)}
+                              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg transition-colors"
+                              title="Edit Aturan"
+                            >
+                              <Edit2 size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                              title="Hapus Aturan"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Mobile List View */}
-        <div className="md:hidden flex flex-col gap-2.5">
+        {/* Mobile View Card List */}
+        <div className="block md:hidden divide-y divide-slate-100">
           {isLoading ? (
-            <div className="text-center py-8 text-slate-400 text-xs">Memuat data tatib...</div>
+            <div className="p-8 text-center text-slate-400 text-xs font-medium">Memuat data tata tertib...</div>
           ) : filteredItems.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 text-xs">Tidak ada aturan ditemukan.</div>
+            <div className="p-8 text-center text-slate-400 text-xs font-medium">Tidak ada aturan tata tertib ditemukan.</div>
           ) : (
             filteredItems.map(item => {
               const isPelanggaran = String(item.jenis || '').toLowerCase() === 'pelanggaran';
               return (
-                <div key={item.id} className="ui-card p-3.5 flex flex-col gap-2 border border-slate-100 shadow-xs">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="font-extrabold text-xs text-slate-800 flex-1 leading-snug">{item.nama_tindakan}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${isPelanggaran ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {isPelanggaran ? `-${item.nilai_poin} POIN` : `+${item.nilai_poin} POIN`}
+                <div key={item.id} className="p-4 hover:bg-slate-50/60 transition-colors flex flex-col gap-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 flex-1">
+                      <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${isPelanggaran ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                      <span className="font-extrabold text-xs text-slate-800 leading-snug">{item.nama_tindakan}</span>
+                    </div>
+
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${
+                      isPelanggaran ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {isPelanggaran ? `- ${item.nilai_poin} POIN` : `+ ${item.nilai_poin} POIN`}
                     </span>
                   </div>
-                  
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isPelanggaran ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700'}`}>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                      isPelanggaran ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                    }`}>
                       {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
                     </span>
+
                     {isAdmin && (
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(item)} className="h-8 px-2 text-xs">
-                          <Edit2 size={13} className="mr-1" /> Edit
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)} className="h-8 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50">
-                          <Trash2 size={13} className="mr-1" /> Hapus
-                        </Button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Edit2 size={12} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Trash2 size={12} /> Hapus
+                        </button>
                       </div>
                     )}
                   </div>
@@ -475,44 +576,65 @@ export default function TatibSkorKredit() {
         <Modal
           isOpen={true}
           onClose={() => setShowModal(false)}
-          title={editingItem ?'Edit Aturan Tatib' :'Tambah Aturan Tatib'}
+          title={editingItem ? 'Edit Aturan Tatib' : 'Tambah Aturan Tatib Baru'}
           width="md"
         >
-            <form onSubmit={handleSave} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-4 pt-1">
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5">Deskripsi Tindakan / Aturan</label>
+              <input
+                required
+                value={form.nama_tindakan}
+                onChange={e => setForm({ ...form, nama_tindakan: e.target.value })}
+                placeholder="Contoh: Terlambat masuk sekolah..."
+                className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Deskripsi Tindakan / Aturan</label>
-                <input required value={form.nama_tindakan} onChange={e => setForm({ ...form, nama_tindakan: e.target.value })}
-                  placeholder="Contoh: Terlambat masuk sekolah..."
-                  className="w-full px-3 py-2 border border-slate-200 focus:outline-[var(--ui-primary)] rounded-[var(--ui-radius-small)] text-sm bg-slate-50" />
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">Tipe Poin</label>
+                <UISelect
+                  value={form.jenis}
+                  onChange={e => setForm({ ...form, jenis: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800"
+                >
+                  <option value="pelanggaran">Pelanggaran (Minus)</option>
+                  <option value="prestasi">Prestasi (Plus)</option>
+                </UISelect>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Tipe</label>
-                  <UISelect value={form.jenis} onChange={e => setForm({ ...form, jenis: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 focus:outline-[var(--ui-primary)] rounded-[var(--ui-radius-small)] text-sm bg-slate-50">
-                    <option value="pelanggaran">Pelanggaran (Minus)</option>
-                    <option value="prestasi">Prestasi (Plus)</option>
-                  </UISelect>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Nilai Poin</label>
-                  <input type="text" inputMode="numeric" required value={form.nilai_poin} onChange={e => setForm({ ...form, nilai_poin: parseInt(e.target.value.replace(/[^0-9]/g,'')) || 0 })}
-                    className="w-full px-3 py-2 border border-slate-200 focus:outline-[var(--ui-primary)] rounded-[var(--ui-radius-small)] text-sm bg-slate-50" />
-                </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">Nilai Poin</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  value={form.nilai_poin}
+                  onChange={e => setForm({ ...form, nilai_poin: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0 })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800"
+                />
               </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <Button variant="ghost" type="button" onClick={() => setShowModal(false)} >Batal</Button>
-                <Button type="submit">
-                  <Save size={14} className="mr-2" /> Simpan Aturan
-                </Button>
-              </div>
-            </form>
+            </div>
+
+            <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 mt-2">
+              <Button variant="ghost" type="button" onClick={() => setShowModal(false)} className="rounded-xl text-xs font-bold">
+                Batal
+              </Button>
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black px-4 py-2">
+                <Save size={14} className="mr-1.5" /> Simpan Aturan
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
 
+      {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'} z-50`}>
-          {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${
+          toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+        } z-50`}>
+          {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}
     </div>
