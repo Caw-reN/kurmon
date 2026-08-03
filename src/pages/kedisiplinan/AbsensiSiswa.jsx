@@ -118,13 +118,18 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const student = students.find(s => s.nis === item.siswa_nis);
+      const student = students.find(s => {
+        const sNis = String(s.nis || s.code || '').trim();
+        const iNis = String(item.siswa_nis || '').trim();
+        if (!sNis || !iNis) return false;
+        return sNis === iNis || sNis.endsWith(iNis) || iNis.endsWith(sNis);
+      });
       const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
-      const studentClass = student ? (student.class_name || student.kelas ||"") :"";
+      const studentClass = student ? (student.class_name || student.kelas || "") : "";
       
-      const mSearch = search ==="" || studentName.toLowerCase().includes(search.toLowerCase()) || String(item.siswa_nis).includes(search);
-      const mKelas = filterKelas ==="all" || studentClass === filterKelas;
-      const mTanggal = filterTanggal ==="" || item.tanggal.startsWith(filterTanggal);
+      const mSearch = search === "" || studentName.toLowerCase().includes(search.toLowerCase()) || String(item.siswa_nis).includes(search);
+      const mKelas = filterKelas === "all" || studentClass === filterKelas;
+      const mTanggal = filterTanggal === "" || item.tanggal.startsWith(filterTanggal);
       return mSearch && mKelas && mTanggal;
     });
   }, [items, search, filterKelas, filterTanggal, students]);
@@ -182,14 +187,19 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     });
     items.forEach(item => {
       // Only approved attendance for matrix
-      if (item.approval_status ==="approved" || item.approval_status ==="otomatis") {
+      if (item.approval_status === "approved" || item.approval_status === "otomatis") {
         if (item.tanggal.startsWith(matrixMonth)) {
-          if (data[item.siswa_nis]) {
+          const itemNis = String(item.siswa_nis || '').trim();
+          const targetKey = Object.keys(data).find(k => {
+            const keyStr = String(k || '').trim();
+            return keyStr === itemNis || keyStr.endsWith(itemNis) || itemNis.endsWith(keyStr);
+          });
+          if (targetKey && data[targetKey]) {
             const day = parseInt(item.tanggal.split('-')[2], 10);
             const initial = item.status.charAt(0).toUpperCase();
-            data[item.siswa_nis].attendance[day] = initial;
-            if (data[item.siswa_nis].totals[initial] !== undefined) {
-               data[item.siswa_nis].totals[initial]++;
+            data[targetKey].attendance[day] = initial;
+            if (data[targetKey].totals[initial] !== undefined) {
+               data[targetKey].totals[initial]++;
             }
           }
         }

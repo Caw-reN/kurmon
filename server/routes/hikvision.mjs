@@ -772,6 +772,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         if (reportType === 'siswa') {
           studentsQueryStr = `
             SELECT s.nis, s.name, 
+                   COALESCE((SELECT COALESCE(payload->>'nis', payload->>'code') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.nis) as canon_nis,
                    COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) as class_name 
             FROM hikvision_students s
             WHERE s.class_name NOT IN ('guru', 'karyawan', 'staff')
@@ -842,7 +843,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         // Initialize with all students/teachers
         studentsQuery.rows.forEach(s => {
             matrix[s.nis] = {
-                nis: s.nis,
+                nis: s.canon_nis || s.nis,
                 name: s.name,
                 class_name: s.class_name,
                 total_hadir: 0,
@@ -976,14 +977,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           `, [month, year]);
 
           sAbsRes.rows.forEach(rec => {
-            const nis = rec.siswa_nis;
-            if (matrix[nis]) {
+            const recNis = String(rec.siswa_nis || '').trim();
+            const targetKey = Object.keys(matrix).find(k => {
+              const kStr = String(k || '').trim();
+              const canonNis = String(matrix[k]?.nis || '').trim();
+              return kStr === recNis || kStr.endsWith(recNis) || recNis.endsWith(kStr) || canonNis === recNis || canonNis.endsWith(recNis) || recNis.endsWith(canonNis);
+            });
+            if (targetKey && matrix[targetKey]) {
               const recDate = new Date(rec.tanggal);
               const day = recDate.getDate();
               const status = rec.status;
               const isLate = status === "Terlambat";
               
-              matrix[nis].days[day] = {
+              matrix[targetKey].days[day] = {
                 in: isLate ? (rec.keterangan || "Terlambat") : status,
                 out: isLate ? null : status,
                 isLate: isLate,
