@@ -1301,8 +1301,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
                           <div>{d.total_terlambat || 0}</div>
                           {(d.total_terlambat || 0) > 3 && (
-                            <span className="mt-0.5 inline-block px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8.5px] font-black rounded border border-amber-200" title="Siswa mendapatkan Teguran & Poin Disiplin (+10) karena Terlambat > 3x">
-                              ⚠️ Teguran (+10)
+                            <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8.5px] font-black rounded border border-amber-200" title="Siswa mendapatkan Teguran & Poin Disiplin (+10) karena Terlambat > 3x">
+                              <AlertTriangle size={9} /> Teguran (+10)
                             </span>
                           )}
                        </td>
@@ -1311,8 +1311,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
                           <div>{d.total_alpa || 0}</div>
                           {(d.total_alpa || 0) > 5 && (
-                            <span className="mt-0.5 inline-block px-1.5 py-0.5 bg-red-100 text-red-800 text-[8.5px] font-black rounded border border-red-200" title="Siswa mendapatkan SP-1 & Poin Disiplin (+15) karena Alpa > 5 Hari">
-                              ⚠️ SP-1 (+15 Poin)
+                            <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-100 text-red-800 text-[8.5px] font-black rounded border border-red-200" title="Siswa mendapatkan SP-1 & Poin Disiplin (+15) karena Alpa > 5 Hari">
+                              <AlertTriangle size={9} /> SP-1 (+15 Poin)
                             </span>
                           )}
                        </td>
@@ -1453,9 +1453,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  />
                </div>
 
-               <div className="text-[9px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-100 leading-normal">
-                 ⚠️ Catatan: Pengajuan ketidakhadiran dari halaman ini memerlukan persetujuan dari Tata Usaha atau Kesiswaan sebelum aktif di laporan rekapitulasi.
-               </div>
+                <div className="text-[9px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-100 leading-normal flex items-start gap-1.5">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600 mt-0.5" />
+                  <span>Catatan: Pengajuan ketidakhadiran dari halaman ini memerlukan persetujuan dari Tata Usaha atau Kesiswaan sebelum aktif di laporan rekapitulasi.</span>
+                </div>
 
                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                  <Button variant="outline" 

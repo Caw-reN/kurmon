@@ -2,7 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useRef } from'react';
 import { CloudUpload, Settings, LayoutDashboard, KeyRound, DatabaseBackup, MessageSquare } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
-import { HardDrive, Send, Cloud, UploadCloud, Trash2, FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, Info, Shield, Calendar, FileJson } from'lucide-react';
+import { HardDrive, Send, Cloud, UploadCloud, Trash2, FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, Info, Shield, Calendar, FileJson, Sparkles } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
 
@@ -283,7 +283,10 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                   <FileJson size={24} />
                 </div>
                 <div>
-                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-200 text-amber-900 mb-1">🔥 Rekomendasi Pindah Server</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-200 text-amber-900 mb-1">
+                    <Sparkles size={11} className="text-amber-800" />
+                    <span>Rekomendasi Pindah Server</span>
+                  </span>
                   <h4 className="font-bold text-slate-800 text-sm">Full Backup Portabel (Format JSON)</h4>
                   <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
                     Unduh **seluruh data sistem** (Database, Pengaturan, Akun User, Absensi, PKL, &amp; Jurnal). Tinggal unggah file ini di menu "Pulihkan Data" pada server baru untuk **Impor 1-Klik**!

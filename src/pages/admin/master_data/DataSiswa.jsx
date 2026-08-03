@@ -465,7 +465,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             >
               {kelasOptions.map(k => (
                 <option key={k} value={k}>
-                  {k === 'Semua' ? '✨ Semua Kelas' : `Kelas ${k}`}
+                  {k === 'Semua' ? 'Semua Kelas' : `Kelas ${k}`}
                 </option>
               ))}
             </select>
@@ -480,7 +480,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             >
               {jurusanOptions.map(j => (
                 <option key={j} value={j}>
-                  {j === 'Semua' ? '✨ Semua Jurusan' : `Jurusan ${j}`}
+                  {j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}`}
                 </option>
               ))}
             </select>
@@ -495,12 +495,12 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
             >
-              <option value="kelas_nis">📁 Per Kelas & NIS (Standar Sekolah)</option>
-              <option value="nama_asc">🔤 Nama Siswa (A - Z)</option>
-              <option value="nama_desc">🔤 Nama Siswa (Z - A)</option>
-              <option value="nis_asc">🔢 Nomor NIS (Kecil - Besar)</option>
-              <option value="status_belum">⚠️ Belum PKL Dahulu</option>
-              <option value="status_sudah">✅ Sudah PKL Dahulu</option>
+              <option value="kelas_nis">Per Kelas & NIS (Standar Sekolah)</option>
+              <option value="nama_asc">Nama Siswa (A - Z)</option>
+              <option value="nama_desc">Nama Siswa (Z - A)</option>
+              <option value="nis_asc">Nomor NIS (Kecil - Besar)</option>
+              <option value="status_belum">Status: Belum PKL Dahulu</option>
+              <option value="status_sudah">Status: Sudah PKL Dahulu</option>
             </select>
           </div>
         </div>
