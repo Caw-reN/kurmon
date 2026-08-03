@@ -404,6 +404,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                   gdriveUrl
                 ]);
              }
+              if (body.siswa_nis) {
+                checkAndApplyAutoSpAndPoints(dbPool, body.siswa_nis).catch(e => console.error("Auto SP error:", e));
+              }
           }
           send(req, res, 200, { ok: true });
           return;
@@ -442,4 +445,70 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
     }
 
   return false;
+}
+
+export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
+  if (!siswaNis) return;
+  try {
+    const cleanNis = String(siswaNis).trim();
+    // Count total Alpa for this student from kedisiplinan_absensi
+    const countRes = await dbPool.query(`
+      SELECT COUNT(*) as total_alpa 
+      FROM kedisiplinan_absensi 
+      WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis) 
+        AND (LOWER(status) = 'alpa' OR LOWER(status) = 'belum scan')
+    `, [cleanNis]);
+    
+    const alpaCount = parseInt(countRes.rows[0]?.total_alpa || 0, 10);
+
+    if (alpaCount > 5) {
+      // 1. Check if point violation already recorded
+      const checkPoin = await dbPool.query(`
+        SELECT id FROM kedisiplinan_riwayat_poin 
+        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+          AND tindakan_nama LIKE '%Alpa > 5%'
+        LIMIT 1
+      `, [cleanNis]);
+
+      if (checkPoin.rows.length === 0) {
+        await dbPool.query(`
+          INSERT INTO kedisiplinan_riwayat_poin 
+          (siswa_nis, tindakan_nama, poin, jenis, pelapor_nama, catatan) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          cleanNis, 
+          'Pelanggaran Absensi: Akumulasi Alpa > 5 Hari', 
+          15, 
+          'pelanggaran', 
+          'Sistem Kedisiplinan', 
+          `Otomatis oleh sistem: Siswa mencapai ${alpaCount} hari Alpa (melebihi batas 5 hari)`
+        ]);
+      }
+
+      // 2. Check if SP-1 already recorded in konseling
+      const checkKonseling = await dbPool.query(`
+        SELECT id FROM kedisiplinan_buku_konseling 
+        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+          AND (jenis_kasus LIKE '%Alpa > 5%' OR status LIKE '%SP%')
+        LIMIT 1
+      `, [cleanNis]);
+
+      if (checkKonseling.rows.length === 0) {
+        await dbPool.query(`
+          INSERT INTO kedisiplinan_buku_konseling 
+          (siswa_nis, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          cleanNis, 
+          'Sistem Kesiswaan', 
+          'Pelanggaran Absensi (Alpa > 5 Hari)', 
+          'Penerbitan Surat Peringatan 1 (SP-1) & Pemanggilan Orang Tua', 
+          `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari.`, 
+          'SP-1 Diterbitkan'
+        ]);
+      }
+    }
+  } catch (err) {
+    console.error("Error in checkAndApplyAutoSpAndPoints:", err.message);
+  }
 }

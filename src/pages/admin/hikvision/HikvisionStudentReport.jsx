@@ -1294,7 +1294,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
                       <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
                       <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                      <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">{d.total_alpa || 0}</td>
+                      <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
+                          <div>{d.total_alpa || 0}</div>
+                          {(d.total_alpa || 0) > 5 && (
+                            <span className="mt-0.5 inline-block px-1.5 py-0.5 bg-red-100 text-red-800 text-[8.5px] font-black rounded border border-red-200" title="Siswa mendapatkan SP-1 & Poin Disiplin (+15) karena Alpa > 5 Hari">
+                              ⚠️ SP-1 (+15 Poin)
+                            </span>
+                          )}
+                       </td>
                       {daysToRender.map((dayNum) => {
                          const dayData = d.days[dayNum];
                          if (!dayData) {
