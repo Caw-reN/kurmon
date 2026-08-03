@@ -93,6 +93,24 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
+        if (req.method === "GET" && url.pathname === "/api/kedisiplinan/attendance-start-date") {
+          const resStart = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
+          const dateVal = resStart.rows.length > 0 ? resStart.rows[0].value : '2026-08-01';
+          send(req, res, 200, { ok: true, startDate: dateVal });
+          return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/kedisiplinan/attendance-start-date") {
+          const body = await readJsonBody(req);
+          const startDate = body.startDate || '2026-08-01';
+          await dbPool.query(`
+            INSERT INTO school_profile (key, value) VALUES ('attendance_start_date', $1)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+          `, [startDate]);
+          send(req, res, 200, { ok: true, startDate });
+          return;
+        }
+
         if (req.method === "GET" && url.pathname === "/api/kesiswaan/catatan-walikelas") {
           try {
             const kelas = url.searchParams.get("kelas");

@@ -24,6 +24,38 @@ export default function TatibSkorKredit() {
 
   const { kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
   const [batasPoin, setBatasPoin] = useState(100);
+  const [startDate, setStartDate] = useState('2026-08-01');
+
+  const fetchStartDate = async () => {
+    try {
+      const res = await fetch('/api/kedisiplinan/attendance-start-date', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok && data.startDate) setStartDate(data.startDate);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    if (authToken) fetchStartDate();
+  }, [authToken]);
+
+  const handleUpdateStartDate = async (val) => {
+    setStartDate(val);
+    try {
+      await fetch('/api/kedisiplinan/attendance-start-date', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ startDate: val })
+      });
+      showToast('Tanggal mulai hitung absensi diperbarui!');
+    } catch (e) {
+      showToast('Gagal mengubah tanggal mulai absensi', 'error');
+    }
+  };
 
   useEffect(() => {
     if (kedisiplinanSettings?.batasPoinSiswaBermasalah) {
@@ -251,6 +283,27 @@ export default function TatibSkorKredit() {
               </div>
             ) : (
               <p className="text-sm font-black text-blue-800 mt-1">{batasPoin} Poin (DO)</p>
+            )}
+          </div>
+        </div>
+
+        <div className="ui-card p-5 flex items-center gap-4 bg-amber-50/60 border-amber-150">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+            <BookOpen size={22} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mulai Hitung Absensi</h4>
+            {isAdmin ? (
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => handleUpdateStartDate(e.target.value)}
+                  className="px-2 py-0.5 text-xs font-bold border border-slate-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] text-slate-700"
+                />
+              </div>
+            ) : (
+              <p className="text-sm font-black text-amber-800 mt-1">{startDate}</p>
             )}
           </div>
         </div>
