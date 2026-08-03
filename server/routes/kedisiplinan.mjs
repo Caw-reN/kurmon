@@ -508,6 +508,64 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
         ]);
       }
     }
+
+    // Count total Terlambat for this student
+    const tltRes = await dbPool.query(`
+      SELECT COUNT(*) as total_terlambat 
+      FROM kedisiplinan_absensi 
+      WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis) 
+        AND LOWER(status) = 'terlambat'
+    `, [cleanNis]);
+    
+    const terlambatCount = parseInt(tltRes.rows[0]?.total_terlambat || 0, 10);
+
+    if (terlambatCount > 3) {
+      // 1. Check if point violation for Terlambat > 3 already recorded
+      const checkTltPoin = await dbPool.query(`
+        SELECT id FROM kedisiplinan_riwayat_poin 
+        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+          AND tindakan_nama LIKE '%Terlambat > 3%'
+        LIMIT 1
+      `, [cleanNis]);
+
+      if (checkTltPoin.rows.length === 0) {
+        await dbPool.query(`
+          INSERT INTO kedisiplinan_riwayat_poin 
+          (siswa_nis, tindakan_nama, poin, jenis, pelapor_nama, catatan) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          cleanNis, 
+          'Akumulasi Terlambat > 3 Kali (Teguran Lisan)', 
+          10, 
+          'pelanggaran', 
+          'Sistem Kedisiplinan', 
+          `Otomatis oleh sistem: Siswa mencapai ${terlambatCount} kali Terlambat (melebihi batas 3 kali)`
+        ]);
+      }
+
+      // 2. Check if Teguran already recorded in konseling
+      const checkTltKonseling = await dbPool.query(`
+        SELECT id FROM kedisiplinan_buku_konseling 
+        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+          AND (jenis_kasus LIKE '%Terlambat > 3%' OR status LIKE '%Teguran%')
+        LIMIT 1
+      `, [cleanNis]);
+
+      if (checkTltKonseling.rows.length === 0) {
+        await dbPool.query(`
+          INSERT INTO kedisiplinan_buku_konseling 
+          (siswa_nis, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          cleanNis, 
+          'Sistem Kesiswaan', 
+          'Kedisiplinan: Terlambat Datang > 3 Kali', 
+          'Teguran Lisan & Pembinaan Wali Kelas', 
+          `Otomatis diterbitkan oleh sistem karena akumulasi Terlambat siswa mencapai ${terlambatCount} kali.`, 
+          'Teguran Diterbitkan'
+        ]);
+      }
+    }
   } catch (err) {
     console.error("Error in checkAndApplyAutoSpAndPoints:", err.message);
   }

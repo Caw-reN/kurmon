@@ -1291,7 +1291,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                          <div className="text-[9px] text-slate-400 font-bold truncate max-w-[150px]">{d.class_name ||'Tanpa Kelas'}</div>
                       </td>
                       <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                      <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
+                      <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
+                          <div>{d.total_terlambat || 0}</div>
+                          {(d.total_terlambat || 0) > 3 && (
+                            <span className="mt-0.5 inline-block px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8.5px] font-black rounded border border-amber-200" title="Siswa mendapatkan Teguran & Poin Disiplin (+10) karena Terlambat > 3x">
+                              ⚠️ Teguran (+10)
+                            </span>
+                          )}
+                       </td>
                       <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
                       <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
                       <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
