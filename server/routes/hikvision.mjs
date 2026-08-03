@@ -31,9 +31,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
   const getRoleTimeConfig = (conf, role) => {
     const roleConf = conf[role] || {};
     const defaults = {
-      siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
-      guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
-      karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "18:00" }
+      siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "08:00", pulang_open: "14:00", pulang_close: "18:00" },
+      guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "08:00", pulang_open: "14:00", pulang_close: "18:00" },
+      karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "08:00", pulang_open: "15:00", pulang_close: "18:00" }
     };
     const roleDefault = defaults[role] || defaults.siswa;
 
@@ -1038,14 +1038,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
             // If it is today, only mark Alpa if we are past the late/close time limit (default: masukClose)
             if (dateStr === todayStr) {
-              let logRole = "siswa";
+              let logRole = reportType || "siswa";
               if (item.class_name === "guru" || item.class_name === "teacher") {
                 logRole = "guru";
               } else if (item.class_name === "karyawan" || item.class_name === "staff") {
                 logRole = "karyawan";
               }
               const roleConf = getRoleTimeConfig(conf, logRole);
-              const limit = (roleConf.masuk_close || "11:00") + ":00";
+              const limit = (roleConf.masuk_close || "08:00") + ":00";
               if (currentTime <= limit) continue; // Still within check-in window
             }
 
@@ -1053,7 +1053,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             if (isHolidayOrWeekend(dateStr)) continue;
 
             // If no record exists for this day, mark it as Alpa!
-            if (!item.days[day]) {
+            const dayData = item.days[day];
+            const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));
+            if (!hasRecord) {
               item.days[day] = {
                 in: "Alpa",
                 out: "Alpa",
