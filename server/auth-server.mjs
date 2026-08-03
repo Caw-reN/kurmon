@@ -3895,6 +3895,176 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    // === BACKUP & RESTORE DATA HANDLERS ===
+    if (req.method === "GET" && url.pathname.startsWith("/api/backup/")) {
+      const type = url.pathname.replace("/api/backup/", "").toLowerCase().trim();
+      const token = url.searchParams.get("token") || req.headers.authorization?.replace(/^Bearer\s+/i, '');
+      const session = getSession({ headers: { authorization: token ? `Bearer ${token}` : '' } });
+      if (!session || !isAdminRole(session.role)) {
+        send(req, res, 403, { ok: false, error: "Akses khusus Admin / Pengurus." });
+        return;
+      }
+
+      if (!dbPool) {
+        send(req, res, 503, { ok: false, error: dbStatus.message });
+        return;
+      }
+
+      try {
+        const backupData = {};
+        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
+        const tables = tblResult.rows.map(r => r.tablename);
+
+        for (const table of tables) {
+          try {
+            const result = await dbPool.query(`SELECT * FROM "${table}"`);
+            backupData[table] = result.rows;
+          } catch (err) {}
+        }
+
+        const dateStr = new Date().toISOString().slice(0, 10);
+
+        if (type === 'json') {
+          const jsonStr = JSON.stringify({
+            version: "1.0",
+            exported_at: new Date().toISOString(),
+            system: "Kurmon School System",
+            tables: backupData
+          }, null, 2);
+
+          res.writeHead(200, {
+            "Content-Type": "application/json; charset=utf-8",
+            "Content-Disposition": `attachment; filename="kurmon_full_backup_${dateStr}.json"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(jsonStr);
+          return;
+        }
+
+        if (type === 'sql' || type === 'postgresql') {
+          let sqlStr = `-- Kurmon Database SQL Dump Export\n-- Generated at: ${new Date().toISOString()}\n\n`;
+          for (const [tableName, rows] of Object.entries(backupData)) {
+            if (!Array.isArray(rows) || rows.length === 0) continue;
+            sqlStr += `-- Table: ${tableName}\n`;
+            for (const row of rows) {
+              const keys = Object.keys(row);
+              const cols = keys.map(k => `"${k}"`).join(', ');
+              const vals = keys.map(k => {
+                const val = row[k];
+                if (val === null || val === undefined) return 'NULL';
+                if (typeof val === 'number' || typeof val === 'boolean') return val;
+                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+                return `'${String(val).replace(/'/g, "''")}'`;
+              }).join(', ');
+              sqlStr += `INSERT INTO "${tableName}" (${cols}) VALUES (${vals}) ON CONFLICT DO NOTHING;\n`;
+            }
+            sqlStr += `\n`;
+          }
+
+          res.writeHead(200, {
+            "Content-Type": "application/sql; charset=utf-8",
+            "Content-Disposition": `attachment; filename="kurmon_sql_dump_${dateStr}.sql"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(sqlStr);
+          return;
+        }
+
+        if (type === 'excel') {
+          const wb = XLSX.utils.book_new();
+          for (const [tableName, rows] of Object.entries(backupData)) {
+            if (Array.isArray(rows) && rows.length > 0) {
+              const sheetName = tableName.substring(0, 31);
+              const ws = XLSX.utils.json_to_sheet(rows);
+              XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            }
+          }
+          const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+          res.writeHead(200, {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="kurmon_excel_export_${dateStr}.xlsx"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(buf);
+          return;
+        }
+
+        send(req, res, 400, { ok: false, error: "Tipe backup tidak valid" });
+      } catch (err) {
+        console.error("Backup download error:", err);
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/restore-backup") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session.role)) {
+        send(req, res, 403, { ok: false, error: "Hanya Admin / Pengurus yang dapat memulihkan database." });
+        return;
+      }
+      if (!dbPool) {
+        send(req, res, 503, { ok: false, error: dbStatus.message });
+        return;
+      }
+
+      try {
+        const body = await readJsonBody(req);
+        const tables = body.tables || body;
+        if (typeof tables !== 'object') {
+          send(req, res, 400, { ok: false, error: "Format file JSON backup tidak valid." });
+          return;
+        }
+
+        const client = await dbPool.connect();
+        try {
+          await client.query('BEGIN');
+
+          for (const [tableName, rows] of Object.entries(tables)) {
+            if (!Array.isArray(rows) || rows.length === 0) continue;
+            const checkTbl = await client.query("SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = $1", [tableName]);
+            if (checkTbl.rows.length === 0) continue;
+
+            try {
+              await client.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
+            } catch (truncErr) {
+              await client.query(`DELETE FROM "${tableName}"`);
+            }
+
+            for (const row of rows) {
+              const keys = Object.keys(row);
+              const cols = keys.map(k => `"${k}"`).join(', ');
+              const params = keys.map((_, i) => `$${i + 1}`).join(', ');
+              const values = keys.map(k => {
+                const val = row[k];
+                if (typeof val === 'object' && val !== null) return JSON.stringify(val);
+                return val;
+              });
+
+              await client.query(`INSERT INTO "${tableName}" (${cols}) VALUES (${params}) ON CONFLICT DO NOTHING`, values);
+            }
+          }
+
+          await client.query('COMMIT');
+          send(req, res, 200, { ok: true, message: "Database berhasil dipulihkan dari file backup." });
+        } catch (err) {
+          await client.query('ROLLBACK');
+          console.error("Restore Transaction Error:", err);
+          send(req, res, 500, { ok: false, error: "Gagal memulihkan database: " + err.message });
+        } finally {
+          client.release();
+        }
+      } catch (err) {
+        console.error("Restore error:", err);
+        send(req, res, 500, { ok: false, error: err.message });
+      }
+      return;
+    }
+
     // === JURNAL HARIAN GURU & CATATAN WALIKELAS ===
     const jurnalCtx = { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody };
     const jurnalHandled = await handleJurnalRoutes(req, res, url, jurnalCtx);
