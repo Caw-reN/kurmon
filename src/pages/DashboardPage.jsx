@@ -2247,7 +2247,15 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     const totalMasuk = Math.max(recs.filter(r => r.in).length, recentTeacherLogs.length);
     const totalGuru = dashLogs?.totalTeachers || (teachers || []).length || 52;
-    const belumAbsen = Math.max(0, totalGuru - totalMasuk - statuses.Izin - statuses.Sakit - statuses['Dinas Luar'] - statuses.Alpa);
+    
+    // Auto-calculate Alpa if current time is past cutoff limit (08:00)
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00") {
+      const unrecorded = Math.max(0, totalGuru - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa));
+      statuses.Alpa += unrecorded;
+    }
+
+    const belumAbsen = Math.max(0, totalGuru - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa));
     return { ...statuses, belumAbsen, totalMasuk, totalGuru };
   }, [attendanceRecords, todayStr, teachers, dashLogs]);
 
@@ -2277,6 +2285,14 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else statuses.Hadir++;
     });
     const totalSiswaInSchool = dashLogs?.totalStudents || 0;
+
+    // Auto-calculate Alpa if current time is past cutoff limit (08:00)
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
+      const unrecorded = Math.max(0, totalSiswaInSchool - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses.Alpa));
+      statuses.Alpa += unrecorded;
+    }
+
     return { ...statuses, total: allLogs.length, totalSiswaInSchool };
   }, [dashLogs]);
 
