@@ -3,12 +3,12 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, CheckCircle2, XCircle, Search, Settings, Save, Upload, Download, 
-  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, Briefcase
+  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource';
-import { PageHeader, StatCard, Avatar, Badge } from '../../../components/monitoring/ui/index.js';
+import { PageHeader, StatCard, Avatar } from '../../../components/monitoring/ui/index.js';
 
 /**
  * ClickPicker component for dropdown select with search
@@ -97,6 +97,8 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   const [filterStatus, setFilterStatus] = useState('Semua'); // 'Semua' | 'Sudah PKL' | 'Belum PKL'
   const [filterJurusan, setFilterJurusan] = useState('Semua');
   const [filterKelas, setFilterKelas] = useState('Semua');
+  const [sortBy, setSortBy] = useState('kelas_nis'); // 'kelas_nis' | 'nama_asc' | 'nama_desc' | 'nis_asc' | 'status_belum' | 'status_sudah'
+  
   const [selectedSiswa, setSelectedSiswa] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -191,9 +193,9 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
         return {
           id: s.nis,
-          nis: s.nis,
-          nama: s.name,
-          kelas: s.class_name,
+          nis: String(s.nis || '').trim(),
+          nama: String(s.name || '').trim(),
+          kelas: String(s.class_name || '').trim(),
           jurusan: jCode,
           perusahaanId: mapping.location_id,
           guruPembimbingCode: mapping.teacher_code,
@@ -203,11 +205,23 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       });
   }, [students, eligibleClass, pklStudentsMapping]);
 
-  const jurusanOptions = useMemo(() => ['Semua', ...Array.from(new Set(pklStudents.map(s => s.jurusan))).filter(Boolean)], [pklStudents]);
-  const kelasOptions = useMemo(() => ['Semua', ...Array.from(new Set(pklStudents.map(s => s.kelas))).filter(Boolean)], [pklStudents]);
+  // Sort Jurusan Options Alphabetically
+  const jurusanOptions = useMemo(() => {
+    const unique = Array.from(new Set(pklStudents.map(s => s.jurusan))).filter(Boolean);
+    unique.sort((a, b) => a.localeCompare(b));
+    return ['Semua', ...unique];
+  }, [pklStudents]);
 
+  // Sort Kelas Options Naturally (e.g. XII AK 1, XII AK 2, XII TKJ 1, XII TKJ 2...)
+  const kelasOptions = useMemo(() => {
+    const unique = Array.from(new Set(pklStudents.map(s => s.kelas))).filter(Boolean);
+    unique.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+    return ['Semua', ...unique];
+  }, [pklStudents]);
+
+  // Filter & Sort Students array
   const filtered = useMemo(() => {
-    return pklStudents.filter((s) => {
+    const result = pklStudents.filter((s) => {
       const matchSearch =
         s.nama.toLowerCase().includes(search.toLowerCase()) ||
         s.nis.toLowerCase().includes(search.toLowerCase()) ||
@@ -217,7 +231,38 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       const matchKelas = filterKelas === 'Semua' || s.kelas === filterKelas;
       return matchSearch && matchStatus && matchJurusan && matchKelas;
     });
-  }, [pklStudents, search, filterStatus, filterJurusan, filterKelas]);
+
+    // Apply Sorting
+    result.sort((a, b) => {
+      if (sortBy === 'kelas_nis') {
+        const classComp = a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
+        if (classComp !== 0) return classComp;
+        const nisComp = a.nis.localeCompare(b.nis, undefined, { numeric: true });
+        if (nisComp !== 0) return nisComp;
+        return a.nama.localeCompare(b.nama);
+      }
+      if (sortBy === 'nama_asc') {
+        return a.nama.localeCompare(b.nama);
+      }
+      if (sortBy === 'nama_desc') {
+        return b.nama.localeCompare(a.nama);
+      }
+      if (sortBy === 'nis_asc') {
+        return a.nis.localeCompare(b.nis, undefined, { numeric: true });
+      }
+      if (sortBy === 'status_belum') {
+        if (a.statusPKL === b.statusPKL) return a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
+        return a.statusPKL === 'Belum PKL' ? -1 : 1;
+      }
+      if (sortBy === 'status_sudah') {
+        if (a.statusPKL === b.statusPKL) return a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
+        return a.statusPKL === 'Sudah PKL' ? -1 : 1;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [pklStudents, search, filterStatus, filterJurusan, filterKelas, sortBy]);
 
   const paginatedData = useMemo(() => filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filtered, currentPage, itemsPerPage]);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -405,12 +450,12 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all border-none cursor-pointer"
           >
             <Filter size={14} />
-            <span>Filter Kelas & Jurusan ({filterKelas !== 'Semua' || filterJurusan !== 'Semua' ? 'Aktif' : 'Semua'})</span>
+            <span>Filter & Sortir ({filterKelas !== 'Semua' || filterJurusan !== 'Semua' || sortBy !== 'kelas_nis' ? 'Aktif' : 'Semua'})</span>
           </button>
         </div>
 
-        {/* Dropdown Filters for Kelas & Jurusan (Desktop always, Mobile collapsible) */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
+        {/* Dropdown Filters for Kelas, Jurusan, and SortBy (Desktop always, Mobile collapsible) */}
+        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Kelas:</label>
             <select
@@ -440,6 +485,24 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
+              <ArrowUpDown size={12} className="text-slate-400" /> Sortir & Urutan:
+            </label>
+            <select
+              value={sortBy}
+              onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 cursor-pointer"
+            >
+              <option value="kelas_nis">📁 Per Kelas & NIS (Standar Sekolah)</option>
+              <option value="nama_asc">🔤 Nama Siswa (A - Z)</option>
+              <option value="nama_desc">🔤 Nama Siswa (Z - A)</option>
+              <option value="nis_asc">🔢 Nomor NIS (Kecil - Besar)</option>
+              <option value="status_belum">⚠️ Belum PKL Dahulu</option>
+              <option value="status_sudah">✅ Sudah PKL Dahulu</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -450,11 +513,29 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[11px] font-extrabold uppercase tracking-wider">
-                <th className="px-4 py-3">SISWA</th>
+                <th 
+                  onClick={() => setSortBy(sortBy === 'nama_asc' ? 'nama_desc' : 'nama_asc')}
+                  className="px-4 py-3 cursor-pointer hover:bg-slate-100/60 transition-colors select-none group"
+                  title="Klik untuk sortir Nama (A-Z / Z-A)"
+                >
+                  <div className="flex items-center gap-1">
+                    <span>SISWA</span>
+                    <ArrowUpDown size={12} className="text-slate-400 group-hover:text-slate-700" />
+                  </div>
+                </th>
                 <th className="px-4 py-3">JURUSAN</th>
                 <th className="px-4 py-3">PERUSAHAAN PKL</th>
                 <th className="px-4 py-3">GURU PEMBIMBING</th>
-                <th className="px-4 py-3 text-center">STATUS</th>
+                <th 
+                  onClick={() => setSortBy(sortBy === 'status_belum' ? 'status_sudah' : 'status_belum')}
+                  className="px-4 py-3 text-center cursor-pointer hover:bg-slate-100/60 transition-colors select-none group"
+                  title="Klik untuk sortir Status PKL"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span>STATUS</span>
+                    <ArrowUpDown size={12} className="text-slate-400 group-hover:text-slate-700" />
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-right">AKSI</th>
               </tr>
             </thead>
