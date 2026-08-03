@@ -1395,11 +1395,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  >
                    <option value="Sakit">Sakit</option>
                    <option value="Izin">Izin</option>
+                   <option value="Terlambat">Terlambat (Tetap Masuk)</option>
                    <option value="Alpa">Alpa (Tanpa Keterangan)</option>
                  </UISelect>
                </div>
 
-               {["Sakit","Izin"].includes(permissionForm.status) && (
+               {["Sakit","Izin","Terlambat"].includes(permissionForm.status) && (
                  <div>
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
                      Upload Surat / Bukti (Gambar)

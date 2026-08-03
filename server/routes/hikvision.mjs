@@ -972,7 +972,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             SELECT siswa_nis, tanggal, status, keterangan, gdrive_url 
             FROM kedisiplinan_absensi 
             WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
-            AND approval_status = 'approved'
+            AND (approval_status = 'approved' OR approval_status IS NULL OR approval_status = 'pending')
           `, [month, year]);
 
           sAbsRes.rows.forEach(rec => {
@@ -981,11 +981,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const recDate = new Date(rec.tanggal);
               const day = recDate.getDate();
               const status = rec.status;
+              const isLate = status === "Terlambat";
               
               matrix[nis].days[day] = {
-                in: status,
-                out: status,
-                isLate: false,
+                in: isLate ? (rec.keterangan || "Terlambat") : status,
+                out: isLate ? null : status,
+                isLate: isLate,
                 isManual: true,
                 status: status,
                 note: rec.keterangan,
