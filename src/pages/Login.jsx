@@ -1,21 +1,22 @@
-import React from'react';
-import { Link } from'react-router-dom';
-import { AlertCircle, ChevronDown, EyeOff, Eye, ArrowUpRight } from'lucide-react';
-import { UISelect, Button } from'../components/ui.jsx';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, EyeOff, Eye, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Button } from '../components/ui.jsx';
+import { CustomSelect } from '../components/CustomSelect.jsx';
 
 
 export default function Login({ 
   appSettings, username, setUsername, password, setPassword, showPassword, setShowPassword, rememberMe, setRememberMe,
   handleLogin, isLoggingIn, loginError, uiTheme, loginBrandTitle
 }) {
-  const [viewMode, setViewMode] = React.useState("login"); //"login" or"forgot"
+  const [viewMode, setViewMode] = React.useState("login"); // "login" | "forgot"
   const [forgotRole, setForgotRole] = React.useState("guru");
   const [forgotUsername, setForgotUsername] = React.useState("");
   const [forgotWhatsapp, setForgotWhatsapp] = React.useState("");
   const [forgotSuccess, setForgotSuccess] = React.useState(false);
   const [forgotError, setForgotError] = React.useState(null);
   const [forgotMessage, setForgotMessage] = React.useState("");
-  const [captcha, setCaptcha] = React.useState({ id:"", question:"" });
+  const [captcha, setCaptcha] = React.useState({ id: "", question: "" });
   const [captchaAnswer, setCaptchaAnswer] = React.useState("");
 
   const fetchCaptcha = async () => {
@@ -32,9 +33,7 @@ export default function Login({
   };
 
   React.useEffect(() => {
-    if (viewMode ==="forgot") {
-      fetchCaptcha();
-    }
+    if (viewMode === "forgot") fetchCaptcha();
   }, [viewMode]);
 
   const handleForgotSubmit = async (e) => {
@@ -45,11 +44,10 @@ export default function Login({
       setForgotError("Harap isi semua kolom termasuk captcha!");
       return;
     }
-
     try {
       const response = await fetch("/api/auth/forgot-password-request", {
-        method:"POST",
-        headers: {"Content-Type":"application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role: forgotRole,
           username: forgotUsername.trim(),
@@ -60,18 +58,17 @@ export default function Login({
       });
       const data = await response.json();
       if (!data.ok) {
-        setForgotError(data.message ||"Validasi gagal.");
-        fetchCaptcha(); // Refresh captcha on failure
+        setForgotError(data.message || "Validasi gagal.");
+        fetchCaptcha();
         return;
       }
-
       setForgotMessage(data.message);
       setForgotSuccess(true);
       setForgotUsername("");
       setForgotWhatsapp("");
       setCaptchaAnswer("");
       if (data.whatsappAlert) {
-        setForgotMessage(prev => prev +"\n\n" + data.whatsappAlert);
+        setForgotMessage(prev => prev + "\n\n" + data.whatsappAlert);
       }
     } catch (err) {
       console.error(err);
@@ -79,229 +76,314 @@ export default function Login({
       fetchCaptcha();
     }
   };
+
+  const inputClass = "w-full border border-[var(--ui-border-soft)] bg-white py-2.5 px-3.5 text-[13px] font-semibold text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] hover:border-slate-300 shadow-[var(--ui-shadow-control)]";
+
   return (
-    <div className="min-h-screen w-full flex bg-[#faf9ff] font-sans text-slate-900" style={uiTheme}>
-      {/* Right Area - Main Form */}
-      <div className="flex-1 flex flex-col justify-center items-center p-4 sm:p-6 relative bg-white overflow-hidden">
-        {/* Subtle Ambient Background on Right */}
+    <div
+      className="min-h-screen w-full flex items-stretch bg-[var(--ui-bg-page,#eef2f7)] font-sans text-slate-900"
+      style={uiTheme}
+    >
+      {/* ── Left Side: Branding Panel (desktop only) ──────────────── */}
+      <div className="hidden lg:flex w-[420px] flex-shrink-0 flex-col justify-between p-10 relative overflow-hidden"
+        style={{ background: 'linear-gradient(145deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #000) 100%)' }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-white/8 pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/3 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
 
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-[var(--ui-radius-small)] blur-[100px] pointer-events-none"></div>
+        {/* Top brand */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-white/20 flex items-center justify-center text-[15px] font-black text-white shadow-sm">
+            {appSettings.logoText || "TS"}
+          </div>
+          <div>
+            <p className="text-white font-black text-sm leading-tight">{appSettings.appName || "TimeSchedule"}</p>
+            <p className="text-white/60 text-[10px] font-semibold">Portal Akademik</p>
+          </div>
+        </div>
 
-        <div className="w-full max-w-[320px] flex flex-col relative z-10">
-          {/* Center Logo */}
-          <div className="flex justify-center mb-4">
-            <div className="w-10 h-10 flex items-center justify-center text-[16px] font-black text-white shadow-sm" style={{
-              backgroundColor:"var(--ui-primary)",
-              borderRadius:"var(--ui-radius-small, 10px)"
-            }}>
-              {appSettings.logoText ||"TS"}
+        {/* Center message */}
+        <div className="relative z-10">
+          <h2 className="text-white font-black text-3xl leading-tight mb-4">
+            Selamat Datang<br />di Sistem<br />Akademik
+          </h2>
+          <p className="text-white/70 text-sm font-medium leading-relaxed">
+            Kelola kehadiran, jurnal PKL, dan administrasi akademik dalam satu platform terintegrasi.
+          </p>
+        </div>
+
+        {/* Bottom info */}
+        <div className="relative z-10">
+          <p className="text-white/40 text-[11px] font-semibold">
+            {appSettings.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}`}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Right Side: Form Panel ─────────────────────────────────── */}
+      <div className="flex-1 flex flex-col justify-center items-center p-5 sm:p-8 relative bg-white overflow-hidden">
+
+        {/* Ambient blur */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="w-full max-w-[340px] flex flex-col relative z-10">
+
+          {/* Mobile logo */}
+          <div className="lg:hidden flex justify-center mb-5">
+            <div
+              className="w-12 h-12 flex items-center justify-center text-[18px] font-black text-white shadow-[var(--ui-shadow-float)]"
+              style={{
+                backgroundColor: "var(--ui-primary)",
+                borderRadius: "var(--ui-radius-control, 14px)"
+              }}
+            >
+              {appSettings.logoText || "TS"}
             </div>
           </div>
 
-          {/* Headers */}
-          <div className="text-center mb-6">
-            <h1 className="text-[24px] font-black text-slate-900 mb-1 tracking-tight">
-              {viewMode ==="forgot" ?"Lupa Sandi" :"Masuk"}
+          {/* Title */}
+          <div className="text-center mb-7">
+            <h1 className="text-[22px] font-black text-slate-900 mb-1 tracking-tight">
+              {viewMode === "forgot" ? "Lupa Kata Sandi" : "Masuk ke Akun"}
             </h1>
             <p className="text-[12px] text-slate-500 font-medium">
-              {viewMode ==="forgot" ? (
-                <span>Minta reset kata sandi ke Admin</span>
-              ) : (
-                <span>
-                  Portal akademik{""}
-                  <span className="text-[var(--ui-primary)] font-bold">
-                    {appSettings.appName ||"TimeSchedule"}
-                  </span>
-                </span>
-              )}
+              {viewMode === "forgot"
+                ? "Minta reset kata sandi ke Administrator"
+                : <span>Portal akademik <span className="text-[var(--ui-primary)] font-bold">{appSettings.appName || "TimeSchedule"}</span></span>
+              }
             </p>
           </div>
 
-          {viewMode ==="forgot" ? (
+          {/* ── Forgot Password Flow ──────────────────────────────── */}
+          {viewMode === "forgot" ? (
             forgotSuccess ? (
-              <div className="text-center py-4 space-y-4">
-                <div className="mb-2 inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 text-emerald-500">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div className="text-center py-6 flex flex-col items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <CheckCircle2 size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-800">Permintaan Terkirim!</h3>
-                <p className="text-[11px] text-slate-500 leading-relaxed whitespace-pre-line">
-                  {forgotMessage ||"Permintaan reset sandi Anda sudah diproses."}
-                </p>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 mb-1">Permintaan Terkirim!</h3>
+                  <p className="text-[11px] text-slate-500 leading-relaxed whitespace-pre-line">
+                    {forgotMessage || "Permintaan reset sandi Anda sudah diteruskan ke Administrator."}
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() => {
-                    setForgotSuccess(false);
-                    setViewMode("login");
-                  }}
+                  onClick={() => { setForgotSuccess(false); setViewMode("login"); }}
                   className="w-full"
                 >
                   Kembali ke Login
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-3.5">
+              <form onSubmit={handleForgotSubmit} className="space-y-4">
                 {forgotError && (
-                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-small)] border border-red-105 bg-red-50 p-2.5 text-[11px] font-semibold text-red-600 animate-in fade-in">
+                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-red-600">
                     <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-500" />
                     <span className="leading-snug">{forgotError}</span>
                   </div>
                 )}
+
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">Role Anda</label>
-                  <UISelect
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">Role Anda</label>
+                  <CustomSelect
                     value={forgotRole}
-                    onChange={(e) => setForgotRole(e.target.value)}
-                    className="w-full"
-                  >
-                    <option value="guru">Guru / Karyawan</option>
-                    <option value="siswa">Siswa</option>
-                  </UISelect>
+                    onChange={val => setForgotRole(val)}
+                    searchable={false}
+                    options={[
+                      { value: 'guru', label: 'Guru / Karyawan' },
+                      { value: 'siswa', label: 'Siswa' },
+                    ]}
+                  />
                 </div>
+
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">Username / NIS / Kode Guru <span className="text-red-500">*</span></label>
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                    Username / NIS / Kode Guru <span className="text-red-500 normal-case">*</span>
+                  </label>
                   <input
                     type="text"
                     required
                     value={forgotUsername}
-                    onChange={(e) => setForgotUsername(e.target.value)}
+                    onChange={e => setForgotUsername(e.target.value)}
                     placeholder="Masukkan username atau kode"
-                    className="w-full border border-slate-200 bg-slate-50 py-2.5 px-3.5 text-[13px] font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15"
-                    style={{ borderRadius:"var(--ui-radius-control, 10px)" }}
+                    className={inputClass}
+                    style={{ borderRadius: "var(--ui-radius-control, 12px)" }}
                   />
                 </div>
+
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">Nomor WhatsApp Aktif <span className="text-red-500">*</span></label>
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                    Nomor WhatsApp Aktif <span className="text-red-500 normal-case">*</span>
+                  </label>
                   <input
                     type="text"
                     required
                     value={forgotWhatsapp}
-                    onChange={(e) => setForgotWhatsapp(e.target.value)}
+                    onChange={e => setForgotWhatsapp(e.target.value)}
                     placeholder="Contoh: 08123456789"
-                    className="w-full border border-slate-200 bg-slate-50 py-2.5 px-3.5 text-[13px] font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15"
-                    style={{ borderRadius:"var(--ui-radius-control, 10px)" }}
+                    className={inputClass}
+                    style={{ borderRadius: "var(--ui-radius-control, 12px)" }}
                   />
                 </div>
+
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">Verifikasi Captcha <span className="text-red-500">*</span></label>
-                  <div className="flex gap-2 items-center w-full">
-                    <div className="bg-slate-100 h-10 flex items-center justify-center text-[12px] font-black text-slate-700 select-none border border-slate-200 rounded-[var(--ui-radius-control,10px)] w-24 shrink-0 text-center">
-                      {captcha.question ||"Memuat..."}
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                    Verifikasi Captcha <span className="text-red-500 normal-case">*</span>
+                  </label>
+                  <div className="flex gap-2 items-stretch">
+                    <div className="bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] h-10 flex items-center justify-center text-[12px] font-black text-slate-700 select-none rounded-[var(--ui-radius-control)] w-24 shrink-0 text-center shadow-[var(--ui-shadow-control)]">
+                      {captcha.question || "Memuat..."}
                     </div>
                     <input
                       type="text"
                       required
                       value={captchaAnswer}
-                      onChange={(e) => setCaptchaAnswer(e.target.value)}
+                      onChange={e => setCaptchaAnswer(e.target.value)}
                       placeholder="Jawaban"
-                      className="flex-1 min-w-0 h-10 border border-slate-200 bg-slate-50 px-3 text-[12px] font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15"
-                      style={{ borderRadius:"var(--ui-radius-control, 10px)" }}
+                      className={`flex-1 min-w-0 h-10 ${inputClass}`}
+                      style={{ borderRadius: "var(--ui-radius-control, 12px)" }}
                     />
                     <button
                       type="button"
                       onClick={fetchCaptcha}
-                      className="shrink-0 h-10 px-3 rounded-[var(--ui-radius-control,10px)] border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold text-[11px] transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                      title="Segarkan captcha"
+                      className="shrink-0 w-10 h-10 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-500 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] transition-all shadow-[var(--ui-shadow-control)] flex items-center justify-center cursor-pointer"
                     >
-                      Segarkan
+                      <RefreshCw size={14} />
                     </button>
                   </div>
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full mt-2"
-                >
+
+                <Button type="submit" className="w-full">
                   Kirim Permintaan Reset
                 </Button>
-                <Button
-                  variant="ghost"
+                <button
                   type="button"
                   onClick={() => setViewMode("login")}
-                  className="w-full mt-1"
+                  className="w-full h-9 rounded-[var(--ui-radius-control)] text-[12px] font-bold text-slate-500 hover:text-[var(--ui-primary)] transition-colors border-none bg-transparent cursor-pointer"
                 >
                   Batal & Kembali ke Login
-                </Button>
+                </button>
               </form>
             )
           ) : (
+            /* ── Login Form ──────────────────────────────────────── */
             <>
-              {loginError && <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-small)] -[var(--ui-radius-control, 10px)] border border-red-100 bg-red-50 p-2.5 text-[11px] font-semibold text-red-600 animate-pulse">
-                <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-500" />
-                <span className="leading-snug">{loginError}</span>
-              </div>}
+              {loginError && (
+                <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-red-600">
+                  <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-500" />
+                  <span className="leading-snug">{loginError}</span>
+                </div>
+              )}
 
-              <form onSubmit={handleLogin} className="space-y-3.5">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">
-                    Username / Kode Guru <span className="text-red-500">*</span>
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                    Username / Kode Guru <span className="text-red-500 normal-case">*</span>
                   </label>
-                  <input type="text" required disabled={isLoggingIn} value={username} onChange={e => setUsername(e.target.value)} className="w-full border-none bg-white py-2.5 px-3.5 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:border-[var(--ui-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15 shadow-sm hover:border-[var(--ui-primary)]/50" style={{
-                    borderRadius:"var(--ui-radius-control, 10px)"
-                  }} placeholder="Masukkan username/kode" />
+                  <input
+                    type="text"
+                    required
+                    disabled={isLoggingIn}
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Masukkan username atau kode"
+                    className={inputClass}
+                    style={{ borderRadius: "var(--ui-radius-control, 12px)" }}
+                  />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-bold text-slate-700">
-                    Kata Sandi <span className="text-red-500">*</span>
+                  <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                    Kata Sandi <span className="text-red-500 normal-case">*</span>
                   </label>
                   <div className="relative">
-                    <input type={showPassword ?"text" :"password"} required disabled={isLoggingIn} value={password} onChange={e => setPassword(e.target.value)} className="w-full border-none bg-white py-2.5 pl-3.5 pr-9 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:border-[var(--ui-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15 shadow-sm hover:border-[var(--ui-primary)]/50" style={{
-                      borderRadius:"var(--ui-radius-control, 10px)"
-                    }} placeholder="••••••••" />
-                    <button 
-                      type="button" 
-                      onClick={() => setShowPassword(!showPassword)} 
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-slate-400 hover:text-slate-650 transition-colors flex items-center justify-center"
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      disabled={isLoggingIn}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className={`${inputClass} pr-10`}
+                      style={{ borderRadius: "var(--ui-radius-control, 12px)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>
 
+                {/* Remember me + Forgot */}
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-[12px] font-medium text-slate-600 cursor-pointer group">
+                  <label className="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer group">
                     <div className="relative flex items-center justify-center">
-                      <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="peer absolute h-4 w-4 cursor-pointer opacity-0" />
-                      <div className="flex h-4 w-4 items-center justify-center rounded-[var(--ui-radius-small)] -[3px] border border-slate-300 transition-all peer-checked:border-[var(--ui-primary)] peer-checked:bg-[var(--ui-primary)]">
-                        <svg className="h-2 w-2 text-white opacity-0 transition-opacity peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={e => setRememberMe(e.target.checked)}
+                        className="peer absolute h-4 w-4 cursor-pointer opacity-0"
+                      />
+                      <div className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-slate-300 transition-all peer-checked:border-[var(--ui-primary)] peer-checked:bg-[var(--ui-primary)]">
+                        <svg className="h-2.5 w-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                     </div>
-                    <span className="group-hover:text-slate-900 transition-colors">
-                      Ingat saya
-                    </span>
+                    <span className="group-hover:text-slate-900 transition-colors">Ingat saya</span>
                   </label>
+
                   <button
                     type="button"
                     onClick={() => setViewMode("forgot")}
                     className="text-[12px] font-bold text-[var(--ui-primary)] hover:underline cursor-pointer border-none bg-transparent p-0"
                   >
-                    Lupa Sandi?</button>
+                    Lupa Sandi?
+                  </button>
                 </div>
 
-                <div className="relative flex items-center py-1 opacity-70">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink-0 mx-3 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    Atau
-                  </span>
-                  <div className="flex-grow border-t border-slate-200"></div>
+                {/* Divider */}
+                <div className="relative flex items-center py-0.5 opacity-60">
+                  <div className="flex-grow border-t border-slate-200" />
+                  <span className="flex-shrink-0 mx-3 text-slate-400 text-[9px] font-black uppercase tracking-widest">Atau</span>
+                  <div className="flex-grow border-t border-slate-200" />
                 </div>
 
-                <Button type="submit" disabled={isLoggingIn} className="w-full mt-2 flex items-center justify-center gap-2">
-                  {isLoggingIn ?"Memproses..." :"Masuk ke Akun"}{""}
-                  {!isLoggingIn && <ArrowUpRight size={16} />}
+                <Button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  {isLoggingIn ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Memproses...
+                    </span>
+                  ) : (
+                    <>Masuk ke Akun <ArrowRight size={15} /></>
+                  )}
                 </Button>
               </form>
             </>
           )}
 
-          <div className="mt-6 text-center text-[11px] font-medium text-slate-400">
-            <Link to="/" className="text-slate-500 hover:text-[var(--ui-primary)] transition-colors block mb-3">
-              Kembali ke Beranda
+          {/* Footer links */}
+          <div className="mt-8 text-center text-[11px] font-medium text-slate-400 space-y-1.5">
+            <Link to="/" className="block text-slate-500 hover:text-[var(--ui-primary)] transition-colors font-semibold">
+              ← Kembali ke Beranda
             </Link>
-            <p>
-              {appSettings.footerText || `(c) ${new Date().getFullYear()} ${loginBrandTitle}.`}
-            </p>
+            <p>{appSettings.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}.`}</p>
           </div>
         </div>
       </div>
