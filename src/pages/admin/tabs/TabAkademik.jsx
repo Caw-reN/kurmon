@@ -1,12 +1,16 @@
 import { Button } from '../../../components/ui.jsx';
-import React from'react';
-import { CalendarDays } from'lucide-react';
-import { Search, BookOpen, FileDown, Upload, List, Plus, Calendar, Edit2, Trash2, ChevronLeft, ChevronRight } from'lucide-react';
+import React from 'react';
+import { CalendarDays, Search, BookOpen, FileDown, Upload, List, Plus, Calendar, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
-
+import useAuthStore from '../../../store/monitoring/authStore.js';
 
 export default function TabAkademik(props) {
+  const authUser = useAuthStore(state => state.user);
+  const currentRole = (authUser?.role || props.currentUser?.role || '').toLowerCase();
+  const currentDivision = (authUser?.division || props.currentUser?.division || '').toLowerCase();
+  const isReadOnly = props.isReadOnly || props.readOnly;
+  const canEdit = !isReadOnly && (['admin', 'superadmin'].includes(currentRole) || (currentRole === 'waka' && currentDivision === 'kurikulum'));
+
   const [currentMonth, setCurrentMonth] = React.useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = React.useState(new Date().getFullYear());
   
@@ -26,7 +30,7 @@ export default function TabAkademik(props) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const { academicCalendar, calendarSearchTerm, calendarCategories, setCalendarSearchTerm, openAcademicCalendarGuide, downloadMasterTemplate, openModal, setActiveTab, formatCalendarDateRange, handleRemoveCalendarEventSafe, setFormData } = props;
+  const { academicCalendar = [], calendarSearchTerm = "", calendarCategories = [], setCalendarSearchTerm, openAcademicCalendarGuide, downloadMasterTemplate, openModal, setActiveTab, formatCalendarDateRange, handleRemoveCalendarEventSafe, setFormData } = props;
 
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
@@ -109,11 +113,12 @@ export default function TabAkademik(props) {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full w-full animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col gap-6 h-full w-full animate-in fade-in duration-300 relative z-10 pb-20 sm:pb-6">
       <PageHeader
         title="Kalender Akademik"
-        description="Atur dan kelola agenda kegiatan sekolah. Tambah manual atau import langsung dari Excel."
+        description="Agenda kegiatan akademik & libur sekolah. Semua pengguna dapat melihat agenda."
         icon={CalendarDays}
+        onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
       >
         <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-[var(--ui-radius-small)] backdrop-blur-sm border border-white/10">
           <div className="flex items-center gap-1.5 border-r border-white/10 pr-2.5">
@@ -162,36 +167,43 @@ export default function TabAkademik(props) {
               />
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline"
-                onClick={openAcademicCalendarGuide}
-               ><BookOpen size={14} className="mr-1.5 inline" /> Panduan</Button>
-              <Button variant="outline"
-                onClick={downloadMasterTemplate}
-               ><FileDown size={14} className="mr-1.5 inline" /> Template</Button>
-              <Button variant="outline"
-                onClick={() =>openModal("bulk","add")}
-                
-              >
-                <Upload size={14} className="mr-1.5 inline" /> Import</Button>
-              <Button variant="outline"
-                onClick={() =>setActiveTab("kategori_kalender")}
-                
-              >
-                <List size={14} className="mr-1.5 inline" /> Kategori</Button>
-              <Button variant="outline"
-                onClick={() =>{
-                  setFormData({
-                    title:"",
-                    categoryId: calendarCategories[0]?.id ||"",
-                    dateStart: new Date().toISOString().split("T")[0],
-                    dateEnd: new Date().toISOString().split("T")[0],
-                    description:""
-                  });
-                  openModal("event_kalender","add");
-                }}
-                
-              >
-                <Plus size={14} className="mr-1.5 inline" /> Tambah Agenda</Button>
+              {openAcademicCalendarGuide && (
+                <Button variant="outline" onClick={openAcademicCalendarGuide}>
+                  <BookOpen size={14} className="mr-1.5 inline" /> Panduan
+                </Button>
+              )}
+              {canEdit && downloadMasterTemplate && (
+                <Button variant="outline" onClick={downloadMasterTemplate}>
+                  <FileDown size={14} className="mr-1.5 inline" /> Template
+                </Button>
+              )}
+              {canEdit && openModal && (
+                <Button variant="outline" onClick={() => openModal("bulk", "add")}>
+                  <Upload size={14} className="mr-1.5 inline" /> Import
+                </Button>
+              )}
+              {canEdit && setActiveTab && (
+                <Button variant="outline" onClick={() => setActiveTab("kategori_kalender")}>
+                  <List size={14} className="mr-1.5 inline" /> Kategori
+                </Button>
+              )}
+              {canEdit && openModal && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFormData && setFormData({
+                      title: "",
+                      categoryId: calendarCategories[0]?.id || "",
+                      dateStart: new Date().toISOString().split("T")[0],
+                      dateEnd: new Date().toISOString().split("T")[0],
+                      description: ""
+                    });
+                    openModal("event_kalender", "add");
+                  }}
+                >
+                  <Plus size={14} className="mr-1.5 inline" /> Tambah Agenda
+                </Button>
+              )}
             </div>
           </div>
 
@@ -257,20 +269,22 @@ export default function TabAkademik(props) {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="outline"
-                            onClick={() =>openModal("event_kalender","edit", evt)
-                            }
-                            
-                          >
-                            <Edit2 size={14} /></Button>
-                          <Button variant="outline"
-                            onClick={() =>handleRemoveCalendarEventSafe(evt.id)
-                            }
-                            
-                          >
-                            <Trash2 size={14} /></Button>
-                        </div>
+                        {canEdit && (
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="outline"
+                              onClick={() =>openModal("event_kalender","edit", evt)
+                              }
+                              
+                            >
+                              <Edit2 size={14} /></Button>
+                            <Button variant="outline"
+                              onClick={() =>handleRemoveCalendarEventSafe(evt.id)
+                              }
+                              
+                            >
+                              <Trash2 size={14} /></Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -402,6 +416,7 @@ export default function TabAkademik(props) {
                   <div
                     key={dayNum}
                     onClick={() => {
+                      if (!canEdit) return;
                       if (selectStart) {
                         const minDate = selectStart < dateStr ? selectStart : dateStr;
                         const maxDate = selectStart > dateStr ? selectStart : dateStr;

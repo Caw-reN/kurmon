@@ -5,7 +5,7 @@ import { Clock, MessageSquare,
   BookOpen, DoorOpen, Calendar, FileSpreadsheet, CalendarDays,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive,
-  HelpCircle, Menu, Bell, LogOut
+  HelpCircle, Menu, Bell, LogOut, PanelLeftClose, PanelLeftOpen
 } from'lucide-react';
 import { useAppStore } from'../../store/useAppStore.js';
 ;
@@ -54,6 +54,7 @@ const getTabLabel = (tabId) => {
     advanced_rules:"Aturan Penjadwalan",
     silabus:"RPP atau Modul Pembelajaran",
     absensi:"Kehadiran Guru",
+    hikvision_report_siswa:"Rekap Absensi Siswa",
     pkl_dashboard:"Monitoring PKL",
     pkl_data_siswa:"Data Siswa PKL",
     pkl_data_perusahaan:"Data Perusahaan PKL",
@@ -170,7 +171,7 @@ const getTabIcon = (tabId) => {
   return icons[tabId] || LayoutDashboard;
 };
 
-const GlobalHeaderPortals = ({ onOpenMobileMenu, onOpenProfile, currentUser, activeRoleLabel, appSettings, workspaceGuide, onOpenGuide, activeTab, dashboardMessages, schedule, handleLogout }) => {
+const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollapsed, onOpenProfile, currentUser, activeRoleLabel, appSettings, workspaceGuide, onOpenGuide, activeTab, dashboardMessages, schedule, handleLogout }) => {
   const IconComponent = getTabIcon(activeTab);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifBtnRef = useRef(null);
@@ -271,17 +272,20 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, onOpenProfile, currentUser, act
   const todayClasses = getTodayClasses();
 
   return (
-    <header className="app-header h-14 bg-background px-3 sm:px-5 md:px-8 flex items-center justify-between shrink-0 relative z-[60] border-none shadow-none !border-none !shadow-none print:hidden">
+    <header className="app-header hidden sm:flex h-14 bg-background px-3 sm:px-5 md:px-8 items-center justify-between shrink-0 relative z-[60] border-none shadow-none !border-none !shadow-none print:hidden">
       
-      {/* Left: Mobile Menu Button & Brand/Keterangan */}
+      {/* Left: Mobile Menu Button & Desktop Sidebar Toggle & Brand/Keterangan */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
         <button
+          type="button"
           onClick={onOpenMobileMenu}
           className={`flex lg:hidden p-2.5 text-foreground hover:bg-muted active:translate-y-[1px] border border-border rounded-xl items-center justify-center cursor-pointer transition-all shrink-0 ${currentUser?.role ==='guru' ?'hidden sm:flex' :''}`}
-          title="Buka Menu"
+          title="Buka Menu Mobile"
         >
           <Menu size={18} strokeWidth={2.5} />
         </button>
+
+
         
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {IconComponent && (

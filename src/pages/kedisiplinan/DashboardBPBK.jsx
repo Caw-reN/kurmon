@@ -23,6 +23,10 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [formKonseling, setFormKonseling] = useState({ jenis_kasus:'', tindak_lanjut:'', catatan_konseling:'' });
 
+  // For Deleting Violation Record with Verification
+  const [deletingRecord, setDeletingRecord] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // For Printing SP
   const [spData, setSpData] = useState(null);
 
@@ -42,6 +46,31 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       console.error(e);
     }
     setIsLoading(false);
+  };
+
+  const confirmDeleteRecord = async () => {
+    if (!deletingRecord || !authToken) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/kedisiplinan/riwayat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+        body: JSON.stringify({ action: "delete", id: deletingRecord.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        alert("Data pelanggaran berhasil dihapus. Poin siswa telah diperbarui.");
+        setDeletingRecord(null);
+        fetchData();
+      } else {
+        alert("Gagal menghapus data pelanggaran: " + (data.error || ""));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan koneksi saat menghapus data.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   useEffect(() => {
@@ -204,15 +233,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
 
 
-      <div className="print:hidden mb-2">
-        <PageHeader
-          icon={ShieldAlert}
-          title="Dashboard BP/BK"
-          description="Monitoring kedisiplinan dan poin pelanggaran siswa."
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 print:hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 print:hidden">
         <StatCard
           label="Siswa Dalam Pantauan"
           value={totalPantauan}
@@ -239,38 +260,40 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
         />
       </div>
 
-      <div className="ui-card flex flex-col print:hidden">
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50 rounded-t-[var(--ui-radius-card)]">
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+      <div className="ui-card flex flex-col print:hidden border border-slate-100/90 shadow-sm">
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-50/50 rounded-t-[var(--ui-radius-card)]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
-                placeholder="Cari siswa atau NIS..."
+                placeholder="Cari nama siswa atau NIS..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all font-medium"
+                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm focus:outline-none focus:border-[var(--ui-primary)] font-medium"
               />
             </div>
-            <CustomSelect
-              options={[{value:'all', label:'Semua Kelas'}, ...classes.map(c => ({value: c.name, label: c.name}))]}
-              value={filterClass}
-              onChange={setFilterClass}
-              className="w-56"
-            />
+            <div className="w-full sm:w-48 shrink-0">
+              <CustomSelect
+                options={[{value:'all', label:'Semua Kelas'}, ...classes.map(c => ({value: c.name, label: c.name}))]}
+                value={filterClass}
+                onChange={setFilterClass}
+              />
+            </div>
           </div>
           <Button 
             onClick={exportExcel} 
             variant="outline"
             size="sm"
-            className="flex items-center gap-1.5 shrink-0"
+            className="flex items-center justify-center gap-1.5 shrink-0 px-3.5 py-2 text-xs font-bold cursor-pointer"
           >
             <Download size={14}/>
             <span>Export Rekap</span>
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
               <tr>
@@ -300,7 +323,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <div className="font-bold text-sm text-slate-800">{s.namaSiswa || s.name}</div>
-                        <div className="text-[11px] text-slate-500">{s.nis}</div>
+                        <div className="text-[11px] text-slate-500">{s.nis} • Kelas {s.class_name}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -317,11 +340,11 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2 items-center">
                         {s.total_poin >= 20 && (
-                          <Button size="sm" variant="outline" onClick={() => handlePrintSP(s)} className="text-[11px] bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all px-2" title="Cetak SP">
+                          <Button size="sm" variant="outline" onClick={() => handlePrintSP(s)} className="text-[11px] bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all px-2.5 py-1.5 cursor-pointer" title="Cetak SP">
                              <Printer size={14}/> <span>PDF SP</span>
                           </Button>
                         )}
-                        <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] transition-all">
+                        <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] transition-all px-2.5 py-1.5 cursor-pointer">
                           <BookOpen size={14} className="mr-1.5"/> Buku Konseling
                         </Button>
                       </div>
@@ -331,6 +354,60 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden flex flex-col divide-y divide-slate-100">
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-400 text-xs font-medium">Memuat data monitoring...</div>
+          ) : paginatedStudents.length === 0 ? (
+            <div className="p-8 text-center text-slate-500">
+              <Users size={36} className="mx-auto mb-2 text-slate-300"/>
+              <p className="font-bold text-xs text-slate-600">Tidak Ada Data Siswa</p>
+            </div>
+          ) : (
+            paginatedStudents.map((s) => {
+              const statusInfo = getStatusInfo(s.total_poin);
+              return (
+                <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center font-black text-xs shrink-0">
+                        {(s.namaSiswa || s.name || 'S').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-xs text-slate-800 truncate">{s.namaSiswa || s.name}</div>
+                        <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-700">
+                        +{s.total_poin} Poin
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-2 rounded-lg text-[11px] text-slate-600 italic">
+                    Kasus: {s.catatan_terakhir}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    {s.total_poin >= 20 && (
+                      <Button size="sm" variant="outline" onClick={() => handlePrintSP(s)} className="text-[11px] bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-600 hover:text-white px-2.5 py-1 cursor-pointer">
+                        <Printer size={13} className="mr-1"/> PDF SP
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white border-slate-200 text-slate-700 hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] px-2.5 py-1 cursor-pointer">
+                      <BookOpen size={13} className="mr-1"/> Buku Konseling
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         <TablePagination 
@@ -374,13 +451,23 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2"><History size={16} className="text-slate-400"/> Riwayat Pelanggaran</h3>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {riwayat.filter(r => r.siswa_nis === selectedStudent.nis).map(r => (
-                    <div key={r.id} className="bg-white border-none p-3 rounded-[var(--ui-radius-card)] shadow-sm hover:-md transition- relative pl-10">
-                      <div className="absolute left-3 top-4 w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold border border-red-200">!</div>
+                    <div key={r.id} className="bg-white border border-slate-100 p-3 rounded-xl shadow-xs relative pl-10">
+                      <div className="absolute left-3 top-3.5 w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold border border-rose-200">!</div>
                       <div className="flex justify-between items-start mb-1.5 gap-2">
                         <p className="text-xs font-bold text-slate-800 leading-snug">{r.tindakan_nama}</p>
-                        <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-red-100 flex-shrink-0">+{r.poin}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">+{r.poin}</span>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingRecord({ ...r, studentName: selectedStudent.namaSiswa || selectedStudent.name })}
+                            title="Hapus Pelanggaran Ini (Koreksi Salah Isi)"
+                            className="p-1 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border border-rose-200"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-[var(--ui-radius-small)] italic border-none break-words w-full">"{r.catatan ||'Tanpa catatan tambahan'}"</p>
+                      <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg italic break-words w-full">"{r.catatan ||'Tanpa catatan tambahan'}"</p>
                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
                         <span>Dilaporkan: {r.pelapor_nama}</span>
                         <span>{new Date(r.tanggal_kejadian).toLocaleDateString('id-ID')}</span>
@@ -461,6 +548,53 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </div>
         )}
       </Modal>
+
+      {/* VERIFIKASI HAPUS PELANGGARAN MODAL */}
+      {deletingRecord && (
+        <Modal 
+          isOpen={true} 
+          onClose={() => setDeletingRecord(null)} 
+          title="Verifikasi Hapus Pelanggaran"
+          width="md"
+        >
+          <div className="p-2 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+              <Trash2 size={24} />
+            </div>
+            <div className="text-center">
+              <h3 className="text-base font-black text-slate-800">Hapus Record Pelanggaran Ini?</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Tindakan ini tidak dapat dibatalkan. Poin pelanggaran (+{deletingRecord.poin} Poin) akan otomatis dikurangi dari akumulasi total poin siswa.
+              </p>
+            </div>
+
+            <div className="bg-rose-50/70 border border-rose-200/80 rounded-xl p-3.5 text-xs text-slate-700 space-y-1.5">
+              <div className="flex justify-between"><span className="font-bold text-slate-500">Siswa:</span> <strong className="text-slate-900">{deletingRecord.studentName || deletingRecord.siswa_nis}</strong></div>
+              <div className="flex justify-between"><span className="font-bold text-slate-500">Pelanggaran:</span> <strong className="text-rose-700">{deletingRecord.tindakan_nama}</strong></div>
+              <div className="flex justify-between"><span className="font-bold text-slate-500">Poin Pelanggaran:</span> <span className="font-black text-rose-600">+{deletingRecord.poin} Poin</span></div>
+              <div className="flex justify-between"><span className="font-bold text-slate-500">Tanggal Kejadian:</span> <span>{new Date(deletingRecord.tanggal_kejadian).toLocaleDateString('id-ID')}</span></div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setDeletingRecord(null)} 
+                disabled={isDeleting} 
+                className="flex-1 cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={confirmDeleteRecord} 
+                disabled={isDeleting} 
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer border-none shadow-sm"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Data"}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

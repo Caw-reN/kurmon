@@ -902,10 +902,14 @@ const initDb = async () => {
         target_type VARCHAR(100),
         target_id VARCHAR(100),
         detail TEXT,
-        ip_address VARCHAR(50),
+        ip_address VARCHAR(100),
+        user_agent TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    // Add user_agent column to existing audit_logs tables (migration)
+    try { await dbPool.query(`ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS user_agent TEXT`); } catch {}
+    try { await dbPool.query(`ALTER TABLE audit_logs ALTER COLUMN ip_address TYPE VARCHAR(100)`); } catch {}
 
     // Kartu Pelajar (Student ID Card Templates)
     await dbPool.query(`
@@ -1271,6 +1275,33 @@ const send = (req, res, statusCode, payload) => {
 
   res.writeHead(statusCode, headers);
   res.end(jsonStr);
+};
+
+/**
+ * logAudit — helper terpusat untuk mencatat audit log dengan IP & User-Agent otomatis.
+ */
+const logAudit = async (pool, session, req, action, targetType, detail, targetId = null) => {
+  if (!pool) return;
+  try {
+    const ip = (req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || '').split(',')[0].trim();
+    const ua = req?.headers?.['user-agent'] || '';
+    await pool.query(
+      `INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, target_id, detail, ip_address, user_agent) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [
+        session?.id || session?.username || 'system',
+        session?.name || 'Sistem',
+        session?.role || 'system',
+        action,
+        targetType,
+        targetId ? String(targetId) : null,
+        detail,
+        ip,
+        ua
+      ]
+    );
+  } catch (e) {
+    console.warn('[logAudit] Gagal mencatat audit log:', e.message);
+  }
 };
 
 const sanitizePayload = (payload = {}) => {
@@ -1676,9 +1707,11 @@ const server = createServer(async (req, res) => {
 
         // 3. Late students (terlambat)
         try {
-          const configRes = await dbPool.query("SELECT * FROM app_settings WHERE key = 'hikvision_config'");
           let hConfig = {};
-          if (configRes.rowCount > 0) hConfig = JSON.parse(configRes.rows[0].value);
+          try {
+            const configRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_config' LIMIT 1");
+            if (configRes.rowCount > 0 && configRes.rows[0].data) hConfig = JSON.parse(configRes.rows[0].data);
+          } catch (e) {}
           const masukLate = hConfig?.siswa?.masuk_late || "07:15";
           const masukClose = hConfig?.siswa?.masuk_close || "12:00";
 
@@ -1742,24 +1775,46 @@ const server = createServer(async (req, res) => {
         // 3.3 Calculate student attendance rankings
         let studentAttendanceRankings = [];
         try {
+          let startDate = null;
+          try {
+            const startRes = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
+            if (startRes.rows.length > 0 && startRes.rows[0].value) {
+              startDate = startRes.rows[0].value;
+            }
+          } catch (err) {
+            console.warn("Gagal membaca tanggal mulai absensi:", err.message);
+          }
+
           // Get count of Sakit, Izin, Alpha for each student from kedisiplinan_absensi
-          const absRes = await dbPool.query(`
+          let absQuery = `
             SELECT siswa_nis as nis, 
                    SUM(CASE WHEN status = 'Alpa' OR status = 'Alpha' THEN 1 ELSE 0 END) as alpha,
                    SUM(CASE WHEN status = 'Izin' THEN 1 ELSE 0 END) as izin,
                    SUM(CASE WHEN status = 'Sakit' THEN 1 ELSE 0 END) as sakit,
                    COUNT(*) as total_tidak_hadir
             FROM kedisiplinan_absensi
-            GROUP BY siswa_nis
-          `);
+          `;
+          let absParams = [];
+          if (startDate) {
+            absQuery += " WHERE tanggal >= $1 ";
+            absParams.push(startDate);
+          }
+          absQuery += " GROUP BY siswa_nis ";
+          const absRes = await dbPool.query(absQuery, absParams);
 
           // Get count of lates from attendances
-          const lateRes = await dbPool.query(`
+          let lateQuery = `
             SELECT student_nis as nis, COUNT(*) as late_count
             FROM attendances
             WHERE status = 'terlambat'
-            GROUP BY student_nis
-          `);
+          `;
+          let lateParams = [];
+          if (startDate) {
+            lateQuery += " AND created_at::date >= $1 ";
+            lateParams.push(startDate);
+          }
+          lateQuery += " GROUP BY student_nis ";
+          const lateRes = await dbPool.query(lateQuery, lateParams);
 
           const studentMap = new Map();
           students.forEach(s => {
@@ -1861,28 +1916,34 @@ const server = createServer(async (req, res) => {
 
           const mergedProblems = new Map();
           pointsList.forEach(r => {
-            mergedProblems.set(r.nis, {
-              nis: r.nis,
-              name: getStudentName(r.nis),
-              total_alpha: `${r.total_poin} poin`,
-              last_seen: r.last_seen
-            });
+            const sName = getStudentName(r.nis);
+            if (sName && String(sName).trim() !== String(r.nis).trim()) {
+              mergedProblems.set(r.nis, {
+                nis: r.nis,
+                name: sName,
+                total_alpha: `${r.total_poin} poin`,
+                last_seen: r.last_seen
+              });
+            }
           });
 
           alphaList.forEach(r => {
-            const existing = mergedProblems.get(r.nis);
-            if (existing) {
-              existing.total_alpha = `${existing.total_alpha} / ${r.total_alpha}x alpha`;
-              if (new Date(r.last_seen) > new Date(existing.last_seen)) {
-                existing.last_seen = r.last_seen;
+            const sName = getStudentName(r.nis);
+            if (sName && String(sName).trim() !== String(r.nis).trim()) {
+              const existing = mergedProblems.get(r.nis);
+              if (existing) {
+                existing.total_alpha = `${existing.total_alpha} / ${r.total_alpha}x alpha`;
+                if (new Date(r.last_seen) > new Date(existing.last_seen)) {
+                  existing.last_seen = r.last_seen;
+                }
+              } else {
+                mergedProblems.set(r.nis, {
+                  nis: r.nis,
+                  name: sName,
+                  total_alpha: `${r.total_alpha}x alpha`,
+                  last_seen: r.last_seen
+                });
               }
-            } else {
-              mergedProblems.set(r.nis, {
-                nis: r.nis,
-                name: getStudentName(r.nis),
-                total_alpha: `${r.total_alpha}x alpha`,
-                last_seen: r.last_seen
-              });
             }
           });
 
@@ -1941,6 +2002,80 @@ const server = createServer(async (req, res) => {
           }
         }
 
+        let hikvisionStudentToday = [];
+        let teacherLogs = [];
+        const todayJktDate = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        try {
+          let hConfig = {};
+          try {
+            const configRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+            if (configRes.rowCount > 0 && configRes.rows[0].data) {
+              hConfig = typeof configRes.rows[0].data === 'string' ? JSON.parse(configRes.rows[0].data) : configRes.rows[0].data;
+            }
+          } catch (e) {}
+          const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
+          const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
+
+          const todayLogsRes = await dbPool.query(`
+            SELECT l.*, d.ip_address, d.device_type,
+              COALESCE(
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                s.name,
+                l.employee_id
+              ) as student_name,
+              COALESCE(
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                s.name,
+                l.employee_id
+              ) as name,
+              l.employee_id as username,
+              CASE 
+                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'karyawan'
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'guru'
+                WHEN d.device_type = 'karyawan' THEN 'karyawan'
+                WHEN d.device_type = 'guru' THEN 'guru'
+                ELSE 'siswa'
+              END as true_person_type
+            FROM hikvision_logs l 
+            JOIN hikvision_devices d ON l.device_id = d.id 
+            LEFT JOIN hikvision_students s ON l.employee_id = s.nis 
+            WHERE (timestamp AT TIME ZONE 'Asia/Jakarta')::date = $1::date
+            ORDER BY l.timestamp DESC
+          `, [todayJktDate]);
+
+          const allTodayRows = todayLogsRes.rows.map(r => {
+            const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+            const personType = String(r.true_person_type).toLowerCase();
+            const lateLimit = (personType === 'siswa') ? siswaMasukLate : guruMasukLate;
+            const isLate = scanTime > lateLimit;
+            return {
+              ...r,
+              status: isLate ? 'terlambat' : 'hadir',
+              role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA')
+            };
+          });
+
+          const dedupeLogs = (arr) => {
+            const seen = new Set();
+            const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at) - new Date(b.timestamp || b.created_at));
+            const unique = [];
+            for (const item of sorted) {
+              const key = String(item.employee_id || item.username || item.nis || item.name || '').trim().toLowerCase();
+              if (!key || seen.has(key)) continue;
+              seen.add(key);
+              unique.push(item);
+            }
+            return unique.sort((a, b) => new Date(b.timestamp || b.created_at) - new Date(a.timestamp || a.created_at));
+          };
+
+          hikvisionStudentToday = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() === 'siswa'));
+          teacherLogs = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() !== 'siswa'));
+        } catch (e) {
+          console.error("Error fetching today hikvision logs for dashboard:", e);
+        }
+
         return send(req, res, 200, {
           ok: true,
           data: { 
@@ -1953,7 +2088,11 @@ const server = createServer(async (req, res) => {
             studentAttendanceRankings, 
             teacherAttendanceRankings,
             auditLogs,
-            backupErrors
+            backupErrors,
+            hikvisionStudentToday,
+            teacherLogs,
+            totalStudents: students.length,
+            totalTeachers: teachers.length
           }
         });
       } catch (err) {
@@ -2124,7 +2263,7 @@ const server = createServer(async (req, res) => {
 
 
 
-    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken };
+    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit };
     
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);
@@ -2177,8 +2316,8 @@ const server = createServer(async (req, res) => {
               [key, String(value ?? "")]
             );
           }
-          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1, $2, $3, $4, $5, $6)",
-            [session?.id || "system", session?.name || "Admin", session?.role || "admin", "UPDATE", "school_profile", "Update profil sekolah"]);
+          const changedKeys = Object.keys(body).join(', ');
+          await logAudit(dbPool, session, req, 'UPDATE', 'school_profile', `Memperbarui profil sekolah: ${changedKeys}`);
           send(req, res, 200, { ok: true });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;

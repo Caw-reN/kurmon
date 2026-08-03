@@ -87,13 +87,13 @@ export function CustomSelect({
     }
   }, [isOpen, searchable]);
 
-  const selectedOption = options.find(opt => opt.value === value) || { label: placeholder, value };
+  const selectedOption = (options || []).find(opt => opt && opt.value === value) || { label: placeholder, value };
   const filteredOptions = searchable 
-    ? options.filter(opt => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
-    : options;
+    ? (options || []).filter(opt => opt && String(opt.label ?? opt.value ?? "").toLowerCase().includes(String(searchTerm || "").toLowerCase()))
+    : (options || []);
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative min-w-0 ${className}`} ref={dropdownRef}>
       <button
         data-slot="select-trigger"
         type="button"

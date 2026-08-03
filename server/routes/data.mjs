@@ -10,7 +10,8 @@ export async function handleDataRoutes(req, res, url, ctx) {
     createDatabaseUnavailableError,
     syncAllUsersToModules,
     toPublicPayload,
-    sanitizePayload
+    sanitizePayload,
+    logAudit
   } = ctx;
 
   if (req.method === "GET" && url.pathname === "/api/data/public") {
@@ -287,7 +288,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
         saveToTable('mst_teachers', teachers, 'code'),
         saveToTable('mst_subjects', subjects, 'id'),
         saveToTable('mst_students', students, 'nis'),
-        saveToTable('mst_staffs', payload.staffs || [], 'staff_code')
+        saveToTable('mst_staffs', payload.staffs || [], 'code')
       ]);
 
       // Save the rest of the config back to app_data
@@ -301,12 +302,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
       syncAllUsersToModules().catch(console.error);
       const session = getSession(req);
       if (session) {
-        try {
-          await dbPool.query(
-            "INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1, $2, $3, $4, $5, $6)",
-            [session.username || session.id || "admin", session.name || session.username || "Admin", session.role || "admin", "UPDATE", "system_data", "Menyimpan pembaruan data sistem (jadwal, guru, siswa, kelas, dll)"]
-          );
-        } catch (err) { console.error(err); }
+        await logAudit(dbPool, session, req, "UPDATE", "system_data", "Menyimpan pembaruan data sistem (jadwal, guru, siswa, kelas, dll)");
       }
       
       send(req, res, 200, { ok: true });

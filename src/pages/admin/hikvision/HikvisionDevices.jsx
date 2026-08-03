@@ -12,12 +12,12 @@ const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
 
 const DEVICE_TYPES = [
   { value:'siswa', label:'Siswa', color:'bg-blue-100 text-blue-700 border-blue-200', icon: Users },
-  { value:'guru', label:'Guru', color:'bg-emerald-100 text-emerald-700 border-emerald-200', icon: UserCheck },
-  { value:'karyawan', label:'Karyawan', color:'bg-amber-100 text-amber-700 border-amber-200', icon: Briefcase },
+  { value:'staff', label:'Guru & Karyawan', color:'bg-purple-100 text-purple-700 border-purple-200', icon: UserCheck },
 ];
 
 const DeviceTypeBadge = ({ type }) => {
-  const dt = DEVICE_TYPES.find(d => d.value === type) || DEVICE_TYPES[0];
+  const isStaff = ['guru', 'karyawan', 'staff'].includes(type);
+  const dt = isStaff ? DEVICE_TYPES[1] : DEVICE_TYPES[0];
   const Icon = dt.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-xs font-bold border ${dt.color}`}>
@@ -116,11 +116,17 @@ export default function HikvisionDevices() {
     }
   };
 
-  // Group devices by type
-  const grouped = DEVICE_TYPES.map(dt => ({
-    ...dt,
-    devices: devices.filter(d => (d.device_type ||'siswa') === dt.value)
-  }));
+  // Group devices into 2 clean categories: Siswa vs Guru & Karyawan
+  const grouped = [
+    {
+      ...DEVICE_TYPES[0],
+      devices: devices.filter(d => (d.device_type || 'siswa') === 'siswa')
+    },
+    {
+      ...DEVICE_TYPES[1],
+      devices: devices.filter(d => ['guru', 'karyawan', 'staff'].includes(d.device_type || 'siswa'))
+    }
+  ];
 
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-300">
@@ -138,7 +144,7 @@ export default function HikvisionDevices() {
       </PageHeader>
 
       {/* Stat cards per type */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {grouped.map(g => {
           const Icon = g.icon;
           return (
@@ -217,7 +223,7 @@ export default function HikvisionDevices() {
           {/* Tipe Mesin */}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">Tipe Mesin</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {DEVICE_TYPES.map(dt => {
                 const Icon = dt.icon;
                 const isSelected = formData.device_type === dt.value;

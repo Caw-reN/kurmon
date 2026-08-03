@@ -1,16 +1,17 @@
 import { Button, TablePagination } from '../../../components/ui.jsx';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2 } from 'lucide-react';
+import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown } from 'lucide-react';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
 import { UISelect } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
+import { compareTableValues } from '../../../utils/adminHelpers.js';
 
 
 export default function HikvisionTeacherReport({ isNested = false }) {
@@ -153,147 +154,202 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     fetchTeachers();
   }, [fetchData, fetchTeachers]);
 
-  const handleExport = async () => {
-    if (data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+  const [sortBy, setSortBy] = useState("code");
+  const [sortDir, setSortDir] = useState("asc");
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Laporan Absensi Guru');
-
-    // Define columns
-    const columns = [
-      { header: 'NIP / ID', key: 'nis', width: 20 },
-      { header: 'Nama Guru', key: 'name', width: 35 },
-      { header: 'H', key: 'h', width: 5 },
-      { header: 'T', key: 't', width: 5 },
-      { header: 'I', key: 'i', width: 5 },
-      { header: 'S', key: 's', width: 5 },
-      { header: 'A', key: 'a', width: 5 }
-    ];
-    for (let i = 1; i <= daysInMonth; i++) {
-      columns.push({ header: i.toString(), key: `d${i}`, width: 10 });
-    }
-    sheet.columns = columns;
-
-    // Style Header Row
-    sheet.getRow(1).eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFF1F5F9' } // slate-100
-      };
-      cell.border = {
-        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-      };
+  const filteredData = React.useMemo(() => {
+    const list = data.filter(d => {
+      if (search && !d.name?.toLowerCase().includes(search.toLowerCase()) && !d.nis?.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
     });
 
-    // Populate data
-    data.forEach((item, rowIndex) => {
-      const rowData = {
-        nis: item.nis,
-        name: item.name,
-        h: item.total_hadir,
-        t: item.total_terlambat,
-        i: item.total_izin,
-        s: item.total_sakit,
-        a: item.total_alpa
-      };
-      
-      const row = sheet.addRow(rowData);
-      row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
-      row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
-      row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
+    return list.sort((a, b) => {
+      let av, bv;
+      if (sortBy === "code" || sortBy === "nis") {
+        av = a.nis || a.code;
+        bv = b.nis || b.code;
+      } else if (sortBy === "name") {
+        av = a.name;
+        bv = b.name;
+      } else if (sortBy === "hadir") {
+        av = a.total_hadir || 0;
+        bv = b.total_hadir || 0;
+      } else if (sortBy === "terlambat") {
+        av = a.total_terlambat || 0;
+        bv = b.total_terlambat || 0;
+      } else if (sortBy === "alpa") {
+        av = a.total_alpa || 0;
+        bv = b.total_alpa || 0;
+      } else {
+        av = a.nis || a.code;
+        bv = b.nis || b.code;
+      }
+      return compareTableValues(av, bv, sortDir);
+    });
+  }, [data, search, sortBy, sortDir]);
 
+  const isExportingRef = useRef(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (isExportingRef.current) return;
+    isExportingRef.current = true;
+    setIsExporting(true);
+
+    try {
+      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Laporan Absensi Guru');
+
+      // Define columns
+      const columns = [
+        { header: 'NIP / ID', key: 'nis', width: 20 },
+        { header: 'Nama Guru', key: 'name', width: 35 },
+        { header: 'H', key: 'h', width: 5 },
+        { header: 'T', key: 't', width: 5 },
+        { header: 'I', key: 'i', width: 5 },
+        { header: 'S', key: 's', width: 5 },
+        { header: 'A', key: 'a', width: 5 }
+      ];
       for (let i = 1; i <= daysInMonth; i++) {
-        const dayData = item.days[i];
-        const cell = row.getCell(`d${i}`);
-        
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        columns.push({ header: i.toString(), key: `d${i}`, width: 10 });
+      }
+      sheet.columns = columns;
+
+      // Style Header Row
+      sheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1F5F9' } // slate-100
+        };
         cell.border = {
           top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
         };
+      });
 
-        if (dayData) {
-          let content = "-";
-          let fgColor = "FFFFFFFF"; // white
-          let fontColor = "FF334155"; // slate-700
+      // Populate data
+      filteredData.forEach((item, rowIndex) => {
+        const rowData = {
+          nis: item.nis,
+          name: item.name,
+          h: item.total_hadir,
+          t: item.total_terlambat,
+          i: item.total_izin,
+          s: item.total_sakit,
+          a: item.total_alpa
+        };
+        
+        const row = sheet.addRow(rowData);
+        row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
+        row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
+        row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
 
-          if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
-            content = dayData.taps.slice(0, 4).map(t => t.substring(0,5)).join('\n');
-          } else {
-            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
-            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
-            else if (status === "Sakit") content = "S";
-            else if (status === "Izin") content = "I";
-            else if (status === "Terlambat" || status === "Hadir") {
-              if (dayData.in || dayData.out) {
-                const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
-                const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
-                content = `${tIn}\n${tOut}`;
-              } else {
-                content = status === "Terlambat" ? "T" : "H";
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayData = item.days[i];
+          const cell = row.getCell(`d${i}`);
+          
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+          };
+
+          if (dayData) {
+            let content = "-";
+            let fgColor = "FFFFFFFF"; // white
+            let fontColor = "FF334155"; // slate-700
+
+            if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+              content = dayData.taps.slice(0, 4).map(t => t.substring(0,5)).join('\n');
+            } else {
+              const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+              if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
+              else if (status === "Sakit") content = "S";
+              else if (status === "Izin") content = "I";
+              else if (status === "Terlambat" || status === "Hadir") {
+                if (dayData.in || dayData.out) {
+                  const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
+                  const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
+                  content = `${tIn}\n${tOut}`;
+                } else {
+                  content = status === "Terlambat" ? "T" : "H";
+                }
               }
             }
-          }
 
-          const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
-          
-          if (status === 'Hadir') {
-            fgColor = "FFDCFCE7"; // emerald-100
-            fontColor = "FF166534"; // emerald-800
-          } else if (status === 'Terlambat') {
-            fgColor = "FFFEE2E2"; // red-100
-            fontColor = "FF991B1B"; // red-800
-          } else if (status === 'Sakit') {
-            fgColor = "FFFEF3C7"; // amber-100
-            fontColor = "FF92400E"; // amber-800
-          } else if (status === 'Izin') {
-            fgColor = "FFDBEAFE"; // blue-100
-            fontColor = "FF1E3A8A"; // blue-800
-          } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
-            fgColor = "FF0F172A"; // slate-900
-            fontColor = "FFFFFFFF"; // white
-          }
+            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            
+            if (status === 'Hadir') {
+              fgColor = "FFDCFCE7"; // emerald-100
+              fontColor = "FF166534"; // emerald-800
+            } else if (status === 'Terlambat') {
+              fgColor = "FFFEE2E2"; // red-100
+              fontColor = "FF991B1B"; // red-800
+            } else if (status === 'Sakit') {
+              fgColor = "FFFEF3C7"; // amber-100
+              fontColor = "FF92400E"; // amber-800
+            } else if (status === 'Izin') {
+              fgColor = "FFDBEAFE"; // blue-100
+              fontColor = "FF1E3A8A"; // blue-800
+            } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
+              fgColor = "FF0F172A"; // slate-900
+              fontColor = "FFFFFFFF"; // white
+            }
 
-          cell.value = content;
-          cell.font = { color: { argb: fontColor }, bold: true, size: 8 };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
-        } else {
-          cell.value = "";
+            cell.value = content;
+            cell.font = { color: { argb: fontColor }, bold: true, size: 8 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
+          } else {
+            cell.value = "";
+          }
         }
-      }
-    });
+      });
 
-    // Legend
-    const legendRow = sheet.addRow([]);
-    const legendRow2 = sheet.addRow(['Keterangan:']);
-    legendRow2.font = { bold: true };
-    const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
-    
-    // Auto fit rows
-    sheet.eachRow((row) => {
-      row.commit();
-    });
+      // Legend
+      const legendRow = sheet.addRow([]);
+      const legendRow2 = sheet.addRow(['Keterangan:']);
+      legendRow2.font = { bold: true };
+      const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
+      
+      // Auto fit rows
+      sheet.eachRow((row) => {
+        row.commit();
+      });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `Laporan_Absensi_Guru_${filter.year}_${filter.month}.xlsx`);
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `Laporan_Absensi_Guru_${filter.year}_${filter.month}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal mengunduh Excel Guru: " + err.message, "error");
+    } finally {
+      setTimeout(() => {
+        isExportingRef.current = false;
+        setIsExporting(false);
+      }, 1000);
+    }
   };
 
   const handleExportPDF = () => {
-    if (!data || data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+    if (isExportingRef.current) return;
+    isExportingRef.current = true;
+    setIsExporting(true);
     
     try {
+      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+      
       const doc = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
@@ -317,7 +373,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         headers[0].push(i.toString());
       }
 
-      const body = data.map(item => {
+      const body = filteredData.map(item => {
         const row = [
           item.nis || "-",
           (item.name || "").substring(0, 30),
@@ -331,9 +387,6 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             row.push("-");
           } else {
             let content = "-";
-            let fillColor = [255, 255, 255];
-            let textColor = [51, 65, 85];
-            
             if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
               content = dayData.taps.slice(0, 4).map(t => (t || "").substring(0,5)).join('\n');
             } else {
@@ -351,37 +404,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                 }
               }
             }
-
-            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
-            
-            if (status === 'Hadir') {
-              fillColor = [220, 252, 231]; 
-              textColor = [22, 101, 52];
-            } else if (status === 'Terlambat') {
-              fillColor = [254, 226, 226]; 
-              textColor = [153, 27, 27];
-            } else if (status === 'Sakit') {
-              fillColor = [254, 243, 199]; 
-              textColor = [146, 64, 14];
-            } else if (status === 'Izin') {
-              fillColor = [219, 234, 254]; 
-              textColor = [30, 58, 138];
-            } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
-              fillColor = [15, 23, 42]; 
-              textColor = [255, 255, 255];
-            }
-
-            if (content.includes(':')) {
-               row.push({
-                 content,
-                 styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
-               });
-            } else {
-               row.push({
-                 content,
-                 styles: { fillColor, textColor }
-               });
-            }
+            row.push(content);
           }
         }
         return row;
@@ -399,6 +422,27 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           1: { halign: 'left', cellWidth: 40 },
           2: { cellWidth: 6 },
           3: { cellWidth: 6 },
+        },
+        didParseCell: function (data) {
+          if (data.section === 'body' && data.column.index >= 4 && typeof data.cell.raw === 'string') {
+            const val = data.cell.raw;
+            if (val === 'H') {
+              data.cell.styles.fillColor = [220, 252, 231]; 
+              data.cell.styles.textColor = [22, 101, 52];
+            } else if (val === 'T') {
+              data.cell.styles.fillColor = [254, 226, 226]; 
+              data.cell.styles.textColor = [153, 27, 27];
+            } else if (val === 'S') {
+              data.cell.styles.fillColor = [254, 243, 199]; 
+              data.cell.styles.textColor = [146, 64, 14];
+            } else if (val === 'I') {
+              data.cell.styles.fillColor = [219, 234, 254]; 
+              data.cell.styles.textColor = [30, 58, 138];
+            } else if (val === 'A') {
+              data.cell.styles.fillColor = [15, 23, 42]; 
+              data.cell.styles.textColor = [255, 255, 255];
+            }
+          }
         }
       });
 
@@ -420,6 +464,11 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     } catch (err) {
       console.error("Gagal mengekspor PDF Guru:", err);
       showToast("Gagal mengunduh PDF Guru: " + err.message, "error");
+    } finally {
+      setTimeout(() => {
+        isExportingRef.current = false;
+        setIsExporting(false);
+      }, 1000);
     }
   };
 
@@ -579,18 +628,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     setSubmitting(false);
   };
 
-  const filteredData = data.filter(d => {
-    if (search && !d.name.toLowerCase().includes(search.toLowerCase()) && !d.nis.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filter.month, filter.year]);
+  }, [search, filter.month, filter.year, sortBy, sortDir]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = React.useMemo(() => {
@@ -653,23 +697,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       );
     }
     const renderTaps = (dayData) => {
-      if (dayData.taps && dayData.taps.length > 0) {
-        return (
-          <div className="flex flex-col gap-0.5">
-            {dayData.taps.slice(0, 4).map((t, idx) => (
-              <React.Fragment key={idx}>
-                <div>{t.substring(0, 5)}</div>
-                {idx < Math.min(dayData.taps.length, 4) - 1 && <div className="border-t border-black/10 w-full my-0.5"></div>}
-              </React.Fragment>
-            ))}
-          </div>
-        );
-      }
+      const inTime = dayData.in ? dayData.in.substring(0, 5) : '--:--';
+      const outTime = dayData.out ? dayData.out.substring(0, 5) : '--:--';
       return (
         <div className="flex flex-col gap-0.5">
-          <div>{dayData.in?.substring(0,5) || '--:--'}</div>
+          <div>{inTime}</div>
           <div className="border-t border-black/10 w-full my-0.5"></div>
-          <div>{dayData.out?.substring(0,5) || '--:--'}</div>
+          <div>{outTime}</div>
         </div>
       );
     };
@@ -695,21 +729,22 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   return (
     <div className="space-y-6 animate-fade-in">
       {isNested ? (
-        <div className="flex bg-slate-100/80 p-1 rounded-[var(--ui-radius-control)] self-start z-30 mb-2 border border-slate-200/40 shadow-sm">
+        <div className="flex items-center justify-end gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 w-fit ml-auto shadow-xs">
           {[
             { id:'matriks', label:'Rekap Matriks Kehadiran', icon: Calendar },
             { id:'perguru', label:'Data Kinerja & Rapor Guru', icon: Award }
           ].map(tab => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setSubTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border-none ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
                 subTab === tab.id 
-                  ? 'bg-[var(--ui-primary)] text-white shadow-sm' 
-                  : 'text-slate-600 hover:bg-slate-200/70 bg-transparent'
+                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black' 
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
               }`}
             >
-              <tab.icon size={13} className="shrink-0" />
+              <tab.icon size={14} className="shrink-0" />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -728,27 +763,27 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         />
       )}
 
-      <div className="ui-card flex flex-col relative z-30">
-        {/* Filters Row */}
-        <div className="flex flex-wrap gap-4 items-end p-6 border-b border-slate-100">
-           <div className="flex-1 min-w-[150px]">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Pilih Bulan</label>
+      <div className="ui-card p-3.5 sm:p-5 flex flex-col gap-3.5 relative z-30 shadow-sm border border-slate-100/90">
+        {/* Filters Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 items-end">
+           <div className="min-w-0">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Bulan</label>
              <CustomSelect 
                value={filter.month} 
                onChange={val => setFilter({ ...filter, month: parseInt(val) })}
                options={monthOptions}
              />
            </div>
-           <div className="flex-1 min-w-[100px]">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Tahun</label>
+           <div className="min-w-0">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tahun</label>
              <CustomSelect 
                value={filter.year} 
                onChange={val => setFilter({ ...filter, year: parseInt(val) })}
                options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
              />
            </div>
-           <div className="flex-1 min-w-[130px]">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Tipe Laporan</label>
+           <div className="min-w-0">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tipe Laporan</label>
              <CustomSelect
                value={viewMode}
                onChange={val => setViewMode(val)}
@@ -758,9 +793,40 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                ]}
              />
            </div>
+           <div className="min-w-0 col-span-2 sm:col-span-1">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Urutkan Data</label>
+             <div className="flex items-center gap-1.5 w-full min-w-0">
+               <div className="flex-1 min-w-0">
+                 <CustomSelect
+                   value={sortBy}
+                   onChange={val => setSortBy(val)}
+                   options={[
+                     { value: "code", label: "No. Kode Guru" },
+                     { value: "name", label: "Nama Guru (A-Z)" },
+                     { value: "hadir", label: "Total Hadir" },
+                     { value: "terlambat", label: "Total Terlambat" },
+                     { value: "alpa", label: "Total Alpa" }
+                   ]}
+                 />
+               </div>
+               <button
+                 type="button"
+                 onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                 title={sortDir === "asc" ? "Urutan Naik (1-9/A-Z)" : "Urutan Turun (9-1/Z-A)"}
+                 className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                   sortDir === 'desc' 
+                     ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
+                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                 }`}
+               >
+                 <ArrowUpDown size={14} />
+               </button>
+             </div>
+           </div>
+
            {viewMode ==="weekly" && (
-             <div className="flex-1 min-w-[130px] animate-in slide-in-from-left-2 duration-150">
-               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Pilih Minggu</label>
+             <div className="col-span-2 sm:col-span-1 animate-in slide-in-from-left-2 duration-150">
+               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Minggu</label>
                <CustomSelect
                  value={selectedWeek}
                  onChange={val => setSelectedWeek(parseInt(val))}
@@ -774,74 +840,81 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                />
              </div>
            )}
-           <div className="w-full md:w-auto flex flex-wrap gap-2 ml-auto">
-             <Button onClick={fetchData} className="flex-1 md:flex-none flex items-center gap-1.5 justify-center">
-               <Filter size={14} className="shrink-0" />
-               <span className="hidden sm:inline">Terapkan</span>
+        </div>
+
+        {/* Action Buttons Toolbar */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-3.5 border-t border-slate-100">
+           <Button onClick={fetchData} className="w-full md:w-auto px-5 py-2 flex items-center justify-center gap-2 font-black text-xs shadow-xs cursor-pointer">
+             <Filter size={14} className="shrink-0" />
+             <span>Terapkan Filter</span>
+           </Button>
+
+           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+             <div className="relative">
+               <Button 
+                 variant="outline"
+                 type="button"
+                 onClick={() => setWaDropdownOpen(!waDropdownOpen)}
+                 disabled={sendingWA}
+                 className="px-3.5 py-2 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer"
+               >
+                 <Share2 size={14} className="shrink-0 text-emerald-600" />
+                 <span>{sendingWA ?"Kirim..." :"Kirim WA"}</span>
+               </Button>
+               {waDropdownOpen && (
+                 <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden animate-in fade-in duration-150">
+                   <button 
+                     type="button"
+                     onClick={() =>handleBlastWA("daily")}
+                     className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer border-none bg-transparent"
+                   >
+                     Rekap Harian
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() =>handleBlastWA("monthly")}
+                     className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer border-none bg-transparent"
+                   >
+                     Rekap Bulanan
+                   </button>
+                 </div>
+               )}
+             </div>
+
+             <Button 
+               variant="outline"
+               type="button"
+               onClick={() => setIsModalOpen(true)}
+               className="px-3.5 py-2 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer"
+             >
+               <Plus size={14} className="shrink-0 text-indigo-600" />
+               <span>Input Manual</span>
              </Button>
-            <div className="relative">
-              <Button 
-                variant="outline"
-                type="button"
-                onClick={() => setWaDropdownOpen(!waDropdownOpen)}
-                disabled={sendingWA}
-                className="w-full md:w-auto flex items-center gap-1.5 justify-center"
-              >
-                <Share2 size={14} className="shrink-0" />
-                <span className="hidden sm:inline">{sendingWA ?"Mengirim..." :"Kirim WA"}</span>
-                {!sendingWA && <span className="inline sm:hidden">WA</span>}
-              </Button>
-              {waDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-150 rounded-[var(--ui-radius-small)] shadow-lg z-50 py-1">
-                  <Button variant="outline"
-                    type="button"
-                    onClick={() =>handleBlastWA("daily")}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-sm font-medium border-none rounded-none"
-                  >
-                    Rekap Harian</Button>
-                  <Button variant="outline"
-                    type="button"
-                    onClick={() =>handleBlastWA("monthly")}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-sm font-medium border-none rounded-none"
-                  >
-                    Rekap Bulanan</Button>
-                </div>
-              )}
-            </div>
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="flex-1 md:flex-none flex items-center gap-1.5 justify-center"
-            >
-              <Plus size={14} className="shrink-0" />
-              <span className="hidden sm:inline">Input Manual</span>
-              <span className="inline sm:hidden">Input</span>
-            </Button>
+
              <Button 
                variant="outline"
                type="button"
                onClick={handleExport}
                disabled={loading || data.length === 0}
-               className="flex-1 md:flex-none flex items-center gap-1.5 justify-center"
+               className="px-3.5 py-2 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-700 border-emerald-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
              >
                <FileSpreadsheet size={14} className="shrink-0" />
-               <span className="hidden sm:inline">Excel Export</span>
-               <span className="inline sm:hidden">Excel</span>
+               <span>Excel</span>
              </Button>
+
              <Button 
                variant="outline"
                type="button"
                onClick={handleExportPDF}
                disabled={loading || data.length === 0}
-               className="flex-1 md:flex-none flex items-center gap-1.5 justify-center"
+               className="px-3.5 py-2 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 border-rose-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
              >
                <FileText size={14} className="shrink-0" />
-               <span className="hidden sm:inline">PDF Export</span>
-               <span className="inline sm:hidden">PDF</span>
+               <span>PDF</span>
              </Button>
-          </div>
+           </div>
         </div>
+      </div>
 
 
 
@@ -1059,7 +1132,6 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           </div>
         </div>
       )}
-      </div>
 
       {/* Manual Input Modal */}
       {isModalOpen && (

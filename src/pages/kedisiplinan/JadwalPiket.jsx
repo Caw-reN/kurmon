@@ -172,26 +172,29 @@ export default function JadwalPiket({ teachers = [] }) {
       )}
 
       {/* Control Bar */}
-      <div className="ui-card p-4 flex flex-col sm:flex-row justify-between gap-4 items-center print:hidden">
-         <div>
+      <div className="ui-card p-4 flex flex-col sm:flex-row justify-between gap-3 items-stretch sm:items-center print:hidden">
+         <div className="w-full sm:w-auto">
             <Button variant="outline" 
               type="button"
-              onClick={() =>window.print()}
-              className="flex items-center gap-1.5 cursor-pointer"
+              onClick={() => window.print()}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 cursor-pointer font-bold text-xs py-2.5 shadow-xs"
             >
-              <Printer size={13} className="stroke-[2.5]" />
-              Cetak Jadwal Piket</Button>
+              <Printer size={15} className="stroke-[2.2]" />
+              Cetak Jadwal Piket
+            </Button>
          </div>
-         <div className="flex items-center gap-4">
-            <label className="text-sm font-bold text-slate-700">Pilih Kampus:</label>
-            <div className="flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)]">
-               {["Kampus A","Kampus B"].map(k => (
+         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Pilih Kampus:</label>
+            <div className="flex bg-slate-100/90 p-1 rounded-xl w-full sm:w-auto border border-slate-200/60">
+               {["Kampus A", "Kampus B"].map(k => (
                   <Button variant="outline" 
                      key={k} 
-                     onClick={() =>setFilterKampus(k)}
-                     className={`${filterKampus === k ?'bg-white text-[var(--ui-primary)] shadow-sm' :'text-slate-500 hover:text-slate-700'}`}
+                     type="button"
+                     onClick={() => setFilterKampus(k)}
+                     className={`flex-1 sm:flex-initial text-xs font-black py-1.5 px-4 rounded-lg transition-all cursor-pointer border-none ${filterKampus === k ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'}`}
                   >
-                     {k}</Button>
+                     {k}
+                  </Button>
                ))}
             </div>
          </div>

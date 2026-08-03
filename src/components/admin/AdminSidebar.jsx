@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from'react';
 import { cn } from'@/lib/utils';
-import { Calendar, CalendarDays, Users, BookOpen, LayoutDashboard, Settings, MessageSquare, History, SlidersHorizontal, Clock, FileText, FileSpreadsheet, DoorOpen, User, UserPlus, AppWindow, PieChart, Wand2, MonitorSmartphone, CheckCircle2, FolderOpen, Phone, Briefcase, Shield, ShieldAlert, Activity, HardDrive, GraduationCap, Building2, DatabaseBackup, UserCog, ClipboardList, Trophy, UserMinus, ChevronDown, X, RefreshCw, LogOut } from'lucide-react';
+import { Calendar, CalendarDays, Users, BookOpen, LayoutDashboard, Settings, MessageSquare, History, SlidersHorizontal, Clock, FileText, FileSpreadsheet, DoorOpen, User, UserPlus, AppWindow, PieChart, Wand2, MonitorSmartphone, CheckCircle2, FolderOpen, Phone, Briefcase, Shield, ShieldAlert, Activity, HardDrive, GraduationCap, Building2, DatabaseBackup, UserCog, ClipboardList, Trophy, UserMinus, ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen } from'lucide-react';
 
 
 export default function AdminSidebar({
@@ -172,7 +172,7 @@ export default function AdminSidebar({
                 </div>
               )}
             </div>
-            {isMobileMenuOpen && (
+            {isMobileMenuOpen ? (
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -180,6 +180,15 @@ export default function AdminSidebar({
                 title="Tutup Menu"
               >
                 <X size={15} strokeWidth={2.5} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-2xs"
+                title="Sembunyikan Sidebar"
+              >
+                <PanelLeftClose size={16} strokeWidth={2.5} />
               </button>
             )}
           </div>
@@ -211,16 +220,21 @@ export default function AdminSidebar({
               icon: LayoutDashboard,
               label:"Dashboard"
             })}
-            <SidebarSection label="Jadwal Saya" />
-            {renderNavItem({
-              id:"ketersediaan",
-              icon: Clock,
-              label:"Ketersediaan Saya"
-            })}
+            <SidebarSection label="Jadwal & Agenda" />
             {renderNavItem({
               id:"generate",
               icon: Calendar,
               label:"Jadwal Mengajar"
+            })}
+            {renderNavItem({
+              id:"akademik",
+              icon: CalendarDays,
+              label:"Kalender Akademik"
+            })}
+            {renderNavItem({
+              id:"ketersediaan",
+              icon: Clock,
+              label:"Ketersediaan Saya"
             })}
             <SidebarSection label="Pembelajaran" />
             {renderNavItem({
@@ -275,7 +289,7 @@ export default function AdminSidebar({
             {renderNavItem({
               id:"generate",
               icon: Calendar,
-              label:"Pantau Jadwal",
+              label:"Jadwal Pelajaran",
               roles: ["kepsek"]
             })}
             {renderNavItem({
@@ -366,13 +380,12 @@ export default function AdminSidebar({
               label:"Data Karyawan",
               roles: ["tu"]
             })}
-            <SidebarSection label="Administrasi" />
+            <SidebarSection label="Administrasi & Absensi" />
             {renderNavItem({
-              id:"absensi",
-              icon: CheckCircle2,
-              label:"Rekap Absensi Siswa",
-              roles: ["tu"],
-              featureKey:"attendance"
+              id:"laporan_absensi",
+              icon: ClipboardList,
+              label:"Laporan Absensi",
+              roles: ["tu"]
             })}
             {renderNavItem({
               id:"esurat",
@@ -394,12 +407,17 @@ export default function AdminSidebar({
               icon: LayoutDashboard,
               label:"Dashboard"
             })}
-            <SidebarSection label="Kehadiran" />
+            <SidebarSection label="Kehadiran & Laporan" />
             {renderNavItem({
               id:"absensiguru",
               icon: CheckCircle2,
-              label:"Absensi Fingerprint",
+              label:"Absensi Fingerprint Saya",
               featureKey:"attendance"
+            })}
+            {renderNavItem({
+              id:"laporan_absensi",
+              icon: ClipboardList,
+              label:"Laporan Absensi"
             })}
           </>
         ) : activeUserRole ==="waka" ? (
@@ -410,6 +428,23 @@ export default function AdminSidebar({
               label:"Dashboard",
               roles: ["waka"]
             })}
+            {(currentUser?.isWalas || currentUser?.walasClass) && (
+              <>
+                <SidebarSection label={`Wali Kelas (${currentUser.walasClass || 'Kelas Ampuan'})`} />
+                {renderNavItem({
+                  id: "walas_report",
+                  icon: ClipboardList,
+                  label: `Laporan ${currentUser.walasClass || 'Kelas Saya'}`,
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id: "catatan_walikelas",
+                  icon: MessageSquare,
+                  label: `Catatan ${currentUser.walasClass || 'Kelas Saya'}`,
+                  roles: ["waka"]
+                })}
+              </>
+            )}
             {activeUserDivision ==="kesiswaan" ? (
               <>
                 <SidebarSection label="Kesiswaan & BK" />
@@ -427,12 +462,6 @@ export default function AdminSidebar({
                   featureKey:"attendance"
                 })}
                 {renderNavItem({
-                  id:"walas_report",
-                  icon: ClipboardList,
-                  label:"Laporan Wali Kelas",
-                  roles: ["waka"]
-                })}
-                {renderNavItem({
                   id:"riwayat_prestasi",
                   icon: History,
                   label:"Riwayat Prestasi",
@@ -441,7 +470,7 @@ export default function AdminSidebar({
                 {renderNavItem({
                   id:"akademik",
                   icon: CalendarDays,
-                  label:"Kalender Kegiatan",
+                  label:"Kalender Akademik",
                   roles: ["waka"]
                 })}
                 {renderNavItem({
@@ -514,7 +543,7 @@ export default function AdminSidebar({
                 {renderNavItem({
                   id:"generate",
                   icon: Calendar,
-                  label:"Pantau Jadwal",
+                  label:"Jadwal Pelajaran",
                   roles: ["waka"]
                 })}
               </>
@@ -614,7 +643,7 @@ export default function AdminSidebar({
                 {renderNavItem({
                   id:"generate",
                   icon: Calendar,
-                  label:"Pantau Jadwal",
+                  label:"Jadwal Pelajaran",
                   roles: ["waka"]
                 })}
                 {renderNavItem({
@@ -627,6 +656,18 @@ export default function AdminSidebar({
                   id:"beban",
                   icon: FileSpreadsheet,
                   label:"Beban Mengajar",
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id:"pengaturan",
+                  icon: Settings,
+                  label:"Konfigurasi Waktu",
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id:"advanced_rules",
+                  icon: SlidersHorizontal,
+                  label:"Aturan Penjadwalan",
                   roles: ["waka"]
                 })}
                 {renderNavItem({
@@ -897,22 +938,16 @@ export default function AdminSidebar({
                     label:"Data Siswa"
                   })}
                   {renderNavItem({
-                    id:"data_pegawai",
-                    icon: Users,
-                    label:"Data Guru & Karyawan",
-                    roles: ["waka"]
-                  })}
-                  {renderNavItem({
                     id:"guru",
                     icon: Users,
                     label:"Data Guru",
-                    roles: ["admin","superadmin"]
+                    roles: ["admin","superadmin","waka"]
                   })}
                   {renderNavItem({
                     id:"karyawan",
                     icon: Users,
                     label:"Data Karyawan",
-                    roles: ["admin","superadmin"]
+                    roles: ["admin","superadmin","waka"]
                   })}
                   {renderNavItem({
                     id:"mapel",

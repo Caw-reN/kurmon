@@ -6,6 +6,7 @@ import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, Chevro
 import { Badge } from'../ui/badge.jsx';
 import { UISelect, Button } from'../ui.jsx';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from'../ui/table.jsx';
+import { PageHeader } from '../monitoring/ui/index.js';
 
 
 const TAB_FILTER_KEYS = {
@@ -134,7 +135,26 @@ export function useAdminTableRenderer(context) {
     const visibleKeys = paginatedData.map(item => getRowKeyForTab(tabKey, item));
     const allVisibleSelected = visibleKeys.length > 0 && visibleKeys.every(key => selectedKeys.includes(key));
     const selectedCount = selectedKeys.length;
-    const actualPageHeader = options.pageHeader || null;
+
+    const defaultSubtitles = {
+      siswa: "Kelola data induk siswa, kelas, jurusan, serta status keaktifan akademik siswa.",
+      kelas: "Kelola data rombongan belajar (rombel), tingkat kelas, dan wali kelas.",
+      jurusan: "Kelola daftar kompetensi keahlian dan konsentrasi keahlian sekolah.",
+      data_pegawai: "Kelola data induk seluruh pegawai sekolah, guru, serta staf tata usaha.",
+      guru: "Kelola data induk guru, beban mengajar, dan target jam mengajar.",
+      karyawan: "Kelola data induk staf dan karyawan sekolah serta status absensi.",
+      mapel: "Kelola daftar mata pelajaran beserta alokasi waktu dan jenis ruangannya.",
+      ruangan: "Kelola sarana prasarana sekolah, daftar ruangan kelas, laboratorium, dan bengkel.",
+      fasilitas: "Kelola sarana prasarana sekolah, daftar ruangan kelas, laboratorium, dan bengkel.",
+      beban: "Kelola dan susun pembagian beban mengajar guru untuk setiap mata pelajaran.",
+    };
+
+    const actualPageHeader = options.pageHeader !== undefined 
+      ? options.pageHeader 
+      : <PageHeader 
+          title={title} 
+          description={(tabSubtitles && tabSubtitles[tabKey]) || defaultSubtitles[tabKey] || `Kelola & pantau data ${title.toLowerCase()} sekolah secara terpusat.`} 
+        />;
 
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
@@ -283,12 +303,30 @@ export function useAdminTableRenderer(context) {
                       aria-label={`Pilih semua ${tabKey} yang tampil`}
                     />
                   </TableHead>
-                  <TableHead className="w-10 text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3">
-                    No
+                  <TableHead 
+                    className="w-12 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 cursor-pointer hover:bg-muted/80 transition-colors select-none"
+                    onClick={() => {
+                      const numberKey = tabKey === "guru" || tabKey === "karyawan" ? "code" : tabKey === "siswa" ? "nis" : tabKey === "ruangan" ? "id" : tabKey === "beban" ? "teacherCode" : "code";
+                      setTableSorts(prev => {
+                        const current = prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey] || { key: numberKey, dir: "asc" };
+                        return {
+                          ...prev,
+                          [tabKey]: { key: numberKey, dir: current.key === numberKey && current.dir === "asc" ? "desc" : "asc" }
+                        };
+                      });
+                    }}
+                    title="Klik untuk mengurutkan berdasarkan Nomor/Kode"
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>No</span>
+                      {(sortConfig.key === "code" || sortConfig.key === "nis" || sortConfig.key === "id" || sortConfig.key === "teacherCode") && (
+                        <span className="text-[9px] font-black text-primary">{sortConfig.dir === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
                   </TableHead>
                   {columns.map((col, idx) => {
                     const name = String(col).toLowerCase();
-                    let alignClass ="text-left";
+                    let alignClass = "text-left";
                     if (
                       name.includes("kode") || 
                       name.includes("nis") || 
@@ -300,11 +338,52 @@ export function useAdminTableRenderer(context) {
                       name.includes("jam") ||
                       name.includes("lantai")
                     ) {
-                      alignClass ="text-center";
+                      alignClass = "text-center";
                     }
+
+                    const getSortKeyForCol = (colStr) => {
+                      const s = String(colStr).toLowerCase();
+                      if (s.includes("kode") || s.includes("nis") || s.includes("id ruang")) {
+                        return tabKey === "guru" || tabKey === "karyawan" ? "code" : tabKey === "siswa" ? "nis" : tabKey === "ruangan" ? "id" : "code";
+                      }
+                      if (s.includes("nama")) return "name";
+                      if (s.includes("jurusan")) return "major";
+                      if (s.includes("tingkat")) return "grade";
+                      if (s.includes("divisi")) return "division";
+                      if (s.includes("tipe") || s.includes("kategori")) return "type";
+                      if (s.includes("jp")) return "targetWeeklyJp";
+                      return null;
+                    };
+
+                    const targetSortKey = getSortKeyForCol(col);
+                    const isActiveSort = targetSortKey && sortConfig.key === targetSortKey;
+
                     return (
-                      <TableHead key={idx} className={cn("text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3", alignClass)}>
-                        {col}
+                      <TableHead 
+                        key={idx} 
+                        className={cn(
+                          "text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 select-none",
+                          alignClass,
+                          targetSortKey ? "cursor-pointer hover:bg-muted/80 hover:text-foreground transition-colors" : ""
+                        )}
+                        onClick={() => {
+                          if (!targetSortKey) return;
+                          setTableSorts(prev => {
+                            const current = prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey] || { key: targetSortKey, dir: "asc" };
+                            return {
+                              ...prev,
+                              [tabKey]: { key: targetSortKey, dir: current.key === targetSortKey && current.dir === "asc" ? "desc" : "asc" }
+                            };
+                          });
+                        }}
+                        title={targetSortKey ? `Klik untuk mengurutkan berdasarkan ${col}` : undefined}
+                      >
+                        <div className={cn("flex items-center gap-1", alignClass === "text-center" ? "justify-center" : "justify-start")}>
+                          <span>{col}</span>
+                          {isActiveSort && (
+                            <span className="text-[9px] font-black text-primary">{sortConfig.dir === "asc" ? "▲" : "▼"}</span>
+                          )}
+                        </div>
                       </TableHead>
                     );
                   })}

@@ -3,7 +3,7 @@ import { BookOpen } from'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
 import * as XLSX from'xlsx';
-import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Search, ArrowUpDown, Filter } from'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
@@ -317,7 +317,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   );
 }
 
-export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [] }) {
+export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [], onBack }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   const role = user?.role ||'';
@@ -679,24 +679,100 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const progressPct = totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300">
+    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 pb-20 sm:pb-6">
       <PageHeader
         title="Jurnal Harian Guru"
         icon={BookOpen}
-        description="Pencatatan kegiatan KBM harian yang tersinkron dengan jadwal mengajar."
+        description="Pencatatan kegiatan KBM harian yang tersinkron dengan jadwal Anda."
         tabs={isKurikulum ? [
           { id: 'harian', label: 'Jurnal Harian' },
           { id: 'rekap', label: 'Rekap Per Guru' }
         ] : []}
         activeTab={activeView}
         onTabChange={setActiveView}
+        onBack={onBack}
       />
 
       {/* === HARIAN VIEW === */}
-      {activeView ==='harian' && (
+      {activeView === 'harian' && (
         <>
-          {/* Filter Bar */}
-          <div className="ui-card p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          {/* Mobile Filter & Export Card (Reference Layout matching media__1785567800000.png) */}
+          <div className="sm:hidden ui-card rounded-3xl p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              {/* Date selector button */}
+              <div 
+                onClick={(e) => {
+                  const inputEl = e.currentTarget.querySelector('input[type="date"]');
+                  if (inputEl) {
+                    try { inputEl.showPicker(); } catch (err) { inputEl.click(); }
+                  }
+                }}
+                className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-2.5 min-w-0 pointer-events-none">
+                  <div 
+                    className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
+                  >
+                    <Calendar size={16} strokeWidth={2.2} />
+                  </div>
+                  <span className="text-xs font-extrabold text-slate-800 truncate">
+                    {filterDate ? new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Pilih Tanggal'}
+                  </span>
+                </div>
+                <input
+                  type="date"
+                  value={filterDate}
+                  onChange={e => setFilterDate(e.target.value)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    try { e.currentTarget.showPicker(); } catch (err) {}
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                />
+                <ChevronDown size={16} className="text-slate-400 shrink-0 pointer-events-none" />
+              </div>
+
+              {/* Refresh button */}
+              <button
+                type="button"
+                onClick={fetchJurnal}
+                title="Refresh"
+                className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
+              >
+                <RefreshCw size={18} strokeWidth={2} />
+              </button>
+            </div>
+
+            {isKurikulum && (
+              <div className="w-full">
+                <CustomSelect
+                  options={teacherOptions}
+                  value={filterTeacher}
+                  onChange={v => setFilterTeacher(v)}
+                  placeholder="Filter Guru"
+                />
+              </div>
+            )}
+
+            {/* Export Jurnal Hari Ini button */}
+            <button
+              type="button"
+              onClick={exportExcel}
+              className="w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
+              style={{
+                background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
+                color: "var(--ui-primary)",
+                border: "1px solid color-mix(in srgb, var(--ui-primary) 25%, transparent)"
+              }}
+            >
+              <FileDown size={16} strokeWidth={2.2} />
+              Export Jurnal Hari Ini
+            </button>
+          </div>
+
+          {/* Desktop Filter Bar */}
+          <div className="hidden sm:flex ui-card p-4 flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <div className="flex gap-2 w-full sm:w-auto">
                 <div className="flex-1 sm:flex-none flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 rounded-[var(--ui-radius-small)]">
@@ -985,10 +1061,21 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           )}
 
           {!isLoading && totalSlots === 0 && jurnalList.length === 0 && (
-            <div className="ui-card p-10 text-center">
-              <BookOpen size={40} className="mx-auto text-slate-300 mb-3" />
-              <h3 className="font-bold text-slate-600 text-sm">Tidak Ada Jadwal Mengajar</h3>
-              <p className="text-xs text-slate-400 mt-1">Tidak ada jadwal mengajar untuk {HARI_ID[new Date(filterDate).getDay()]}, {new Date(filterDate).toLocaleDateString('id-ID')}</p>
+            <div className="ui-card rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
+              <div 
+                className="w-20 h-20 rounded-3xl flex items-center justify-center mb-1 shadow-inner"
+                style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+              >
+                <Coffee size={38} strokeWidth={2.2} />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">Waktu Luang!</h3>
+              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+                Tidak ada jadwal mengajar untuk hari{' '}
+                <span className="font-black text-slate-700">
+                  {new Date(filterDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                . Selamat beristirahat!
+              </p>
             </div>
           )}
         </>

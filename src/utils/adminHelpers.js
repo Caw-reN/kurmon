@@ -133,6 +133,11 @@ export const compareTableValues = (a, b, dir = "asc") => {
   if (typeof av === "number" && typeof bv === "number") {
     return (av - bv) * factor;
   }
+  const aNum = Number(av);
+  const bNum = Number(bv);
+  if (!isNaN(aNum) && !isNaN(bNum) && String(av).trim() !== "" && String(bv).trim() !== "") {
+    return (aNum - bNum) * factor;
+  }
   const aText = String(av).toLowerCase();
   const bText = String(bv).toLowerCase();
   return aText.localeCompare(bText, "id", {

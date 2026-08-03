@@ -61,26 +61,56 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           FROM hikvision_devices d
           ORDER BY d.device_type, d.location
         `);
-        // Lookup nama dari hikvision_students (siswa) dan mst_teachers (guru/karyawan)
-        const recentLogs = await dbPool.query(`
+        const hConfig = await getHikvisionConfig();
+        const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
+        const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
+
+        const recentLogsRes = await dbPool.query(`
           SELECT l.*, d.ip_address, d.device_type,
             COALESCE(
-              (SELECT payload->>'name' FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+              (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+              (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
               s.name,
-              'Unknown'
-            ) as student_name
+              l.employee_id
+            ) as student_name,
+            COALESCE(
+              (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+              (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+              s.name,
+              l.employee_id
+            ) as name,
+            CASE 
+              WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'karyawan'
+              WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'guru'
+              WHEN d.device_type = 'karyawan' THEN 'karyawan'
+              WHEN d.device_type = 'guru' THEN 'guru'
+              ELSE 'siswa'
+            END as true_person_type
           FROM hikvision_logs l 
           JOIN hikvision_devices d ON l.device_id = d.id 
           LEFT JOIN hikvision_students s ON l.employee_id = s.nis 
-          ORDER BY l.timestamp DESC LIMIT 30
+          ORDER BY l.timestamp DESC LIMIT 50
         `);
-        send(req, res, 200, { ok: true, devices: devices.rows, recentLogs: recentLogs.rows });
+
+        const processedRecentLogs = recentLogsRes.rows.map(r => {
+          const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+          const personType = String(r.true_person_type).toLowerCase();
+          const lateLimit = (personType === 'siswa') ? siswaMasukLate : guruMasukLate;
+          const isLate = scanTime > lateLimit;
+          return {
+            ...r,
+            status: isLate ? 'terlambat' : 'hadir',
+            role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA')
+          };
+        });
+
+        send(req, res, 200, { ok: true, devices: devices.rows, recentLogs: processedRecentLogs });
       } catch (err) {
         sendDatabaseError(req, res, err);
       }
       return;
     }
-if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
+    if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
       if (!requireAuthenticated(req, res)) return;
       try {
         const body = await readJsonBody(req);
@@ -152,15 +182,24 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         const endDate = url.searchParams.get("endDate");
         const deviceId = url.searchParams.get("deviceId");
         const reportType = url.searchParams.get("type") || 'siswa'; // siswa | guru | karyawan
-        
-        // Build name lookup depending on type
-        const nameCoalesce = (reportType === 'siswa')
-          ? `COALESCE(s.name, 'Unknown') as student_name, s.nis`
-          : `COALESCE(
-               (SELECT payload->>'name' FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
-               s.name,
-               'Unknown'
-             ) as student_name, l.employee_id as nis`;
+
+        const nameCoalesce = `COALESCE(
+           (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+           (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id LIMIT 1),
+           s.name,
+           l.employee_id
+         ) as student_name, l.employee_id as nis`;
+
+        let typeCondition = "";
+        if (reportType === 'siswa') {
+          typeCondition = "d.device_type = 'siswa'";
+        } else if (reportType === 'karyawan') {
+          typeCondition = "(EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) OR d.device_type = 'karyawan')";
+        } else if (reportType === 'guru') {
+          typeCondition = "(EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) OR (d.device_type = 'guru' AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)))";
+        } else {
+          typeCondition = "d.device_type IN ('guru', 'karyawan')";
+        }
 
         let query = `
           SELECT l.id, l.timestamp, l.event_type, d.ip_address, d.location, d.device_type,
@@ -168,7 +207,7 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
           FROM hikvision_logs l
           JOIN hikvision_devices d ON l.device_id = d.id
           LEFT JOIN hikvision_students s ON l.employee_id = s.nis
-          WHERE d.device_type = $1
+          WHERE ${typeCondition}
         `;
         const params = [reportType];
         let paramCount = 2;
@@ -195,9 +234,22 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
       }
       return;
     }
-    // NOTE: GET/POST /api/hikvision/config dan POST /api/hikvision/manual-attendance
-    // ditangani oleh blok handler lengkap di bawah (dengan merge logic dan WA notifikasi).
-    // Blok duplikat lama sudah dihapus untuk mencegah konflik route.
+    if (req.method === "POST" && url.pathname === "/api/hikvision/clear-test-logs") {
+      if (!requireAuthenticated(req, res)) return;
+      try {
+        await dbPool.query("DELETE FROM hikvision_logs");
+        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+        if (mainRes.rowCount > 0) {
+          const mainData = JSON.parse(mainRes.rows[0].data);
+          mainData.attendanceRecords = [];
+          await dbPool.query("UPDATE app_data SET data = $1 WHERE store_key = 'main_store'", [JSON.stringify(mainData)]);
+        }
+        send(req, res, 200, { ok: true, message: "Seluruh log presensi uji coba berhasil dibersihkan!" });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
 
     if (req.method === "POST" && url.pathname === "/api/hikvision/sync-all") {
       if (!requireAuthenticated(req, res)) return;
@@ -607,16 +659,23 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
           const typeFilter = personType === "staff" ? ["guru", "karyawan"] : [personType];
           const placeholders = typeFilter.map((_, i) => `$${i + 1}`).join(", ");
           const result = await dbPool.query(`
-            SELECT s.nis, s.name as device_name, s.class_name as person_type,
+            SELECT s.nis, s.name as device_name,
               COALESCE(
-                (SELECT payload->>'name' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis LIMIT 1),
                 s.name
               ) as name,
               (SELECT payload->>'mapel' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis LIMIT 1) as mapel,
               (SELECT payload->>'nip' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis LIMIT 1) as nip,
               (SELECT payload->>'code' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis LIMIT 1) as code,
-              EXISTS(
-                SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis
+              CASE 
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis) THEN 'guru'
+                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis) THEN 'karyawan'
+                ELSE s.class_name
+              END as person_type,
+              (
+                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR payload->>'id' = s.nis) OR
+                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis)
               ) as is_connected
             FROM hikvision_students s
             WHERE s.class_name IN (${placeholders})
@@ -715,7 +774,7 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
           } else if (reportType === 'karyawan') {
             studentsQueryStr = `
               SELECT 
-                COALESCE(payload->>'staff_code', id) as nis, 
+                COALESCE(payload->>'staff_code', payload->>'code', payload->>'nip', id) as nis, 
                 'karyawan' as class_name, 
                 COALESCE(payload->>'name', payload->>'nama', id) as name 
               FROM mst_staffs
@@ -734,27 +793,20 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         let logsQueryStr = "";
         if (reportType === 'siswa') {
           logsQueryStr = `
-            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, s.name, 
+            SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, s.name, 
                    COALESCE((SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name) LIMIT 1), s.class_name) as class_name
             FROM hikvision_logs l
             JOIN hikvision_students s ON l.employee_id = s.nis
-            WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
+            WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
             ${classFilter}
             ORDER BY l.timestamp ASC
           `;
         } else {
           const types = reportType === 'staff' ? ['guru', 'karyawan'] : [reportType];
           logsQueryStr = `
-            SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, 
-              COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR id = l.employee_id OR payload->>'nip' = l.employee_id LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR id = l.employee_id LIMIT 1),
-                'Unknown'
-              ) as name,
-              l.person_type as class_name
+            SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
             FROM hikvision_logs l
-            WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
-            AND l.person_type IN (${types.map(t => `'${t}'`).join(',')})
+            WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
             ORDER BY l.timestamp ASC
           `;
         }
@@ -784,19 +836,18 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         
         logsQuery.rows.forEach(log => {
             const nis = log.employee_id;
-            if (!matrix[nis]) {
-                 matrix[nis] = { nis, name: log.name, class_name: log.class_name, total_hadir: 0, total_terlambat: 0, total_izin: 0, total_sakit: 0, total_alpa: 0, days: {} };
-            }
+            // Skip processing for logs that do not belong to the queried group
+            if (!matrix[nis]) return;
             
-            // Resolve timing config dynamically based on user type
+            // Resolve timing config dynamically based on true user type from our masters
             let logRole = "siswa";
-            if (log.class_name === "guru" || log.class_name === "teacher") {
+            if (matrix[nis].class_name === "guru" || matrix[nis].class_name === "teacher") {
               logRole = "guru";
-            } else if (log.class_name === "karyawan" || log.class_name === "staff") {
+            } else if (matrix[nis].class_name === "karyawan" || matrix[nis].class_name === "staff") {
               logRole = "karyawan";
             } else if (reportType === "guru") {
               logRole = "guru";
-            } else if (reportType === "staff") {
+            } else if (reportType === "karyawan" || reportType === "staff") {
               logRole = "karyawan";
             }
 
@@ -814,37 +865,23 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
                  matrix[nis].days[day] = { in: null, out: null, isLate: false };
             }
             
-            if (logRole === "guru") {
-                if (!matrix[nis].days[day].taps) matrix[nis].days[day].taps = [];
-                if (!matrix[nis].days[day].taps.includes(timeStr)) {
-                    matrix[nis].days[day].taps.push(timeStr);
-                    matrix[nis].days[day].taps.sort();
-                }
-                matrix[nis].days[day].in = matrix[nis].days[day].taps[0];
-                if (matrix[nis].days[day].taps.length > 1) {
-                    matrix[nis].days[day].out = matrix[nis].days[day].taps[matrix[nis].days[day].taps.length - 1];
-                }
-            } else {
-                if (timeStr >= masukOpen && timeStr <= masukClose) {
-                    if (!matrix[nis].days[day].in || timeStr < matrix[nis].days[day].in) {
-                        matrix[nis].days[day].in = timeStr;
-                        matrix[nis].days[day].isLate = timeStr > masukLate;
-                    }
-                } else if (timeStr >= pulangOpen && timeStr <= pulangClose) {
-                    if (!matrix[nis].days[day].out || timeStr > matrix[nis].days[day].out) {
-                        matrix[nis].days[day].out = timeStr;
-                    }
-                } else {
-                    if (!matrix[nis].days[day].in) {
-                        matrix[nis].days[day].in = timeStr;
-                        matrix[nis].days[day].isLate = timeStr > masukLate;
-                    } else {
-                        if (!matrix[nis].days[day].out || timeStr > matrix[nis].days[day].out) {
-                            matrix[nis].days[day].out = timeStr;
-                        }
-                    }
-                }
+            if (!matrix[nis].days[day].taps) matrix[nis].days[day].taps = [];
+            if (!matrix[nis].days[day].taps.includes(timeStr)) {
+                matrix[nis].days[day].taps.push(timeStr);
+                matrix[nis].days[day].taps.sort();
             }
+
+            // Categorize taps into morning (Masuk: < 12:00) and afternoon/evening (Pulang: >= 12:00)
+            const cutoff = "12:00:00";
+            const morningTaps = matrix[nis].days[day].taps.filter(t => t < cutoff);
+            const afternoonTaps = matrix[nis].days[day].taps.filter(t => t >= cutoff);
+
+            matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : null;
+            if (morningTaps.length > 0) {
+                matrix[nis].days[day].isLate = morningTaps[0] > masukLate;
+            }
+
+            matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
         });
 
         // Ambil manual attendance records (e.g. Izin, Sakit, Alpa)
@@ -892,14 +929,18 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
                 note: rec.note
               };
             } else if (["Hadir", "Terlambat"].includes(status)) {
-              matrix[matchedNis].days[day] = {
-                in: rec.time || "07:00",
-                out: rec.time || "07:00",
-                isLate: status === "Terlambat",
-                isManual: true,
-                status: status,
-                note: rec.note
-              };
+              if (!matrix[matchedNis].days[day] || typeof matrix[matchedNis].days[day] !== 'object') {
+                matrix[matchedNis].days[day] = { in: null, out: null, isLate: false };
+              }
+              const recTime = rec.time || "07:00";
+              const isPulang = (rec.sessionName && rec.sessionName.toLowerCase().includes('pulang')) || recTime >= "12:00";
+              
+              if (isPulang) {
+                matrix[matchedNis].days[day].out = recTime;
+              } else {
+                matrix[matchedNis].days[day].in = recTime;
+                if (status === "Terlambat") matrix[matchedNis].days[day].isLate = true;
+              }
             }
           }
         });
@@ -960,11 +1001,16 @@ if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
         const todayStr = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const currentTime = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
 
+        const systemStartDate = conf.system_start_date || mainData.system_start_date || "";
+
         // Auto-generate Alpa for past/expired active days
         Object.values(matrix).forEach(item => {
           for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             
+            // Skip dates prior to official system start date (e.g. testing phase)
+            if (systemStartDate && dateStr < systemStartDate) continue;
+
             // Skip future days
             if (dateStr > todayStr) continue;
 

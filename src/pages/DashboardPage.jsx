@@ -23,10 +23,11 @@ import {  Users, HelpCircle, X as CloseIcon, FileText,
   UserX,
   Clock3,
   ShieldAlert,
-  Loader2, MessageSquare } from'lucide-react';
+  Loader2, MessageSquare, ChevronLeft, ChevronRight, Megaphone, Bell, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
+import { getAttendanceStatusTone } from "../utils/adminHelpers.js";
 
 const DashboardCharts = lazy(() => import("./DashboardCharts.jsx"));
 const ACTIVITY_PAGE_SIZE = 6;
@@ -48,16 +49,19 @@ const messageTone = (priority) => {
 
 export default function DashboardPage({
   currentUser,
-  classes,
-  teachers,
-  subjects,
-  rooms,
-  schedule,
-  teachingLoads,
-  subjectComposition,
-  setActiveTab }) {
+  classes = [],
+  teachers = [],
+  subjects = [],
+  rooms = [],
+  schedule = [],
+  teachingLoads = [],
+  subjectComposition = [],
+  setActiveTab,
+  onOpenProfile,
+  handleLogout }) {
   const today = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }), []);
   const todayShort = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }), []);
+  const todayLong = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }), []);
 
   const {
     majorCount,
@@ -145,7 +149,7 @@ export default function DashboardPage({
       badge:"Tata Usaha",
       actions: [
         { label:"Data Siswa", tab:"siswa", icon: Users },
-        { label:"Rekap Absensi", tab:"absensi", icon: CheckCircle2 },
+        { label:"Laporan Absensi", tab:"laporan_absensi", icon: CheckCircle2 },
         { label:"E-Surat", tab:"esurat", icon: FileText },
       ] };
     if (isKepsek) return {
@@ -217,6 +221,7 @@ export default function DashboardPage({
   const updateDashboardMessage = useAppStore((state) => state.updateDashboardMessage);
   const removeDashboardMessage = useAppStore((state) => state.removeDashboardMessage);
   const featureSettings = useAppStore((state) => state.featureSettings);
+  const attendanceRecords = useAppStore((state) => state.attendanceRecords);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [activityPage, setActivityPage] = React.useState(0);
   const [activeDataTab, setActiveDataTab] = React.useState("semua");
@@ -226,20 +231,79 @@ export default function DashboardPage({
   const [logPages, setLogPages] = React.useState({});
   const [showPanduan, setShowPanduan] = React.useState(false);
   const [activeLogTab, setActiveLogTab] = React.useState('histori');
+  const [activeMiddleTab, setActiveMiddleTab] = React.useState('ringkasan');
+  const [showMobileNotif, setShowMobileNotif] = React.useState(false);
+  const [showMobileProfileModal, setShowMobileProfileModal] = React.useState(false);
+  const [showAllAnnouncementsModal, setShowAllAnnouncementsModal] = React.useState(false);
+  const [activeAnnouncementDetail, setActiveAnnouncementDetail] = React.useState(null);
+
+  const handleLihatSemuaPengumuman = () => {
+    const userRole = (currentUser?.role || '').toLowerCase();
+    if (['admin', 'superadmin', 'kepsek'].includes(userRole) || (userRole === 'waka' && (currentUser?.division || '').toLowerCase() === 'humas')) {
+      setActiveTab('pesan');
+    } else {
+      setShowAllAnnouncementsModal(true);
+    }
+  };
+
+  const triggerLogout = () => {
+    if (handleLogout) {
+      handleLogout();
+    } else {
+      sessionStorage.removeItem('school_schedule_session_v1');
+      localStorage.removeItem('school_schedule_session_v1');
+      window.location.reload();
+    }
+  };
 
   React.useEffect(() => {
-    const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1'))?.authToken;
-    fetch('/api/dashboard/logs', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { if (d.ok) setDashLogs(d.data); })
-      .catch(() => {})
-      .finally(() => setLogsLoading(false));
+    const fetchRealtimeLogs = () => {
+      const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1'))?.authToken;
+      if (!token) return;
+
+      Promise.all([
+        fetch('/api/dashboard/logs', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
+        fetch('/api/hikvision/dashboard', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({}))
+      ])
+        .then(([d1, d2]) => {
+          let combined = {};
+          if (d1?.ok) combined = { ...combined, ...d1.data };
+          if (d2?.ok) {
+            combined.recentLogs = d2.recentLogs || [];
+          }
+          setDashLogs(combined);
+        })
+        .finally(() => setLogsLoading(false));
+    };
+
+    fetchRealtimeLogs();
+    const interval = setInterval(fetchRealtimeLogs, 5000); // ⚡ Realtime 5s polling!
+    return () => clearInterval(interval);
   }, []);
 
   const mySyllabuses = useMemo(() => {
     if (!isTeacher) return 0;
     return syllabuses.filter((s) => String(s.teacherCode ||"").split(",").map((c) => c.trim()).includes(teacherCode)).length;
   }, [isTeacher, syllabuses, teacherCode]);
+
+  const todayClasses = useMemo(() => {
+    if (!teacherCode || !schedule) return [];
+    const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const currentDay = dayNames[new Date().getDay()];
+    const todaySched = schedule.filter(s => {
+      const isTeacherMatch = String(s.teacherCode || "").split(",").map(c => c.trim()).includes(teacherCode);
+      const isDayMatch = String(s.day || "").trim().toLowerCase() === currentDay.toLowerCase();
+      return isTeacherMatch && isDayMatch;
+    });
+    return todaySched.map(s => ({
+      subject: s.subject || s.subjectName || "Mata Pelajaran",
+      className: s.className || s.targetGrade || "-",
+      jamStart: s.jamKe || s.slot || 1,
+      jamEnd: s.jamKe || s.slot || 1,
+      room: s.roomName || s.roomId || ""
+    }));
+  }, [schedule, teacherCode]);
+
 
   // ===================== GURU VIEW =====================
   if (isTeacher) {
@@ -257,7 +321,7 @@ export default function DashboardPage({
       { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_piket" },
       { label: "Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "walas_report" },
       { label: "Modul", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
-      { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "generate" },
+      { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
     ];
 
     const teacherStatCards = [
@@ -268,87 +332,439 @@ export default function DashboardPage({
     ];
 
     return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-4 animate-in fade-in duration-300 relative z-10 pb-6">
-        {/* Hero Banner */}
-        <div
-          className="rounded-[var(--ui-radius-small)] p-4 md:p-5 relative overflow-hidden text-white"
-          style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 80%, black) 100%)" }}
-        >
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-80 h-80 rounded-full border-[40px] border-white -mr-20 -mt-20" />
-            <div className="absolute bottom-0 left-1/3 w-40 h-40 rounded-full border-[20px] border-white -mb-10" />
+      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 relative z-10 pb-6">
+        {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
+        <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMobileProfileModal(prev => !prev)}
+              className="flex items-center gap-3 min-w-0 text-left cursor-pointer group bg-transparent border-none p-0 focus:outline-none"
+              title="Lihat Profil & Pengaturan"
+            >
+              <div className="relative shrink-0">
+                <div 
+                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white/30 group-active:scale-95 transition-transform"
+                  style={{ background: "var(--ui-primary)" }}
+                >
+                  {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
+                </div>
+                <span 
+                  className="w-3.5 h-3.5 rounded-full border-2 border-white absolute bottom-0 right-0 shadow-xs"
+                  style={{ background: "color-mix(in srgb, var(--ui-primary) 80%, #fff)" }}
+                />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1 truncate">
+                  Hai, {currentUser?.name || currentUser?.username || 'Guru'}!
+                </span>
+                <h1 className="text-sm font-black text-slate-800 tracking-tight leading-snug truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                  Siap pantau hari ini?
+                </h1>
+              </div>
+            </button>
+
+            {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
+            {showMobileProfileModal && (
+              <div 
+                className="absolute left-0 top-12 w-[calc(100vw-32px)] max-w-[320px] bg-slate-50 border border-slate-200/90 shadow-2xl rounded-2xl p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 shrink-0">
+                  <span className="font-black text-xs text-slate-800 tracking-tight">Profil Pengguna</span>
+                  <button 
+                    type="button"
+                    onClick={() => setShowMobileProfileModal(false)} 
+                    className="text-slate-400 hover:text-slate-600 text-[10px] font-black bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider"
+                  >
+                    TUTUP
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-xl p-3 border border-slate-200/60 flex items-center gap-3 shadow-xs">
+                  <div 
+                    className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white shrink-0"
+                    style={{ background: "var(--ui-primary)" }}
+                  >
+                    {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>
+                    <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
+                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mt-0.5 border border-slate-200/60">
+                      {currentUser?.role || 'Guru / Pengajar'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* TABBAR STYLE SELECTOR TOGGLE */}
+                <div className="bg-white rounded-xl p-2.5 border border-slate-200/60 flex flex-col gap-1.5 shadow-xs">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    Gaya TabBar Navigasi Mobile
+                  </span>
+                  <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.setItem('kurmon_tabbar_style', 'floating');
+                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
+                      }}
+                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
+                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
+                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      }`}
+                    >
+                      <Layers size={13} strokeWidth={2.2} /> Mengambang
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.setItem('kurmon_tabbar_style', 'stay');
+                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
+                      }}
+                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
+                        localStorage.getItem('kurmon_tabbar_style') === 'stay'
+                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      }`}
+                    >
+                      <Pin size={13} strokeWidth={2.2} /> Menempel
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMobileProfileModal(false);
+                      if (onOpenProfile) onOpenProfile();
+                      else if (setActiveTab) setActiveTab('profile');
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-xs active:scale-98"
+                  >
+                    <User size={14} strokeWidth={2.2} /> Edit Profil &amp; Kata Sandi
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMobileProfileModal(false);
+                      triggerLogout();
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
+                  >
+                    <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           
-          {/* Help Button - Absolutely positioned at top right */}
-          <button
-            onClick={() => setShowPanduan(true)}
-            title="Panduan"
-            className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center bg-white/15 hover:bg-white/25 text-white border-none rounded-lg transition-all backdrop-blur-sm cursor-pointer"
-          >
-            <HelpCircle size={16} strokeWidth={2.5} />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0 relative">
+            <button 
+              type="button"
+              onClick={() => setShowMobileNotif(prev => !prev)}
+              className="w-10 h-10 rounded-full bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shadow-xs hover:bg-slate-200 transition-colors cursor-pointer shrink-0 relative active:scale-95"
+              title="Notifikasi & Informasi"
+            >
+              <Bell size={18} strokeWidth={2.2} />
+              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 border border-white" />
+            </button>
+            <button 
+              type="button"
+              onClick={triggerLogout}
+              className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-xs hover:bg-rose-100 transition-colors cursor-pointer shrink-0 active:scale-95"
+              title="Keluar / Logout"
+            >
+              <LogOut size={16} strokeWidth={2.2} />
+            </button>
 
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-5">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="bg-white/20 text-white/90 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-[var(--ui-radius-small)] backdrop-blur-sm flex items-center gap-1.5">
-                  <LayoutGrid size={12} /> Guru
+
+          </div>
+        </div>
+
+        {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (< sm) ======= */}
+        <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
+
+          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Anda Sekarang</h3>
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
+                Hari ini, {todayShort}
+              </span>
+            </div>
+
+            <div 
+              className="rounded-[22px] p-4 text-white shadow-md relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
+              style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 68%, #000) 100%)" }}
+            >
+              <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="flex items-center justify-between gap-2 relative z-10">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black text-white border border-white/25 shadow-xs">
+                  <Clock3 size={13} strokeWidth={2.5} />
+                  <span>{todayClasses[0]?.jamStart ? `Jam Ke-${todayClasses[0].jamStart}` : "Jadwal Hari Ini"}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-semibold text-white/70 block uppercase tracking-wider">Ruang Kelas</span>
+                  <span className="text-xs font-black text-white leading-tight block">{todayClasses[0]?.room || "Ruang Kelas"}</span>
+                </div>
+              </div>
+
+              <div className="relative z-10">
+                <h2 className="text-lg font-black text-white leading-tight tracking-tight drop-shadow-xs">
+                  {todayClasses[0]?.subject || "Tidak Ada KBM Berlangsung"}
+                </h2>
+                <p className="text-xs text-white/85 font-semibold mt-0.5">
+                  {todayClasses[0]?.className ? `Kelas ${todayClasses[0].className}` : "Semua jadwal KBM hari ini telah selesai atau belum ada slot aktif."}
+                </p>
+              </div>
+
+              {todayClasses.length > 0 && (
+                <div className="flex flex-col gap-1.5 relative z-10 pt-0.5">
+                  <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-wider text-white/80">
+                    <span>BERLANGSUNG</span>
+                    <span>SLOT AKTIF</span>
+                  </div>
+                  <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/15">
+                    <div className="w-[75%] h-full bg-emerald-400 rounded-full shadow-xs animate-pulse" />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setActiveTab(todayClasses.length > 0 ? 'jurnal_harian' : 'generate')}
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-98 text-[var(--ui-primary)] font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10"
+              >
+                <FileText size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
+                <span>{todayClasses.length > 0 ? "Isi Jurnal & Absen Kelas" : "Lihat Seluruh Jadwal Mengajar"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2. PINTASAN CEPAT (DYNAMIC SHORTCUTS) */}
+          <div className="flex flex-col gap-2 text-left">
+            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Pintasan Cepat</h3>
+            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
+              {teacherShortcuts.map((shortcut, idx) => {
+                const pastelBgs = [
+                  "bg-blue-50 text-blue-600 border-blue-100",
+                  "bg-amber-50 text-amber-600 border-amber-100",
+                  "bg-rose-50 text-rose-600 border-rose-100",
+                  "bg-purple-50 text-purple-600 border-purple-100",
+                  "bg-teal-50 text-teal-600 border-teal-100",
+                  "bg-emerald-50 text-emerald-600 border-emerald-100",
+                  "bg-cyan-50 text-cyan-600 border-cyan-100",
+                  "bg-indigo-50 text-indigo-600 border-indigo-100"
+                ];
+                const bg = pastelBgs[idx % pastelBgs.length];
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveTab(shortcut.tab)}
+                    className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
+                      <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                      {shortcut.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. RINGKASAN STATISTIK (DYNAMIC STAT CARDS) */}
+          <div className="flex flex-col gap-2 text-left">
+            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Ringkasan Statistik</h3>
+            <div className="grid grid-cols-2 gap-2.5">
+              {teacherStatCards.map((stat, idx) => {
+                const pastelBgs = [
+                  "bg-cyan-50 text-cyan-600 border-cyan-100",
+                  "bg-amber-50 text-amber-600 border-amber-100",
+                  "bg-indigo-50 text-indigo-600 border-indigo-100",
+                  "bg-emerald-50 text-emerald-600 border-emerald-100"
+                ];
+                const bg = pastelBgs[idx % pastelBgs.length];
+                return (
+                  <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl ${bg} border flex items-center justify-center shrink-0`}>
+                      <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-base font-black text-slate-800 leading-none">{stat.value}</h4>
+                      <p className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider mt-1 truncate">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4. PENGUMUMAN SEKOLAH (REAL MESSAGES) */}
+          <div className="flex flex-col gap-2 text-left">
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-800 tracking-tight">Pengumuman Sekolah</h3>
+              {dashboardMessages && dashboardMessages.length > 0 && (
+                <button 
+                  type="button"
+                  onClick={handleLihatSemuaPengumuman}
+                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0"
+                >
+                  Lihat Semua
+                </button>
+              )}
+            </div>
+
+            {(!dashboardMessages || dashboardMessages.length === 0) ? (
+              <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <Megaphone size={18} strokeWidth={2.2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-black text-slate-700">Belum ada pengumuman hari ini</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Pengumuman dan informasi resmi sekolah akan tampil di sini.</p>
+                </div>
+              </div>
+            ) : (
+              dashboardMessages.slice(0, 2).map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setActiveAnnouncementDetail(msg)}
+                  className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                    <Megaphone size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800 truncate">{msg.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+
+        {/* ======= DESKTOP HERO BANNER (GURU) ======= */}
+        <div
+          className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-md transition-all duration-300 mb-1"
+          style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 60%, #000) 100%)" }}
+        >
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-30 mix-blend-overlay"></div>
+          </div>
+          
+          <div className="relative z-10 flex flex-row items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate drop-shadow-sm">
+                Selamat Datang, <span className="text-white/95">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
+              </h1>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="hidden sm:flex bg-white/10 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md items-center gap-1">
+                  <LayoutGrid size={10} /> Guru / Pengajar
                 </span>
-                <span className="bg-white/20 text-white/90 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-[var(--ui-radius-small)] backdrop-blur-sm flex items-center gap-1.5">
-                  <Calendar size={12} /> {todayShort}
+                <span className="bg-black/20 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md flex items-center gap-1">
+                  <Calendar size={10} /> {todayShort}
                 </span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2">
-                Selamat Datang, {currentUser?.name || teacherData.name || currentUser?.username}!
-              </h1>
-              <p className="text-sm text-white/80 font-medium leading-relaxed max-w-lg">
-                Ringkasan beban mengajar, absensi kelas, modul ajar, dan jurnal KBM harian Anda.
-              </p>
+            </div>
+
+            <div className="flex items-center shrink-0">
+              <button 
+                onClick={() => setShowPanduan(true)}
+                title="Panduan"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white backdrop-blur-md text-xs font-bold transition-all cursor-pointer hover:shadow-md"
+              >
+                <HelpCircle size={14} strokeWidth={2.5} />
+                <span className="hidden sm:inline">Panduan</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* MENU UTAMA Section */}
-        <div className="flex flex-col gap-2 text-left">
-          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-1">Menu Utama</h2>
-          <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            {teacherShortcuts.map((shortcut, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveTab(shortcut.tab)}
-                className="bg-white p-3 rounded-[var(--ui-radius-card)] border-none shadow-sm flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer text-center w-full group aspect-square"
-              >
-                <div className="w-9 h-9 flex items-center justify-center shrink-0">
-                  <img src={shortcut.icon} className="w-8 h-8 object-contain" alt="" />
-                </div>
-                <div>
-                  <p className="text-[11px] sm:text-[12px] font-black text-slate-800 leading-tight">{shortcut.label}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* ======= TOP PARENT CONTAINER BOX (MATCHES ADMIN BOX STYLING) ======= */}
+        <div className="hidden sm:flex bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+          {/* Dashboard Messages Carousel */}
+          {dashboardMessages?.length > 0 && (
+            <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
+          )}
 
-        {/* DATA & INFORMASI STATISTIK Section */}
-        <div className="flex flex-col gap-2 text-left">
-          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-1">Data & Informasi Statistik</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {teacherStatCards.map((stat, i) => (
-              <div key={i} className="bg-white p-3.5 rounded-[var(--ui-radius-card)] shadow-sm border-none flex items-center gap-3.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <img src={stat.icon} className="w-10 h-10 object-contain" alt="" />
+          {/* ======= KEHADIRAN HARI INI ======= */}
+          <AttendanceTodaySection
+            attendanceRecords={attendanceRecords}
+            dashLogs={dashLogs}
+            teachers={teachers}
+            currentUser={currentUser}
+            isSuperAdmin={isSuperAdmin}
+            isKepsek={isKepsek}
+            isWaka={isWaka}
+            isTU={isTU}
+            activeDivision={activeDivision}
+            setActiveTab={setActiveTab}
+          />
+
+          {/* MENU UTAMA Section */}
+          <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
+            <div className="flex items-center gap-2 ml-0.5">
+              <Zap size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
+              {teacherShortcuts.map((shortcut, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(shortcut.tab)}
+                  className="bg-slate-50/90 py-2 sm:py-3 px-1 sm:px-2 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md transition-all duration-200 cursor-pointer text-center w-full group min-h-[68px] sm:min-h-[82px]"
+                >
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+                    <img src={shortcut.icon} className="w-5 h-5 sm:w-7 sm:h-7 object-contain" alt="" />
+                  </div>
+                  <div className="w-full">
+                    <p className="text-[9.5px] sm:text-[11px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* DATA & INFORMASI STATISTIK Section */}
+          <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
+            <div className="flex items-center gap-2 ml-0.5">
+              <Activity size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+              {teacherStatCards.map((stat, i) => (
+                <div key={i} className="bg-slate-50/90 p-3 sm:p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-3 hover:-translate-y-0.5 transition-all cursor-default w-full">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shrink-0">
+                    <img src={stat.icon} className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="" />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
+                    <h2 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <p className="text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider truncate">{stat.label}</p>
-                  <h2 className="text-xl font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Teaching loads table */}
-        <div className="bg-white shadow-sm border-none rounded-[var(--ui-radius-small)] flex flex-col overflow-hidden">
+        <div className="hidden sm:flex bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex justify-between items-center">
             <div>
               <h2 className="text-base font-black text-slate-800">Beban Mengajar Anda</h2>
@@ -403,7 +819,7 @@ export default function DashboardPage({
         </div>
         
         {/* ─────── Shared Activity Logs ─────── */}
-        <div className="mt-4">
+        <div className="w-full">
           <SharedDashboardLogs />
         </div>
 
@@ -513,53 +929,503 @@ export default function DashboardPage({
   const pklJurnalCount = 0;
 
   return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-4 md:gap-6 animate-in fade-in duration-300 relative z-10 pb-8">
+      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 relative z-10 pb-8">
 
-      {/* ======= HERO BANNER ======= */}
-      <div
-        className="rounded-[var(--ui-radius-small)] p-3 md:p-4 relative overflow-hidden text-white shadow-sm"
-        style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 70%, black) 100%)" }}
-      >
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full border-[50px] border-white -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-1/4 w-48 h-48 rounded-full border-[25px] border-white -mb-14" />
-          <div className="absolute top-1/2 left-2/3 w-24 h-24 rounded-[var(--ui-radius-small)] bg-white" />
+      {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
+      <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowMobileProfileModal(prev => !prev)}
+            className="flex items-center gap-3 min-w-0 text-left cursor-pointer group bg-transparent border-none p-0 focus:outline-none"
+            title="Lihat Profil & Pengaturan"
+          >
+            <div className="relative shrink-0">
+              <div 
+                className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white/30 group-active:scale-95 transition-transform"
+                style={{ background: "var(--ui-primary)" }}
+              >
+                {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
+              </div>
+              <span 
+                className="w-3.5 h-3.5 rounded-full border-2 border-white absolute bottom-0 right-0 shadow-xs"
+                style={{ background: "color-mix(in srgb, var(--ui-primary) 80%, #fff)" }}
+              />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1 truncate">
+                Hai, {currentUser?.name || currentUser?.username || 'Pengguna'}!
+              </span>
+              <h1 className="text-sm font-black text-slate-800 tracking-tight leading-snug truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                Siap pantau hari ini?
+              </h1>
+            </div>
+          </button>
+
+          {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
+          {showMobileProfileModal && (
+            <div 
+              className="absolute left-0 top-12 w-[calc(100vw-32px)] max-w-[320px] bg-slate-50 border border-slate-200/90 shadow-2xl rounded-2xl p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 shrink-0">
+                <span className="font-black text-xs text-slate-800 tracking-tight">Profil Pengguna</span>
+                <button 
+                  type="button"
+                  onClick={() => setShowMobileProfileModal(false)} 
+                  className="text-slate-400 hover:text-slate-600 text-[10px] font-black bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider"
+                >
+                  TUTUP
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl p-3 border border-slate-200/60 flex items-center gap-3 shadow-xs">
+                <div 
+                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white shrink-0"
+                  style={{ background: "var(--ui-primary)" }}
+                >
+                  {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Pengguna'}</h4>
+                  <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
+                  <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mt-0.5 border border-slate-200/60">
+                    {currentUser?.role || 'Akses Sistem'}
+                  </span>
+                </div>
+              </div>
+
+                {/* TABBAR STYLE SELECTOR TOGGLE */}
+                <div className="bg-white rounded-xl p-2.5 border border-slate-200/60 flex flex-col gap-1.5 shadow-xs">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    Gaya TabBar Navigasi Mobile
+                  </span>
+                  <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.setItem('kurmon_tabbar_style', 'floating');
+                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
+                      }}
+                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
+                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
+                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      }`}
+                    >
+                      <Layers size={13} strokeWidth={2.2} /> Mengambang
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.setItem('kurmon_tabbar_style', 'stay');
+                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
+                      }}
+                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
+                        localStorage.getItem('kurmon_tabbar_style') === 'stay'
+                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      }`}
+                    >
+                      <Pin size={13} strokeWidth={2.2} /> Menempel
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMobileProfileModal(false);
+                    if (onOpenProfile) onOpenProfile();
+                    else if (setActiveTab) setActiveTab('profile');
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-xs active:scale-98"
+                >
+                  <User size={14} strokeWidth={2.2} /> Edit Profil &amp; Kata Sandi
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMobileProfileModal(false);
+                    triggerLogout();
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
+                >
+                  <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 lg:gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="bg-white/20 text-white/90 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-[var(--ui-radius-small)] backdrop-blur-sm flex items-center gap-1.5">
-                <LayoutGrid size={11} /> {dashboardMode.badge}
-              </span>
-              <span className="bg-white/20 text-white/90 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-[var(--ui-radius-small)] backdrop-blur-sm flex items-center gap-1.5">
-                <Calendar size={11} /> {todayShort}
+        <div className="flex items-center gap-1.5 shrink-0 relative">
+          <button 
+            type="button"
+            onClick={() => setShowMobileNotif(prev => !prev)}
+            className="w-10 h-10 rounded-full bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shadow-xs hover:bg-slate-200 transition-colors cursor-pointer shrink-0 relative active:scale-95"
+            title="Notifikasi & Informasi"
+          >
+            <Bell size={18} strokeWidth={2.2} />
+            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 border border-white" />
+          </button>
+          <button 
+            type="button"
+            onClick={triggerLogout}
+            className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-xs hover:bg-rose-100 transition-colors cursor-pointer shrink-0 active:scale-95"
+            title="Keluar / Logout"
+          >
+            <LogOut size={16} strokeWidth={2.2} />
+          </button>
+
+
+        </div>
+      </div>
+
+        {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (ADMIN/MANAGEMENT) (< sm) ======= */}
+        <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
+
+          {/* 1. STATUS PEMANTAAN / HERO CARD */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-800 tracking-tight">Status Pemantauan</h3>
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
+                Hari ini, {todayShort}
               </span>
             </div>
-            <h1 className="text-xl md:text-2xl font-black tracking-tight mb-1">
-              Selamat Datang, {currentUser?.name || currentUser?.username ||"Pengguna"}!
-            </h1>
-            <p className="text-xs text-white/80 font-medium leading-relaxed max-w-xl">
-              {dashboardMode.subtitle}
-            </p>
+
+            <div 
+              className="rounded-[22px] p-4 text-white shadow-md relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
+              style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 68%, #000) 100%)" }}
+            >
+              <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="flex items-center justify-between gap-2 relative z-10">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black text-white border border-white/25 shadow-xs">
+                  <Clock3 size={13} strokeWidth={2.5} />
+                  <span>Aktif Pemantauan</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-semibold text-white/70 block uppercase tracking-wider">Akses Sistem</span>
+                  <span className="text-xs font-black text-white leading-tight block uppercase">{activeRole}</span>
+                </div>
+              </div>
+
+              <div className="relative z-10">
+                <h2 className="text-lg font-black text-white leading-tight tracking-tight drop-shadow-xs">
+                  {dashboardMode.label || "Kurikulum & KBM Sekolah"}
+                </h2>
+                <p className="text-xs text-white/85 font-semibold mt-0.5">
+                  {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 relative z-10 pt-0.5">
+                <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-wider text-white/80">
+                  <span>PEMANTAUAN REALTIME</span>
+                  <span>SISTEM AKTIF</span>
+                </div>
+                <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/15">
+                  <div className="w-[85%] h-full bg-emerald-400 rounded-full shadow-xs animate-pulse" />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-98 text-[var(--ui-primary)] font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10"
+              >
+                <CheckCircle2 size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
+                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Absensi KBM Hari Ini"}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {dashboardMode.actions.map((action, i) => (
-              <button
-                key={action.tab}
-                onClick={() =>setActiveTab(action.tab)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
-                  i === 0
-                    ? "bg-white text-[var(--ui-primary)] hover:bg-slate-50 shadow-sm"
-                    : "bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm"
-                }`}
-              >
-                <action.icon size={14} />
-                {action.label}</button>
-            ))}
-            <button onClick={() =>setShowPanduan(true)} title="Panduan" className="flex items-center justify-center w-7 h-7 rounded-[var(--ui-radius-small)] bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all cursor-pointer ml-auto sm:ml-0">
-              <HelpCircle size={14} /></button>
+          {/* 2. PINTASAN CEPAT (8 DYNAMIC PASTEL SVG ICON CARDS - TAILORED PER ROLE) */}
+          <div className="flex flex-col gap-2 text-left">
+            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Pintasan Cepat</h3>
+            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
+              {(() => {
+                let dynamicShortcuts = [];
+
+                if (isTU) {
+                  dynamicShortcuts = [
+                    { label: "Laporan Absensi", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
+                    { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
+                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                    { label: "Kartu Pelajar", icon: "/icons/045-account.svg", tab: "kartu_pelajar" },
+                    { label: "Data Guru", icon: "/icons/066-education.svg", tab: "guru" },
+                    { label: "Data Pegawai", icon: "/icons/035-graph bar.svg", tab: "data_pegawai" },
+                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                    { label: "Siswa Keluar", icon: "/icons/045-account.svg", tab: "siswa_keluar" },
+                  ];
+                } else if (isSuperAdmin) {
+                  dynamicShortcuts = [
+                    { label: "Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
+                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                    { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                    { label: "Absensi", icon: "/icons/092-file.svg", tab: "absensi" },
+                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                    { label: "Hak Akses", icon: "/icons/013-shield.svg", tab: "hak_akses" },
+                    { label: "Pengaturan", icon: "/icons/063-follow.svg", tab: "pengaturan" },
+                  ];
+                } else if (isKepsek) {
+                  dynamicShortcuts = [
+                    { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
+                    { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                    { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
+                    { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
+                    { label: "Data Guru", icon: "/icons/066-education.svg", tab: "guru" },
+                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                    { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "silabus" },
+                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  ];
+                } else if (isWaka) {
+                  if (activeDivision === 'kurikulum') {
+                    dynamicShortcuts = [
+                      { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                      { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
+                      { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
+                      { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
+                      { label: "Mapel", icon: "/icons/092-file.svg", tab: "mapel" },
+                      { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                      { label: "Data Guru", icon: "/icons/066-education.svg", tab: "guru" },
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                    ];
+                  } else if (activeDivision === 'kesiswaan') {
+                    dynamicShortcuts = [
+                      { label: "Absensi KBM", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                      { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                      { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
+                      { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
+                      { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
+                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                      { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                    ];
+                  } else if (activeDivision === 'hubin') {
+                    dynamicShortcuts = [
+                      { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
+                      { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", tab: "pkl_data_perusahaan" },
+                      { label: "Penugasan", icon: "/icons/066-education.svg", tab: "pkl_penugasan" },
+                      { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
+                      { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
+                      { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
+                      { label: "GPS PKL", icon: "/icons/016-map pin.svg", tab: "pkl_absensi_setting" },
+                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                    ];
+                  } else if (activeDivision === 'sarpras') {
+                    dynamicShortcuts = [
+                      { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
+                      { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
+                      { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                      { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
+                      { label: "Fasilitas", icon: "/icons/011-schedule.svg", tab: "fasilitas" },
+                      { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
+                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                      { label: "Struktur Org", icon: "/icons/013-shield.svg", tab: "struktur" },
+                    ];
+                  } else if (activeDivision === 'humas') {
+                    dynamicShortcuts = [
+                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                      { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
+                      { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                      { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
+                      { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Data Guru", icon: "/icons/066-education.svg", tab: "guru" },
+                      { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                      { label: "Profil", icon: "/icons/008-warehouse.svg", tab: "profil_sekolah" },
+                    ];
+                  }
+                } else if (activeRole === 'karyawan') {
+                  dynamicShortcuts = [
+                    { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
+                    { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                    { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
+                    { label: "Profil Sekolah", icon: "/icons/008-warehouse.svg", tab: "profil_sekolah" },
+                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                    { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                    { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                  ];
+                } else {
+                  dynamicShortcuts = [
+                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                    { label: "Jurnal", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                    { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
+                    { label: "Catatan", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                    { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                    { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                    { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                  ];
+                }
+
+                return dynamicShortcuts.map((shortcut, idx) => {
+                  const pastelBgs = [
+                    "bg-emerald-50 text-emerald-600 border-emerald-100",
+                    "bg-teal-50 text-teal-600 border-teal-100",
+                    "bg-blue-50 text-blue-600 border-blue-100",
+                    "bg-amber-50 text-amber-600 border-amber-100",
+                    "bg-rose-50 text-rose-600 border-rose-100",
+                    "bg-purple-50 text-purple-600 border-purple-100",
+                    "bg-cyan-50 text-cyan-600 border-cyan-100",
+                    "bg-indigo-50 text-indigo-600 border-indigo-100"
+                  ];
+                  const bg = pastelBgs[idx % pastelBgs.length];
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveTab(shortcut.tab)}
+                      className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
+                    >
+                      <div className={`w-12 h-12 rounded-2xl ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
+                        <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                        {shortcut.label}
+                      </span>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* 3. RINGKASAN SISTEM (PASTEL SVG STAT CARDS - MATCHING ROLE VIEW) */}
+          <div className="flex flex-col gap-2 text-left">
+            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Ringkasan Sistem</h3>
+            <div className="grid grid-cols-2 gap-2.5">
+              {(() => {
+                let dynamicStatCards = [];
+                const storeData = useDataStore.getState() || {};
+                
+                if (isTU) {
+                  dynamicStatCards = [
+                    { label: "TOTAL SISWA", value: `${storeData.students?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                    { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                    { label: "STAF KARYAWAN", value: `${storeData.staffs?.length || 0} Staf`, icon: "/icons/035-graph bar.svg", color: "bg-teal-50 text-teal-600 border-teal-100" },
+                    { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/008-warehouse.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                  ];
+                } else if (isWaka && activeDivision === 'hubin') {
+                  dynamicStatCards = [
+                    { label: "SISWA PKL", value: `${storeData.pklStudents?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                    { label: "MITRA DUDI", value: `${storeData.companies?.length || 0} DUDI`, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                    { label: "PEMBIMBING", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+                    { label: "LOGBOOK PKL", value: `${storeData.pklLogs?.length || 0} Record`, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                  ];
+                } else {
+                  dynamicStatCards = [
+                    { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/066-education.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                    { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/045-account.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                    { label: "SLOT JADWAL", value: `${scheduleSlots} Slot`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+                    { label: "TOTAL RUANGAN", value: `${rooms.length} Ruang`, icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                  ];
+                }
+
+                return dynamicStatCards.map((stat, idx) => (
+                  <div key={idx} className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                    <div className={`w-11 h-11 rounded-2xl ${stat.color} border flex items-center justify-center shrink-0`}>
+                      <img src={stat.icon} className="w-5.5 h-5.5 object-contain" alt="" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-black text-slate-800 leading-tight">{stat.value}</h4>
+                      <p className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5 truncate">{stat.label}</p>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+
+          {/* 4. PENGUMUMAN SEKOLAH (REAL MESSAGES) */}
+          <div className="flex flex-col gap-2 text-left">
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-800 tracking-tight">Pengumuman Sekolah</h3>
+              {dashboardMessages && dashboardMessages.length > 0 && (
+                <button 
+                  type="button"
+                  onClick={handleLihatSemuaPengumuman}
+                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0"
+                >
+                  Lihat Semua
+                </button>
+              )}
+            </div>
+
+            {(!dashboardMessages || dashboardMessages.length === 0) ? (
+              <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <Megaphone size={18} strokeWidth={2.2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-black text-slate-700">Belum ada pengumuman hari ini</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Pengumuman dan informasi resmi sekolah akan tampil di sini.</p>
+                </div>
+              </div>
+            ) : (
+              dashboardMessages.slice(0, 2).map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setActiveAnnouncementDetail(msg)}
+                  className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                    <Megaphone size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800 truncate">{msg.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+
+      {/* ======= DESKTOP HERO BANNER ======= */}
+      <div
+        className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-md transition-all duration-300 mb-1"
+        style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 60%, #000) 100%)" }}
+      >
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-30 mix-blend-overlay"></div>
+        </div>
+        
+        <div className="relative z-10 flex flex-row items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate drop-shadow-sm">
+              Selamat Datang, <span className="text-white/95">{currentUser?.name || currentUser?.username ||"Pengguna"}</span>!
+            </h1>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="hidden sm:flex bg-white/10 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md items-center gap-1">
+                <LayoutGrid size={10} /> {dashboardMode.badge}
+              </span>
+              <span className="bg-black/20 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md flex items-center gap-1">
+                <Calendar size={10} /> {todayShort}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center shrink-0">
+            <button 
+              onClick={() =>setShowPanduan(true)} 
+              title="Panduan Aplikasi" 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white backdrop-blur-md text-xs font-bold transition-all cursor-pointer hover:shadow-md"
+            >
+              <HelpCircle size={14} strokeWidth={2.5} />
+              <span className="hidden sm:inline">Panduan</span>
+            </button>
           </div>
         </div>
       </div>
@@ -589,229 +1455,345 @@ export default function DashboardPage({
         </div>
       )}
 
-      {/* Dashboard Messages */}
-      {dashboardMessages?.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {dashboardMessages.map((message) => (
-            <article key={message.id} className={`rounded-[var(--ui-radius-card)] border-none p-5 shadow-sm bg-white`}>
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-[var(--ui-radius-card)] flex items-center justify-center shrink-0 ${messageTone(message.priority)}`}>
-                  <Activity size={24} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                    <h3 className="font-black text-lg leading-tight text-slate-800">{message.title}</h3>
-                    {message.pinned && <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700">Pinned</span>}
-                  </div>
-                  <div className="text-[13px] font-medium leading-relaxed text-slate-600 whitespace-pre-wrap">
-                    {message.body}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
-                      <span className="text-[9px] font-black text-slate-500 uppercase">{String(message.createdBy ||"S")[0]}</span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{message.createdBy ||"Sistem"}</span>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-[10px] font-bold text-slate-400">{new Date(message.createdAt || new Date()).toLocaleDateString('id-ID')}</span>
-                  </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+      {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
+      <div className="hidden sm:flex bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+        {/* Dashboard Messages Carousel */}
+        {dashboardMessages?.length > 0 && (
+          <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
+        )}
 
-      {/* ======= TOP SECTION: QUICK SHORTCUTS & STAT CARDS ======= */}
-      <div className="flex flex-col gap-2 text-left">
-        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-1">Pintasan Cepat</h2>
-        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {/* Quick Shortcuts */}
-          {(() => {
-            if (isTU) return [
-              { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"absensi" },
-              { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
-              { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-              { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
-            ];
-            if (isKepsek) return [
-              { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
-              { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
-              { label:"Data Siswa PKL", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_data_siswa" },
-              { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_jurnal" },
-            ];
-            return [
-              { label:"Jadwal Baru", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
-              { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-600", tab:"guru" },
-              { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
-              { label:"Kontrol Fitur", icon:"/icons/098-setting.svg", color:"bg-amber-50 text-amber-600", tab:"fitur" },
-            ];
-          })().map((shortcut, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTab(shortcut.tab)}
-              className="bg-white py-4 px-2 rounded-[var(--ui-radius-card)] border-none shadow-sm flex flex-col items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer text-center w-full group"
-            >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 mb-1">
-                {typeof shortcut.icon === 'string' ? (
-                  <img src={shortcut.icon} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" alt="" />
-                ) : (
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${shortcut.color}`}>
-                    <shortcut.icon size={16} strokeWidth={2.5} />
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="text-[10px] sm:text-[12px] font-black text-slate-800 leading-tight truncate">{shortcut.label}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* ======= KEHADIRAN HARI INI ======= */}
+        <AttendanceTodaySection
+          attendanceRecords={attendanceRecords}
+          dashLogs={dashLogs}
+          teachers={teachers}
+          currentUser={currentUser}
+          isSuperAdmin={isSuperAdmin}
+          isKepsek={isKepsek}
+          isWaka={isWaka}
+          isTU={isTU}
+          activeDivision={activeDivision}
+          setActiveTab={setActiveTab}
+        />
 
-      <div className="flex flex-col gap-2 text-left">
-        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-1">Statistik Utama</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {/* 4 Stat Cards */}
-          {topCards.map((card, idx) => (
-            <button key={idx} onClick={() => setActiveTab(card.tab)} className="bg-white p-3.5 sm:p-5 rounded-[var(--ui-radius-card)] border-none flex flex-col justify-between hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer text-left w-full">
-              <div className="flex items-start justify-between w-full mb-1 sm:mb-2">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
-                  {typeof card.icon === 'string' ? (
-                    <img src={card.icon} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" alt="" />
+        {/* ======= QUICK SHORTCUTS ======= */}
+        <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
+          <div className="flex items-center gap-2 ml-0.5">
+            <Zap size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+            <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Pintasan Cepat</h2>
+          </div>
+          <div className="grid grid-cols-2 min-[380px]:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
+            {/* Quick Shortcuts */}
+            {(() => {
+              if (isTU) return [
+                { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
+                { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
+                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
+                { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
+                { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"guru" },
+                { label:"Data Pegawai", icon:"/icons/035-graph bar.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
+                { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
+                { label:"Siswa Keluar", icon:"/icons/045-account.svg", color:"bg-rose-50 text-rose-600", tab:"siswa_keluar" },
+              ];
+              if (isKepsek) return [
+                { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
+                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
+                { label:"Data Siswa PKL", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_data_siswa" },
+                { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_jurnal" },
+                { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"guru" },
+                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa" },
+                { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"silabus" },
+                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
+              ];
+              if (isWaka) {
+                if (activeDivision === 'kurikulum') return [
+                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
+                  { label:"Beban Mengajar", icon:"/icons/035-graph bar.svg", color:"bg-amber-50 text-amber-600", tab:"beban" },
+                  { label:"Silabus Akademik", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"silabus" },
+                  { label:"Ketersediaan", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"ketersediaan" },
+                  { label:"Kelola Mapel", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"mapel" },
+                  { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
+                  { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"guru" },
+                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
+                ];
+                if (activeDivision === 'kesiswaan') return [
+                  { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
+                  { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
+                  { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
+                  { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
+                  { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-blue-50 text-blue-600", tab:"riwayat_prestasi" },
+                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
+                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"walas_report" },
+                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
+                ];
+                if (activeDivision === 'hubin') return [
+                  { label:"Siswa PKL", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"pkl_data_siswa" },
+                  { label:"Mitra DUDI", icon:"/icons/008-warehouse.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_data_perusahaan" },
+                  { label:"Penugasan", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"pkl_penugasan" },
+                  { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"pkl_jurnal" },
+                  { label:"Administrasi", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_administrasi" },
+                  { label:"Laporan PKL", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"pkl_laporan" },
+                  { label:"GPS PKL", icon:"/icons/016-map pin.svg", color:"bg-indigo-50 text-indigo-600", tab:"pkl_absensi_setting" },
+                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
+                ];
+                if (activeDivision === 'sarpras') return [
+                  { label:"Data Ruangan", icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-600", tab:"ruangan" },
+                  { label:"Denah Sekolah", icon:"/icons/008-warehouse.svg", color:"bg-emerald-50 text-emerald-600", tab:"denah" },
+                  { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
+                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"generate" },
+                ];
+                if (activeDivision === 'humas') return [
+                  { label:"Pesan Dashboard", icon:"/icons/087-chat.svg", color:"bg-amber-50 text-amber-600", tab:"pesan" },
+                  { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-emerald-50 text-emerald-600", tab:"tampilan" },
+                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"akademik" },
+                  { label:"Silabus", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"silabus" },
+                ];
+              }
+              return [
+                { label:"Jadwal Baru", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
+                { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-600", tab:"guru" },
+                { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
+                { label:"Kelola Ruangan", icon:"/icons/016-map pin.svg", color:"bg-sky-50 text-sky-600", tab:"ruangan" },
+                { label:"Kontrol Fitur", icon:"/icons/098-setting.svg", color:"bg-amber-50 text-amber-600", tab:"fitur" },
+                { label:"Hak Akses", icon:"/icons/033-padlock.svg", color:"bg-indigo-50 text-indigo-600", tab:"hak_akses" },
+                { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-teal-50 text-teal-600", tab:"tampilan" },
+                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-rose-50 text-rose-600", tab:"absensi" },
+              ];
+            })().map((shortcut, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab(shortcut.tab)}
+                className="bg-slate-50/90 py-2 sm:py-3 px-1 sm:px-2 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-md transition-all duration-200 cursor-pointer text-center w-full group min-h-[68px] sm:min-h-[82px]"
+              >
+                <div className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+                  {typeof shortcut.icon === 'string' ? (
+                    <img src={shortcut.icon} className="w-5 h-5 sm:w-7 sm:h-7 object-contain" alt="" />
                   ) : (
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${card.color}`}>
-                      <card.icon size={18} className="w-[14px] h-[14px] sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
+                    <div className={`w-5 h-5 sm:w-7 sm:h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${shortcut.color}`}>
+                      <shortcut.icon size={14} strokeWidth={2.2} />
                     </div>
                   )}
                 </div>
-                <ArrowRight size={16} className="text-slate-350 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <div className="w-full">
+                  <p className="text-[9.5px] sm:text-[11px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Shared Activity Logs */}
+      <div className="w-full">
+        <SharedDashboardLogs />
+      </div>
+
+
+      <div className="flex flex-col gap-2 text-left">
+        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-1">Statistik Utama</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          {/* 4 Stat Cards (Compact Version) */}
+          {topCards.map((card, idx) => (
+            <button 
+              key={idx} 
+              onClick={() => setActiveTab(card.tab)} 
+              className="bg-white p-2.5 sm:p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/70 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full"
+            >
+              <div className="flex items-center justify-between w-full mb-1.5">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--ui-radius-small)] bg-slate-100/80 border border-slate-200/60 flex items-center justify-center p-1.5 shrink-0">
+                  {typeof card.icon === 'string' ? (
+                    <img src={card.icon} className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain opacity-85" alt="" />
+                  ) : (
+                    <card.icon size={15} className="text-slate-600" strokeWidth={2.2} />
+                  )}
+                </div>
+                <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
               <div className="min-w-0 w-full flex flex-col gap-0.5">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none mb-0.5 sm:mb-1 truncate">{card.value}</h2>
-                <p className="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">{card.label}</p>
+                <h2 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mb-0.5 truncate">{card.value}</h2>
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{card.label}</p>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* ======= MIDDLE SECTION: 2 COLUMNS (Ringkasan vs Logs) ======= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 flex-1">
-        
-        {/* Left Column: Ringkasan Sistem Sekolah */}
-        <div className="lg:col-span-7 xl:col-span-7 flex flex-col gap-4">
-          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-5 md:p-6 flex flex-col flex-1 min-h-[350px]">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-base font-black text-slate-800 tracking-tight">Ringkasan Sistem Sekolah</h2>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Status kelengkapan data sistem terpadu</p>
-              </div>
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-                <Printer size={12} /> <span className="hidden sm:inline">Export</span>
-              </button>
-            </div>
 
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-1.5 mb-4 overflow-x-auto custom-scrollbar pb-1">
-              {[
-                { id:"semua", label:"Semua", count: summaryRows.length },
-                { id:"selesai", label:"Selesai", count: summaryRows.filter(r => r.statusLabel ==="Selesai").length },
-                { id:"proses", label:"Proses", count: summaryRows.filter(r => r.statusLabel ==="In Progress").length },
-                { id:"kosong", label:"Kosong", count: summaryRows.filter(r => r.statusLabel ==="Belum Ada").length },
-              ].map((tab) => (
+      {/* ======= MIDDLE SECTION: UNIFIED RINGKASAN & STATISTIK ======= */}
+      <div className="w-full flex flex-col gap-4">
+        
+        {/* Full-width Ringkasan & Grafik Card */}
+        <div className="w-full flex flex-col gap-4">
+          <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 sm:p-5 flex flex-col flex-1 min-h-[420px]">
+            
+            {/* Header with Unified Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-[var(--ui-radius-small)]">
                 <button
-                  key={tab.id}
-                  onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
-                  className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer border flex items-center gap-1.5 ${
-                    activeDataTab === tab.id
-                      ?"bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm"
-                      :"bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700"
+                  type="button"
+                  onClick={() => setActiveMiddleTab('ringkasan')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-black transition-all cursor-pointer border-none ${
+                    activeMiddleTab === 'ringkasan'
+                      ? 'bg-white text-slate-800 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
                 >
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${activeDataTab === tab.id ?"bg-white/20 text-white" :"bg-slate-100 text-slate-500"}`}>
-                      {tab.count}
-                    </span>
-                  )}</button>
-              ))}
-            </div>
+                  <img src="/icons/046-report.svg" alt="Ringkasan" className="w-3.5 h-3.5" />
+                  <span>Ringkasan System</span>
+                </button>
 
-            {/* Compact List View */}
-            <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2">
-              {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 rounded-[var(--ui-radius-small)] hover:bg-slate-50 border-none hover:border-slate-100 transition-colors group cursor-default">
-                  {/* Icon */}
-                  <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${row.iconBg} ${row.iconColor}`}>
-                    <row.icon size={15} />
-                  </div>
-                  
-                  {/* Title & Detail */}
-                  <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-700 text-xs truncate">{row.label}</span>
-                      <span className="text-[10px] text-slate-400 truncate">{row.note}</span>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveMiddleTab('statistik')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-black transition-all cursor-pointer border-none ${
+                    activeMiddleTab === 'statistik'
+                      ? 'bg-white text-slate-800 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                  }`}
+                >
+                  <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-3.5 h-3.5" />
+                  <span>Statistik</span>
+                </button>
+              </div>
 
-                    <div className="hidden lg:flex items-baseline gap-1.5">
-                      <span className="text-sm font-black text-slate-800 leading-none">{row.count.split(" ")[0]}</span>
-                      <span className="text-[9px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
-                    </div>
-
-                    <div className="hidden md:flex flex-col gap-1 w-full max-w-[120px]">
-                       <div className="flex justify-between items-center">
-                         <span className="text-[9px] font-bold text-slate-400 uppercase">Progress</span>
-                         <span className="text-[9px] font-black text-slate-700">{row.progress}%</span>
-                       </div>
-                       <div className="w-full h-1.5 bg-slate-200 rounded-[var(--ui-radius-small)] overflow-hidden">
-                         <div
-                           className="h-full rounded-[var(--ui-radius-small)] transition-all duration-700"
-                           style={{ width: `${row.progress}%`, background: row.progress === 100 ?"#10b981" : row.progress > 0 ?"var(--ui-primary)" :"#cbd5e1" }}
-                         />
-                       </div>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="shrink-0 w-[85px] text-right flex flex-col items-end gap-1">
-                    <span className={`inline-flex items-center justify-center min-w-[70px] gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9px] font-bold ${row.statusCls}`}>
-                      {row.statusLabel}
-                    </span>
-                    <span className="text-[9px] font-medium text-slate-400 block md:hidden lg:hidden">{row.count}</span>
-                  </div>
-                </div>
-              ))}
-              {filteredRows.length === 0 && (
-                <div className="py-8 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
-                  <Activity className="text-slate-300 mb-2" size={24} />
-                  <p className="text-xs font-bold text-slate-400">Tidak ada data untuk kategori ini</p>
-                </div>
+              {activeMiddleTab === 'ringkasan' && (
+                <button className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer shrink-0">
+                  <Printer size={12} /> <span>Export</span>
+                </button>
               )}
             </div>
 
-            {/* Pagination Controls */}
-            {filteredRows.length > 5 && (
-              <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length}</span>
-                <div className="flex items-center gap-1.5">
-                  <Button variant="outline" 
-                    disabled={summaryPage === 0} 
-                    onClick={() =>setSummaryPage(p => p - 1)}
-                    className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
-                  >Sebelumnnya</Button>
-                  <Button variant="outline" 
-                    disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
-                    onClick={() => setSummaryPage(p => p + 1)}
-                    className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
-                  >Berikutnya</Button>
+            {/* TAB CONTENT: Ringkasan Sistem Sekolah */}
+            {activeMiddleTab === 'ringkasan' && (
+              <div className="flex flex-col flex-1 animate-in fade-in duration-200">
+                {/* Filter Tabs */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-4">
+                  {[
+                    { id:"semua", label:"Semua", count: summaryRows.length },
+                    { id:"selesai", label:"Selesai", count: summaryRows.filter(r => r.statusLabel ==="Selesai").length },
+                    { id:"proses", label:"Proses", count: summaryRows.filter(r => r.statusLabel ==="In Progress").length },
+                    { id:"kosong", label:"Kosong", count: summaryRows.filter(r => r.statusLabel ==="Belum Ada").length },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
+                      className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer border flex items-center gap-1.5 ${
+                        activeDataTab === tab.id
+                          ?"bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm"
+                          :"bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700"
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.count > 0 && (
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${activeDataTab === tab.id ?"bg-white/20 text-white" :"bg-slate-100 text-slate-500"}`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Compact List View */}
+                <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2 flex-1">
+                  {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-[var(--ui-radius-small)] hover:bg-slate-50 border-none hover:border-slate-100 transition-colors group cursor-default">
+                      {/* Icon */}
+                      <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${row.iconBg} ${row.iconColor}`}>
+                        <row.icon size={15} />
+                      </div>
+                      
+                      {/* Title & Detail */}
+                      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-700 text-xs truncate">{row.label}</span>
+                          <span className="text-[10px] text-slate-400 truncate">{row.note}</span>
+                        </div>
+
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-sm font-black text-slate-800 leading-none">{row.count.split(" ")[0]}</span>
+                          <span className="text-[9px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
+                        </div>
+
+                        <div className="hidden sm:flex flex-col gap-1 w-full max-w-[140px]">
+                           <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">Progress</span>
+                              <span className="text-[9px] font-black text-slate-700">{row.progress}%</span>
+                           </div>
+                           <div className="w-full h-1.5 bg-slate-200 rounded-[var(--ui-radius-small)] overflow-hidden">
+                              <div
+                                className="h-full rounded-[var(--ui-radius-small)] transition-all duration-700"
+                                style={{ width: `${row.progress}%`, background: row.progress === 100 ?"#10b981" : row.progress > 0 ?"var(--ui-primary)" :"#cbd5e1" }}
+                              />
+                           </div>
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="shrink-0 w-[85px] text-right flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center justify-center min-w-[70px] gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9px] font-bold ${row.statusCls}`}>
+                          {row.statusLabel}
+                        </span>
+                        <span className="text-[9px] font-medium text-slate-400 block md:hidden lg:hidden">{row.count}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredRows.length === 0 && (
+                    <div className="py-8 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
+                      <img src="/icons/046-report.svg" alt="Empty" className="w-8 h-8 opacity-30 mb-2" />
+                      <p className="text-xs font-bold text-slate-400">Tidak ada data untuk kategori ini</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pagination Controls */}
+                {filteredRows.length > 5 && (
+                  <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Button variant="outline" 
+                        disabled={summaryPage === 0} 
+                        onClick={() =>setSummaryPage(p => p - 1)}
+                        className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
+                      >Sebelumnnya</Button>
+                      <Button variant="outline" 
+                        disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
+                        onClick={() => setSummaryPage(p => p + 1)}
+                        className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
+                      >Berikutnya</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB CONTENT: Grafik Statistik Pembelajaran & Fasilitas */}
+            {activeMiddleTab === 'statistik' && (
+              <div className="flex-1 flex flex-col animate-in fade-in duration-200">
+                <p className="text-xs text-slate-500 font-medium mb-3">Analisis beban kerja guru dan pemanfaatan ruang kelas</p>
+                <div className="flex-1">
+                  <Suspense fallback={<DashboardChartsFallback />}>
+                    <DashboardCharts
+                      subjectComposition={subjectComposition || []}
+                      subjectCount={subjects.length}
+                      roomCapacityData={roomCapacityData || []}
+                      roomUsagePercent={roomUsagePercent}
+                      usedRoomCount={usedRooms.size}
+                      roomCount={rooms.length}
+                      teachers={teachers}
+                      classes={classes}
+                      schedule={schedule}
+                      teachingLoads={teachingLoads}
+                    />
+                  </Suspense>
                 </div>
               </div>
             )}
+
           </div>
 
           {/* Rekomendasi Aksi */}
           {isSuperAdmin && summaryRows.filter(r => r.statusLabel !=="Selesai").length > 0 && (
-            <div className="bg-amber-50 border border-amber-100 shadow-sm rounded-[var(--ui-radius-card)] p-4 flex gap-3 mt-4">
+            <div className="bg-amber-50 border border-amber-100 shadow-sm rounded-[var(--ui-radius-card)] p-4 flex gap-3">
               <div className="shrink-0 w-10 h-10 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center">
                 <AlertTriangle size={20} />
               </div>
@@ -828,79 +1810,611 @@ export default function DashboardPage({
               </div>
             </div>
           )}
+        </div>
 
-          {/* Statistik Grafis Card */}
-          <div className="bg-white border-none shadow-sm rounded-[var(--ui-radius-card)] p-5 md:p-6 flex flex-col min-h-[250px]">
-            <div className="mb-4">
-              <h2 className="text-base font-black text-slate-800 tracking-tight">Statistik Pembelajaran & Fasilitas</h2>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Analisis beban kerja guru dan pemanfaatan ruang</p>
+
+
+      </div>
+
+
+
+      {/* Mobile Notification Modal */}
+      {showMobileNotif && (
+        <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-xs flex items-start justify-center pt-16 px-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                  <Bell size={16} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 leading-tight">Notifikasi & Informasi</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">Pemberitahuan sistem sekolah</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowMobileNotif(false)}
+                className="w-7 h-7 rounded-full bg-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <CloseIcon size={14} />
+              </button>
             </div>
-            <div className="flex-1">
-              <Suspense fallback={<DashboardChartsFallback />}>
-                <DashboardCharts
-                  subjectComposition={subjectComposition || []}
-                  subjectCount={subjects.length}
-                  roomCapacityData={roomCapacityData || []}
-                  roomUsagePercent={roomUsagePercent}
-                  usedRoomCount={usedRooms.size}
-                  roomCount={rooms.length}
-                  teachers={teachers}
-                  classes={classes}
-                  schedule={schedule}
-                  teachingLoads={teachingLoads}
-                />
-              </Suspense>
+
+            {/* Modal Content */}
+            <div className="p-4 overflow-y-auto flex flex-col gap-3">
+              {/* Realtime Notification Consent */}
+              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-2xl p-3 flex flex-col gap-2">
+                <div className="flex items-start gap-2.5">
+                  <Bell className="text-[var(--ui-primary)] w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
+                    <span className="text-[10px] font-medium text-slate-500 mt-0.5 leading-tight">Info absensi, jadwal & kegiatan sekolah langsung ke layar HP Anda.</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if ("Notification" in window) {
+                      Notification.requestPermission().then(p => {
+                        if (p === 'granted') alert('Notifikasi realtime diaktifkan!');
+                      });
+                    }
+                  }}
+                  className="w-full py-1.5 text-white font-bold text-xs rounded-xl border-none cursor-pointer shadow-xs active:scale-95 transition-transform"
+                  style={{ backgroundColor: "var(--ui-primary)" }}
+                >
+                  Izinkan Notifikasi
+                </button>
+              </div>
+
+              {/* JADWAL MENGAJAR HARI INI */}
+              {(currentUser?.role || '').toLowerCase() === 'guru' && (
+                <div className="flex flex-col gap-1.5 shrink-0 text-left">
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider ml-1">
+                    Jadwal Mengajar Hari Ini
+                  </span>
+                  {!todayClasses || todayClasses.length === 0 ? (
+                    <div className="text-xs font-semibold text-slate-400 p-3 text-center bg-slate-50 rounded-2xl border border-slate-100">
+                      Tidak ada jadwal mengajar hari ini.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar">
+                      {todayClasses.map((item, idx) => (
+                        <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-2xl">
+                          <Clock3 className="text-[var(--ui-primary)] w-4 h-4 mt-0.5 shrink-0" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate">
+                              {item.subject}
+                            </span>
+                            <span className="text-[10px] font-medium text-slate-500 mt-0.5">
+                              Kelas: {item.className} • Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* System Announcements */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider ml-1">Pemberitahuan Terbaru</span>
+                
+                {dashboardMessages && dashboardMessages.length > 0 ? (
+                  dashboardMessages.slice(0, 3).map((msg, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-1 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 truncate">{msg.title}</span>
+                        {msg.pinned && <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-md">PINNED</span>}
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.body}</p>
+                      <span className="text-[9px] font-medium text-slate-400 mt-0.5">
+                        {new Date(msg.createdAt || new Date()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <p className="text-xs font-bold text-slate-400">Tidak ada notifikasi baru hari ini</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Panduan Link */}
+              <button
+                onClick={() => { setShowMobileNotif(false); setShowPanduan(true); }}
+                className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border-none cursor-pointer mt-1 transition-colors"
+              >
+                <HelpCircle size={14} />
+                <span>Buka Panduan Aplikasi</span>
+              </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Right Column: Log Panels */}
-        <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-4">
-          {(() => {
-            const fmtTime = (ts) => {
-              try { return new Intl.DateTimeFormat('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(ts)); }
-              catch { return'-'; }
-            };
-            const roleLabel = (r) => ({ admin:'Admin', guru:'Guru', waka:'Waka', kepsek:'Kepsek', hubin:'Hubin', siswa:'Siswa' })[r] || r;
-            const roleBadge = (r) => {
-              const map = { admin:'bg-violet-100 text-violet-700', guru:'bg-blue-100 text-blue-700', waka:'bg-amber-100 text-amber-700', kepsek:'bg-red-100 text-red-700', siswa:'bg-emerald-100 text-emerald-700' };
-              return map[r] ||'bg-slate-100 text-slate-600';
-            };
-            const getUserName = (username, role) => {
-              if (role ==='admin' || username ==='admin') return'Administrator';
-              if (teachers && teachers.length > 0) {
-                const teacher = teachers.find(t => t.code === username || String(t.id) === String(username) || t.username === username);
-                if (teacher && teacher.name) return teacher.name;
-              }
-              return username;
-            };
+      {/* Modal Popup All Announcements List */}
+      {showAllAnnouncementsModal && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                  <Megaphone size={16} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800">Semua Pengumuman Sekolah</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowAllAnnouncementsModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
 
-            const absenGuruLogs = dashLogs?.teacherAbsenceLogs || [];
-            const terlambatSiswaLogs = dashLogs?.latestStudentLogs || [];
-            const bermasalahLogs = dashLogs?.problematicStudentLogs || [];
-            const loginLogs = dashLogs?.loginLogs || [];
-            
-            // Generate some mock rankings based on actual logs to fulfill the"Peringkat" tabs
-            const rankingGuru = teachers.slice(0, 10).map((t, i) => ({
-              ...t,
-              kehadiran: 100 - (i * 2), // Mock percentage
-              alpa: Math.floor(i / 3)
-            })).sort((a, b) => b.kehadiran - a.kehadiran);
-
-            return <SharedDashboardLogs />;
-          })()}
+            <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
+              {(!dashboardMessages || dashboardMessages.length === 0) ? (
+                <div className="text-center py-8 text-xs font-bold text-slate-400">
+                  Belum ada pengumuman resmi sekolah.
+                </div>
+              ) : (
+                dashboardMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
+                    className="p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 hover:shadow-xs transition-all cursor-pointer flex flex-col gap-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800">{msg.title}</h4>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.content || msg.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
+      )}
 
-      </div>
+      {/* Modal Detail Single Announcement */}
+      {activeAnnouncementDetail && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <Megaphone size={16} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setActiveAnnouncementDetail(null)}
+                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-rose-100 text-rose-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">
+                  {activeAnnouncementDetail.priority === 'high' ? 'PENTING' : 'INFO'}
+                </span>
+                <span className="text-xs text-slate-400 font-semibold">{activeAnnouncementDetail.date || 'Hari ini'}</span>
+              </div>
+              <h2 className="text-base font-black text-slate-900 leading-snug">
+                {activeAnnouncementDetail.title}
+              </h2>
+              <div className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line pt-2 border-t border-slate-100">
+                {activeAnnouncementDetail.content || activeAnnouncementDetail.body}
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setActiveAnnouncementDetail(null)}
+                className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border-none cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
     </div>
   );
 }
 
+// ============================================================
+// KOMPONEN: DashboardMessageCarousel
+// Carousel/Slider Pengumuman Sekolah Modern (Responsive & Tema Web)
+// ============================================================
+function DashboardMessageCarousel({ dashboardMessages }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedMsg, setSelectedMsg] = useState(null);
 
+  if (!dashboardMessages || dashboardMessages.length === 0) return null;
 
+  const totalMsgs = dashboardMessages.length;
+  const activeMsg = dashboardMessages[currentIndex] || dashboardMessages[0];
 
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % totalMsgs);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + totalMsgs) % totalMsgs);
+  };
+
+  return (
+    <div className="flex flex-col gap-2.5 w-full animate-in fade-in duration-300">
+      {/* Header bar matching reference */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Megaphone size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+          <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">
+            Pengumuman Baru
+          </h2>
+        </div>
+        
+        <div className="flex items-center gap-1.5">
+          {totalMsgs > 1 && (
+            <span className="text-[11px] font-bold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 px-2.5 py-0.5 rounded-full border border-[var(--ui-primary)]/20">
+              {currentIndex + 1}/{totalMsgs}
+            </span>
+          )}
+          {totalMsgs > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrev}
+                type="button"
+                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs transition-all active:scale-95"
+                title="Sebelumnya"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={handleNext}
+                type="button"
+                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs transition-all active:scale-95"
+                title="Selanjutnya"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Card matching reference mockup — Ultra Compact & Slim */}
+      <article 
+        onClick={() => setSelectedMsg(activeMsg)}
+        className="rounded-[var(--ui-radius-small)] border border-slate-200/80 p-2.5 sm:p-3 shadow-xs relative overflow-hidden transition-all duration-300 bg-white hover:border-[var(--ui-primary)]/40 cursor-pointer group"
+      >
+        <div className="flex items-center gap-2.5">
+          <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {activeMsg.pinned && (
+                <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-600 border border-rose-200/60 shrink-0 inline-flex items-center gap-1">
+                  <Pin size={10} className="rotate-45" /> PINNED
+                </span>
+              )}
+              <h3 className="font-black text-xs sm:text-sm text-slate-800 tracking-tight truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                {activeMsg.title}
+              </h3>
+            </div>
+            <div className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
+              {activeMsg.body}
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-[var(--ui-primary)] shrink-0 hidden sm:inline group-hover:translate-x-0.5 transition-transform">
+            Detail →
+          </span>
+        </div>
+      </article>
+
+      {/* Modal Popup Detail Pengumuman */}
+      {selectedMsg && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                  <Megaphone size={16} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
+              </div>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setSelectedMsg(null); }}
+                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <CloseIcon size={14} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto flex flex-col gap-3">
+              {selectedMsg.pinned && (
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-600 border border-rose-200/60 inline-flex items-center gap-1">
+                    📌 PINNED ANNOUNCEMENT
+                  </span>
+                </div>
+              )}
+
+              <h2 className="text-base font-black text-slate-900 leading-snug">
+                {selectedMsg.title}
+              </h2>
+
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pb-3 border-b border-slate-100">
+                <span className="font-bold text-slate-700">{selectedMsg.createdBy || "Sistem"}</span>
+                <span>•</span>
+                <span>{new Date(selectedMsg.createdAt || new Date()).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              </div>
+
+              <div className="text-sm text-slate-700 font-normal leading-relaxed whitespace-pre-line">
+                {selectedMsg.body}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelectedMsg(null); }}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer active:scale-95 transition-transform border-none"
+                style={{ backgroundColor: "var(--ui-primary)" }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// KOMPONEN: AttendanceTodaySection
+// Statistik kehadiran hari ini — guru & siswa
+// Warna mengikuti halaman absensi existing (MyAttendancePage, AbsensiKBM)
+// ============================================================
+function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const jkt = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+    return jkt.toISOString().slice(0, 10);
+  }, []);
+
+  // ── Role-guard ──
+  const canSeeTeacherAttendance = isSuperAdmin || isKepsek || isTU ||
+    (isWaka && (activeDivision === 'kurikulum' || activeDivision === 'kesiswaan'));
+  const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||
+    (isWaka && activeDivision === 'kesiswaan');
+
+  if (!canSeeTeacherAttendance && !canSeeStudentAttendance) return null;
+
+  // ── Statistik Guru dari attendanceRecords & dashLogs ──
+  const guruStats = useMemo(() => {
+    const recs = (attendanceRecords || []).filter(r => {
+      const recDate = r.date ? String(r.date).slice(0, 10) : '';
+      return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
+    });
+
+    const recentTeacherLogs = (dashLogs?.teacherLogs || dashLogs?.recentLogs || []).filter(r => {
+      const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
+      return type.includes('GURU') || type.includes('KARYAWAN');
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
+    recs.forEach(r => {
+      let s = String(r.status || 'Hadir').toLowerCase();
+      if (s === 'late') s = 'terlambat';
+      if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
+      
+      if (s.includes('hadir')) statuses.Hadir++;
+      else if (s.includes('terlambat')) statuses.Terlambat++;
+      else if (s.includes('izin')) statuses.Izin++;
+      else if (s.includes('sakit')) statuses.Sakit++;
+      else if (s.includes('dinas')) statuses['Dinas Luar']++;
+      else if (s.includes('alpa')) statuses.Alpa++;
+      else statuses.Hadir++;
+    });
+
+    if (recentTeacherLogs.length > 0) {
+      let tHadir = 0;
+      let tTelat = 0;
+      recentTeacherLogs.forEach(r => {
+        const s = String(r.status || 'hadir').toLowerCase();
+        if (s.includes('terlambat') || s.includes('late')) tTelat++;
+        else tHadir++;
+      });
+      statuses.Hadir = Math.max(statuses.Hadir, tHadir);
+      statuses.Terlambat = Math.max(statuses.Terlambat, tTelat);
+    }
+
+    const totalMasuk = Math.max(recs.filter(r => r.in).length, recentTeacherLogs.length);
+    const totalGuru = dashLogs?.totalTeachers || (teachers || []).length || 52;
+    const belumAbsen = Math.max(0, totalGuru - totalMasuk - statuses.Izin - statuses.Sakit - statuses['Dinas Luar'] - statuses.Alpa);
+    return { ...statuses, belumAbsen, totalMasuk, totalGuru };
+  }, [attendanceRecords, todayStr, teachers, dashLogs]);
+
+  // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
+  const siswaStats = useMemo(() => {
+    const hikLogs = dashLogs?.hikvisionStudentToday || [];
+    const recentLogs = dashLogs?.recentLogs || [];
+    
+    // Combine logs
+    let allLogs = [...hikLogs];
+    if (allLogs.length === 0 && recentLogs.length > 0) {
+      allLogs = recentLogs.filter(r => 
+        String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')
+      );
+    }
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+    allLogs.forEach(r => {
+      let s = String(r.status || 'Hadir').toLowerCase();
+      if (s === 'late') s = 'terlambat';
+      
+      if (s.includes('hadir')) statuses.Hadir++;
+      else if (s.includes('terlambat')) statuses.Terlambat++;
+      else if (s.includes('izin')) statuses.Izin++;
+      else if (s.includes('sakit')) statuses.Sakit++;
+      else if (s.includes('alpa')) statuses.Alpa++;
+      else statuses.Hadir++;
+    });
+    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
+    return { ...statuses, total: allLogs.length, totalSiswaInSchool };
+  }, [dashLogs]);
+
+  const guruPercent = guruStats.totalGuru > 0 
+    ? Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100)
+    : 0;
+
+  const siswaPercent = (dashLogs?.totalStudents > 0)
+    ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / dashLogs.totalStudents) * 100)
+    : (siswaStats.total > 0 ? Math.round((siswaStats.Hadir / siswaStats.total) * 100) : 0);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <CheckCircle2 size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+        <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Kehadiran Hari Ini</h2>
+      </div>
+      <div className={`grid gap-2 sm:gap-4 ${canSeeTeacherAttendance && canSeeStudentAttendance ? 'grid-cols-2' : 'grid-cols-1'}`}>
+
+        {/* ── Panel Guru ── */}
+        {canSeeTeacherAttendance && (
+          <button
+            onClick={() => setActiveTab('absensi')}
+            className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-md hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+          >
+            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-xs">
+                  <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                    Kehadiran Guru
+                    <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </h3>
+                  <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                    {guruStats.totalMasuk}/{guruStats.totalGuru} guru terdata
+                  </p>
+                </div>
+              </div>
+              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-indigo-100/80 whitespace-nowrap shrink-0 shadow-xs">
+                {guruPercent}% Hadir
+              </span>
+            </div>
+
+            {/* Segmented Progress Bar */}
+            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+              <div style={{ width: `${(guruStats.Hadir / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
+              <div style={{ width: `${(guruStats.Terlambat / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
+              <div style={{ width: `${(guruStats.Izin / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-blue-500 h-full" title="Izin" />
+              <div style={{ width: `${(guruStats.Sakit / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-sky-400 h-full" title="Sakit" />
+              <div style={{ width: `${(guruStats['Dinas Luar'] / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-purple-500 h-full" title="Dinas Luar" />
+              <div style={{ width: `${(guruStats.Alpa / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
+            </div>
+
+            {/* Micro Metric Chips */}
+            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{guruStats.Hadir}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{guruStats.Terlambat}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin + guruStats.Sakit}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Dinas:</span> <b className="text-slate-800">{guruStats['Dinas Luar']}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{guruStats.Alpa}</b>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* ── Panel Siswa ── */}
+        {canSeeStudentAttendance && (() => {
+          const totalSiswaDenominator = Math.max(dashLogs?.totalStudents || siswaStats.total || 1, 1);
+          return (
+            <button
+              onClick={() => setActiveTab(isTU || isKaryawan ? 'laporan_absensi' : 'absensi')}
+              className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-md hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+            >
+              <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-xs">
+                    <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                      Kehadiran Siswa
+                      <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    </h3>
+                    <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                      {dashLogs?.totalStudents > 0 
+                        ? `${siswaStats.total}/${dashLogs.totalStudents} siswa terdata` 
+                        : (dashLogs?.hikvisionStudentToday ? `${siswaStats.total} record mesin` : 'Absensi Hikvision')
+                      }
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-emerald-100/80 whitespace-nowrap shrink-0 shadow-xs">
+                  {siswaPercent}% Hadir
+                </span>
+              </div>
+
+              {/* Segmented Progress Bar */}
+              <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+                <div style={{ width: `${(siswaStats.Hadir / totalSiswaDenominator) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
+                <div style={{ width: `${(siswaStats.Terlambat / totalSiswaDenominator) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
+                <div style={{ width: `${(siswaStats.Izin / totalSiswaDenominator) * 100}%` }} className="bg-blue-500 h-full" title="Izin" />
+                <div style={{ width: `${(siswaStats.Sakit / totalSiswaDenominator) * 100}%` }} className="bg-sky-400 h-full" title="Sakit" />
+                <div style={{ width: `${(siswaStats.Alpa / totalSiswaDenominator) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
+              </div>
+
+              {/* Micro Metric Chips */}
+              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{siswaStats.Hadir}</b>
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{siswaStats.Terlambat}</b>
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin + siswaStats.Sakit}</b>
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200/60 flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{siswaStats.Alpa}</b>
+                </div>
+              </div>
+            </button>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}
 
 const PanduanModal = ({ isOpen, onClose, role, division }) => {
   if (!isOpen) return null;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
-import { UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, Search, Sparkles, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, Search, Sparkles, AlertCircle, Plus, Trash2, CheckCircle2, Eye, Edit3, XCircle } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { getRoleKeyLabel } from '../../../utils/constants.js';
 
@@ -102,7 +102,6 @@ export default function TabHakAkses(props) {
   // Preset confirmation state
   const [pendingPreset, setPendingPreset] = useState(null);
 
-  // Helper to fetch custom label if present
   const getRoleLabelExtended = (key) => {
     if (!key) return { label: 'Guru', color: 'bg-emerald-100 text-emerald-800', short: 'Guru' };
     try {
@@ -136,7 +135,7 @@ export default function TabHakAkses(props) {
     }
   }, [rolePermissions, selectedRoleKey]);
 
-  // Filter permission groups & items in real-time
+  // Filter permission groups
   const filteredGroups = useMemo(() => {
     if (!searchQuery) return PERMISSION_GROUPS;
     return PERMISSION_GROUPS.map(group => {
@@ -153,7 +152,7 @@ export default function TabHakAkses(props) {
 
   if (!isSuperAdminRole(currentUser?.role)) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10">
+      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
         <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
         <h3 className="text-base font-black text-slate-700">Akses SuperAdmin Diperlukan</h3>
         <p className="text-sm text-slate-400 mt-1">Hak akses hanya dapat diubah oleh operator SuperAdmin.</p>
@@ -171,24 +170,13 @@ export default function TabHakAkses(props) {
 
   const getPermissionState = (tab) => {
     const val = localPermissions[tab] || 'nonaktif';
-    return {
-      isView: val === 'view' || val === 'edit' || val === 'otomatis',
-      isEdit: val === 'edit' || val === 'otomatis'
-    };
+    return val; // 'nonaktif' | 'view' | 'edit'
   };
 
-  const isGroupAllSelected = (group) => {
-    if (group.tabs.length === 0) return false;
-    return group.tabs.every(tab => {
-      const { isView, isEdit } = getPermissionState(tab);
-      return isView && isEdit;
-    });
-  };
-
-  const handleToggleGroupAll = (group, checked) => {
+  const handleToggleGroupLevel = (group, targetLevel) => {
     const next = { ...localPermissions };
     group.tabs.forEach(tab => {
-      next[tab] = checked ? 'edit' : 'nonaktif';
+      next[tab] = targetLevel;
     });
     setLocalPermissions(next);
     setIsModified(true);
@@ -233,11 +221,10 @@ export default function TabHakAkses(props) {
 
     if (presetKey === 'full') {
       Object.keys(ALL_TABS_METADATA).forEach(t => { next[t] = 'edit'; });
-      showNotification('Preset Akses Penuh diaktifkan. Klik Update Role untuk menyimpan.', 'info');
+      showNotification('Preset Akses Penuh diaktifkan.', 'info');
     } else if (presetKey === 'empty') {
-      showNotification('Semua akses dinonaktifkan. Klik Update Role untuk menyimpan.', 'info');
+      showNotification('Semua akses dinonaktifkan.', 'info');
     } else if (presetKey === 'kepsek_report') {
-      // R4 FIX: Kepsek hanya view — dashboard ikut view, bukan edit
       const viewList = [
         'dashboard', 'pesan', 'siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk',
         'kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report', 'guru',
@@ -248,7 +235,7 @@ export default function TabHakAkses(props) {
         'pkl_absensi_setting'
       ];
       viewList.forEach(t => { next[t] = 'view'; });
-      showNotification('Preset Kepala Sekolah (Hanya Lihat Laporan) diterapkan.', 'info');
+      showNotification('Preset Kepala Sekolah (Lihat Semua Laporan) diterapkan.', 'info');
     } else if (presetKey === 'kesiswaan') {
       const editList = [
         'dashboard', 'pesan', 'siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk',
@@ -272,7 +259,6 @@ export default function TabHakAkses(props) {
       editList.forEach(t => { next[t] = 'edit'; });
       showNotification('Preset Waka Hubin (Akses Full PKL) diterapkan.', 'info');
     } else if (presetKey === 'tu') {
-      // R3 FIX: tambahkan tampilan ke preset TU
       const editList = [
         'dashboard', 'tampilan', 'siswa', 'siswa_keluar', 'guru', 'data_pegawai', 'karyawan',
         'kelas', 'jurusan', 'absensi', 'absensiguru', 'esurat', 'kartu_pelajar'
@@ -294,7 +280,6 @@ export default function TabHakAkses(props) {
     setPendingPreset(null);
   };
 
-  // R2 FIX: Preset now requires confirmation via pendingPreset state
   const applyPreset = (presetKey) => {
     setPendingPreset(presetKey);
   };
@@ -315,7 +300,7 @@ export default function TabHakAkses(props) {
     const customRoleKey = `custom_${trimmedKey}`;
 
     if (rolePermissions && rolePermissions[customRoleKey]) {
-      showNotification('Key role ini sudah digunakan. Gunakan key lainnya.', 'warning');
+      showNotification('Key role ini sudah digunakan.', 'warning');
       return;
     }
 
@@ -352,10 +337,10 @@ export default function TabHakAkses(props) {
   const currentRoleInfo = getRoleLabelExtended(selectedRoleKey);
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300 relative z-10 pb-20">
       <PageHeader
         title="Manajemen Hak Akses Role (Privilege)"
-        description="Atur izin baca (Read) dan edit (Write) untuk masing-masing jabatan staf sekolah."
+        description="Atur hak akses baca (Read) dan edit (Write) untuk masing-masing peran/jabatan sekolah."
         icon={UserCog}
         tabs={[
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
@@ -368,27 +353,39 @@ export default function TabHakAkses(props) {
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
-        {/* LEFT COLUMN: Role List Selector (Responsive Horizontal on Mobile, Vertical on Desktop) */}
+        {/* LEFT COLUMN: Role List Selector */}
         <div className="w-full lg:w-[280px] shrink-0 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-sm flex flex-col gap-3">
-          <div>
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-              Daftar Role / Jabatan
-            </h3>
-            <p className="text-[9px] text-slate-400 font-bold px-1 mt-0.5 hidden lg:block">
-              Pilih salah satu untuk mengedit izin
-            </p>
-          </div>
-          
-          {/* Scrollable Container */}
-          <div className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto max-h-[500px] pb-2 lg:pb-0 pr-1 scrollbar-thin select-none">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                Pilih Role / Jabatan
+              </h3>
+              <p className="text-[10px] text-slate-400 font-bold mt-0.5">
+                Pilih role untuk mengatur izin modul
+              </p>
+            </div>
+
             <button
               type="button"
               onClick={() => setCreateModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-dashed border-slate-200 hover:border-blue-500 text-[11px] font-black text-slate-500 hover:text-blue-600 bg-slate-50/50 hover:bg-blue-50/10 transition-all cursor-pointer shrink-0 lg:w-full"
+              className="lg:hidden p-2 rounded-xl bg-blue-50 text-blue-600 font-black text-xs flex items-center gap-1 cursor-pointer border border-blue-200"
             >
-              <Plus size={13} />
+              <Plus size={14} />
+              <span>Role Baru</span>
+            </button>
+          </div>
+          
+          {/* Scrollable Container (Horizontal on mobile, vertical on desktop) */}
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto max-h-[500px] pb-2 lg:pb-0 pr-1 scrollbar-thin select-none">
+            <button
+              type="button"
+              onClick={() => setCreateModalOpen(true)}
+              className="hidden lg:flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-dashed border-blue-300 hover:border-blue-500 text-xs font-black text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-50 transition-all cursor-pointer w-full shadow-xs"
+            >
+              <Plus size={14} />
               Tambah Role Baru
             </button>
+
             {Object.keys(rolePermissions || {}).map((roleKey) => {
               const info = getRoleLabelExtended(roleKey);
               const isSelected = selectedRoleKey === roleKey;
@@ -403,31 +400,31 @@ export default function TabHakAkses(props) {
                   <button
                     type="button"
                     onClick={() => setSelectedRoleKey(roleKey)}
-                    className={`flex items-center justify-between gap-3 text-left p-2.5 rounded-xl transition-all cursor-pointer border w-full ${
+                    className={`flex items-center justify-between gap-3 text-left px-3.5 py-2.5 rounded-xl transition-all cursor-pointer border w-full ${
                       isSelected
                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm font-black'
-                        : 'hover:bg-slate-50 text-slate-700 bg-white border-slate-100 hover:border-slate-200'
+                        : 'hover:bg-slate-50 text-slate-700 bg-white border-slate-200/80'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <Shield size={13} className={isSelected ? 'text-white' : 'text-slate-400'} />
-                      <span className="text-[11px] font-black truncate leading-none">{info.label}</span>
+                      <Shield size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
+                      <span className="text-xs font-black truncate">{info.label}</span>
                     </div>
                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 ${
-                      isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                      isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {currentAllowedCount} Menu
                     </span>
                   </button>
-                  {/* R1 FIX: Delete button only for custom_* roles */}
+
                   {isCustomRole && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setDeleteRoleKey(roleKey); }}
                       title="Hapus role ini"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all w-5 h-5 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded-md border border-red-200"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded-md border border-red-200"
                     >
-                      <Trash2 size={10} />
+                      <Trash2 size={12} />
                     </button>
                   )}
                 </div>
@@ -440,59 +437,59 @@ export default function TabHakAkses(props) {
         <div className="flex-1 w-full flex flex-col gap-4">
           
           {/* Active Role Status & Real-time Search */}
-          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${currentRoleInfo.color} border border-slate-200/20`}>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${currentRoleInfo.color} border border-slate-200/20`}>
                   {currentRoleInfo.label}
                 </span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline">
-                  • Izin Hak Akses
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  • Atur Akses Modul
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-semibold mt-1">
-                Centang izin menu di bawah, lalu klik <strong className="text-blue-600">Update Role</strong> untuk menyimpan.
+                Pilih opsi di tiap modul, lalu klik <strong className="text-blue-600">Update Role</strong> di bawah.
               </p>
             </div>
             
             {/* Real-time search filter */}
-            <div className="relative w-full md:w-64 shrink-0">
+            <div className="relative w-full sm:w-64 shrink-0">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari menu / modul…"
+                placeholder="Cari nama modul…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
+                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
               />
             </div>
           </div>
 
           {/* Preset Panel Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-blue-500 animate-pulse" />
-              <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Terapkan Preset Hak Akses Cepat</span>
+              <Sparkles size={16} className="text-blue-600 shrink-0" />
+              <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Preset Hak Akses Cepat</span>
             </div>
             <p className="text-[11px] text-slate-500 font-semibold leading-relaxed -mt-1">
-              Gunakan salah satu preset di bawah untuk mencentang hak akses secara otomatis sesuai standar jabatan. Setelah preset diterapkan, Anda tetap bisa mencentang/membongkar centang secara manual.
+              Pilih preset standar di bawah untuk mengisi izin modul secara otomatis:
             </p>
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="flex flex-wrap gap-2">
               {[
-                { key: 'kepsek_report', label: 'Kepsek (Lihat Semua Lap.)', color: 'bg-emerald-50 hover:bg-emerald-100/80 text-emerald-700 border-emerald-200' },
-                { key: 'kesiswaan', label: 'Full Kesiswaan (Waka/Staf)', color: 'bg-orange-50 hover:bg-orange-100/80 text-orange-700 border-orange-200' },
-                { key: 'kurikulum', label: 'Full Kurikulum (Waka/Staf)', color: 'bg-amber-50 hover:bg-amber-100/80 text-amber-700 border-amber-200' },
-                { key: 'hubin', label: 'Full Hubin / PKL', color: 'bg-rose-50 hover:bg-rose-100/80 text-rose-700 border-rose-200' },
-                { key: 'tu', label: 'Full Tata Usaha / Admin', color: 'bg-cyan-50 hover:bg-cyan-100/80 text-cyan-700 border-cyan-200' },
-                { key: 'guru_biasa', label: 'Guru Biasa (KBM)', color: 'bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border-indigo-200' },
-                { key: 'full', label: 'Centang Semua (Akses Penuh)', color: 'bg-blue-50 hover:bg-blue-100/80 text-blue-700 border-blue-200' },
-                { key: 'empty', label: 'Kosongkan / Reset', color: 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border-slate-300' }
+                { key: 'kepsek_report', label: 'Kepsek (Lihat Semua Lap.)', color: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200' },
+                { key: 'kesiswaan', label: 'Full Kesiswaan', color: 'bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200' },
+                { key: 'kurikulum', label: 'Full Kurikulum', color: 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' },
+                { key: 'hubin', label: 'Full Hubin / PKL', color: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' },
+                { key: 'tu', label: 'Full Tata Usaha', color: 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border-cyan-200' },
+                { key: 'guru_biasa', label: 'Guru Biasa', color: 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' },
+                { key: 'full', label: 'Centang Semua', color: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600 font-black' },
+                { key: 'empty', label: 'Reset (Kosongkan)', color: 'bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-300' }
               ].map(preset => (
                 <button
                   key={preset.key}
                   type="button"
                   onClick={() => applyPreset(preset.key)}
-                  className={`text-[10px] font-black px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${preset.color}`}
+                  className={`text-[10px] font-extrabold px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${preset.color}`}
                 >
                   {preset.label}
                 </button>
@@ -500,97 +497,120 @@ export default function TabHakAkses(props) {
             </div>
           </div>
 
-          {/* Cards Grid */}
+          {/* Permission Group Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredGroups.length === 0 ? (
-              <div className="col-span-full text-center py-16 text-slate-400 bg-white border border-slate-200 rounded-2xl">
+              <div className="col-span-full text-center py-16 text-slate-400 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
                 <AlertCircle size={36} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm font-bold">Tidak ada menu yang cocok</p>
-                <p className="text-xs text-slate-400 mt-1">Coba hapus kata kunci pencarian Anda.</p>
+                <p className="text-sm font-bold">Tidak ada modul ditemukan</p>
+                <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian Anda.</p>
               </div>
             ) : (
               filteredGroups.map((group) => {
-                const isAllChecked = isGroupAllSelected(group);
-                
                 return (
                   <div 
                     key={group.key} 
-                    className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all"
+                    className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all"
                   >
-                    {/* Header */}
-                    <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                    {/* Group Header */}
+                    <div className="bg-slate-50 border-b border-slate-200/80 px-4 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-2.5 h-2.5 rounded-full ${group.color} shrink-0`} />
                         <span className="font-black text-xs text-slate-800 uppercase tracking-wider truncate">
                           {group.label}
                         </span>
                       </div>
-                      <label className="flex items-center gap-1.5 text-xs text-slate-500 font-black cursor-pointer select-none">
-                        <input 
-                          type="checkbox"
-                          checked={isAllChecked}
-                          onChange={(e) => handleToggleGroupAll(group, e.target.checked)}
-                          className="w-3.5 h-3.5 accent-blue-600 cursor-pointer rounded"
-                        />
-                        Pilih Semua
-                      </label>
+
+                      {/* Quick Bulk Group Toggles */}
+                      <div className="flex items-center gap-2 text-[10px] font-bold">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleGroupLevel(group, 'edit')}
+                          className="text-blue-600 hover:underline cursor-pointer"
+                        >
+                          Full All
+                        </button>
+                        <span className="text-slate-300">•</span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleGroupLevel(group, 'nonaktif')}
+                          className="text-slate-400 hover:underline cursor-pointer"
+                        >
+                          Off All
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Body */}
-                    <div className="p-4 flex flex-col gap-3 flex-1 bg-white">
+                    {/* Group Body: Module Row Items */}
+                    <div className="p-3.5 space-y-2.5 flex-1 bg-white">
                       {group.tabs.map((tab) => {
                         const tabInfo = ALL_TABS_METADATA[tab];
                         if (!tabInfo) return null;
 
-                        const { isView, isEdit } = getPermissionState(tab);
+                        const currentLevel = getPermissionState(tab);
 
                         return (
                           <div 
                             key={tab} 
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2.5 px-3 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-slate-50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-slate-50 transition-colors"
                           >
                             <div className="min-w-0 flex-1">
-                              <span className="text-xs font-black text-slate-850 block truncate">
+                              <span className="text-xs font-black text-slate-800 block truncate">
                                 {tabInfo.label}
                               </span>
-                              <span className="text-[10px] text-slate-400 font-bold block truncate mt-0.5">
+                              <span className="text-[10px] text-slate-400 font-medium block truncate mt-0.5">
                                 {tabInfo.desc}
                               </span>
                             </div>
                             
-                            {/* Checkboxes */}
-                            <div className="flex items-center gap-4 shrink-0 mt-1 sm:mt-0">
-                              <label className="flex items-center gap-1.5 text-xs text-slate-650 font-extrabold cursor-pointer select-none">
-                                <input 
-                                  type="checkbox"
-                                  checked={isView}
-                                  onChange={(e) => {
-                                    if (!e.target.checked) {
-                                      setTabPermission(tab, 'nonaktif');
-                                    } else {
-                                      setTabPermission(tab, 'view');
-                                    }
-                                  }}
-                                  className="w-3.5 h-3.5 accent-blue-600 cursor-pointer rounded"
-                                />
-                                Lihat
-                              </label>
+                            {/* Segmented 3-State Radio Buttons */}
+                            <div className="flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shrink-0 self-start sm:self-center shadow-xs">
                               
-                              <label className="flex items-center gap-1.5 text-xs text-slate-650 font-extrabold cursor-pointer select-none">
-                                <input 
-                                  type="checkbox"
-                                  checked={isEdit}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setTabPermission(tab, 'edit');
-                                    } else {
-                                      setTabPermission(tab, 'view');
-                                    }
-                                  }}
-                                  className="w-3.5 h-3.5 accent-blue-600 cursor-pointer rounded"
-                                />
-                                Edit
-                              </label>
+                              {/* Nonaktif */}
+                              <button
+                                type="button"
+                                onClick={() => setTabPermission(tab, 'nonaktif')}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                  currentLevel === 'nonaktif'
+                                    ? 'bg-red-500 text-white shadow-xs'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                                title="Nonaktifkan akses modul ini"
+                              >
+                                <XCircle size={11} />
+                                <span>Tutup</span>
+                              </button>
+
+                              {/* Lihat Saja */}
+                              <button
+                                type="button"
+                                onClick={() => setTabPermission(tab, 'view')}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                  currentLevel === 'view'
+                                    ? 'bg-amber-500 text-white shadow-xs'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                                title="Hanya dapat melihat data (Read Only)"
+                              >
+                                <Eye size={11} />
+                                <span>Lihat</span>
+                              </button>
+
+                              {/* Akses Full / Edit */}
+                              <button
+                                type="button"
+                                onClick={() => setTabPermission(tab, 'edit')}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                  currentLevel === 'edit'
+                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                                title="Akses penuh tambah, edit, dan hapus"
+                              >
+                                <Edit3 size={11} />
+                                <span>Full</span>
+                              </button>
+
                             </div>
                           </div>
                         );
@@ -603,45 +623,55 @@ export default function TabHakAkses(props) {
           </div>
 
           {/* Sticky Update Footer */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 flex items-center justify-between sticky bottom-4 shadow-lg z-25 mt-4">
-            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider hidden sm:inline-block">
-              {isModified ? "Ada perubahan belum disimpan" : "Hak akses tersinkronisasi"}
-            </span>
+          <div className="bg-slate-900 border border-slate-800 text-white rounded-2xl p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-[320px] shadow-2xl z-30 transition-all">
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${isModified ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+              <span className="text-xs font-bold text-slate-200">
+                {isModified ? "Ada perubahan hak akses yang belum disimpan!" : "Hak akses role ini tersinkronisasi."}
+              </span>
+            </div>
             
-            <div className="flex items-center gap-3 ml-auto">
-              <Button
-                variant="outline"
-                disabled={!isModified}
-                onClick={() => {
-                  // Reload saved state from DB
-                  if (rolePermissions && rolePermissions[selectedRoleKey]) {
-                    const saved = rolePermissions[selectedRoleKey];
-                    let normalized = {};
-                    if (Array.isArray(saved)) {
-                      saved.forEach(t => { normalized[t] = 'edit'; });
-                    } else {
-                      normalized = { ...saved };
+            <div className="flex items-center gap-2.5 ml-auto">
+              {isModified && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (rolePermissions && rolePermissions[selectedRoleKey]) {
+                      const saved = rolePermissions[selectedRoleKey];
+                      let normalized = {};
+                      if (Array.isArray(saved)) {
+                        saved.forEach(t => { normalized[t] = 'edit'; });
+                      } else {
+                        normalized = { ...saved };
+                      }
+                      setLocalPermissions(normalized);
                     }
-                    setLocalPermissions(normalized);
-                  }
-                  setIsModified(false);
-                }}
-                className="px-5 py-2.5 text-xs font-bold text-slate-600 flex items-center gap-1.5"
-              >
-                <RotateCcw size={14} />
-                Batal
-              </Button>
+                    setIsModified(false);
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-slate-300 hover:text-white border-slate-700 bg-slate-800"
+                >
+                  <RotateCcw size={13} />
+                  Batal
+                </Button>
+              )}
               
               <Button
                 type="button"
                 onClick={handleUpdateRole}
-                className="px-6 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+                disabled={!isModified}
+                className={`px-5 py-2 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all ${
+                  isModified 
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30' 
+                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                }`}
               >
-                <Save size={14} />
+                <Save size={13} />
                 Update Role
               </Button>
             </div>
           </div>
+
+        </div>
       </div>
 
       {/* Create Role Modal */}
@@ -654,39 +684,36 @@ export default function TabHakAkses(props) {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2">
-                Nama Role / Jabatan
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5">
+                Nama Role / Jabatan Baru
               </label>
               <input
                 type="text"
-                placeholder="Contoh: Kepala Program Keahlian, Laboran"
+                placeholder="Contoh: Kepala Lab Komputer, Laboran RPL"
                 value={newRoleName}
                 onChange={e => setNewRoleName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs text-slate-800"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all text-slate-800"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2">
-                Key Akses (Huruf Kecil {'&'} Angka)
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5">
+                Key Kustom (Huruf Kecil & Angka)
               </label>
-              <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 shadow-xs focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+              <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 transition-all">
                 <span>custom_</span>
                 <input
                   type="text"
-                  placeholder="laboran, kaprog_rpl"
+                  placeholder="laboran_rpl, kalab_komputer"
                   value={newRoleKey}
                   onChange={e => setNewRoleKey(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
                   className="flex-1 border-none outline-none bg-transparent p-0 text-slate-800 text-xs font-semibold"
                 />
               </div>
-              <p className="text-[9px] text-slate-400 font-bold mt-1.5 ml-1 leading-snug">
-                Key ini digunakan sistem secara unik untuk mendata hak akses.
-              </p>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5">
                 Salin Template Hak Akses Dari
               </label>
               <UISelect
@@ -724,7 +751,7 @@ export default function TabHakAkses(props) {
         </Modal>
       )}
 
-      {/* R1: Delete Role Confirmation Modal */}
+      {/* Delete Role Confirmation Modal */}
       {deleteRoleKey && (
         <Modal
           isOpen={true}
@@ -740,7 +767,7 @@ export default function TabHakAkses(props) {
                   Role <span className="underline">{getRoleLabelExtended(deleteRoleKey).label}</span> akan dihapus permanen.
                 </p>
                 <p className="text-[10px] text-red-500 font-semibold mt-1">
-                  Pengguna yang menggunakan role ini tidak lagi memiliki hak akses. Aksi ini tidak bisa dibatalkan.
+                  Aksi ini tidak bisa dibatalkan.
                 </p>
               </div>
             </div>
@@ -760,7 +787,7 @@ export default function TabHakAkses(props) {
         </Modal>
       )}
 
-      {/* R2: Preset Apply Confirmation Modal */}
+      {/* Preset Apply Confirmation Modal */}
       {pendingPreset && (
         <Modal
           isOpen={true}
@@ -773,10 +800,10 @@ export default function TabHakAkses(props) {
               <Sparkles size={18} className="text-amber-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-black text-amber-700">
-                  Semua centang hak akses role <span className="underline">{getRoleLabelExtended(selectedRoleKey).label}</span> akan diganti sesuai preset.
+                  Semua centang hak akses role <span className="underline">{getRoleLabelExtended(selectedRoleKey).label}</span> akan disesuaikan dengan preset.
                 </p>
                 <p className="text-[10px] text-amber-600 font-semibold mt-1">
-                  Anda masih bisa mengubah centang secara manual setelah preset diterapkan, dan perubahan baru disimpan setelah klik <strong>Update Role</strong>.
+                  Perubahan baru tersimpan setelah klik <strong>Update Role</strong>.
                 </p>
               </div>
             </div>
@@ -796,7 +823,5 @@ export default function TabHakAkses(props) {
         </Modal>
       )}
     </div>
-  </div>
   );
 }
-

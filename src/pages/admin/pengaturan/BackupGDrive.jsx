@@ -2,7 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useRef } from'react';
 import { CloudUpload, Settings, LayoutDashboard, KeyRound, DatabaseBackup, MessageSquare } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
-import { HardDrive, Send, Cloud, UploadCloud, Trash2, FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, Info, Shield, Calendar } from'lucide-react';
+import { HardDrive, Send, Cloud, UploadCloud, Trash2, FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, Info, Shield, Calendar, FileJson } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
 
@@ -19,6 +19,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
   const [isRestoring, setIsRestoring] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const [archiveDate, setArchiveDate] = useState('');
+  const [isDownloading, setIsDownloading] = useState({});
   
   const [backupLogs, setBackupLogs] = useState([]);
   const [toast, setToast] = useState(null);
@@ -161,8 +162,10 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
   };
 
   const handleDownloadBackup = async (type) => {
+    if (isDownloading[type]) return; // Prevent duplicate downloads
     const token = authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken || '';
     const url = `/api/backup/${type}?token=${encodeURIComponent(token)}`;
+    setIsDownloading(prev => ({ ...prev, [type]: true }));
     try {
       const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
       if (!res.ok) {
@@ -174,7 +177,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = type === 'excel' ? `kurmon_master_backup_${new Date().toISOString().slice(0,10)}.xlsx` : `kurmon_db_backup_${new Date().toISOString().slice(0,10)}.sql`;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const ext = type === 'excel' ? 'xlsx' : type === 'json' ? 'json' : 'sql';
+      link.download = `kurmon_backup_${type}_${dateStr}.${ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -182,6 +187,8 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       showToast(`Berhasil mengunduh backup ${type.toUpperCase()}!`);
     } catch (err) {
       showToast(`Gagal mengunduh backup ${type}.`, 'error');
+    } finally {
+      setIsDownloading(prev => ({ ...prev, [type]: false }));
     }
   };
 
@@ -221,7 +228,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* TAB CONTENT: LOCAL BACKUP */}
       {activeTab ==='local' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Card 1: Excel Master Data Backup */}
             <div className="ui-card p-6 flex flex-col justify-between relative group hover:border-[var(--ui-primary)] transition-all">
@@ -238,9 +245,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
               </div>
               <Button variant="outline" 
                 onClick={() => handleDownloadBackup('excel')}
-                className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer"
+                disabled={!!isDownloading['excel']}
+                className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Download size={14} /> Unduh Master Data Excel (.xlsx)</Button>
+                {isDownloading['excel'] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+                {isDownloading['excel'] ? 'Mengunduh...' : 'Unduh Excel (.xlsx)'}
+              </Button>
             </div>
 
             {/* Card 2: PostgreSQL Dump Backup */}
@@ -258,9 +268,36 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
               </div>
               <Button variant="outline" 
                 onClick={() => handleDownloadBackup('postgresql')}
-                className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer"
+                disabled={!!isDownloading['postgresql']}
+                className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Download size={14} /> Unduh Database Dump SQL (.sql)</Button>
+                {isDownloading['postgresql'] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+                {isDownloading['postgresql'] ? 'Mengunduh...' : 'Unduh SQL Dump (.sql)'}
+              </Button>
+            </div>
+
+            {/* Card 3: Full Backup JSON (Restorasi 1-Klik Pindah Server) */}
+            <div className="ui-card p-6 flex flex-col justify-between relative group hover:border-amber-500 border-amber-200 bg-gradient-to-b from-amber-50/30 to-white transition-all shadow-sm">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0">
+                  <FileJson size={24} />
+                </div>
+                <div>
+                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-200 text-amber-900 mb-1">🔥 Rekomendasi Pindah Server</span>
+                  <h4 className="font-bold text-slate-800 text-sm">Full Backup Portabel (Format JSON)</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                    Unduh **seluruh data sistem** (Database, Pengaturan, Akun User, Absensi, PKL, &amp; Jurnal). Tinggal unggah file ini di menu "Pulihkan Data" pada server baru untuk **Impor 1-Klik**!
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" 
+                onClick={() => handleDownloadBackup('json')}
+                disabled={!!isDownloading['json']}
+                className="w-full mt-4 flex items-center justify-center gap-2 cursor-pointer border-amber-300 text-amber-800 hover:bg-amber-100 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isDownloading['json'] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+                {isDownloading['json'] ? 'Mengunduh...' : 'Unduh Full Backup JSON (.json)'}
+              </Button>
             </div>
 
           </div>

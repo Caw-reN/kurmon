@@ -6,7 +6,7 @@ export function useAdminRenderers(props) {
     getFloorColorByClassName, getFloorLegend, layoutByDay, layoutDay,
     scheduleCellMap, currentUser, getMajorColorHex, handleDragOver, handleDragLeave, handleDrop, handleDragStart,
     teachers, parseCsvList, getPracticeRoomLabel, isGenerated, timeSlots, updateSelectionForTab, openModal, checkDependencies, handleDelete,
-    days
+    days, openManualSlotModal
   } = props || {};
 
   // INJECTED BLOCKS
@@ -356,8 +356,10 @@ export function useAdminRenderers(props) {
                           return (
                             <td
                               key={`${day}-${slot.id}-${cls.name}`}
-                              className={`border-b border-r border-slate-300 p-1.5 transition-colors relative print:border-slate-600 print:border print:p-1 ${readOnly ?"" :"hover:bg-slate-50"} ${isMyClass ?"ring-inset ring-2 ring-[var(--ui-accent)]" : (sIdx % 2 !== 0 ?"bg-slate-50 print:!bg-slate-100" :"bg-white print:!bg-white")}`}
+                              className={`border-b border-r border-slate-300 p-1.5 transition-colors relative print:border-slate-600 print:border print:p-1 ${readOnly ?"" :"hover:bg-slate-50 cursor-pointer"} ${isMyClass ?"ring-inset ring-2 ring-[var(--ui-accent)]" : (sIdx % 2 !== 0 ?"bg-slate-50 print:!bg-slate-100" :"bg-white print:!bg-white")}`}
                               onDragOver={readOnly ? undefined : handleDragOver} onDragLeave={readOnly ? undefined : handleDragLeave} onDrop={readOnly ? undefined : (e) => handleDrop(e, day, slot.id, cls.name)}
+                              onClick={!readOnly && openManualSlotModal ? () => openManualSlotModal(day, slot.id, cls.name, cellData) : undefined}
+                              title={!readOnly ? "Klik untuk edit slot manual atau tarik/geser slot" : undefined}
                             >
                               {cellData ? (
                                 <div

@@ -334,7 +334,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           onClick={() =>setActiveTab('matriks')}
           className={`cursor-pointer ${activeTab ==='matriks' ?'bg-white text-[var(--ui-primary)] shadow-sm ring-1 ring-slate-200/50' :'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
         >
-          Laporan Matriks Bulanan</Button>
+          Laporan Kehadiran</Button>
         <Button variant="outline"
           onClick={() =>setActiveTab('surat_izin')}
           className={`cursor-pointer ${activeTab ==='surat_izin' ?'bg-white text-[var(--ui-primary)] shadow-sm ring-1 ring-slate-200/50' :'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}

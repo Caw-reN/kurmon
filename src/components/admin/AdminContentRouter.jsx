@@ -95,6 +95,9 @@ export default function AdminContentRouter({ context }) {
   } = context;
 
   const renderContent = () => {
+    if (typeof window !== 'undefined' && setActiveTab) {
+      window.__setActiveTab = setActiveTab;
+    }
     const disabledFeatureMap = {
       absensi:"attendance",
       absensiguru:"attendance",
@@ -119,32 +122,80 @@ export default function AdminContentRouter({ context }) {
     // === KEAMANAN: Tab yang diizinkan per role ===
     const role = normalizeUserRole(currentUser?.role);
     const isTabReadOnly = tabKey => {
+      const roleKey = normalizeUserRole(currentUser?.role);
+      const division = (currentUser?.division || "").toLowerCase();
+
+      if (tabKey === "akademik" || tabKey === "kalender" || tabKey === "kalender_akademik") {
+        if (roleKey === "admin" || roleKey === "superadmin" || (roleKey === "waka" && division === "kurikulum")) {
+          return false;
+        }
+        return true;
+      }
+
+      const kurikulumTabs = [
+        "generate", "akademik", "silabus", "silabusguru", "modul_ajar",
+        "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
+        "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules"
+      ];
+      if ((roleKey === "waka" && division === "kurikulum") || roleKey === "kurikulum") {
+        if (kurikulumTabs.includes(tabKey)) return false;
+      }
+
+      const kesiswaanTabs = [
+        "siswa", "kedisiplinan_absensi", "catatan_walikelas", "walas_report",
+        "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
+        "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
+      ];
+      if ((roleKey === "waka" && division === "kesiswaan") || roleKey === "kesiswaan") {
+        if (kesiswaanTabs.includes(tabKey)) return false;
+      }
+
       const level = getTabPermissionLevel(tabKey);
-      if (level ==="edit") return false;
-      if (level ==="view") return true;
-      return activeUserRole ==="kepsek";
+      if (level === "edit") return false;
+      if (level === "view") return true;
+      if (level === "otomatis") return activeUserRole === "kepsek";
+      return activeUserRole === "kepsek";
     };
     const isTabAllowed = () => {
       if (role ==="admin" || role ==="superadmin") return true;
-      if (activeTab ==="dashboard") return true;
+      if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
       if (activeTab ==="kedisiplinan_piket" && role ==="guru") return true;
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;
+
+      // Allow all attendance report tabs for tu, tata_usaha, karyawan, kepsek, waka roles unconditionally
+      const attendanceReportTabs = [
+        "laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru",
+        "hikvision_report_karyawan", "absensi", "absensiguru", "kedisiplinan_absensi"
+      ];
+      if (attendanceReportTabs.includes(activeTab)) {
+        if (role === "tu" || role === "tata_usaha" || role === "karyawan" || role === "kepsek" || role === "waka" || role === "guru") {
+          return true;
+        }
+      }
+
       const checkAllowed = roleKey => {
+        if (roleKey === "tu" || roleKey === "tata_usaha") {
+          const tuAlwaysAllowed = [
+            "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
+            "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
+            "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
+            "kedisiplinan_absensi","kartu_pelajar","esurat"
+          ];
+          if (tuAlwaysAllowed.includes(activeTab)) return true;
+        }
+
         const perms = rolePermissions?.[roleKey];
         if (!perms) {
           if (roleKey.startsWith("waka_")) {
             const wakaTabsByDivision = {
-              kurikulum: ["dashboard","generate","akademik","silabus","ketersediaan","beban","kelas","guru","mapel"],
-              kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","siswa_keluar","tatib_skor","kedisiplinan_absensi"],
-              sarpras: ["dashboard","ruangan","denah","kelas","generate"],
-              humas: ["dashboard","pesan","tampilan","akademik","silabus"],
-              hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pesan"]
+              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan"],
+              kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa"],
+              sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas"],
+              humas: ["dashboard","pesan","tampilan","akademik","silabus","walas_report","catatan_walikelas"],
+              hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pesan","walas_report","catatan_walikelas"]
             };
             const div = roleKey.replace("waka_","");
             return (wakaTabsByDivision[div] || wakaTabsByDivision.kurikulum).includes(activeTab);
-          }
-          if (roleKey === "tu" || roleKey === "tata_usaha") {
-            return ["dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"].includes(activeTab);
           }
           return false;
         }
@@ -158,9 +209,13 @@ export default function AdminContentRouter({ context }) {
           const hasModulAjarPerm = perms["modul_ajar"] && perms["modul_ajar"] !=="none" && perms["modul_ajar"] !=="nonaktif";
           return hasSyllabusPerm || hasSyllabusGuruPerm || hasModulAjarPerm;
         }
-        if (roleKey ==="waka_kesiswaan") {
-          const defaultKesiswaanTabs = ["catatan_walikelas","siswa_keluar","tatib_skor","kedisiplinan_absensi"];
-          if (defaultKesiswaanTabs.includes(activeTab) && (level === undefined || level ==="otomatis")) return true;
+        if (roleKey ==="waka_kesiswaan" || roleKey ==="kesiswaan") {
+          const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","laporan_absensi","hikvision_report_siswa","siswa"];
+          if (defaultKesiswaanTabs.includes(activeTab) && (level === undefined || level ==="otomatis" || level ==="edit" || level ==="view")) return true;
+        }
+        if (roleKey ==="waka_kurikulum" || roleKey ==="kurikulum") {
+          const defaultKurikulumTabs = ["generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pengaturan","advanced_rules"];
+          if (defaultKurikulumTabs.includes(activeTab) && (level === undefined || level ==="otomatis" || level ==="edit" || level ==="view")) return true;
         }
         return level && level !=="none" && level !=="nonaktif";
       };
@@ -175,11 +230,28 @@ export default function AdminContentRouter({ context }) {
         }
         return checkAllowed("guru");
       }
+      const commonRoleTabs = ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket"];
+      if (commonRoleTabs.includes(activeTab)) return true;
+
       if (role ==="karyawan") return checkAllowed("karyawan");
       if (role ==="tu" || role ==="tata_usaha") return checkAllowed("tu");
-      if (role ==="kepsek") return checkAllowed("kepsek");
+      if (role ==="kepsek") {
+        const kepsekAllowedTabs = [...commonRoleTabs, "siswa","guru","data_pegawai"];
+        if (kepsekAllowedTabs.includes(activeTab)) return true;
+        return checkAllowed("kepsek");
+      }
       if (role ==="waka") {
         const division = (currentUser?.division ||"kurikulum").toLowerCase();
+        if (division === "kurikulum") {
+          const kurikulumAllowedTabs = [
+            "generate", "akademik", "silabus", "modul_ajar", "silabusguru", "ketersediaan",
+            "beban", "jurnal_harian", "kelas", "siswa", "guru", "karyawan", "mapel",
+            "walas_report", "catatan_walikelas", "pengaturan", "advanced_rules", "dashboard"
+          ];
+          if (kurikulumAllowedTabs.includes(activeTab)) return true;
+        }
+        const wakaCommonTabs = [...commonRoleTabs, "siswa","guru","fasilitas","ruangan","beban","siswa_keluar","kenaikan_kelas","struktur","riwayat_prestasi","kedisiplinan_bpbk","tatib_skor","laporan_absensi","hikvision_report_siswa"];
+        if (wakaCommonTabs.includes(activeTab)) return true;
         return checkAllowed(`waka_${division}`);
       }
       return checkAllowed(role);
@@ -196,7 +268,7 @@ export default function AdminContentRouter({ context }) {
     }
     switch (activeTab) {
       case"dashboard":
-        return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} />;
+        return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} />;
       case"fitur":
         return <FiturManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
       case "hak_akses":
@@ -214,6 +286,8 @@ export default function AdminContentRouter({ context }) {
               isSuperAdminRole={context.isSuperAdminRole}
               currentUser={context.currentUser}
               rolePermissions={context.rolePermissions}
+              adminUser={context.adminUser}
+              syncAuthSnapshotNow={context.syncAuthSnapshotNow}
             />
           </Suspense>
         );
@@ -222,6 +296,8 @@ export default function AdminContentRouter({ context }) {
       case"pengaturanuser":
         return <TabPengaturanUser {...tabProps} />;
       case"akademik":
+      case"kalender":
+      case"kalender_akademik":
         return <TabAkademik {...tabProps} />;
       case"siswa":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
@@ -415,7 +491,7 @@ export default function AdminContentRouter({ context }) {
         </Suspense>;
       case"laporan_absensi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Laporan Absensi...</div>}>
-          <LaporanAbsensi classes={classes} />
+          <LaporanAbsensi classes={classes} students={students} />
         </Suspense>;
       case"hikvision_devices":
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">
@@ -429,12 +505,12 @@ export default function AdminContentRouter({ context }) {
         </Suspense>;
       case"hikvision_report_karyawan":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi karyawan...</div>}>
-          <HikvisionStaffReport />
+          <HikvisionStaffReport classes={classes} />
         </Suspense>;
       case"hikvision_report_siswa":
       case"walas_report":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
-          <HikvisionStudentReport classes={classes} students={students} />
+          <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
         </Suspense>;
       case"hikvision_students":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
@@ -450,9 +526,9 @@ export default function AdminContentRouter({ context }) {
       case"kedisiplinan_bpbk":
         return <BKDashboard teachers={teachers} students={students} classes={classes} />;
       case"jurnal_harian":
-        return <JurnalHarianGuru classes={classes} teachers={teachers} schedule={schedule} />;
+        return <JurnalHarianGuru classes={classes} teachers={teachers} schedule={schedule} onBack={() => setActiveTab('dashboard')} />;
       case"catatan_walikelas":
-        return <CatatanWaliKelas students={students} classes={classes} />;
+        return <CatatanWaliKelas students={students} classes={classes} onBack={() => setActiveTab('dashboard')} />;
 
       case"riwayat_prestasi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Riwayat Prestasi...</div>}>

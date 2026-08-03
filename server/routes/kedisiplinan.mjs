@@ -232,7 +232,24 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/absensi") {
-          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_absensi ORDER BY tanggal DESC, id DESC");
+          let startDate = null;
+          try {
+            const startRes = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
+            if (startRes.rows.length > 0 && startRes.rows[0].value) {
+              startDate = startRes.rows[0].value;
+            }
+          } catch (err) {
+            console.warn("Gagal membaca tanggal mulai absensi:", err.message);
+          }
+
+          let query = "SELECT * FROM kedisiplinan_absensi";
+          let params = [];
+          if (startDate) {
+            query += " WHERE tanggal >= $1";
+            params.push(startDate);
+          }
+          query += " ORDER BY tanggal DESC, id DESC";
+          const { rows } = await dbPool.query(query, params);
           send(req, res, 200, { ok: true, data: rows });
           return;
         }

@@ -66,33 +66,35 @@ export const SIDEBAR_GROUP_BY_TAB = {
 
 export const TABLE_SORT_OPTIONS = {
   kelas: [
-    { value: "name", label: "Nama Kelas" },
+    { value: "name", label: "Nama Kelas / Rombel" },
     { value: "major", label: "Jurusan" },
   ],
   jurusan: [
     { value: "name", label: "Nama Jurusan" },
+    { value: "code", label: "Kode Jurusan" },
   ],
   guru: [
-    { value: "code", label: "Kode Guru" },
-    { value: "name", label: "Nama Guru" },
-    { value: "type", label: "Kategori" },
+    { value: "code", label: "No. Urut / Kode Guru" },
+    { value: "name", label: "Nama Guru (A-Z)" },
+    { value: "type", label: "Kategori Guru" },
     { value: "preferredMajor", label: "Prioritas Jurusan" },
     { value: "targetWeeklyJp", label: "Target JP" },
   ],
   mapel: [
+    { value: "code", label: "No. / Kode Mapel" },
     { value: "name", label: "Nama Mapel" },
     { value: "grade", label: "Tingkat" },
     { value: "major", label: "Jurusan" },
     { value: "defaultDuration", label: "Durasi" },
   ],
   ruangan: [
-    { value: "id", label: "ID Ruang" },
+    { value: "id", label: "No. / ID Ruang" },
     { value: "name", label: "Nama Ruangan" },
     { value: "type", label: "Tipe Ruang" },
     { value: "major", label: "Khusus Jurusan" },
   ],
   beban: [
-    { value: "teacherCode", label: "Guru" },
+    { value: "teacherCode", label: "No. Kode Guru" },
     { value: "subject", label: "Mata Pelajaran" },
     { value: "targetGrade", label: "Tingkat Target" },
     { value: "targetMajor", label: "Jurusan" },
@@ -100,18 +102,19 @@ export const TABLE_SORT_OPTIONS = {
     { value: "maxClasses", label: "Maks Kelas" },
   ],
   karyawan: [
-    { value: "code", label: "Kode Karyawan" },
+    { value: "code", label: "No. Urut / Kode Karyawan" },
     { value: "name", label: "Nama Karyawan" },
     { value: "division", label: "Divisi" },
   ],
   siswa: [
+    { value: "nis", label: "NIS / No. Urut Siswa" },
     { value: "nisn", label: "NISN" },
     { value: "name", label: "Nama Siswa" },
     { value: "class", label: "Kelas" },
   ],
   akademik: [
-    { value: "title", label: "Judul Agenda" },
     { value: "dateStart", label: "Tanggal" },
+    { value: "title", label: "Judul Agenda" },
   ],
   kategori_kalender: [
     { value: "name", label: "Nama Kategori" },
@@ -124,6 +127,7 @@ export const TABLE_SORT_OPTIONS = {
     { value: "grade", label: "Tingkat" },
   ],
   pengaturanuser: [
+    { value: "code", label: "No. / ID User" },
     { value: "name", label: "Nama Pengguna" },
     { value: "role", label: "Peran" },
   ],
@@ -137,16 +141,16 @@ export const DEFAULT_TABLE_SORTS = {
   kelas: { key: "name", dir: "asc" },
   jurusan: { key: "name", dir: "asc" },
   guru: { key: "code", dir: "asc" },
-  mapel: { key: "name", dir: "asc" },
-  ruangan: { key: "name", dir: "asc" },
+  mapel: { key: "code", dir: "asc" },
+  ruangan: { key: "id", dir: "asc" },
   beban: { key: "teacherCode", dir: "asc" },
   karyawan: { key: "code", dir: "asc" },
-  siswa: { key: "class", dir: "asc" },
+  siswa: { key: "nis", dir: "asc" },
   akademik: { key: "dateStart", dir: "asc" },
   kategori_kalender: { key: "name", dir: "asc" },
   kategori_silabus: { key: "name", dir: "asc" },
   silabus: { key: "title", dir: "asc" },
-  pengaturanuser: { key: "name", dir: "asc" },
+  pengaturanuser: { key: "code", dir: "asc" },
   advanced_rules: { key: "name", dir: "asc" },
 };
 
@@ -286,9 +290,26 @@ export const SUBROLE_OPTIONS_BY_DIVISION = {
     { value: "anggota_hubin", label: "Anggota Tim Hubin" },
     { value: "walikelas", label: "Wali Kelas" },
   ],
+  tu: [
+    { value: "", label: "— Tata Usaha (Kepala TU)" },
+    { value: "sekretaris_tu", label: "Sekretaris TU" },
+    { value: "bendahara", label: "Bendahara Sekolah" },
+    { value: "karyawan", label: "Staf Karyawan / Umum" },
+  ],
+  karyawan: [
+    { value: "", label: "— Karyawan Biasa / Umum" },
+    { value: "tu", label: "Staf Tata Usaha (TU)" },
+    { value: "sekretaris_tu", label: "Sekretaris TU" },
+    { value: "bendahara", label: "Bendahara Sekolah" },
+  ],
   none: [
-    { value: "", label: "— Guru Biasa (tanpa jabatan)" },
+    { value: "", label: "— Tanpa Jabatan Spesifik" },
     { value: "walikelas", label: "Wali Kelas" },
+    { value: "tu", label: "Staf Tata Usaha" },
+    { value: "sekretaris_tu", label: "Sekretaris TU" },
+    { value: "bendahara", label: "Bendahara Sekolah" },
+    { value: "bpbk", label: "Guru BP/BK" },
+    { value: "pembina_osis", label: "Pembina OSIS" },
   ],
 };
 

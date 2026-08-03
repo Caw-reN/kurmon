@@ -1,10 +1,21 @@
-import { LayoutDashboard, Calendar, Users, BookOpen, CheckCircle2, FileText, GraduationCap, Briefcase, Building2, UserPlus, MoreVertical, ClipboardList, MessageSquare, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Home, 
+  Calendar, 
+  BookOpen, 
+  PieChart, 
+  Users, 
+  CheckCircle2, 
+  FileText, 
+  GraduationCap, 
+  Briefcase, 
+  ClipboardList 
+} from 'lucide-react';
 import { isSuperAdminRole } from '../../utils/constants.js';
 
-
 /**
- * AdminMobileNav — Fixed bottom navigation bar untuk layar kecil.
- * Extracted dari AdminApp.jsx untuk mengurangi ukuran file utama.
+ * AdminMobileNav — Floating or Fixed Bottom Navigation Dock / TabBar
+ * Supports user preference switch: 'floating' (default) vs 'stay' (fixed full width).
  */
 export default function AdminMobileNav({
   activeTab,
@@ -13,143 +24,171 @@ export default function AdminMobileNav({
   activeUserDivision,
   currentUser,
   hasFeature,
-  isMobileMenuOpen,
-  setIsMobileMenuOpen,
-  hasPiket,
 }) {
-  const getTabColorConfig = () => ({
-    activeColor:'text-primary',
-    activeBg:'bg-primary/10',
-    iconColor:'var(--ui-primary)',
+  const [tabbarStyle, setTabbarStyle] = useState(() => {
+    return localStorage.getItem('kurmon_tabbar_style') || 'floating';
   });
 
-  const isMenuOpen = isMobileMenuOpen;
+  useEffect(() => {
+    const handleStyleChange = () => {
+      const saved = localStorage.getItem('kurmon_tabbar_style') || 'floating';
+      setTabbarStyle(saved);
+    };
+    window.addEventListener('kurmon_tabbar_style_changed', handleStyleChange);
+    return () => window.removeEventListener('kurmon_tabbar_style_changed', handleStyleChange);
+  }, []);
 
   const getRoleTabs = () => {
-    if (activeUserRole ==='guru') {
-      const tabs = [
-        { id:'generate',          icon: Calendar,      label:'Jadwal' },
-      ];
-      tabs.push({ id:'jurnal_harian', icon: BookOpen, label:'Jurnal' });
-      tabs.push(
-        currentUser?.isWalas
-          ? { id:'walas_report', icon: FileText,  label:'Laporan' }
-          : { id:'modul_ajar',  icon: FileText,  label:'Modul Ajar', featureKey:'teacherSyllabus' }
-      );
-      tabs.push({ id:'absensiguru', icon: CheckCircle2, label:'Absen', featureKey:'attendance' });
-      return tabs;
-    }
+    const role = (activeUserRole || currentUser?.role || '').toLowerCase();
+    const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
 
-    if (activeUserRole ==='tu' || activeUserRole ==='tata_usaha') {
+    if (role === 'guru') {
       return [
-        { id:'siswa',    icon: GraduationCap, label:'Siswa' },
-        { id:'guru',     icon: Users,         label:'Guru' },
-        { id:'karyawan', icon: Briefcase,      label:'Karyawan' },
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
       ];
     }
 
-    if (activeUserRole ==='karyawan') {
-      return [{ id:'absensiguru', icon: CheckCircle2, label:'Absen', featureKey:'attendance' }];
-    }
-
-    if (activeUserRole ==='kepsek') {
+    if (role === 'tu' || role === 'tata_usaha') {
       return [
-        { id:'generate',      icon: Calendar, label:'Jadwal' },
-        { id:'pkl_dashboard', icon: LayoutDashboard, label:'PKL', featureKey:'pkl_dashboard' },
+        { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
+        { id: 'guru', icon: Users, label: 'Guru' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'esurat', icon: FileText, label: 'E-Surat' },
       ];
     }
 
-    if (activeUserRole ==='waka') {
-      if (activeUserDivision ==='hubin') {
+    if (role === 'karyawan') {
+      return [
+        { id: 'absensi', icon: CheckCircle2, label: 'Absen' },
+        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        { id: 'pesan', icon: FileText, label: 'Pesan' },
+      ];
+    }
+
+    if (role === 'kepsek') {
+      return [
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        { id: 'pesan', icon: FileText, label: 'Pesan' },
+      ];
+    }
+
+    if (role === 'waka') {
+      if (div === 'hubin') {
         return [
-          { id:'pkl_dashboard',       icon: LayoutDashboard,  label:'PKL',  featureKey:'pkl_dashboard' },
-          { id:'pkl_data_perusahaan', icon: Briefcase,  label:'DUDI' },
+          { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
+          { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
+          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'walas_report', icon: FileText, label: 'Laporan' },
         ];
       }
-      if (activeUserDivision ==='kesiswaan') {
+      if (div === 'kesiswaan') {
         return [
-          { id:'absensi',             icon: CheckCircle2, label:'Rekap Absensi' },
-          { id:'kedisiplinan_piket',  icon: ClipboardList,     label:'Piket & Pelanggaran' },
+          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
+          { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
+          { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
         ];
       }
+      if (div === 'sarpras') {
+        return [
+          { id: 'fasilitas', icon: Briefcase, label: 'Fasilitas' },
+          { id: 'ruangan', icon: Home, label: 'Ruangan' },
+          { id: 'generate', icon: Calendar, label: 'Jadwal' },
+          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        ];
+      }
+      if (div === 'humas') {
+        return [
+          { id: 'pesan', icon: FileText, label: 'Pesan' },
+          { id: 'akademik', icon: Calendar, label: 'Kalender' },
+          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        ];
+      }
+      // Waka Kurikulum (default)
       return [
-        { id:'generate', icon: Calendar,     label:'Jadwal' },
-        { id:'guru',     icon: Users, label:'Guru' },
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'modul_ajar', icon: BookOpen, label: 'Modul' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
       ];
     }
 
-    if (isSuperAdminRole(activeUserRole)) {
+    if (isSuperAdminRole(role)) {
       return [
-        { id:'siswa', icon: GraduationCap,        label:'Siswa' },
-        { id:'guru',  icon: Users, label:'Guru' },
+        { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'pengaturan', icon: FileText, label: 'Setelan' },
       ];
     }
 
-    return [];
+    if (role === 'siswa') {
+      return [
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'akademik', icon: BookOpen, label: 'Kalender' },
+        { id: 'pesan', icon: FileText, label: 'Pesan' },
+      ];
+    }
+
+    return [
+      { id: 'generate', icon: Calendar, label: 'Jadwal' },
+      { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+      { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+      { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+    ];
   };
 
   const allTabs = [
-    { id:'dashboard', icon: LayoutDashboard, label:'Beranda' },
+    { id: 'dashboard', icon: Home, label: 'Beranda' },
     ...getRoleTabs(),
-  ].filter(tab => !tab.featureKey || hasFeature(tab.featureKey));
+  ].slice(0, 5); // Guarantee exactly 5 items
+
+  const containerClasses = tabbarStyle === 'stay'
+    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200/90 py-1.5 px-2 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] z-[999999] flex items-center justify-around gap-1 text-center pb-[calc(8px+env(safe-area-inset-bottom))] transition-all duration-300"
+    : "lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-[26px] p-2 shadow-[0_12px_36px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.04)] z-[999999] flex items-center justify-around gap-1 text-center transition-all duration-300";
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around items-center px-2 py-2 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)] z-40 w-full overflow-hidden pb-[calc(8px+env(safe-area-inset-bottom))]">
+    <div className={containerClasses}>
       {allTabs.map(tab => {
-        const isActive = activeTab === tab.id;
-        const config = getTabColorConfig(tab.id);
+        const isActive = activeTab === tab.id || (tab.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'));
+        const IconComponent = tab.icon;
+
         return (
           <button
             key={tab.id}
+            type="button"
             onClick={() => {
               setActiveTab(tab.id);
-              if (tab.id !=='dashboard') setIsMobileMenuOpen(false);
             }}
-            className={`flex-1 flex flex-col items-center justify-center h-11 gap-0.5 rounded-xl transition-all duration-200 border-none cursor-pointer bg-transparent px-1 min-w-0 ${
-              isActive ? `${config.activeColor} scale-105` :'text-slate-400 hover:text-slate-600'
+            className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-95 ${
+              isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-              isActive ? `${config.activeBg} shadow-sm scale-110` :'bg-transparent hover:bg-slate-50'
+            <div className={`p-1 flex items-center justify-center transition-transform duration-200 ${
+              isActive ? 'scale-110' : 'group-hover:scale-105'
             }`}>
-              <tab.icon
-                size={18}
-                style={{ color: isActive ? config.iconColor :'inherit' }}
-                className={`shrink-0 ${isActive ?'stroke-[2.5]' :'stroke-[2]'}`}
+              <IconComponent
+                size={22}
+                style={{ color: isActive ? 'var(--ui-primary)' : 'currentColor' }}
+                className={`shrink-0 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`}
               />
             </div>
-            <span className={`text-[8.5px] font-black tracking-tight truncate w-full text-center ${
-              isActive ?'opacity-100 font-black' :'opacity-60 font-semibold'
+            <span className={`text-[10px] tracking-tight truncate w-full text-center leading-tight mt-0.5 ${
+              isActive ? 'text-[var(--ui-primary)] font-black' : 'text-slate-500 font-semibold'
             }`}>
               {tab.label}
             </span>
           </button>
         );
       })}
-
-      {activeUserRole !=='guru' && (
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMenuOpen)}
-          className={`flex-1 flex flex-col items-center justify-center h-11 gap-0.5 rounded-xl transition-all duration-200 border-none cursor-pointer bg-transparent px-1 min-w-0 ${
-            isMenuOpen ?'text-primary scale-105 font-bold' :'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-            isMenuOpen ?'bg-primary/10 shadow-sm scale-110' :'bg-transparent hover:bg-slate-50'
-          }`}>
-            <MoreVertical
-              size={18}
-              style={{ color: isMenuOpen ?'var(--ui-primary)' :'inherit' }}
-              className={`shrink-0 ${isMenuOpen ?'stroke-[2.5]' :'stroke-[2]'}`}
-            />
-          </div>
-          <span className={`text-[8.5px] font-black tracking-tight truncate w-full text-center ${
-            isMenuOpen ?'opacity-100 font-black' :'opacity-60 font-semibold'
-          }`}>
-            Menu
-          </span>
-        </button>
-      )}
     </div>
   );
 }

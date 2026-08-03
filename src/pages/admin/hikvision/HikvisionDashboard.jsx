@@ -1,11 +1,8 @@
-import { Button, TablePagination } from '../../../components/ui.jsx';
+import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { Cpu, RefreshCw, Server, Activity, Clock } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
@@ -136,7 +133,7 @@ export default function HikvisionDashboard() {
 
   const filteredLogs = (activeFilter ==='semua' 
     ? recentLogs 
-    : recentLogs.filter(log => log.device_type === activeFilter)
+    : recentLogs.filter(log => (log.true_person_type || log.person_type || log.device_type) === activeFilter)
   );
 
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -204,14 +201,34 @@ export default function HikvisionDashboard() {
           )}
 
           {syncMessage.results && (
-            <ul className="mt-2 list-disc list-inside text-xs space-y-1">
-              {syncMessage.results.map((res, i) => (
-                <li key={i}>
-                  <span className="font-semibold">{res.ip}</span>: {res.status}
-                  {res.logs_saved !== undefined && ` (${res.logs_saved} tersimpan)`}
-                </li>
-              ))}
-            </ul>
+            <div className="mt-3 space-y-2">
+              <ul className="list-disc list-inside text-xs space-y-1 bg-white/60 p-2.5 rounded-xl border border-slate-200/60">
+                {syncMessage.results.map((res, i) => {
+                  const isFailed = String(res.status).toLowerCase().includes('fetch failed') || String(res.status).toLowerCase().includes('error');
+                  return (
+                    <li key={i} className={isFailed ? "text-rose-700 font-medium" : "text-emerald-700 font-medium"}>
+                      <span className="font-bold">{res.ip}</span>: {isFailed ? `Gagal Terhubung (${res.status})` : res.status}
+                      {res.logs_saved !== undefined && ` (${res.logs_saved} tersimpan)`}
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {syncMessage.results.some(r => String(r.status).toLowerCase().includes('fetch failed')) && (
+                <div className="p-3 bg-rose-50/90 border border-rose-200 text-rose-800 rounded-xl text-xs space-y-1.5">
+                  <p className="font-black flex items-center gap-1.5 text-rose-900">
+                    <AlertTriangle size={15} className="text-rose-600 shrink-0" />
+                    Penyebab Utama "Error: fetch failed":
+                  </p>
+                  <ol className="list-decimal pl-4 space-y-1 font-semibold text-[11px] text-rose-800">
+                    <li><strong>Beda Jaringan (LAN/WiFi):</strong> Server aplikasi tidak berada dalam 1 router/jaringan lokal yang sama dengan IP mesin <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-900">192.168.111.x</code>.</li>
+                    <li><strong>Mesin Mati / Kabel LAN Terlepas:</strong> Mesin fingerprint dalam keadaan mati atau kabel jaringan terlepas.</li>
+                    <li><strong>IP Address Berubah:</strong> IP mesin di jaringan berubah. Cek IP aktif pada layar menu mesin fingerprint dan perbarui di menu <em>Kelola Perangkat Hikvision</em>.</li>
+                    <li><strong>Firewall Router:</strong> Port ISAPI (80 / 8000) terblokir oleh router atau firewall jaringan sekolah.</li>
+                  </ol>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -279,15 +296,15 @@ export default function HikvisionDashboard() {
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
-                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_open: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
+                    <UITimeInput24 placeholder="06:00" value={config[activeConfigTab]?.masuk_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_open: e.target.value}})} />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
-                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_late ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_late: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
+                    <UITimeInput24 placeholder="07:00" value={config[activeConfigTab]?.masuk_late ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_late: e.target.value}})} />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
-                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.masuk_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_close: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
+                    <UITimeInput24 placeholder="08:00" value={config[activeConfigTab]?.masuk_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_close: e.target.value}})} />
                   </div>
                 </div>
               </div>
@@ -297,11 +314,11 @@ export default function HikvisionDashboard() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
-                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.pulang_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_open: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
+                    <UITimeInput24 placeholder="14:00" value={config[activeConfigTab]?.pulang_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_open: e.target.value}})} />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
-                    <input type="time" placeholder="HH:MM" value={config[activeConfigTab]?.pulang_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_close: e.target.value}})} className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" />
+                    <UITimeInput24 placeholder="17:00" value={config[activeConfigTab]?.pulang_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_close: e.target.value}})} />
                   </div>
                 </div>
               </div>
@@ -389,7 +406,7 @@ export default function HikvisionDashboard() {
                       </td>
                       <td className="px-5 py-3.5 text-slate-500 font-mono">{log.ip_address}</td>
                       <td className="px-5 py-3.5 text-right">
-                        <DeviceTypeBadge type={log.device_type ||'siswa'} />
+                        <DeviceTypeBadge type={log.true_person_type || log.person_type || log.device_type || 'siswa'} />
                       </td>
                     </tr>
                   ))}

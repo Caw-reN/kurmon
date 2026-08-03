@@ -104,7 +104,9 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
   const executeImportFromHikvision = () => {
     setImportConfirmOpen(false);
     let addedCount = 0;
-    const existingCodeSet = new Set(staffs.map(t => String(t.code ||"").trim().toLowerCase()));
+    const existingCodeSet = new Set(
+      staffs.flatMap(t => [t.code, t.staff_code, t.id].map(x => String(x ||"").trim().toLowerCase()).filter(Boolean))
+    );
     const nextStaffs = [...staffs];
 
     hikstaffs.forEach(hik => {
@@ -209,11 +211,35 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
     </>
   ) : null;
 
+  const displayStaffs = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    (staffs || []).forEach(item => {
+      const code = String(item.code || item.staff_code || item.id || "").trim().toLowerCase();
+      const key = code || String(item.name || "").trim().toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        result.push({
+          ...item,
+          code: item.code || item.staff_code || item.id
+        });
+      }
+    });
+    return result;
+  }, [staffs]);
+
+  useEffect(() => {
+    if (staffs && staffs.length > displayStaffs.length) {
+      if (setStaffs) setStaffs(displayStaffs);
+      if (saveDatabaseNow) saveDatabaseNow({ staffs: displayStaffs });
+    }
+  }, [staffs, displayStaffs, setStaffs, saveDatabaseNow]);
+
   return (
     <>
       {renderTable("Kelola Data Karyawan",
         ["Kode","Nama Lengkap","Bagian / Divisi","No. WhatsApp","Status Alat"],
-        staffs,
+        displayStaffs,
         (item, idx, isSelected) => {
           // Cek apakah kode Karyawan ini ada di mesin Hikvision
           const codeKey = String(item.code ||"").trim().toLowerCase();

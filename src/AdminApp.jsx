@@ -28,6 +28,7 @@ import CustomRolesModal from "./components/admin/CustomRolesModal.jsx";
 import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
 import SystemModals from './components/admin/SystemModals.jsx';
 import CrudModals from './components/admin/CrudModals.jsx';
+import DefaultPasswordModal from './components/admin/DefaultPasswordModal.jsx';
 import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
 import { SidebarNavItem, Modal } from './components/ui.jsx';
 
@@ -1206,21 +1207,22 @@ export default function App() {
         return next;
       });
     } else if (["karyawan", "Karyawan"].includes(type)) {
-      const removedStaffs = staffs.filter(item => isSelectedId(item.code));
+      const getStaffCode = item => item.code || item.staff_code || item.id;
+      const removedStaffs = staffs.filter(item => isSelectedId(getStaffCode(item)));
       if (removedStaffs.length === 0) {
         showNotification("Data karyawan tidak ditemukan atau sudah terhapus.", "warning");
         removeFromSelection();
         return;
       }
       if (removedStaffs.length) {
-        const removedCodes = new Set(removedStaffs.map(item => normalizeText(item.code)));
+        const removedCodes = new Set(removedStaffs.map(item => normalizeText(getStaffCode(item))));
         snapshot.payload.staffs = removedStaffs;
         const hasRemovedStaff = tc => String(tc || "").split(",").map(c => normalizeText(c.trim())).some(c => removedCodes.has(c));
         snapshot.payload.loads = teachingLoads.filter(item => hasRemovedStaff(item.teacherCode));
         snapshot.payload.schedule = schedule.filter(item => hasRemovedStaff(item.teacherCode));
         shouldRecordSnapshot = true;
       }
-      setStaffs(prev => prev.filter(item => !isSelectedId(item.code)));
+      setStaffs(prev => prev.filter(item => !isSelectedId(getStaffCode(item))));
       const hasRemovedCode = tc => String(tc || "").split(",").map(c => c.trim()).some(c => isSelectedId(c));
       removeFromLoads(item => hasRemovedCode(item.teacherCode));
       removeFromScheduleBy(item => hasRemovedCode(item.teacherCode));
@@ -1443,26 +1445,37 @@ export default function App() {
   });
   
   useEffect(() => {
-    const teacherTabs = new Set(["dashboard", "ketersediaan", "generate", "absensiguru", "silabusguru", "kedisiplinan_bpbk", "riwayat_prestasi"]);
+    const teacherTabs = new Set(["dashboard", "ketersediaan", "generate", "akademik", "absensiguru", "silabusguru", "kedisiplinan_bpbk", "riwayat_prestasi"]);
     const kepsekTabs = new Set(["dashboard", "generate", "absensi", "pesan", "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan"]);
     const wakaDivision = (currentUser?.division || WAKA_DIVISION_OPTIONS[0].value).toLowerCase();
     const wakaTabsByDivision = {
-      kurikulum: ["dashboard", "generate", "akademik", "silabus", "ketersediaan", "beban", "kelas", "guru", "mapel"],
-      kesiswaan: ["dashboard", "siswa", "akademik", "pesan", "kedisiplinan_piket", "kedisiplinan_bpbk", "riwayat_prestasi", "walas_report"],
-      sarpras: ["dashboard", "ruangan", "denah", "kelas", "generate"],
-      humas: ["dashboard", "pesan", "tampilan", "akademik", "silabus"],
-      hubin: ["dashboard", "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pesan"]
+      kurikulum: ["dashboard", "generate", "akademik", "silabus", "modul_ajar", "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa", "guru", "karyawan", "mapel", "walas_report", "catatan_walikelas", "pengaturan", "advanced_rules"],
+      kesiswaan: ["dashboard", "siswa", "akademik", "pesan", "kedisiplinan_piket", "kedisiplinan_bpbk", "riwayat_prestasi", "walas_report", "catatan_walikelas", "hikvision_report_siswa", "laporan_absensi", "siswa_keluar", "tatib_skor", "kedisiplinan_absensi"],
+      sarpras: ["dashboard", "ruangan", "denah", "kelas", "generate", "walas_report", "catatan_walikelas"],
+      humas: ["dashboard", "pesan", "tampilan", "akademik", "silabus", "walas_report", "catatan_walikelas"],
+      hubin: ["dashboard", "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pesan", "walas_report", "catatan_walikelas"]
     };
     const wakaTabs = new Set(wakaTabsByDivision[wakaDivision] || wakaTabsByDivision.kurikulum);
     const role = normalizeUserRole(currentUser?.role);
     if (role === "admin" || role === "superadmin") return;
     if (!databaseHydrated) return;
+
+    const attendanceReportTabs = new Set([
+      "laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru",
+      "hikvision_report_karyawan", "absensi", "absensiguru", "kedisiplinan_absensi",
+      "esurat", "kartu_pelajar", "siswa", "guru", "karyawan", "data_pegawai", "kelas", "jurusan"
+    ]);
+
     const checkAllowed = roleKey => {
       const perms = rolePermissions?.[roleKey];
       const effectiveTab = activeTab === "modul_ajar"
         ? (perms?.silabus && perms.silabus !== "none" && perms.silabus !== "nonaktif" ? "silabus" : "silabusguru")
         : activeTab;
         
+      if (roleKey === "tu" || roleKey === "tata_usaha") {
+        if (attendanceReportTabs.has(effectiveTab)) return true;
+      }
+
       if (!perms) {
         if (roleKey.startsWith("waka_")) {
           const defaultTabs = wakaTabsByDivision[roleKey.replace("waka_", "")] || wakaTabsByDivision.kurikulum;
@@ -1471,7 +1484,7 @@ export default function App() {
           return defaultTabs.includes(effectiveTab);
         }
         if (roleKey === "tu" || roleKey === "tata_usaha") {
-          const defaultTUTabs = ["dashboard", "siswa", "data_pegawai", "karyawan", "guru", "kelas", "jurusan", "absensi", "absensiguru", "riwayat_prestasi", "siswa_keluar"];
+          const defaultTUTabs = ["dashboard", "siswa", "data_pegawai", "karyawan", "guru", "kelas", "jurusan", "absensi", "absensiguru", "riwayat_prestasi", "siswa_keluar", "laporan_absensi", "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa", "esurat", "kartu_pelajar"];
           return defaultTUTabs.includes(effectiveTab);
         }
         if (roleKey === "kepsek") return kepsekTabs.has(effectiveTab);
@@ -1488,13 +1501,18 @@ export default function App() {
         const defaultKesiswaanTabs = ["catatan_walikelas", "siswa_keluar", "tatib_skor", "kedisiplinan_absensi"];
         if (defaultKesiswaanTabs.includes(effectiveTab) && (level === undefined || level === "otomatis")) return true;
       }
+      if (roleKey === "waka_kurikulum" || roleKey === "waka" || roleKey === "kurikulum") {
+        const defaultKurikulumTabs = ["generate", "akademik", "silabus", "modul_ajar", "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa", "guru", "karyawan", "mapel", "walas_report", "catatan_walikelas", "pengaturan", "advanced_rules"];
+        if (defaultKurikulumTabs.includes(effectiveTab) && (level === undefined || level === "otomatis" || level === "edit" || level === "view")) return true;
+      }
       return level && level !== "none" && level !== "nonaktif";
     };
-    const karyawanTabs = new Set(["dashboard", "absensiguru"]);
+    const karyawanTabs = new Set(["dashboard", "absensiguru", "laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan"]);
     let allowed = false;
     if (activeTab === "dashboard") allowed = true;
-    else if (role === "guru") allowed = checkAllowed("guru") || activeTab === "kedisiplinan_piket" || activeTab === "jurnal_harian";
-    else if (role === "karyawan") allowed = karyawanTabs.has(activeTab);
+    else if (attendanceReportTabs.has(activeTab) && (role === "tu" || role === "tata_usaha" || role === "karyawan")) allowed = true;
+    else if (role === "guru") allowed = checkAllowed("guru") || activeTab === "kedisiplinan_piket" || activeTab === "jurnal_harian" || activeTab === "akademik" || activeTab === "generate" || activeTab === "ketersediaan";
+    else if (role === "karyawan") allowed = karyawanTabs.has(activeTab) || attendanceReportTabs.has(activeTab);
     else if (role === "tu" || role === "tata_usaha") allowed = checkAllowed("tu");
     else if (role === "kepsek") allowed = checkAllowed("kepsek");
     else if (role === "waka") {
@@ -2002,6 +2020,11 @@ export default function App() {
     } catch (e) {
       console.warn('Server logout failed (sesi tetap dihapus di client)', e);
     }
+    try {
+      sessionStorage.removeItem("skip_default_pw_modal");
+      sessionStorage.removeItem("last_prompted_pw_user");
+      localStorage.removeItem("skip_default_pw_modal");
+    } catch {}
     writeSessionUser(null);
     setCurrentUser(null);
     setUsername("");
@@ -2396,19 +2419,27 @@ export default function App() {
     handleResetRuangan,
     handleResetDenah,
     handleClearCurrentDenahDay,
+    scheduleGenerationMode,
+    setScheduleGenerationMode,
+    manualSlotModal,
+    setManualSlotModal,
+    openManualSlotModal,
+    closeManualSlotModal,
+    saveManualSlot,
+    deleteManualSlot,
     handleCopyCurrentDenahToAllDays,
     handleGenerate,
-                                                handleDragStart,
+    handleDragStart,
     handleDragOver,
     handleDragLeave,
     handleDrop,
-            startQuickEditGuru,
+    startQuickEditGuru,
     saveQuickEditGuru,
     applyThemePreset,
     applyAutoRecommendedTheme,
     hexToRgb,
     luminance,
-        contrastRatio,
+    contrastRatio,
     saveCurrentAsPreset,
     autoFixContrast,
     resetThemeDefaults,
@@ -2455,21 +2486,46 @@ export default function App() {
     getFloorColorByClassName, getFloorLegend, layoutByDay, layoutDay,
     scheduleCellMap, currentUser, getMajorColorHex, handleDragOver, handleDragLeave, handleDrop, handleDragStart,
     teachers, parseCsvList, getPracticeRoomLabel, isGenerated, timeSlots, updateSelectionForTab, openModal, checkDependencies, handleDelete,
-    days
+    days, openManualSlotModal
   });
 
 
   const getTabPermissionLevel = (tab = activeTab) => {
     const role = normalizeUserRole(currentUser?.role);
     if (role === "admin" || role === "superadmin") return "edit";
-    const roleKey = role === "waka" ? `waka_${(currentUser?.division || "kurikulum").toLowerCase()}` : role;
+    const division = (currentUser?.division || "").toLowerCase();
+    
+    // Waka Kurikulum & Kurikulum role have full EDIT access to all kurikulum tabs
+    const kurikulumTabs = [
+      "generate", "akademik", "silabus", "silabusguru", "modul_ajar",
+      "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
+      "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules"
+    ];
+    if ((role === "waka" && division === "kurikulum") || role === "kurikulum") {
+      if (kurikulumTabs.includes(tab)) return "edit";
+    }
+
+    // Waka Kesiswaan & Kesiswaan role have full EDIT access to all kesiswaan tabs
+    const kesiswaanTabs = [
+      "siswa", "kedisiplinan_absensi", "catatan_walikelas", "walas_report",
+      "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
+      "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
+    ];
+    if ((role === "waka" && division === "kesiswaan") || role === "kesiswaan") {
+      if (kesiswaanTabs.includes(tab)) return "edit";
+    }
+
+    const roleKey = role === "waka" ? `waka_${division || "kurikulum"}` : role;
     const perms = rolePermissions?.[roleKey];
     if (!perms) return "none";
     let level = "none";
     if (Array.isArray(perms)) {
-      level = perms.includes(tab) ? "otomatis" : "none";
+      level = perms.includes(tab) ? (role === "kepsek" ? "view" : "edit") : "none";
     } else {
       level = perms[tab] || "none";
+      if (level === "otomatis") {
+        level = role === "kepsek" ? "view" : "edit";
+      }
     }
     return level;
   };
@@ -2514,12 +2570,18 @@ export default function App() {
     icon,
     label,
     badge,
-    roles = ["admin", "guru", "waka"],
+    roles = ["admin", "guru", "waka", "tu", "karyawan", "kepsek", "tata_usaha"],
     collapsed,
     featureKey,
     activeIds
   }) => {
     const activeRole = normalizeUserRole(currentUser?.role);
+
+    const alwaysAllowedTuTabs = [
+      "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan",
+      "laporan_absensi", "absensi", "absensiguru", "esurat", "kartu_pelajar",
+      "siswa", "guru", "karyawan", "data_pegawai", "kelas", "jurusan"
+    ];
 
     // Check dynamic permission
     const checkAllowed = roleKey => {
@@ -2531,24 +2593,30 @@ export default function App() {
       return perms[id];
     };
     let level = undefined;
-    if (activeRole === "guru") level = checkAllowed("guru"); else if (activeRole === "tu" || activeRole === "tata_usaha") level = checkAllowed("tu"); else if (activeRole === "kepsek") level = checkAllowed("kepsek"); else if (activeRole === "waka") {
+    if (activeRole === "guru") level = checkAllowed("guru");
+    else if (activeRole === "tu" || activeRole === "tata_usaha") level = checkAllowed("tu");
+    else if (activeRole === "kepsek") level = checkAllowed("kepsek");
+    else if (activeRole === "waka") {
       const division = (currentUser?.division || "kurikulum").toLowerCase();
       level = checkAllowed(`waka_${division}`);
     }
     let isAllowed = false;
     if (activeRole === "superadmin" || activeRole === "admin") {
       isAllowed = true;
+    } else if ((activeRole === "tu" || activeRole === "tata_usaha" || activeRole === "karyawan") && alwaysAllowedTuTabs.includes(id)) {
+      isAllowed = true;
     } else if (level === "edit" || level === "view") {
       isAllowed = true;
     } else if (level === "nonaktif" || level === "none") {
       isAllowed = false;
     } else {
-      isAllowed = roles.includes(activeRole);
+      const normalizedRoles = (roles || []).map(r => normalizeUserRole(r));
+      isAllowed = normalizedRoles.includes(activeRole);
     }
-    if (id === "data_pegawai" && activeRole !== "waka") return null;
+    if (id === "data_pegawai" && activeRole !== "waka" && activeRole !== "tu" && activeRole !== "admin") return null;
     if ((id === "guru" || id === "karyawan") && activeRole === "waka") return null;
     if (!isAllowed) return null;
-    if (featureKey && !hasFeature(featureKey)) return null;
+    if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
     const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
     return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
@@ -2835,6 +2903,13 @@ export default function App() {
     setTeacherAvailability: typeof setTeacherAvailability !== "undefined" ? setTeacherAvailability : undefined,
     schedule: typeof schedule !== "undefined" ? schedule : undefined,
     setSchedule: typeof setSchedule !== "undefined" ? setSchedule : undefined,
+    scheduleGenerationMode: typeof scheduleGenerationMode !== "undefined" ? scheduleGenerationMode : undefined,
+    setScheduleGenerationMode: typeof setScheduleGenerationMode !== "undefined" ? setScheduleGenerationMode : undefined,
+    manualSlotModal: typeof manualSlotModal !== "undefined" ? manualSlotModal : undefined,
+    openManualSlotModal: typeof openManualSlotModal !== "undefined" ? openManualSlotModal : undefined,
+    closeManualSlotModal: typeof closeManualSlotModal !== "undefined" ? closeManualSlotModal : undefined,
+    saveManualSlot: typeof saveManualSlot !== "undefined" ? saveManualSlot : undefined,
+    deleteManualSlot: typeof deleteManualSlot !== "undefined" ? deleteManualSlot : undefined,
     handleGenerate: typeof handleGenerate !== "undefined" ? handleGenerate : undefined,
     handleResetSchedule: typeof handleResetSchedule !== "undefined" ? handleResetSchedule : undefined,
     generationReadiness: typeof generationReadiness !== "undefined" ? generationReadiness : undefined,
@@ -3188,6 +3263,7 @@ export default function App() {
 
 
     handleLogout: typeof handleLogout !== "undefined" ? handleLogout : undefined,
+    onOpenProfile: () => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); },
     loginBrandTitle: typeof loginBrandTitle !== "undefined" ? loginBrandTitle : undefined,
     loginHeroTitle: typeof loginHeroTitle !== "undefined" ? loginHeroTitle : undefined,
     loginHeroSubtitle: typeof loginHeroSubtitle !== "undefined" ? loginHeroSubtitle : undefined,
@@ -3674,7 +3750,7 @@ export default function App() {
 
     {/* Main Layout Area */}
     <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
-      <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
+      <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} toggleSidebar={toggleSidebar} isSidebarCollapsed={isSidebarCollapsed} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
 
       <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto ${activeTab === "dashboard" ? "px-3 pb-24 lg:pb-3 md:px-5 md:pb-5 xl:px-6 xl:pb-6" : "px-5 pb-24 lg:pb-5 md:px-8 md:pb-8"} pt-3 sm:pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
         <div className="flex-1 flex flex-col w-full min-w-0">
@@ -3748,6 +3824,7 @@ export default function App() {
     </Suspense>
 
     <CrudModals modalConfig={modalConfig} closeModal={closeModal} handleSave={handleSave} formData={formData} setFormData={setFormData} classes={classes} majors={majors} teachers={teachers} subjects={subjects} currentUser={currentUser} isSavingModal={isSavingModal} GRADES={GRADES} isAllLike={isAllLike} isSuperAdminRole={isSuperAdminRole} appSettings={appSettings} rooms={rooms} parseCsvList={parseCsvList} serializeCsvList={serializeCsvList} days={days} selectedDaySetting={selectedDaySetting} teacherAvailability={teacherAvailability} csvValuesIntersect={csvValuesIntersect} setBulkConflictMode={setBulkConflictMode} bulkConflictMode={bulkConflictMode} setBulkLoadGrades={setBulkLoadGrades} bulkLoadGrades={bulkLoadGrades} setBulkLoadMajors={setBulkLoadMajors} bulkLoadMajors={bulkLoadMajors} handleBulkAddLoads={handleBulkAddLoads} calendarCategories={calendarCategories} syllabuses={syllabuses} sameText={sameText} syllabusCategories={syllabusCategories} />
+    <DefaultPasswordModal currentUser={currentUser} setCurrentUser={setCurrentUser} showNotification={showNotification} />
     <GlobalAdminUI 
       notification={notification} setNotification={setNotification} 
       confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} 

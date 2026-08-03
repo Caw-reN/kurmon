@@ -495,15 +495,16 @@ export default function LandingPage() {
 
   const getShortLabel = (label) => {
     if (!label) return "";
-    if (label.includes("PKL")) return "PKL";
-    if (label.includes("Jadwal")) return "Jadwal";
-    if (label.includes("Denah")) return "Denah";
-    if (label.includes("Materi")) return "Materi";
-    if (label.includes("Kalender")) return "Kalender";
-    if (label.includes("Struktur")) return "Struktur";
-    if (label.includes("Peraturan")) return "Peraturan";
-    if (label.includes("Lainnya")) return "Lainnya";
-    return label;
+    const lower = String(label).toLowerCase();
+    if (lower.includes("pkl")) return "PKL";
+    if (lower.includes("jadwal")) return "Jadwal";
+    if (lower.includes("denah")) return "Denah";
+    if (lower.includes("materi")) return "Materi";
+    if (lower.includes("kalender")) return "Kalender";
+    if (lower.includes("struktur")) return "Struktur";
+    if (lower.includes("peraturan")) return "Peraturan";
+    if (lower.includes("lainnya")) return "Lainnya";
+    return label.charAt(0).toUpperCase() + label.slice(1);
   };
 
   return (
@@ -553,7 +554,7 @@ export default function LandingPage() {
 
         {/* Curved Green Header Card (Matching Reference Image) */}
         <div
-          className="w-full relative flex flex-col text-white select-none px-5 pb-8 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
+          className="w-full relative flex flex-col text-white select-none px-5 pb-6.5 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
           style={{
             backgroundImage: appSettings.heroImage 
               ? `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', 0.94)} 0%, ${hexToRgba(primaryColor ||'#064e3b', 0.88)} 100%), url(${appSettings.heroImage})`
@@ -605,8 +606,8 @@ export default function LandingPage() {
       </div>
 
         {/* Layanan Publik Overlapping Card (Matching Reference Image) */}
-        <div className="mx-4 -mt-8 bg-white rounded-[24px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative z-20 border border-slate-100 flex flex-col gap-3.5 select-none">
-          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1">Layanan Publik</h3>
+        <div className="mx-4 mt-2.5 bg-white rounded-[24px] pt-6.5 pb-5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative z-20 border border-slate-100 flex flex-col gap-3 select-none">
+          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1 pt-1 mb-0.5">Layanan Publik</h3>
           
           {/* Flex column enclosing rows of 4 buttons */}
           <div className="flex flex-col gap-3.5 w-full mt-1.5">
@@ -929,9 +930,9 @@ export default function LandingPage() {
         </div>
 
         {/* MIDDLE SECTION: LAYANAN PUBLIK */}
-        <div className="shrink-0 border-t border-slate-200/50 pt-4 pb-3.5 mt-4 lg:mt-6 middle-layanan-section">
-          <h2 className="text-sm lg:text-base font-extrabold text-slate-800 mb-2 text-center">Layanan Publik</h2>
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.03)] py-6 px-4 md:px-8 w-full mt-1">
+        <div className="shrink-0 pt-3 pb-3 mt-3 middle-layanan-section relative z-10">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-4 md:py-5 px-4 md:px-8 w-full">
+            <h2 className="text-sm lg:text-base font-extrabold text-slate-800 mb-3 text-center">Layanan Publik</h2>
             <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
               {publicServices.map((service, idx) => {
                 const activeColor = service.customColor || service.defaultColor;
@@ -961,7 +962,7 @@ export default function LandingPage() {
                       )}
                     </div>
                     <span className="text-[10.5px] lg:text-[11.5px] font-black text-slate-700 tracking-tight leading-none text-center w-full truncate px-1 relative z-10">
-                      {service.label}
+                      {getShortLabel(service.label)}
                     </span>
                   </button>
                 );

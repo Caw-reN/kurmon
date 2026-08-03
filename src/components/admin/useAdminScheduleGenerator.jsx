@@ -1,4 +1,5 @@
-import { BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, MapPin, Users, Sparkles } from'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, MapPin, Users, Sparkles } from 'lucide-react';
 import { useAppStore } from'../../store/useAppStore.js';
 import { normalizeText, isAllLike, getLoadKey, parsePositiveInt, parseCsvList } from'../../utils/adminHelpers.js';
 
@@ -31,6 +32,72 @@ export function useAdminScheduleGenerator(props) {
     showNotification,
     addActivityLog,
     ensureDatabaseReadyForWrite } = props || {};
+
+  const [scheduleGenerationMode, setScheduleGenerationMode] = useState("auto");
+  const [manualSlotModal, setManualSlotModal] = useState({
+    isOpen: false,
+    day: "Senin",
+    slotId: "",
+    className: "",
+    subject: "",
+    teacherCode: "",
+    roomId: ""
+  });
+
+  const openManualSlotModal = (day = "Senin", slotId = "", className = "", existingCell = null) => {
+    setManualSlotModal({
+      isOpen: true,
+      day: day || "Senin",
+      slotId: slotId || (timeSlots[day || "Senin"]?.[0]?.id || ""),
+      className: className || (classes[0]?.name || ""),
+      subject: existingCell?.subject || "",
+      teacherCode: existingCell?.teacherCode || "",
+      roomId: existingCell?.roomId || ""
+    });
+  };
+
+  const closeManualSlotModal = () => {
+    setManualSlotModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const saveManualSlot = (formData) => {
+    if (!formData.day || !formData.slotId || !formData.className) {
+      showNotification("Hari, Slot Jam, dan Kelas wajib dipilih.");
+      return;
+    }
+    if (!ensureDatabaseReadyForWrite("menyimpan slot manual")) return;
+
+    const { day, slotId, className, subject, teacherCode, roomId } = formData;
+
+    let updatedSchedule = schedule.filter(s => !(s.day === day && s.slotId === slotId && s.className === className));
+
+    if (subject && subject.trim()) {
+      updatedSchedule.push({
+        id: `manual-${Date.now()}-${Math.random().toString(36).substring(2,5)}`,
+        day,
+        slotId,
+        className,
+        subject: subject.trim(),
+        teacherCode: teacherCode || "-",
+        roomId: roomId || "-"
+      });
+    }
+
+    setSchedule(updatedSchedule);
+    setIsGenerated(true);
+    saveDatabaseNow({ schedule: updatedSchedule, isGenerated: true }, "menyimpan slot jadwal manual");
+    showNotification(subject ? `Slot ${day} (Jam ${slotId}) kelas ${className} berhasil disimpan.` : `Slot ${day} (Jam ${slotId}) kelas ${className} dikosongkan.`);
+    closeManualSlotModal();
+  };
+
+  const deleteManualSlot = (day, slotId, className) => {
+    if (!ensureDatabaseReadyForWrite("menghapus slot manual")) return;
+    const updatedSchedule = schedule.filter(s => !(s.day === day && s.slotId === slotId && s.className === className));
+    setSchedule(updatedSchedule);
+    saveDatabaseNow({ schedule: updatedSchedule }, "dikosongkan");
+    showNotification(`Slot ${day} kelas ${className} dikosongkan.`);
+    closeManualSlotModal();
+  };
 
   /* --- LOGIKA KETAT: PENJADWALAN PRAKTIK & BENGKEL --- */
   const handleResetSchedule = (options = {}) => {
@@ -1337,23 +1404,31 @@ export function useAdminScheduleGenerator(props) {
 
 
   return {
+    scheduleGenerationMode,
+    setScheduleGenerationMode,
+    manualSlotModal,
+    setManualSlotModal,
+    openManualSlotModal,
+    closeManualSlotModal,
+    saveManualSlot,
+    deleteManualSlot,
     handleResetSchedule,
     handleResetRuangan,
     handleResetDenah,
     handleClearCurrentDenahDay,
     handleCopyCurrentDenahToAllDays,
     handleGenerate,
-                                                handleDragStart,
+    handleDragStart,
     handleDragOver,
     handleDragLeave,
     handleDrop,
-            startQuickEditGuru,
+    startQuickEditGuru,
     saveQuickEditGuru,
     applyThemePreset,
     applyAutoRecommendedTheme,
     hexToRgb,
     luminance,
-        contrastRatio,
+    contrastRatio,
     saveCurrentAsPreset,
     autoFixContrast,
     resetThemeDefaults,

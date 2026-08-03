@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import React from'react';
 import { ClipboardList, Settings, FileText, History } from'lucide-react';
 import { getAttendanceSessions, getAttendanceStatusTone } from'../../../utils/adminHelpers.js';
@@ -6,8 +6,6 @@ import { ATTENDANCE_MODE_OPTIONS, ATTENDANCE_STATUS_OPTIONS, ATTENDANCE_SESSION_
 import { Suspense } from'react';
 import { FileDown, Trash2, CheckCircle2, Plus, X } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const HikvisionTeacherReport = React.lazy(() => import('../../../pages/admin/hikvision/HikvisionTeacherReport.jsx'));
@@ -565,45 +563,39 @@ export default function TabAbsensi(props) {
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
                           Jam Buka
                         </label>
-                        <input
-                          type="time"
+                        <UITimeInput24
                           value={session.openTime ||""}
                           onChange={(e) =>
                             updateAttendanceSession(session.id, {
                               openTime: e.target.value
                             })
                           }
-                          className="w-full border-none bg-white p-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
                           Jam Tutup
                         </label>
-                        <input
-                          type="time"
+                        <UITimeInput24
                           value={session.closeTime ||""}
                           onChange={(e) =>
                             updateAttendanceSession(session.id, {
                               closeTime: e.target.value
                             })
                           }
-                          className="w-full border-none bg-white p-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
                           Telat Laporan
                         </label>
-                        <input
-                          type="time"
+                        <UITimeInput24
                           value={session.lateAfter ||""}
                           onChange={(e) =>
                             updateAttendanceSession(session.id, {
                               lateAfter: e.target.value
                             })
                           }
-                          className="w-full border-none bg-white p-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
                         />
                       </div>
                     </div>

@@ -487,15 +487,15 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   return (
     <div className="space-y-4 relative animate-in fade-in duration-300">
       {/* Navigation Tabs & Export Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center border-b border-slate-200 gap-4">
-        <div className="flex overflow-x-auto hide-scrollbar gap-1">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveSection('siswa')}
-            className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors border-none bg-transparent cursor-pointer shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'siswa' 
-                ? 'border-b-2 border-solid border-[var(--ui-primary)] text-[var(--ui-primary)] font-extrabold' 
-                : 'border-b-2 border-solid border-transparent text-slate-500 hover:text-slate-700'
+                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
+                : 'text-slate-600 hover:text-slate-900 bg-transparent'
             }`}
           >
             Data Per Siswa
@@ -503,10 +503,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           <button
             type="button"
             onClick={() => setActiveSection('kelas')}
-            className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors border-none bg-transparent cursor-pointer shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'kelas' 
-                ? 'border-b-2 border-solid border-[var(--ui-primary)] text-[var(--ui-primary)] font-extrabold' 
-                : 'border-b-2 border-solid border-transparent text-slate-500 hover:text-slate-700'
+                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
+                : 'text-slate-600 hover:text-slate-900 bg-transparent'
             }`}
           >
             Data Per Kelas
@@ -514,61 +514,64 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           <button
             type="button"
             onClick={() => setActiveSection('leaderboard')}
-            className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors border-none bg-transparent cursor-pointer shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'leaderboard' 
-                ? 'border-b-2 border-solid border-[var(--ui-primary)] text-[var(--ui-primary)] font-extrabold' 
-                : 'border-b-2 border-solid border-transparent text-slate-500 hover:text-slate-700'
+                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
+                : 'text-slate-600 hover:text-slate-900 bg-transparent'
             }`}
           >
-            Peringkat Pelanggaran (Leaderboard)
+            Peringkat Pelanggaran
           </button>
         </div>
-        <div className="flex items-center justify-end pb-2 sm:pb-0 shrink-0">
-          <Button onClick={exportExcel} size="sm" className="bg-[var(--ui-primary)] text-white hover:brightness-105 transition-all">
-            <Download size={14} className="mr-1.5" /> Ekspor Excel
-          </Button>
-        </div>
+
+        <Button onClick={exportExcel} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+          <Download size={14} />
+          <span>Ekspor Excel</span>
+        </Button>
       </div>
 
       {/* Filter Bar */}
-      <div className="ui-card p-4 flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+      <div className="ui-card p-3.5 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center border border-slate-100 shadow-xs">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
           <input
             value={searchSiswa}
             onChange={e => setSearchSiswa(e.target.value)}
             placeholder="Cari nama / NIS siswa..."
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/30"
+            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)]"
           />
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <input
             type="month"
             value={filterBulan}
             onChange={e => setFilterBulan(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-bold text-slate-700 focus:outline-none shrink-0"
           />
+          <div className="w-36 sm:w-44 shrink-0">
+            <CustomSelect
+              options={[{ value:'all', label:'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
+              value={filterKelas}
+              onChange={setFilterKelas}
+            />
+          </div>
         </div>
-        <div className="w-56">
-          <CustomSelect
-            options={[{ value:'all', label:'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
-            value={filterKelas}
-            onChange={setFilterKelas}
-            placeholder="Filter Kelas"
-          />
-        </div>
-        {isLoading && <span className="text-sm text-slate-400 font-medium animate-pulse">Memuat...</span>}
+        {isLoading && <span className="text-xs text-slate-400 font-medium animate-pulse">Memuat...</span>}
       </div>
 
       {/* ── TAB 1: DATA PER SISWA ── */}
       {activeSection ==='siswa' && (
-        <div className="ui-card flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <Users size={18} className="text-[var(--ui-primary)]" />
-            <h2 className="font-bold text-slate-800 flex-1">Data Kinerja & Skor Kredit Per Siswa</h2>
-            <span className="text-xs text-slate-500">{filteredStudentsList.length} siswa</span>
+        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
+          <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-[var(--ui-primary)]" />
+              <h2 className="font-bold text-xs sm:text-sm text-slate-800">Data Kinerja & Skor Kredit Per Siswa</h2>
+            </div>
+            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">{filteredStudentsList.length} siswa</span>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-[11px] text-slate-500 uppercase bg-white border-b border-slate-150">
                 <tr>
@@ -617,8 +620,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex gap-2 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} >
-                              <FileText size={14} className="mr-1.5"/> Rapor PDF
+                            <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-xs px-2.5 py-1 cursor-pointer">
+                              <FileText size={13} className="mr-1"/> Rapor PDF
                             </Button>
                           </div>
                         </td>
@@ -629,7 +632,51 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               </tbody>
             </table>
           </div>
-          <PaginationControls
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden flex flex-col divide-y divide-slate-100">
+            {filteredStudentsList.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">Siswa tidak ditemukan atau belum ada data.</div>
+            ) : (
+              filteredStudentsList
+                .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
+                .map((s) => {
+                  const name = s.name || s.nama || s.namaSiswa || "";
+                  const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+                  const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
+                  return (
+                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-extrabold text-xs text-slate-800">{name}</div>
+                          <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black shrink-0 ${
+                          score >= 85 ? 'bg-emerald-100 text-emerald-700' : score >= 70 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+                        }`}>
+                          Skor: {score} Poin
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-lg text-center text-[10px]">
+                        <div><span className="block text-slate-400">Hadir</span><span className="font-extrabold text-emerald-600">{att.hadir}</span></div>
+                        <div><span className="block text-slate-400">Izin</span><span className="font-extrabold text-blue-600">{att.izin}</span></div>
+                        <div><span className="block text-slate-400">Sakit</span><span className="font-extrabold text-amber-600">{att.sakit}</span></div>
+                        <div><span className="block text-slate-400">Alpa</span><span className="font-extrabold text-rose-600">{att.alpa}</span></div>
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-[11px] px-2.5 py-1 cursor-pointer">
+                          <FileText size={13} className="mr-1"/> Rapor PDF
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
+
+          <PaginationControls 
             currentPage={siswaPage}
             totalItems={filteredStudentsList.length}
             itemsPerPage={siswaPerPage}
@@ -641,10 +688,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
       {/* ── TAB 2: DATA PER KELAS ── */}
       {activeSection ==='kelas' && (
-        <div className="ui-card flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <TrendingUp size={18} className="text-[var(--ui-primary)]" />
-            <h2 className="font-bold text-slate-800">Statistik Pelanggaran &amp; Absensi Per Kelas</h2>
+        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
+          <div className="p-3.5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
+            <TrendingUp size={16} className="text-[var(--ui-primary)]" />
+            <h2 className="font-bold text-xs sm:text-sm text-slate-800">Statistik Pelanggaran &amp; Absensi Per Kelas</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -685,10 +732,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
       {/* ── TAB 3: LEADERBOARD ── */}
       {activeSection ==='leaderboard' && (
-        <div className="ui-card flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <AlertOctagon size={18} className="text-red-500" />
-            <h2 className="font-bold text-slate-800 flex-1">Top Siswa Pelanggaran Tertinggi</h2>
+        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
+          <div className="p-3.5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
+            <AlertOctagon size={16} className="text-red-500" />
+            <h2 className="font-bold text-xs sm:text-sm text-slate-800 flex-1">Top Siswa Pelanggaran Tertinggi</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -730,6 +777,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedStudentForRapor(lb)}
+                            className="text-xs px-2.5 py-1 cursor-pointer"
                           >
                             <Printer size={12} className="mr-1.5" /> Cetak
                           </Button>

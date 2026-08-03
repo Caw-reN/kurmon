@@ -23,7 +23,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     createSession,
     ensureDatabaseReadable,
     normalizeServerRole,
-    dbStatus
+    dbStatus,
+    logAudit
   } = ctx;
 
   let send = ctx.send;
@@ -203,13 +204,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (isValid) {
           if (!await ensureDatabaseReadable(req, res)) return true;
           try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [username, 'admin', req.socket?.remoteAddress || '']); } catch {}
-          try {
-            await dbPool.query(
-              "INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1, $2, $3, $4, $5, $6)",
-              [username, payload.adminUser.name || "Admin", "admin", "LOGIN", "session", "Admin berhasil masuk ke sistem"]
-            );
-          } catch (err) { console.error(err); }
-          send(req, res, 200, { ok: true, user: { role: "admin", name: payload.adminUser.name, authToken: createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name }) } });
+          await logAudit(dbPool, { id: username, name: payload.adminUser.name || "Admin", role: "admin" }, req, "LOGIN", "session", "Admin berhasil masuk ke sistem");
+          const hasChangedPassword = payload.adminUser?.hasChangedPassword === true;
+          const isDefaultPassword = !hasChangedPassword;
+          send(req, res, 200, { ok: true, user: { role: "admin", name: payload.adminUser.name, isDefaultPassword, hasChangedPassword, authToken: createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name }) } });
           return true;
         }
       }
@@ -247,13 +245,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           }
         } catch (e) {}
         try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [teacher.code, role, req.socket?.remoteAddress || '']); } catch {}
-        try {
-          await dbPool.query(
-            "INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1, $2, $3, $4, $5, $6)",
-            [teacher.code, teacher.name || "Guru", role, "LOGIN", "session", `Guru/Staff (${teacher.name}) berhasil masuk ke sistem`]
-          );
-        } catch (err) { console.error(err); }
-        send(req, res, 200, { ok: true, user: { role, code: teacher.code, name: teacher.name, division: teacher.division || "", isWalas, walasClass, authToken: createSession(role, { id: teacher.code, username: teacher.code, name: teacher.name }) } });
+        await logAudit(dbPool, { id: teacher.code, name: teacher.name || "Guru", role }, req, "LOGIN", "session", `Guru/Staff (${teacher.name}) berhasil masuk ke sistem`);
+        const hasChangedPassword = teacher.hasChangedPassword === true;
+        const isDefaultPassword = !hasChangedPassword;
+        send(req, res, 200, { ok: true, user: { role, code: teacher.code, name: teacher.name, division: teacher.division || "", isWalas, walasClass, isDefaultPassword, hasChangedPassword, authToken: createSession(role, { id: teacher.code, username: teacher.code, name: teacher.name }) } });
         return true;
       }
     } catch (err) {
@@ -274,13 +269,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             const role = normalizeServerRole(dbUser.role);
             const token = createSession(role, { id: dbUser.id, username: dbUser.username, name: dbUser.name });
             try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [dbUser.username, role, req.socket?.remoteAddress || '']); } catch {}
-            try {
-              await dbPool.query(
-                "INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1, $2, $3, $4, $5, $6)",
-                [dbUser.username, dbUser.name || "Siswa", role, "LOGIN", "session", `Siswa/User (${dbUser.name}) berhasil masuk ke sistem`]
-              );
-            } catch (err) { console.error(err); }
-            send(req, res, 200, { ok: true, user: { role, id: dbUser.id, name: dbUser.name, username: dbUser.username, authToken: token } });
+            await logAudit(dbPool, { id: dbUser.username, name: dbUser.name || "Siswa", role }, req, "LOGIN", "session", `Siswa/User (${dbUser.name}) berhasil masuk ke sistem`);
+            const hasChangedPassword = dbUser.has_changed_password === true || dbUser.hasChangedPassword === true;
+            const isDefaultPassword = !hasChangedPassword;
+            send(req, res, 200, { ok: true, user: { role, id: dbUser.id, name: dbUser.name, username: dbUser.username, isDefaultPassword, hasChangedPassword, authToken: token } });
             return true;
           }
         }
@@ -318,7 +310,9 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
                   if (isStudentValid) {
                      const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
-                     send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, authToken: token } });
+                     const hasChangedPassword = student.hasChangedPassword === true;
+                     const isDefaultPassword = !hasChangedPassword;
+                     send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, isDefaultPassword, hasChangedPassword, authToken: token } });
                      return true;
                   }
               } else {
@@ -632,9 +626,20 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const role = String(session.role || "").trim().toLowerCase();
       const username = String(session.username || "").trim().toLowerCase();
 
-      // Check if same as previous password
+      // 1. Weak password / Default password check
+      const isWeakDefault = (
+        newPassword === username ||
+        newPassword === "123" ||
+        newPassword === "123456" ||
+        newPassword === "admin123"
+      );
+      if (isWeakDefault) {
+        send(req, res, 200, { ok: false, message: "Kata sandi baru terlalu mudah ditebak / menggunakan kata sandi bawaan (seperti 123, 123456, atau username). Silakan buat kata sandi lain yang lebih aman!" });
+        return true;
+      }
+
+      // 2. Fetch previous password hash
       let currentPasswordHash = null;
-      let isDefaultPassword = false;
 
       if (role === "admin") {
         const payload = await readMainPayload() || {};
@@ -648,9 +653,6 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           const tData = typeof result.rows[0].payload === 'string' ? JSON.parse(result.rows[0].payload) : result.rows[0].payload;
           currentPasswordHash = tData?.password;
         }
-        if (!currentPasswordHash) {
-          isDefaultPassword = (newPassword === String(session.username).trim() || newPassword === "123456");
-        }
       } else if (role === "siswa") {
         const result = await dbPool.query(`
           SELECT payload FROM mst_students 
@@ -660,22 +662,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           const sData = typeof result.rows[0].payload === 'string' ? JSON.parse(result.rows[0].payload) : result.rows[0].payload;
           currentPasswordHash = sData?.password;
         }
-        if (!currentPasswordHash) {
-          isDefaultPassword = (newPassword === String(session.username).trim() || newPassword === "123456");
-        }
       }
 
-      if (isDefaultPassword) {
+      // 3. Same as previous password check
+      let isSameAsPrevious = false;
+      if (currentPasswordHash) {
+        isSameAsPrevious = await verifyPassword(newPassword, currentPasswordHash);
+      } else {
+        isSameAsPrevious = (newPassword === session.username);
+      }
+
+      if (isSameAsPrevious) {
         send(req, res, 200, { ok: false, message: "Kata sandi baru tidak boleh sama dengan kata sandi sebelumnya!" });
         return true;
-      }
-
-      if (currentPasswordHash) {
-        const isSame = await verifyPassword(newPassword, currentPasswordHash);
-        if (isSame) {
-          send(req, res, 200, { ok: false, message: "Kata sandi baru tidak boleh sama dengan kata sandi sebelumnya!" });
-          return true;
-        }
       }
 
       const nextPasswordHash = await hashPassword(newPassword);
@@ -685,6 +684,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         const payload = await readMainPayload() || {};
         if (payload.adminUser) {
           payload.adminUser.password = nextPasswordHash;
+          payload.adminUser.hasChangedPassword = true;
           await dbPool.query(`
             INSERT INTO app_data (store_key, data) VALUES ('main_store', $1)
             ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
@@ -694,21 +694,21 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       } else if (role === "guru" || role === "karyawan" || role === "waka" || role === "kepsek") {
         const result = await dbPool.query(`
           UPDATE mst_teachers 
-          SET payload = jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text))
+          SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
           WHERE payload->>'code' = $2
         `, [nextPasswordHash, session.username]);
         if (result.rowCount > 0) success = true;
       } else if (role === "siswa") {
         const result = await dbPool.query(`
           UPDATE mst_students 
-          SET payload = jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text))
+          SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
           WHERE payload->>'nis' = $2
         `, [nextPasswordHash, session.username]);
         if (result.rowCount > 0) success = true;
       }
 
       if (success) {
-        send(req, res, 200, { ok: true, message: "Kata sandi Anda berhasil diperbarui!" });
+        send(req, res, 200, { ok: true, message: "Kata sandi Anda berhasil diperbarui!", isDefaultPassword: false, hasChangedPassword: true });
       } else {
         send(req, res, 200, { ok: false, message: "Gagal memperbarui kata sandi. Pengguna tidak ditemukan." });
       }

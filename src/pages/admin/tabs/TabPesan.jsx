@@ -1,5 +1,5 @@
 import { Button } from '../../../components/ui.jsx';
-
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2 } from'lucide-react';
 import { UISelect } from'../../../components/ui.jsx';
 
@@ -13,21 +13,34 @@ export default function TabPesan(props) {
         const canEdit = permLevel ==="edit" || (permLevel ==="otomatis" && activeUserRole !=="kepsek");
         if (!isLeadershipRole(currentUser?.role)) {
           return (
-            <div className="ui-card p-6 text-center">
-              <h3 className="text-lg font-black text-slate-800">
-                Akses tidak tersedia
-              </h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">
-                Pesan dashboard dikelola oleh SuperAdmin, kepala sekolah, atau
-                Waka.
-              </p>
+            <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
+              <PageHeader
+                title="Pengumuman & Pesan Dashboard"
+                icon={MessageSquare}
+                description="Buat dan kelola pengumuman resmi dari sekolah yang tayang langsung di dashboard seluruh pengguna."
+              />
+              <div className="ui-card p-6 text-center">
+                <h3 className="text-lg font-black text-slate-800">
+                  Akses tidak tersedia
+                </h3>
+                <p className="text-sm font-medium text-slate-500 mt-1">
+                  Pesan dashboard dikelola oleh SuperAdmin, kepala sekolah, atau
+                  Waka.
+                </p>
+              </div>
             </div>
           );
         }
         return (
-          <div
-            className={`grid grid-cols-1 ${canEdit ?"xl:grid-cols-[400px_1fr]" :"xl:grid-cols-1"} gap-6  w-full animate-in fade-in duration-300`}
-          >
+          <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
+            <PageHeader
+              title="Pengumuman & Pesan Dashboard"
+              icon={MessageSquare}
+              description="Buat dan kelola pengumuman resmi dari sekolah yang tayang langsung di dashboard seluruh pengguna."
+            />
+            <div
+              className={`grid grid-cols-1 ${canEdit ?"xl:grid-cols-[400px_1fr]" :"xl:grid-cols-1"} gap-6 w-full`}
+            >
             {/* Form Buat Pesan */}
             {canEdit && (
               <section className="ui-card h-fit overflow-hidden flex flex-col">
@@ -322,5 +335,6 @@ export default function TabPesan(props) {
               </div>
             </section>
           </div>
-        );
+        </div>
+      );
 }

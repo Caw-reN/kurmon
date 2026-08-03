@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from'react';
+import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2 } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -10,10 +10,11 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { UISelect, Button, TablePagination } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
+import { compareTableValues } from '../../../utils/adminHelpers.js';
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
 
 
-export default function HikvisionStudentReport({ classes = [], students = [] }) {
+export default function HikvisionStudentReport({ classes = [], students = [], isNested = false, activeTab: routeTab = "" }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   const [activeTab, setActiveTab] = useState("matriks"); //"matriks" |"surat"
@@ -31,11 +32,19 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   
+  const isKesiswaanOrAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'tu' || user?.role === 'tata_usaha' || user?.role === 'kepsek' || (user?.role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan');
+
   const [filter, setFilter] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
-    class_name: user?.isWalas ? user.walasClass :"all"
+    class_name: (routeTab === "walas_report" && user?.walasClass) ? user.walasClass : ((user?.isWalas && !isKesiswaanOrAdmin && user.walasClass) ? user.walasClass : "all")
   });
+
+  React.useEffect(() => {
+    if (routeTab === "walas_report" && user?.walasClass) {
+      setFilter(f => ({ ...f, class_name: user.walasClass }));
+    }
+  }, [routeTab, user?.walasClass]);
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
@@ -228,134 +237,194 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
     fetchData();
   }, [fetchData, user?.isWalas, user?.walasClass]);
 
-  const handleExport = async (isDetailed = false) => {
-    if (data.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
-    
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Laporan Absensi Siswa');
+  const [sortBy, setSortBy] = useState("class_nis");
+  const [sortDir, setSortDir] = useState("asc");
 
-    // Define columns
-    const columns = [
-      { header: 'NIS', key: 'nis', width: 15 },
-      { header: 'Nama Siswa', key: 'name', width: 35 },
-      { header: 'Kelas', key: 'class_name', width: 12 },
-      { header: 'H', key: 'h', width: 5 },
-      { header: 'T', key: 't', width: 5 },
-      { header: 'I', key: 'i', width: 5 },
-      { header: 'S', key: 's', width: 5 },
-      { header: 'A', key: 'a', width: 5 }
-    ];
-    for (let i = 1; i <= daysInMonth; i++) {
-      columns.push({ header: i.toString(), key: `d${i}`, width: isDetailed ? 10 : 5 });
-    }
-    sheet.columns = columns;
-
-    // Style Header Row
-    sheet.getRow(1).eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFF1F5F9' }
-      };
-      cell.border = {
-        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-      };
+  const filteredData = React.useMemo(() => {
+    const list = data.filter(d => {
+      if (search && !d.name?.toLowerCase().includes(search.toLowerCase()) && !d.nis?.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
     });
 
-    data.forEach(item => {
-      const rowData = {
-        nis: item.nis,
-        name: item.name,
-        class_name: item.class_name || "-",
-        h: item.total_hadir,
-        t: item.total_terlambat,
-        i: item.total_izin,
-        s: item.total_sakit,
-        a: item.total_alpa
-      };
-      
-      const row = sheet.addRow(rowData);
-      row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
-      row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
-      row.getCell('class_name').alignment = { vertical: 'middle', wrapText: true };
-      row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
+    return list.sort((a, b) => {
+      if (sortBy === "class_nis") {
+        const classComp = compareTableValues(a.class_name, b.class_name, sortDir);
+        if (classComp !== 0) return classComp;
+        return compareTableValues(a.nis, b.nis, sortDir);
+      }
+      let av, bv;
+      if (sortBy === "nis") {
+        av = a.nis;
+        bv = b.nis;
+      } else if (sortBy === "name") {
+        av = a.name;
+        bv = b.name;
+      } else if (sortBy === "class_name") {
+        av = a.class_name;
+        bv = b.class_name;
+      } else if (sortBy === "hadir") {
+        av = a.total_hadir || 0;
+        bv = b.total_hadir || 0;
+      } else if (sortBy === "alpa") {
+        av = a.total_alpa || 0;
+        bv = b.total_alpa || 0;
+      } else {
+        av = a.nis;
+        bv = b.nis;
+      }
+      return compareTableValues(av, bv, sortDir);
+    });
+  }, [data, search, sortBy, sortDir]);
 
+  const isExportingRef = useRef(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (isDetailed = false) => {
+    if (isExportingRef.current) return;
+    isExportingRef.current = true;
+    setIsExporting(true);
+
+    try {
+      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
+      
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Laporan Absensi Siswa');
+
+      // Define columns
+      const columns = [
+        { header: 'NIS', key: 'nis', width: 15 },
+        { header: 'Nama Siswa', key: 'name', width: 35 },
+        { header: 'Kelas', key: 'class_name', width: 12 },
+        { header: 'H', key: 'h', width: 5 },
+        { header: 'T', key: 't', width: 5 },
+        { header: 'I', key: 'i', width: 5 },
+        { header: 'S', key: 's', width: 5 },
+        { header: 'A', key: 'a', width: 5 }
+      ];
       for (let i = 1; i <= daysInMonth; i++) {
-        const dayData = item.days[i];
-        const cell = row.getCell(`d${i}`);
-        
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        columns.push({ header: i.toString(), key: `d${i}`, width: isDetailed ? 10 : 5 });
+      }
+      sheet.columns = columns;
+
+      // Style Header Row
+      sheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1F5F9' }
+        };
         cell.border = {
           top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
           right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
         };
+      });
 
-        if (dayData) {
-          const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
-          let content = "-";
-          let fgColor = "FFFFFFFF";
-          let fontColor = "FF334155";
+      filteredData.forEach(item => {
+        const rowData = {
+          nis: item.nis,
+          name: item.name,
+          class_name: item.class_name || "-",
+          h: item.total_hadir,
+          t: item.total_terlambat,
+          i: item.total_izin,
+          s: item.total_sakit,
+          a: item.total_alpa
+        };
+        
+        const row = sheet.addRow(rowData);
+        row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
+        row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
+        row.getCell('class_name').alignment = { vertical: 'middle', wrapText: true };
+        row.getCell('h').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('t').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('i').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
+
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayData = item.days[i];
+          const cell = row.getCell(`d${i}`);
           
-          if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
-            content = "A";
-            fgColor = "FF0F172A"; fontColor = "FFFFFFFF";
-          } else if (status === "Sakit") {
-            content = "S";
-            fgColor = "FFFEF3C7"; fontColor = "FF92400E";
-          } else if (status === "Izin") {
-            content = "I";
-            fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
-          } else if (status === "Terlambat" || dayData.isLate) {
-            if (isDetailed && (dayData.in || dayData.out)) {
-              content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
-            } else {
-              content = "T";
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+          };
+
+          if (dayData) {
+            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            let content = "-";
+            let fgColor = "FFFFFFFF";
+            let fontColor = "FF334155";
+            
+            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+              content = "A";
+              fgColor = "FF0F172A"; fontColor = "FFFFFFFF";
+            } else if (status === "Sakit") {
+              content = "S";
+              fgColor = "FFFEF3C7"; fontColor = "FF92400E";
+            } else if (status === "Izin") {
+              content = "I";
+              fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
+            } else if (status === "Terlambat" || dayData.isLate) {
+              if (isDetailed && (dayData.in || dayData.out)) {
+                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+              } else {
+                content = "T";
+              }
+              fgColor = "FFFEE2E2"; fontColor = "FF991B1B";
+            } else if (dayData.in || dayData.out || status === "Hadir") {
+              if (isDetailed && (dayData.in || dayData.out)) {
+                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+              } else {
+                content = "H";
+              }
+              fgColor = "FFDCFCE7"; fontColor = "FF166534";
             }
-            fgColor = "FFFEE2E2"; fontColor = "FF991B1B";
-          } else if (dayData.in || dayData.out || status === "Hadir") {
-            if (isDetailed && (dayData.in || dayData.out)) {
-              content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
-            } else {
-              content = "H";
-            }
-            fgColor = "FFDCFCE7"; fontColor = "FF166534";
+            
+            cell.value = content;
+            cell.font = { color: { argb: fontColor }, bold: true, size: isDetailed ? 8 : 10 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
+          } else {
+            cell.value = "";
           }
-          
-          cell.value = content;
-          cell.font = { color: { argb: fontColor }, bold: true, size: isDetailed ? 8 : 10 };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
-        } else {
-          cell.value = "";
         }
-      }
-    });
+      });
 
-    const legendRow = sheet.addRow([]);
-    const legendRow2 = sheet.addRow(['Keterangan:']);
-    legendRow2.font = { bold: true };
-    const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
-    
-    sheet.eachRow((row) => row.commit());
+      const legendRow = sheet.addRow([]);
+      const legendRow2 = sheet.addRow(['Keterangan:']);
+      legendRow2.font = { bold: true };
+      const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
+      
+      sheet.eachRow((row) => row.commit());
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.xlsx`);
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal mengunduh Excel Siswa: " + err.message, "error");
+    } finally {
+      setTimeout(() => {
+        isExportingRef.current = false;
+        setIsExporting(false);
+      }, 1000);
+    }
   };
 
   const handleExportPDF = () => {
-    if (!data || data.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
-    
+    if (isExportingRef.current) return;
+    isExportingRef.current = true;
+    setIsExporting(true);
+
     try {
+      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+      
       const isDetailed = exportMode === "detailed";
       const doc = new jsPDF({
         orientation: 'landscape',
@@ -379,7 +448,7 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
         headers[0].push(i.toString());
       }
 
-      const body = data.map(item => {
+      const body = filteredData.map(item => {
         const row = [
           item.nis || "-",
           (item.name || "").substring(0, 25),
@@ -494,13 +563,13 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
     } catch (err) {
       console.error("Gagal mengekspor PDF Siswa:", err);
       showToast("Gagal mengunduh PDF Siswa: " + err.message, "error");
+    } finally {
+      setTimeout(() => {
+        isExportingRef.current = false;
+        setIsExporting(false);
+      }, 1000);
     }
   };
-
-  const filteredData = data.filter(d => {
-    if (search && !d.name.toLowerCase().includes(search.toLowerCase()) && !d.nis.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -508,7 +577,7 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
   // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filter.month, filter.year, filter.class_name]);
+  }, [search, filter.month, filter.year, filter.class_name, sortBy, sortDir]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = React.useMemo(() => {
@@ -587,7 +656,7 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
     });
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
-  if (user?.isWalas && !user.walasClass) {
+  if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
      return (
         <div className="p-8 text-center bg-red-50 rounded-[var(--ui-radius-small)] border border-red-200">
            <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
@@ -598,20 +667,112 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
   }
 
   return (
-    <div className="space-y-6 animate-fade-in w-full">
-      <PageHeader 
-        title={activeTab ==='matriks' ?"Laporan Matriks Bulanan" :"Manajemen Surat Izin/Sakit"}
-        icon={activeTab ==='matriks' ? FileText : UserX}
-        description={activeTab ==='matriks' 
-          ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
-          :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
-        tabs={[
-          { id:'matriks', label:'Laporan Matriks Bulanan' },
-          { id:'surat', label:'Manajemen Surat Izin/Sakit' }
-        ]}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+    <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
+      {/* Mobile Navigation Top Header */}
+      <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
+        <button
+          type="button"
+          onClick={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
+          className="w-9 h-9 rounded-full bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
+        >
+          <ChevronLeft size={20} strokeWidth={2.5} />
+        </button>
+        <h2 className="text-sm font-black text-slate-800 text-center flex-1 tracking-tight">Laporan</h2>
+        <div className="w-9 shrink-0" />
+      </div>
+
+      {/* Desktop Header */}
+      {!isNested && (
+        <div className="hidden sm:block">
+          <PageHeader 
+            title={activeTab ==='matriks' ?"Laporan Kehadiran" :"Manajemen Surat Izin/Sakit"}
+            icon={activeTab ==='matriks' ? FileText : UserX}
+            description={activeTab ==='matriks' 
+              ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
+              :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
+            tabs={[
+              { id:'matriks', label:'Laporan Kehadiran' },
+              { id:'surat', label:'Manajemen Surat Izin/Sakit' }
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </div>
+      )}
+      {isNested && (
+        <div className="hidden sm:flex items-center justify-end gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 w-fit ml-auto shadow-xs">
+          {[
+            { id:'matriks', label:'Laporan Kehadiran', icon: FileText },
+            { id:'surat', label:'Manajemen Surat Izin/Sakit', icon: UserX }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                activeTab === tab.id 
+                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black' 
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+              }`}
+            >
+              <tab.icon size={14} className="shrink-0" />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Mobile Hero Header Card (Reference Layout matching media__1785568140000.png) */}
+      <div 
+        className="sm:hidden w-full rounded-3xl p-5 text-white shadow-md flex flex-col gap-4 relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0d9488) 100%)" }}
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+            <PieChart size={24} strokeWidth={2.2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-black leading-snug tracking-tight">Laporan Kehadiran</h2>
+            <p className="text-xs opacity-90 leading-relaxed font-medium mt-0.5">
+              Rekap kehadiran siswa per bulan
+            </p>
+          </div>
+        </div>
+
+        {/* Segmented Pill Tabs */}
+        <div className="bg-white rounded-2xl p-1 flex items-center gap-1 shadow-sm border border-slate-100/90">
+          <button
+            type="button"
+            onClick={() => setActiveTab('matriks')}
+            className={`flex-1 py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+              activeTab === 'matriks'
+                ? 'bg-slate-100 shadow-xs'
+                : 'text-slate-400 hover:text-slate-600 bg-transparent'
+            }`}
+            style={activeTab === 'matriks' ? {
+              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
+              color: "var(--ui-primary)"
+            } : {}}
+          >
+            MATRIKS BULANAN
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('surat')}
+            className={`flex-1 py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+              activeTab === 'surat'
+                ? 'bg-slate-100 shadow-xs'
+                : 'text-slate-400 hover:text-slate-600 bg-transparent'
+            }`}
+            style={activeTab === 'surat' ? {
+              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
+              color: "var(--ui-primary)"
+            } : {}}
+          >
+            MANAJEMEN SURAT
+          </button>
+        </div>
+      </div>
 
       {activeTab ==='surat' ? (
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} />
@@ -766,50 +927,221 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
         </div>
       )}
 
-      <div className="ui-card p-6 flex flex-col gap-6 relative z-30">
+      {/* Mobile Filter Card (Reference Layout matching media__1785568140000.png) */}
+      <div className="sm:hidden ui-card rounded-3xl p-4 shadow-sm border border-slate-100/90 flex flex-col gap-4">
+        {/* Top Row: Class Filter Label + Export Buttons */}
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Users size={16} strokeWidth={2.2} />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-tight">FILTER DATA KELAS</span>
+              <h4 className="text-xs font-black text-slate-800 truncate">
+                {user?.isWalas ? (user.walasClass || 'Kelas Saya') : (filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name)}
+              </h4>
+            </div>
+          </div>
+
+          {/* Export Buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleExportPDF(exportMode === 'detailed')}
+              disabled={loading || data.length === 0}
+              className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              title="Export PDF"
+            >
+              PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExport(exportMode === 'detailed')}
+              disabled={loading || data.length === 0}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              title="Export Excel"
+            >
+              XLS
+            </button>
+          </div>
+        </div>
+
+        {/* Form Grid 2x2 */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipe Laporan</label>
+            <CustomSelect
+              value={viewMode}
+              onChange={val => setViewMode(val)}
+              options={[
+                { value: "monthly", label: "Bulanan" },
+                { value: "weekly", label: "Mingguan" }
+              ]}
+            />
+          </div>
+
+          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Format</label>
+            <CustomSelect
+              value={exportMode}
+              onChange={val => setExportMode(val)}
+              options={[
+                { value: "summary", label: "Ringkas" },
+                { value: "detailed", label: "Lengkap" }
+              ]}
+            />
+          </div>
+
+          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Bulan</label>
+            <CustomSelect 
+              value={filter.month} 
+              onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+              options={monthOptions}
+            />
+          </div>
+
+          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tahun</label>
+            <CustomSelect 
+              value={filter.year} 
+              onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+              options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+            />
+          </div>
+        </div>
+
+        {(!user?.isWalas || isKesiswaanOrAdmin) && (
+          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
+            <CustomSelect 
+              value={filter.class_name} 
+              onChange={val => setFilter({ ...filter, class_name: val })}
+              options={[
+                { value: "all", label: "Semua Kelas" },
+                ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
+                ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas })).filter(c => c.value !== user?.walasClass)
+              ]}
+            />
+          </div>
+        )}
+
+        <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Urutkan Data</label>
+          <div className="flex items-center gap-1.5 w-full min-w-0">
+            <div className="flex-1 min-w-0">
+              <CustomSelect 
+                value={sortBy} 
+                onChange={val => setSortBy(val)}
+                options={[
+                  { value: "class_nis", label: "Per Kelas & NIS" },
+                  { value: "nis", label: "NIS / No. Absen" },
+                  { value: "name", label: "Nama Siswa (A-Z)" },
+                  { value: "class_name", label: "Nama Kelas" },
+                  { value: "hadir", label: "Total Hadir" },
+                  { value: "alpa", label: "Total Alpa" }
+                ]}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+              title={sortDir === "asc" ? "Urutan Naik" : "Urutan Turun"}
+              className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                sortDir === 'desc' 
+                  ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <ArrowUpDown size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Tampilkan Data Action Button */}
+        <button
+          type="button"
+          onClick={fetchData}
+          className="w-full py-3 rounded-2xl font-black text-xs text-white flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
+          style={{ background: "var(--ui-primary)" }}
+        >
+          <Wand2 size={16} strokeWidth={2.2} />
+          Tampilkan Data
+        </button>
+      </div>
+
+      {/* Mobile Pill Search Bar & Legend Badges */}
+      <div className="sm:hidden flex flex-col gap-3">
+        <div className="relative w-full">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Cari nama siswa..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white rounded-full border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-xs focus:outline-none focus:border-[var(--ui-primary)]"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-[10px] font-extrabold no-scrollbar">
+          <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> HADIR
+          </span>
+          <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> TELAT
+          </span>
+          <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> IZIN/SKT
+          </span>
+          <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> ALPA
+          </span>
+        </div>
+      </div>
+
+      {/* Desktop Filter Container */}
+      <div className="hidden sm:flex ui-card p-4 sm:p-6 flex-col gap-4 relative z-30">
         {/* Header Row */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-3 border-b border-slate-100">
           <div>
             <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
               <FileText size={18} className="text-[var(--ui-primary)]" />
               Laporan Absensi Siswa {user?.isWalas && `(Kelas ${user.walasClass})`}
             </h2>
-            <p className="text-xs text-slate-500 font-medium mt-1">
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
               Rekap kehadiran siswa per bulan dalam bentuk matriks.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex items-center gap-2">
              <UISelect 
                value={exportMode}
                onChange={(e) => setExportMode(e.target.value)}
-               className="text-xs py-1.5 h-auto px-3 border-slate-200"
+               className="text-xs py-1.5 h-10 px-3 border-slate-200"
              >
                <option value="summary">Ringkas (H/T/I/S/A)</option>
                <option value="detailed">Lengkap (Dengan Jam)</option>
              </UISelect>
-             <div className="flex gap-2">
-               <Button variant="outline" size="sm" 
-                 onClick={() => handleExport(exportMode === 'detailed')}
-                 disabled={loading || data.length === 0}
-                 className="flex items-center gap-1.5 cursor-pointer"
-               >
-                 <FileSpreadsheet size={14} className="shrink-0" />
-                 <span className="hidden sm:inline">Excel</span>
-               </Button>
-               <Button variant="outline" size="sm" 
-                 onClick={() => handleExportPDF(exportMode === 'detailed')}
-                 disabled={loading || data.length === 0}
-                 className="flex items-center gap-1.5 cursor-pointer"
-               >
-                 <FileText size={14} className="shrink-0" />
-                 <span className="hidden sm:inline">PDF</span>
-               </Button>
-             </div>
+             <Button variant="outline" size="sm" 
+               onClick={() => handleExport(exportMode === 'detailed')}
+               disabled={loading || data.length === 0}
+               className="flex items-center gap-1.5 h-10 text-xs font-bold cursor-pointer"
+             >
+               <FileSpreadsheet size={14} className="shrink-0" />
+               <span>Excel</span>
+             </Button>
+             <Button variant="outline" size="sm" 
+               onClick={() => handleExportPDF(exportMode === 'detailed')}
+               disabled={loading || data.length === 0}
+               className="flex items-center gap-1.5 h-10 text-xs font-bold cursor-pointer"
+             >
+               <FileText size={14} className="shrink-0" />
+               <span>PDF</span>
+             </Button>
           </div>
         </div>
 
-        {/* Filters Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 items-end w-full">
+        {/* Filters Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3.5 items-end w-full">
            <div>
              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Pilih Bulan</label>
              <CustomSelect 
@@ -866,15 +1198,40 @@ export default function HikvisionStudentReport({ classes = [], students = [] }) 
              />
            </div>
            )}
-           <div className="flex gap-2 col-span-2 sm:col-span-1">
-             <button
-               onClick={fetchData}
-               className="flex-grow flex items-center justify-center gap-1.5 h-10 px-4 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none"
-             >
-               <Filter size={14} className="shrink-0" />
-               <span className="hidden sm:inline">Terapkan</span>
-             </button>
+           <div>
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Urutkan Data</label>
+             <div className="flex items-center gap-1.5">
+               <CustomSelect
+                 value={sortBy}
+                 onChange={val => setSortBy(val)}
+                 options={[
+                   { value: "class_nis", label: "Per Kelas & NIS (1-9)" },
+                   { value: "nis", label: "NIS / No. Absen (1-9)" },
+                   { value: "name", label: "Nama Siswa (A-Z)" },
+                   { value: "class_name", label: "Nama Kelas" },
+                   { value: "hadir", label: "Total Hadir" },
+                   { value: "alpa", label: "Total Alpa" }
+                 ]}
+               />
+               <Button
+                 type="button"
+                 variant="outline"
+                 onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                 title={sortDir === "asc" ? "Naik (1-9 / A-Z)" : "Turun (9-1 / Z-A)"}
+                 className="shrink-0 h-10 w-10 p-0 flex items-center justify-center rounded-xl"
+               >
+                 <ArrowUpDown size={15} />
+               </Button>
+             </div>
            </div>
+        </div>
+
+        {/* Action Button Bar */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100/90">
+           <Button onClick={fetchData} className="px-5 py-2.5 flex items-center justify-center gap-2 font-black text-xs shadow-sm cursor-pointer">
+             <Filter size={15} className="shrink-0" />
+             <span>Terapkan Filter</span>
+           </Button>
         </div>
       </div>
 

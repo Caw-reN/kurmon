@@ -551,9 +551,16 @@ function TabStaff({ authToken, showToast, type ='guru' }) {
                         <td className="px-4 py-3 text-slate-500">{s.nip ||'-'}</td>
                         <td className="px-4 py-3 text-slate-600">{s.mapel ||'-'}</td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-xs font-bold border ${cfg.badgeColor}`}>
-                            <Icon size={11} /> {cfg.label}
-                          </span>
+                          {(() => {
+                            const itemType = s.person_type || type;
+                            const itemCfg = typeConfig[itemType] || cfg;
+                            const ItemIcon = itemCfg.icon;
+                            return (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-xs font-bold border ${itemCfg.badgeColor}`}>
+                                <ItemIcon size={11} /> {itemCfg.label}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );

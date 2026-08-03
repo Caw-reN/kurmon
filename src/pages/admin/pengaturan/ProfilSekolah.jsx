@@ -24,6 +24,7 @@ const SCHOOL_FIELDS = [
   { key:'akreditasi', label:'Akreditasi', placeholder:'A' },
   { key:'tahun_berdiri', label:'Tahun Berdiri', placeholder:'1985' },
   { key:'max_poin_pelanggaran', label:'Batas Maksimal Poin Pelanggaran (DO)', placeholder:'100' },
+  { key:'attendance_start_date', label:'Tanggal Mulai Absensi Efektif (Abaikan data sebelum tanggal ini)', type:'date', placeholder:'' },
 ];
 
 const MAJOR_ICON_OPTIONS = [
@@ -266,7 +267,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                     placeholder={field.placeholder}
                     className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" />
                 ) : (
-                  <input type="text" value={profile[field.key] ||''} onChange={e => setProfile(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  <input type={field.type || 'text'} value={profile[field.key] ||''} onChange={e => setProfile(prev => ({ ...prev, [field.key]: e.target.value }))}
                     placeholder={field.placeholder}
                     className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)]" />
                 )}

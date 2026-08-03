@@ -33,12 +33,12 @@ const DEFAULT_ATTENDANCE_SETTINGS = {
 
 export const DEFAULT_ROLE_PERMISSIONS = {
   guru: {
-    dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis", absensiguru: "otomatis",
+    dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis", akademik: "otomatis", absensiguru: "otomatis",
     silabusguru: "otomatis", walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis"
   },
   walikelas: {
-    dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
+    dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis", akademik: "otomatis",
     walas_report: "otomatis", catatan_walikelas: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis", ketersediaan: "otomatis"
   },
@@ -61,7 +61,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   waka_kurikulum: {
     dashboard: "otomatis", generate: "otomatis", ketersediaan: "otomatis", beban: "otomatis",
     silabus: "otomatis", akademik: "otomatis", kelas: "otomatis", siswa: "otomatis",
-    guru: "otomatis", mapel: "otomatis", jurnal_harian: "otomatis", modul_ajar: "otomatis"
+    guru: "otomatis", mapel: "otomatis", jurnal_harian: "otomatis", modul_ajar: "otomatis",
+    walas_report: "otomatis", catatan_walikelas: "otomatis", karyawan: "otomatis",
+    pengaturan: "otomatis", advanced_rules: "otomatis"
   },
   waka_kesiswaan: {
     dashboard: "otomatis", absensi: "otomatis", akademik: "otomatis", pesan: "otomatis",

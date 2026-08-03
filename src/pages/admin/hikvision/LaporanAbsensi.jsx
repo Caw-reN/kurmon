@@ -6,7 +6,7 @@ import HikvisionStudentReport from'./HikvisionStudentReport.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
-export default function LaporanAbsensi({ classes }) {
+export default function LaporanAbsensi({ classes = [], students = [] }) {
   const [activeTab, setActiveTab] = useState("guru");
 
   const tabs = [
@@ -28,11 +28,10 @@ export default function LaporanAbsensi({ classes }) {
 
       {/* Content Area */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {activeTab ==="guru" && <HikvisionTeacherReport />}
-        {activeTab ==="karyawan" && <HikvisionStaffReport />}
-        {activeTab ==="siswa" && <HikvisionStudentReport classes={classes} />}
+        {activeTab ==="guru" && <HikvisionTeacherReport isNested={true} />}
+        {activeTab ==="karyawan" && <HikvisionStaffReport classes={classes} isNested={true} />}
+        {activeTab ==="siswa" && <HikvisionStudentReport classes={classes} students={students} isNested={true} />}
       </div>
-      
     </div>
   );
 }

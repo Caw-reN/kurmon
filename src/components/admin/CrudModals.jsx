@@ -262,7 +262,7 @@ export default function CrudModals({
                     </div>
                   </div>
                   {/* Subrole / Jabatan */}
-                  {normalizeUserRole(formData.role) === "guru" && (
+                  {(normalizeUserRole(formData.role) === "guru" || normalizeUserRole(formData.role) === "karyawan" || normalizeUserRole(formData.role) === "tu") && (
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                         Jabatan / Tugas Tambahan
@@ -272,11 +272,11 @@ export default function CrudModals({
                         onChange={(e) => setFormData({ ...formData, subrole: e.target.value })}
                         className="w-full"
                       >
-                        {(SUBROLE_OPTIONS_BY_DIVISION[formData.division] || SUBROLE_OPTIONS_BY_DIVISION.none).map((opt) => (
+                        {(SUBROLE_OPTIONS_BY_DIVISION[formData.division] || SUBROLE_OPTIONS_BY_DIVISION[formData.role] || SUBROLE_OPTIONS_BY_DIVISION.none).map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </UISelect>
-                      <p className="text-[10px] text-slate-400 font-medium mt-1 ml-1">Menentukan menu yang dapat diakses oleh guru ini.</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-1 ml-1">Menentukan posisi spesifik dan hak akses bawaan personel ini.</p>
                     </div>
                   )}
                 </div>

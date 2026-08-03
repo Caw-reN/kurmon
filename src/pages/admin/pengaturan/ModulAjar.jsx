@@ -62,7 +62,8 @@ export default function ModulAjar(props) {
   const teacherCode = user.code || '';
   const teacherName = user.name || '';
 
-  const isCurriculum = userRole === 'admin' || userRole === 'superadmin' || userRole === 'waka_kurikulum';
+  const division = (user?.division || '').toLowerCase();
+  const isCurriculum = userRole === 'admin' || userRole === 'superadmin' || userRole === 'waka_kurikulum' || (userRole === 'waka' && division === 'kurikulum');
   const academicYears = appSettings?.academicYears || [];
   const activeYear = useMemo(() => academicYears.find(y => y.is_active)?.nama || '', [academicYears]);
 
@@ -591,7 +592,64 @@ export default function ModulAjar(props) {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
+          {/* Mobile Card List View (< sm) */}
+          <div className="sm:hidden flex flex-col gap-3">
+            {(isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 ? (
+              <div className="p-6 text-center text-slate-400 font-bold bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                Tidak ada Modul Ajar yang diunggah.
+              </div>
+            ) : (
+              (isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).map(doc => {
+                const isMyOwn = doc.teacher_code === teacherCode;
+                const canDelete = isCurriculum || isMyOwn;
+                return (
+                  <div key={doc.id} className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100">
+                        {doc.mapel || 'Umum'}
+                      </span>
+                      <span className="text-[10.5px] font-bold text-slate-500">
+                        Kelas {doc.kelas || '-'} ({doc.semester || '-'})
+                      </span>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText size={16} className="text-rose-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-black text-slate-800 leading-snug truncate" title={doc.nama_dokumen}>
+                          {doc.nama_dokumen}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1 text-[10.5px] text-slate-500 font-medium">
+                          <span>Guru: <b className="text-slate-700">{doc.teacher_name}</b></span>
+                          <span>•</span>
+                          <span>TA: <b className="text-slate-700">{doc.tahun_ajaran}</b></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                      <Button variant="outline" onClick={() => handlePreviewPdf(doc)} className="flex-1 py-1.5 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer">
+                        <Eye size={13} /> Pratinjau
+                      </Button>
+                      <Button onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)} className="flex-1 py-1.5 text-xs font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 flex items-center justify-center gap-1 cursor-pointer">
+                        <Download size={13} /> Unduh
+                      </Button>
+                      {canDelete && (
+                        <Button variant="outline" onClick={() => handleDelete(doc.id, doc.teacher_code)} className="p-1.5 text-rose-600 hover:bg-rose-50 border-rose-200 cursor-pointer" title="Hapus Modul">
+                          <Trash2 size={13} />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Table View (>= sm) */}
+          <div className="hidden sm:block overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
             <table className="w-full text-sm">
               <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                 <tr>
