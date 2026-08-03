@@ -638,28 +638,43 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         return true;
       }
 
-      // 2. Fetch previous password hash
+      // 2. Fetch previous password hash across all tables
       let currentPasswordHash = null;
 
-      if (role === "admin") {
+      if (role === "admin" || role === "superadmin") {
         const payload = await readMainPayload() || {};
         currentPasswordHash = payload.adminUser?.password;
-      } else if (role === "guru" || role === "karyawan" || role === "waka" || role === "kepsek") {
-        const result = await dbPool.query(`
+      }
+
+      if (!currentPasswordHash) {
+        const tResult = await dbPool.query(`
           SELECT payload FROM mst_teachers 
-          WHERE payload->>'code' = $1
+          WHERE payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
         `, [session.username]);
-        if (result.rows.length > 0) {
-          const tData = typeof result.rows[0].payload === 'string' ? JSON.parse(result.rows[0].payload) : result.rows[0].payload;
+        if (tResult.rows.length > 0) {
+          const tData = typeof tResult.rows[0].payload === 'string' ? JSON.parse(tResult.rows[0].payload) : tResult.rows[0].payload;
           currentPasswordHash = tData?.password;
         }
-      } else if (role === "siswa") {
-        const result = await dbPool.query(`
-          SELECT payload FROM mst_students 
-          WHERE payload->>'nis' = $1
+      }
+
+      if (!currentPasswordHash) {
+        const stResult = await dbPool.query(`
+          SELECT payload FROM mst_staffs 
+          WHERE payload->>'staff_code' = $1 OR payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
         `, [session.username]);
-        if (result.rows.length > 0) {
-          const sData = typeof result.rows[0].payload === 'string' ? JSON.parse(result.rows[0].payload) : result.rows[0].payload;
+        if (stResult.rows.length > 0) {
+          const stData = typeof stResult.rows[0].payload === 'string' ? JSON.parse(stResult.rows[0].payload) : stResult.rows[0].payload;
+          currentPasswordHash = stData?.password;
+        }
+      }
+
+      if (!currentPasswordHash) {
+        const sResult = await dbPool.query(`
+          SELECT payload FROM mst_students 
+          WHERE payload->>'nis' = $1 OR payload->>'code' = $1 OR payload->>'nisn' = $1 OR id = $1
+        `, [session.username]);
+        if (sResult.rows.length > 0) {
+          const sData = typeof sResult.rows[0].payload === 'string' ? JSON.parse(sResult.rows[0].payload) : sResult.rows[0].payload;
           currentPasswordHash = sData?.password;
         }
       }
@@ -680,7 +695,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const nextPasswordHash = await hashPassword(newPassword);
       let success = false;
 
-      if (role === "admin") {
+      // 4. Update password in corresponding table
+      if (role === "admin" || role === "superadmin") {
         const payload = await readMainPayload() || {};
         if (payload.adminUser) {
           payload.adminUser.password = nextPasswordHash;
@@ -691,20 +707,63 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           `, [JSON.stringify(payload)]);
           success = true;
         }
-      } else if (role === "guru" || role === "karyawan" || role === "waka" || role === "kepsek") {
-        const result = await dbPool.query(`
-          UPDATE mst_teachers 
-          SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
-          WHERE payload->>'code' = $2
-        `, [nextPasswordHash, session.username]);
-        if (result.rowCount > 0) success = true;
-      } else if (role === "siswa") {
-        const result = await dbPool.query(`
-          UPDATE mst_students 
-          SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
-          WHERE payload->>'nis' = $2
-        `, [nextPasswordHash, session.username]);
-        if (result.rowCount > 0) success = true;
+      }
+
+      if (!success) {
+        const tResult = await dbPool.query(`
+          SELECT id FROM mst_teachers 
+          WHERE payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
+        `, [session.username]);
+        if (tResult.rows.length > 0) {
+          const rowId = tResult.rows[0].id;
+          const uRes = await dbPool.query(`
+            UPDATE mst_teachers 
+            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
+            WHERE id = $2
+          `, [nextPasswordHash, rowId]);
+          if (uRes.rowCount > 0) success = true;
+        }
+      }
+
+      if (!success) {
+        const stResult = await dbPool.query(`
+          SELECT id FROM mst_staffs 
+          WHERE payload->>'staff_code' = $1 OR payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
+        `, [session.username]);
+        if (stResult.rows.length > 0) {
+          const rowId = stResult.rows[0].id;
+          const uRes = await dbPool.query(`
+            UPDATE mst_staffs 
+            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
+            WHERE id = $2
+          `, [nextPasswordHash, rowId]);
+          if (uRes.rowCount > 0) success = true;
+        }
+      }
+
+      if (!success) {
+        const sResult = await dbPool.query(`
+          SELECT id FROM mst_students 
+          WHERE payload->>'nis' = $1 OR payload->>'code' = $1 OR payload->>'nisn' = $1 OR id = $1
+        `, [session.username]);
+        if (sResult.rows.length > 0) {
+          const rowId = sResult.rows[0].id;
+          const uRes = await dbPool.query(`
+            UPDATE mst_students 
+            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
+            WHERE id = $2
+          `, [nextPasswordHash, rowId]);
+          if (uRes.rowCount > 0) success = true;
+        }
+      }
+
+      if (!success) {
+        try {
+          const uRes = await dbPool.query(`
+            UPDATE users SET password_hash = $1 WHERE username = $2 OR code = $2
+          `, [nextPasswordHash, session.username]);
+          if (uRes.rowCount > 0) success = true;
+        } catch (e) {}
       }
 
       if (success) {
