@@ -269,8 +269,21 @@ export async function handleDataRoutes(req, res, url, ctx) {
             uniqueItems.push({ rowId, val });
           }
 
-          for (const { rowId, val } of uniqueItems) {
-            await client.query(`INSERT INTO ${tableName} (id, payload) VALUES ($1, $2)`, [rowId, JSON.stringify(val)]);
+          // Batch insert in chunks of 500 rows for ultra-fast execution
+          const chunkSize = 500;
+          for (let i = 0; i < uniqueItems.length; i += chunkSize) {
+            const chunk = uniqueItems.slice(i, i + chunkSize);
+            const values = [];
+            const params = [];
+            let paramIdx = 1;
+            chunk.forEach(({ rowId, val }) => {
+              values.push(`($${paramIdx}, $${paramIdx + 1})`);
+              params.push(rowId, JSON.stringify(val));
+              paramIdx += 2;
+            });
+            if (values.length > 0) {
+              await client.query(`INSERT INTO ${tableName} (id, payload) VALUES ${values.join(', ')}`, params);
+            }
           }
           await client.query('COMMIT');
         } catch (e) {

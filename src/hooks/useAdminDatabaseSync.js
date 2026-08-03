@@ -145,7 +145,7 @@ export function useAdminDatabaseSync({
     let cancelled = false;
     setDatabaseHydrated(false);
 
-    const hydrateFullDatabase = async () => {
+    const hydrateFullDatabase = async (retries = 2) => {
       databaseHydrationFailedRef.current = false;
       try {
         const payload = await loadFromServer(authToken);
@@ -162,23 +162,30 @@ export function useAdminDatabaseSync({
         setDatabaseHydrated(true);
       } catch (error) {
         console.warn('Gagal memuat snapshot database lengkap', error);
-        if (!cancelled) {
-          if (error?.status === 403) {
-            const message = getDatabaseLoadErrorMessage(error);
-            writeSessionUser(null);
-            setCurrentUser(null);
-            setDatabaseHydrated(false);
-            setLoginError(message);
-            setNotification(message);
-            setTimeout(() => setNotification(''), 3500);
-          } else {
-            console.warn('Database gagal dimuat, lanjutkan dengan data kosong:', error?.message);
-            databaseHydrationFailedRef.current = true;
-            hydratedDatabaseTokenRef.current = authToken;
-            setDatabaseHydrated(true);
-            setNotification('Peringatan: Data dari server tidak dapat dimuat sepenuhnya. Beberapa data mungkin belum sinkron.');
-            setTimeout(() => setNotification(''), 5000);
-          }
+        if (cancelled) return;
+
+        // Auto retry up to 2 times for transient network glitch / server locks
+        if (retries > 0 && error?.status !== 403) {
+          console.log(`Mencoba ulang memuat database dari server (${retries} percobaan tersisa)...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return hydrateFullDatabase(retries - 1);
+        }
+
+        if (error?.status === 403) {
+          const message = getDatabaseLoadErrorMessage(error);
+          writeSessionUser(null);
+          setCurrentUser(null);
+          setDatabaseHydrated(false);
+          setLoginError(message);
+          setNotification(message);
+          setTimeout(() => setNotification(''), 3500);
+        } else {
+          console.warn('Database gagal dimuat, lanjutkan dengan snapshot lokal:', error?.message);
+          databaseHydrationFailedRef.current = true;
+          hydratedDatabaseTokenRef.current = authToken;
+          setDatabaseHydrated(true);
+          setNotification('Peringatan: Data dari server belum sinkron sepenuhnya. Mencoba menyinkronkan kembali...');
+          setTimeout(() => setNotification(''), 4000);
         }
       }
     };
