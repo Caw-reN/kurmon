@@ -343,7 +343,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
                      const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
                      const hasChangedPassword = student.hasChangedPassword === true;
                      const isDefaultPassword = !hasChangedPassword;
-                     send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, isDefaultPassword, hasChangedPassword, authToken: token } });
+                     send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, jurusan: student.jurusan || student.major || "", isDefaultPassword, hasChangedPassword, authToken: token } });
                      return true;
                   }
               } else {
@@ -409,13 +409,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         phoneMatch = normReg === whatsapp;
       }
 
-      if (!userFound) {
-        send(req, res, 200, { ok: false, error: "identity_not_found", message: "Pengguna dengan identitas tersebut tidak ditemukan!" });
-        return true;
-      }
-
-      if (!phoneMatch) {
-        send(req, res, 200, { ok: false, error: "phone_mismatch", message: "Nomor WhatsApp tidak cocok dengan nomor yang terdaftar di sistem!" });
+      if (!userFound || !phoneMatch) {
+        send(req, res, 200, { ok: false, error: "data_mismatch", message: "Data tidak cocok dengan yang terdaftar di sistem!" });
         return true;
       }
 
@@ -496,13 +491,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         phoneMatch = normReg === whatsapp;
       }
 
-      if (!userFound) {
-        send(req, res, 200, { ok: false, message: "Pengguna dengan identitas tersebut tidak ditemukan!" });
-        return true;
-      }
-
-      if (!phoneMatch) {
-        send(req, res, 200, { ok: false, message: "Nomor WhatsApp tidak cocok dengan nomor yang terdaftar di sistem!" });
+      if (!userFound || !phoneMatch) {
+        send(req, res, 200, { ok: false, message: "Data tidak cocok dengan yang terdaftar di sistem!" });
         return true;
       }
 
@@ -640,7 +630,13 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       if (!session) return true;
 
       const body = await readJsonBody(req);
+      const oldPassword = String(body.oldPassword || "").trim();
       const newPassword = String(body.newPassword || "").trim();
+      
+      if (!oldPassword) {
+        send(req, res, 200, { ok: false, message: "Kata sandi lama wajib diisi!" });
+        return true;
+      }
       
       if (!newPassword) {
         send(req, res, 200, { ok: false, message: "Kata sandi baru tidak boleh kosong!" });
@@ -712,10 +708,18 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
       // 3. Same as previous password check
       let isSameAsPrevious = false;
+      let isOldValid = false;
       if (currentPasswordHash) {
+        isOldValid = await verifyPassword(oldPassword, currentPasswordHash);
         isSameAsPrevious = await verifyPassword(newPassword, currentPasswordHash);
       } else {
+        isOldValid = (oldPassword.toLowerCase() === session.username.toLowerCase());
         isSameAsPrevious = (newPassword === session.username);
+      }
+
+      if (!isOldValid) {
+        send(req, res, 200, { ok: false, message: "Kata sandi lama salah!" });
+        return true;
       }
 
       if (isSameAsPrevious) {
@@ -791,7 +795,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       if (!success) {
         try {
           const uRes = await dbPool.query(`
-            UPDATE users SET password_hash = $1 WHERE username = $2 OR code = $2
+            UPDATE users SET password = $1 WHERE username = $2 OR code = $2
           `, [nextPasswordHash, session.username]);
           if (uRes.rowCount > 0) success = true;
         } catch (e) {}

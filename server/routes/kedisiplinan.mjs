@@ -3,7 +3,8 @@ import { Readable } from 'stream';
 
 // Helper to get or create folder hierarchically in Google Drive
 async function getOrCreateFolder(drive, folderName, parentId = null) {
-  let query = `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+  const safeName = String(folderName).replace(/'/g, "\\'");
+  let query = `name = '${safeName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
   if (parentId) {
     query += ` and '${parentId}' in parents`;
   }
@@ -143,8 +144,8 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           try {
             const body = await readJsonBody(req);
             const session = getSession(req);
-            const teacher_code = session.user?.code || session.user?.username || session.user?.id || '';
-            const teacher_name = session.user?.name || teacher_code;
+            const teacher_code = session?.code || session?.username || session?.id || '';
+            const teacher_name = session?.name || teacher_code;
             
             if (body.action === "delete") {
               await dbPool.query("DELETE FROM catatan_walikelas WHERE id = $1", [body.id]);
@@ -492,7 +493,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     const countRes = await dbPool.query(`
       SELECT COUNT(*) as total_alpa 
       FROM kedisiplinan_absensi 
-      WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis) 
+      WHERE siswa_nis = $1 
         AND (LOWER(status) = 'alpa' OR LOWER(status) = 'belum scan')
     `, [cleanNis]);
     
@@ -502,7 +503,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       // 1. Check if point violation already recorded
       const checkPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
-        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+        WHERE siswa_nis = $1
           AND tindakan_nama LIKE '%Alpa > 5%'
         LIMIT 1
       `, [cleanNis]);
@@ -525,7 +526,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       // 2. Check if SP-1 already recorded in konseling
       const checkKonseling = await dbPool.query(`
         SELECT id FROM kedisiplinan_buku_konseling 
-        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+        WHERE siswa_nis = $1
           AND (jenis_kasus LIKE '%Alpa > 5%' OR status LIKE '%SP%')
         LIMIT 1
       `, [cleanNis]);
@@ -550,7 +551,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     const tltRes = await dbPool.query(`
       SELECT COUNT(*) as total_terlambat 
       FROM kedisiplinan_absensi 
-      WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis) 
+      WHERE siswa_nis = $1 
         AND LOWER(status) = 'terlambat'
     `, [cleanNis]);
     
@@ -560,7 +561,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       // 1. Check if point violation for Terlambat > 3 already recorded
       const checkTltPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
-        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+        WHERE siswa_nis = $1
           AND tindakan_nama LIKE '%Terlambat > 3%'
         LIMIT 1
       `, [cleanNis]);
@@ -583,7 +584,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       // 2. Check if Teguran already recorded in konseling
       const checkTltKonseling = await dbPool.query(`
         SELECT id FROM kedisiplinan_buku_konseling 
-        WHERE (siswa_nis = $1 OR siswa_nis LIKE '%' || $1 OR $1 LIKE '%' || siswa_nis)
+        WHERE siswa_nis = $1
           AND (jenis_kasus LIKE '%Terlambat > 3%' OR status LIKE '%Teguran%')
         LIMIT 1
       `, [cleanNis]);

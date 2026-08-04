@@ -158,7 +158,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
         const nis = url.pathname.replace("/api/pkl/students/", "").trim();
         if (!nis) return send(req, res, 400, { ok: false, error: "NIS tidak boleh kosong" });
         const result = await dbPool.query(
-          "SELECT * FROM pkl_students WHERE student_nis = $1 LIMIT 1",
+          "SELECT * FROM pkl_students WHERE nis = $1 LIMIT 1",
           [nis]
         );
         if (result.rows.length === 0) return send(req, res, 404, { ok: false, error: "Data siswa PKL tidak ditemukan" });
@@ -202,6 +202,8 @@ export async function handlePklRoutes(req, res, url, ctx) {
       }
     }
     if (req.method === "GET" && url.pathname === "/api/pkl/logbooks") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
       try {
         const result = await dbPool.query(`
           SELECT l.id, l.student_nis, l.tanggal, l.kegiatan, l.catatan as kendala, l.solusi, 
@@ -220,6 +222,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/logbooks/")) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
+      if (session.role === "siswa") return send(req, res, 403, { ok: false, error: "Siswa tidak dapat memberikan persetujuan atau catatan guru" });
       const id = url.pathname.split("/").pop();
       try {
         const body = await readJsonBody(req);
@@ -235,6 +238,8 @@ export async function handlePklRoutes(req, res, url, ctx) {
       }
     }
     if (req.method === "GET" && url.pathname === "/api/pkl/submissions") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
       try {
         const result = await dbPool.query("SELECT * FROM pkl_submissions ORDER BY created_at DESC");
         return send(req, res, 200, { ok: true, data: result.rows });
