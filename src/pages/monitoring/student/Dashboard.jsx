@@ -90,7 +90,7 @@ const StudentDashboard = () => {
         }
       } catch (e) {}
       logout();
-      navigate('/login');
+      navigate('/');
     }
   };
 
@@ -201,9 +201,9 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Right Pill Badge */}
-            <span className="bg-white/20 border border-white/30 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0">
-              Aktif PKL
+            {/* Right Pill Badge — conditional on PKL status */}
+            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 border ${pklData ? 'bg-white/20 border-white/30 text-white' : 'bg-white/10 border-white/20 text-white/60'}`}>
+              {pklData ? 'Aktif PKL' : 'Belum PKL'}
             </span>
           </div>
 

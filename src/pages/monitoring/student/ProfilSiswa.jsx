@@ -65,7 +65,7 @@ const ProfilSiswa = () => {
   };
 
   const photoUrl = pklData?.photo_url || pklData?.photo || null;
-  const jurusan = pklData?.major || pklData?.jurusan || '-';
+  const jurusan = pklData?.major || pklData?.jurusan || user?.jurusan || user?.major || '-';
   const pembimbing = pklData?.teacher_code || pklData?.teacher_name || 'Belum Ditugaskan';
   const statusPKL = pklData?.status || 'Siswa Aktif';
   const isAktif = pklData?.status && pklData.status !== 'Belum Aktif';

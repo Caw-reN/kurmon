@@ -1,51 +1,76 @@
+// Track whether BK tables have already been initialized in this process
+let _bkTablesInitialized = false;
+
+/**
+ * initBkTables — dipanggil sekali saat server startup.
+ * Bukan di setiap request agar tidak ada overhead DB.
+ */
+export async function initBkTables(dbPool) {
+  if (_bkTablesInitialized || !dbPool) return;
+  try {
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS bk_sessions (
+        id SERIAL PRIMARY KEY,
+        student_nis VARCHAR(100) NOT NULL,
+        category VARCHAR(100) NOT NULL DEFAULT 'Umum',
+        session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        problem TEXT,
+        solution TEXT,
+        follow_up_date DATE,
+        status VARCHAR(50) DEFAULT 'Berjalan',
+        counselor_nip VARCHAR(100),
+        counselor_name VARCHAR(255),
+        privacy_level VARCHAR(50) DEFAULT 'Terbatas',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS bk_home_visits (
+        id SERIAL PRIMARY KEY,
+        student_nis VARCHAR(100) NOT NULL,
+        visit_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        result TEXT,
+        photo_url TEXT,
+        counselor_nip VARCHAR(100),
+        counselor_name VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS bk_letters (
+        id SERIAL PRIMARY KEY,
+        student_nis VARCHAR(100) NOT NULL,
+        letter_type VARCHAR(100) NOT NULL,
+        letter_no VARCHAR(100),
+        issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        reason TEXT,
+        status VARCHAR(50) DEFAULT 'Diterbitkan',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    _bkTablesInitialized = true;
+    console.log('[BK] Tables initialized successfully.');
+  } catch (e) {
+    console.warn('[BK] Failed to ensure BK tables:', e.message);
+  }
+}
+
 export async function handleBkRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, isAdminRole } = ctx;
 
-  // Initialize DB tables for BK module
-  if (dbPool) {
-    try {
-      await dbPool.query(`
-        CREATE TABLE IF NOT EXISTS bk_sessions (
-          id SERIAL PRIMARY KEY,
-          student_nis VARCHAR(100) NOT NULL,
-          category VARCHAR(100) NOT NULL DEFAULT 'Umum',
-          session_date DATE NOT NULL DEFAULT CURRENT_DATE,
-          problem TEXT,
-          solution TEXT,
-          follow_up_date DATE,
-          status VARCHAR(50) DEFAULT 'Berjalan',
-          counselor_nip VARCHAR(100),
-          counselor_name VARCHAR(255),
-          privacy_level VARCHAR(50) DEFAULT 'Terbatas',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-
-        CREATE TABLE IF NOT EXISTS bk_home_visits (
-          id SERIAL PRIMARY KEY,
-          student_nis VARCHAR(100) NOT NULL,
-          visit_date DATE NOT NULL DEFAULT CURRENT_DATE,
-          result TEXT,
-          photo_url TEXT,
-          counselor_nip VARCHAR(100),
-          counselor_name VARCHAR(255),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-
-        CREATE TABLE IF NOT EXISTS bk_letters (
-          id SERIAL PRIMARY KEY,
-          student_nis VARCHAR(100) NOT NULL,
-          letter_type VARCHAR(100) NOT NULL,
-          letter_no VARCHAR(100),
-          issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
-          reason TEXT,
-          status VARCHAR(50) DEFAULT 'Diterbitkan',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-    } catch (e) {
-      console.warn("Failed to ensure BK tables:", e.message);
+  // Peran yang boleh mengakses modul BK
+  const BK_ALLOWED_ROLES = ['bk', 'admin', 'superadmin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'];
+  const requireBkAccess = (req, res) => {
+    const session = getSession(req);
+    if (!session) {
+      send(req, res, 401, { ok: false, error: 'Sesi tidak valid.' });
+      return null;
     }
-  }
+    const role = (session.role || '').toLowerCase();
+    if (!BK_ALLOWED_ROLES.includes(role)) {
+      send(req, res, 403, { ok: false, error: 'Akses ditolak. Hanya Guru BK, Waka Kesiswaan, atau Admin yang dapat mengakses modul ini.' });
+      return null;
+    }
+    return session;
+  };
 
   // 1. GET /api/kedisiplinan/bk/dashboard-stats
   if (req.method === "GET" && url.pathname === "/api/kedisiplinan/bk/dashboard-stats") {
@@ -99,9 +124,10 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
 
     if (req.method === "POST") {
+      const session = requireBkAccess(req, res);
+      if (!session) return true;
       try {
         const body = await readJsonBody(req);
-        const session = getSession(req);
         const { student_nis, category, session_date, problem, solution, follow_up_date, status, privacy_level } = body;
 
         const result = await dbPool.query(`
@@ -131,7 +157,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
 
   // 3. PUT & DELETE /api/kedisiplinan/bk/sessions/:id
   if (url.pathname.startsWith("/api/kedisiplinan/bk/sessions/")) {
-    if (!requireAuthenticated(req, res)) return true;
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
 
     if (req.method === "PUT") {
@@ -184,9 +211,10 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
 
     if (req.method === "POST") {
+      const session = requireBkAccess(req, res);
+      if (!session) return true;
       try {
         const body = await readJsonBody(req);
-        const session = getSession(req);
         const { student_nis, visit_date, result, photo_url } = body;
 
         const resQuery = await dbPool.query(`
@@ -231,6 +259,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
 
     if (req.method === "POST") {
+      const session = requireBkAccess(req, res);
+      if (!session) return true;
       try {
         const body = await readJsonBody(req);
         const { student_nis, letter_type, letter_no, issue_date, reason } = body;

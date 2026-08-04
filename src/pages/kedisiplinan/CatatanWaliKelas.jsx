@@ -9,7 +9,7 @@ import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { drawKopSurat } from '../../utils/pdfHelpers.js';
-import { loadInitialState } from '../../utils/state.js';
+import { useAppStore } from '../../store/useAppStore.js';
 
 const JENIS_CATATAN = [
   { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60' },
@@ -252,18 +252,18 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   const [siswaPage, setSiswaPage] = useState(1);
   const [siswaPerPage, setSiswaPerPage] = useState(20);
 
-  const appSettings = useMemo(() => {
-    const defaults = { 
-      useKopSuratGambar: false,
-      kopSuratGambar:"",
-      kopSuratLogo:"", 
-      kopSuratBaris1:"", 
-      kopSuratBaris2:"", 
-      kopSuratBaris3:"", 
-      primaryColor:"var(--ui-primary)" 
-    };
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  }, []);
+  // useAppStore untuk sinkronisasi real-time dengan pengaturan admin
+  const storeAppSettings = useAppStore((state) => state.appSettings) || {};
+  const appSettings = useMemo(() => ({
+    useKopSuratGambar: false,
+    kopSuratGambar: '',
+    kopSuratLogo: '',
+    kopSuratBaris1: '',
+    kopSuratBaris2: '',
+    kopSuratBaris3: '',
+    primaryColor: 'var(--ui-primary)',
+    ...storeAppSettings
+  }), [storeAppSettings]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });

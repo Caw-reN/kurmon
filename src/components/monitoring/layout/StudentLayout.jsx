@@ -24,11 +24,11 @@ const navItems = [
 ];
 
 const mobileNavItems = [
-  { to: '/student',              label: 'Beranda',    Icon: Home,        end: true, fiturKey: null },
-  { to: '/student/absensi',      label: 'Absensi',    Icon: Fingerprint, fiturKey: 'absensi' },
-  { to: '/student/logbook',      label: 'Jurnal',     Icon: BookCheck,   fiturKey: 'jurnal' },
-  { to: '/student/lokasi',       label: 'Lokasi PKL', Icon: MapPin,      fiturKey: 'lokasi_pkl' },
-  { to: '/student/profil',       label: 'Profil',     Icon: User,        fiturKey: 'profil_siswa' },
+  { to: '/student',               label: 'Beranda',    Icon: Home,        end: true, fiturKey: null },
+  { to: '/student/absensi',       label: 'Absensi',    Icon: Fingerprint, fiturKey: 'absensi' },
+  { to: '/student/logbook',       label: 'Jurnal',     Icon: BookCheck,   fiturKey: 'jurnal' },
+  { to: '/student/kartu-pelajar', label: 'Kartu',      Icon: CreditCard,  fiturKey: null },
+  { to: '/student/profil',        label: 'Profil',     Icon: User,        fiturKey: 'profil_siswa' },
 ];
 
 const StudentLayout = () => {

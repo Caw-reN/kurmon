@@ -1,5 +1,5 @@
 import { handlePklRoutes } from "./routes/pkl.mjs";
-import { handleBkRoutes } from "./routes/bk.mjs";
+import { handleBkRoutes, initBkTables } from "./routes/bk.mjs";
 import { handleHikvisionRoutes, autoLinkHikvisionStudents } from "./routes/hikvision.mjs";
 import { handlePushRoutes, initializeWebPush } from "./routes/push.mjs";
 import { handleKedisiplinanRoutes } from "./routes/kedisiplinan.mjs";
@@ -4284,11 +4284,14 @@ cron.schedule('30 2 * * *', async () => {
 const PORT = Number.parseInt(process.env.AUTH_PORT || "4174", 10);
 server.listen(PORT, AUTH_BIND_HOST, async () => {
   console.log(`Auth server running on port ${PORT} (bind: ${AUTH_BIND_HOST})`);
-  // Initialize Web Push Keys
   if (dbPool) {
+    // Initialize Web Push Keys
     await initializeWebPush(dbPool);
+    // Initialize BK module tables (once, not on every request)
+    await initBkTables(dbPool);
   } else {
     console.warn("[PUSH] Database not initialized, skipping Web Push setup.");
+    console.warn("[BK] Database not initialized, skipping BK tables setup.");
   }
 });
 

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAppStore } from '../../store/useAppStore.js';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { loadInitialState } from '../../utils/state.js';
 import { FileSpreadsheet, Download, Search, Users, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
@@ -42,18 +42,18 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const [lbPage, setLbPage] = useState(1);
   const [lbPerPage, setLbPerPage] = useState(20);
 
-  const appSettings = useMemo(() => {
-    const defaults = { 
-      useKopSuratGambar: false,
-      kopSuratGambar:"",
-      kopSuratLogo:"", 
-      kopSuratBaris1:"", 
-      kopSuratBaris2:"", 
-      kopSuratBaris3:"", 
-      primaryColor:"var(--ui-primary)" 
-    };
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  }, []);
+  // Gunakan useAppStore agar sinkron real-time dengan pengaturan admin
+  const storeAppSettings = useAppStore((state) => state.appSettings) || {};
+  const appSettings = useMemo(() => ({
+    useKopSuratGambar: false,
+    kopSuratGambar: '',
+    kopSuratLogo: '',
+    kopSuratBaris1: '',
+    kopSuratBaris2: '',
+    kopSuratBaris3: '',
+    primaryColor: 'var(--ui-primary)',
+    ...storeAppSettings
+  }), [storeAppSettings]);
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -64,11 +64,12 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     if (!authToken) return;
     setIsLoading(true);
     try {
+      // Gunakan endpoint BK sessions yang sudah ada (menggantikan /konseling yang tidak ada)
       const [resRiwayat, resAbsensi, resCatatan, resKonseling] = await Promise.all([
         fetch("/api/kedisiplinan/riwayat", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/absensi", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kesiswaan/catatan-walikelas", { headers: { "Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/kedisiplinan/konseling", { headers: { "Authorization": `Bearer ${authToken}` } })
+        fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
       const dataRiwayat = await resRiwayat.json();
       const dataAbsensi = await resAbsensi.json();
