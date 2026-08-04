@@ -43,7 +43,6 @@ export async function handleSettingsRoutes(req, res, url, ctx) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/settings/feature") {
-    if (!requireAuthenticated(req, res)) return true;
     send(req, res, 200, { ok: true, data: store.featureSettings || {} });
     return true;
   }

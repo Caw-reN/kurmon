@@ -57,19 +57,11 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
   const fetchHikstaffs = async () => {
     if (!authToken) return;
     try {
-      const [resKaryawan1, resKaryawan2] = await Promise.all([
-        fetch("/api/hikvision/students?type=Karyawan", { headers: {"Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/hikvision/students?type=karyawan", { headers: {"Authorization": `Bearer ${authToken}` } }),
-      ]);
-      const [dataKaryawan1, dataKaryawan2] = await Promise.all([
-        resKaryawan1.json().catch(() => ({ ok: false, data: [] })),
-        resKaryawan2.json().catch(() => ({ ok: false, data: [] })),
-      ]);
-      const combined = [
-        ...(dataKaryawan1.ok ? (dataKaryawan1.data || []) : []),
-        ...(dataKaryawan2.ok ? (dataKaryawan2.data || []) : []),
-      ];
-      setHikstaffs(combined);
+      const res = await fetch("/api/hikvision/students?type=staff", { headers: { Authorization: `Bearer ${authToken}` } });
+      const data = await res.json();
+      if (data.ok) {
+        setHikstaffs(data.data || []);
+      }
     } catch (err) {
       console.error("Gagal memuat Karyawan Hikvision:", err);
     }
@@ -79,9 +71,14 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
     fetchHikstaffs();
   }, [authToken]);
 
-  // Set of NIS values from hikvision (employee ID di mesin = kode Karyawan)
+  // Set of NIS & Name values from hikvision
   const hikNisSet = useMemo(
-    () => new Set(hikstaffs.map(t => String(t.nis ||"").trim().toLowerCase()).filter(Boolean)),
+    () => new Set(hikstaffs.flatMap(t => [t.nis, t.code, t.nip].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))),
+    [hikstaffs]
+  );
+
+  const hikNameSet = useMemo(
+    () => new Set(hikstaffs.flatMap(t => [t.name, t.device_name, t.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))),
     [hikstaffs]
   );
 
@@ -108,33 +105,30 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
       staffs.flatMap(t => [t.code, t.staff_code, t.id].map(x => String(x ||"").trim().toLowerCase()).filter(Boolean))
     );
     const nextStaffs = [...staffs];
-
-    hikstaffs.forEach(hik => {
-      const code = String(hik.nis ||"").trim().toLowerCase();
-      if (code && !existingCodeSet.has(code)) {
+    hikstaffs.forEach(t => {
+      const codeKey = String(t.nis ||"").trim();
+      if (codeKey && !existingCodeSet.has(codeKey.toLowerCase())) {
         nextStaffs.push({
-          code: hik.nis,
-          staff_code: hik.nis,
-          name: hik.name,
-          type:"Umum",
-          phone: hik.phone ||"",
-          preferredGrade:"Semua",
-          preferredMajor:"Semua",
-          targetWeeklyJp: 24,
-          password:""
+          code: codeKey,
+          name: t.name || t.device_name || codeKey,
+          division: t.class_name || "Kebersihan",
+          phone: ""
         });
-        existingCodeSet.add(code);
+        existingCodeSet.add(codeKey.toLowerCase());
         addedCount++;
       }
     });
 
-    if (addedCount > 0) {
-      if (setStaffs) setStaffs(nextStaffs);
-      if (saveDatabaseNow) saveDatabaseNow({ staffs: nextStaffs });
-      showFeedback("Berhasil", `Berhasil menarik ${addedCount} karyawan baru dari mesin ke dalam sistem.`,"success");
-    } else {
-      showFeedback("Info","Tidak ada karyawan baru yang ditambahkan. Semua ID Karyawan di mesin sudah ada di sistem.","info");
+    if (setStaffs) setStaffs(nextStaffs);
+    if (saveDatabaseNow) {
+      saveDatabaseNow({ staffs: nextStaffs }, "sinkronisasi karyawan dari Hikvision");
     }
+
+    showFeedback(
+      "Sinkron Selesai",
+      addedCount > 0 ? `Berhasil menambahkan ${addedCount} karyawan baru dari mesin.` : "Semua karyawan mesin sudah terhubung ke sistem.",
+      "success"
+    );
   };
 
   const syncStaffToHikvision = async () => {
@@ -241,14 +235,11 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
         ["Kode","Nama Lengkap","Bagian / Divisi","No. WhatsApp","Status Alat"],
         displayStaffs,
         (item, idx, isSelected) => {
-          // Cek apakah kode Karyawan ini ada di mesin Hikvision
-          const codeKey = String(item.code ||"").trim().toLowerCase();
-          const nipKey = String(item.nip ||"").trim().toLowerCase();
-          const isConnected = (codeKey && (
-            hikNisSet.has(codeKey) || (codeKey.length > 8 && (hikNisSet.has(codeKey.slice(0, 8)) || hikNisSet.has(codeKey.slice(-8))))
-          )) || (nipKey && (
-            hikNisSet.has(nipKey) || (nipKey.length > 8 && (hikNisSet.has(nipKey.slice(0, 8)) || hikNisSet.has(nipKey.slice(-8))))
-          ));
+          const empKey = String(item.code || item.staff_code || "").trim().toLowerCase();
+          const isConnected = empKey && (
+            hikNisSet.has(empKey) ||
+            (empKey.length > 8 && (hikNisSet.has(empKey.slice(0, 8)) || hikNisSet.has(empKey.slice(-8))))
+          );
 
           return (
             <tr key={item.code} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>
@@ -287,30 +278,34 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
                 )}
               </td>
               <td className="px-6 py-4 text-right">
-                <div className="flex justify-end gap-1.5">
-                  {quickEditKaryawanCode === item.code ? (
-                    <>
-                      <Button size="sm" onClick={() => saveQuickEditKaryawan(item.code)}>Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => { setQuickEditKaryawanCode(""); setQuickKaryawanForm({}); }}>Cancel</Button>
-                    </>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => startQuickEditKaryawan(item)}>Quick Edit</Button>
-                  )}
-                  <Button size="icon" variant="ghost" onClick={() => openModal('Karyawan','edit', item)} title="Edit"><Edit2 size={14} className="text-slate-500" /></Button>
-                  {(() => {
-                    const deps = checkDependencies('Karyawan', item.code);
-                    if (deps.length > 0) {
+                {!isViewOnly ? (
+                  <div className="flex justify-end gap-1.5">
+                    {quickEditKaryawanCode === item.code ? (
+                      <>
+                        <Button size="sm" onClick={() => saveQuickEditKaryawan(item.code)}>Save</Button>
+                        <Button size="sm" variant="outline" onClick={() => { setQuickEditKaryawanCode(""); setQuickKaryawanForm({}); }}>Cancel</Button>
+                      </>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => startQuickEditKaryawan(item)}>Quick Edit</Button>
+                    )}
+                    <Button size="icon" variant="ghost" onClick={() => openModal('Karyawan','edit', item)} title="Edit"><Edit2 size={14} className="text-slate-500" /></Button>
+                    {(() => {
+                      const deps = checkDependencies('Karyawan', item.code);
+                      if (deps.length > 0) {
+                        return (
+                          <Button size="icon" variant="ghost" disabled title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} >
+                            <Lock size={14} className="text-amber-500" />
+                          </Button>
+                        );
+                      }
                       return (
-                        <Button size="icon" variant="ghost" disabled title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} >
-                          <Lock size={14} className="text-amber-500" />
-                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete('Karyawan', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
                       );
-                    }
-                    return (
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete('Karyawan', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
-                    );
-                  })()}
-                </div>
+                    })()}
+                  </div>
+                ) : (
+                  <span className="text-xs text-slate-400 italic font-medium">Lihat saja</span>
+                )}
               </td>
             </tr>
           );

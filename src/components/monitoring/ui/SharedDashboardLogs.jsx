@@ -3,19 +3,49 @@ import { Loader2, ExternalLink, MessageCircle } from 'lucide-react';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 
 export const getClassBadge = (className) => {
-  if (!className) return 'bg-slate-100 text-slate-600';
-  const upper = String(className).toUpperCase();
-  if (upper.includes('TKJ')) return 'bg-blue-100/80 text-blue-700 border-blue-200/50';
-  if (upper.includes('TKR')) return 'bg-orange-100/80 text-orange-700 border-orange-200/50';
-  if (upper.includes('MP') || upper.includes('OTKP')) return 'bg-emerald-100/80 text-emerald-700 border-emerald-200/50';
-  if (upper.includes('AK')) return 'bg-pink-100/80 text-pink-700 border-pink-200/50';
-  return 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-[var(--ui-primary)]/20';
+  if (!className || className === '-') return 'bg-slate-100 text-slate-600 border-slate-200';
+  const upper = String(className).toUpperCase().trim();
+  
+  if (upper.includes('TKJ') || upper.includes('TJKT')) {
+    return 'bg-blue-100/90 text-blue-800 border-blue-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('TKR') || upper.includes('TKRO') || upper.includes('OTOMOTIF')) {
+    return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('MP') || upper.includes('MPLB') || upper.includes('OTKP') || upper.includes('PERKANTORAN')) {
+    return 'bg-emerald-100/90 text-emerald-800 border-emerald-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('AK') || upper.includes('AKL') || upper.includes('AKUNTANSI')) {
+    return 'bg-pink-100/90 text-pink-800 border-pink-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('RPL') || upper.includes('PPLG')) {
+    return 'bg-cyan-100/90 text-cyan-800 border-cyan-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('DKV') || upper.includes('MM') || upper.includes('MULTIMEDIA')) {
+    return 'bg-purple-100/90 text-purple-800 border-purple-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('PM') || upper.includes('BDP') || upper.includes('PEMASARAN')) {
+    return 'bg-amber-100/90 text-amber-800 border-amber-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('TB') || upper.includes('BOGA')) {
+    return 'bg-rose-100/90 text-rose-800 border-rose-300 font-extrabold shadow-2xs';
+  }
+  if (upper.includes('BS') || upper.includes('BUSANA')) {
+    return 'bg-fuchsia-100/90 text-fuchsia-800 border-fuchsia-300 font-extrabold shadow-2xs';
+  }
+
+  return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-2xs';
 };
 
 export const SharedDashboardLogs = () => {
-  const [activeLogTab, setActiveLogTab] = useState('siswa_terlambat');
+  const { isFiturAktif } = useFiturStore();
+  const { user } = useAuthStore();
+  const isSiswa = user?.role === 'siswa';
+
+  const [activeLogTab, setActiveLogTab] = useState(isSiswa ? 'kehadiran_siswa' : 'siswa_terlambat');
   const [dashLogs, setDashLogs] = useState(null);
   const [logsLoading, setLogsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,27 +57,35 @@ export const SharedDashboardLogs = () => {
     setCurrentPage(1);
   }, [activeLogTab, searchQuery]);
 
-  const { isFiturAktif } = useFiturStore();
-  const { user } = useAuthStore();
-  const isSiswa = user?.role === 'siswa';
-
   // Store fallbacks
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
   const storeTeachers = useAppStore(state => state.teachers) || [];
+  const storeStudents = useAppStore(state => state.students) || [];
+  const snapshotStudents = getDatabaseSnapshot()?.students || [];
+  const allStudents = storeStudents.length > 0 ? storeStudents : snapshotStudents;
+
+  const studentLookupMap = useMemo(() => {
+    const nisMap = new Map();
+    const nameMap = new Map();
+    (allStudents || []).forEach(s => {
+      const nis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
+      const name = String(s.name || s.nama || '').trim().toLowerCase();
+      if (nis) nisMap.set(nis, s);
+      if (name) nameMap.set(name, s);
+    });
+    return { nisMap, nameMap };
+  }, [allStudents]);
 
   // Toggle check specifically for Student Dashboard
-  const isVisibleForStudent = isFiturAktif('show_dashboard_logs_siswa') ?? false;
+  const isVisibleForStudent = isFiturAktif('show_dashboard_logs_siswa') ?? true;
 
   useEffect(() => {
-    // If student and toggle is off, don't fetch
-    if (isSiswa && !isVisibleForStudent) return;
-
-    const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1'))?.authToken;
+    const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
     
     // Fetch both dashboard logs and recent hikvision logs concurrently
     Promise.all([
-      fetch('/api/dashboard/logs', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch('/api/hikvision/dashboard', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+      fetch('/api/dashboard/logs', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false })),
+      fetch('/api/hikvision/dashboard', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false }))
     ])
       .then(([d1, d2]) => {
         let combined = {};
@@ -57,7 +95,7 @@ export const SharedDashboardLogs = () => {
       })
       .catch(() => {})
       .finally(() => setLogsLoading(false));
-  }, [isSiswa, isVisibleForStudent]);
+  }, []);
 
   const fmtTime = (ts) => {
     try { 
@@ -74,16 +112,26 @@ export const SharedDashboardLogs = () => {
   }, []);
 
   const dedupeFront = (arr) => {
-    const seen = new Set();
+    const seenNis = new Set();
+    const seenName = new Set();
     const result = [];
-    const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date) - new Date(b.timestamp || b.created_at || b.date));
+    const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
+    
     for (const item of sorted) {
-      const key = String(item.username || item.employee_id || item.nis || item.name || '').trim().toLowerCase();
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
+      const rawName = String(item.student_name || item.name || '').trim().toLowerCase();
+      const rawNis = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
+      
+      const nisDigits = rawNis.replace(/\D/g, '');
+      const shortNis = nisDigits.length >= 6 ? nisDigits.slice(-6) : nisDigits;
+
+      if (rawName && seenName.has(rawName)) continue;
+      if (shortNis && seenNis.has(shortNis)) continue;
+
+      if (rawName) seenName.add(rawName);
+      if (shortNis) seenNis.add(shortNis);
       result.push(item);
     }
-    return result.sort((a, b) => new Date(b.timestamp || b.created_at || b.date) - new Date(a.timestamp || a.created_at || a.date));
+    return result;
   };
 
   const guruKaryawanLogs = useMemo(() => {
@@ -191,56 +239,87 @@ export const SharedDashboardLogs = () => {
     return logs.filter(item => (item.name || item.nis || item.nama_prestasi || '').toLowerCase().includes(q));
   }, [dashLogs, searchQuery]);
 
-  const tabsConfig = useMemo(() => [
-    { 
-      id: 'guru_karyawan', 
-      label: 'Guru/Karyawan', 
-      count: guruKaryawanLogs.length, 
-      icon: '/icons/045-account.svg',
-      badgeBg: 'bg-indigo-100/90 text-indigo-800'
-    },
-    { 
-      id: 'guru_terlambat', 
-      label: 'Guru/Karyawan Terlambat', 
-      count: terlambatGuruLogs.length, 
-      icon: '/icons/099-alert.svg',
-      badgeBg: 'bg-orange-100/90 text-orange-800'
-    },
-    { 
-      id: 'kehadiran_siswa', 
-      label: 'Siswa', 
-      count: kehadiranSiswaLogs.length, 
-      icon: '/icons/066-education.svg',
-      badgeBg: 'bg-purple-100/90 text-purple-800'
-    },
-    { 
-      id: 'siswa_terlambat', 
-      label: 'Siswa Terlambat', 
-      count: terlambatSiswaLogs.length, 
-      icon: '/icons/039-time.svg',
-      badgeBg: 'bg-amber-100/90 text-amber-800'
-    },
-    { 
-      id: 'siswa_bermasalah', 
-      label: 'Siswa Bermasalah', 
-      count: bermasalahLogs.length, 
-      icon: '/icons/099-alert.svg',
-      badgeBg: 'bg-rose-100/90 text-rose-800'
-    },
-    { 
-      id: 'siswa_prestasi', 
-      label: 'Siswa Berprestasi', 
-      count: siswaPrestasiLogs.length, 
-      icon: '/icons/063-follow.svg',
-      badgeBg: 'bg-emerald-100/90 text-emerald-800'
-    }
-  ], [guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length]);
+  const tabsConfig = useMemo(() => {
+    const all = [
+      { 
+        id: 'guru_karyawan', 
+        label: 'Guru/Karyawan', 
+        count: guruKaryawanLogs.length, 
+        icon: '/icons/045-account.svg',
+        badgeBg: 'bg-indigo-100/90 text-indigo-800'
+      },
+      { 
+        id: 'guru_terlambat', 
+        label: 'Guru/Karyawan Terlambat', 
+        count: terlambatGuruLogs.length, 
+        icon: '/icons/099-alert.svg',
+        badgeBg: 'bg-orange-100/90 text-orange-800'
+      },
+      { 
+        id: 'kehadiran_siswa', 
+        label: 'Siswa', 
+        count: kehadiranSiswaLogs.length, 
+        icon: '/icons/066-education.svg',
+        badgeBg: 'bg-purple-100/90 text-purple-800'
+      },
+      { 
+        id: 'siswa_terlambat', 
+        label: 'Siswa Terlambat', 
+        count: terlambatSiswaLogs.length, 
+        icon: '/icons/039-time.svg',
+        badgeBg: 'bg-amber-100/90 text-amber-800'
+      },
+      { 
+        id: 'siswa_bermasalah', 
+        label: 'Siswa Bermasalah', 
+        count: bermasalahLogs.length, 
+        icon: '/icons/099-alert.svg',
+        badgeBg: 'bg-rose-100/90 text-rose-800'
+      },
+      { 
+        id: 'siswa_prestasi', 
+        label: 'Siswa Berprestasi', 
+        count: siswaPrestasiLogs.length, 
+        icon: '/icons/063-follow.svg',
+        badgeBg: 'bg-emerald-100/90 text-emerald-800'
+      }
+    ];
 
-  if (isSiswa && !isVisibleForStudent) return null;
+    if (isSiswa) {
+      return all.filter(t => ['kehadiran_siswa', 'siswa_terlambat', 'siswa_prestasi'].includes(t.id));
+    }
+    return all;
+  }, [isSiswa, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length]);
 
   const renderListItem = (item, type, index) => {
     const absoluteIndex = (currentPage - 1) * itemsPerPage + index + 1;
-    let name = item.student_name || item.name || item.username || item.employee_id || item.nis || '-';
+
+    let resolvedStudent = null;
+    if (type !== 'guru_karyawan' && type !== 'guru_terlambat') {
+      const empId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
+      const empName = String(item.student_name || item.name || '').trim().toLowerCase();
+
+      if (empId) {
+        resolvedStudent = studentLookupMap.nisMap.get(empId);
+        if (!resolvedStudent) {
+          for (const [sNis, sObj] of studentLookupMap.nisMap.entries()) {
+            if (sNis.endsWith(empId) || empId.endsWith(sNis)) {
+              resolvedStudent = sObj;
+              break;
+            }
+          }
+        }
+      }
+      if (!resolvedStudent && empName) {
+        resolvedStudent = studentLookupMap.nameMap.get(empName);
+      }
+    }
+
+    let name = resolvedStudent?.name || resolvedStudent?.nama || item.student_name || item.name || item.username || item.employee_id || item.nis || '-';
+    let className = item.class_name && item.class_name !== '-' && item.class_name !== 'siswa' 
+      ? item.class_name 
+      : (resolvedStudent?.kelas || resolvedStudent?.class_name || '');
+
     let subtitleBadge = null;
     let subtitleText = '';
     let rightBadgeBg = '';
@@ -270,8 +349,13 @@ export const SharedDashboardLogs = () => {
         rightBadgeText = 'HADIR';
       }
     } else {
-      subtitleBadge = item.class_name && item.class_name !== '-' ? <span className={`font-black uppercase px-1.5 py-0.5 rounded-[3px] text-[8px] whitespace-nowrap shrink-0 ${getClassBadge(item.class_name)}`}>{item.class_name}</span> : null;
-      subtitleText = `NIS / ID: ${item.employee_id || item.nis || '-'}`;
+      subtitleBadge = className && className !== '-' ? (
+        <span className={`font-black uppercase px-2 py-0.5 rounded-[4px] text-[9px] tracking-wide whitespace-nowrap shrink-0 border ${getClassBadge(className)}`}>
+          {className}
+        </span>
+      ) : null;
+
+      subtitleText = `NIS / ID: ${item.employee_id || item.nis || resolvedStudent?.nis || '-'}`;
       
       if (type === 'siswa_terlambat') {
         avatarBg = 'bg-amber-50 text-amber-800 border-amber-200/60';
@@ -310,10 +394,11 @@ export const SharedDashboardLogs = () => {
             {avatarChar}
           </div>
           <div className="min-w-0 flex flex-col justify-center">
-            <p className="text-xs font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate flex items-center gap-1.5">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <p className="text-xs font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
               {subtitleBadge}
-              {subtitleBadge && subtitleText && <span className="text-slate-300 font-black text-[8px]">&bull;</span>}
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate flex items-center gap-1.5">
               {subtitleText && <span className="font-semibold text-slate-500">{subtitleText}</span>}
             </p>
           </div>

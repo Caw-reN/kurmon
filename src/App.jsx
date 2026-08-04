@@ -49,6 +49,7 @@ const MonitoringLokasiPKL = lazy(() => import("./pages/monitoring/student/Lokasi
 const MonitoringRiwayatAbsensi = lazy(() => import("./pages/monitoring/student/RiwayatAbsensi.jsx"));
 const MonitoringProfilSiswa = lazy(() => import("./pages/monitoring/student/ProfilSiswa.jsx"));
 const AdministrasiSiswa = lazy(() => import("./pages/monitoring/student/AdministrasiSiswa.jsx"));
+const KartuPelajarSiswa = lazy(() => import("./pages/monitoring/student/KartuPelajar.jsx"));
 
 // ── Monitoring — Teacher (Guru Pembimbing PKL)
 const MonitoringTeacherLayout = lazy(() => import("./components/monitoring/layout/TeacherLayout.jsx"));
@@ -80,11 +81,30 @@ const getSession = () => {
   } catch { /* intentionally ignored — session parse failure means no session */ return null; }
 };
 
-// ── Protected route wrapper (for monitoring routes)
-const ProtectedRoute = ({ allowedRoles }) => {
+// ── Protected route wrapper (for monitoring & admin routes)
+const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
   const session = getSession();
-  if (!session) return <Navigate to="/" replace />;
-  if (allowedRoles && !allowedRoles.includes(session.role)) return <Navigate to="/" replace />;
+
+  // If user is NOT logged in:
+  if (!session) {
+    // Allow login page (/dashboard/*) to render so Login form appears
+    if (isLoginPage) return <Outlet />;
+    // Otherwise redirect unauthenticated users to home page
+    return <Navigate to="/" replace />;
+  }
+
+  const role = (session.role || '').toLowerCase();
+
+  // If user IS logged in but role is not permitted for this route:
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    if (role === 'guru') return <Navigate to="/dashboard" replace />;
+    if (role === 'siswa') return <Navigate to="/student" replace />;
+    return <Navigate to="/" replace />;
+  }
+
   return <Outlet />;
 };
 
@@ -286,7 +306,9 @@ export default function App() {
           </Route>
 
           {/* ── Admin & Guru (Schedule App) ── */}
-          <Route path="/dashboard/*" element={<AdminApp />} />
+          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "tu", "waka", "piket", "bk"]} isLoginPage={true} />}>
+            <Route path="/dashboard/*" element={<AdminApp />} />
+          </Route>
           <Route path="/teacher/*" element={<Navigate to="/dashboard" replace />} />
 
           {/* ── Monitoring Admin (Hubin / SuperAdmin) has been migrated into AdminApp.jsx ── */}
@@ -304,7 +326,7 @@ export default function App() {
           </Route>
 
           {/* ── Monitoring Siswa ── */}
-          <Route element={<ProtectedRoute allowedRoles={["siswa", "admin"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["siswa"]} />}>
             <Route path="/student" element={<MonitoringStudentLayout />}>
               <Route index element={<MonitoringStudentDashboard />} />
               <Route path="absensi" element={<MonitoringAbsensi />} />
@@ -313,6 +335,7 @@ export default function App() {
               <Route path="riwayat" element={<MonitoringRiwayatAbsensi />} />
               <Route path="profil" element={<MonitoringProfilSiswa />} />
               <Route path="administrasi" element={<AdministrasiSiswa />} />
+              <Route path="kartu-pelajar" element={<KartuPelajarSiswa />} />
             </Route>
           </Route>
 

@@ -327,13 +327,13 @@ export default function AdminContentRouter({ context }) {
         </div>}>
           <DataPegawai teachers={teachers} staffs={staffs} classes={classes} teacherTargetJpMap={teacherTargetJpMap} teacherScheduleCountMap={teacherScheduleCountMap} quickEditGuruCode={quickEditGuruCode} quickGuruForm={quickGuruForm} setQuickGuruForm={setQuickGuruForm} setQuickEditGuruCode={setQuickEditGuruCode} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} saveQuickEditGuru={saveQuickEditGuru} startQuickEditGuru={startQuickEditGuru} renderTable={renderTable} />
         </Suspense>;
-      case"guru":
+      case "guru":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Guru...
         </div>}>
-          <MasterDataGuru teachers={teachers} classes={classes} teacherTargetJpMap={teacherTargetJpMap} teacherScheduleCountMap={teacherScheduleCountMap} quickEditGuruCode={quickEditGuruCode} quickGuruForm={quickGuruForm} setQuickGuruForm={setQuickGuruForm} setQuickEditGuruCode={setQuickEditGuruCode} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} saveQuickEditGuru={saveQuickEditGuru} startQuickEditGuru={startQuickEditGuru} renderTable={renderTable} setTeachers={setTeachers} saveDatabaseNow={saveDatabaseNow} />
+          <MasterDataGuru teachers={teachers} classes={classes} teacherTargetJpMap={teacherTargetJpMap} teacherScheduleCountMap={teacherScheduleCountMap} quickEditGuruCode={quickEditGuruCode} quickGuruForm={quickGuruForm} setQuickGuruForm={setQuickGuruForm} setQuickEditGuruCode={setQuickEditGuruCode} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} saveQuickEditGuru={saveQuickEditGuru} startQuickEditGuru={startQuickEditGuru} renderTable={renderTable} setTeachers={setTeachers} saveDatabaseNow={saveDatabaseNow} isViewOnly={getTabPermissionLevel("guru") !== "edit"} />
         </Suspense>;
-      case"karyawan":
+      case "karyawan":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Karyawan...
         </div>}>
@@ -347,6 +347,7 @@ export default function AdminContentRouter({ context }) {
             renderTable={renderTable} 
             setStaffs={setStaffs} 
             saveDatabaseNow={saveDatabaseNow} 
+            isViewOnly={getTabPermissionLevel("karyawan") !== "edit"}
           />
         </Suspense>;
       case"mapel":

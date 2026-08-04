@@ -2060,17 +2060,17 @@ export default function App() {
     }
   };
   const syncAuthSnapshotNow = async (nextAdminUser = adminUser, nextTeachers = teachers, actionLabel = "menyinkronkan akun") => {
-    if (!currentUser?.authToken) {
-      throw new Error(`Sesi admin tidak tersedia untuk ${actionLabel}. Login ulang lalu coba lagi.`);
+    if (!currentUser?.authToken) return;
+    if (!databaseHydrated) return;
+    try {
+      await syncAuthSnapshotToServer({
+        adminUser: nextAdminUser,
+        teachers: Array.isArray(nextTeachers) ? nextTeachers : [],
+        authToken: currentUser.authToken
+      });
+    } catch (err) {
+      console.warn(`[AUTH SYNC] Warning during ${actionLabel}:`, err?.message || err);
     }
-    if (!databaseHydrated) {
-      throw new Error(`Tunggu database selesai sinkron sebelum ${actionLabel}.`);
-    }
-    await syncAuthSnapshotToServer({
-      adminUser: nextAdminUser,
-      teachers: Array.isArray(nextTeachers) ? nextTeachers : [],
-      authToken: currentUser.authToken
-    });
   };
   const generateRoomLayout = () => {
     const next = [];
@@ -2603,12 +2603,14 @@ export default function App() {
     let isAllowed = false;
     if (activeRole === "superadmin" || activeRole === "admin") {
       isAllowed = true;
-    } else if ((activeRole === "tu" || activeRole === "tata_usaha" || activeRole === "karyawan") && alwaysAllowedTuTabs.includes(id)) {
-      isAllowed = true;
-    } else if (level === "edit" || level === "view") {
-      isAllowed = true;
-    } else if (level === "nonaktif" || level === "none") {
+    } else if (level === "nonaktif" || level === "none" || level === "off") {
       isAllowed = false;
+    } else if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
+      isAllowed = true;
+    } else if ((activeRole === "tu" || activeRole === "tata_usaha") && alwaysAllowedTuTabs.includes(id)) {
+      isAllowed = true;
+    } else if (activeRole === "karyawan") {
+      isAllowed = ["dashboard", "absensiguru", "laporan_absensi", "hikvision_report_guru", "hikvision_report_karyawan"].includes(id);
     } else {
       const normalizedRoles = (roles || []).map(r => normalizeUserRole(r));
       isAllowed = normalizedRoles.includes(activeRole);

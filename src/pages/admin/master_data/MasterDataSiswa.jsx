@@ -49,8 +49,8 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
   }, [authToken]);
 
   // Create fast sets for NIS and Name checking (ignore empty strings)
-  const hikNisSet = useMemo(() => new Set(hikStudents.map(s => String(s.nis ||"").trim().toLowerCase()).filter(Boolean)), [hikStudents]);
-  const hikNameSet = useMemo(() => new Set(hikStudents.map(s => String(s.name ||"").trim().toLowerCase()).filter(Boolean)), [hikStudents]);
+  const hikNisSet = useMemo(() => new Set(hikStudents.flatMap(s => [s.nis, s.code].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
+  const hikNameSet = useMemo(() => new Set(hikStudents.flatMap(s => [s.name, s.device_name, s.student_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
 
   const handleSync = async () => {
     if (hikStudents.length === 0) {
@@ -216,8 +216,9 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
           const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
           const isConnected = (nisKey && (
             hikNisSet.has(nisKey) ||
-            (nisKey.length > 8 && (hikNisSet.has(nisKey.slice(0, 8)) || hikNisSet.has(nisKey.slice(-8))))
-          )) || (nameKey && hikNameSet.has(nameKey));
+            (nisKey.length >= 4 && (hikNisSet.has(nisKey.slice(0, 8)) || hikNisSet.has(nisKey.slice(-8)))) ||
+            Array.from(hikNisSet).some(hn => hn.length >= 5 && (hn.endsWith(nisKey) || nisKey.endsWith(hn)))
+          )) || (nameKey && (hikNameSet.has(nameKey) || Array.from(hikNameSet).some(hn => hn.includes(nameKey) || nameKey.includes(hn))));
 
           return (
             <tr key={item.id || item.code || item.nis} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>

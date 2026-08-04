@@ -126,9 +126,22 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       .then(data => { if (data.ok) setPerusahaanPKL(data.data); })
       .catch(console.error);
       
-    const localSnapshot = getDatabaseSnapshot() || {};
-    const localSettings = localSnapshot.appSettings || {};
-    setEligibleClass(localSettings.eligibleClass || "XII");
+    fetch("/api/settings/pkl", { headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {} })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.data?.eligibleClass) {
+          setEligibleClass(data.data.eligibleClass);
+        } else {
+          const localSnapshot = getDatabaseSnapshot() || {};
+          const localSettings = localSnapshot.appSettings || {};
+          if (localSettings.eligibleClass) setEligibleClass(localSettings.eligibleClass);
+        }
+      })
+      .catch(() => {
+        const localSnapshot = getDatabaseSnapshot() || {};
+        const localSettings = localSnapshot.appSettings || {};
+        if (localSettings.eligibleClass) setEligibleClass(localSettings.eligibleClass);
+      });
         
     if (authToken) {
       fetch("/api/monitoring/pkl-students", { headers: { "Authorization": `Bearer ${authToken}` } })
@@ -148,8 +161,23 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       setDatabaseSnapshot(updatedSnapshot);
       if (setAppSettings) setAppSettings(newSettings);
       if (onSave) await onSave(updatedSnapshot);
+
+      const headers = { "Content-Type": "application/json" };
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+      const res = await fetch("/api/settings/pkl", {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ eligibleClass })
+      });
+      const resJson = await res.json();
+      if (!resJson.ok) {
+        console.warn("Server save error:", resJson.error);
+      }
+
       showToast(`Pengaturan tingkat PKL (${eligibleClass}) berhasil disimpan!`);
     } catch (e) {
+      console.error(e);
       showToast("Gagal menyimpan pengaturan", "error");
     }
     setIsSavingSettings(false);

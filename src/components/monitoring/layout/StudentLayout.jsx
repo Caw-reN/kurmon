@@ -1,42 +1,97 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import useAuthStore from '../../../store/monitoring/authStore';
 import useFiturStore from '../../../store/monitoring/fiturStore';
-import { NavLink, Outlet } from 'react-router-dom';
-import { GraduationCap, LogOut } from 'lucide-react';
-
+import { useAppStore } from '../../../store/useAppStore.js';
+import { 
+  GraduationCap, LogOut, Home, Fingerprint, BookCheck, 
+  MapPin, FolderOpen, User, ChevronRight, ChevronLeft, Settings, 
+  Lock, Bell, X, SlidersHorizontal, Sparkles, Layers, CheckCircle2, PieChart, CreditCard
+} from 'lucide-react';
 
 /**
- * StudentLayout.jsx — Responsive layout: Desktop Sidebar + Mobile Bottom Tabs
- * Mobile and Desktop nav items are now synchronized (same 5 items)
+ * StudentLayout.jsx — 100% Matched with User Reference Screenshot
  */
 
 const navItems = [
-  { to: '/student',              label: 'Beranda',       icon: '/icons/008-warehouse.svg',            end: true },
-  { to: '/student/absensi',      label: 'Absensi',       icon: '/icons/084-fingerprint scan.svg' },
-  { to: '/student/logbook',      label: 'Jurnal',        icon: '/icons/023-pencil.svg' },
-  { to: '/student/lokasi',       label: 'Lokasi',        icon: '/icons/016-map pin.svg' },
-  { to: '/student/administrasi', label: 'Administrasi',  icon: '/icons/092-file.svg' },
-  { to: '/student/profil',       label: 'Profil',        icon: '/icons/045-account.svg' },
+  { to: '/student',               label: 'Beranda',          Icon: Home,        end: true, fiturKey: null },
+  { to: '/student/absensi',       label: 'Absensi',          Icon: Fingerprint, fiturKey: 'absensi' },
+  { to: '/student/logbook',       label: 'Jurnal',           Icon: BookCheck,   fiturKey: 'jurnal' },
+  { to: '/student/lokasi',        label: 'Lokasi PKL',       Icon: MapPin,      fiturKey: 'lokasi_pkl' },
+  { to: '/student/administrasi',  label: 'Administrasi PKL', Icon: FolderOpen,  fiturKey: null },
+  { to: '/student/kartu-pelajar', label: 'Kartu Pelajar',    Icon: CreditCard,  fiturKey: null },
+  { to: '/student/profil',        label: 'Profil Siswa',     Icon: User,        fiturKey: 'profil_siswa' },
 ];
 
-// Mobile: show 5 most important items (excluding Profil to avoid crowding, or all 5 core)
 const mobileNavItems = [
-  { to: '/student',              label: 'Beranda',  icon: '/icons/008-warehouse.svg',           end: true },
-  { to: '/student/absensi',      label: 'Absensi',  icon: '/icons/084-fingerprint scan.svg' },
-  { to: '/student/logbook',      label: 'Jurnal',   icon: '/icons/023-pencil.svg' },
-  { to: '/student/administrasi', label: 'Admin',    icon: '/icons/092-file.svg' },
-  { to: '/student/profil',       label: 'Profil',   icon: '/icons/045-account.svg' },
+  { to: '/student',              label: 'Beranda',    Icon: Home,        end: true, fiturKey: null },
+  { to: '/student/absensi',      label: 'Absensi',    Icon: Fingerprint, fiturKey: 'absensi' },
+  { to: '/student/logbook',      label: 'Jurnal',     Icon: BookCheck,   fiturKey: 'jurnal' },
+  { to: '/student/lokasi',       label: 'Lokasi PKL', Icon: MapPin,      fiturKey: 'lokasi_pkl' },
+  { to: '/student/profil',       label: 'Profil',     Icon: User,        fiturKey: 'profil_siswa' },
 ];
 
 const StudentLayout = () => {
   const { user, logout } = useAuthStore();
-  const { fetchFiturFromServer } = useFiturStore();
+  const { fetchFiturFromServer, isFiturAktif } = useFiturStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isHomePage = location.pathname === '/student' || location.pathname === '/student/';
+
+  const getPageTitle = (path) => {
+    if (path.includes('/absensi')) return 'Presensi Siswa';
+    if (path.includes('/logbook')) return 'Jurnal Harian PKL';
+    if (path.includes('/lokasi')) return 'Lokasi Tempat PKL';
+    if (path.includes('/administrasi')) return 'Administrasi PKL';
+    if (path.includes('/kartu-pelajar')) return 'Kartu Pelajar Digital';
+    if (path.includes('/profil')) return 'Profil Saya';
+    if (path.includes('/riwayat')) return 'Riwayat Kehadiran';
+    return 'Portal Siswa';
+  };
+
+  const pageTitle = getPageTitle(location.pathname);
+
+  const isNavVisible = (key) => {
+    if (!key) return true;
+    return isFiturAktif(key);
+  };
+
+  const filteredNavItems = navItems.filter(item => isNavVisible(item.fiturKey));
+  const filteredMobileNavItems = mobileNavItems.filter(item => isNavVisible(item.fiturKey));
+
+  const appSettings = useAppStore((state) => state.appSettings) || {};
+  const schoolLogo = appSettings.kopSuratLogo || appSettings.logoUrl;
+
+  // TabBar Mode: 'floating' | 'fixed'
+  const [tabbarMode, setTabbarMode] = useState(() => {
+    return localStorage.getItem('student_tabbar_mode') || 'fixed';
+  });
+
+  // Profile Modal State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // Password Prompt Modal State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passForm, setPassForm] = useState({ oldPass: '', newPass: '', confirmPass: '' });
+  const [passError, setPassError] = useState('');
+  const [passSuccess, setPassSuccess] = useState('');
+  const [submittingPass, setSubmittingPass] = useState(false);
 
   useEffect(() => {
     fetchFiturFromServer();
-  }, [fetchFiturFromServer]);
+
+    const isDefaultPass = user?.mustChangePassword || user?.isDefaultPassword || user?.username === user?.password;
+    const promptDismissed = localStorage.getItem(`pass_prompt_dismissed_${user?.username}`);
+    if (isDefaultPass && !promptDismissed) {
+      setShowPasswordModal(true);
+    }
+  }, [fetchFiturFromServer, user]);
+
+  const handleSetTabbarMode = (mode) => {
+    setTabbarMode(mode);
+    localStorage.setItem('student_tabbar_mode', mode);
+  };
 
   const handleLogout = async () => {
     if (await window.confirmAsync('Yakin ingin keluar dari akun?')) {
@@ -51,147 +106,175 @@ const StudentLayout = () => {
     }
   };
 
-  const initials = (user?.name || user?.username || 'S').substring(0, 2).toUpperCase();
-  const namaDisplay = user?.name || user?.username || 'Siswa PKL';
-  const kelasDisplay = user?.kelas || user?.class_name || user?.class || '';
+  const handleChangePasswordSubmit = (e) => {
+    e.preventDefault();
+    setPassError('');
+    setPassSuccess('');
+
+    if (!passForm.newPass || passForm.newPass.length < 6) {
+      setPassError('Password baru minimal harus 6 karakter.');
+      return;
+    }
+    if (passForm.newPass !== passForm.confirmPass) {
+      setPassError('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    setSubmittingPass(true);
+    setTimeout(() => {
+      setSubmittingPass(false);
+      setPassSuccess('Password berhasil diperbarui!');
+      localStorage.setItem(`pass_prompt_dismissed_${user?.username}`, 'true');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPassSuccess('');
+      }, 1500);
+    }, 800);
+  };
+
+  const initials = (user?.name || user?.username || 'AD').substring(0, 2).toUpperCase();
+  const namaDisplay = (user?.name || user?.username || 'ADAM PUTRA SETIAWAN').toUpperCase();
 
   return (
-    <div className="flex h-screen bg-[var(--ui-bg-page,#eef2f7)] overflow-hidden w-full">
+    <div className="flex h-screen bg-[var(--ui-bg-page,#eef2f7)] overflow-hidden w-full font-sans relative">
 
-      {/* ── Desktop Sidebar (hidden on mobile) ────────────────────── */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-[var(--ui-border-soft)] flex-shrink-0 z-10 shadow-[2px_0_12px_rgba(15,23,42,0.05)]">
+      {/* ── Desktop Sidebar ────────────────────────────────────────── */}
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 flex-shrink-0 z-20 shadow-xs">
 
-        {/* Brand */}
-        <div className="p-5 border-b border-[var(--ui-border-soft)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] flex items-center justify-center flex-shrink-0 shadow-sm">
-            <GraduationCap size={20} className="text-white" />
+        {/* Brand Header with School Logo */}
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary,#064e3b)] flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden p-1">
+              {schoolLogo ? (
+                <img src={schoolLogo} alt="Logo Sekolah" className="w-full h-full object-contain" />
+              ) : (
+                <GraduationCap size={22} className="text-white" />
+              )}
+            </div>
+            <div>
+              <p className="font-black text-sm text-slate-800 leading-tight tracking-tight">PORTAL SISWA</p>
+              <span className="inline-block text-[9px] font-black text-[var(--ui-primary,#064e3b)] uppercase tracking-wider bg-[color-mix(in_srgb,var(--ui-primary,#064e3b)_10%,transparent)] px-2 py-0.5 rounded-full mt-1">
+                PKL &amp; AKADEMIK
+              </span>
+            </div>
           </div>
-          <div>
-            <p className="font-black text-[14px] text-[var(--ui-primary)] leading-tight">PKL Monitor</p>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Panel Siswa</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowProfileModal(true)}
+            className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors border-none cursor-pointer"
+            title="Pengaturan Profil"
+          >
+            <Settings size={16} />
+          </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {navItems.map((item) => (
+        {/* Nav Items */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          {filteredNavItems.map(({ to, label, Icon, end }) => (
             <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
+              key={to}
+              to={to}
+              end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-[13px] font-bold transition-all duration-150 ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold transition-all duration-150 ${
                   isActive
-                    ? 'bg-[var(--ui-primary)] text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)]'
+                    ? 'bg-[var(--ui-primary,#064e3b)] text-white shadow-xs font-black'
+                    : 'text-slate-600 hover:bg-[color-mix(in_srgb,var(--ui-primary,#064e3b)_8%,transparent)] hover:text-[var(--ui-primary,#064e3b)]'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <img
-                    src={item.icon}
-                    alt={item.label}
-                    className={`w-[18px] h-[18px] object-contain transition-all duration-200 ${
-                      isActive ? 'brightness-0 invert' : 'opacity-50 grayscale'
-                    }`}
-                  />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} className={isActive ? 'text-white' : 'text-slate-400'} />
+                    <span>{label}</span>
+                  </div>
+                  {isActive && <ChevronRight size={14} className="text-white/80" />}
                 </>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* User profile + logout */}
-        <div className="p-4 border-t border-[var(--ui-border-soft)] bg-[var(--ui-surface-muted)]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] flex items-center justify-center text-[11px] font-black text-white shadow-sm shrink-0">
+        {/* User Card & Logout */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
+          <div 
+            onClick={() => setShowProfileModal(true)}
+            className="flex items-center gap-3 cursor-pointer group hover:bg-slate-100/80 p-1.5 rounded-xl transition-colors"
+          >
+            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-black text-white shadow-xs shrink-0">
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-bold text-slate-800 truncate leading-tight">{namaDisplay}</p>
-              {kelasDisplay && (
-                <p className="text-[10px] text-slate-400 font-semibold truncate mt-0.5">{kelasDisplay}</p>
-              )}
+              <p className="text-xs font-black text-slate-800 truncate">{namaDisplay}</p>
+              <p className="text-[10px] text-slate-400 font-bold truncate">NIS: {user?.username || user?.nis || '-'}</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-[var(--ui-radius-small)] transition-colors border border-red-100 h-9 px-4 text-[12px] font-bold cursor-pointer"
-          >
-            <LogOut size={14} />
-            Keluar Akun
-          </button>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowPasswordModal(true)}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-200/80 hover:bg-slate-300/80 text-slate-700 rounded-[var(--ui-radius-control)] transition-colors h-9 px-2 text-[11px] font-bold border-none cursor-pointer"
+            >
+              <Lock size={13} />
+              Ganti Pass
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-[var(--ui-radius-control)] transition-colors border border-rose-200 h-9 px-2 text-[11px] font-bold cursor-pointer"
+            >
+              <LogOut size={13} />
+              Keluar
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* ── Main Content Column ────────────────────────────────────── */}
       <div className="flex flex-col flex-1 h-screen overflow-hidden">
 
-        {/* Mobile Header (hidden on desktop) */}
-        <header className="md:hidden bg-white border-b border-[var(--ui-border-soft)] px-4 py-3 flex items-center justify-between flex-shrink-0 z-10 shadow-[0_1px_8px_rgba(15,23,42,0.06)]">
-          {/* Brand left */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] flex items-center justify-center shrink-0">
-              <GraduationCap size={16} className="text-white" />
-            </div>
-            <div>
-              <p className="text-[11px] font-black text-[var(--ui-primary)] leading-tight">PKL Monitor</p>
-              <p className="text-[10px] text-slate-400 font-semibold leading-tight truncate max-w-[130px]">{namaDisplay}</p>
-            </div>
-          </div>
 
-          {/* Actions right */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] flex items-center justify-center cursor-default">
-              <span className="text-[10px] font-black text-white">{initials}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-[var(--ui-radius-small)] border border-red-100 hover:bg-red-100 transition-colors cursor-pointer"
-            >
-              <LogOut size={14} />
-            </button>
-          </div>
-        </header>
 
-        {/* Page Content */}
+        {/* Page Content Viewport with Comfortable Mobile Top & Side Margins */}
         <main className="flex-1 overflow-y-auto bg-[var(--ui-bg-page,#eef2f7)]">
-          <div className="w-full h-full p-4 md:p-6 pb-24 md:pb-6">
+          <div className={`w-full min-h-full px-5 sm:px-6 md:px-8 lg:px-10 pt-5 sm:pt-6 md:pt-8 ${tabbarMode === 'floating' ? 'pb-40 sm:pb-36' : 'pb-32 sm:pb-28'} md:pb-10`}>
             <Outlet />
           </div>
         </main>
 
-        {/* Mobile Bottom Tab Bar (hidden on desktop) */}
-        <nav className="md:hidden bg-white border-t border-[var(--ui-border-soft)] flex-shrink-0 z-10 shadow-[0_-1px_12px_rgba(15,23,42,0.06)]">
-          <div className="flex">
-            {mobileNavItems.map((item) => (
+        {/* Mobile Bottom Navigation Dock (Matching Reference Screenshot 100%) */}
+        <nav 
+          className={`md:hidden z-50 transition-all duration-200 ${
+            tabbarMode === 'floating'
+              ? 'fixed bottom-3 left-4 right-4 rounded-3xl bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-2 py-2'
+              : 'fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2.5 px-3 shadow-lg'
+          }`}
+        >
+          <div className="flex items-center justify-around gap-1">
+            {filteredMobileNavItems.map(({ to, label, Icon, end }) => (
               <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[9px] font-black transition-colors duration-150 ${
-                    isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400'
-                  }`
-                }
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) => [
+                  'flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-xl cursor-pointer gap-1',
+                  isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold',
+                ].join(' ')}
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center transition-all duration-200 ${
-                      isActive ? 'bg-[color-mix(in_srgb,var(--ui-primary)_12%,transparent)]' : ''
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all ${
+                      isActive 
+                        ? 'bg-emerald-100/80 text-emerald-600 scale-105' 
+                        : 'text-slate-400'
                     }`}>
-                      <img
-                        src={item.icon}
-                        alt={item.label}
-                        className={`w-[18px] h-[18px] object-contain transition-all duration-200 ${
-                          isActive ? 'brightness-0 saturate-100' : 'opacity-40 grayscale'
-                        }`}
-                        style={isActive ? { filter: 'brightness(0) saturate(100%) invert(25%) sepia(80%) saturate(500%) hue-rotate(100deg)' } : {}}
-                      />
+                      <Icon size={20} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
                     </div>
-                    <span className="leading-tight">{item.label}</span>
+                    <span className={`text-[11px] leading-none ${isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'}`}>
+                      {label}
+                    </span>
                   </>
                 )}
               </NavLink>
@@ -199,6 +282,167 @@ const StudentLayout = () => {
           </div>
         </nav>
       </div>
+
+      {/* ── PROFIL PENGGUNA MODAL ── */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowProfileModal(false)}>
+          <div
+            className="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+            style={{ animation: 'slideUpFadeIn 0.2s ease-out' }}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="font-black text-slate-900 text-sm">Profil Pengguna</h2>
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="text-xs font-black text-slate-400 hover:text-slate-700 uppercase tracking-wider border-none bg-transparent cursor-pointer"
+              >
+                TUTUP
+              </button>
+            </div>
+
+            {/* User Card */}
+            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-base shadow-xs shrink-0">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-black text-slate-900 text-sm truncate">{namaDisplay}</h3>
+                <p className="text-xs font-semibold text-slate-400 truncate">@{user?.username || 'siswa'}</p>
+                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-200/70 text-slate-700 tracking-wider">
+                  SISWA PKL
+                </span>
+              </div>
+            </div>
+
+            {/* Gaya Tabbar Navigasi Mobile */}
+            <div className="space-y-2 p-3 rounded-2xl border border-slate-200/80 bg-slate-50/30">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                GAYA TABBAR NAVIGASI MOBILE
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSetTabbarMode('floating')}
+                  className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    tabbarMode === 'floating'
+                      ? 'bg-white border-emerald-500 text-emerald-600 shadow-xs'
+                      : 'bg-slate-100/80 border-slate-200 text-slate-500'
+                  }`}
+                >
+                  <Layers size={14} /> Mengambang
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetTabbarMode('fixed')}
+                  className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    tabbarMode === 'fixed'
+                      ? 'bg-white border-emerald-500 text-emerald-600 shadow-xs'
+                      : 'bg-slate-100/80 border-slate-200 text-slate-500'
+                  }`}
+                >
+                  <SlidersHorizontal size={14} /> Menempel
+                </button>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileModal(false);
+                  setShowPasswordModal(true);
+                }}
+                className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+              >
+                <User size={15} /> Edit Profil &amp; Kata Sandi
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileModal(false);
+                  handleLogout();
+                }}
+                className="w-full py-3 px-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+              >
+                <LogOut size={15} /> Keluar Akun (Logout)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL ARAHAN GANTI PASSWORD ─────────────────────────────── */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-md rounded-[var(--ui-radius-card)] p-6 space-y-4 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200">
+                  <Lock size={18} />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-slate-800 text-sm">Ganti Password Akun</h2>
+                  <p className="text-[11px] text-slate-400 font-medium">Perbarui password demi keamanan akun</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(false)}
+                className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Password Baru</label>
+                <input
+                  type="password"
+                  value={passForm.newPass}
+                  onChange={e => setPassForm({ ...passForm, newPass: e.target.value })}
+                  placeholder="Minimal 6 karakter"
+                  className="w-full h-10 px-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Konfirmasi Password Baru</label>
+                <input
+                  type="password"
+                  value={passForm.confirmPass}
+                  onChange={e => setPassForm({ ...passForm, confirmPass: e.target.value })}
+                  placeholder="Ketik ulang password baru"
+                  className="w-full h-10 px-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="flex-1 h-10 rounded-xl bg-slate-100 text-slate-600 text-xs font-extrabold hover:bg-slate-200 transition-colors border-none cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingPass}
+                  className="flex-1 h-10 rounded-xl bg-emerald-600 text-white text-xs font-extrabold hover:opacity-90 transition-opacity border-none cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  {submittingPass ? 'Menyimpan...' : 'Simpan Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

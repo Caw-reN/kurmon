@@ -1,76 +1,107 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, Download, Users, TrendingUp, AlertOctagon, Printer, X, MonitorDot, Trash2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
+  Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
+  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send
+} from 'lucide-react';
 import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
-import { PageHeader, StatCard, SharedDashboardLogs } from '../../components/monitoring/ui/index.js';
+import { StatCard } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import * as XLSX from 'xlsx';
 
 export default function DashboardBPBK({ students = [], classes = [] }) {
+  const authToken = useAuthStore(state => state.user?.authToken);
+  const user = useAuthStore(state => state.user);
+
+  // Sub-tabs in BK Dashboard: 'ews' | 'konseling' | 'surat' | 'dossier'
+  const [subTab, setSubTab] = useState('ews');
+
+  // State data from backend
   const [riwayat, setRiwayat] = useState([]);
-  const [konseling, setKonseling] = useState([]);
-  
+  const [bkSessions, setBkSessions] = useState([]);
+  const [homeVisits, setHomeVisits] = useState([]);
+  const [bkLetters, setBkLetters] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  // UI state filters
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
-  
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
-  const authToken = useAuthStore(state => state.user?.authToken);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [formKonseling, setFormKonseling] = useState({ jenis_kasus:'', tindak_lanjut:'', catatan_konseling:'' });
+  // Modal States
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  const [formSession, setFormSession] = useState({
+    student_nis: '',
+    category: 'Kedisiplinan',
+    session_date: new Date().toISOString().slice(0, 10),
+    problem: '',
+    solution: '',
+    follow_up_date: '',
+    status: 'Berjalan',
+    privacy_level: 'Terbatas'
+  });
 
-  // For Deleting Violation Record with Verification
-  const [deletingRecord, setDeletingRecord] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showVisitModal, setShowVisitModal] = useState(false);
+  const [formVisit, setFormVisit] = useState({
+    student_nis: '',
+    visit_date: new Date().toISOString().slice(0, 10),
+    result: '',
+    photo_url: ''
+  });
 
-  // For Printing SP
-  const [spData, setSpData] = useState(null);
+  const [showLetterModal, setShowLetterModal] = useState(false);
+  const [formLetter, setFormLetter] = useState({
+    student_nis: '',
+    letter_type: 'Panggilan Orang Tua',
+    reason: ''
+  });
 
+  // Dossier 360° Modal
+  const [dossierStudent, setDossierStudent] = useState(null);
+  const [showDossierModal, setShowDossierModal] = useState(false);
+
+  // Deleting record state
+  const [deletingId, setDeletingId] = useState(null);
+
+  // Toast Helper
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // Fetch all BK data
   const fetchData = async () => {
     if (!authToken) return;
     setIsLoading(true);
     try {
-      const [resRiwayat, resKonseling] = await Promise.all([
-         fetch("/api/kedisiplinan/riwayat", { headers: {"Authorization": `Bearer ${authToken}` } }),
-         fetch("/api/kedisiplinan/konseling", { headers: {"Authorization": `Bearer ${authToken}` } })
+      const [resRiwayat, resSessions, resVisits, resLetters] = await Promise.all([
+        fetch("/api/kedisiplinan/riwayat", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/bk/home-visits", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/bk/letters", { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
+
       const dataRiwayat = await resRiwayat.json();
-      const dataKonseling = await resKonseling.json();
+      const dataSessions = await resSessions.json();
+      const dataVisits = await resVisits.json();
+      const dataLetters = await resLetters.json();
+
       if (dataRiwayat.ok) setRiwayat(dataRiwayat.data || []);
-      if (dataKonseling.ok) setKonseling(dataKonseling.data || []);
+      if (dataSessions.ok) setBkSessions(dataSessions.data || []);
+      if (dataVisits.ok) setHomeVisits(dataVisits.data || []);
+      if (dataLetters.ok) setBkLetters(dataLetters.data || []);
     } catch (e) {
       console.error(e);
+      showToast("Gagal memuat data BK", "error");
     }
     setIsLoading(false);
-  };
-
-  const confirmDeleteRecord = async () => {
-    if (!deletingRecord || !authToken) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch("/api/kedisiplinan/riwayat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-        body: JSON.stringify({ action: "delete", id: deletingRecord.id })
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        alert("Data pelanggaran berhasil dihapus. Poin siswa telah diperbarui.");
-        setDeletingRecord(null);
-        fetchData();
-      } else {
-        alert("Gagal menghapus data pelanggaran: " + (data.error || ""));
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Terjadi kesalahan koneksi saat menghapus data.");
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   useEffect(() => {
@@ -79,518 +110,1063 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterClass]);
+  }, [search, filterClass, filterCategory, filterStatus, subTab]);
 
-  const studentPoints = useMemo(() => {
+  // Aggregate student points & BK status
+  const studentPointsMap = useMemo(() => {
     const map = {};
     students.forEach(s => {
-      map[s.nis] = { ...s, total_poin: 0, catatan_terakhir:'-' };
+      map[s.nis] = {
+        ...s,
+        total_poin: 0,
+        riwayat_list: [],
+        sesi_count: 0,
+        risk_level: 'Rendah' // 'Rendah' | 'Sedang' | 'Tinggi'
+      };
     });
+
     riwayat.forEach(r => {
       if (map[r.siswa_nis]) {
         map[r.siswa_nis].total_poin += (r.poin || 0);
-        if (map[r.siswa_nis].catatan_terakhir ==='-') {
-          map[r.siswa_nis].catatan_terakhir = r.tindakan_nama;
-        }
+        map[r.siswa_nis].riwayat_list.push(r);
       }
     });
-    return Object.values(map).filter(s => s.total_poin > 0);
-  }, [students, riwayat]);
 
-  const filteredStudents = useMemo(() => {
-    return studentPoints.filter(s => {
-      const studentName = s.namaSiswa || s.name ||'';
-      const mClass = filterClass ==="all" || s.class_name === filterClass;
-      const mSearch = search ==="" || studentName.toLowerCase().includes(search.toLowerCase()) || String(s.nis).toLowerCase().includes(search.toLowerCase());
-      return mClass && mSearch;
-    }).sort((a, b) => b.total_poin - a.total_poin);
-  }, [studentPoints, search, filterClass]);
-
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const safePage = Math.max(1, Math.min(currentPage, totalPages || 1));
-  const paginatedStudents = useMemo(() => {
-    return filteredStudents.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
-  }, [filteredStudents, safePage, itemsPerPage]);
-
-  const openDetail = (s) => {
-    setSelectedStudent(s);
-    setShowDetailModal(true);
-  };
-
-  const saveKonseling = async (e) => {
-    e.preventDefault();
-    if (!authToken || !selectedStudent) return;
-    try {
-      const res = await fetch("/api/kedisiplinan/konseling", {
-        method:"POST",
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json" },
-        body: JSON.stringify({ siswa_nis: selectedStudent.nis, ...formKonseling })
-      });
-      if (res.ok) {
-        alert("Catatan konseling tersimpan.");
-        setFormKonseling({ jenis_kasus:'', tindak_lanjut:'', catatan_konseling:'' });
-        fetchData();
+    bkSessions.forEach(ses => {
+      if (map[ses.student_nis]) {
+        map[ses.student_nis].sesi_count += 1;
       }
-    } catch (e) {
-      console.error(e);
-      alert("Gagal menyimpan konseling");
-    }
-  };
+    });
 
-  const deleteKonseling = async (id) => {
-    if (!confirm("Hapus catatan konseling ini?")) return;
+    Object.values(map).forEach(s => {
+      if (s.total_poin >= 75 || s.sesi_count >= 5) {
+        s.risk_level = 'Tinggi';
+      } else if (s.total_poin >= 40 || s.sesi_count >= 2) {
+        s.risk_level = 'Sedang';
+      } else {
+        s.risk_level = 'Rendah';
+      }
+    });
+
+    return map;
+  }, [students, riwayat, bkSessions]);
+
+  // Students list with points/violations
+  const studentPointsList = useMemo(() => {
+    return Object.values(studentPointsMap).filter(s => {
+      if (filterClass !== "all" && s.class_name !== filterClass) return false;
+      if (search) {
+        const query = search.toLowerCase();
+        return (s.name?.toLowerCase().includes(query) || s.nis?.toLowerCase().includes(query));
+      }
+      return true;
+    });
+  }, [studentPointsMap, filterClass, search]);
+
+  // High Risk EWS Students
+  const highRiskStudents = useMemo(() => {
+    return Object.values(studentPointsMap)
+      .filter(s => s.risk_level === 'Tinggi' || s.total_poin > 0)
+      .sort((a, b) => b.total_poin - a.total_poin);
+  }, [studentPointsMap]);
+
+  // Filtered Sessions List
+  const filteredSessions = useMemo(() => {
+    return bkSessions.filter(s => {
+      if (filterCategory !== "all" && s.category !== filterCategory) return false;
+      if (filterStatus !== "all" && s.status !== filterStatus) return false;
+      if (search) {
+        const query = search.toLowerCase();
+        return (
+          (s.student_name || '')?.toLowerCase().includes(query) || 
+          (s.student_nis || '')?.toLowerCase().includes(query) ||
+          (s.problem || '')?.toLowerCase().includes(query)
+        );
+      }
+      return true;
+    });
+  }, [bkSessions, filterCategory, filterStatus, search]);
+
+  // Handle Save Session (Create / Edit)
+  const handleSaveSession = async (e) => {
+    e.preventDefault();
+    if (!formSession.student_nis || !formSession.problem) {
+      showToast("Pilih siswa dan isi deskripsi masalah terlebih dahulu", "error");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/kedisiplinan/konseling", {
-        method:"POST",
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json" },
-        body: JSON.stringify({ action:"delete", id })
+      const url = editingSession ? `/api/kedisiplinan/bk/sessions/${editingSession.id}` : "/api/kedisiplinan/bk/sessions";
+      const method = editingSession ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+        body: JSON.stringify(formSession)
       });
-      if (res.ok) fetchData();
-    } catch (e) {
-      console.error(e);
+      const data = await res.json();
+
+      if (data.ok) {
+        showToast(editingSession ? "Sesi konseling diperbarui" : "Sesi konseling baru berhasil dicatat");
+        setShowSessionModal(false);
+        setEditingSession(null);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menyimpan sesi konseling", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan", "error");
     }
   };
 
-  const getStatusInfo = (poin) => {
-    if (poin >= 100) return { label:"Kritis (DO)", type:"SP3", color:"bg-red-100 text-red-700" };
-    if (poin >= 50) return { label:"Peringatan 2", type:"SP2", color:"bg-amber-100 text-amber-700" };
-    if (poin >= 20) return { label:"Peringatan 1", type:"SP1", color:"bg-yellow-100 text-yellow-700" };
-    return { label:"Aman", type:"Aman", color:"bg-slate-100 text-slate-700" };
+  // Handle Save Home Visit
+  const handleSaveVisit = async (e) => {
+    e.preventDefault();
+    if (!formVisit.student_nis || !formVisit.result) {
+      showToast("Pilih siswa dan isi hasil kunjungan terlebih dahulu", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/kedisiplinan/bk/home-visits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+        body: JSON.stringify(formVisit)
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        showToast("Jurnal Kunjungan Rumah berhasil dicatat!");
+        setShowVisitModal(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menyimpan kunjungan rumah", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan koneksi", "error");
+    }
   };
 
-  const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredStudents.map(s => ({
+  // Handle Save Letter (Surat Panggilan / SP)
+  const handleSaveLetter = async (e) => {
+    e.preventDefault();
+    if (!formLetter.student_nis) {
+      showToast("Pilih siswa terlebih dahulu", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/kedisiplinan/bk/letters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+        body: JSON.stringify(formLetter)
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        showToast(`Surat (${formLetter.letter_type}) berhasil diterbitkan!`);
+        setShowLetterModal(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menerbitkan surat", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan koneksi", "error");
+    }
+  };
+
+  // Handle Delete Session
+  const handleDeleteSession = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus catatan sesi konseling ini?")) return;
+    try {
+      const res = await fetch(`/api/kedisiplinan/bk/sessions/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("Catatan sesi konseling berhasil dihapus");
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menghapus", "error");
+      }
+    } catch (err) {
+      showToast("Terjadi kesalahan koneksi", "error");
+    }
+  };
+
+  // Export BK Summary to Excel
+  const handleExportExcel = () => {
+    const dataToExport = studentPointsList.map((s, index) => ({
+      No: index + 1,
       NIS: s.nis,
-      Nama: s.namaSiswa || s.name,
-      Kelas: s.class_name,"Total Poin": s.total_poin,"Pelanggaran Terakhir": s.catatan_terakhir
-    })));
+      Nama_Siswa: s.name,
+      Kelas: s.class_name || '-',
+      Total_Poin_Pelanggaran: s.total_poin,
+      Tingkat_Resiko: s.risk_level,
+      Jumlah_Sesi_BK: s.sesi_count
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Rekap_Kedisiplinan");
-    XLSX.writeFile(wb, `Rekap_Kedisiplinan_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap BK & Kedisiplinan");
+    XLSX.writeFile(wb, `Rekap_Bimbingan_Konseling_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const handlePrintSP = (student) => {
-    const info = getStatusInfo(student.total_poin);
-    setSpData({ ...student, sp_type: info.type });
-    // setTimeout to allow state to render the hidden print div before printing
-    setTimeout(() => {
-      window.print();
-      setSpData(null);
-    }, 500);
+  // Open 360° Dossier
+  const openDossier = (student) => {
+    const fullInfo = studentPointsMap[student.nis] || student;
+    setDossierStudent(fullInfo);
+    setShowDossierModal(true);
   };
-
-  // Stat Cards
-  const totalPantauan = studentPoints.filter(s => s.total_poin >= 20).length;
-  const totalKritis = studentPoints.filter(s => s.total_poin >= 100).length;
-  const thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-  const logsThisMonth = riwayat.filter(r => r.tanggal_kejadian.startsWith(thisMonth)).length;
 
   return (
-    <div className="space-y-6  relative print:p-0 print:m-0">
-      
-      {/* --- PRINT ONLY VIEW --- */}
-      {spData && (
-        <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-10 font-serif text-black">
-           <div className="text-center border-b-4 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold uppercase">Surat Peringatan ({spData.sp_type})</h1>
-              <h2 className="text-xl font-bold mt-1">Lembaga Pendidikan & Pelatihan</h2>
-              <p className="text-sm">Jalan Pendidikan No.123, Kota Ilmu</p>
-           </div>
-           
-           <div className="mb-6 space-y-2 text-justify">
-             <p>Yang bertanda tangan di bawah ini, Kepala Sekolah dengan ini memberikan surat peringatan kepada:</p>
-             <table className="mt-4 mb-4 font-bold ml-6">
-                <tbody>
-                  <tr><td className="pr-4 py-1">Nama Siswa</td><td>: {spData.name}</td></tr>
-                  <tr><td className="pr-4 py-1">NIS</td><td>: {spData.nis}</td></tr>
-                  <tr><td className="pr-4 py-1">Kelas</td><td>: {spData.class_name}</td></tr>
-                </tbody>
-             </table>
-             <p>Sehubungan dengan pelanggaran tata tertib sekolah yang telah dilakukan berulang kali oleh siswa tersebut, sehingga poin pelanggaran telah mencapai angka <strong>{spData.total_poin} poin</strong>.</p>
-             <p>Adapun jenis pelanggaran terakhir yang dilakukan adalah: <strong>{spData.catatan_terakhir}</strong>.</p>
-             <p className="mt-4">Surat peringatan {spData.sp_type} ini diberikan agar siswa yang bersangkutan dapat memperbaiki perilakunya dan menaati tata tertib sekolah. Jika di kemudian hari kembali melakukan pelanggaran, maka pihak sekolah akan memberikan sanksi yang lebih tegas sesuai dengan peraturan yang berlaku.</p>
-           </div>
-           
-           <div className="flex justify-between mt-16 pt-8">
-              <div className="text-center">
-                 <p className="mb-16">Orang Tua / Wali Siswa</p>
-                 <p className="font-bold border-b border-black inline-block w-48">( ........................................ )</p>
-              </div>
-              <div className="text-center">
-                 <p className="mb-16">Mengetahui, Kepala Sekolah</p>
-                 <p className="font-bold border-b border-black inline-block w-48">( ........................................ )</p>
-              </div>
-           </div>
+    <div className="flex flex-col gap-5 w-full pb-10">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 ${
+          toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+        }`}>
+          {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{toast.message}</span>
         </div>
       )}
-      
-      {/* ─────── Shared Activity Logs ─────── */}
-      <div className="mt-4">
-        <SharedDashboardLogs />
-      </div>
 
-      {/* ----------------------- */}
-
-
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 print:hidden">
-        <StatCard
-          label="Siswa Dalam Pantauan"
-          value={totalPantauan}
-          sub="Batas poin >= 20 (SP1)"
-          icon={AlertOctagon}
-          iconBg="bg-amber-100"
-          iconColor="text-amber-600"
-        />
-        <StatCard
-          label="Siswa Kritis"
-          value={totalKritis}
-          sub="Batas poin >= 100 (DO)"
-          icon={ShieldAlert}
-          iconBg="bg-red-100"
-          iconColor="text-red-600"
-        />
-        <StatCard
-          label="Pelanggaran Bulan Ini"
-          value={logsThisMonth}
-          sub="Catatan selama bulan berjalan"
-          icon={TrendingUp}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
-        />
-      </div>
-
-      <div className="ui-card flex flex-col print:hidden border border-slate-100/90 shadow-sm">
-        <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-50/50 rounded-t-[var(--ui-radius-card)]">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1">
-            <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="text"
-                placeholder="Cari nama siswa atau NIS..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm focus:outline-none focus:border-[var(--ui-primary)] font-medium"
-              />
-            </div>
-            <div className="w-full sm:w-48 shrink-0">
-              <CustomSelect
-                options={[{value:'all', label:'Semua Kelas'}, ...classes.map(c => ({value: c.name, label: c.name}))]}
-                value={filterClass}
-                onChange={setFilterClass}
-              />
-            </div>
-          </div>
-          <Button 
-            onClick={exportExcel} 
-            variant="outline"
-            size="sm"
-            className="flex items-center justify-center gap-1.5 shrink-0 px-3.5 py-2 text-xs font-bold cursor-pointer"
+      {/* ── Sub Navigation Tabs ────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => setSubTab('ews')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+              subTab === 'ews'
+                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+            }`}
           >
-            <Download size={14}/>
-            <span>Export Rekap</span>
+            <ShieldAlert size={15} />
+            <span>Dashboard & EWS</span>
+          </button>
+          <button
+            onClick={() => setSubTab('konseling')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+              subTab === 'konseling'
+                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <HeartHandshake size={15} />
+            <span>Sesi Konseling</span>
+            {bkSessions.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white">
+                {bkSessions.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setSubTab('surat')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+              subTab === 'surat'
+                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <FileText size={15} />
+            <span>Surat & Home Visit</span>
+          </button>
+          <button
+            onClick={() => setSubTab('dossier')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+              subTab === 'dossier'
+                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Users size={15} />
+            <span>Rekap & Berkas 360°</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingSession(null);
+              setFormSession({
+                student_nis: '',
+                category: 'Kedisiplinan',
+                session_date: new Date().toISOString().slice(0, 10),
+                problem: '',
+                solution: '',
+                follow_up_date: '',
+                status: 'Berjalan',
+                privacy_level: 'Terbatas'
+              });
+              setShowSessionModal(true);
+            }}
+            className="px-3.5 py-2 text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Plus size={15} />
+            <span>Catat Konseling</span>
           </Button>
         </div>
-
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 font-bold">Siswa & Kelas</th>
-                <th className="px-6 py-4 font-bold text-center">Poin</th>
-                <th className="px-6 py-4 font-bold">Status Pantauan</th>
-                <th className="px-6 py-4 font-bold">Kasus Terakhir</th>
-                <th className="px-6 py-4 font-bold text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-500 font-medium">Memuat data monitoring...</td></tr>
-              ) : paginatedStudents.length === 0 ? (
-                <tr>
-                   <td colSpan="5" className="px-6 py-16 text-center text-slate-500">
-                     <Users size={48} className="mx-auto mb-4 text-slate-300"/>
-                     <p className="font-bold text-lg text-slate-600 mb-1">Tidak Ada Data Siswa</p>
-                     <p className="font-medium text-sm">Belum ada siswa yang memiliki rekor pelanggaran sesuai filter pencarian Anda.</p>
-                   </td>
-                </tr>
-              ) : (
-                paginatedStudents.map((s) => {
-                  const statusInfo = getStatusInfo(s.total_poin);
-                  return (
-                  <tr key={s.nis} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <div className="font-bold text-sm text-slate-800">{s.namaSiswa || s.name}</div>
-                        <div className="text-[11px] text-slate-500">{s.nis} • Kelas {s.class_name}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`font-bold px-3 py-1.5 rounded-[var(--ui-radius-small)] border text-sm inline-block min-w-[3rem] ${statusInfo.color.replace('text-','border-').replace('100','200')} ${statusInfo.color}`}>
-                         {s.total_poin}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                       <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold ${statusInfo.color}`}>{statusInfo.label}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-[12px] text-slate-600 line-clamp-2 max-w-[200px]" title={s.catatan_terakhir}>{s.catatan_terakhir}</p>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 items-center">
-                        {s.total_poin >= 20 && (
-                          <Button size="sm" variant="outline" onClick={() => handlePrintSP(s)} className="text-[11px] bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white transition-all px-2.5 py-1.5 cursor-pointer" title="Cetak SP">
-                             <Printer size={14}/> <span>PDF SP</span>
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] transition-all px-2.5 py-1.5 cursor-pointer">
-                          <BookOpen size={14} className="mr-1.5"/> Buku Konseling
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                )})
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards View */}
-        <div className="md:hidden flex flex-col divide-y divide-slate-100">
-          {isLoading ? (
-            <div className="p-8 text-center text-slate-400 text-xs font-medium">Memuat data monitoring...</div>
-          ) : paginatedStudents.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              <Users size={36} className="mx-auto mb-2 text-slate-300"/>
-              <p className="font-bold text-xs text-slate-600">Tidak Ada Data Siswa</p>
-            </div>
-          ) : (
-            paginatedStudents.map((s) => {
-              const statusInfo = getStatusInfo(s.total_poin);
-              return (
-                <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center font-black text-xs shrink-0">
-                        {(s.namaSiswa || s.name || 'S').charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-extrabold text-xs text-slate-800 truncate">{s.namaSiswa || s.name}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-black ${statusInfo.color}`}>
-                        {statusInfo.label}
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-700">
-                        +{s.total_poin} Poin
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-2 rounded-lg text-[11px] text-slate-600 italic">
-                    Kasus: {s.catatan_terakhir}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    {s.total_poin >= 20 && (
-                      <Button size="sm" variant="outline" onClick={() => handlePrintSP(s)} className="text-[11px] bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-600 hover:text-white px-2.5 py-1 cursor-pointer">
-                        <Printer size={13} className="mr-1"/> PDF SP
-                      </Button>
-                    )}
-                    <Button size="sm" variant="outline" onClick={() => openDetail(s)} className="text-[11px] bg-white border-slate-200 text-slate-700 hover:border-[var(--ui-primary)] hover:text-[var(--ui-primary)] px-2.5 py-1 cursor-pointer">
-                      <BookOpen size={13} className="mr-1"/> Buku Konseling
-                    </Button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <TablePagination 
-          currentPage={safePage}
-          totalPages={totalPages}
-          totalItems={filteredStudents.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
-          isLoading={isLoading}
-        />
       </div>
 
-      <Modal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} title="Buku Konseling Siswa" maxWidth="max-w-4xl">
-        {selectedStudent && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:hidden">
-            <div className="lg:col-span-5 space-y-4">
-              <div className="bg-slate-50 border-none p-4 rounded-[var(--ui-radius-small)] relative">
-                <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
-                   <div className="w-12 h-12 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center font-black text-lg">
-                      {(selectedStudent.namaSiswa || selectedStudent.name ||'S').charAt(0).toUpperCase()}
-                   </div>
-                   <div>
-                      <h2 className="text-xl font-bold text-slate-800">{selectedStudent.namaSiswa || selectedStudent.name}</h2>
-                      <div className="text-sm font-medium text-slate-500">{selectedStudent.nis} • Kelas {selectedStudent.class_name}</div>
-                   </div>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-white rounded-[var(--ui-radius-card)] border-none shadow-sm mt-4">
-                   <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Akumulasi Poin</p>
-                      <p className="text-xl font-bold text-red-600 leading-none mt-0.5">{selectedStudent.total_poin}</p>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</p>
-                      <span className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold ${getStatusInfo(selectedStudent.total_poin).color}`}>{getStatusInfo(selectedStudent.total_poin).label}</span>
-                   </div>
+      {/* ── TAB 1: DASHBOARD & EARLY WARNING SYSTEM (EWS) ────────────────── */}
+      {subTab === 'ews' && (
+        <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+          {/* Stat Cards Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard
+              title="Kasus / Sesi Aktif"
+              value={bkSessions.filter(s => s.status === 'Berjalan' || s.status === 'Follow-up').length}
+              description="Perlu penanganan & pendampingan"
+              icon={Clock}
+              iconBgClass="bg-amber-50 text-amber-600"
+            />
+            <StatCard
+              title="Siswa Resiko Tinggi"
+              value={highRiskStudents.filter(s => s.risk_level === 'Tinggi').length}
+              description="Total Poin > 75 atau > 5 Sesi"
+              icon={ShieldAlert}
+              iconBgClass="bg-rose-50 text-rose-600"
+            />
+            <StatCard
+              title="Kunjungan Rumah (Month)"
+              value={homeVisits.length}
+              description="Home visit terlaksana"
+              icon={Home}
+              iconBgClass="bg-sky-50 text-sky-600"
+            />
+            <StatCard
+              title="Surat Terbit (Month)"
+              value={bkLetters.length}
+              description="Surat Panggilan & SP"
+              icon={FileText}
+              iconBgClass="bg-emerald-50 text-emerald-600"
+            />
+          </div>
+
+          {/* Early Warning System & Category Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Left Col: EWS List */}
+            <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                    <AlertTriangle size={17} className="text-amber-500" />
+                    Early Warning System (Poin Pelanggaran Ambang Batas SP)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Daftar siswa yang memerlukan intervensi bimbingan konseling dan panggilan orang tua.
+                  </p>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2"><History size={16} className="text-slate-400"/> Riwayat Pelanggaran</h3>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                  {riwayat.filter(r => r.siswa_nis === selectedStudent.nis).map(r => (
-                    <div key={r.id} className="bg-white border border-slate-100 p-3 rounded-xl shadow-xs relative pl-10">
-                      <div className="absolute left-3 top-3.5 w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold border border-rose-200">!</div>
-                      <div className="flex justify-between items-start mb-1.5 gap-2">
-                        <p className="text-xs font-bold text-slate-800 leading-snug">{r.tindakan_nama}</p>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">+{r.poin}</span>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingRecord({ ...r, studentName: selectedStudent.namaSiswa || selectedStudent.name })}
-                            title="Hapus Pelanggaran Ini (Koreksi Salah Isi)"
-                            className="p-1 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border border-rose-200"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+
+              {highRiskStudents.length === 0 ? (
+                <div className="py-10 text-center text-slate-400 font-bold text-xs">
+                  Sangat baik! Tidak ada siswa dalam kategori resiko tinggi saat ini.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-[380px] overflow-y-auto pr-1">
+                  {highRiskStudents.slice(0, 8).map(st => (
+                    <div 
+                      key={st.nis}
+                      className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
+                          st.total_poin >= 75 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {st.total_poin}
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                            <span>{st.name}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white font-black text-slate-500 border border-slate-200">
+                              {st.class_name || 'Tanpa Kelas'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            NIS: {st.nis} • {st.riwayat_list.length} pelanggaran tercatat
+                          </div>
                         </div>
                       </div>
-                      <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg italic break-words w-full">"{r.catatan ||'Tanpa catatan tambahan'}"</p>
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
-                        <span>Dilaporkan: {r.pelapor_nama}</span>
-                        <span>{new Date(r.tanggal_kejadian).toLocaleDateString('id-ID')}</span>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            setFormLetter({ student_nis: st.nis, letter_type: st.total_poin >= 75 ? 'SP 1' : 'Panggilan Orang Tua', reason: `Akumulasi poin kedisiplinan mencapai ${st.total_poin} poin.` });
+                            setShowLetterModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1"
+                        >
+                          <FileText size={13} />
+                          <span>{st.total_poin >= 75 ? 'Terbit SP' : 'Surat Ortu'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => openDossier(st)}
+                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <Eye size={13} />
+                          <span>Lihat Dossier</span>
+                        </button>
                       </div>
                     </div>
                   ))}
-                  {riwayat.filter(r => r.siswa_nis === selectedStudent.nis).length === 0 && (
-                     <p className="text-[11px] text-slate-400 italic text-center py-4 bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">Belum ada riwayat pelanggaran tercatat.</p>
-                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Right Col: Category Distribution & Quick Action */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2 pb-3 border-b border-slate-100">
+                <TrendingUp size={17} className="text-[var(--ui-primary)]" />
+                Distribusi Kategori Konseling
+              </h3>
+
+              <div className="flex flex-col gap-3">
+                {[
+                  { label: 'Kedisiplinan', color: 'bg-rose-500', count: bkSessions.filter(s => s.category === 'Kedisiplinan').length },
+                  { label: 'Akademik', color: 'bg-sky-500', count: bkSessions.filter(s => s.category === 'Akademik').length },
+                  { label: 'Pribadi & Sosial', color: 'bg-emerald-500', count: bkSessions.filter(s => s.category === 'Pribadi' || s.category === 'Sosial').length },
+                  { label: 'Karir & Kelulusan', color: 'bg-indigo-500', count: bkSessions.filter(s => s.category === 'Karir').length }
+                ].map(cat => {
+                  const total = bkSessions.length || 1;
+                  const pct = Math.round((cat.count / total) * 100);
+                  return (
+                    <div key={cat.label} className="flex flex-col gap-1">
+                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                        <span>{cat.label}</span>
+                        <span>{cat.count} Sesi ({pct}%)</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className={`h-full ${cat.color}`} style={{ width: `${pct}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-2">
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Aksi Cepat BK</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => { setShowVisitModal(true); }}
+                    className="p-2.5 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Home size={14} />
+                    <span>Home Visit</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowLetterModal(true); }}
+                    className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Printer size={14} />
+                    <span>Surat Ortu</span>
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-slate-200 pt-4 lg:pt-0 lg:pl-6 space-y-6">
-               <div>
-                  <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2"><MessageSquare size={16} className="text-[var(--ui-primary)]"/> Sesi Konseling Baru</h3>
-                  <form onSubmit={saveKonseling} className="bg-white border-none p-5 rounded-xl shadow-sm space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1.5">Topik / Jenis Kasus</label>
-                        <input required value={formKonseling.jenis_kasus} onChange={e=>setFormKonseling({...formKonseling, jenis_kasus: e.target.value})} className="w-full px-3 py-2 text-sm bg-slate-50 border-none rounded-[var(--ui-radius-small)] outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-colors" placeholder="Misal: Indisipliner Keterlambatan" />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1.5">Tindak Lanjut / Solusi</label>
-                        <UISelect required value={formKonseling.tindak_lanjut} onChange={e=>setFormKonseling({...formKonseling, tindak_lanjut: e.target.value})} className="w-full">
-                          <option value="">-- Pilih Tindakan --</option>
-                          <option value="Teguran Lisan">Teguran Lisan</option>
-                          <option value="Surat Peringatan 1 (SP1)">Surat Peringatan 1 (SP1)</option>
-                          <option value="Surat Peringatan 2 (SP2)">Surat Peringatan 2 (SP2)</option>
-                          <option value="Surat Peringatan 3 (SP3/DO)">Surat Peringatan 3 (SP3/DO)</option>
-                          <option value="Pemanggilan Orang Tua">Pemanggilan Orang Tua</option>
-                          <option value="Bimbingan Khusus">Bimbingan Khusus</option>
-                        </UISelect>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1.5">Hasil Pembinaan / Catatan</label>
-                      <textarea required rows="3" value={formKonseling.catatan_konseling} onChange={e=>setFormKonseling({...formKonseling, catatan_konseling: e.target.value})} className="w-full px-3 py-2 text-sm bg-slate-50 border-none rounded-[var(--ui-radius-small)] outline-none focus:border-[var(--ui-primary)] focus:bg-white resize-none transition-colors" placeholder="Tuliskan rangkuman hasil wawancara, respon siswa, dan komitmen yang disepakati..."></textarea>
-                    </div>
-                    <Button type="submit" className="w-full text-sm py-2.5">Simpan Catatan Konseling</Button>
-                  </form>
-               </div>
+      {/* ── TAB 2: SESI KONSELING ─────────────────────────────────────────── */}
+      {subTab === 'konseling' && (
+        <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+          {/* Search & Filters */}
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="relative w-full md:w-80">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari nama siswa / deskripsi..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+              />
+            </div>
 
-               <div>
-                 <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">Riwayat Konseling Siswa</h3>
-                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                   {konseling.filter(k => k.siswa_nis === selectedStudent.nis).map(k => (
-                     <div key={k.id} className="relative pl-4 border-l-2 border-[var(--ui-primary)] pb-4 group">
-                       <div className="absolute w-3 h-3 rounded-full bg-[var(--ui-primary)] -left-[7px] top-1 border-2 border-white shadow-sm"></div>
-                       
-                       <div className="flex justify-between items-start">
-                         <div>
-                           <p className="text-[10px] font-bold text-[var(--ui-primary)] mb-0.5 bg-[var(--ui-primary)]/10 inline-block px-1.5 py-0.5 rounded-[var(--ui-radius-small)]">{new Date(k.tanggal_konseling).toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
-                           <p className="text-[13px] font-bold text-slate-800 mt-1">{k.jenis_kasus}</p>
-                         </div>
-                         <Button variant="outline" onClick={() =>deleteKonseling(k.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                           <Trash2 size={14} /></Button>
-                       </div>
-                       
-                       <p className="text-[11px] text-slate-600 font-medium my-1 flex items-center gap-1.5">
-                          Tindak Lanjut: <span className="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] border border-amber-200 font-bold">{k.tindak_lanjut}</span>
-                       </p>
-                       <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] border-none mt-2 relative">
-                          <p className="text-[11px] text-slate-600 font-medium">"{k.catatan_konseling}"</p>
-                       </div>
-                       <p className="text-[9px] text-slate-400 font-bold uppercase mt-2">PENGINPUT: {k.guru_bk_nama}</p>
-                     </div>
-                   ))}
-                   {konseling.filter(k => k.siswa_nis === selectedStudent.nis).length === 0 && (
-                     <div className="text-center py-6 bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
-                        <BookOpen size={24} className="mx-auto mb-2 text-slate-300"/>
-                        <p className="text-[11px] text-slate-500 font-medium">Belum pernah ada sesi konseling.</p>
-                     </div>
-                   )}
-                 </div>
-               </div>
+            <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
+              <CustomSelect
+                value={filterCategory}
+                onChange={val => setFilterCategory(val)}
+                options={[
+                  { value: 'all', label: '-- Semua Kategori --' },
+                  { value: 'Kedisiplinan', label: 'Kedisiplinan' },
+                  { value: 'Akademik', label: 'Akademik' },
+                  { value: 'Pribadi', label: 'Pribadi' },
+                  { value: 'Sosial', label: 'Sosial' },
+                  { value: 'Karir', label: 'Karir' }
+                ]}
+              />
+
+              <CustomSelect
+                value={filterStatus}
+                onChange={val => setFilterStatus(val)}
+                options={[
+                  { value: 'all', label: '-- Semua Status --' },
+                  { value: 'Berjalan', label: 'Berjalan' },
+                  { value: 'Follow-up', label: 'Follow-up' },
+                  { value: 'Selesai', label: 'Selesai' }
+                ]}
+              />
             </div>
           </div>
-        )}
-      </Modal>
 
-      {/* VERIFIKASI HAPUS PELANGGARAN MODAL */}
-      {deletingRecord && (
-        <Modal 
-          isOpen={true} 
-          onClose={() => setDeletingRecord(null)} 
-          title="Verifikasi Hapus Pelanggaran"
-          width="md"
-        >
-          <div className="p-2 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
-              <Trash2 size={24} />
-            </div>
-            <div className="text-center">
-              <h3 className="text-base font-black text-slate-800">Hapus Record Pelanggaran Ini?</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Tindakan ini tidak dapat dibatalkan. Poin pelanggaran (+{deletingRecord.poin} Poin) akan otomatis dikurangi dari akumulasi total poin siswa.
-              </p>
+          {/* Sessions Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-max">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-100">
+                    <th className="px-4 py-3 font-black">NAMA SISWA</th>
+                    <th className="px-3 py-3 font-black">KATEGORI</th>
+                    <th className="px-3 py-3 font-black">TANGGAL SESI</th>
+                    <th className="px-4 py-3 font-black">PERMASALAHAN</th>
+                    <th className="px-3 py-3 font-black">STATUS</th>
+                    <th className="px-3 py-3 font-black">GURU BK</th>
+                    <th className="px-3 py-3 font-black text-center">AKSI</th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold">Memuat data sesi konseling...</td>
+                    </tr>
+                  ) : filteredSessions.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold">Belum ada catatan sesi konseling.</td>
+                    </tr>
+                  ) : (
+                    filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(ses => (
+                      <tr key={ses.id} className="hover:bg-slate-50/50">
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-slate-800">{ses.student_name || 'Siswa'}</div>
+                          <div className="text-[10px] text-slate-400 font-bold">{ses.class_name || 'NIS: ' + ses.student_nis}</div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">
+                            {ses.category}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 font-bold text-slate-600">
+                          {new Date(ses.session_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="px-4 py-3 max-w-[220px]">
+                          <div className="truncate font-semibold text-slate-800" title={ses.problem}>{ses.problem}</div>
+                          {ses.solution && <div className="text-[10px] text-slate-400 truncate" title={ses.solution}>Solusi: {ses.solution}</div>}
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                            ses.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' :
+                            ses.status === 'Follow-up' ? 'bg-amber-100 text-amber-800' :
+                            'bg-sky-100 text-sky-800'
+                          }`}>
+                            {ses.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-slate-600 font-medium">
+                          {ses.counselor_name || 'Guru BK'}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingSession(ses);
+                                setFormSession({
+                                  student_nis: ses.student_nis,
+                                  category: ses.category || 'Kedisiplinan',
+                                  session_date: ses.session_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+                                  problem: ses.problem || '',
+                                  solution: ses.solution || '',
+                                  follow_up_date: ses.follow_up_date?.slice(0, 10) || '',
+                                  status: ses.status || 'Berjalan',
+                                  privacy_level: ses.privacy_level || 'Terbatas'
+                                });
+                                setShowSessionModal(true);
+                              }}
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all border-none cursor-pointer"
+                              title="Edit Sesi"
+                            >
+                              <FileText size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSession(ses.id)}
+                              className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-lg transition-all border-none cursor-pointer"
+                              title="Hapus Sesi"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
 
-            <div className="bg-rose-50/70 border border-rose-200/80 rounded-xl p-3.5 text-xs text-slate-700 space-y-1.5">
-              <div className="flex justify-between"><span className="font-bold text-slate-500">Siswa:</span> <strong className="text-slate-900">{deletingRecord.studentName || deletingRecord.siswa_nis}</strong></div>
-              <div className="flex justify-between"><span className="font-bold text-slate-500">Pelanggaran:</span> <strong className="text-rose-700">{deletingRecord.tindakan_nama}</strong></div>
-              <div className="flex justify-between"><span className="font-bold text-slate-500">Poin Pelanggaran:</span> <span className="font-black text-rose-600">+{deletingRecord.poin} Poin</span></div>
-              <div className="flex justify-between"><span className="font-bold text-slate-500">Tanggal Kejadian:</span> <span>{new Date(deletingRecord.tanggal_kejadian).toLocaleDateString('id-ID')}</span></div>
+            <div className="p-4 border-t border-slate-100">
+              <TablePagination
+                totalItems={filteredSessions.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="flex gap-3 pt-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setDeletingRecord(null)} 
-                disabled={isDeleting} 
-                className="flex-1 cursor-pointer"
+      {/* ── TAB 3: SURAT & HOME VISIT ───────────────────────────────────────── */}
+      {subTab === 'surat' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-in fade-in duration-200">
+          {/* Left: Home Visit Log */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                <Home size={17} className="text-sky-600" />
+                Jurnal Kunjungan Rumah (Home Visit)
+              </h3>
+              <Button
+                type="button"
+                onClick={() => setShowVisitModal(true)}
+                className="px-3 py-1.5 text-xs font-bold cursor-pointer"
               >
+                + Tambah Visit
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-[450px] overflow-y-auto pr-1">
+              {homeVisits.length === 0 ? (
+                <div className="py-10 text-center text-slate-400 font-bold text-xs">
+                  Belum ada jurnal kunjungan rumah yang dicatat.
+                </div>
+              ) : (
+                homeVisits.map(hv => (
+                  <div key={hv.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-extrabold text-slate-800 text-xs">{hv.student_name || 'Siswa'}</span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {new Date(hv.visit_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      {hv.result}
+                    </p>
+                    <div className="text-[10px] font-bold text-slate-400 flex justify-between pt-1 border-t border-slate-200/50">
+                      <span>Petugas: {hv.counselor_name || 'Guru BK'}</span>
+                      <span>Kelas: {hv.class_name || '-'}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Right: Printed Letters Log */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                <FileText size={17} className="text-emerald-600" />
+                Surat Panggilan & Surat Peringatan (SP)
+              </h3>
+              <Button
+                type="button"
+                onClick={() => setShowLetterModal(true)}
+                className="px-3 py-1.5 text-xs font-bold cursor-pointer"
+              >
+                + Terbitkan Surat
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-[450px] overflow-y-auto pr-1">
+              {bkLetters.length === 0 ? (
+                <div className="py-10 text-center text-slate-400 font-bold text-xs">
+                  Belum ada surat panggilan atau SP yang diterbitkan.
+                </div>
+              ) : (
+                bkLetters.map(lettr => (
+                  <div key={lettr.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-800 text-xs">{lettr.student_name || 'Siswa'}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800">
+                          {lettr.letter_type}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {new Date(lettr.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-mono">No: {lettr.letter_no}</div>
+                    <p className="text-xs text-slate-600 font-medium">
+                      Alasan: {lettr.reason || '-'}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 4: REKAP & BERKAS 360° ─────────────────────────────────────── */}
+      {subTab === 'dossier' && (
+        <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+          {/* Header Action Bar */}
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div className="relative w-full sm:w-80">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari siswa untuk lihat berkas 360°..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExportExcel}
+                className="px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download size={15} />
+                <span>Export Excel</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Student Dossier Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-max">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-100">
+                    <th className="px-4 py-3 font-black">NAMA SISWA</th>
+                    <th className="px-3 py-3 font-black">KELAS</th>
+                    <th className="px-3 py-3 font-black text-center">TOTAL POIN</th>
+                    <th className="px-3 py-3 font-black text-center">TINGKAT RESIKO</th>
+                    <th className="px-3 py-3 font-black text-center">SESI BK</th>
+                    <th className="px-3 py-3 font-black text-center">BERKAS DOSSIER</th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
+                  {studentPointsList.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-slate-400 font-bold">Tidak ada data siswa ditemukan.</td>
+                    </tr>
+                  ) : (
+                    studentPointsList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(s => (
+                      <tr key={s.nis} className="hover:bg-slate-50/50">
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-slate-800">{s.name}</div>
+                          <div className="text-[10px] text-slate-400 font-bold">NIS: {s.nis}</div>
+                        </td>
+                        <td className="px-3 py-3 font-bold text-slate-600">{s.class_name || '-'}</td>
+                        <td className="px-3 py-3 text-center font-black text-rose-600 text-sm">
+                          {s.total_poin}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                            s.risk_level === 'Tinggi' ? 'bg-rose-100 text-rose-800' :
+                            s.risk_level === 'Sedang' ? 'bg-amber-100 text-amber-800' :
+                            'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {s.risk_level}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-slate-700">
+                          {s.sesi_count}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => openDossier(s)}
+                            className="px-3 py-1 text-xs font-bold cursor-pointer"
+                          >
+                            Buka Dossier 360°
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-4 border-t border-slate-100">
+              <TablePagination
+                totalItems={studentPointsList.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: FORM SESI KONSELING ─────────────────────────────────────── */}
+      {showSessionModal && (
+        <Modal
+          isOpen={showSessionModal}
+          onClose={() => setShowSessionModal(false)}
+          title={editingSession ? "Edit Catatan Sesi Konseling" : "Catat Sesi Konseling Baru"}
+        >
+          <form onSubmit={handleSaveSession} className="flex flex-col gap-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Siswa</label>
+              <CustomSelect
+                value={formSession.student_nis}
+                onChange={val => setFormSession({ ...formSession, student_nis: val })}
+                options={[
+                  { value: '', label: '-- Pilih Siswa --' },
+                  ...students.map(s => ({ value: s.nis, label: `${s.name} (${s.class_name || s.nis})` }))
+                ]}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Kategori</label>
+                <CustomSelect
+                  value={formSession.category}
+                  onChange={val => setFormSession({ ...formSession, category: val })}
+                  options={[
+                    { value: 'Kedisiplinan', label: 'Kedisiplinan' },
+                    { value: 'Akademik', label: 'Akademik' },
+                    { value: 'Pribadi', label: 'Pribadi' },
+                    { value: 'Sosial', label: 'Sosial' },
+                    { value: 'Karir', label: 'Karir & Kelulusan' }
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Status Sesi</label>
+                <CustomSelect
+                  value={formSession.status}
+                  onChange={val => setFormSession({ ...formSession, status: val })}
+                  options={[
+                    { value: 'Berjalan', label: 'Berjalan' },
+                    { value: 'Follow-up', label: 'Follow-up' },
+                    { value: 'Selesai', label: 'Selesai' }
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Deskripsi Permasalahan</label>
+              <textarea
+                rows={3}
+                placeholder="Tuliskan gambaran permasalahan siswa..."
+                value={formSession.problem}
+                onChange={e => setFormSession({ ...formSession, problem: e.target.value })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Rencana Solusi / Action Plan</label>
+              <textarea
+                rows={2}
+                placeholder="Rencana tindak lanjut / komitmen siswa..."
+                value={formSession.solution}
+                onChange={e => setFormSession({ ...formSession, solution: e.target.value })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button type="button" variant="outline" onClick={() => setShowSessionModal(false)}>
                 Batal
               </Button>
-              <Button 
-                onClick={confirmDeleteRecord} 
-                disabled={isDeleting} 
-                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer border-none shadow-sm"
-              >
-                {isDeleting ? "Menghapus..." : "Ya, Hapus Data"}
+              <Button type="submit" className="font-bold">
+                Simpan Catatan BK
               </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: FORM HOME VISIT ───────────────────────────────────────── */}
+      {showVisitModal && (
+        <Modal
+          isOpen={showVisitModal}
+          onClose={() => setShowVisitModal(false)}
+          title="Catat Jurnal Kunjungan Rumah (Home Visit)"
+        >
+          <form onSubmit={handleSaveVisit} className="flex flex-col gap-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Siswa</label>
+              <CustomSelect
+                value={formVisit.student_nis}
+                onChange={val => setFormVisit({ ...formVisit, student_nis: val })}
+                options={[
+                  { value: '', label: '-- Pilih Siswa --' },
+                  ...students.map(s => ({ value: s.nis, label: `${s.name} (${s.class_name || s.nis})` }))
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tanggal Kunjungan</label>
+              <input
+                type="date"
+                value={formVisit.visit_date}
+                onChange={e => setFormVisit({ ...formVisit, visit_date: e.target.value })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Hasil Pertemuan Kunjungan</label>
+              <textarea
+                rows={3}
+                placeholder="Tuliskan hasil diskusi dengan orang tua/wali..."
+                value={formVisit.result}
+                onChange={e => setFormVisit({ ...formVisit, result: e.target.value })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button type="button" variant="outline" onClick={() => setShowVisitModal(false)}>
+                Batal
+              </Button>
+              <Button type="submit" className="font-bold">
+                Simpan Jurnal Home Visit
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: FORM SURAT ────────────────────────────────────────────── */}
+      {showLetterModal && (
+        <Modal
+          isOpen={showLetterModal}
+          onClose={() => setShowLetterModal(false)}
+          title="Terbitkan Surat BK / SP"
+        >
+          <form onSubmit={handleSaveLetter} className="flex flex-col gap-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Siswa</label>
+              <CustomSelect
+                value={formLetter.student_nis}
+                onChange={val => setFormLetter({ ...formLetter, student_nis: val })}
+                options={[
+                  { value: '', label: '-- Pilih Siswa --' },
+                  ...students.map(s => ({ value: s.nis, label: `${s.name} (${s.class_name || s.nis})` }))
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Jenis Surat</label>
+              <CustomSelect
+                value={formLetter.letter_type}
+                onChange={val => setFormLetter({ ...formLetter, letter_type: val })}
+                options={[
+                  { value: 'Panggilan Orang Tua', label: 'Panggilan Orang Tua / Wali' },
+                  { value: 'SP 1', label: 'Surat Peringatan 1 (SP 1)' },
+                  { value: 'SP 2', label: 'Surat Peringatan 2 (SP 2)' },
+                  { value: 'SP 3', label: 'Surat Peringatan 3 (SP 3)' }
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Alasan Penerbitan Surat</label>
+              <textarea
+                rows={3}
+                placeholder="Tuliskan alasan/keterangan pemanggilan..."
+                value={formLetter.reason}
+                onChange={e => setFormLetter({ ...formLetter, reason: e.target.value })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button type="button" variant="outline" onClick={() => setShowLetterModal(false)}>
+                Batal
+              </Button>
+              <Button type="submit" className="font-bold">
+                Terbitkan Surat
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL: 360° STUDENT DOSSIER ───────────────────────────────────── */}
+      {showDossierModal && dossierStudent && (
+        <Modal
+          isOpen={showDossierModal}
+          onClose={() => setShowDossierModal(false)}
+          title={`Berkas 360° BK — ${dossierStudent.name}`}
+        >
+          <div className="flex flex-col gap-4 max-h-[500px] overflow-y-auto pr-1">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center">
+              <div>
+                <div className="font-black text-slate-800 text-sm">{dossierStudent.name}</div>
+                <div className="text-xs text-slate-500 font-bold">Kelas: {dossierStudent.class_name || '-'} • NIS: {dossierStudent.nis}</div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-slate-400 block">Total Poin</span>
+                <span className="font-black text-rose-600 text-base">{dossierStudent.total_poin} Poin</span>
+              </div>
+            </div>
+
+            {/* Riwayat Pelanggaran */}
+            <div>
+              <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider mb-2">Riwayat Pelanggaran Kedisiplinan</h4>
+              {dossierStudent.riwayat_list.length === 0 ? (
+                <div className="text-xs text-slate-400 italic">Tidak ada catatan pelanggaran.</div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {dossierStudent.riwayat_list.map((r, i) => (
+                    <div key={i} className="p-2.5 rounded-lg border border-slate-100 bg-white text-xs flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-slate-800">{r.tindakan_nama}</div>
+                        <div className="text-[10px] text-slate-400">{new Date(r.tanggal).toLocaleDateString('id-ID')}</div>
+                      </div>
+                      <span className="font-black text-rose-600">+{r.poin} Poin</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sesi Konseling BK */}
+            <div>
+              <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider mb-2">Sesi Bimbingan & Konseling</h4>
+              {bkSessions.filter(s => s.student_nis === dossierStudent.nis).length === 0 ? (
+                <div className="text-xs text-slate-400 italic">Belum pernah ada sesi konseling.</div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {bkSessions.filter(s => s.student_nis === dossierStudent.nis).map((ses, i) => (
+                    <div key={i} className="p-2.5 rounded-lg border border-slate-100 bg-white text-xs flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-slate-800">{ses.category} ({ses.status})</span>
+                        <span className="text-[10px] text-slate-400">{new Date(ses.session_date).toLocaleDateString('id-ID')}</span>
+                      </div>
+                      <p className="text-slate-600">{ses.problem}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Modal>

@@ -151,7 +151,7 @@ const formatIndonesianDate = (dateString) => {
 };
 
 // ─── Student Card Render Component ──────────────────────────────────────────
-function StudentCard({ student, school, config, cardRef, side = 'both' }) {
+export function StudentCard({ student, school, config, cardRef, side = 'both' }) {
   const frontBg = config.front_template || '';
   const backBg = config.back_template || '';
   const [qrCode, setQrCode] = useState("");
@@ -478,22 +478,10 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           nis: student.nis,
           nama: student.namaSiswa || student.name,
           kelas: student.class_name || 'Umum',
-          alasan: 'Cetak/Download Langsung (Tanpa Antrean)'
+          alasan: 'Cetak/Download Langsung (Tanpa Antrean)',
+          status: 'selesai'
         })
       });
-
-      const listRes = await fetch('/api/student-card-requests', { headers: { Authorization: `Bearer ${authToken}` } });
-      const listData = await listRes.json();
-      if (listData.ok) {
-        const pending = listData.data.find(r => r.nis === student.nis && r.status === 'pending');
-        if (pending) {
-          await fetch('/api/student-card-requests', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-            body: JSON.stringify({ action: 'selesai', id: pending.id })
-          });
-        }
-      }
       fetchRequests();
     } catch (e) { 
       console.error(e); 

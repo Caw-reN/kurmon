@@ -1,5 +1,6 @@
 import { handlePklRoutes } from "./routes/pkl.mjs";
-import { handleHikvisionRoutes } from "./routes/hikvision.mjs";
+import { handleBkRoutes } from "./routes/bk.mjs";
+import { handleHikvisionRoutes, autoLinkHikvisionStudents } from "./routes/hikvision.mjs";
 import { handlePushRoutes, initializeWebPush } from "./routes/push.mjs";
 import { handleKedisiplinanRoutes } from "./routes/kedisiplinan.mjs";
 import { handleDataRoutes } from "./routes/data.mjs";
@@ -141,30 +142,33 @@ async function pullHikvisionLogs(force = false) {
   let totalSaved = 0;
   let totalFound = 0;
   try {
-    // Check operating hours: find if current time is within ANY active attendance window
     const nowLocal = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-    let isActive = false;
-    for (const role of ['siswa', 'guru', 'karyawan']) {
-       const roleConf = config[role] || {};
-       const masukOpen = (roleConf.masuk_open || "05:00").substring(0, 5);
-       const masukClose = (roleConf.masuk_close || "12:00").substring(0, 5);
-       const pulangOpen = (roleConf.pulang_open || "14:00").substring(0, 5);
-       const pulangClose = (roleConf.pulang_close || "18:00").substring(0, 5);
-       
-       if ((nowLocal >= masukOpen && nowLocal <= masukClose) || (nowLocal >= pulangOpen && nowLocal <= pulangClose)) {
-         isActive = true;
-         break;
-       }
-    }
     
-    // Stop pulling if current time is outside ALL attendance windows (e.g., night time or midday break)
-    if (!isActive && !force) {
+    const isRoleActive = (role) => {
+      const roleConf = config[role] || {};
+      const masukOpen = (roleConf.masuk_open || roleConf.masuk_start || config.masuk_open || "05:00").substring(0, 5);
+      const masukClose = (roleConf.masuk_close || roleConf.masuk_end || config.masuk_close || "12:00").substring(0, 5);
+      const pulangOpen = (roleConf.pulang_open || roleConf.pulang_start || config.pulang_open || "14:00").substring(0, 5);
+      const pulangClose = (roleConf.pulang_close || roleConf.pulang_end || config.pulang_close || "18:00").substring(0, 5);
+      return (nowLocal >= masukOpen && nowLocal <= masukClose) || (nowLocal >= pulangOpen && nowLocal <= pulangClose);
+    };
+
+    let isActiveAny = ['siswa', 'guru', 'karyawan'].some(r => isRoleActive(r));
+
+    // Stop pulling if current time is outside ALL attendance windows and force is false
+    if (!isActiveAny && !force) {
       console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active attendance windows.`);
       return { logs_found: 0, logs_saved: 0 };
     }
 
     const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
     for (const device of devices) {
+      const dtype = device.device_type || 'siswa';
+      const roleCheck = (dtype === 'staff') ? (isRoleActive('guru') || isRoleActive('karyawan')) : isRoleActive(dtype);
+      if (!roleCheck && !force) {
+        console.log(`[Hikvision] Skipping device ${device.location || device.ip_address} (${dtype}) at ${nowLocal} (outside time window).`);
+        continue;
+      }
       try {
         const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
         const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
@@ -1104,6 +1108,7 @@ const initDb = async () => {
 
     dbStatus = { ok: true, code: "DB_CONNECTED", message: "Database PostgreSQL tersambung." };
     console.log("PostgreSQL Database Initialized & Connected");
+    autoLinkHikvisionStudents(dbPool).catch(() => {});
   } catch (err) {
     dbStatus = {
       ok: false,
@@ -1194,13 +1199,13 @@ const getBearerToken = (req) => {
 };
 
 const getSession = (req) => sessions.get(getBearerToken(req));
-const normalizeServerRole = (role) => {
+const normalizeServerRole = (role, defaultRole = "guru") => {
   if (role === "superadmin" || role === "admin") return "admin";
-  if (role === "kepsek" || role === "waka" || role === "kaprog" || role === "guru" || role === "tu" || role === "tata_usaha" || role === "karyawan") return role === "tata_usaha" ? "tu" : role;
-  if (role === "hubin" || role === "sarpras" || role === "kurikulum") return role;
+  if (role === "kepsek" || role === "waka" || role === "kaprog" || role === "guru" || role === "tu" || role === "tata_usaha" || role === "karyawan" || role === "staff") return (role === "tata_usaha" ? "tu" : (role === "staff" ? "karyawan" : role));
+  if (role === "hubin" || role === "sarpras" || role === "kurikulum" || role === "bk") return role;
   if (role === "siswa") return "siswa";
   if (role === "walas") return "walas";
-  return "guru";
+  return defaultRole;
 };
 const isAdminRole = (role) => normalizeServerRole(role) === "admin";
 const isMonitoringAdmin = (role) => ["admin", "hubin", "waka", "kaprog"].includes(normalizeServerRole(role));
@@ -1222,7 +1227,7 @@ const requireAdminOrTu = (req, res) => {
 
 const requireAuthenticated = (req, res) => {
   const session = getSession(req);
-  const allowed = ["admin", "guru", "kepsek", "waka", "kaprog", "hubin", "sarpras", "kurikulum", "siswa", "walas", "tu", "bk"];
+  const allowed = ["admin", "guru", "kepsek", "waka", "kaprog", "hubin", "sarpras", "kurikulum", "siswa", "walas", "tu", "bk", "karyawan", "staff"];
   if (session && allowed.includes(normalizeServerRole(session.role))) return session;
   send(req, res, 403, { ok: false, error: "Sesi login diperlukan." });
   return null;
@@ -1348,7 +1353,10 @@ const toPublicPayload = (payload = {}) => {
 };
 
 const readMainPayload = async () => {
-  if (!dbPool) throw createDatabaseUnavailableError();
+  if (!dbPool || !dbStatus?.ok) {
+    await initDb().catch(() => {});
+  }
+  if (!dbPool || !dbStatus?.ok) throw createDatabaseUnavailableError();
   const { rows } = await dbPool.query(`SELECT data FROM app_data WHERE store_key = 'main_store'`);
   if (rows.length === 0 || !rows[0].data) return null;
   try {
@@ -2308,6 +2316,10 @@ const server = createServer(async (req, res) => {
         const handled = await handleHikvisionRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
+    if (url.pathname.startsWith("/api/kedisiplinan/bk")) {
+        const handled = await handleBkRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
     if (url.pathname.startsWith("/api/kedisiplinan") || url.pathname.startsWith("/api/kesiswaan")) {
         const handled = await handleKedisiplinanRoutes(req, res, url, ctx);
         if (handled !== false) return;
@@ -3101,38 +3113,39 @@ const server = createServer(async (req, res) => {
           const session = getSession(req);
           
           if (body.action === "create") {
-            const { nis, nama, kelas, alasan } = body;
+            const { nis, nama, kelas, alasan, status } = body;
             if (!nis || !nama || !kelas || !alasan) {
               return send(req, res, 400, { ok: false, error: "Data pengajuan tidak lengkap." });
             }
+            const defaultStatus = status || (alasan.includes("Tanpa Antrean") || alasan.includes("Langsung") ? "selesai" : "pending");
             await dbPool.query(
-              "INSERT INTO student_card_requests (nis, nama, kelas, alasan, status, requested_by) VALUES ($1, $2, $3, $4, 'pending', $5)",
-              [nis, nama, kelas, alasan, session?.name || "Admin"]
+              "INSERT INTO student_card_requests (nis, nama, kelas, alasan, status, requested_by, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+              [nis, nama, kelas, alasan, defaultStatus, session?.name || "Admin / TU", defaultStatus === "selesai" ? new Date() : null]
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "approve") {
-            if (!requireAdmin(req, res)) return;
+            if (!requireAdminOrTu(req, res)) return;
             await dbPool.query(
               "UPDATE student_card_requests SET status = 'disetujui', processed_at = NOW() WHERE id = $1",
               [body.id]
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "selesai") {
-            if (!requireAdmin(req, res)) return;
+            if (!requireAdminOrTu(req, res)) return;
             await dbPool.query(
               "UPDATE student_card_requests SET status = 'selesai', processed_at = NOW() WHERE id = $1",
               [body.id]
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "reject") {
-            if (!requireAdmin(req, res)) return;
+            if (!requireAdminOrTu(req, res)) return;
             await dbPool.query(
               "UPDATE student_card_requests SET status = 'ditolak', processed_at = NOW() WHERE id = $1",
               [body.id]
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "delete") {
-            if (!requireAdmin(req, res)) return;
+            if (!requireAdminOrTu(req, res)) return;
             await dbPool.query("DELETE FROM student_card_requests WHERE id = $1", [body.id]);
             send(req, res, 200, { ok: true });
           } else {

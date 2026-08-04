@@ -9,16 +9,16 @@ export default function BKDashboard({ teachers, students, classes }) {
   const [activeTab, setActiveTab] = useState('monitoring');
 
   const tabs = [
-    { id:'monitoring', label:'Monitoring Timeline', icon: Activity },
-    { id:'rekap', label:'Rekap & Laporan', icon: BarChart3 }
+    { id:'monitoring', label:'Layanan & Bimbingan BK', icon: Activity },
+    { id:'rekap', label:'Rekap & Poin Kedisiplinan', icon: BarChart3 }
   ];
 
   return (
     <div className="flex flex-col gap-4 h-full animate-in fade-in duration-300">
       <PageHeader
-        title="Bimbingan & Konseling"
+        title="Bimbingan & Konseling (BK)"
         icon={ShieldHalf}
-        description="Pantau monitoring BP/BK dan cetak rekap kedisiplinan siswa."
+        description="Kelola sesi konseling siswa, early warning kedisiplinan, panggilan orang tua & bimbingan karir."
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

@@ -35,19 +35,11 @@ const MasterDataGuru = memo(function MasterDataGuru({
     if (!authToken) return;
     setIsFetchingHik(true);
     try {
-      const [resGuru, resKaryawan] = await Promise.all([
-        fetch("/api/hikvision/students?type=guru", { headers: {"Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/hikvision/students?type=karyawan", { headers: {"Authorization": `Bearer ${authToken}` } }),
-      ]);
-      const [dataGuru, dataKaryawan] = await Promise.all([
-        resGuru.json().catch(() => ({ ok: false, data: [] })),
-        resKaryawan.json().catch(() => ({ ok: false, data: [] })),
-      ]);
-      const combined = [
-        ...(dataGuru.ok ? (dataGuru.data || []) : []),
-        ...(dataKaryawan.ok ? (dataKaryawan.data || []) : []),
-      ];
-      setHikTeachers(combined);
+      const res = await fetch("/api/hikvision/students?type=staff", { headers: { Authorization: `Bearer ${authToken}` } });
+      const json = await res.json();
+      if (json.ok) {
+        setHikTeachers(json.data || []);
+      }
     } catch (err) {
       console.error("Gagal memuat guru Hikvision:", err);
     } finally {
@@ -60,8 +52,8 @@ const MasterDataGuru = memo(function MasterDataGuru({
   }, [authToken]);
 
   // Create fast sets for Code and Name checking (ignore empty strings)
-  const hikCodeSet = useMemo(() => new Set(hikTeachers.map(s => String(s.nis ||"").trim().toLowerCase()).filter(Boolean)), [hikTeachers]);
-  const hikNameSet = useMemo(() => new Set(hikTeachers.map(s => String(s.name ||"").trim().toLowerCase()).filter(Boolean)), [hikTeachers]);
+  const hikCodeSet = useMemo(() => new Set(hikTeachers.flatMap(s => [s.nis, s.code, s.nip].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
+  const hikNameSet = useMemo(() => new Set(hikTeachers.flatMap(s => [s.name, s.device_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
 
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -197,15 +189,14 @@ const MasterDataGuru = memo(function MasterDataGuru({
           const targetJP = teacherTargetJpMap.get(item.code) || 0;
           const scheduledJP = teacherScheduleCountMap.get(item.code) || 0;
 
-          // Cek apakah kode guru ini ada di mesin Hikvision
           const codeKey = String(item.code ||"").trim().toLowerCase();
           const nipKey = String(item.nip ||"").trim().toLowerCase();
           const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
           const isConnected = (codeKey && (
-            hikCodeSet.has(codeKey) || (codeKey.length > 8 && (hikCodeSet.has(codeKey.slice(0, 8)) || hikCodeSet.has(codeKey.slice(-8))))
+            hikCodeSet.has(codeKey) || (codeKey.length >= 4 && (hikCodeSet.has(codeKey.slice(0, 8)) || hikCodeSet.has(codeKey.slice(-8))))
           )) || (nipKey && (
-            hikCodeSet.has(nipKey) || (nipKey.length > 8 && (hikCodeSet.has(nipKey.slice(0, 8)) || hikCodeSet.has(nipKey.slice(-8))))
-          )) || (nameKey && hikNameSet.has(nameKey));
+            hikCodeSet.has(nipKey) || (nipKey.length >= 4 && (hikCodeSet.has(nipKey.slice(0, 8)) || hikCodeSet.has(nipKey.slice(-8))))
+          )) || (nameKey && (hikNameSet.has(nameKey) || Array.from(hikNameSet).some(hn => hn.includes(nameKey) || nameKey.includes(hn))));
 
           return (
             <tr key={item.code} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>
@@ -289,31 +280,35 @@ const MasterDataGuru = memo(function MasterDataGuru({
                 )}
               </td>
               <td className="px-3 py-2.5 text-right">
-                <div className="flex justify-end gap-1.5">
-                  {quickEditGuruCode === item.code ? (
-                    <>
-                      <Button size="sm" onClick={() => saveQuickEditGuru(item.code)}>Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => { setQuickEditGuruCode(""); setQuickGuruForm({}); }}>Cancel</Button>
-                    </>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => startQuickEditGuru(item)}>Quick Edit</Button>
-                  )}
-                  <Button size="sm" variant="outline" onClick={() => openModal("ketersediaan_mapel","edit", item)}>Mapel</Button>
-                  <Button size="icon" variant="ghost" onClick={() => openModal('guru','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
-                  {(() => {
-                    const deps = checkDependencies('guru', item.code);
-                    if (deps.length > 0) {
+                {!isViewOnly ? (
+                  <div className="flex justify-end gap-1.5">
+                    {quickEditGuruCode === item.code ? (
+                      <>
+                        <Button size="sm" onClick={() => saveQuickEditGuru(item.code)}>Save</Button>
+                        <Button size="sm" variant="outline" onClick={() => { setQuickEditGuruCode(""); setQuickGuruForm({}); }}>Cancel</Button>
+                      </>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => startQuickEditGuru(item)}>Quick Edit</Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => openModal("ketersediaan_mapel","edit", item)}>Mapel</Button>
+                    <Button size="icon" variant="ghost" onClick={() => openModal('guru','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
+                    {(() => {
+                      const deps = checkDependencies('guru', item.code);
+                      if (deps.length > 0) {
+                        return (
+                          <Button size="icon" variant="ghost" disabled title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} >
+                            <Lock size={14} className="text-amber-500" />
+                          </Button>
+                        );
+                      }
                       return (
-                        <Button size="icon" variant="ghost" disabled title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} >
-                          <Lock size={14} className="text-amber-500" />
-                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete('guru', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
                       );
-                    }
-                    return (
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete('guru', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
-                    );
-                  })()}
-                </div>
+                    })()}
+                  </div>
+                ) : (
+                  <span className="text-xs text-slate-400 italic font-medium">Lihat saja</span>
+                )}
               </td>
             </tr>
           );

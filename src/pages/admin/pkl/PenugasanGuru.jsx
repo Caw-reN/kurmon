@@ -106,10 +106,22 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
   const [eligibleClass, setEligibleClass] = useState("XII");
 
   useEffect(() => {
-    // Load eligibleClass from local appSettings
-    const localSnapshot = getDatabaseSnapshot() || {};
-    const localSettings = localSnapshot.appSettings || {};
-    setEligibleClass(localSettings.eligibleClass ||"XII");
+    fetch("/api/settings/pkl", { headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {} })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.data?.eligibleClass) {
+          setEligibleClass(data.data.eligibleClass);
+        } else {
+          const localSnapshot = getDatabaseSnapshot() || {};
+          const localSettings = localSnapshot.appSettings || {};
+          setEligibleClass(localSettings.eligibleClass || "XII");
+        }
+      })
+      .catch(() => {
+        const localSnapshot = getDatabaseSnapshot() || {};
+        const localSettings = localSnapshot.appSettings || {};
+        setEligibleClass(localSettings.eligibleClass || "XII");
+      });
   }, [authToken]);
 
   const toggleSelectStudent = (siswaId) => {

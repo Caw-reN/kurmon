@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import useAuthStore from './authStore.js';
+import useAbsensiStore from './absensiStore.js';
 
 /**
  * fiturStore.js
@@ -81,7 +82,15 @@ const useFiturStore = create(
       }, {}),
 
       /** Cek apakah fitur tertentu aktif */
-      isFiturAktif: (key) => get().fitur[key] ?? true,
+      isFiturAktif: (key) => {
+        const fiturObj = get().fitur || {};
+        if (key === 'jurnal' || key === 'jurnal_harian' || key === 'logbook') {
+          if (fiturObj.jurnal === false || fiturObj.jurnal_harian === false || fiturObj.logbook === false) {
+            return false;
+          }
+        }
+        return fiturObj[key] ?? true;
+      },
 
       /** Toggle fitur on/off */
       toggleFitur: async (key) => {
@@ -112,14 +121,19 @@ const useFiturStore = create(
 
       fetchFiturFromServer: async () => {
         try {
-          const token = useAuthStore.getState().authToken;
-          if (!token) return;
-          const res = await fetch("/api/settings/feature", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const authUser = useAuthStore.getState().user;
+          const token = authUser?.authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          const res = await fetch("/api/settings/feature", { headers });
           const data = await res.json();
-          if (data.ok && data.data && Object.keys(data.data).length > 0) {
-            set({ fitur: data.data });
+          if (data.ok && data.data && typeof data.data === 'object' && Object.keys(data.data).length > 0) {
+            set((state) => ({ fitur: { ...state.fitur, ...data.data } }));
+            if (data.data.absensiMetode || data.data.absensiGpsConfig || data.data.metode || data.data.gpsConfig) {
+              useAbsensiStore.getState().hydrateFromServer({
+                metode: data.data.absensiMetode || data.data.metode,
+                gpsConfig: data.data.absensiGpsConfig || data.data.gpsConfig,
+              });
+            }
           }
         } catch (e) {
           console.error("Failed to fetch features", e);
@@ -128,7 +142,8 @@ const useFiturStore = create(
       
       saveFiturToServer: async () => {
         try {
-          const token = useAuthStore.getState().authToken;
+          const authUser = useAuthStore.getState().user;
+          const token = authUser?.authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
           if (!token) return;
           await fetch("/api/settings/feature", {
             method: "PUT",

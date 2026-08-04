@@ -67,8 +67,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
   if (req.method === "POST" && url.pathname === "/api/auth/sync") {
     const session = requireAuthenticated(req, res);
     if (!session) return true;
-    if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
-      send(req, res, 403, { ok: false, error: "Hanya admin yang dapat melakukan sinkronisasi akun." });
+    const sessionRole = normalizeServerRole(session.role);
+    const allowedRoles = ["admin", "superadmin", "tu", "tata_usaha", "waka", "waka_kurikulum", "waka_kesiswaan", "kepsek", "karyawan", "staff"];
+    if (!allowedRoles.includes(sessionRole)) {
+      send(req, res, 403, { ok: false, error: "Hanya admin atau tata usaha yang dapat melakukan sinkronisasi akun." });
       return true;
     }
     try {
@@ -213,42 +215,71 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       }
 
       // Teacher / Staff login
-      let teacher = (payload.teachers || []).find((item) => String(item.code || "").trim().toLowerCase() === username);
+      let isStaffAccount = false;
+      let teacher = (payload.teachers || []).find((item) => String(item.code || item.nip || item.id || "").trim().toLowerCase() === username);
       if (!teacher) {
-        teacher = (payload.staffs || []).find((item) => String(item.code || item.staff_code || "").trim().toLowerCase() === username);
+        teacher = (payload.staffs || []).find((item) => String(item.code || item.staff_code || item.id || "").trim().toLowerCase() === username);
+        if (teacher) isStaffAccount = true;
       }
       
       let isTeacherValid = false;
-      if (teacher) {
+      const userCode = teacher ? String(teacher.code || teacher.staff_code || teacher.id || "").trim() : "";
+      
+      if (teacher && userCode) {
         if (teacher.password) {
           isTeacherValid = await verifyPassword(password, teacher.password);
         } else {
-          // No custom password set — use code as initial password
-          // Note: admins should enforce password changes via dashboard
-          isTeacherValid = (password === String(teacher.code).trim());
+          // Initial default password (case-insensitive check for code / staff_code)
+          isTeacherValid = (password.trim().toLowerCase() === userCode.toLowerCase());
           if (isTeacherValid) {
-            console.warn(`[AUTH] Guru/Staff '${teacher.code}' masuk dengan password default (kode). Disarankan set password khusus.`);
+            console.warn(`[AUTH] ${isStaffAccount ? 'Staff' : 'Guru'} '${userCode}' masuk dengan password default (kode).`);
           }
         }
       }
 
       if (teacher && isTeacherValid) {
         if (!await ensureDatabaseReadable(req, res)) return true;
-        let role = normalizeServerRole(teacher.role);
+
+        let rawRole = teacher.role;
+        if (!rawRole && isStaffAccount) {
+          const div = String(teacher.division || "").toLowerCase();
+          rawRole = (div.includes("tu") || div.includes("tata usaha")) ? "tu" : "karyawan";
+        }
+
+        let role = normalizeServerRole(rawRole, isStaffAccount ? "karyawan" : "guru");
         let walasClass = null;
         let isWalas = false;
-        try {
-          const homeroomClass = (payload.classes || []).find(c => String(c.homeroom || "").trim() === String(teacher.code).trim());
-          if (homeroomClass) {
-              isWalas = true;
-              walasClass = homeroomClass.name;
-          }
-        } catch (e) {}
-        try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [teacher.code, role, req.socket?.remoteAddress || '']); } catch {}
-        await logAudit(dbPool, { id: teacher.code, name: teacher.name || "Guru", role }, req, "LOGIN", "session", `Guru/Staff (${teacher.name}) berhasil masuk ke sistem`);
+        
+        if (!isStaffAccount) {
+          try {
+            const homeroomClass = (payload.classes || []).find(c => String(c.homeroom || "").trim().toLowerCase() === userCode.toLowerCase());
+            if (homeroomClass) {
+                isWalas = true;
+                walasClass = homeroomClass.name;
+            }
+          } catch (e) {}
+        }
+        
+        try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [userCode, role, req.socket?.remoteAddress || '']); } catch {}
+        await logAudit(dbPool, { id: userCode, name: teacher.name || "Pengguna", role }, req, "LOGIN", "session", `${isStaffAccount ? "Karyawan/Staff" : "Guru"} (${teacher.name}) berhasil masuk ke sistem`);
+        
         const hasChangedPassword = teacher.hasChangedPassword === true;
         const isDefaultPassword = !hasChangedPassword;
-        send(req, res, 200, { ok: true, user: { role, code: teacher.code, name: teacher.name, division: teacher.division || "", isWalas, walasClass, isDefaultPassword, hasChangedPassword, authToken: createSession(role, { id: teacher.code, username: teacher.code, name: teacher.name }) } });
+        
+        send(req, res, 200, {
+          ok: true,
+          user: {
+            role,
+            code: userCode,
+            name: teacher.name,
+            division: teacher.division || "",
+            isWalas,
+            walasClass,
+            isDefaultPassword,
+            hasChangedPassword,
+            authToken: createSession(role, { id: userCode, username: userCode, name: teacher.name })
+          }
+        });
         return true;
       }
     } catch (err) {
