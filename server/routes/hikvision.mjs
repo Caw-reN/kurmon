@@ -301,7 +301,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           params.push(deviceId);
         }
         
-        query += " ORDER BY l.timestamp DESC LIMIT 1000";
+        query += " ORDER BY l.timestamp DESC LIMIT 10000";
         
         const { rows } = await dbPool.query(query, params);
         send(req, res, 200, { ok: true, logs: rows });
@@ -311,7 +311,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/hikvision/clear-test-logs") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         await dbPool.query("DELETE FROM hikvision_logs");
         const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
@@ -557,7 +559,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/hikvision/config") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const body = await readJsonBody(req);
         // Ensure we accept both legacy flat configs and new nested configs
@@ -770,7 +774,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "PUT" && url.pathname === "/api/hikvision/students/bulk") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const body = await readJsonBody(req);
         const updates = body.updates || [];
@@ -793,8 +799,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         send(req, res, 200, {
           ok: true,
-          message: `Berhasil memperbarui pemetaan ${updates.length} siswa secara massal${deviceMsg}.`,
-          devicePushResults
+          message: `Berhasil memperbarui pemetaan ${updates.length} siswa secara massal${deviceMsg}.`
         });
       } catch (err) {
         await dbPool.query('ROLLBACK').catch(() => {});
@@ -802,8 +807,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       }
       return;
     }
-    if (req.method === "PUT" && url.pathname.startsWith("/api/hikvision/students/")) {
-      if (!requireAuthenticated(req, res)) return;
+    if (req.method === "PUT" && url.pathname.startsWith("/api/hikvision/students/") && url.pathname !== "/api/hikvision/students/bulk") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const nis = url.pathname.split("/").pop();
         const body = await readJsonBody(req);
@@ -851,8 +858,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   WHERE m.payload->>'nis' = h.nis 
                      OR m.payload->>'code' = h.nis 
                      OR m.id = h.nis
-                     OR m.payload->>'nis' LIKE '%' || h.nis
-                     OR h.nis LIKE '%' || (m.payload->>'nis')
                      OR LOWER(TRIM(COALESCE(m.payload->>'name', m.payload->>'nama'))) = LOWER(TRIM(h.name))
                 )
                 AND NOT EXISTS (SELECT 1 FROM mst_teachers t WHERE t.payload->>'code' = h.nis OR t.payload->>'nip' = h.nis OR t.id = h.nis OR LOWER(t.payload->>'nama') = LOWER(h.name) OR LOWER(t.payload->>'name') = LOWER(h.name))
@@ -1134,9 +1139,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const pklPlacedSet = new Set(pklPlacedRes.rows.map(r => String(r.nis).trim().toLowerCase()));
 
         const pklLogbooksRes = await dbPool.query(`
-          SELECT student_nis, TO_CHAR(date, 'YYYY-MM-DD') as date_str, status, activity
+          SELECT student_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as date_str, status, kegiatan as activity
           FROM pkl_logbooks
-          WHERE EXTRACT(MONTH FROM date) = $1 AND EXTRACT(YEAR FROM date) = $2
+          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
         `, [month, year]).catch(() => ({ rows: [] }));
 
         const pklLogbookMap = {};

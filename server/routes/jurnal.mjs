@@ -96,21 +96,35 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         } else if (body.id) {
           // Update jurnal
           const submittedAt = body.status === 'submitted' ? new Date().toISOString() : null;
-          await dbPool.query(`
-            UPDATE jurnal_harian_guru 
-            SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
-                materi_pokok = $5, kegiatan_pembelajaran = $6,
-                metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
-                submitted_at = CASE WHEN $10::text IS NOT NULL THEN $10::timestamp ELSE submitted_at END,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = $11
-          `, [
+          const updateQuery = isAdmin 
+            ? `UPDATE jurnal_harian_guru 
+               SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
+                   materi_pokok = $5, kegiatan_pembelajaran = $6,
+                   metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
+                   submitted_at = CASE WHEN $10::text IS NOT NULL THEN $10::timestamp ELSE submitted_at END,
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = $11`
+            : `UPDATE jurnal_harian_guru 
+               SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
+                   materi_pokok = $5, kegiatan_pembelajaran = $6,
+                   metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
+                   submitted_at = CASE WHEN $10::text IS NOT NULL THEN $10::timestamp ELSE submitted_at END,
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = $11 AND teacher_code = $12`;
+          
+          const params = [
             body.kelas, body.mapel, body.jam_ke || 1, body.slot_label || '',
             body.materi_pokok, body.kegiatan_pembelajaran,
             body.metode_pembelajaran || 'Ceramah & Diskusi',
             body.catatan, body.jumlah_hadir || 0,
             submittedAt, body.id
-          ]);
+          ];
+          
+          if (!isAdmin) {
+            params.push(teacherCode);
+          }
+          
+          await dbPool.query(updateQuery, params);
         } else {
           // Insert jurnal baru
           const submittedAt = body.status === 'submitted' ? new Date().toISOString() : null;
