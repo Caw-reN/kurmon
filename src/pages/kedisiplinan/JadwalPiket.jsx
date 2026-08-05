@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from'react';
 import useAuthStore from'../../store/monitoring/authStore.js';
-import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2 } from'lucide-react';
+import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2, Search, X } from'lucide-react';
 import { Modal, Button } from '../../components/ui.jsx';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 
@@ -18,6 +18,7 @@ export default function JadwalPiket({ teachers = [] }) {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ hari:'Senin', kampus:'Kampus A', guru_ids: [], pj_code:'' });
+  const [searchGuru, setSearchGuru] = useState('');
   
   const [errorMsg, setErrorMsg] = useState("");
   const [toast, setToast] = useState(null);
@@ -127,6 +128,7 @@ export default function JadwalPiket({ teachers = [] }) {
 
   const openForm = (sched = null, defaultDay ="Senin") => {
     setErrorMsg("");
+    setSearchGuru("");
     if (sched) {
       setEditingId(sched.id);
       setForm({ 
@@ -296,21 +298,62 @@ export default function JadwalPiket({ teachers = [] }) {
             </div>
             
             <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Pilih Guru Piket</label>
-               <div className="max-h-[220px] overflow-y-auto border-none rounded-[var(--ui-radius-small)] p-2 space-y-1">
-                  {(teachers || []).map(t => {
-                     const isSelected = (form.guru_ids || []).includes(t.code);
-                     return (
-                         <Button variant="outline"
-                            type="button"
-                            key={t.code}
-                            onClick={() =>toggleTeacher(t.code)}
-                            className="w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer border-none"
-                         >
-                            <span>{t.name}</span>
-                            {isSelected && <CheckCircle2 size={16} className="text-primary shrink-0 ml-2" />}</Button>
-                     );
-                  })}
+               <div className="flex items-center justify-between mb-2">
+                 <label className="block text-sm font-bold text-slate-700">Pilih Guru Piket</label>
+                 <span className="text-xs font-bold text-[var(--ui-primary)] font-mono">{(form.guru_ids || []).length} Terpilih</span>
+               </div>
+
+               {/* Search Input Guru */}
+               <div className="relative mb-2">
+                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                 <input
+                   type="text"
+                   placeholder="Cari nama atau kode guru..."
+                   value={searchGuru}
+                   onChange={(e) => setSearchGuru(e.target.value)}
+                   className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
+                 />
+                 {searchGuru && (
+                   <button type="button" onClick={() => setSearchGuru('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                     <X size={13} />
+                   </button>
+                 )}
+               </div>
+
+               <div className="max-h-[200px] overflow-y-auto border border-slate-200/80 rounded-[var(--ui-radius-small)] p-2 space-y-1 bg-slate-50/50">
+                  {(() => {
+                    const filtered = (teachers || []).filter(t => {
+                      if (!searchGuru) return true;
+                      const q = searchGuru.toLowerCase();
+                      return (
+                        String(t.name || '').toLowerCase().includes(q) ||
+                        String(t.code || '').toLowerCase().includes(q)
+                      );
+                    });
+
+                    if (filtered.length === 0) {
+                      return <p className="text-xs text-slate-400 text-center py-4 italic font-medium">Guru "{searchGuru}" tidak ditemukan.</p>;
+                    }
+
+                    return filtered.map(t => {
+                       const isSelected = (form.guru_ids || []).includes(t.code);
+                       return (
+                           <Button variant="outline"
+                              type="button"
+                              key={t.code}
+                              onClick={() => toggleTeacher(t.code)}
+                              className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer border ${
+                                isSelected 
+                                  ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs" 
+                                  : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700"
+                              }`}
+                           >
+                              <span>{t.name} <span className="text-[10px] text-slate-400 font-mono ml-1">({t.code})</span></span>
+                              {isSelected && <CheckCircle2 size={16} className="text-emerald-600 shrink-0 ml-2" />}
+                           </Button>
+                       );
+                    });
+                  })()}
                </div>
                {form.guru_ids && form.guru_ids.filter(id => !teachers.find(t => t.code === id)).length > 0 && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">

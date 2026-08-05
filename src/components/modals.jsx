@@ -1,5 +1,5 @@
 import { Button } from '../components/ui.jsx';
-import { CheckCircle2, Download, Upload } from'lucide-react';
+import { CheckCircle2, Download, Upload, Search, X } from'lucide-react';
 import { FileSpreadsheet, FileText, CalendarDays, Sparkles, BookOpen, RefreshCw } from'lucide-react';
 import { Modal, UISelect } from './ui.jsx';
 ;
@@ -240,43 +240,77 @@ export function TeacherCompetencyModal({
   isOpen,
   onClose,
   teacher,
-  subjects,
+  subjects = [],
   teacherAvailability,
   setTeacherAvailability,
 }) {
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const filteredSubjects = (subjects || []).filter(s => {
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      String(s.name || "").toLowerCase().includes(q) ||
+      String(s.major || "").toLowerCase().includes(q) ||
+      String(s.grade || "").toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Kompetensi: ${teacher?.name ||"-"}`} maxWidth="max-w-6xl" scrollable={false}>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
-        {subjects.map((s) => {
-          const avail = teacherAvailability[teacher?.code] || { subjects: [] };
-          const isChecked = avail.subjects.includes(s.name);
-          return (
-            <label key={s.name} className={`flex items-center gap-2.5 p-2.5 rounded-[var(--ui-radius-small)] border cursor-pointer transition-all ${isChecked ?"bg-[#f4fbf6] border-[var(--ui-primary)] shadow-sm" :"bg-slate-50 border-slate-200 hover:border-emerald-300"}`}>
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-[var(--ui-primary)] shrink-0"
-                checked={isChecked}
-                onChange={(e) => {
-                  setTeacherAvailability((prev) => {
-                    const next = { ...prev };
-                    const current = next[teacher.code] || { days: [], subjects: [] };
-                    next[teacher.code] = {
-                      ...current,
-                      subjects: e.target.checked
-                        ? Array.from(new Set([...(current.subjects || []), s.name]))
-                        : (current.subjects || []).filter((sub) => sub !== s.name),
-                    };
-                    return next;
-                  });
-                }}
-              />
-              <div className="font-bold text-slate-800 text-xs leading-tight min-w-0">
-                <span className="truncate block">{s.name}</span>
-                <span className="text-[9px] font-black text-slate-400 block mt-0.5 truncate">{s.grade} - {s.major}</span>
-              </div>
-            </label>
-          );
-        })}
+    <Modal isOpen={isOpen} onClose={onClose} title={`Kompetensi Mapel: ${teacher?.name ||"-"}`} maxWidth="max-w-6xl" scrollable={false}>
+      <div className="mb-3.5 relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Cari mata pelajaran, jurusan, atau tingkat kelas..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
+        />
+        {searchTerm && (
+          <button type="button" onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <X size={13} />
+          </button>
+        )}
+      </div>
+
+      <div className="max-h-[380px] overflow-y-auto pr-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+        {filteredSubjects.length > 0 ? (
+          filteredSubjects.map((s) => {
+            const avail = teacherAvailability[teacher?.code] || { subjects: [] };
+            const isChecked = avail.subjects.includes(s.name);
+            return (
+              <label key={s.name} className={`flex items-center gap-2.5 p-2.5 rounded-[var(--ui-radius-small)] border cursor-pointer transition-all ${isChecked ?"bg-[#f4fbf6] border-[var(--ui-primary)] shadow-sm" :"bg-slate-50 border-slate-200 hover:border-emerald-300"}`}>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 accent-[var(--ui-primary)] shrink-0"
+                  checked={isChecked}
+                  onChange={(e) => {
+                    setTeacherAvailability((prev) => {
+                      const next = { ...prev };
+                      const current = next[teacher.code] || { days: [], subjects: [] };
+                      next[teacher.code] = {
+                        ...current,
+                        subjects: e.target.checked
+                          ? Array.from(new Set([...(current.subjects || []), s.name]))
+                          : (current.subjects || []).filter((sub) => sub !== s.name),
+                      };
+                      return next;
+                    });
+                  }}
+                />
+                <div className="font-bold text-slate-800 text-xs leading-tight min-w-0">
+                  <span className="truncate block">{s.name}</span>
+                  <span className="text-[9px] font-black text-slate-400 block mt-0.5 truncate">{s.grade} - {s.major}</span>
+                </div>
+              </label>
+            );
+          })
+        ) : (
+          <div className="col-span-full py-8 text-center text-xs text-slate-400 font-medium italic">
+            Mata pelajaran "{searchTerm}" tidak ditemukan.
+          </div>
+        )}
       </div>
       <div className="flex gap-3 pt-6 mt-4 border-t border-slate-100">
         <Button 
