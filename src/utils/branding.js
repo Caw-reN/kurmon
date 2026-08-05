@@ -114,13 +114,13 @@ export const applyDocumentBranding = (settings = {}) => {
 
   // Accessibility Font Scaling
   if (settings.fontSizeScale) {
-    let size = "15px";
-    if (settings.fontSizeScale === "kecil") size = "13px";
-    else if (settings.fontSizeScale === "besar") size = "16.5px";
-    else if (settings.fontSizeScale === "sangat-besar") size = "18px";
+    let size = "14px";
+    if (settings.fontSizeScale === "kecil") size = "12.5px";
+    else if (settings.fontSizeScale === "besar") size = "15.5px";
+    else if (settings.fontSizeScale === "sangat-besar") size = "17px";
     root.style.fontSize = size;
   } else {
-    root.style.fontSize = "15px";
+    root.style.fontSize = "14px";
   }
 
   // Accessibility Touch Targets
@@ -250,7 +250,7 @@ export const resetDocumentBranding = () => {
   root.style.removeProperty('--sidebar-primary');
   root.style.removeProperty('--font-sans');
   root.style.fontFamily = "";
-  root.style.fontSize = "15px";
+  root.style.fontSize = "14px";
   root.classList.remove(
     "accessibility-touch-large",
     "sidebar-white", "sidebar-gray", "sidebar-primary",

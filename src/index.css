@@ -59,10 +59,23 @@
   }
 
   html {
+    font-size: 14px;
     font-family: var(--font-sans-family, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply font-sans;
+  }
+
+  @media (max-width: 1440px) {
+    html {
+      font-size: 13.5px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    html {
+      font-size: 13px;
+    }
   }
 
   .font-script {
