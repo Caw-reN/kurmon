@@ -76,7 +76,7 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
   const handleProcessImport = async (jsonData) => {
     return new Promise((resolve) => {
       if (!setTeachers) {
-        showToast("Pengaturan data guru tidak tersedia secara langsung di tampilan ini.","warning");
+        showToast("Simulasi Import: Karena data guru saat ini menggunakan dummy data (atau fungsi setTeachers tidak diteruskan), import berhasil secara lokal tetapi tidak tersimpan permanen.","warning");
         
         // Update local store capacity just for simulation
         jsonData.forEach(row => {

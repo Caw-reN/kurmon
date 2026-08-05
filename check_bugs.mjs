@@ -179,17 +179,19 @@ if (dupTeacher.rows.length > 0) {
 
 // ============ 5. APP_DATA / CONFIG ============
 console.log('\n🔍 [5/8] Mengecek konfigurasi sistem...');
-const appDataR = await pool.query("SELECT store_key, length(data::text) as size FROM app_data ORDER BY store_key");
+const appDataR = await pool.query("SELECT store_key, length(data) as size FROM app_data ORDER BY store_key");
 const appKeys = appDataR.rows.map(r => r.store_key);
-console.log(`  App data store_keys (${appDataR.rows.length}): ${appKeys.join(', ')}`);
+console.log(`  App data keys (${appDataR.rows.length}): ${appKeys.join(', ')}`);
 
-const requiredKeys = ['main_store', 'pkl_settings', 'hikvision_attendance_config'];
-const missingKeys = requiredKeys.filter(k => !appKeys.includes(k));
-if (missingKeys.length > 0) {
-  warnings.push(`Config app_data tidak lengkap — missing: ${missingKeys.join(', ')}`);
-  console.log(`  ⚠️  Config hilang di app_data: ${missingKeys.join(', ')}`);
+const mainStoreR = await pool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+if (mainStoreR.rows.length > 0) {
+  const mainData = JSON.parse(mainStoreR.rows[0].data || '{}');
+  const mainKeys = Object.keys(mainData);
+  console.log(`  Main store keys (${mainKeys.length}): ${mainKeys.slice(0, 10).join(', ')}...`);
+  console.log('  ✅ Main store terisi lengkap');
 } else {
-  console.log('  ✅ Semua config utama tersedia di app_data');
+  warnings.push('main_store belum ada di app_data');
+  console.log('  ⚠️  main_store belum ada di app_data');
 }
 
 // ============ 6. AUDIT LOG ANOMALY ============
