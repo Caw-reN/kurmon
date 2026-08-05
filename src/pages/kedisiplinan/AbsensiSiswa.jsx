@@ -21,7 +21,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     }
     return"all";
   });
-  const [filterTanggal, setFilterTanggal] = useState(new Date().toISOString().split('T')[0]);
+  const [filterTanggal, setFilterTanggal] = useState("");
 
   const hasApprovalPermission = 
     ["admin", "superadmin", "tu", "tata_usaha", "kesiswaan"].includes(userRole) ||
@@ -132,7 +132,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const filteredItems = useMemo(() => {
+  const baseSuratItems = useMemo(() => {
     return items.filter(item => {
       // Exclude automatic machine HADIR logs from Surat Izin/Sakit management
       if (item.status === "Hadir" && item.pelapor_nama === "Mesin Hikvision") {
@@ -152,12 +152,27 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       const mSearch = search === "" || studentName.toLowerCase().includes(search.toLowerCase()) || String(item.siswa_nis).includes(search);
       const mKelas = filterKelas === "all" || studentClass === filterKelas;
       const mTanggal = filterTanggal === "" || itemDateStr === filterTanggal;
-      const mStatus = filterStatus === "all" 
-        || (filterStatus === "pending" ? item.approval_status === "pending" : item.status === filterStatus);
 
-      return mSearch && mKelas && mTanggal && mStatus;
+      return mSearch && mKelas && mTanggal;
     });
-  }, [items, search, filterKelas, filterTanggal, filterStatus, students, getItemDateStr]);
+  }, [items, search, filterKelas, filterTanggal, students, getItemDateStr]);
+
+  const filteredItems = useMemo(() => {
+    if (filterStatus === "all") return baseSuratItems;
+    if (filterStatus === "pending") return baseSuratItems.filter(i => i.approval_status === "pending");
+    return baseSuratItems.filter(i => i.status === filterStatus);
+  }, [baseSuratItems, filterStatus]);
+
+  const statusCounts = useMemo(() => {
+    return {
+      all: baseSuratItems.length,
+      pending: baseSuratItems.filter(i => i.approval_status === "pending").length,
+      Sakit: baseSuratItems.filter(i => i.status === "Sakit").length,
+      Izin: baseSuratItems.filter(i => i.status === "Izin").length,
+      Alpha: baseSuratItems.filter(i => i.status === "Alpha").length,
+      Terlambat: baseSuratItems.filter(i => i.status === "Terlambat").length,
+    };
+  }, [baseSuratItems]);
 
   const [activeTab, setActiveTab] = useState('surat_izin');
   const [matrixMonth, setMatrixMonth] = useState(() => {
@@ -383,12 +398,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         {/* Quick Filter Pills */}
         <div className="px-4 pt-3 pb-1 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center gap-2">
           {[
-            { id: "all", label: "Semua Record", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision")).length },
-            { id: "pending", label: "Pending Persetujuan", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision") && i.approval_status === "pending").length },
-            { id: "Sakit", label: "Sakit", count: items.filter(i => i.status === "Sakit").length },
-            { id: "Izin", label: "Izin", count: items.filter(i => i.status === "Izin").length },
-            { id: "Alpha", label: "Alpha", count: items.filter(i => i.status === "Alpha").length },
-            { id: "Terlambat", label: "Terlambat", count: items.filter(i => i.status === "Terlambat").length },
+            { id: "all", label: "Semua Record", count: statusCounts.all },
+            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending },
+            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit },
+            { id: "Izin", label: "Izin", count: statusCounts.Izin },
+            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha },
+            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat },
           ].map(tab => (
             <button
               key={tab.id}
