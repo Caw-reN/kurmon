@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import useAbsensiStore from '../../../store/monitoring/absensiStore';
 import { useAppStore } from '../../../store/useAppStore.js';
-import { ShieldCheck, RefreshCw, CheckCircle2, Clock, Calendar, AlertCircle, Fingerprint, MapPin, Camera, QrCode, PenLine, Navigation, Crosshair, Sparkles, Upload, ArrowRight, Check, X, ShieldAlert, FileText, User } from 'lucide-react';
+import { ShieldCheck, RefreshCw, CheckCircle2, Clock, Calendar, AlertCircle, Fingerprint, MapPin, Camera, QrCode, PenLine, Navigation, Crosshair, Sparkles, Upload, ArrowRight, Check, X, ShieldAlert, FileText, User, Loader2 } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { Button } from '../../../components/ui.jsx';
 
@@ -207,6 +207,11 @@ const StudentAbsensi = () => {
       return (rNis === myNis || !myNis) && d.getMonth() + 1 === filter.month && d.getFullYear() === filter.year;
     });
 
+    const todayDateObj = new Date();
+    const curYear = todayDateObj.getFullYear();
+    const curMonth = todayDateObj.getMonth() + 1;
+    const curDayNum = todayDateObj.getDate();
+
     const logsMap = {};
     let hadirCount = 0;
     let lateCount = 0;
@@ -218,8 +223,20 @@ const StudentAbsensi = () => {
       const d = new Date(filter.year, filter.month - 1, day);
       const dayOfWeek = d.getDay();
 
+      // Check if day is past, today, or future
+      let dayCat = 'future';
+      if (filter.year < curYear || (filter.year === curYear && filter.month < curMonth)) {
+        dayCat = 'past';
+      } else if (filter.year === curYear && filter.month === curMonth) {
+        if (day === curDayNum) dayCat = 'today';
+        else if (day < curDayNum) dayCat = 'past';
+        else dayCat = 'future';
+      } else {
+        dayCat = 'future';
+      }
+
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        logsMap[dateStr] = { status: 'Libur Akhir Pekan', isLibur: true };
+        logsMap[dateStr] = { status: 'Libur Akhir Pekan', isLibur: true, dayCat };
       } else {
         const found = filteredRecords.find(r => {
           const rDateStr = new Date(r.date || r.timestamp || r.created_at).toISOString().slice(0, 10);
@@ -229,17 +246,25 @@ const StudentAbsensi = () => {
         if (found) {
           const st = String(found.status || 'HADIR').toUpperCase();
           if (st.includes('TERLAMBAT') || st.includes('LATE')) {
-            logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || '16:00' };
+            logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || '16:00', dayCat };
             lateCount++;
           } else if (st.includes('IZIN') || st.includes('SAKIT')) {
-            logsMap[dateStr] = { status: 'Izin', isIzin: true, timeIn: found.timeIn || '08:00' };
+            logsMap[dateStr] = { status: 'Izin / Sakit', isIzin: true, timeIn: found.timeIn || '08:00', dayCat };
             izinCount++;
           } else if (st.includes('ALPA')) {
-            logsMap[dateStr] = { status: 'Alpa', isAlpa: true };
+            logsMap[dateStr] = { status: 'Alpa', isAlpa: true, dayCat };
             alpaCount++;
           } else {
-            logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || '16:00' };
+            logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || '16:00', dayCat };
             hadirCount++;
+          }
+        } else {
+          if (dayCat === 'past') {
+            logsMap[dateStr] = { status: 'Belum Absen', isMissing: true, dayCat };
+          } else if (dayCat === 'today') {
+            logsMap[dateStr] = { status: 'Belum Absen', isToday: true, dayCat };
+          } else {
+            logsMap[dateStr] = { status: '-', isFuture: true, dayCat };
           }
         }
       }
@@ -304,127 +329,159 @@ const StudentAbsensi = () => {
         </div>
       )}
 
-      {/* ── 1. HEADER BANNER MATCHING DASHBOARD DESIGN ── */}
+      {/* ── 1. HEADER BANNER REDESIGNED ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-black text-slate-900 text-base sm:text-lg">Presensi &amp; Kehadiran Siswa</h2>
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
-            <Calendar size={14} className="text-emerald-600" /> Hari Ini, {dateFormatted}
+          <h2 className="font-black text-slate-900 text-base sm:text-lg tracking-tight">Presensi &amp; Kehadiran Siswa</h2>
+          <span className="bg-slate-100 text-slate-700 border border-slate-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+            <Calendar size={14} className="text-indigo-600" /> Hari Ini, {dateFormatted}
           </span>
         </div>
 
-        {/* Clean Green Banner Card matching Dashboard Theme & Radius */}
-        <div 
-          className="rounded-[var(--ui-radius-card,24px)] p-6 sm:p-7 text-white space-y-5 relative overflow-hidden transition-all shadow-[var(--ui-shadow-card)]"
-          style={{ backgroundColor: primaryColor }}
-        >
-          {/* Top Row: Status Pill & Attendance Method Badges */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="bg-white/20 border border-white/30 backdrop-blur-md rounded-full px-3.5 py-1 text-xs font-bold text-white inline-flex items-center gap-1.5">
-              <Fingerprint size={14} /> Presensi GPS &amp; Mesin Tap
-            </span>
+        {/* Premium Dark Slate-Indigo Card */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+          {/* Subtle Glow Backdrop Effects */}
+          <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute right-1/3 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            <div className="text-right">
-              <span className="text-[9px] text-white/80 font-bold uppercase tracking-widest block">STATUS PRESENSI HARI INI</span>
-              <span className="font-black text-sm text-white tracking-wider">
-                {todayStatus ? `TERCATAT (${todayStatus.time})` : 'BELUM PRESENSI'}
-              </span>
+          {/* Top Bar: Status Pill & Methods */}
+          <div className="flex flex-wrap items-center justify-between gap-3 relative z-10 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-bold">
+              <Fingerprint size={15} className="text-emerald-400" />
+              <span>Presensi GPS &amp; Mesin Tap</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:inline">Status Presensi Hari Ini:</span>
+              {todayStatus ? (
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1.5 shadow-xs">
+                  <CheckCircle2 size={14} className="text-emerald-400" /> PRESENSI TERCATAT ({todayStatus.time})
+                </span>
+              ) : (
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1.5 animate-pulse shadow-xs">
+                  <Clock size={14} className="text-amber-400" /> BELUM PRESENSI
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Student & Location Typography Section */}
-          <div className="space-y-3">
+          {/* Student Info & Company Details */}
+          <div className="mt-5 space-y-4 relative z-10">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight uppercase">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 block mb-1">
+                Data Siswa
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
                 {user?.name || user?.nama || user?.username || 'ADAM PUTRA SETIAWAN'}
               </h1>
-              <div className="flex items-center gap-2 mt-1.5 text-xs font-extrabold text-white/90 flex-wrap">
-                <span className="bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-lg">
-                  NIS: {user?.username || user?.nis || '242510001'}
+              <div className="flex items-center gap-2 mt-2 flex-wrap text-xs font-bold">
+                <span className="bg-white/10 backdrop-blur-md border border-white/15 px-3 py-1 rounded-xl text-slate-200">
+                  NIS: <strong className="text-white">{user?.username || user?.nis || '242510001'}</strong>
                 </span>
-                <span className="bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-lg">
-                  Kelas: {user?.class_name || user?.kelas || 'XII TKR 1'}
+                <span className="bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-xl text-emerald-300">
+                  Kelas: <strong className="text-white">{user?.class_name || user?.kelas || 'XII TKR 1'}</strong>
                 </span>
               </div>
             </div>
 
-            {/* Sleek Horizontal Divider & PKL Details */}
-            <div className="border-t border-white/20 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold text-white/90">
-              <div className="flex items-center gap-1.5 truncate">
-                <MapPin size={14} className="text-white/80 shrink-0" />
-                <span className="truncate">Perusahaan: <strong className="font-bold text-white">{pklData?.nama_perusahaan || 'PT. TELKOM INDONESIA - DIVISI DIGITAL'}</strong></span>
+            {/* PKL & Distance Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-medium text-slate-300">
+              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30">
+                  <MapPin size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Perusahaan PKL</p>
+                  <p className="font-bold text-white truncate">{pklData?.nama_perusahaan || 'PT. TELKOM INDONESIA - DIVISI DIGITAL'}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Navigation size={14} className="text-white/80 shrink-0" />
-                <span>Batas Radius GPS: <strong className="font-bold text-white">{allowedRadius} Meter</strong></span>
+
+              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                  <Navigation size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Batas Radius GPS</p>
+                  <p className="font-bold text-white"><strong className="text-emerald-400">{allowedRadius} Meter</strong> dari Perusahaan</p>
+                </div>
               </div>
+            </div>
+
+            {/* Main Action Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!userCoords) getLiveLocation();
+                  setShowFormModal(true);
+                }}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-2xl py-4 px-6 text-sm font-black flex items-center justify-center gap-3 shadow-lg shadow-emerald-950/40 border border-emerald-400/30 cursor-pointer transition-all active:scale-[0.99] group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Fingerprint size={20} className="text-white" />
+                </div>
+                <span className="tracking-wide">FORM ABSEN LIVE SHARELOK GPS</span>
+                <ArrowRight size={18} className="text-white/80 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
           </div>
-
-          {/* Main Action Button */}
-          <button 
-            type="button"
-            onClick={() => {
-              if (!userCoords) getLiveLocation();
-              setShowFormModal(true);
-            }}
-            className="w-full bg-white hover:bg-emerald-50 text-[var(--ui-primary,#064e3b)] rounded-[var(--ui-radius-control,16px)] py-3.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-xs cursor-pointer border-none transition-all active:scale-[0.99]"
-          >
-            <Fingerprint size={18} />
-            <span>Form Absen Live Sharelok GPS</span>
-          </button>
         </div>
       </div>
 
       {/* ── 2. SUMMARY STAT CARDS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-white p-5 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] flex flex-col justify-between h-24">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tepat Waktu</span>
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small,12px)] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
               <CheckCircle2 size={16} />
             </div>
           </div>
-          <h4 className="text-xl font-black text-emerald-700 leading-none">{totalHadir} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
+          <h4 className="text-2xl font-black text-emerald-600 leading-none">{totalHadir} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
         </div>
 
-        <div className="bg-white p-5 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] flex flex-col justify-between h-24">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Terlambat</span>
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small,12px)] bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
               <Clock size={16} />
             </div>
           </div>
-          <h4 className="text-xl font-black text-amber-700 leading-none">{totalTerlambat} <span className="text-xs font-bold text-slate-400">Kali</span></h4>
+          <h4 className="text-2xl font-black text-amber-600 leading-none">{totalTerlambat} <span className="text-xs font-bold text-slate-400">Kali</span></h4>
         </div>
 
-        <div className="bg-white p-5 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] flex flex-col justify-between h-24">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Izin / Sakit</span>
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small,12px)] bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
               <Calendar size={16} />
             </div>
           </div>
-          <h4 className="text-xl font-black text-sky-700 leading-none">{totalIzinSakit} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
+          <h4 className="text-2xl font-black text-sky-600 leading-none">{totalIzinSakit} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
         </div>
 
-        <div className="bg-white p-5 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] flex flex-col justify-between h-24">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Alpa</span>
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small,12px)] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
               <AlertCircle size={16} />
             </div>
           </div>
-          <h4 className="text-xl font-black text-rose-700 leading-none">{totalAlpa} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
+          <h4 className="text-2xl font-black text-rose-600 leading-none">{totalAlpa} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
         </div>
       </div>
 
       {/* ── 3. CALENDAR & HISTORY GRID CONTAINER ── */}
-      <div className="bg-white p-6 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] space-y-4">
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <h3 className="text-sm font-black text-slate-900">
-            Kalender Absensi Bulan {months.find(m => m.value === filter.month)?.label || ''} {filter.year}
-          </h3>
+          <div>
+            <h3 className="text-base font-black text-slate-900 tracking-tight">
+              Kalender Absensi Bulan {months.find(m => m.value === filter.month)?.label || ''} {filter.year}
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Pantau riwayat presensi harian secara real-time
+            </p>
+          </div>
 
           <div className="flex items-center gap-2">
             <CustomSelect
@@ -432,7 +489,7 @@ const StudentAbsensi = () => {
               value={filter.month}
               onChange={(val) => setFilter(f => ({ ...f, month: Number(val) }))}
               placeholder="Bulan"
-              className="w-32"
+              className="w-36"
             />
             <CustomSelect
               options={years}
@@ -449,37 +506,77 @@ const StudentAbsensi = () => {
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
             const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const record = records[dateStr];
-            const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === filter.month;
+            
+            const isToday = record?.dayCat === 'today';
+            const isFuture = record?.dayCat === 'future';
+
+            let boxStyle = "bg-white border-slate-200/80 hover:border-slate-300";
+            let statusText = record?.status || '-';
+            let textColor = "text-slate-400";
+            let icon = null;
+
+            if (record?.isHadir) {
+              boxStyle = "bg-emerald-50/70 border-emerald-200/80 shadow-2xs";
+              statusText = "Tepat Waktu";
+              textColor = "text-emerald-700 font-black";
+              icon = <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />;
+            } else if (record?.isLate) {
+              boxStyle = "bg-amber-50/70 border-amber-200/80 shadow-2xs";
+              statusText = "Terlambat";
+              textColor = "text-amber-700 font-black";
+              icon = <Clock size={15} className="text-amber-600 shrink-0" />;
+            } else if (record?.isIzin) {
+              boxStyle = "bg-sky-50/70 border-sky-200/80 shadow-2xs";
+              statusText = "Izin / Sakit";
+              textColor = "text-sky-700 font-black";
+              icon = <Calendar size={15} className="text-sky-600 shrink-0" />;
+            } else if (record?.isAlpa) {
+              boxStyle = "bg-rose-50/70 border-rose-200/80 shadow-2xs";
+              statusText = "Alpa";
+              textColor = "text-rose-700 font-black";
+              icon = <AlertCircle size={15} className="text-rose-600 shrink-0" />;
+            } else if (record?.isLibur) {
+              boxStyle = "bg-slate-50/80 border-slate-200/60 opacity-60";
+              statusText = "Libur Pekan";
+              textColor = "text-slate-400 font-bold";
+            } else if (isToday) {
+              boxStyle = "bg-indigo-50/50 border-indigo-300 ring-2 ring-indigo-500/30 shadow-sm";
+              statusText = todayStatus ? "Presensi Recorded" : "Belum Absen";
+              textColor = todayStatus ? "text-emerald-600 font-black" : "text-amber-600 font-black";
+              icon = todayStatus ? <CheckCircle2 size={15} className="text-emerald-600" /> : <Clock size={15} className="text-amber-500" />;
+            } else if (record?.isMissing) {
+              boxStyle = "bg-slate-50/50 border-slate-200/60";
+              statusText = "Belum Absen";
+              textColor = "text-slate-400 font-bold";
+            } else if (isFuture) {
+              boxStyle = "bg-slate-50/30 border-slate-100 opacity-40";
+              statusText = "-";
+              textColor = "text-slate-300 font-medium";
+            }
 
             return (
               <div 
                 key={day}
-                className={`p-3.5 rounded-[var(--ui-radius-control,16px)] border transition-all flex flex-col justify-between h-24 ${
-                  isToday 
-                    ? 'border-emerald-500 ring-2 ring-emerald-100 bg-white shadow-xs' 
-                    : record?.isHadir 
-                    ? 'bg-emerald-50/60 border-emerald-100'
-                    : record?.isLate
-                    ? 'bg-amber-50/60 border-amber-100'
-                    : record?.isLibur
-                    ? 'bg-slate-50 border-slate-100 opacity-60'
-                    : 'bg-white border-slate-100'
-                }`}
+                className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between h-24 ${boxStyle}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-xs text-slate-800">{day}</span>
-                  {record?.isHadir && <CheckCircle2 size={14} className="text-emerald-600" />}
-                  {record?.isLate && <Clock size={14} className="text-amber-600" />}
+                  <span className={`font-black text-xs ${isToday ? 'text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded-md' : 'text-slate-800'}`}>
+                    {day}
+                  </span>
+                  {isToday && !record?.isHadir && (
+                    <span className="text-[8px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded tracking-wide">
+                      Hari Ini
+                    </span>
+                  )}
+                  {icon}
                 </div>
 
                 <div>
-                  <p className={`text-[10px] font-black uppercase ${
-                    record?.isHadir ? 'text-emerald-700' : record?.isLate ? 'text-amber-700' : 'text-slate-400'
-                  }`}>
-                    {record?.status || 'Belum Absen'}
+                  <p className={`text-[10px] uppercase truncate ${textColor}`}>
+                    {statusText}
                   </p>
                   {record?.timeIn && (
-                    <p className="text-[9px] font-mono text-slate-500 font-semibold mt-0.5">
+                    <p className="text-[9px] font-mono text-slate-500 font-semibold mt-0.5 truncate">
                       {record.timeIn} - {record.timeOut || '16:00'}
                     </p>
                   )}
@@ -493,15 +590,50 @@ const StudentAbsensi = () => {
       {/* ── SHARELOK ABSEN MODAL ── */}
       {showFormModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowFormModal(false)}>
-          <div className="bg-white w-full max-w-lg rounded-[var(--ui-radius-card,24px)] p-6 space-y-5 shadow-[var(--ui-shadow-modal)] border border-slate-100" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-150" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <MapPin className="text-[var(--ui-primary,#064e3b)]" size={20} />
-                <h3 className="font-black text-slate-800 text-base">Konfirmasi Absen Sharelok</h3>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                  <MapPin size={18} />
+                </div>
+                <h3 className="font-black text-slate-800 text-base">Konfirmasi Absen Sharelok GPS</h3>
               </div>
               <button type="button" onClick={() => setShowFormModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer">
                 <X size={16} />
               </button>
+            </div>
+
+            {/* GPS Radius Distance Status Card */}
+            <div className={`p-4 rounded-2xl border text-xs space-y-1 ${
+              locatingGPS 
+                ? 'bg-sky-50 border-sky-200 text-sky-800'
+                : userCoords && withinRadius
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : userCoords && !withinRadius
+                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                : 'bg-amber-50 border-amber-200 text-amber-900'
+            }`}>
+              <div className="flex items-center justify-between font-extrabold">
+                <span className="flex items-center gap-1.5">
+                  <Navigation size={15} /> Status Lokasi GPS:
+                </span>
+                {locatingGPS ? (
+                  <span className="flex items-center gap-1 text-sky-600"><Loader2 size={14} className="animate-spin" /> Mendeteksi...</span>
+                ) : userCoords && withinRadius ? (
+                  <span className="text-emerald-700 font-black uppercase">✔ Didalam Radius</span>
+                ) : userCoords && !withinRadius ? (
+                  <span className="text-rose-700 font-black uppercase">✖ Diluar Radius</span>
+                ) : (
+                  <span className="text-amber-700 font-black uppercase">Perlu Lokasi</span>
+                )}
+              </div>
+
+              {userCoords && distanceMeters !== null && (
+                <p className="font-medium text-[11px] mt-1">
+                  Jarak Anda saat ini: <strong className="font-bold">{distanceMeters} meter</strong> dari koordinat perusahaan (Batas Maksimal: {allowedRadius}m).
+                </p>
+              )}
+              {gpsError && <p className="text-rose-600 font-bold text-[11px] mt-1">{gpsError}</p>}
             </div>
 
             {metode?.selfie && (
@@ -510,14 +642,14 @@ const StudentAbsensi = () => {
                   <Camera size={14} className="text-sky-600" /> Foto Selfie Mandatory
                 </label>
                 {selfiePhoto ? (
-                  <div className="relative w-full h-36 rounded-[var(--ui-radius-control,16px)] overflow-hidden border border-slate-200">
+                  <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-slate-200">
                     <img src={selfiePhoto} alt="Selfie" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setSelfiePhoto(null)} className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/70 text-white border-none cursor-pointer">
+                    <button type="button" onClick={() => setSelfiePhoto(null)} className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/70 text-white border-none cursor-pointer hover:bg-slate-900">
                       <X size={14} />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center h-28 rounded-[var(--ui-radius-control,16px)] border-2 border-dashed border-slate-200 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors">
+                  <label className="flex flex-col items-center justify-center h-28 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors">
                     <Camera size={24} className="text-slate-400 mb-1" />
                     <span className="text-xs font-bold text-slate-600">Ambil / Upload Foto Selfie</span>
                     <input type="file" accept="image/*" capture="user" onChange={handlePhotoUpload} className="hidden" />
@@ -531,7 +663,7 @@ const StudentAbsensi = () => {
                 type="button" 
                 onClick={() => handleDoAbsen('masuk')} 
                 disabled={checkingIn} 
-                className="py-3 rounded-[var(--ui-radius-control,16px)] bg-[var(--ui-primary,#064e3b)] text-white text-xs font-black shadow-xs border-none cursor-pointer hover:opacity-90 transition-opacity"
+                className="py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md border-none cursor-pointer transition-all active:scale-[0.98]"
               >
                 Absen Masuk
               </button>
@@ -539,7 +671,7 @@ const StudentAbsensi = () => {
                 type="button" 
                 onClick={() => handleDoAbsen('pulang')} 
                 disabled={checkingIn} 
-                className="py-3 rounded-[var(--ui-radius-control,16px)] bg-slate-800 text-white text-xs font-black shadow-xs border-none cursor-pointer hover:bg-slate-900 transition-colors"
+                className="py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-black shadow-md border-none cursor-pointer transition-all active:scale-[0.98]"
               >
                 Absen Pulang
               </button>
