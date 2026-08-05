@@ -1596,36 +1596,36 @@ export default function DashboardPage({
             <span className="w-2 h-2 rounded-full bg-[var(--ui-primary)] inline-block"></span>
             Statistik Utama
           </h2>
-          <span className="text-[10px] font-bold text-slate-400">Real-time Overview</span>
+          <span className="text-[10px] font-bold text-slate-400">Ringkasan Real-time</span>
         </div>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {topCards.map((card, idx) => {
-            const colorPalettes = [
-              { bg: 'bg-emerald-50/80 border-emerald-200/70 text-emerald-700', iconBg: 'bg-emerald-500 text-white shadow-emerald-200', text: 'text-emerald-900', badge: 'bg-emerald-100/90 text-emerald-800' },
-              { bg: 'bg-sky-50/80 border-sky-200/70 text-sky-700', iconBg: 'bg-sky-500 text-white shadow-sky-200', text: 'text-sky-900', badge: 'bg-sky-100/90 text-sky-800' },
-              { bg: 'bg-purple-50/80 border-purple-200/70 text-purple-700', iconBg: 'bg-purple-500 text-white shadow-purple-200', text: 'text-purple-900', badge: 'bg-purple-100/90 text-purple-800' },
-              { bg: 'bg-amber-50/80 border-amber-200/70 text-amber-700', iconBg: 'bg-amber-500 text-white shadow-amber-200', text: 'text-amber-900', badge: 'bg-amber-100/90 text-amber-800' },
+            const cardThemes = [
+              { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/60' },
+              { iconBg: 'bg-sky-50 text-sky-600 border-sky-100', badge: 'bg-sky-50 text-sky-700 border-sky-200/60' },
+              { iconBg: 'bg-amber-50 text-amber-600 border-amber-100', badge: 'bg-amber-50 text-amber-700 border-amber-200/60' },
+              { iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/60' },
             ];
-            const palette = colorPalettes[idx % colorPalettes.length];
+            const theme = cardThemes[idx % cardThemes.length];
 
             return (
               <button 
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white p-4 sm:p-4.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all duration-300 group cursor-pointer text-left w-full relative overflow-hidden"
+                className="bg-white p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
               >
                 <div className="flex items-center justify-between w-full mb-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center p-2 shrink-0 shadow-md ${palette.iconBg}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
                     {typeof card.icon === 'string' ? (
-                      <img src={card.icon} className="w-5 h-5 object-contain filter brightness-0 invert" alt="" />
+                      <img src={card.icon} className="w-5 h-5 object-contain" alt="" />
                     ) : (
-                      <card.icon size={20} strokeWidth={2.2} />
+                      <card.icon size={19} strokeWidth={2.2} />
                     )}
                   </div>
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white flex items-center justify-center transition-all duration-200">
-                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                  <div className="w-6 h-6 rounded-lg bg-slate-50 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-100">
+                    <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
 
@@ -1633,12 +1633,12 @@ export default function DashboardPage({
                   <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none mb-1">
                     {card.value}
                   </h3>
-                  <div className="flex items-center justify-between gap-1 mt-1">
-                    <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-500 uppercase tracking-wider truncate">
+                  <div className="flex items-center justify-between gap-1 mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
                       {card.label}
                     </p>
                     {card.sub && (
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${palette.badge}`}>
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${theme.badge}`}>
                         {card.sub}
                       </span>
                     )}
@@ -1656,41 +1656,41 @@ export default function DashboardPage({
         
         {/* Full-width Ringkasan & Grafik Card */}
         <div className="w-full flex flex-col gap-4">
-          <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 sm:p-6 flex flex-col flex-1 min-h-[440px]">
+          <div className="bg-white border border-slate-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-4 sm:p-5 flex flex-col flex-1 min-h-[440px]">
             
             {/* Header Bar: Tabs Navigation & Export Action */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/60">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl border border-slate-200/60">
                 <button
                   type="button"
                   onClick={() => setActiveMiddleTab('ringkasan')}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
                     activeMiddleTab === 'ringkasan'
-                      ? 'bg-[var(--ui-primary)] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 bg-transparent'
+                      ? 'bg-white text-slate-800 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
                 >
-                  <img src="/icons/046-report.svg" alt="Ringkasan" className={`w-4 h-4 transition-transform ${activeMiddleTab === 'ringkasan' ? 'brightness-0 invert' : ''}`} />
+                  <img src="/icons/046-report.svg" alt="Ringkasan" className="w-4 h-4 opacity-85" />
                   <span>Ringkasan System</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveMiddleTab('statistik')}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
                     activeMiddleTab === 'statistik'
-                      ? 'bg-[var(--ui-primary)] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 bg-transparent'
+                      ? 'bg-white text-slate-800 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
                 >
-                  <img src="/icons/035-graph bar.svg" alt="Statistik" className={`w-4 h-4 transition-transform ${activeMiddleTab === 'statistik' ? 'brightness-0 invert' : ''}`} />
+                  <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-4 h-4 opacity-85" />
                   <span>Statistik & Visualisasi</span>
                 </button>
               </div>
 
               {activeMiddleTab === 'ringkasan' && (
-                <button className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95">
-                  <Printer size={15} className="text-slate-500" /> 
+                <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95">
+                  <Printer size={14} className="text-slate-500" /> 
                   <span>Export Ringkasan</span>
                 </button>
               )}
@@ -1700,7 +1700,7 @@ export default function DashboardPage({
             {activeMiddleTab === 'ringkasan' && (
               <div className="flex flex-col flex-1 animate-in fade-in duration-200">
                 {/* Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-3.5">
                   {[
                     { id:"semua", label:"Semua", count: summaryRows.length },
                     { id:"selesai", label:"Selesai", count: summaryRows.filter(r => r.statusLabel ==="Selesai").length },
@@ -1710,14 +1710,14 @@ export default function DashboardPage({
                     <button
                       key={tab.id}
                       onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 ${
                         activeDataTab === tab.id
-                          ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm"
-                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                          ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs font-extrabold"
+                          : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-800"
                       }`}
                     >
                       <span>{tab.label}</span>
-                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                      <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-md ${
                         activeDataTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                       }`}>
                         {tab.count}
@@ -1727,34 +1727,34 @@ export default function DashboardPage({
                 </div>
 
                 {/* Compact List View */}
-                <div className="flex flex-col gap-2.5 overflow-y-auto pr-1 pb-2 flex-1 min-h-[300px]">
+                <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2 flex-1 min-h-[300px]">
                   {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
-                    <div key={i} className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50/90 border border-slate-100 hover:border-slate-200/80 transition-all group cursor-default shadow-2xs bg-white">
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200/70 transition-all group cursor-default bg-white">
                       {/* Icon Box */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${row.iconBg} ${row.iconColor}`}>
-                        <row.icon size={18} strokeWidth={2.2} />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
+                        <row.icon size={17} strokeWidth={2.2} />
                       </div>
                       
                       {/* Title & Detail */}
                       <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 items-center">
                         <div className="flex flex-col">
-                          <span className="font-extrabold text-slate-800 text-xs sm:text-sm truncate">{row.label}</span>
-                          <span className="text-[11px] text-slate-400 font-medium truncate mt-0.5">{row.note}</span>
+                          <span className="font-bold text-slate-800 text-xs truncate">{row.label}</span>
+                          <span className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">{row.note}</span>
                         </div>
 
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-base font-black text-slate-900 leading-none">{row.count.split(" ")[0]}</span>
-                          <span className="text-[11px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
+                          <span className="text-sm font-black text-slate-900 leading-none">{row.count.split(" ")[0]}</span>
+                          <span className="text-[10px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
                         </div>
 
-                        <div className="hidden sm:flex flex-col gap-1.5 w-full max-w-[150px]">
+                        <div className="hidden sm:flex flex-col gap-1.5 w-full max-w-[140px]">
                            <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
-                              <span className="text-[11px] font-black text-slate-800">{row.progress}%</span>
+                              <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
+                              <span className="text-[10px] font-black text-slate-700">{row.progress}%</span>
                            </div>
-                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 p-0.5">
+                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                               <div
-                                className="h-full rounded-full transition-all duration-700 shadow-2xs"
+                                className="h-full rounded-full transition-all duration-700"
                                 style={{ width: `${row.progress}%`, background: row.progress === 100 ? "#10b981" : row.progress > 0 ? "var(--ui-primary)" : "#cbd5e1" }}
                               />
                            </div>
@@ -1762,12 +1762,12 @@ export default function DashboardPage({
                       </div>
 
                       {/* Status Badge */}
-                      <div className="shrink-0 w-[95px] text-right flex flex-col items-end gap-1">
-                        <span className={`inline-flex items-center justify-center min-w-[78px] gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
+                      <div className="shrink-0 w-[90px] text-right flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center justify-center min-w-[76px] gap-1 px-2.5 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider border ${
                           row.statusLabel === 'Selesai' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' 
                             : row.statusLabel === 'In Progress' 
-                            ? 'bg-amber-50 text-amber-700 border-amber-200/80 animate-pulse'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200/80'
                             : 'bg-slate-50 text-slate-500 border-slate-200/80'
                         }`}>
                           {row.statusLabel}
@@ -1777,8 +1777,8 @@ export default function DashboardPage({
                     </div>
                   ))}
                   {filteredRows.length === 0 && (
-                    <div className="py-12 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                      <img src="/icons/046-report.svg" alt="Empty" className="w-10 h-10 opacity-30 mb-2" />
+                    <div className="py-10 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                      <img src="/icons/046-report.svg" alt="Empty" className="w-9 h-9 opacity-30 mb-2" />
                       <p className="text-xs font-bold text-slate-500">Tidak ada data untuk kategori ini</p>
                     </div>
                   )}
@@ -1786,18 +1786,18 @@ export default function DashboardPage({
 
                 {/* Pagination Controls */}
                 {filteredRows.length > 5 && (
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length} data</span>
-                    <div className="flex items-center gap-2">
+                  <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length} data</span>
+                    <div className="flex items-center gap-1.5">
                       <Button variant="outline" 
                         disabled={summaryPage === 0} 
                         onClick={() => setSummaryPage(p => p - 1)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                       >Sebelumnya</Button>
                       <Button variant="outline" 
                         disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
                         onClick={() => setSummaryPage(p => p + 1)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                       >Berikutnya</Button>
                     </div>
                   </div>
@@ -1832,28 +1832,25 @@ export default function DashboardPage({
 
           {/* Rekomendasi Aksi System */}
           {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
-            <div className="bg-amber-50/90 border border-amber-200/90 shadow-xs rounded-[var(--ui-radius-card)] p-4 sm:p-5 flex items-start gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-2xl bg-amber-400/90 text-slate-950 flex items-center justify-center shadow-xs">
-                <AlertTriangle size={22} strokeWidth={2.2} />
+            <div className="bg-amber-50/80 border border-amber-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-4 sm:p-4.5 flex items-start gap-3.5">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-2xs">
+                <AlertTriangle size={20} strokeWidth={2.2} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-black text-amber-950 tracking-tight">Rekomendasi Aksi Sistem</h3>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 border border-amber-300/60">
-                    Perhatian
-                  </span>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="text-xs font-black text-amber-950 tracking-tight uppercase">Rekomendasi Aksi Sistem</h3>
                 </div>
-                <ul className="text-xs text-amber-900 font-medium space-y-1.5 mt-2">
+                <ul className="text-xs text-amber-900 font-medium space-y-1 mt-1">
                   {summaryRows.filter(r => r.statusLabel === "Belum Ada").slice(0, 2).map((r, i) => (
                      <li key={i} className="flex items-center gap-2">
                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Segera lengkapi data <strong className="font-black text-amber-950">{r.label}</strong> agar sistem berjalan optimal.</span>
+                       <span>Segera lengkapi data <strong className="font-extrabold text-amber-950">{r.label}</strong> agar sistem berjalan optimal.</span>
                      </li>
                   ))}
                   {summaryRows.filter(r => r.statusLabel === "In Progress").slice(0, 1).map((r, i) => (
                      <li key={`p-${i}`} className="flex items-center gap-2">
                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Lanjutkan pengisian <strong className="font-black text-amber-950">{r.label}</strong> yang baru mencapai <span className="px-1.5 py-0.5 rounded bg-amber-200/80 font-black text-amber-950">{r.progress}%</span>.</span>
+                       <span>Lanjutkan pengisian <strong className="font-extrabold text-amber-950">{r.label}</strong> yang baru mencapai <span className="px-1.5 py-0.2 rounded bg-amber-200/80 font-black text-amber-950">{r.progress}%</span>.</span>
                      </li>
                   ))}
                 </ul>
