@@ -336,7 +336,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       )}
 
       {/* ── Sub Navigation Tabs ────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-200/70">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setSubTab('ews')}
@@ -360,7 +360,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
             <HeartHandshake size={15} />
             <span>Sesi Konseling</span>
             {bkSessions.length > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white">
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono">
                 {bkSessions.length}
               </span>
             )}
@@ -406,9 +406,9 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               });
               setShowSessionModal(true);
             }}
-            className="px-3.5 py-2 text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-xl"
           >
-            <Plus size={15} />
+            <Plus size={15} strokeWidth={2.5} />
             <span>Catat Konseling</span>
           </Button>
         </div>
@@ -420,65 +420,77 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           {/* Stat Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
-              title="Kasus / Sesi Aktif"
+              label="Kasus / Sesi Aktif"
               value={bkSessions.filter(s => s.status === 'Berjalan' || s.status === 'Follow-up').length}
-              description="Perlu penanganan & pendampingan"
+              sub="Perlu penanganan & pendampingan"
               icon={Clock}
-              iconBgClass="bg-amber-50 text-amber-600"
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
             />
             <StatCard
-              title="Siswa Resiko Tinggi"
+              label="Siswa Resiko Tinggi"
               value={highRiskStudents.filter(s => s.risk_level === 'Tinggi').length}
-              description="Total Poin > 75 atau > 5 Sesi"
+              sub="Total Poin > 75 atau > 5 Sesi"
               icon={ShieldAlert}
-              iconBgClass="bg-rose-50 text-rose-600"
+              iconBg="bg-rose-50"
+              iconColor="text-rose-600"
             />
             <StatCard
-              title="Kunjungan Rumah (Month)"
+              label="Kunjungan Rumah"
               value={homeVisits.length}
-              description="Home visit terlaksana"
+              sub="Home visit terlaksana"
               icon={Home}
-              iconBgClass="bg-sky-50 text-sky-600"
+              iconBg="bg-sky-50"
+              iconColor="text-sky-600"
             />
             <StatCard
-              title="Surat Terbit (Month)"
+              label="Surat Ortu & SP"
               value={bkLetters.length}
-              description="Surat Panggilan & SP"
+              sub="Surat Panggilan & SP"
               icon={FileText}
-              iconBgClass="bg-emerald-50 text-emerald-600"
+              iconBg="bg-emerald-50"
+              iconColor="text-emerald-600"
             />
           </div>
 
           {/* Early Warning System & Category Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Left Col: EWS List */}
-            <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+            <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
-                    <AlertTriangle size={17} className="text-amber-500" />
+                    <AlertTriangle size={18} className="text-amber-500" />
                     Early Warning System (Poin Pelanggaran Ambang Batas SP)
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
                     Daftar siswa yang memerlukan intervensi bimbingan konseling dan panggilan orang tua.
                   </p>
                 </div>
               </div>
 
               {highRiskStudents.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 font-bold text-xs">
-                  Sangat baik! Tidak ada siswa dalam kategori resiko tinggi saat ini.
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-gradient-to-b from-slate-50/50 to-emerald-50/20 rounded-xl border border-slate-100/80 my-1">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-2xs">
+                    <ShieldCheck size={28} strokeWidth={2.2} />
+                  </div>
+                  <div className="max-w-md space-y-1">
+                    <h4 className="font-extrabold text-slate-800 text-sm">Kondisi Siswa Terkendali &amp; Aman</h4>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                      Sangat baik! Tidak ada siswa dalam kategori resiko tinggi (poin &gt; 75) saat ini.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 max-h-[380px] overflow-y-auto pr-1">
                   {highRiskStudents.slice(0, 8).map(st => (
                     <div 
                       key={st.nis}
-                      className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3"
+                      className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                          st.total_poin >= 75 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-2xs ${
+                          st.total_poin >= 75 ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
                         }`}>
                           {st.total_poin}
                         </div>
@@ -501,7 +513,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                             setFormLetter({ student_nis: st.nis, letter_type: st.total_poin >= 75 ? 'SP 1' : 'Panggilan Orang Tua', reason: `Akumulasi poin kedisiplinan mencapai ${st.total_poin} poin.` });
                             setShowLetterModal(true);
                           }}
-                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1"
+                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all border border-rose-200/70 cursor-pointer flex items-center gap-1"
                         >
                           <FileText size={13} />
                           <span>{st.total_poin >= 75 ? 'Terbit SP' : 'Surat Ortu'}</span>
@@ -509,7 +521,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
                         <button
                           onClick={() => openDossier(st)}
-                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                         >
                           <Eye size={13} />
                           <span>Lihat Dossier</span>
@@ -522,29 +534,29 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
             </div>
 
             {/* Right Col: Category Distribution & Quick Action */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2 pb-3 border-b border-slate-100">
                 <TrendingUp size={17} className="text-[var(--ui-primary)]" />
                 Distribusi Kategori Konseling
               </h3>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3.5">
                 {[
-                  { label: 'Kedisiplinan', color: 'bg-rose-500', count: bkSessions.filter(s => s.category === 'Kedisiplinan').length },
-                  { label: 'Akademik', color: 'bg-sky-500', count: bkSessions.filter(s => s.category === 'Akademik').length },
-                  { label: 'Pribadi & Sosial', color: 'bg-emerald-500', count: bkSessions.filter(s => s.category === 'Pribadi' || s.category === 'Sosial').length },
-                  { label: 'Karir & Kelulusan', color: 'bg-indigo-500', count: bkSessions.filter(s => s.category === 'Karir').length }
+                  { label: 'Kedisiplinan', gradient: 'from-rose-500 to-pink-500', count: bkSessions.filter(s => s.category === 'Kedisiplinan').length },
+                  { label: 'Akademik', gradient: 'from-sky-500 to-blue-500', count: bkSessions.filter(s => s.category === 'Akademik').length },
+                  { label: 'Pribadi & Sosial', gradient: 'from-amber-500 to-orange-500', count: bkSessions.filter(s => s.category === 'Pribadi' || s.category === 'Sosial').length },
+                  { label: 'Karir & Kelulusan', gradient: 'from-emerald-500 to-teal-500', count: bkSessions.filter(s => s.category === 'Karir').length }
                 ].map(cat => {
                   const total = bkSessions.length || 1;
                   const pct = Math.round((cat.count / total) * 100);
                   return (
-                    <div key={cat.label} className="flex flex-col gap-1">
+                    <div key={cat.label} className="flex flex-col gap-1.5">
                       <div className="flex justify-between text-xs font-bold text-slate-700">
                         <span>{cat.label}</span>
-                        <span>{cat.count} Sesi ({pct}%)</span>
+                        <span className="font-mono text-slate-500">{cat.count} Sesi ({pct}%)</span>
                       </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className={`h-full ${cat.color}`} style={{ width: `${pct}%` }}></div>
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/40">
+                        <div className={`h-full rounded-full bg-gradient-to-r ${cat.gradient} transition-all duration-500`} style={{ width: `${Math.max(pct, 4)}%` }}></div>
                       </div>
                     </div>
                   );
@@ -552,18 +564,18 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               </div>
 
               <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-2">
-                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Aksi Cepat BK</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aksi Cepat BK</span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => { setShowVisitModal(true); }}
-                    className="p-2.5 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
+                    className="p-2.5 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold text-xs border border-sky-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Home size={14} />
-                    <span>Home Visit</span>
+                    <span>Catat Home Visit</span>
                   </button>
                   <button
                     onClick={() => { setShowLetterModal(true); }}
-                    className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
+                    className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs border border-emerald-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Printer size={14} />
                     <span>Surat Ortu</span>

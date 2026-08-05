@@ -14,7 +14,7 @@ export default function BKDashboard({ teachers, students, classes }) {
   ];
 
   return (
-    <div className="flex flex-col gap-4 h-full animate-in fade-in duration-300">
+    <div className="flex flex-col gap-5 h-full animate-in fade-in duration-300">
       <PageHeader
         title="Bimbingan & Konseling (BK)"
         icon={ShieldHalf}
