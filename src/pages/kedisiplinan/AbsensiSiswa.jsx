@@ -130,8 +130,15 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     }
   }, []);
 
+  const [filterStatus, setFilterStatus] = useState("all");
+
   const filteredItems = useMemo(() => {
     return items.filter(item => {
+      // Exclude automatic machine HADIR logs from Surat Izin/Sakit management
+      if (item.status === "Hadir" && item.pelapor_nama === "Mesin Hikvision") {
+        return false;
+      }
+
       const student = students.find(s => {
         const sNis = String(s.nis || s.code || '').trim();
         const iNis = String(item.siswa_nis || '').trim();
@@ -145,9 +152,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       const mSearch = search === "" || studentName.toLowerCase().includes(search.toLowerCase()) || String(item.siswa_nis).includes(search);
       const mKelas = filterKelas === "all" || studentClass === filterKelas;
       const mTanggal = filterTanggal === "" || itemDateStr === filterTanggal;
-      return mSearch && mKelas && mTanggal;
+      const mStatus = filterStatus === "all" 
+        || (filterStatus === "pending" ? item.approval_status === "pending" : item.status === filterStatus);
+
+      return mSearch && mKelas && mTanggal && mStatus;
     });
-  }, [items, search, filterKelas, filterTanggal, students, getItemDateStr]);
+  }, [items, search, filterKelas, filterTanggal, filterStatus, students, getItemDateStr]);
 
   const [activeTab, setActiveTab] = useState('surat_izin');
   const [matrixMonth, setMatrixMonth] = useState(() => {
@@ -370,6 +380,35 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
       {activeTab ==='surat_izin' && (
       <div className="flex flex-col">
+        {/* Quick Filter Pills */}
+        <div className="px-4 pt-3 pb-1 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center gap-2">
+          {[
+            { id: "all", label: "Semua Surat", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision")).length },
+            { id: "pending", label: "Pending Persetujuan", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision") && i.approval_status === "pending").length },
+            { id: "Sakit", label: "Sakit", count: items.filter(i => i.status === "Sakit").length },
+            { id: "Izin", label: "Izin", count: items.filter(i => i.status === "Izin").length },
+            { id: "Alpha", label: "Alpha", count: items.filter(i => i.status === "Alpha").length },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilterStatus(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                filterStatus === tab.id
+                  ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs font-extrabold"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-md ${
+                filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
         <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white">
           <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-3 w-full">
             <div className="relative flex-1 min-w-[200px] w-full">
@@ -442,7 +481,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 <tr>
                      <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-medium whitespace-normal">
                        <CheckCircle2 size={40} className="mx-auto text-emerald-400 opacity-50 mb-3" />
-                       Data absen tidak ditemukan untuk filter ini.<br/><span className="text-xs mt-1">Siswa masuk semua.</span>
+                       Data surat izin / sakit tidak ditemukan untuk filter ini.<br/><span className="text-xs mt-1">Belum ada pengajuan atau siswa masuk semua.</span>
                    </td>
                 </tr>
               ) : (
@@ -480,16 +519,20 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                        {item.pelapor_nama}
                     </td>
                     <td className="px-6 py-4 text-center">
-                       {item.approval_status ==="approved" ? (
+                       {item.approval_status === "approved" ? (
                           <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider inline-block">
                             DISETUJUI
                             {item.approved_by_name && (
                               <span className="text-[8px] font-bold text-emerald-600 block lowercase">oleh {item.approved_by_name}</span>
                             )}
                           </span>
-                       ) : item.approval_status ==="rejected" ? (
+                       ) : item.approval_status === "rejected" ? (
                           <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-red-100 text-red-800 text-[10px] font-black uppercase tracking-wider inline-block">
                             DITOLAK
+                          </span>
+                       ) : item.approval_status === "otomatis" ? (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-wider inline-block">
+                            OTOMATIS
                           </span>
                        ) : (
                           <div className="flex flex-col items-center gap-1">
