@@ -6,7 +6,7 @@ import useFiturStore from'../../../store/monitoring/fiturStore.js';
 import { Users, ShieldCheck, Key, History } from'lucide-react';
 import { Lock, Shield, Edit2, Search, Plus, Activity, Trash2 } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
+import { hashPassword } from '../../../utils/auth.js';
 
 
 export default function TabPengaturanUser(props) {
@@ -34,7 +34,6 @@ export default function TabPengaturanUser(props) {
     }
     
     // Hash password
-    const { hashPassword } = await import("../../../utils/auth.js");
     const nextPasswordHash = await hashPassword(newPassword);
 
     let success = false;

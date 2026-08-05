@@ -2,6 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import { Lock } from'lucide-react';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
+import { verifyPassword, hashPassword } from '../../../utils/auth.js';
 
 
 export default function TabKeamanan(props) {
@@ -45,7 +46,6 @@ export default function TabKeamanan(props) {
 
     if (currentPasswordHash) {
       try {
-        const { verifyPassword } = await import("../../../utils/auth.js");
         const isSame = await verifyPassword(newPassword, currentPasswordHash);
         if (isSame) {
           if (showNotification) showNotification("Tidak bisa menggunakan password yang sama dengan sebelumnya!","warning");
@@ -56,7 +56,6 @@ export default function TabKeamanan(props) {
       }
     }
 
-    const { hashPassword } = await import("../../../utils/auth.js");
     const passwordHash = await hashPassword(newPassword);
 
     try {

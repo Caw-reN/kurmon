@@ -2,6 +2,7 @@ import { splitBulkColumns } from'../../utils/bulkImport.js';
 import { useAppStore } from'../../store/useAppStore.js';
 import { sameText, normalizeText, isAllLike, getLoadKey, renameClassReferences, renameMajorReferences, renameRoomReferences, parsePositiveInt, serializeCsvList, parseCsvList, createClientId } from'../../utils/adminHelpers.js';
 import { WAKA_DIVISION_OPTIONS } from'../../utils/constants.js';
+import { verifyPassword } from '../../utils/auth.js';
 
 export function useAdminCRUD(props) {
   const { syllabuses, attendanceRecords, addSyllabus, updateSyllabus, removeSyllabus, addSyllabusCategory, updateSyllabusCategory, removeSyllabusCategory, addCalendarEvent, updateCalendarEvent, removeCalendarEvent, addCalendarCategory, updateCalendarCategory, removeCalendarCategory, removeAttendanceRecord, updateDashboardMessage, removeDashboardMessage, undoLastDelete, setSwapWarning } = useAppStore();
@@ -471,7 +472,6 @@ export function useAdminCRUD(props) {
             return;
           }
           try {
-            const { verifyPassword } = await import("../../utils/auth.js");
             const isSame = await verifyPassword(formData.password, adminUser.password);
             if (isSame) {
               showNotification("Tidak bisa menggunakan password yang sama dengan sebelumnya!","warning");

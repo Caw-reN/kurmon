@@ -2,7 +2,7 @@ import { Button } from '../../components/ui.jsx';
 import { useState, useEffect } from'react';
 import { Eye, EyeOff, Save, KeyRound, Check, X, Shield, AlertTriangle, MonitorPlay, Clock, Wand2, Lock } from'lucide-react';
 import { Modal } from'../ui.jsx';
-;
+import { verifyPassword } from '../../utils/auth.js';
 
 
 export default function SystemModals({
@@ -70,7 +70,6 @@ export default function SystemModals({
 
       if (currentPasswordHash) {
         try {
-          const { verifyPassword } = await import("../../utils/auth.js");
           const isSame = await verifyPassword(pw, currentPasswordHash);
           if (isSame) {
             setPwError("Tidak boleh menggunakan password yang sama dengan sebelumnya!");
