@@ -126,7 +126,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
   };
 
   const handleDelete = async (id, nama) => {
-    if (!window.confirm(`Yakin ingin menghapus perusahaan ${nama}?`)) return;
+    if (!await window.confirmAsync(`Yakin ingin menghapus perusahaan ${nama}?`)) return;
     const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
     try {
       const res = await fetch(`/api/pkl/locations/${id}`, {
@@ -143,7 +143,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
   };
 
   const handleVerify = async (id, nama) => {
-    if (!window.confirm(`Verifikasi perusahaan "${nama}" sebagai mitra resmi? Status akan berubah menjadi Terverifikasi.`)) return;
+    if (!await window.confirmAsync(`Verifikasi perusahaan "${nama}" sebagai mitra resmi? Status akan berubah menjadi Terverifikasi.`)) return;
     const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
     try {
       const res = await fetch(`/api/pkl/locations/${id}/verify`, {

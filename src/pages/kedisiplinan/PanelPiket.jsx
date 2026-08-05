@@ -185,7 +185,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
   };
 
   const deleteHistory = async (id) => {
-    if (!await window.confirm("Hapus riwayat pelanggaran ini? Data poin siswa akan dikurangi kembali.")) return;
+    if (!await window.confirmAsync("Hapus riwayat pelanggaran ini? Data poin siswa akan dikurangi kembali.")) return;
     try {
       const res = await fetch("/api/kedisiplinan/riwayat", {
         method: "POST",

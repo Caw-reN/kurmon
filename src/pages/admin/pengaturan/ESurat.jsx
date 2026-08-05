@@ -368,7 +368,7 @@ export default function ESurat() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Hapus template surat ini?')) return;
+    if (!await window.confirmAsync('Hapus template surat ini?')) return;
     try {
       await fetch('/api/esurat', {
         method: 'POST', 

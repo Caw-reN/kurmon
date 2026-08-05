@@ -629,7 +629,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Hapus jurnal ini?')) return;
+    if (!await window.confirmAsync('Hapus jurnal ini?')) return;
     try {
       await fetch('/api/jurnal/harian', {
         method:'POST',

@@ -18,7 +18,7 @@ export default function GlobalDialogProvider({ children }) {
       }, 0);
     };
 
-    // Create a new async window.confirmAsync
+    // Create a new async window.confirmAsync & override native confirm
     window.confirmAsync = (message) => {
       return new Promise((resolve) => {
         setConfirmConfig({
@@ -27,6 +27,10 @@ export default function GlobalDialogProvider({ children }) {
           onCancel: () => resolve(false)
         });
       });
+    };
+
+    window.confirm = (message) => {
+      return window.confirmAsync(message);
     };
   }, []);
 

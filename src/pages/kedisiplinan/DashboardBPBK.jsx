@@ -280,7 +280,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
   // Handle Delete Session
   const handleDeleteSession = async (id) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus catatan sesi konseling ini?")) return;
+    if (!await window.confirmAsync("Apakah Anda yakin ingin menghapus catatan sesi konseling ini?")) return;
     try {
       const res = await fetch(`/api/kedisiplinan/bk/sessions/${id}`, {
         method: "DELETE",
