@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Button } from '../components/ui.jsx';
 import { CheckCircle2, Download, Upload, Search, X } from'lucide-react';
 import { FileSpreadsheet, FileText, CalendarDays, Sparkles, BookOpen, RefreshCw } from'lucide-react';
@@ -244,7 +245,7 @@ export function TeacherCompetencyModal({
   teacherAvailability,
   setTeacherAvailability,
 }) {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredSubjects = (subjects || []).filter(s => {
     if (!searchTerm) return true;
