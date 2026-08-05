@@ -22,7 +22,7 @@ export default function KunjunganPKL() {
   const [loadingLoc, setLoadingLoc] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [notes, setNotes] = useState("");
-  const [companyLat, setCompanyLat] = useState(-6.234839); // Dummy company location for radius testing
+  const [companyLat, setCompanyLat] = useState(-6.234839); // Company location for radius check
   const [companyLng, setCompanyLng] = useState(106.989254);
   
   const [isSubmitting, setIsSubmitting] = useState(false);

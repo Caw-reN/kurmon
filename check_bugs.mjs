@@ -179,17 +179,17 @@ if (dupTeacher.rows.length > 0) {
 
 // ============ 5. APP_DATA / CONFIG ============
 console.log('\n🔍 [5/8] Mengecek konfigurasi sistem...');
-const appDataR = await pool.query("SELECT key, length(value::text) as size FROM app_data ORDER BY key");
-const appKeys = appDataR.rows.map(r => r.key);
-console.log(`  App data keys (${appDataR.rows.length}): ${appKeys.join(', ')}`);
+const appDataR = await pool.query("SELECT store_key, length(data::text) as size FROM app_data ORDER BY store_key");
+const appKeys = appDataR.rows.map(r => r.store_key);
+console.log(`  App data store_keys (${appDataR.rows.length}): ${appKeys.join(', ')}`);
 
-const requiredKeys = ['schedule', 'teaching_loads', 'features', 'theme'];
+const requiredKeys = ['main_store', 'pkl_settings', 'hikvision_attendance_config'];
 const missingKeys = requiredKeys.filter(k => !appKeys.includes(k));
 if (missingKeys.length > 0) {
   warnings.push(`Config app_data tidak lengkap — missing: ${missingKeys.join(', ')}`);
   console.log(`  ⚠️  Config hilang di app_data: ${missingKeys.join(', ')}`);
 } else {
-  console.log('  ✅ Semua config utama tersedia');
+  console.log('  ✅ Semua config utama tersedia di app_data');
 }
 
 // ============ 6. AUDIT LOG ANOMALY ============
@@ -208,13 +208,13 @@ if (parseInt(gdriveErr.rows[0].c) > 0) {
 
 // Recent audit logs
 const recentAudit = await pool.query(`
-  SELECT user_id, action, entity_type, created_at FROM audit_logs 
+  SELECT user_id, action, target_type, created_at FROM audit_logs 
   ORDER BY created_at DESC LIMIT 5
 `);
 console.log('  5 Aktivitas Terbaru:');
 recentAudit.rows.forEach(r => {
   const time = new Date(r.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-  console.log(`    [${time}] ${r.action} — ${r.entity_type || '-'} by user ${r.user_id}`);
+  console.log(`    [${time}] ${r.action} — ${r.target_type || '-'} by user ${r.user_id}`);
 });
 
 // ============ 7. SCHOOL PROFILE & ACADEMIC YEAR ============
