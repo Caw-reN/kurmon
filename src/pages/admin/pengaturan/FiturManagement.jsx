@@ -153,8 +153,9 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                       {cfg.label}
                     </p>
                     {cfg.critical && (
-                      <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-[var(--ui-radius-small)]">
-                        KRITIS
+                      <span className="text-[10px] bg-amber-100/90 text-amber-800 font-extrabold px-2.5 py-0.5 rounded-md border border-amber-200/80 inline-flex items-center gap-1 shadow-2xs">
+                        <AlertTriangle size={11} className="text-amber-600" />
+                        FITUR UTAMA
                       </span>
                     )}
                   </div>
@@ -231,7 +232,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
             <div className="w-12 h-12 bg-amber-100 rounded-[var(--ui-radius-small)] flex items-center justify-center mb-4">
               <AlertTriangle size={24} className="text-amber-600" />
             </div>
-            <h3 className="font-bold text-slate-800 mb-2">Nonaktifkan Fitur Kritis?</h3>
+            <h3 className="font-bold text-slate-800 mb-2">Nonaktifkan Fitur Utama Sistem?</h3>
             <p className="text-sm text-slate-400 mb-5">
               Mematikan fitur <strong>{FITUR_CONFIG.find(f => f.key === confirmKey)?.label}</strong> akan
               berdampak signifikan. Siswa tidak akan bisa menggunakannya hingga diaktifkan kembali.
