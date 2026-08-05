@@ -547,128 +547,112 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         />
       )}
 
-      <div className="ui-card p-3.5 sm:p-5 flex flex-col gap-3.5 relative z-30 shadow-sm border border-slate-100/90 overflow-hidden">
-        {/* Filters Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 items-end">
-           <div className="min-w-0">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Bulan</label>
-             <CustomSelect 
-               value={filter.month} 
-               onChange={val => setFilter({ ...filter, month: parseInt(val) })}
-               options={monthOptions}
-             />
-           </div>
-           <div className="min-w-0">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tahun</label>
-             <CustomSelect 
-               value={filter.year} 
-               onChange={val => setFilter({ ...filter, year: parseInt(val) })}
-               options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
-             />
-           </div>
-           <div className="min-w-0">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tipe Laporan</label>
-             <CustomSelect
-               value={viewMode}
-               onChange={val => setViewMode(val)}
-               options={[
-                 { value:"monthly", label:"Bulanan" },
-                 { value:"weekly", label:"Mingguan" }
-               ]}
-             />
-           </div>
-           <div className="min-w-0 col-span-2 sm:col-span-1">
-             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Urutkan Data</label>
-             <div className="flex items-center gap-1.5 w-full min-w-0">
-               <div className="flex-1 min-w-0">
-                 <CustomSelect
-                   value={sortBy}
-                   onChange={val => setSortBy(val)}
-                   options={[
-                     { value: "code", label: "No. Kode Karyawan" },
-                     { value: "name", label: "Nama Karyawan (A-Z)" },
-                     { value: "division", label: "Divisi" },
-                     { value: "hadir", label: "Total Hadir" },
-                     { value: "terlambat", label: "Total Terlambat" },
-                     { value: "alpa", label: "Total Alpa" }
-                   ]}
-                 />
-               </div>
-               <button
-                 type="button"
-                 onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-                 title={sortDir === "asc" ? "Urutan Naik (1-9/A-Z)" : "Urutan Turun (9-1/Z-A)"}
-                 className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                   sortDir === 'desc' 
-                     ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
-                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                 }`}
-               >
-                 <ArrowUpDown size={14} />
-               </button>
-             </div>
-           </div>
-           {viewMode ==="weekly" && (
-             <div className="col-span-2 sm:col-span-1 animate-in slide-in-from-left-2 duration-150">
-               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Minggu</label>
-               <CustomSelect
-                 value={selectedWeek}
-                 onChange={val => setSelectedWeek(parseInt(val))}
-                 options={[
-                   { value: 1, label:"Minggu 1 (Tgl 1 - 7)" },
-                   { value: 2, label:"Minggu 2 (Tgl 8 - 14)" },
-                   { value: 3, label:"Minggu 3 (Tgl 15 - 21)" },
-                   { value: 4, label:"Minggu 4 (Tgl 22 - 28)" },
-                   { value: 5, label: `Minggu 5 (Tgl 29 - ${daysInMonth})` }
-                 ]}
-               />
-             </div>
-           )}
-           {!user?.isWalas && (
-             <div className="col-span-2 sm:col-span-1">
-               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Filter Kelas</label>
-               <CustomSelect 
-                 value={filter.class_name} 
-                 onChange={val => setFilter({ ...filter, class_name: val })}
-                 options={[
-                   { value:"all", label:"-- Semua Kelas --" },
-                   ...classes.map(c => ({ value: c.name, label: c.name }))
-                 ]}
-               />
-             </div>
-           )}
-        </div>
+      <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
+        {/* Top Control Bar: Filters + Actions */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
+          {/* Filters Group */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 min-w-0">
+            <div className="min-w-0">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
+              <CustomSelect 
+                value={filter.month} 
+                onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+                options={monthOptions}
+              />
+            </div>
+            <div className="min-w-0">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tahun</label>
+              <CustomSelect 
+                value={filter.year} 
+                onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+                options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+              />
+            </div>
+            <div className="min-w-0">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipe</label>
+              <CustomSelect
+                value={viewMode}
+                onChange={val => setViewMode(val)}
+                options={[
+                  { value:"monthly", label:"Bulanan" },
+                  { value:"weekly", label:"Mingguan" }
+                ]}
+              />
+            </div>
+            <div className="min-w-0">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Urutkan</label>
+              <div className="flex items-center gap-1 w-full min-w-0">
+                <div className="flex-1 min-w-0">
+                  <CustomSelect
+                    value={sortBy}
+                    onChange={val => setSortBy(val)}
+                    options={[
+                      { value: "code", label: "Kode Karyawan" },
+                      { value: "name", label: "Nama (A-Z)" },
+                      { value: "division", label: "Divisi" },
+                      { value: "hadir", label: "Total Hadir" },
+                      { value: "terlambat", label: "Total Terlambat" },
+                      { value: "alpa", label: "Total Alpa" }
+                    ]}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                  title={sortDir === "asc" ? "Naik" : "Turun"}
+                  className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    sortDir === 'desc' 
+                      ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <ArrowUpDown size={14} />
+                </button>
+              </div>
+            </div>
 
-        {/* Action Buttons Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
-           <Button onClick={fetchData} className="w-full sm:w-auto px-5 py-2.5 flex items-center justify-center gap-2 font-black text-xs shadow-xs cursor-pointer">
-             <Filter size={14} className="shrink-0" />
-             <span>Terapkan Filter</span>
-           </Button>
+            {viewMode ==="weekly" && (
+              <div className="col-span-2 sm:col-span-1 animate-in slide-in-from-left-2 duration-150">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Minggu</label>
+                <CustomSelect
+                  value={selectedWeek}
+                  onChange={val => setSelectedWeek(parseInt(val))}
+                  options={[
+                    { value: 1, label:"Minggu 1 (Tgl 1 - 7)" },
+                    { value: 2, label:"Minggu 2 (Tgl 8 - 14)" },
+                    { value: 3, label:"Minggu 3 (Tgl 15 - 21)" },
+                    { value: 4, label:"Minggu 4 (Tgl 22 - 28)" },
+                    { value: 5, label: `Minggu 5 (Tgl 29 - ${daysInMonth})` }
+                  ]}
+                />
+              </div>
+            )}
+          </div>
 
-           <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
-             <Button 
-               variant="outline"
-               type="button"
-               onClick={handleExport}
-               disabled={loading || data.length === 0}
-               className="col-span-1 sm:w-auto px-3 py-2 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-700 border-emerald-200/80 flex items-center justify-center gap-1 text-[11px] sm:text-xs font-black cursor-pointer disabled:opacity-50"
-             >
-               <FileSpreadsheet size={13} className="shrink-0" />
-               <span>Excel</span>
-             </Button>
+          {/* Action Group */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+            <Button 
+              variant="outline"
+              type="button"
+              onClick={handleExport}
+              disabled={loading || data.length === 0}
+              className="px-3 py-2 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-700 border-emerald-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
+            >
+              <FileSpreadsheet size={14} className="shrink-0" />
+              <span>Excel</span>
+            </Button>
 
-             <Button 
-               variant="outline"
-               type="button"
-               onClick={handleExportPDF}
-               disabled={loading || data.length === 0}
-               className="col-span-1 sm:w-auto px-3 py-2 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 border-rose-200/80 flex items-center justify-center gap-1 text-[11px] sm:text-xs font-black cursor-pointer disabled:opacity-50"
-             >
-               <FileText size={13} className="shrink-0" />
-               <span>PDF</span>
-             </Button>
-           </div>
+            <Button 
+              variant="outline"
+              type="button"
+              onClick={handleExportPDF}
+              disabled={loading || data.length === 0}
+              className="px-3 py-2 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 border-rose-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
+            >
+              <FileText size={14} className="shrink-0" />
+              <span>PDF</span>
+            </Button>
+          </div>
         </div>
 
         <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
