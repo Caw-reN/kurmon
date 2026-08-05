@@ -532,7 +532,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {guruKaryawanLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_karyawan', i))}
                 </div>
                 {renderPagination(guruKaryawanLogs.length)}
@@ -552,7 +552,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {kehadiranSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'kehadiran_siswa', i))}
                 </div>
                 {renderPagination(kehadiranSiswaLogs.length)}
@@ -572,7 +572,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {terlambatSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_terlambat', i))}
                 </div>
                 {renderPagination(terlambatSiswaLogs.length)}
@@ -592,7 +592,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {terlambatGuruLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_terlambat', i))}
                 </div>
                 {renderPagination(terlambatGuruLogs.length)}
@@ -612,7 +612,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {bermasalahLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_bermasalah', i))}
                 </div>
                 {renderPagination(bermasalahLogs.length)}
@@ -632,7 +632,7 @@ export const SharedDashboardLogs = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1">
+                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
                   {siswaPrestasiLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_prestasi', i))}
                 </div>
                 {renderPagination(siswaPrestasiLogs.length)}

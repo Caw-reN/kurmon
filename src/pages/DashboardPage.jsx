@@ -1694,7 +1694,7 @@ export default function DashboardPage({
                 </div>
 
                 {/* Compact List View */}
-                <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2 flex-1">
+                <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2 flex-1 min-h-[290px]">
                   {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
                     <div key={i} className="flex items-center gap-3 p-2.5 rounded-[var(--ui-radius-small)] hover:bg-slate-50 border-none hover:border-slate-100 transition-colors group cursor-default">
                       {/* Icon */}
