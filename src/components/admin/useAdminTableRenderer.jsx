@@ -2,7 +2,7 @@ import React from'react';
 import { cn } from'@/lib/utils';
 import { normalizeText } from'../../utils/adminHelpers.js';
 import { DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
-import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, ChevronRight } from'lucide-react';
+import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, ChevronRight, Edit3 } from'lucide-react';
 import { Badge } from'../ui/badge.jsx';
 import { UISelect, Button } from'../ui.jsx';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from'../ui/table.jsx';
@@ -247,9 +247,18 @@ export function useAdminTableRenderer(context) {
                 )}
 
                 {selectedCount > 0 && !isViewOnly && (
-                  <Button variant="destructive" onClick={() => handleBulkDelete(tabKey, selectedKeys)} className="text-xs gap-1.5">
-                    <Trash2 size={13} /> Hapus ({selectedCount})
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
+                      className="text-xs gap-1.5 text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100 border-indigo-300 font-bold"
+                    >
+                      <Edit3 size={13} /> Edit Massal ({selectedCount})
+                    </Button>
+                    <Button variant="destructive" onClick={() => handleBulkDelete(tabKey, selectedKeys)} className="text-xs gap-1.5">
+                      <Trash2 size={13} /> Hapus ({selectedCount})
+                    </Button>
+                  </>
                 )}
 
                 {tabKey ==="ruangan" && (

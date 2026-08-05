@@ -38,7 +38,7 @@ export default function CrudModals({
       {/* CRUD MODALS */}
       
       <Modal
-        isOpen={modalConfig.isOpen && !["bulk","admin","ketersediaan_mapel","generate_slots","silabus_batch","profile_edit","lock_info"].includes(modalConfig.type)}
+        isOpen={modalConfig.isOpen && !["bulk","admin","ketersediaan_mapel","generate_slots","silabus_batch","profile_edit","lock_info","bulk_edit"].includes(modalConfig.type)}
         onClose={closeModal}
         title={modalConfig.type ==="silabus" ? `${modalConfig.action ==="add" ?"Tambah" :"Edit"} Pertemuan Modul Ajar` : `${modalConfig.action ==="add" ?"Tambah" :"Edit"} Data ${friendlyModalNames[modalConfig.type] || modalConfig.type}`}
         maxWidth={modalConfig.type ==="silabus" ?"max-w-5xl" : ["guru","karyawan","Karyawan"].includes(modalConfig.type) ?"max-w-3xl" :"max-w-xl"}
