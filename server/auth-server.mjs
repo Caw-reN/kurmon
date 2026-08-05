@@ -3436,6 +3436,7 @@ const server = createServer(async (req, res) => {
       try {
         const body = await readJsonBody(req);
         const session = getSession(req);
+        if (session?.role === "siswa") return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan." });
         const keyRes = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'whatsapp_fonnte' AND is_active = true");
         if (keyRes.rowCount === 0) {
           send(req, res, 400, { ok: false, error: "API Key WhatsApp belum dikonfigurasi atau tidak aktif. Masuk ke menu Manajemen API Key." });
@@ -3511,6 +3512,7 @@ const server = createServer(async (req, res) => {
         const body = await readJsonBody(req);
         const { target, type, month, year, date } = body;
         const session = getSession(req);
+        if (session?.role === "siswa") return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan." });
 
         const keyRes = await dbPool.query("SELECT api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' AND is_active = true");
         if (keyRes.rowCount === 0) {
