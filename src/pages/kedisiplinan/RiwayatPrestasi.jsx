@@ -269,85 +269,93 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const getTingkatBadgeClass = (tingkat) => {
     switch(tingkat) {
       case 'Internasional':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-purple-100/90 text-purple-800 border-purple-200 shadow-2xs';
       case 'Nasional':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-rose-100/90 text-rose-800 border-rose-200 shadow-2xs';
       case 'Provinsi':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-sky-100/90 text-sky-800 border-sky-200 shadow-2xs';
       default:
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-amber-100/90 text-amber-800 border-amber-200 shadow-2xs';
     }
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-5 animate-in fade-in duration-300">
       
       {/* HEADER CARD */}
-      <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-2xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
-            <Trophy size={24} className="text-amber-100" />
+      <div 
+        className="rounded-3xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0f172a) 100%)" }}
+      >
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+            <Trophy size={26} className="text-white" strokeWidth={2.2} />
           </div>
           <div>
-            <h1 className="font-black text-base sm:text-xl text-white tracking-tight">Riwayat Prestasi Siswa</h1>
-            <p className="text-[11px] sm:text-xs text-amber-100 font-medium">
-              Dokumentasi pencapaian akademik & non-akademik di berbagai tingkat kejuaraan
+            <div className="flex items-center gap-2">
+              <h1 className="font-black text-lg sm:text-xl text-white tracking-tight">Riwayat Prestasi Siswa</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-white/20 text-white backdrop-blur-xs border border-white/20">
+                Kejuaraan &amp; Penghargaan
+              </span>
+            </div>
+            <p className="text-xs text-white/85 font-medium mt-0.5">
+              Dokumentasi pencapaian akademik &amp; non-akademik siswa di berbagai tingkat kejuaraan.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto relative z-10">
           <button
             type="button"
             onClick={exportExcel}
-            className="flex-1 sm:flex-none py-2 px-3 rounded-xl font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer backdrop-blur-sm"
+            className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
           >
-            <FileSpreadsheet size={14} />
-            <span>Excel</span>
+            <FileSpreadsheet size={15} />
+            <span>Export Excel</span>
           </button>
           <button
             type="button"
             onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
-            className="flex-1 sm:flex-none py-2 px-4 rounded-xl font-black text-xs bg-white hover:bg-amber-50 text-amber-700 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+            className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl font-black text-xs bg-white hover:bg-slate-100 text-slate-900 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
           >
-            <Plus size={15} strokeWidth={2.5} />
+            <Plus size={16} strokeWidth={2.5} />
             <span>Tambah Prestasi</span>
           </button>
         </div>
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
-            <Trophy size={22} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+            <Trophy size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Prestasi</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">{stats.total}</p>
-            <p className="text-[10.5px] text-slate-400 font-semibold">Seluruh kejuaraan</p>
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Prestasi</p>
+            <p className="text-2xl font-black text-slate-800 leading-tight mt-0.5">{stats.total}</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Seluruh kejuaraan siswa</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
-            <Award size={22} />
+        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+            <Award size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nasional & Int.</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">{stats.nasionalInternasional}</p>
-            <p className="text-[10.5px] text-slate-400 font-semibold">Kejuaraan skala besar</p>
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Nasional &amp; Int.</p>
+            <p className="text-2xl font-black text-slate-800 leading-tight mt-0.5">{stats.nasionalInternasional}</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Kejuaraan skala besar</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-            <TrendingUp size={22} />
+        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+            <TrendingUp size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prestasi Bulan Ini</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">{stats.bulanIni}</p>
-            <p className="text-[10.5px] text-slate-400 font-semibold">Bulan berjalan</p>
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Prestasi Bulan Ini</p>
+            <p className="text-2xl font-black text-slate-800 leading-tight mt-0.5">{stats.bulanIni}</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Bulan berjalan</p>
           </div>
         </div>
       </div>
@@ -356,20 +364,20 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col">
         
         {/* Filters Header */}
-        <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row gap-2.5 items-center justify-between">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
-              placeholder="Cari nama siswa, NIS, atau prestasi..."
+              placeholder="Cari nama siswa, NIS, atau nama prestasi..."
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/80 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-semibold"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)] transition-all"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="w-1/2 sm:w-40">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <div className="w-1/2 sm:w-44">
               <CustomSelect
                 options={[
                   { value: 'all', label: 'Semua Tingkat' },
@@ -382,7 +390,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 onChange={v => { setFilterTingkat(v); setCurrentPage(1); }}
               />
             </div>
-            <div className="w-1/2 sm:w-40">
+            <div className="w-1/2 sm:w-44">
               <CustomSelect
                 options={[{ value: 'all', label: 'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
                 value={filterKelas}
@@ -397,9 +405,11 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           {isLoading ? (
             <div className="p-8 text-center text-slate-400 text-xs font-semibold">Memuat data prestasi...</div>
           ) : paginatedPrestasi.length === 0 ? (
-            <div className="p-10 text-center text-slate-400">
-              <Trophy size={40} className="mx-auto mb-2 text-slate-300" />
-              <p className="font-bold text-sm text-slate-600 mb-0.5">Belum Ada Data Prestasi</p>
+            <div className="p-10 text-center text-slate-400 space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto">
+                <Trophy size={24} />
+              </div>
+              <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
               <p className="text-xs text-slate-400">Tidak ada catatan prestasi yang cocok dengan pencarian Anda.</p>
             </div>
           ) : (
@@ -407,30 +417,31 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               const sInfo = getStudentInfo(item.siswa_nis);
               const badgeStyle = getTingkatBadgeClass(item.tingkat);
               return (
-                <div key={item.id} className="p-4 hover:bg-slate-50/50 transition-colors space-y-2.5">
+                <div key={item.id} className="p-4 hover:bg-slate-50/50 transition-colors space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-black text-xs shrink-0">
-                        <Trophy size={16} />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 border border-amber-200/80 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                        {sInfo.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-extrabold text-slate-800 text-xs truncate leading-snug">{sInfo.name}</h4>
-                        <p className="text-[10px] font-semibold text-slate-400">{item.siswa_nis} • Kelas {sInfo.class_name}</p>
+                        <p className="text-[10px] font-semibold text-slate-400">NIS: {item.siswa_nis} • Kelas {sInfo.class_name}</p>
                       </div>
                     </div>
                     
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${badgeStyle} shrink-0`}>
+                    <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full border ${badgeStyle} shrink-0`}>
                       {item.tingkat}
                     </span>
                   </div>
 
-                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100/80 space-y-1">
+                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5">
                     <p className="font-black text-xs text-slate-800">{item.nama_prestasi}</p>
                     {item.peringkat && (
-                      <p className="text-[11px] font-bold text-amber-700 flex items-center gap-1">
-                        <Award size={12} className="text-amber-500" />
-                        <span>Peringkat: {item.peringkat}</span>
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-md text-[10px] font-black inline-flex items-center gap-1">
+                          <Award size={11} /> {item.peringkat}
+                        </span>
+                      </div>
                     )}
                     {item.keterangan && (
                       <p className="text-[11px] text-slate-500 font-medium leading-relaxed pt-0.5">{item.keterangan}</p>
@@ -441,12 +452,12 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                     <div className="flex items-center gap-3">
                       {item.penyelenggara && (
                         <span className="flex items-center gap-1">
-                          <Building size={11} /> {item.penyelenggara}
+                          <Building size={11} className="text-slate-400" /> {item.penyelenggara}
                         </span>
                       )}
                       {item.tanggal_prestasi && (
                         <span className="flex items-center gap-1">
-                          <Calendar size={11} /> {new Date(item.tanggal_prestasi).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          <Calendar size={11} className="text-slate-400" /> {new Date(item.tanggal_prestasi).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       )}
                     </div>
@@ -479,14 +490,14 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         {/* DESKTOP TABLE VIEW (>= md screen) */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="text-[11px] font-extrabold text-slate-400 uppercase bg-slate-50/80 border-b border-slate-100">
+            <thead className="text-[10px] font-black text-slate-400 uppercase bg-slate-50/80 border-b border-slate-100 tracking-wider">
               <tr>
-                <th className="px-5 py-3.5">Siswa & Kelas</th>
-                <th className="px-5 py-3.5">Nama Prestasi</th>
-                <th className="px-5 py-3.5 text-center">Peringkat & Tingkat</th>
-                <th className="px-5 py-3.5">Penyelenggara & Tanggal</th>
-                <th className="px-5 py-3.5">Keterangan</th>
-                <th className="px-5 py-3.5 text-right">Aksi</th>
+                <th className="px-5 py-3.5">SISWA &amp; KELAS</th>
+                <th className="px-5 py-3.5">NAMA PRESTASI</th>
+                <th className="px-5 py-3.5 text-center">PERINGKAT &amp; TINGKAT</th>
+                <th className="px-5 py-3.5">PENYELENGGARA &amp; TANGGAL</th>
+                <th className="px-5 py-3.5">KETERANGAN</th>
+                <th className="px-5 py-3.5 text-right">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
@@ -496,9 +507,11 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 </tr>
               ) : filteredPrestasi.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-16 text-center text-slate-400">
-                    <Trophy size={48} className="mx-auto mb-3 text-slate-300"/>
-                    <p className="font-extrabold text-sm text-slate-600 mb-0.5">Belum Ada Data Prestasi</p>
+                  <td colSpan="6" className="px-6 py-16 text-center text-slate-400 space-y-2">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-2xs">
+                      <Trophy size={28} />
+                    </div>
+                    <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
                     <p className="text-xs text-slate-400">Tidak ada catatan prestasi yang cocok dengan filter pencarian Anda.</p>
                   </td>
                 </tr>
@@ -509,20 +522,34 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="px-5 py-3.5">
-                        <div className="font-extrabold text-slate-800 text-xs">{sInfo.name}</div>
-                        <div className="text-[10.5px] text-slate-400 font-semibold mt-0.5">{item.siswa_nis} • Kelas {sInfo.class_name}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 shrink-0">
+                            {sInfo.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-xs">{sInfo.name}</div>
+                            <div className="text-[10px] text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5">
+                              <span>NIS: {item.siswa_nis}</span>
+                              <span>•</span>
+                              <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">{sInfo.class_name || 'Tanpa Kelas'}</span>
+                            </div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-5 py-3.5 font-bold text-slate-800">
-                        {item.nama_prestasi}
+                      <td className="px-5 py-3.5 font-bold text-slate-800 max-w-[260px]">
+                        <div className="flex items-start gap-1.5">
+                          <Award size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                          <span className="leading-snug">{item.nama_prestasi}</span>
+                        </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex flex-col items-center gap-1">
                           {item.peringkat && (
-                            <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200/80 rounded-full text-[10px] font-black">
+                            <span className="px-2.5 py-0.5 bg-amber-100/80 text-amber-800 border border-amber-200/80 rounded-full text-[10px] font-black shadow-2xs">
                               {item.peringkat}
                             </span>
                           )}
-                          <span className={`text-[9.5px] font-black px-2 py-0.5 rounded-full border ${badgeStyle}`}>
+                          <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
                             {item.tingkat}
                           </span>
                         </div>
@@ -536,7 +563,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="text-xs text-slate-500 max-w-[220px] truncate" title={item.keterangan || '-'}>
+                        <p className="text-xs text-slate-500 max-w-[220px] truncate font-medium" title={item.keterangan || '-'}>
                           {item.keterangan || '-'}
                         </p>
                       </td>
@@ -545,8 +572,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                           <button
                             type="button"
                             onClick={() => handleEdit(item)}
-                            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
-                            title="Edit"
+                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
+                            title="Edit Data"
                           >
                             <Edit2 size={13} />
                           </button>
@@ -554,7 +581,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                             type="button"
                             onClick={() => setDeleteTarget(item)}
                             className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
-                            title="Hapus"
+                            title="Hapus Data"
                           >
                             <Trash2 size={13} />
                           </button>
