@@ -383,11 +383,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         {/* Quick Filter Pills */}
         <div className="px-4 pt-3 pb-1 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center gap-2">
           {[
-            { id: "all", label: "Semua Surat", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision")).length },
+            { id: "all", label: "Semua Record", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision")).length },
             { id: "pending", label: "Pending Persetujuan", count: items.filter(i => !(i.status === "Hadir" && i.pelapor_nama === "Mesin Hikvision") && i.approval_status === "pending").length },
             { id: "Sakit", label: "Sakit", count: items.filter(i => i.status === "Sakit").length },
             { id: "Izin", label: "Izin", count: items.filter(i => i.status === "Izin").length },
             { id: "Alpha", label: "Alpha", count: items.filter(i => i.status === "Alpha").length },
+            { id: "Terlambat", label: "Terlambat", count: items.filter(i => i.status === "Terlambat").length },
           ].map(tab => (
             <button
               key={tab.id}
