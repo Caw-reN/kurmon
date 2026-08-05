@@ -1570,10 +1570,32 @@ const server = createServer(async (req, res) => {
         const academicCalendar = mainData.academicCalendar || [];
         const calendarCategories = mainData.calendarCategories || [];
 
-        const getStudentName = (nis) => {
-          const s = students.find(x => String(x.nis).trim() === String(nis).trim());
-          return s ? s.name : nis;
+        const getStudentInfo = (nis) => {
+          if (!nis) return { name: '-', class_name: '' };
+          const strNis = String(nis).trim().toLowerCase();
+          
+          let s = students.find(x => {
+            const xNis = String(x.nis || x.code || x.id || '').trim().toLowerCase();
+            return xNis === strNis;
+          });
+          
+          if (!s && strNis.length >= 4) {
+            s = students.find(x => {
+              const xNis = String(x.nis || x.code || x.id || '').trim().toLowerCase();
+              return xNis && (xNis.endsWith(strNis) || strNis.endsWith(xNis));
+            });
+          }
+
+          if (s) {
+            return {
+              name: s.name || s.nama || nis,
+              class_name: s.kelas || s.class_name || ''
+            };
+          }
+          return { name: String(nis), class_name: '' };
         };
+
+        const getStudentName = (nis) => getStudentInfo(nis).name;
 
         const getTeacherName = (code) => {
           const t = teachers.find(x => String(x.code).trim() === String(code).trim());
@@ -1743,13 +1765,18 @@ const server = createServer(async (req, res) => {
           const combined = [...lateRes.rows, ...hLateRes.rows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
           latestStudentLogs = combined
-            .map(r => ({
-              nis: r.nis,
-              name: getStudentName(r.nis),
-              username: r.nis,
-              status: r.status,
-              created_at: r.created_at
-            }))
+            .map(r => {
+              const info = getStudentInfo(r.nis);
+              return {
+                nis: r.nis,
+                name: info.name,
+                student_name: info.name,
+                class_name: info.class_name,
+                username: r.nis,
+                status: r.status,
+                created_at: r.created_at
+              };
+            })
             .filter(r => !isDateHoliday(r.created_at))
             .slice(0, 20);
         } catch (err) {
@@ -2034,17 +2061,55 @@ const server = createServer(async (req, res) => {
           const todayLogsRes = await dbPool.query(`
             SELECT l.*, d.ip_address, d.device_type,
               COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
-                s.name,
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
+                 WHERE payload->>'nis' = l.employee_id 
+                    OR payload->>'code' = l.employee_id 
+                    OR id = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                 LIMIT 1),
+                (SELECT name FROM hikvision_students 
+                 WHERE nis = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                 LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
+                 WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
+                 WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
                 l.employee_id
               ) as student_name,
+
               COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
-                s.name,
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
+                 WHERE payload->>'nis' = l.employee_id 
+                    OR payload->>'code' = l.employee_id 
+                    OR id = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                 LIMIT 1),
+                (SELECT name FROM hikvision_students 
+                 WHERE nis = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                 LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
+                 WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
+                 WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
                 l.employee_id
               ) as name,
+
+              COALESCE(
+                (SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students 
+                 WHERE payload->>'nis' = l.employee_id 
+                    OR payload->>'code' = l.employee_id 
+                    OR id = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                 LIMIT 1),
+                (SELECT class_name FROM hikvision_students 
+                 WHERE (nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis)))
+                   AND class_name IS NOT NULL AND class_name != 'siswa'
+                 LIMIT 1),
+                '-'
+              ) as class_name,
+
               l.employee_id as username,
               CASE 
                 WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'karyawan'
@@ -2055,7 +2120,6 @@ const server = createServer(async (req, res) => {
               END as true_person_type
             FROM hikvision_logs l 
             JOIN hikvision_devices d ON l.device_id = d.id 
-            LEFT JOIN hikvision_students s ON l.employee_id = s.nis 
             WHERE timestamp::date = $1::date
             ORDER BY l.timestamp DESC
           `, [todayJktDate]);

@@ -315,7 +315,7 @@ export const SharedDashboardLogs = () => {
       }
     }
 
-    let name = resolvedStudent?.name || resolvedStudent?.nama || item.student_name || item.name || item.username || item.employee_id || item.nis || '-';
+    let name = item.student_name || item.name || resolvedStudent?.name || resolvedStudent?.nama || item.username || item.employee_id || item.nis || '-';
     let className = item.class_name && item.class_name !== '-' && item.class_name !== 'siswa' 
       ? item.class_name 
       : (resolvedStudent?.kelas || resolvedStudent?.class_name || '');
