@@ -393,9 +393,15 @@ export default function AdminContentRouter({ context }) {
               {(() => {
                 const deps = checkDependencies("mapel", item.name);
                 if (deps.length > 0) {
-                  return <button title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(",")}. Hapus koneksi terlebih dahulu.`} disabled className="p-2 text-slate-300 bg-slate-50 border-none rounded-[var(--ui-radius-small)] cursor-not-allowed">
-                    <Lock size={14} className="text-amber-500" />
-                  </button>;
+                  return (
+                    <button 
+                      onClick={() => openModal('lock_info', 'view', { type: 'mapel', name: `Mata Pelajaran: ${item.name}`, deps })}
+                      title="Klik untuk melihat detail koneksi data"
+                      className="p-2 text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-[var(--ui-radius-small)] transition-colors cursor-pointer"
+                    >
+                      <Lock size={14} className="text-amber-500" />
+                    </button>
+                  );
                 }
                 return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
                   <Trash2 size={14} />

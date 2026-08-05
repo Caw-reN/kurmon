@@ -43,7 +43,13 @@ const MasterDataRuangan = memo(function MasterDataRuangan({
                   const deps = checkDependencies('ruangan', item.id);
                   if (deps.length > 0) {
                     return (
-                      <Button variant="ghost" size="icon" title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} disabled>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openModal('lock_info', 'view', { type: 'ruangan', name: `Ruang ${item.name || item.id}`, deps })}
+                        title="Klik untuk melihat detail koneksi data"
+                        className="hover:bg-amber-50 border border-amber-200/80 cursor-pointer"
+                      >
                         <Lock size={14} className="text-amber-500" />
                       </Button>
                     );

@@ -787,31 +787,53 @@ export default function App() {
 
   const checkDependencies = (type, idOrCode) => {
     const reasons = [];
-    if (type === "mapel") {
-      if (teachingLoads?.some(t => t.subject === idOrCode)) reasons.push("Beban Mengajar");
-      if (schedule?.some(s => s.subject === idOrCode)) reasons.push("Jadwal");
-      if (syllabuses?.some(s => s.subject === idOrCode)) reasons.push("Data Modul");
+    const lowerType = String(type || '').toLowerCase();
+
+    if (lowerType === "mapel") {
+      const loads = teachingLoads?.filter(t => t.subject === idOrCode).length || 0;
+      if (loads > 0) reasons.push(`Beban Mengajar (${loads} alokasi)`);
+      const sched = schedule?.filter(s => s.subject === idOrCode).length || 0;
+      if (sched > 0) reasons.push(`Jadwal Pelajaran (${sched} slot KBM)`);
+      const mod = syllabuses?.filter(s => s.subject === idOrCode).length || 0;
+      if (mod > 0) reasons.push(`Modul Ajar / Silabus (${mod} modul)`);
     }
-    if (type === "guru") {
-      if (teachingLoads?.some(t => t.teacherCode === idOrCode)) reasons.push("Beban Mengajar");
-      if (schedule?.some(s => s.teacherCode === idOrCode)) reasons.push("Jadwal");
-      if (classes?.some(c => c.homeroom === idOrCode)) reasons.push("Wali Kelas");
-      if (syllabuses?.some(s => s.teacherCode === idOrCode)) reasons.push("Data Modul");
+    if (lowerType === "guru") {
+      const loads = teachingLoads?.filter(t => t.teacherCode === idOrCode).length || 0;
+      if (loads > 0) reasons.push(`Beban Mengajar (${loads} alokasi)`);
+      const sched = schedule?.filter(s => s.teacherCode === idOrCode).length || 0;
+      if (sched > 0) reasons.push(`Jadwal Pelajaran (${sched} slot KBM)`);
+      const waliClass = classes?.find(c => c.homeroom === idOrCode);
+      if (waliClass) reasons.push(`Wali Kelas (${waliClass.name})`);
+      const mod = syllabuses?.filter(s => s.teacherCode === idOrCode).length || 0;
+      if (mod > 0) reasons.push(`Modul Ajar / Silabus (${mod} modul)`);
     }
-    if (type === "kelas") {
-      if (students?.some(s => s.class_name === idOrCode)) reasons.push("Data Siswa");
-      if (teachingLoads?.some(t => t.classId === idOrCode)) reasons.push("Beban Mengajar");
-      if (schedule?.some(s => s.classId === idOrCode)) reasons.push("Jadwal");
+    if (lowerType === "karyawan" || lowerType === "staff") {
+      const sched = schedule?.filter(s => s.teacherCode === idOrCode).length || 0;
+      if (sched > 0) reasons.push(`Jadwal / Piket (${sched} slot)`);
     }
-    if (type === "ruangan") {
-      if (teachingLoads?.some(t => t.practiceRoomIds && t.practiceRoomIds.includes(idOrCode))) reasons.push("Beban Mengajar (Praktik)");
-      if (schedule?.some(s => s.roomId === idOrCode)) reasons.push("Jadwal");
+    if (lowerType === "kelas") {
+      const stdCount = students?.filter(s => String(s.class_name || s.kelas || '').trim() === String(idOrCode).trim()).length || 0;
+      if (stdCount > 0) reasons.push(`Data Siswa (${stdCount} siswa terdaftar)`);
+      const loads = teachingLoads?.filter(t => t.classId === idOrCode).length || 0;
+      if (loads > 0) reasons.push(`Beban Mengajar (${loads} alokasi mapel)`);
+      const sched = schedule?.filter(s => s.classId === idOrCode).length || 0;
+      if (sched > 0) reasons.push(`Jadwal Pelajaran (${sched} slot KBM)`);
     }
-    if (type === "jurusan") {
-      if (classes?.some(c => c.major === idOrCode)) reasons.push("Data Kelas");
-      if (teachers?.some(t => t.preferredMajor && t.preferredMajor.includes(idOrCode))) reasons.push("Preferensi Guru");
-      if (subjects?.some(s => s.major && s.major.includes(idOrCode))) reasons.push("Mata Pelajaran");
-      if (rooms?.some(r => r.major && r.major.includes(idOrCode))) reasons.push("Data Ruangan");
+    if (lowerType === "ruangan") {
+      const loads = teachingLoads?.filter(t => t.practiceRoomIds && t.practiceRoomIds.includes(idOrCode)).length || 0;
+      if (loads > 0) reasons.push(`Beban Mengajar Praktik (${loads} alokasi)`);
+      const sched = schedule?.filter(s => s.roomId === idOrCode).length || 0;
+      if (sched > 0) reasons.push(`Jadwal Pelajaran (${sched} slot KBM)`);
+    }
+    if (lowerType === "jurusan") {
+      const clsCount = classes?.filter(c => String(c.major || '').trim() === String(idOrCode).trim()).length || 0;
+      if (clsCount > 0) reasons.push(`Data Kelas (${clsCount} rombel kelas)`);
+      const tchCount = teachers?.filter(t => t.preferredMajor && t.preferredMajor.includes(idOrCode)).length || 0;
+      if (tchCount > 0) reasons.push(`Preferensi Guru (${tchCount} guru)`);
+      const sbjCount = subjects?.filter(s => s.major && s.major.includes(idOrCode)).length || 0;
+      if (sbjCount > 0) reasons.push(`Mata Pelajaran (${sbjCount} mapel)`);
+      const rmCount = rooms?.filter(r => r.major && r.major.includes(idOrCode)).length || 0;
+      if (rmCount > 0) reasons.push(`Data Ruangan (${rmCount} ruang)`);
     }
     return reasons;
   };

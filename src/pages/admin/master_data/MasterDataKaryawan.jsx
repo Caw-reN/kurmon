@@ -293,7 +293,13 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
                       const deps = checkDependencies('Karyawan', item.code);
                       if (deps.length > 0) {
                         return (
-                          <Button size="icon" variant="ghost" disabled title={`Tidak bisa dihapus. Masih digunakan oleh: ${deps.join(',')}. Hapus koneksi terlebih dahulu.`} >
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={() => openModal('lock_info', 'view', { type: 'Karyawan', name: `Karyawan: ${item.name || item.code}`, deps })}
+                            title="Klik untuk melihat detail koneksi data"
+                            className="hover:bg-amber-50 border border-amber-200/80 cursor-pointer"
+                          >
                             <Lock size={14} className="text-amber-500" />
                           </Button>
                         );
