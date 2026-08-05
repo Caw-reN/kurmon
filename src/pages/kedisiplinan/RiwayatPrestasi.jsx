@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { Modal, Button, TablePagination } from '../../components/ui.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const [prestasiList, setPrestasiList] = useState([]);
@@ -283,46 +284,28 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
     <div className="space-y-5 animate-in fade-in duration-300">
       
       {/* HEADER CARD */}
-      <div 
-        className="rounded-3xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0f172a) 100%)" }}
+      <PageHeader 
+        title="Riwayat Prestasi Siswa"
+        description="Dokumentasi pencapaian akademik & non-akademik siswa di berbagai tingkat kejuaraan."
+        icon={Trophy}
       >
-        <div className="flex items-center gap-3.5 relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-            <Trophy size={26} className="text-white" strokeWidth={2.2} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-black text-lg sm:text-xl text-white tracking-tight">Riwayat Prestasi Siswa</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-white/20 text-white backdrop-blur-xs border border-white/20">
-                Kejuaraan &amp; Penghargaan
-              </span>
-            </div>
-            <p className="text-xs text-white/85 font-medium mt-0.5">
-              Dokumentasi pencapaian akademik &amp; non-akademik siswa di berbagai tingkat kejuaraan.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 w-full sm:w-auto relative z-10">
-          <button
-            type="button"
-            onClick={exportExcel}
-            className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
-          >
-            <FileSpreadsheet size={15} />
-            <span>Export Excel</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
-            className="flex-1 sm:flex-none py-2.5 px-4 rounded-xl font-black text-xs bg-white hover:bg-slate-100 text-slate-900 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
-          >
-            <Plus size={16} strokeWidth={2.5} />
-            <span>Tambah Prestasi</span>
-          </button>
-        </div>
-      </div>
+        <button
+          type="button"
+          onClick={exportExcel}
+          className="py-2 px-3 rounded-xl font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
+        >
+          <FileSpreadsheet size={15} />
+          <span>Export Excel</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
+          className="py-2 px-3.5 rounded-xl font-black text-xs bg-accent text-slate-950 hover:bg-amber-300 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95 border-none"
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          <span>Tambah Prestasi</span>
+        </button>
+      </PageHeader>
 
       {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
