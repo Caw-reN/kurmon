@@ -239,7 +239,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         <button
           type="button"
           onClick={exportExcel}
-          className="py-2 px-3 rounded-xl font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
+          className="py-2 px-3.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
         >
           <FileSpreadsheet size={15} />
           <span>Export Excel</span>
@@ -247,7 +247,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         <button
           type="button"
           onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
-          className="py-2 px-3.5 rounded-xl font-black text-xs bg-accent text-slate-950 hover:bg-amber-300 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95 border-none"
+          className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-accent text-slate-950 hover:bg-amber-300 flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-95 border-none"
         >
           <Plus size={16} strokeWidth={2.5} />
           <span>Tambah Prestasi</span>
@@ -256,8 +256,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
 
       {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <Trophy size={24} />
           </div>
           <div>
@@ -267,8 +267,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <Award size={24} />
           </div>
           <div>
@@ -278,8 +278,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4.5 border border-slate-200/80 shadow-2xs flex items-center gap-4 transition-all hover:shadow-md">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <TrendingUp size={24} />
           </div>
           <div>
@@ -291,7 +291,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       </div>
 
       {/* FILTER & DATA SECTION */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col">
+      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
         
         {/* Filters Header */}
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-center justify-between">
@@ -302,7 +302,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               placeholder="Cari nama siswa, NIS, atau nama prestasi..."
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)] transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
             />
           </div>
 
