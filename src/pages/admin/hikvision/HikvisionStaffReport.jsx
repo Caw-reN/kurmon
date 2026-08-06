@@ -804,14 +804,51 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       }
     });
 
-    const isLateViolation = maxConsecutiveLate >= 3 || (d.total_terlambat || 0) >= 3;
-    const isAlpaViolation = (d.total_alpa || 0) > 4;
+    const totalLate = d.total_terlambat || 0;
+    const totalAlpa = d.total_alpa || 0;
+    const isLateViolation = maxConsecutiveLate >= 3 || totalLate >= 3;
+    const isAlpaViolation = totalAlpa > 4;
+
+    let level = 0;
+    let bgClass = "border-slate-100 hover:bg-slate-50/50";
+    let stickyBgClass = "bg-white border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]";
+    let textClass = "text-slate-800";
+    let subTextClass = "text-slate-400";
+
+    if (totalLate >= 10 || totalAlpa >= 10) {
+      level = 4; // Dark Red
+      bgClass = "bg-rose-900 text-white hover:bg-rose-950 border-rose-950 font-bold";
+      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-md";
+      textClass = "text-white font-extrabold";
+      subTextClass = "text-rose-200 font-semibold";
+    } else if (totalLate >= 7 || totalAlpa >= 8) {
+      level = 3; // Red
+      bgClass = "bg-rose-100/90 hover:bg-rose-200/90 border-rose-300 font-semibold text-rose-950";
+      stickyBgClass = "bg-rose-100 border-rose-300 text-rose-950 shadow-[2px_0_5px_-2px_rgba(225,29,72,0.25)]";
+      textClass = "text-rose-950 font-extrabold";
+      subTextClass = "text-rose-700 font-semibold";
+    } else if (totalLate >= 5 || totalAlpa >= 6) {
+      level = 2; // Orange
+      bgClass = "bg-orange-100/90 hover:bg-orange-200/90 border-orange-300 font-semibold text-orange-950";
+      stickyBgClass = "bg-orange-100 border-orange-300 text-orange-950 shadow-[2px_0_5px_-2px_rgba(234,88,12,0.25)]";
+      textClass = "text-orange-950 font-extrabold";
+      subTextClass = "text-orange-700 font-semibold";
+    } else if (isLateViolation || isAlpaViolation) {
+      level = 1; // Yellow
+      bgClass = "bg-amber-100/90 hover:bg-amber-200/90 border-amber-300 font-semibold text-amber-950";
+      stickyBgClass = "bg-amber-100 border-amber-300 text-amber-950 shadow-[2px_0_5px_-2px_rgba(217,119,6,0.25)]";
+      textClass = "text-amber-950 font-extrabold";
+      subTextClass = "text-amber-800 font-semibold";
+    }
 
     return {
       isLateViolation,
       isAlpaViolation,
-      hasViolation: isLateViolation || isAlpaViolation,
-      maxConsecutiveLate
+      level,
+      bgClass,
+      stickyBgClass,
+      textClass,
+      subTextClass
     };
   }, []);
 
@@ -1060,33 +1097,23 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                   return (
                     <tr 
                       key={d.nis} 
-                      className={`border-b transition-colors ${
-                        v.hasViolation 
-                          ? 'bg-amber-100/90 hover:bg-amber-200/90 border-amber-300 font-semibold' 
-                          : 'border-slate-100 hover:bg-slate-50/50'
-                      }`}
+                      className={`border-b transition-colors ${v.bgClass}`}
                     >
-                       <td className={`px-4 py-3 sticky left-0 border-r z-10 min-w-[220px] ${
-                         v.hasViolation 
-                           ? 'bg-amber-100 border-amber-300 shadow-[2px_0_5px_-2px_rgba(217,119,6,0.25)]' 
-                           : 'bg-white border-slate-100'
-                       }`}>
-                          <div className="font-bold text-slate-800 text-xs whitespace-normal" title={d.name}>{d.name}</div>
-                          <div className="text-[9px] text-slate-500 font-bold mt-0.5">{d.class_name ||'Tanpa Kelas'}</div>
-                          {v.isLateViolation && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran Pertama: Telat ≥ 3x">
-                                <AlertTriangle size={10} className="shrink-0" /> Pelanggaran I (Telat ≥3x)
+                       <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[210px] ${v.stickyBgClass}`}>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`font-bold text-xs truncate max-w-[130px] ${v.textClass}`} title={d.name}>{d.name}</span>
+                            {v.isLateViolation && (
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500 text-white font-black text-[7.5px] uppercase tracking-tight shrink-0 shadow-2xs" title="Pelanggaran I: Telat ≥3x">
+                                <AlertTriangle size={8} className="shrink-0" /> Pelanggaran I
                               </span>
-                            </div>
-                          )}
-                          {v.isAlpaViolation && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran: Alpa > 4 Hari">
-                                <AlertTriangle size={10} className="shrink-0" /> Pelanggaran (Alpa &gt;4x)
+                            )}
+                            {v.isAlpaViolation && (
+                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-rose-600 text-white font-black text-[7.5px] uppercase tracking-tight shrink-0 shadow-2xs" title="Pelanggaran: Alpa >4x">
+                                <AlertTriangle size={8} className="shrink-0" /> Alpha &gt;4x
                               </span>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                          <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>{d.class_name || d.nis || 'Karyawan'}</div>
                        </td>
                        <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
                        <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
