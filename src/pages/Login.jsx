@@ -81,22 +81,21 @@ export default function Login({
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[var(--ui-bg-page,#f8fafc)] font-sans text-slate-900 relative overflow-hidden"
+      className="min-h-screen w-full flex flex-col justify-center items-center p-5 sm:p-8 relative bg-white font-sans text-slate-900 overflow-hidden"
       style={uiTheme}
     >
-      {/* Ambient background blur */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--ui-primary)]/8 rounded-full blur-[140px] pointer-events-none" />
+      {/* Ambient blur */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Main Form Container */}
-      <div className="w-full max-w-[380px] flex flex-col items-center relative z-10">
-        
-        {/* App Logo */}
-        <div className="flex justify-center mb-4">
+      <div className="w-full max-w-[340px] flex flex-col relative z-10">
+
+        {/* Logo */}
+        <div className="flex justify-center mb-5">
           <div
-            className="w-14 h-14 flex items-center justify-center text-[20px] font-black text-white shadow-md transition-transform hover:scale-105"
+            className="w-12 h-12 flex items-center justify-center text-[18px] font-black text-white shadow-[var(--ui-shadow-float)]"
             style={{
               backgroundColor: "var(--ui-primary)",
-              borderRadius: "var(--ui-radius-control, 16px)"
+              borderRadius: "var(--ui-radius-control, 14px)"
             }}
           >
             {appSettings.logoText || "TS"}
