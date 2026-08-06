@@ -384,402 +384,376 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
 
   return (
-    <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card overflow-hidden">
       {!hideTabs && (
-        <div className="bg-slate-100/80 p-2 border-b border-slate-200/80 flex gap-2 overflow-x-auto hide-scrollbar">
-          <button
-            type="button"
-            onClick={() => setActiveTab('matriks')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'matriks' 
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/10' 
-                : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-white/60'
-            }`}
-          >
-            Laporan Kehadiran Bulanan
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('surat_izin')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'surat_izin' 
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/10' 
-                : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-white/60'
-            }`}
-          >
-            Manajemen Surat Izin / Sakit
-          </button>
-        </div>
+      <div className="flex bg-slate-50/80 border-b border-slate-100 p-2 gap-2 overflow-x-auto hide-scrollbar">
+        <Button variant="outline"
+          onClick={() =>setActiveTab('matriks')}
+          className={`cursor-pointer ${activeTab ==='matriks' ?'bg-white text-[var(--ui-primary)] shadow-sm ring-1 ring-slate-200/50' :'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+        >
+          Laporan Kehadiran</Button>
+        <Button variant="outline"
+          onClick={() =>setActiveTab('surat_izin')}
+          className={`cursor-pointer ${activeTab ==='surat_izin' ?'bg-white text-[var(--ui-primary)] shadow-sm ring-1 ring-slate-200/50' :'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+        >
+          Manajemen Surat Izin/Sakit</Button>
+      </div>
       )}
 
       {activeTab === 'surat_izin' && (
-        <div className="flex flex-col">
-          
-          {/* 🏷️ Quick Filter Pills */}
-          <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-200/80 flex flex-wrap items-center gap-2">
-            {[
-              { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-slate-800 text-white border-slate-800 shadow-2xs", inactiveBg: "bg-white text-slate-700 border-slate-200 hover:bg-slate-100" },
-              { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs", inactiveBg: "bg-amber-50/80 text-amber-800 border-amber-200 hover:bg-amber-100/70" },
-              { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs", inactiveBg: "bg-amber-50/70 text-amber-800 border-amber-200/70 hover:bg-amber-100/60" },
-              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white border-blue-600 shadow-2xs", inactiveBg: "bg-blue-50/70 text-blue-800 border-blue-200/70 hover:bg-blue-100/60" },
-              { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs", inactiveBg: "bg-rose-50/70 text-rose-800 border-rose-200/70 hover:bg-rose-100/60" },
-              { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-purple-600 text-white border-purple-600 shadow-2xs", inactiveBg: "bg-purple-50/70 text-purple-800 border-purple-200/70 hover:bg-purple-100/60" },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setFilterStatus(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                  filterStatus === tab.id ? tab.activeBg : tab.inactiveBg
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-md ${
-                  filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600 border border-slate-200/60"
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col space-y-4">
+        {/* Quick Filter Status Pills */}
+        <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-wrap items-center gap-2 shadow-2xs">
+          {[
+            { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white shadow-emerald-900/10" },
+            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white shadow-amber-900/10" },
+            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-600 text-white shadow-amber-900/10" },
+            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white shadow-blue-900/10" },
+            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white shadow-rose-900/10" },
+            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-purple-600 text-white shadow-purple-900/10" },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilterStatus(tab.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
+                filterStatus === tab.id
+                  ? `${tab.activeBg} border-transparent shadow-sm`
+                  : "bg-white text-slate-700 border-slate-200/80 hover:bg-slate-100/70"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
+                filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
 
-          {/* 🔍 Search & Action Control Bar */}
-          <div className="p-4 border-b border-slate-200/80 flex flex-col md:flex-row gap-3.5 justify-between items-start md:items-center bg-white">
-            <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-3 w-full">
-              <div className="relative flex-1 min-w-[220px] w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Cari nama siswa atau NIS..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                />
-              </div>
-
-              <div className="w-full md:w-[160px]">
-                <CustomSelect
-                  options={classOptionsToShow}
-                  value={filterKelas}
-                  onChange={val => setFilterKelas(val)}
-                  placeholder="Filter Kelas"
-                />
-              </div>
-
-              <div className="flex w-full md:w-auto items-center gap-2">
-                <input 
-                  type="date"
-                  value={filterTanggal}
-                  onChange={e => setFilterTanggal(e.target.value)}
-                  className="flex-1 md:flex-none px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
-                />
-                {filterTanggal !== "" && (
-                  <button 
-                    type="button" 
-                    onClick={() => setFilterTanggal("")} 
-                    className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+        {/* Filter Controls & Action Bar */}
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 w-full">
+            <div className="relative flex-1 min-w-[220px] w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                placeholder="Cari siswa atau NIS..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
+              />
             </div>
-
-            <div className="flex flex-wrap gap-2 w-full md:w-auto shrink-0 justify-start md:justify-end">
-              <button 
-                type="button"
-                onClick={exportExcel} 
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Download size={14} />
-                <span>Export</span>
-              </button>
-              <button 
-                type="button"
-                onClick={openAdd} 
-                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus size={15} />
-                <span>Input Absensi</span>
-              </button>
+            <div className="w-full md:w-[160px]">
+              <CustomSelect
+                options={classOptionsToShow}
+                value={filterKelas}
+                onChange={val => setFilterKelas(val)}
+                placeholder="Filter Kelas"
+              />
+            </div>
+            <div className="flex w-full md:w-auto items-center gap-2">
+              <input 
+                type="date"
+                value={filterTanggal}
+                onChange={e => setFilterTanggal(e.target.value)}
+                className="flex-1 md:flex-none px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+              />
+              {filterTanggal !== "" && (
+                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs">Clear</Button>
+              )}
             </div>
           </div>
 
-          {/* 💻 Desktop Table View (Hidden on Mobile) */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead>
-                <tr className="text-[10px] font-black uppercase tracking-wider text-slate-500 bg-slate-50/90 border-b border-slate-200">
-                  <th className="px-5 py-3.5 text-center w-12">No</th>
-                  <th className="px-5 py-3.5">Tanggal</th>
-                  <th className="px-5 py-3.5">Siswa</th>
-                  <th className="px-4 py-3.5 text-center">Status</th>
-                  <th className="px-5 py-3.5">Keterangan &amp; Surat</th>
-                  <th className="px-5 py-3.5">Petugas Input</th>
-                  <th className="px-4 py-3.5 text-center">Persetujuan</th>
-                  <th className="px-5 py-3.5 text-right w-24">Aksi</th>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto shrink-0 justify-start md:justify-end">
+            <button 
+              type="button"
+              onClick={exportExcel} 
+              className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-xl shadow-2xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+            >
+              <Download size={14} /> <span>Export</span>
+            </button>
+            <button 
+              type="button"
+              onClick={openAdd} 
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+            >
+              <Plus size={15} /> <span>Input Absensi</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 💻 Desktop Table View (Hidden on Mobile) */}
+        <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-3.5 text-center w-12">No</th>
+                <th className="px-4 py-3.5">Tanggal</th>
+                <th className="px-5 py-3.5">Siswa &amp; Kelas</th>
+                <th className="px-4 py-3.5 text-center">Status</th>
+                <th className="px-5 py-3.5">Keterangan &amp; Surat</th>
+                <th className="px-4 py-3.5">Petugas Input</th>
+                <th className="px-4 py-3.5 text-center">Persetujuan</th>
+                <th className="px-4 py-3.5 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-bold">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                      <span>Memuat data absensi...</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-bold">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                        <span>Memuat data absensi...</span>
-                      </div>
+              ) : paginatedSuratItems.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                      <CheckCircle2 size={36} className="text-emerald-500 opacity-60" />
+                      <span className="font-extrabold text-slate-700 text-sm">Tidak ada data surat izin / sakit</span>
+                      <span className="text-xs text-slate-400 text-center">Belum ada pengajuan izin/sakit pada filter ini.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedSuratItems.map((item, idx) => {
+                  const student = students.find(s => s.nis === item.siswa_nis);
+                  const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
+                  return (
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-4 py-3.5 font-bold text-slate-400 text-center">
+                      {(currentPageSurat - 1) * itemsPerPageSurat + idx + 1}
                     </td>
-                  </tr>
-                ) : paginatedSuratItems.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400">
-                      <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
-                        <CheckCircle2 size={36} className="text-emerald-400 opacity-60" />
-                        <span className="font-extrabold text-slate-700 text-sm">Tidak ada data pengajuan surat</span>
-                        <span className="text-xs text-slate-400 text-center">Belum ada data surat izin, sakit, atau pengajuan absensi untuk filter ini.</span>
-                      </div>
+                    <td className="px-4 py-3.5 font-extrabold text-slate-800 whitespace-nowrap">
+                      {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </td>
-                  </tr>
-                ) : (
-                  paginatedSuratItems.map((item, idx) => {
-                    const student = students.find(s => s.nis === item.siswa_nis);
-                    const hasSuratAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
-                        <td className="px-5 py-4 text-center font-bold text-slate-400">
-                          {(currentPageSurat - 1) * itemsPerPageSurat + idx + 1}
-                        </td>
-                        <td className="px-5 py-4 font-extrabold text-slate-800 whitespace-nowrap">
-                          {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="font-extrabold text-slate-800 text-xs">{student ? (student.namaSiswa || student.name) : item.siswa_nis}</p>
-                          <p className="text-[10px] font-bold text-slate-500 mt-0.5">{student ? (student.class_name || student.kelas || '-') : '-'}</p>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider inline-block shadow-2xs ${getAttendanceStatusTone(item.status)}`}>
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex flex-col gap-1.5 items-start">
-                            <span className="text-xs text-slate-700 font-medium">{item.keterangan || <span className="text-slate-300 italic">Tanpa keterangan</span>}</span>
-                            <button 
-                              type="button" 
-                              onClick={() => setPreviewItem(item)} 
-                              className={`text-xs px-3 py-1 rounded-xl border font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
-                                hasSuratAttachment 
-                                  ? 'text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border-blue-200/80' 
-                                  : 'text-slate-600 bg-slate-50 hover:bg-slate-200 border-slate-200'
-                              }`}
-                            >
-                              <Eye size={13} />
-                              <span>{hasSuratAttachment ? 'Lihat Surat' : 'Preview / Upload'}</span>
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-[11px] font-semibold text-slate-500 whitespace-nowrap">
-                          {item.pelapor_nama || '-'}
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          {item.approval_status === "approved" ? (
-                            <span className="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider inline-block">
-                              DISETUJUI
-                              {item.approved_by_name && (
-                                <span className="text-[8px] font-bold text-emerald-600 block lowercase">oleh {item.approved_by_name}</span>
-                              )}
-                            </span>
-                          ) : item.approval_status === "rejected" ? (
-                            <span className="px-2.5 py-1 rounded-xl bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider inline-block">
-                              DITOLAK
-                            </span>
-                          ) : item.approval_status === "otomatis" ? (
-                            <span className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-wider inline-block">
-                              OTOMATIS
-                            </span>
-                          ) : (
-                            <div className="flex flex-col items-center gap-1.5">
-                              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                                PENDING
-                              </span>
-                              {hasApprovalPermission && (
-                                <div className="flex items-center gap-1 mt-0.5">
-                                  <button 
-                                    type="button"
-                                    onClick={() => handleApproveReject(item.id, 'approve')}
-                                    className="px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-[10px] font-black transition-all cursor-pointer"
-                                  >
-                                    Setujui
-                                  </button>
-                                  <button 
-                                    type="button"
-                                    onClick={() => handleApproveReject(item.id, 'reject')}
-                                    className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 text-[10px] font-black transition-all cursor-pointer"
-                                  >
-                                    Tolak
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          {(hasApprovalPermission || item.approval_status === "pending") && (
-                            <div className="flex items-center justify-end gap-1">
-                              <button 
-                                type="button" 
-                                onClick={() => handleEdit(item)} 
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                                title="Edit Absensi"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button 
-                                type="button" 
-                                onClick={() => handleDelete(item.id)} 
-                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
-                                title="Hapus Absensi"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 📱 Mobile Card View (Shown on Mobile Screens) */}
-          <div className="md:hidden p-4 space-y-3">
-            {isLoading ? (
-              <div className="py-10 text-center text-slate-400 font-bold flex flex-col items-center gap-2">
-                <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                <span>Memuat data absensi...</span>
-              </div>
-            ) : paginatedSuratItems.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 p-4 border border-dashed border-slate-200 rounded-2xl">
-                <CheckCircle2 size={32} className="text-emerald-400 opacity-60 mx-auto mb-2" />
-                <div className="font-extrabold text-slate-700 text-xs">Tidak ada data pengajuan surat</div>
-              </div>
-            ) : (
-              paginatedSuratItems.map(item => {
-                const student = students.find(s => s.nis === item.siswa_nis);
-                const hasSuratAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
-                return (
-                  <div key={item.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3 shadow-2xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-extrabold text-slate-900 text-sm">
-                          {student ? (student.namaSiswa || student.name) : item.siswa_nis}
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                          Kelas: {student ? (student.class_name || student.kelas || '-') : '-'} • Tgl: {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        </div>
-                      </div>
-                      <span className={`px-2.5 py-0.5 rounded-xl border text-[10px] font-black uppercase shrink-0 ${getAttendanceStatusTone(item.status)}`}>
+                    <td className="px-5 py-3.5">
+                       <p className="font-extrabold text-slate-900">{student ? (student.namaSiswa || student.name) : item.siswa_nis}</p>
+                       <p className="text-[10px] font-bold text-slate-500 mt-0.5">{student ? (student.class_name || student.kelas || '-') : '-'}</p>
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
+                        item.status === 'Sakit' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                        item.status === 'Izin' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        item.status === 'Alpha' || item.status === 'Alpa' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                        'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}>
                         {item.status}
                       </span>
-                    </div>
-
-                    <div className="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200/80 space-y-2">
-                      <div>
-                        <span className="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Keterangan:</span>
-                        <span>{item.keterangan || <span className="text-slate-300 italic">Tanpa keterangan</span>}</span>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => setPreviewItem(item)} 
-                        className={`w-full py-2 rounded-xl border font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          hasSuratAttachment 
-                            ? 'text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border-blue-200' 
-                            : 'text-slate-600 bg-slate-100 hover:bg-slate-200 border-slate-200'
-                        }`}
-                      >
-                        <Eye size={14} />
-                        <span>{hasSuratAttachment ? 'Lihat Foto / Surat Dokter' : 'Preview / Upload Surat'}</span>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Persetujuan:</span>
-                        {item.approval_status === "approved" ? (
-                          <span className="text-[10px] font-black text-emerald-600 uppercase">DISETUJUI</span>
-                        ) : item.approval_status === "rejected" ? (
-                          <span className="text-[10px] font-black text-rose-600 uppercase">DITOLAK</span>
-                        ) : (
-                          <span className="text-[10px] font-black text-amber-600 uppercase">PENDING</span>
-                        )}
-                      </div>
-
-                      {hasApprovalPermission && item.approval_status === "pending" && (
-                        <div className="flex items-center gap-1.5">
+                    </td>
+                    <td className="px-5 py-3.5">
+                       <div className="flex flex-col gap-1.5 items-start">
+                         <span className="text-slate-700 font-semibold">{item.keterangan || <span className="text-slate-400 italic">Tanpa keterangan</span>}</span>
+                         <button 
+                           type="button" 
+                           onClick={() => setPreviewItem(item)} 
+                           className={`text-xs px-3 py-1.5 rounded-xl font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                             hasAttachment 
+                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-900/10' 
+                               : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80'
+                           }`}
+                         >
+                           <Eye size={13} />
+                           <span>{hasAttachment ? 'Lihat Surat' : 'Preview / Upload'}</span>
+                         </button>
+                       </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-xs font-semibold text-slate-600">
+                       {item.pelapor_nama || '-'}
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                       {item.approval_status === "approved" ? (
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                            DISETUJUI
+                            {item.approved_by_name && (
+                              <span className="text-[8px] font-bold text-emerald-700 block lowercase">oleh {item.approved_by_name}</span>
+                            )}
+                          </span>
+                       ) : item.approval_status === "rejected" ? (
+                          <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                            DITOLAK
+                          </span>
+                       ) : item.approval_status === "otomatis" ? (
+                          <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                            OTOMATIS
+                          </span>
+                       ) : (
+                          <div className="flex flex-col items-center gap-1.5">
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
+                              PENDING
+                            </span>
+                            {hasApprovalPermission && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <button 
+                                  type="button"
+                                  onClick={() => handleApproveReject(item.id, 'approve')}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] shadow-2xs active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Setujui
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleApproveReject(item.id, 'reject')}
+                                  className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 font-extrabold text-[10px] active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Tolak
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                       )}
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      {(hasApprovalPermission || item.approval_status === "pending") && (
+                        <div className="flex items-center justify-end gap-1.5">
                           <button 
-                            type="button" 
-                            onClick={() => handleApproveReject(item.id, 'approve')} 
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-[10px]"
+                            type="button"
+                            onClick={() => handleEdit(item)} 
+                            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
+                            title="Edit Data"
                           >
-                            Setujui
+                            <Edit2 size={13} />
                           </button>
                           <button 
-                            type="button" 
-                            onClick={() => handleApproveReject(item.id, 'reject')} 
-                            className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-extrabold text-[10px]"
+                            type="button"
+                            onClick={() => handleDelete(item.id)} 
+                            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
+                            title="Hapus Data"
                           >
-                            Tolak
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* 📄 Pagination Footer */}
-          <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-slate-200/80 gap-4 bg-white">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-medium">
-              <span>Tampilkan</span> 
-              <UISelect 
-                value={itemsPerPageSurat} 
-                onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
-                className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500"
-              >
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </UISelect>
-              <span>data dari total {filteredItems.length}</span>
-            </div>
-            <div className="flex gap-1.5 items-center">
-              <button 
-                type="button"
-                onClick={() => setCurrentPageSurat(p => Math.max(1, p - 1))}
-                disabled={currentPageSurat === 1}
-                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Prev
-              </button>
-              <span className="px-3.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 font-extrabold">
-                {currentPageSurat} / {totalPagesSurat || 1}
-              </span>
-              <button 
-                type="button"
-                onClick={() => setCurrentPageSurat(p => Math.min(totalPagesSurat, p + 1))}
-                disabled={currentPageSurat === totalPagesSurat || totalPagesSurat === 0}
-                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-
+                    </td>
+                  </tr>
+                )})
+              )}
+            </tbody>
+          </table>
         </div>
+
+        {/* 📱 Mobile Card View (Shown on Mobile Screens) */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            <div className="py-10 text-center text-slate-400 font-bold flex flex-col items-center gap-2">
+              <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              <span>Memuat data absensi...</span>
+            </div>
+          ) : paginatedSuratItems.length === 0 ? (
+            <div className="py-10 text-center text-slate-400 p-4 border border-dashed border-slate-200 rounded-2xl">
+              <CheckCircle2 size={32} className="text-emerald-500 opacity-60 mx-auto mb-2" />
+              <div className="font-extrabold text-slate-700 text-xs">Tidak ada data surat izin / sakit</div>
+            </div>
+          ) : (
+            paginatedSuratItems.map(item => {
+              const student = students.find(s => s.nis === item.siswa_nis);
+              const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
+              return (
+                <div key={item.id} className="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-2xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-extrabold text-slate-900 text-sm">
+                        {student ? (student.namaSiswa || student.name) : item.siswa_nis}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                        Kelas: {student ? (student.class_name || student.kelas || '-') : '-'} • Tgl: {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border shrink-0 ${
+                      item.status === 'Sakit' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                      item.status === 'Izin' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                      item.status === 'Alpha' || item.status === 'Alpa' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-700 border-slate-200'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 font-medium">
+                    <span className="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Ket / Alasan:</span>
+                    {item.keterangan || 'Tanpa keterangan'}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 gap-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setPreviewItem(item)} 
+                      className={`text-xs px-3 py-1.5 rounded-xl font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                        hasAttachment 
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}
+                    >
+                      <Eye size={13} />
+                      <span>{hasAttachment ? 'Lihat Surat' : 'Preview / Upload'}</span>
+                    </button>
+
+                    {item.approval_status === "pending" && hasApprovalPermission && (
+                      <div className="flex items-center gap-1">
+                        <button 
+                          type="button"
+                          onClick={() => handleApproveReject(item.id, 'approve')}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px]"
+                        >
+                          Setujui
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => handleApproveReject(item.id, 'reject')}
+                          className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 font-bold text-[10px]"
+                        >
+                          Tolak
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-slate-200/80 gap-4 bg-white rounded-2xl shadow-2xs">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-bold text-center">
+            <span>Tampilkan</span>
+            <UISelect 
+              value={itemsPerPageSurat} 
+              onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
+              className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500"
+            >
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </UISelect>
+            <span>data dari {filteredItems.length}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="outline" size="sm"
+              onClick={() => setCurrentPageSurat(p => Math.max(1, p - 1))}
+              disabled={currentPageSurat === 1}
+              className="text-xs font-bold rounded-xl"
+            >
+              Prev
+            </Button>
+            <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-black">
+              {currentPageSurat} / {totalPagesSurat || 1}
+            </span>
+            <Button 
+              variant="outline" size="sm"
+              onClick={() => setCurrentPageSurat(p => Math.min(totalPagesSurat, p + 1))}
+              disabled={currentPageSurat === totalPagesSurat || totalPagesSurat === 0}
+              className="text-xs font-bold rounded-xl"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
       )}
 
       {activeTab ==='matriks' && (
