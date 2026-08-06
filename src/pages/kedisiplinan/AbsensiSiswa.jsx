@@ -134,8 +134,13 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const baseSuratItems = useMemo(() => {
     return items.filter(item => {
-      // Exclude automatic machine HADIR logs from Surat Izin/Sakit management
-      if (item.status === "Hadir" && item.pelapor_nama === "Mesin Hikvision") {
+      // Exclude automatic machine attendance logs (Mesin Hikvision) from Surat Izin/Sakit management
+      if (
+        item.pelapor_nama === "Mesin Hikvision" || 
+        item.source === "hikvision" || 
+        item.is_machine || 
+        String(item.keterangan || '').startsWith("Mesin:")
+      ) {
         return false;
       }
 
