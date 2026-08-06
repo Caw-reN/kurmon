@@ -1670,51 +1670,83 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               </tbody>
               <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
                 {/* JML HADIR */}
-                <tr className="bg-emerald-50/80 border-b border-emerald-200/80 text-emerald-900">
-                  <td className="px-4 py-2 sticky left-0 bg-emerald-50 z-10 border-r border-emerald-200 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-emerald-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
+                <tr className="bg-emerald-100/90 border-b border-emerald-200 text-emerald-950">
+                  <td className="px-4 py-2 sticky left-0 bg-emerald-100 z-10 border-r border-emerald-300 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-2 text-center border-r border-emerald-200 text-[10px] font-black text-emerald-800">{dailyTotals.hadir[d] || 0}</td>
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-emerald-200/80">
+                      {dailyTotals.hadir[d] > 0 ? (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-2xs">
+                          {dailyTotals.hadir[d]}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-emerald-400">0</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
                 {/* JML TERLAMBAT */}
-                <tr className="bg-rose-50/80 border-b border-rose-200/80 text-rose-900">
-                  <td className="px-4 py-2 sticky left-0 bg-rose-50 z-10 border-r border-rose-200 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-200 text-rose-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
+                <tr className="bg-rose-100/90 border-b border-rose-200 text-rose-950">
+                  <td className="px-4 py-2 sticky left-0 bg-rose-100 z-10 border-r border-rose-300 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-2 text-center border-r border-rose-200 text-[10px] font-black text-rose-800">{dailyTotals.terlambat[d] || 0}</td>
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-rose-200/80">
+                      {dailyTotals.terlambat[d] > 0 ? (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-2xs">
+                          {dailyTotals.terlambat[d]}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-rose-300">0</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
                 {/* JML IZIN */}
-                <tr className="bg-blue-50/80 border-b border-blue-200/80 text-blue-900">
-                  <td className="px-4 py-2 sticky left-0 bg-blue-50 z-10 border-r border-blue-200 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-200 text-blue-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
+                <tr className="bg-blue-100/90 border-b border-blue-200 text-blue-950">
+                  <td className="px-4 py-2 sticky left-0 bg-blue-100 z-10 border-r border-blue-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-2 text-center border-r border-blue-200 text-[10px] font-black text-blue-800">{dailyTotals.izin[d] || 0}</td>
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-blue-200/80">
+                      {dailyTotals.izin[d] > 0 ? (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-blue-600 text-white font-black text-[10px] shadow-2xs">
+                          {dailyTotals.izin[d]}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-blue-300">0</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
                 {/* JML SAKIT */}
-                <tr className="bg-amber-50/80 border-b border-amber-200/80 text-amber-900">
-                  <td className="px-4 py-2 sticky left-0 bg-amber-50 z-10 border-r border-amber-200 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-200 text-amber-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
+                <tr className="bg-amber-100/90 border-b border-amber-200 text-amber-950">
+                  <td className="px-4 py-2 sticky left-0 bg-amber-100 z-10 border-r border-amber-300 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-2 text-center border-r border-amber-200 text-[10px] font-black text-amber-800">{dailyTotals.sakit[d] || 0}</td>
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-amber-200/80">
+                      {dailyTotals.sakit[d] > 0 ? (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-amber-500 text-white font-black text-[10px] shadow-2xs">
+                          {dailyTotals.sakit[d]}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-amber-400">0</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
                 {/* JML ALPA */}
@@ -1726,7 +1758,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-red-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-2 text-center border-r border-slate-700 text-[10px] font-black text-white">{dailyTotals.alpa[d] || 0}</td>
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
+                      {dailyTotals.alpa[d] > 0 ? (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-2xs">
+                          {dailyTotals.alpa[d]}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-600">0</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
               </tfoot>
