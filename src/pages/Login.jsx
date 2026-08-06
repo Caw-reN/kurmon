@@ -81,17 +81,17 @@ export default function Login({
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center bg-slate-50/90 relative overflow-hidden font-sans text-slate-900 p-4"
+      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[var(--ui-bg-page,#f8fafc)] font-sans text-slate-900 relative overflow-hidden"
       style={uiTheme}
     >
-      {/* Ambient decorative blur background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--ui-primary)]/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* Ambient background blur */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--ui-primary)]/8 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Centered Login Card */}
-      <div className="w-full max-w-[420px] bg-white rounded-3xl p-6 sm:p-9 shadow-xl border border-slate-200/80 flex flex-col relative z-10 animate-in fade-in duration-300">
-
-        {/* Brand Logo */}
-        <div className="flex justify-center mb-6">
+      {/* Main Form Container */}
+      <div className="w-full max-w-[380px] flex flex-col items-center relative z-10">
+        
+        {/* App Logo */}
+        <div className="flex justify-center mb-4">
           <div
             className="w-14 h-14 flex items-center justify-center text-[20px] font-black text-white shadow-md transition-transform hover:scale-105"
             style={{
