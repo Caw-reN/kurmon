@@ -1445,101 +1445,116 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
       {/* Desktop Filter Container */}
       <div className="hidden sm:flex ui-card p-4 sm:p-5 flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Control Bar: Filters + Export Buttons */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
-          {/* Filters Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 flex-1 min-w-0">
-            <div className="min-w-0">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
-              <CustomSelect 
-                value={filter.month} 
-                onChange={val => setFilter({ ...filter, month: parseInt(val) })}
-                options={monthOptions}
+        {/* Top Filter Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Siswa</label>
+            <div className="relative w-full">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Nama / NIS..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
               />
             </div>
+          </div>
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
+            <CustomSelect 
+              value={filter.month} 
+              onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+              options={monthOptions}
+            />
+          </div>
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tahun</label>
+            <CustomSelect 
+              value={filter.year} 
+              onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+              options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+            />
+          </div>
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipe</label>
+            <CustomSelect
+              value={viewMode}
+              onChange={val => setViewMode(val)}
+              options={[
+                { value:"monthly", label:"Bulanan" },
+                { value:"weekly", label:"Mingguan" }
+              ]}
+            />
+          </div>
+          {!user?.isWalas && (
             <div className="min-w-0">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tahun</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Kelas</label>
               <CustomSelect 
-                value={filter.year} 
-                onChange={val => setFilter({ ...filter, year: parseInt(val) })}
-                options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipe</label>
-              <CustomSelect
-                value={viewMode}
-                onChange={val => setViewMode(val)}
+                value={filter.class_name} 
+                onChange={val => setFilter({ ...filter, class_name: val })}
                 options={[
-                  { value:"monthly", label:"Bulanan" },
-                  { value:"weekly", label:"Mingguan" }
+                  { value:"all", label:"-- Semua --" },
+                  ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas }))
                 ]}
               />
             </div>
-            {!user?.isWalas && (
-              <div className="min-w-0">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Kelas</label>
-                <CustomSelect 
-                  value={filter.class_name} 
-                  onChange={val => setFilter({ ...filter, class_name: val })}
+          )}
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Urutkan</label>
+            <div className="flex items-center gap-1 w-full min-w-0">
+              <div className="flex-1 min-w-0">
+                <CustomSelect
+                  value={sortBy}
+                  onChange={val => setSortBy(val)}
                   options={[
-                    { value:"all", label:"-- Semua --" },
-                    ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas }))
+                    { value: "class_nis", label: "Kelas & NIS" },
+                    { value: "nis", label: "NIS" },
+                    { value: "name", label: "Nama (A-Z)" },
+                    { value: "hadir", label: "Total Hadir" },
+                    { value: "alpa", label: "Total Alpa" }
                   ]}
                 />
               </div>
-            )}
-            <div className="min-w-0">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Urutkan</label>
-              <div className="flex items-center gap-1 w-full min-w-0">
-                <div className="flex-1 min-w-0">
-                  <CustomSelect
-                    value={sortBy}
-                    onChange={val => setSortBy(val)}
-                    options={[
-                      { value: "class_nis", label: "Kelas & NIS" },
-                      { value: "nis", label: "NIS" },
-                      { value: "name", label: "Nama (A-Z)" },
-                      { value: "hadir", label: "Total Hadir" },
-                      { value: "alpa", label: "Total Alpa" }
-                    ]}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-                  title={sortDir === "asc" ? "Naik" : "Turun"}
-                  className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                    sortDir === 'desc' 
-                      ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <ArrowUpDown size={14} />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                title={sortDir === "asc" ? "Naik" : "Turun"}
+                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  sortDir === 'desc' 
+                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <ArrowUpDown size={14} />
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Action Export Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+        {/* Bottom Action Bar: Mode Select + Export Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Opsi Tampilan:</label>
             <UISelect 
               value={exportMode}
               onChange={(e) => setExportMode(e.target.value)}
-              className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-xl"
+              className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-xl bg-slate-50 font-bold focus:bg-white"
             >
-              <option value="summary">Ringkas (H/T/I/S/A)</option>
-              <option value="detailed">Lengkap (Jam)</option>
+              <option value="summary">Ringkas (Status H/T/I/S/A)</option>
+              <option value="detailed">Lengkap (Jam Masuk / Pulang)</option>
             </UISelect>
+          </div>
 
+          <div className="flex items-center gap-2 shrink-0 justify-end">
             <Button 
               variant="outline"
               type="button"
               onClick={() => handleExport(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-3 py-2 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-700 border-emerald-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 bg-emerald-50/90 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-2xs disabled:opacity-50"
             >
-              <FileSpreadsheet size={14} className="shrink-0" />
+              <FileSpreadsheet size={14} className="shrink-0 text-emerald-600" />
               <span>Excel</span>
             </Button>
 
@@ -1548,9 +1563,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => handleExportPDF(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-3 py-2 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 border-rose-200/80 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 bg-rose-50/90 hover:bg-rose-100 text-rose-700 border-rose-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-2xs disabled:opacity-50"
             >
-              <FileText size={14} className="shrink-0" />
+              <FileText size={14} className="shrink-0 text-rose-600" />
               <span>PDF</span>
             </Button>
 
@@ -1559,7 +1574,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => setShowPrintModal(true)}
               disabled={loading || data.length === 0}
-              className="px-3.5 py-2 bg-indigo-50/90 hover:bg-indigo-100 text-indigo-700 border-indigo-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-md disabled:opacity-50"
             >
               <Printer size={14} className="shrink-0" />
               <span>Cetak Per Periode</span>
