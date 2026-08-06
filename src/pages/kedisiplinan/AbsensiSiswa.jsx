@@ -1,25 +1,25 @@
-import { useState, useEffect, useMemo, useCallback } from'react';
-import useAuthStore from'../../store/monitoring/authStore.js';
-import * as XLSX from'xlsx';
-import { getAttendanceStatusTone } from'../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud } from'lucide-react';
-import { CustomSelect } from'../../components/CustomSelect.jsx';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import useAuthStore from '../../store/monitoring/authStore.js';
+import * as XLSX from 'xlsx';
+import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink } from 'lucide-react';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 
 
 export default function AbsensiSiswa({ classes = [], students = [], hideTabs = false }) {
   const user = useAuthStore(state => state.user);
   const userRole = user?.role;
-  const userDivision = (user?.division ||"").toLowerCase();
+  const userDivision = (user?.division || "").toLowerCase();
   const authToken = user?.authToken;
 
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [filterKelas, setFilterKelas] = useState(() => {
-    if (user?.role ==="guru" && user?.isWalas && user?.walasClass) {
+    if (user?.role === "guru" && user?.isWalas && user?.walasClass) {
       return user.walasClass;
     }
-    return"all";
+    return "all";
   });
   const [filterTanggal, setFilterTanggal] = useState("");
 
@@ -28,33 +28,35 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     (userRole === "waka" && userDivision === "kesiswaan");
 
   const [isLoading, setIsLoading] = useState(false);
+  const [previewItem, setPreviewItem] = useState(null);
   
   const handleApproveReject = async (id, action) => {
     try {
       const res = await fetch("/api/kedisiplinan/absensi", {
-        method:"POST",
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
+        method: "POST",
+        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json"
         },
         body: JSON.stringify({ action, id })
       });
       const data = await res.json();
       if (data.ok) {
-        showToast(action ==='approve' ?"Pengajuan disetujui" :"Pengajuan ditolak","success");
+        showToast(action === 'approve' ? "Pengajuan disetujui" : "Pengajuan ditolak", "success");
         fetchData();
       } else {
-        showToast(data.error ||"Gagal mengubah status persetujuan.","error");
+        showToast(data.error || "Gagal mengubah status persetujuan.", "error");
       }
     } catch {
-      showToast("Gagal menghubungi server.","error");
+      showToast("Gagal menghubungi server.", "error");
     }
   };
 
   const [showFormModal, setShowFormModal] = useState(false);
-  const [form, setForm] = useState({ siswa_nis: [], tanggal: new Date().toISOString().split('T')[0], status:'Sakit', keterangan:'', fileData: null, fileName: null, fileSizeKB: null });
+  const [form, setForm] = useState({ siswa_nis: [], tanggal: new Date().toISOString().split('T')[0], status: 'Sakit', keterangan: '', fileData: null, fileName: null, fileSizeKB: null });
   const [editForm, setEditForm] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Auto-resize image down to max 800x800px with 0.6 quality for compact file size (~30-80 KB)
   const compressImage = (file, callback) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -63,8 +65,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         const canvas = document.createElement("canvas");
         let width = img.width;
         let height = img.height;
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 1000;
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
 
         if (width > height) {
           if (width > MAX_WIDTH) {
@@ -78,14 +80,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           }
         }
 
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = Math.round(width);
+        canvas.height = Math.round(height);
 
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-        const stringLength = dataUrl.length -'data:image/jpeg;base64,'.length;
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
         const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
         const sizeInKB = Math.round(sizeInBytes / 1024);
 
@@ -522,18 +524,20 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600 font-medium">
-                       <div className="flex flex-col gap-1.5">
+                       <div className="flex flex-col gap-1.5 items-start">
                          <span>{item.keterangan || <span className="text-slate-300 italic">Tanpa keterangan</span>}</span>
-                         {item.gdrive_url && (
-                           <a 
-                             href={item.gdrive_url} 
-                             target="_blank" 
-                             rel="noreferrer" 
-                             className="text-xs text-blue-600 hover:underline font-bold flex items-center gap-1 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-100 self-start"
-                           >
-                             📁 Lihat Surat (Google Drive)
-                           </a>
-                         )}
+                         <button 
+                           type="button" 
+                           onClick={() => setPreviewItem(item)} 
+                           className={`text-xs px-2.5 py-1 rounded-lg border font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                             (item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path) 
+                               ? 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border-blue-200/80' 
+                               : 'text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 border-slate-200'
+                           }`}
+                         >
+                           <Eye size={13} />
+                           <span>{(item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path) ? 'Lihat Surat' : 'Preview / Upload'}</span>
+                         </button>
                        </div>
                     </td>
                     <td className="px-6 py-4 text-[11px] font-semibold text-slate-500">
@@ -862,6 +866,86 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               <Button type="submit" disabled={isUploading}>{isUploading ?'Mengupload ke GDrive...' :'Update & Simpan'}</Button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {previewItem && (
+        <Modal isOpen={!!previewItem} onClose={() => setPreviewItem(null)} title="Preview Surat / Bukti Absensi" maxWidth="max-w-xl">
+          <div className="space-y-4 p-1">
+            {/* Header Info */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Siswa &amp; Tanggal</div>
+                <div className="font-extrabold text-slate-900 text-sm mt-0.5">
+                  {students.find(s => s.nis === previewItem.siswa_nis)?.namaSiswa || students.find(s => s.nis === previewItem.siswa_nis)?.name || previewItem.siswa_nis}
+                </div>
+                <div className="text-xs font-semibold text-slate-500 mt-0.5">
+                  Tanggal: {new Date(previewItem.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+              </div>
+              <span className={`px-3 py-1 rounded-xl font-black text-xs uppercase border ${getAttendanceStatusTone(previewItem.status)}`}>
+                {previewItem.status}
+              </span>
+            </div>
+
+            {/* Document Content View */}
+            <div className="bg-slate-900/90 rounded-2xl p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
+              {previewItem.gdrive_url ? (
+                <div className="w-full flex flex-col items-center gap-3 text-white py-6">
+                  <FileText className="w-16 h-16 text-blue-400 animate-pulse" />
+                  <p className="text-xs font-semibold text-slate-300">Dokumen tersimpan di Google Drive</p>
+                  <a 
+                    href={previewItem.gdrive_url} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all"
+                  >
+                    <ExternalLink size={14} /> Buka Surat di Google Drive
+                  </a>
+                </div>
+              ) : (previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path) ? (
+                <div className="flex flex-col items-center gap-2 w-full">
+                  <img 
+                    src={previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path} 
+                    alt="Surat Bukti Absensi" 
+                    className="max-h-[380px] w-auto max-w-full object-contain rounded-xl shadow-md border border-slate-700" 
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-8 text-slate-400 space-y-3">
+                  <FileText className="w-12 h-12 mx-auto text-slate-600" />
+                  <div>
+                    <p className="font-bold text-sm text-slate-300">Belum Ada Foto / Dokumen Surat</p>
+                    <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Anda dapat mengunggah foto surat sakit/izin untuk melengkapi data absensi ini.</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const itemToEdit = previewItem;
+                      setPreviewItem(null);
+                      handleEdit(itemToEdit);
+                    }} 
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <UploadCloud size={14} /> Upload Surat Sekarang
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Keterangan */}
+            {previewItem.keterangan && (
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700">
+                <span className="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Catatan Keterangan:</span>
+                {previewItem.keterangan}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button variant="outline" onClick={() => setPreviewItem(null)}>Tutup</Button>
+            </div>
+          </div>
         </Modal>
       )}
 
