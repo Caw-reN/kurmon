@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -585,11 +585,303 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     setCurrentPage(1);
   }, [search, filter.month, filter.year, filter.class_name, sortBy, sortDir]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = React.useMemo(() => {
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [printPeriod, setPrintPeriod] = useState("bulanan"); // "harian" | "mingguan" | "bulanan" | "semester"
+  const [printDate, setPrintDate] = useState(new Date().getDate());
+  const [printWeek, setPrintWeek] = useState(1);
+  const [printSemester, setPrintSemester] = useState("ganjil");
+
+  const currentPageData = React.useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredData.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredData, currentPage]);
+  const paginatedData = currentPageData;
+
+  const dailyTotals = React.useMemo(() => {
+    const totals = {
+      hadir: {},
+      terlambat: {},
+      izin: {},
+      sakit: {},
+      alpa: {},
+      pkl: {}
+    };
+    daysToRender.forEach(d => {
+      totals.hadir[d] = 0;
+      totals.terlambat[d] = 0;
+      totals.izin[d] = 0;
+      totals.sakit[d] = 0;
+      totals.alpa[d] = 0;
+      totals.pkl[d] = 0;
+    });
+
+    filteredData.forEach(student => {
+      daysToRender.forEach(dayNum => {
+        const dayData = (student.days || {})[dayNum];
+        if (dayData) {
+          const status = dayData.status;
+          if (status === "Sakit") totals.sakit[dayNum]++;
+          else if (status === "Izin") totals.izin[dayNum]++;
+          else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") totals.alpa[dayNum]++;
+          else if (status === "PKL" || String(status || '').startsWith("PKL")) totals.pkl[dayNum]++;
+          else if (dayData.isLate || status === "Terlambat") totals.terlambat[dayNum]++;
+          else if (dayData.in || dayData.out || status === "Hadir") totals.hadir[dayNum]++;
+        }
+      });
+    });
+
+    return totals;
+  }, [filteredData, daysToRender]);
+
+  const schoolProfile = useAppStore(state => state.schoolProfile) || {};
+  const schoolName = schoolProfile.schoolName || "SMK NEGERI INTEGRATED SCHOOL";
+  const schoolAddress = schoolProfile.address || "Jl. Pendidikan No. 1, Kota Edukasi";
+
+  const handlePrintPeriod = async () => {
+    try {
+      const monthName = monthOptions.find(m => m.value === filter.month)?.label || "";
+      const className = filter.class_name === "all" ? "Semua Kelas" : filter.class_name;
+      const todayDateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      let periodTitle = "";
+      let periodSubTitle = "";
+      let printDays = [];
+
+      if (printPeriod === "harian") {
+        periodTitle = `LAPORAN ABSENSI HARIAN SISWA (${printDate} ${monthName.toUpperCase()} ${filter.year})`;
+        periodSubTitle = `Tanggal: ${printDate} ${monthName} ${filter.year} | Kelas: ${className}`;
+        printDays = [printDate];
+      } else if (printPeriod === "mingguan") {
+        const startDay = (printWeek - 1) * 7 + 1;
+        const endDay = Math.min(printWeek * 7, daysInMonth);
+        periodTitle = `LAPORAN ABSENSI MINGGUAN SISWA (MINGGU KE-${printWeek})`;
+        periodSubTitle = `Periode: Tanggal ${startDay} - ${endDay} ${monthName} ${filter.year} | Kelas: ${className}`;
+        printDays = [];
+        for (let i = startDay; i <= endDay; i++) printDays.push(i);
+      } else if (printPeriod === "bulanan") {
+        periodTitle = `LAPORAN MATRIKS ABSENSI BULANAN SISWA`;
+        periodSubTitle = `Bulan: ${monthName} ${filter.year} | Kelas: ${className}`;
+        printDays = daysToRender;
+      } else if (printPeriod === "semester") {
+        const semMonths = printSemester === "ganjil" ? "Juli - Desember" : "Januari - Juni";
+        periodTitle = `REKAPAN ABSENSI SISWA 1 SEMESTER (${printSemester.toUpperCase()})`;
+        periodSubTitle = `Tahun Ajaran ${filter.year}/${filter.year + 1} (${semMonths}) | Kelas: ${className}`;
+      }
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return showToast("Pop-up diblokir browser, izinkan pop-up untuk mencetak.", "warning");
+
+      let tableHtml = "";
+
+      if (printPeriod === "semester") {
+        tableHtml = `
+          <table class="table-data">
+            <thead>
+              <tr>
+                <th style="width: 25px;">NO</th>
+                <th style="width: 85px;">NIS</th>
+                <th style="text-align: left;">NAMA SISWA</th>
+                <th style="width: 80px;">KELAS</th>
+                <th style="width: 50px;">HADIR</th>
+                <th style="width: 50px;">TERLAMBAT</th>
+                <th style="width: 50px;">IZIN</th>
+                <th style="width: 50px;">SAKIT</th>
+                <th style="width: 50px;">ALPA</th>
+                <th style="width: 60px;">% HADIR</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredData.map((s, idx) => {
+                const totalH = s.total_hadir || 0;
+                const totalT = s.total_terlambat || 0;
+                const totalI = s.total_izin || 0;
+                const totalS = s.total_sakit || 0;
+                const totalA = s.total_alpa || 0;
+                const totalEff = totalH + totalT + totalI + totalS + totalA;
+                const pct = totalEff > 0 ? Math.round(((totalH + totalT) / totalEff) * 100) : 100;
+                return `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${s.nis || '-'}</td>
+                    <td style="text-align: left; font-weight: bold;">${s.name}</td>
+                    <td>${s.class_name || '-'}</td>
+                    <td class="bg-hadir">${totalH}</td>
+                    <td class="bg-terlambat">${totalT}</td>
+                    <td class="bg-izin">${totalI}</td>
+                    <td class="bg-sakit">${totalS}</td>
+                    <td class="bg-alpa">${totalA}</td>
+                    <td style="font-weight: bold;">${pct}%</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f8fafc; font-weight: bold;">
+                <td colspan="4" style="text-align: right; font-weight: bold;">TOTAL KESELURUHAN KELAS:</td>
+                <td class="bg-hadir">${filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
+                <td class="bg-terlambat">${filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
+                <td class="bg-izin">${filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                <td class="bg-sakit">${filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
+                <td class="bg-alpa">${filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                <td>-</td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+      } else {
+        tableHtml = `
+          <table class="table-data">
+            <thead>
+              <tr>
+                <th style="width: 25px;">NO</th>
+                <th style="text-align: left; min-width: 140px;">NAMA SISWA</th>
+                <th style="width: 32px;">HDR</th>
+                <th style="width: 32px;">TLT</th>
+                <th style="width: 32px;">IZN</th>
+                <th style="width: 32px;">SKT</th>
+                <th style="width: 32px;">ALP</th>
+                ${printDays.map(d => `<th style="width: 26px;">${d}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredData.map((s, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td style="text-align: left; font-weight: bold;">
+                    <div>${s.name}</div>
+                    <div style="font-size: 8px; color: #64748b;">${s.class_name || ''}</div>
+                  </td>
+                  <td class="bg-hadir">${s.total_hadir || 0}</td>
+                  <td class="bg-terlambat">${s.total_terlambat || 0}</td>
+                  <td class="bg-izin">${s.total_izin || 0}</td>
+                  <td class="bg-sakit">${s.total_sakit || 0}</td>
+                  <td class="bg-alpa">${s.total_alpa || 0}</td>
+                  ${printDays.map(d => {
+                    const dayData = (s.days || {})[d];
+                    if (!dayData) return `<td>-</td>`;
+                    const status = dayData.status;
+                    if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
+                    if (status === "Izin") return `<td class="bg-izin">I</td>`;
+                    if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") return `<td class="bg-alpa">A</td>`;
+                    if (status === "PKL" || String(status || '').startsWith("PKL")) return `<td style="background:#e0e7ff; color:#3730a3; font-weight:bold;">PKL</td>`;
+                    if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
+                    if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
+                    return `<td>-</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+            <tfoot>
+              <tr class="bg-hadir" style="background-color: #f0fdf4;">
+                <td colspan="2" style="text-align: right; font-weight: bold; color: #166534;">TOTAL HADIR (HDR):</td>
+                <td>${filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
+                <td>-</td><td>-</td><td>-</td><td>-</td>
+                ${printDays.map(d => `<td>${dailyTotals.hadir[d] || 0}</td>`).join('')}
+              </tr>
+              <tr class="bg-terlambat" style="background-color: #fef2f2;">
+                <td colspan="2" style="text-align: right; font-weight: bold; color: #991b1b;">TOTAL TERLAMBAT (TLT):</td>
+                <td>-</td><td>${filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
+                <td>-</td><td>-</td><td>-</td>
+                ${printDays.map(d => `<td>${dailyTotals.terlambat[d] || 0}</td>`).join('')}
+              </tr>
+              <tr class="bg-izin" style="background-color: #eff6ff;">
+                <td colspan="2" style="text-align: right; font-weight: bold; color: #1e3a8a;">TOTAL IZIN (IZN):</td>
+                <td>-</td><td>-</td><td>${filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                <td>-</td><td>-</td>
+                ${printDays.map(d => `<td>${dailyTotals.izin[d] || 0}</td>`).join('')}
+              </tr>
+              <tr class="bg-sakit" style="background-color: #fffbeb;">
+                <td colspan="2" style="text-align: right; font-weight: bold; color: #92400e;">TOTAL SAKIT (SKT):</td>
+                <td>-</td><td>-</td><td>-</td><td>${filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
+                <td>-</td>
+                ${printDays.map(d => `<td>${dailyTotals.sakit[d] || 0}</td>`).join('')}
+              </tr>
+              <tr class="bg-alpa" style="background-color: #0f172a; color: white;">
+                <td colspan="2" style="text-align: right; font-weight: bold; color: white;">TOTAL ALPA (ALP):</td>
+                <td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td>
+                <td style="color: #ef4444; font-weight: bold;">${filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                ${printDays.map(d => `<td style="color:white;">${dailyTotals.alpa[d] || 0}</td>`).join('')}
+              </tr>
+            </tfoot>
+          </table>
+        `;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${periodTitle}</title>
+          <style>
+            @media print {
+              @page { size: landscape; margin: 10mm; }
+              body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10px; }
+            }
+            body { font-family: 'Segoe UI', Arial, sans-serif; margin: 15px; color: #0f172a; background: #fff; }
+            .kop-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 12px; }
+            .kop-title { text-align: center; flex: 1; }
+            .kop-title h2 { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+            .kop-title h3 { margin: 2px 0; font-size: 12px; font-weight: 700; color: #334155; }
+            .kop-title p { margin: 2px 0; font-size: 9.5px; color: #64748b; }
+            .meta-info { margin-bottom: 10px; font-size: 10.5px; font-weight: 600; display: flex; justify-content: space-between; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+            .table-data { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 9px; }
+            .table-data th, .table-data td { border: 1px solid #cbd5e1; padding: 3px 4px; text-align: center; }
+            .table-data th { background-color: #f1f5f9; font-weight: 800; color: #1e293b; text-transform: uppercase; font-size: 8.5px; }
+            .bg-hadir { background-color: #dcfce7 !important; color: #166534 !important; font-weight: bold; }
+            .bg-terlambat { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; }
+            .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
+            .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
+            .bg-alpa { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
+            .sig-section { display: flex; justify-content: space-between; margin-top: 20px; page-break-inside: avoid; }
+            .sig-box { text-align: center; width: 220px; font-size: 10px; font-weight: 600; }
+            .sig-space { height: 50px; }
+          </style>
+        </head>
+        <body>
+          <div class="kop-header">
+            <div class="kop-title">
+              <h2>${schoolName}</h2>
+              <h3>${periodTitle}</h3>
+              <p>${schoolAddress}</p>
+            </div>
+          </div>
+
+          <div class="meta-info">
+            <span>${periodSubTitle}</span>
+            <span>Dicetak Pada: ${todayDateStr}</span>
+          </div>
+
+          ${tableHtml}
+
+          <div class="sig-section">
+            <div class="sig-box">
+              <p>Mengetahui,<br>Wali Kelas / Guru Piket</p>
+              <div class="sig-space"></div>
+              <p style="text-decoration: underline; font-weight: bold;">( ________________________ )</p>
+              <p style="font-size: 9px; color: #64748b;">NIP. -</p>
+            </div>
+            <div class="sig-box">
+              <p>Dicetak Oleh,<br>Petugas / Pengelola Kesiswaan</p>
+              <div class="sig-space"></div>
+              <p style="text-decoration: underline; font-weight: bold;">( ${user?.name || 'Administrator'} )</p>
+              <p style="font-size: 9px; color: #64748b;">Tanggal: ${todayDateStr}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      setShowPrintModal(false);
+    } catch (err) {
+      console.error("Gagal melakukan pencetakan laporan:", err);
+      showToast("Gagal mencetak laporan: " + err.message, "error");
+    }
+  };
 
   const monthOptions = [
     { value: 1, label:"Januari" }, { value: 2, label:"Februari" }, { value: 3, label:"Maret" },
@@ -1223,6 +1515,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <FileText size={14} className="shrink-0" />
               <span>PDF</span>
             </Button>
+
+            <Button 
+              variant="outline"
+              type="button"
+              onClick={() => setShowPrintModal(true)}
+              disabled={loading || data.length === 0}
+              className="px-3.5 py-2 bg-indigo-50/90 hover:bg-indigo-100 text-indigo-700 border-indigo-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <Printer size={14} className="shrink-0" />
+              <span>Cetak Per Periode</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -1345,7 +1648,69 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                    </tr>
                  ))
                )}
-             </tbody>
+              </tbody>
+              <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
+                {/* JML HADIR */}
+                <tr className="bg-emerald-50/80 border-b border-emerald-200/80 text-emerald-900">
+                  <td className="px-4 py-2 sticky left-0 bg-emerald-50 z-10 border-r border-emerald-200 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-emerald-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-emerald-200 text-slate-400 font-bold">-</td>
+                  {daysToRender.map(d => (
+                    <td key={d} className="px-1 py-2 text-center border-r border-emerald-200 text-[10px] font-black text-emerald-800">{dailyTotals.hadir[d] || 0}</td>
+                  ))}
+                </tr>
+                {/* JML TERLAMBAT */}
+                <tr className="bg-rose-50/80 border-b border-rose-200/80 text-rose-900">
+                  <td className="px-4 py-2 sticky left-0 bg-rose-50 z-10 border-r border-rose-200 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-200 text-rose-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-rose-200 text-slate-400 font-bold">-</td>
+                  {daysToRender.map(d => (
+                    <td key={d} className="px-1 py-2 text-center border-r border-rose-200 text-[10px] font-black text-rose-800">{dailyTotals.terlambat[d] || 0}</td>
+                  ))}
+                </tr>
+                {/* JML IZIN */}
+                <tr className="bg-blue-50/80 border-b border-blue-200/80 text-blue-900">
+                  <td className="px-4 py-2 sticky left-0 bg-blue-50 z-10 border-r border-blue-200 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-200 text-blue-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-blue-200 text-slate-400 font-bold">-</td>
+                  {daysToRender.map(d => (
+                    <td key={d} className="px-1 py-2 text-center border-r border-blue-200 text-[10px] font-black text-blue-800">{dailyTotals.izin[d] || 0}</td>
+                  ))}
+                </tr>
+                {/* JML SAKIT */}
+                <tr className="bg-amber-50/80 border-b border-amber-200/80 text-amber-900">
+                  <td className="px-4 py-2 sticky left-0 bg-amber-50 z-10 border-r border-amber-200 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-200 text-amber-700 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-amber-200 text-slate-400 font-bold">-</td>
+                  {daysToRender.map(d => (
+                    <td key={d} className="px-1 py-2 text-center border-r border-amber-200 text-[10px] font-black text-amber-800">{dailyTotals.sakit[d] || 0}</td>
+                  ))}
+                </tr>
+                {/* JML ALPA */}
+                <tr className="bg-slate-900 text-white border-b border-slate-800">
+                  <td className="px-4 py-2 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-black text-[10px] uppercase text-white">TOTAL ALPA (ALP)</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-red-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                  {daysToRender.map(d => (
+                    <td key={d} className="px-1 py-2 text-center border-r border-slate-700 text-[10px] font-black text-white">{dailyTotals.alpa[d] || 0}</td>
+                  ))}
+                </tr>
+              </tfoot>
            </table>
          </div>
 
@@ -1451,6 +1816,132 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   >{isSubmittingCell ?"Menyimpan..." :"Simpan Pengajuan"}</Button>
                </div>
              </form>
+           </div>
+         </div>
+       )}
+       {/* Modal Cetak Laporan Per Periode */}
+       {showPrintModal && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
+           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
+               <div className="flex items-center gap-2">
+                 <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                   <Printer size={18} />
+                 </div>
+                 <div>
+                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Cetak Laporan Kehadiran</h3>
+                   <p className="text-[10px] text-slate-500 font-medium">Pilih periode dan format pencetakan laporan</p>
+                 </div>
+               </div>
+               <button
+                 type="button"
+                 onClick={() => setShowPrintModal(false)}
+                 className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+               >
+                 <X size={16} />
+               </button>
+             </div>
+
+             <div className="p-5 space-y-4 text-xs">
+               <div>
+                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1.5">1. Pilih Periode Laporan</label>
+                 <div className="grid grid-cols-2 gap-2">
+                   {[
+                     { id: 'harian', label: 'Harian (Per Hari)', desc: 'Cetak presensi 1 hari', icon: Calendar },
+                     { id: 'mingguan', label: 'Mingguan', desc: 'Per minggu (7 hari)', icon: Calendar },
+                     { id: 'bulanan', label: 'Bulanan (Matriks)', desc: 'Matriks 1 bulan penuh', icon: FileSpreadsheet },
+                     { id: 'semester', label: '1 Semester', desc: 'Rekap total 6 bulan', icon: Wand2 },
+                   ].map(item => (
+                     <button
+                       key={item.id}
+                       type="button"
+                       onClick={() => setPrintPeriod(item.id)}
+                       className={`p-3 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
+                         printPeriod === item.id 
+                           ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-2xs font-bold ring-2 ring-indigo-500/20' 
+                           : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
+                       }`}
+                     >
+                       <div className="flex items-center justify-between w-full">
+                         <span className="font-black text-xs">{item.label}</span>
+                         <item.icon size={14} className={printPeriod === item.id ? 'text-indigo-600' : 'text-slate-400'} />
+                       </div>
+                       <span className="text-[9.5px] opacity-75 font-semibold mt-1">{item.desc}</span>
+                     </button>
+                   ))}
+                 </div>
+               </div>
+
+               {printPeriod === 'harian' && (
+                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
+                   <select
+                     value={printDate}
+                     onChange={e => setPrintDate(parseInt(e.target.value))}
+                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                   >
+                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                       <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
+                     ))}
+                   </select>
+                 </div>
+               )}
+
+               {printPeriod === 'mingguan' && (
+                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
+                   <select
+                     value={printWeek}
+                     onChange={e => setPrintWeek(parseInt(e.target.value))}
+                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                   >
+                     <option value={1}>Minggu ke-1 (Tgl 1 - 7)</option>
+                     <option value={2}>Minggu ke-2 (Tgl 8 - 14)</option>
+                     <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
+                     <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
+                     <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
+                   </select>
+                 </div>
+               )}
+
+               {printPeriod === 'semester' && (
+                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
+                   <select
+                     value={printSemester}
+                     onChange={e => setPrintSemester(e.target.value)}
+                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                   >
+                     <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
+                     <option value="genap">Semester Genap (Januari - Juni)</option>
+                   </select>
+                 </div>
+               )}
+
+               <div className="p-3 bg-indigo-50/60 rounded-2xl border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
+                 <CheckCircle2 size={15} className="shrink-0 text-indigo-600 mt-0.5" />
+                 <span>Laporan akan dicetak lengkap dengan Kop Surat Sekolah, Rekapan Jumlah Harian (Hadir/Telat/Izin/Sakit/Alpa), serta Kolom Tanda Tangan Wali Kelas.</span>
+               </div>
+             </div>
+
+             <div className="flex items-center justify-end gap-2 p-4 bg-slate-50 border-t border-slate-100">
+               <Button
+                 variant="outline"
+                 type="button"
+                 onClick={() => setShowPrintModal(false)}
+                 className="px-4 py-2 rounded-xl text-xs font-bold"
+               >
+                 Batal
+               </Button>
+               <Button
+                 type="button"
+                 onClick={handlePrintPeriod}
+                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer"
+               >
+                 <Printer size={15} />
+                 <span>Cetak Sekarang</span>
+               </Button>
+             </div>
            </div>
          </div>
        )}
