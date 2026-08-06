@@ -405,21 +405,21 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         {/* Quick Filter Status Pills */}
         <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-wrap items-center gap-2 shadow-xs">
           {[
-            { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white" },
-            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white" },
-            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-600 text-white" },
-            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white" },
-            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white" },
-            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-purple-600 text-white" },
+            { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600" },
+            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500" },
+            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500" },
+            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white border-blue-600" },
+            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600" },
+            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-rose-600 text-white border-rose-600" },
           ].map(tab => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setFilterStatus(tab.id)}
-              className={`px-3.5 py-2 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
+              className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
                 filterStatus === tab.id
-                  ? `${tab.activeBg} border-transparent shadow-xs`
-                  : "bg-white text-slate-700 border-slate-200/80 hover:bg-slate-100/70"
+                  ? `${tab.activeBg} shadow-xs font-black`
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100/70"
               }`}
             >
               <span>{tab.label}</span>
@@ -477,7 +477,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             <button 
               type="button"
               onClick={openAdd} 
-              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-sm flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
             >
               <Plus size={15} /> <span>Input Absensi</span>
             </button>
@@ -536,12 +536,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">{student ? (student.class_name || student.kelas || '-') : '-'}</p>
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      <span className={`inline-flex px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
-                        item.status === 'Sakit' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                        item.status === 'Izin' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                        item.status === 'Alpha' || item.status === 'Alpa' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                        'bg-slate-100 text-slate-700 border-slate-200'
-                      }`}>
+                      <span className={`inline-flex px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-extrabold uppercase tracking-wider border shadow-2xs ${getAttendanceStatusTone(item.status)}`}>
                         {item.status}
                       </span>
                     </td>
@@ -551,10 +546,10 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                          <button 
                            type="button" 
                            onClick={() => setPreviewItem(item)} 
-                           className={`text-xs px-3 py-1.5 rounded-[var(--ui-radius-small)] font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                           className={`text-xs px-3 py-1 rounded-[var(--ui-radius-small)] font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs border ${
                              hasAttachment 
-                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-900/10' 
-                               : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80'
+                               ? 'bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border-blue-200' 
+                               : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
                            }`}
                          >
                            <Eye size={13} />
