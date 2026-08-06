@@ -403,27 +403,27 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       {activeTab === 'surat_izin' && (
       <div className="flex flex-col space-y-4">
         {/* Quick Filter Status Pills */}
-        <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-wrap items-center gap-2 shadow-2xs">
+        <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-wrap items-center gap-2 shadow-xs">
           {[
-            { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white shadow-emerald-900/10" },
-            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white shadow-amber-900/10" },
-            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-600 text-white shadow-amber-900/10" },
-            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white shadow-blue-900/10" },
-            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white shadow-rose-900/10" },
-            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-purple-600 text-white shadow-purple-900/10" },
+            { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white" },
+            { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white" },
+            { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-600 text-white" },
+            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white" },
+            { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white" },
+            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-purple-600 text-white" },
           ].map(tab => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setFilterStatus(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
                 filterStatus === tab.id
-                  ? `${tab.activeBg} border-transparent shadow-sm`
+                  ? `${tab.activeBg} border-transparent shadow-xs`
                   : "bg-white text-slate-700 border-slate-200/80 hover:bg-slate-100/70"
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${
                 filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
                 {tab.count}
@@ -433,7 +433,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </div>
 
         {/* Filter Controls & Action Bar */}
-        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-2xs flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
+        <div className="p-4 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 w-full">
             <div className="relative flex-1 min-w-[220px] w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -442,7 +442,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 placeholder="Cari siswa atau NIS..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
               />
             </div>
             <div className="w-full md:w-[160px]">
@@ -458,10 +458,10 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 type="date"
                 value={filterTanggal}
                 onChange={e => setFilterTanggal(e.target.value)}
-                className="flex-1 md:flex-none px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                className="flex-1 md:flex-none px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
               />
               {filterTanggal !== "" && (
-                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs">Clear</Button>
+                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs rounded-[var(--ui-radius-small)]">Clear</Button>
               )}
             </div>
           </div>
@@ -470,14 +470,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             <button 
               type="button"
               onClick={exportExcel} 
-              className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-xl shadow-2xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+              className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-[var(--ui-radius-small)] shadow-2xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
             >
               <Download size={14} /> <span>Export</span>
             </button>
             <button 
               type="button"
               onClick={openAdd} 
-              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
             >
               <Plus size={15} /> <span>Input Absensi</span>
             </button>
@@ -485,7 +485,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </div>
 
         {/* 💻 Desktop Table View (Hidden on Mobile) */}
-        <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+        <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-[var(--ui-radius-card)] bg-white shadow-xs">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
@@ -536,7 +536,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">{student ? (student.class_name || student.kelas || '-') : '-'}</p>
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
+                      <span className={`inline-flex px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border shadow-2xs ${
                         item.status === 'Sakit' ? 'bg-amber-50 text-amber-800 border-amber-200' :
                         item.status === 'Izin' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                         item.status === 'Alpha' || item.status === 'Alpa' ? 'bg-rose-50 text-rose-700 border-rose-200' :
@@ -551,7 +551,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                          <button 
                            type="button" 
                            onClick={() => setPreviewItem(item)} 
-                           className={`text-xs px-3 py-1.5 rounded-xl font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                           className={`text-xs px-3 py-1.5 rounded-[var(--ui-radius-small)] font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
                              hasAttachment 
                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-900/10' 
                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80'
@@ -567,38 +567,38 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     </td>
                     <td className="px-4 py-3.5 text-center">
                        {item.approval_status === "approved" ? (
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                          <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider inline-block">
                             DISETUJUI
                             {item.approved_by_name && (
                               <span className="text-[8px] font-bold text-emerald-700 block lowercase">oleh {item.approved_by_name}</span>
                             )}
                           </span>
                        ) : item.approval_status === "rejected" ? (
-                          <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                          <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider inline-block">
                             DITOLAK
                           </span>
                        ) : item.approval_status === "otomatis" ? (
-                          <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-wider inline-block">
+                          <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-wider inline-block">
                             OTOMATIS
                           </span>
                        ) : (
                           <div className="flex flex-col items-center gap-1.5">
-                            <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
+                            <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
                               PENDING
                             </span>
                             {hasApprovalPermission && (
-                              <div className="flex items-center gap-1 mt-0.5">
+                              <div className="flex items-center gap-1.5 mt-0.5">
                                 <button 
                                   type="button"
                                   onClick={() => handleApproveReject(item.id, 'approve')}
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] shadow-2xs active:scale-95 transition-all cursor-pointer"
+                                  className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] shadow-2xs active:scale-95 transition-all cursor-pointer"
                                 >
                                   Setujui
                                 </button>
                                 <button 
                                   type="button"
                                   onClick={() => handleApproveReject(item.id, 'reject')}
-                                  className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 font-extrabold text-[10px] active:scale-95 transition-all cursor-pointer"
+                                  className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 font-extrabold text-[10px] active:scale-95 transition-all cursor-pointer"
                                 >
                                   Tolak
                                 </button>
@@ -613,7 +613,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                           <button 
                             type="button"
                             onClick={() => handleEdit(item)} 
-                            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
+                            className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
                             title="Edit Data"
                           >
                             <Edit2 size={13} />
@@ -621,7 +621,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                           <button 
                             type="button"
                             onClick={() => handleDelete(item.id)} 
-                            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
+                            className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200/60 flex items-center justify-center active:scale-95 transition-all cursor-pointer" 
                             title="Hapus Data"
                           >
                             <Trash2 size={13} />
@@ -644,7 +644,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               <span>Memuat data absensi...</span>
             </div>
           ) : paginatedSuratItems.length === 0 ? (
-            <div className="py-10 text-center text-slate-400 p-4 border border-dashed border-slate-200 rounded-2xl">
+            <div className="py-10 text-center text-slate-400 p-4 border border-dashed border-slate-200 rounded-[var(--ui-radius-card)]">
               <CheckCircle2 size={32} className="text-emerald-500 opacity-60 mx-auto mb-2" />
               <div className="font-extrabold text-slate-700 text-xs">Tidak ada data surat izin / sakit</div>
             </div>
@@ -653,7 +653,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               const student = students.find(s => s.nis === item.siswa_nis);
               const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
               return (
-                <div key={item.id} className="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-2xs">
+                <div key={item.id} className="p-4 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] space-y-3 shadow-xs">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-extrabold text-slate-900 text-sm">
@@ -663,7 +663,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                         Kelas: {student ? (student.class_name || student.kelas || '-') : '-'} • Tgl: {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
                     </div>
-                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border shrink-0 ${
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase border shrink-0 ${
                       item.status === 'Sakit' ? 'bg-amber-50 text-amber-800 border-amber-200' :
                       item.status === 'Izin' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                       item.status === 'Alpha' || item.status === 'Alpa' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-700 border-slate-200'
@@ -672,7 +672,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     </span>
                   </div>
 
-                  <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 font-medium">
+                  <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 font-medium">
                     <span className="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Ket / Alasan:</span>
                     {item.keterangan || 'Tanpa keterangan'}
                   </div>
@@ -681,7 +681,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     <button 
                       type="button" 
                       onClick={() => setPreviewItem(item)} 
-                      className={`text-xs px-3 py-1.5 rounded-xl font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
+                      className={`text-xs px-3 py-1.5 rounded-[var(--ui-radius-small)] font-extrabold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs ${
                         hasAttachment 
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
                           : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -692,18 +692,18 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     </button>
 
                     {item.approval_status === "pending" && hasApprovalPermission && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button 
                           type="button"
                           onClick={() => handleApproveReject(item.id, 'approve')}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px]"
+                          className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white font-bold text-[10px]"
                         >
                           Setujui
                         </button>
                         <button 
                           type="button"
                           onClick={() => handleApproveReject(item.id, 'reject')}
-                          className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 font-bold text-[10px]"
+                          className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 border border-rose-200 font-bold text-[10px]"
                         >
                           Tolak
                         </button>
@@ -717,13 +717,13 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </div>
 
         {/* Pagination Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-slate-200/80 gap-4 bg-white rounded-2xl shadow-2xs">
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-slate-200/80 gap-4 bg-white rounded-[var(--ui-radius-card)] shadow-xs">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-bold text-center">
             <span>Tampilkan</span>
             <UISelect 
               value={itemsPerPageSurat} 
               onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
-              className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500"
+              className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500"
             >
               <option value={20}>20</option>
               <option value={50}>50</option>
@@ -736,18 +736,18 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               variant="outline" size="sm"
               onClick={() => setCurrentPageSurat(p => Math.max(1, p - 1))}
               disabled={currentPageSurat === 1}
-              className="text-xs font-bold rounded-xl"
+              className="text-xs font-bold rounded-[var(--ui-radius-small)]"
             >
               Prev
             </Button>
-            <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-black">
+            <span className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs text-slate-800 font-black">
               {currentPageSurat} / {totalPagesSurat || 1}
             </span>
             <Button 
               variant="outline" size="sm"
               onClick={() => setCurrentPageSurat(p => Math.min(totalPagesSurat, p + 1))}
               disabled={currentPageSurat === totalPagesSurat || totalPagesSurat === 0}
-              className="text-xs font-bold rounded-xl"
+              className="text-xs font-bold rounded-[var(--ui-radius-small)]"
             >
               Next
             </Button>
