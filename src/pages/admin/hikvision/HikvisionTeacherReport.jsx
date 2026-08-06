@@ -728,6 +728,14 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {!isNested && (
+        <PageHeader 
+          title="Laporan & Rekap Absensi Guru"
+          description="Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."
+          icon={Users}
+        />
+      )}
+
       {/* Top Ergonomic Mode Switcher Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/70 w-full md:w-auto">

@@ -687,6 +687,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <div className="w-9 shrink-0" />
       </div>
 
+      {/* Desktop Header */}
+      {!isNested && (
+        <div className="hidden sm:block">
+          <PageHeader 
+            title={activeTab ==='matriks' ?"Laporan Kehadiran Siswa" :"Manajemen Surat Izin/Sakit"}
+            icon={activeTab ==='matriks' ? FileText : UserX}
+            description={activeTab ==='matriks' 
+              ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
+              :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
+          />
+        </div>
+      )}
+
       {/* Top Ergonomic Mode Switcher Bar */}
       <div className="hidden sm:flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/70 w-full md:w-auto">

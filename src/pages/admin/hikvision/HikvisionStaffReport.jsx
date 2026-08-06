@@ -539,6 +539,14 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {!isNested && (
+        <PageHeader 
+          title={`Laporan Absensi Karyawan ${user?.isWalas ? `(Kelas ${user.walasClass})` :''}`}
+          description="Rekap kehadiran karyawan per bulan dalam bentuk matriks."
+          icon={Briefcase}
+        />
+      )}
+
       {/* Top Search & Title Bar */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-2">
