@@ -687,46 +687,41 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <div className="w-9 shrink-0" />
       </div>
 
-      {/* Desktop Header */}
-      {!isNested && (
-        <div className="hidden sm:block">
-          <PageHeader 
-            title={activeTab ==='matriks' ?"Laporan Kehadiran" :"Manajemen Surat Izin/Sakit"}
-            icon={activeTab ==='matriks' ? FileText : UserX}
-            description={activeTab ==='matriks' 
-              ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
-              :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
-            tabs={[
-              { id:'matriks', label:'Laporan Kehadiran' },
-              { id:'surat', label:'Manajemen Surat Izin/Sakit' }
-            ]}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </div>
-      )}
-      {isNested && (
-        <div className="hidden sm:flex items-center justify-end gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 w-fit ml-auto shadow-xs">
+      {/* Top Ergonomic Mode Switcher Bar */}
+      <div className="hidden sm:flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/70 w-full md:w-auto">
           {[
-            { id:'matriks', label:'Laporan Kehadiran', icon: FileText },
-            { id:'surat', label:'Manajemen Surat Izin/Sakit', icon: UserX }
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
           ].map(tab => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
-                activeTab === tab.id 
-                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black' 
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
+                activeTab === tab.id
+                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-900 bg-transparent'
               }`}
             >
-              <tab.icon size={14} className="shrink-0" />
+              <tab.icon size={15} className="shrink-0" />
               <span>{tab.label}</span>
             </button>
           ))}
         </div>
-      )}
+
+        {/* Unified Search Input */}
+        <div className="relative w-full md:w-72">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Cari nama atau NIS siswa..." 
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+          />
+        </div>
+      </div>
 
       {/* Mobile Hero Header Card (Reference Layout matching media__1785568140000.png) */}
       <div 
@@ -1219,28 +1214,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </div>
       </div>
 
-      <div className="bg-white rounded-[var(--ui-radius-small)] shadow-sm border-none overflow-hidden relative z-10">
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
-           <div className="relative w-full md:w-80">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Cari siswa..." 
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]"
-              />
+      <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
+        <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
+           <div className="text-xs font-bold text-slate-700">
+             Menampilkan Matriks Kehadiran Siswa <span className="font-black text-slate-900">({filteredData.length} Siswa)</span>
            </div>
-            <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-wider text-slate-500">
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-green-500 inline-block"></span> Tepat Waktu</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-red-500 inline-block"></span> Terlambat</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-blue-500 inline-block"></span> Izin</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-amber-400 inline-block"></span> Sakit</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-indigo-600 inline-block"></span> PKL</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-slate-900 inline-block"></span> Alpa</span>
-               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-[var(--ui-radius-small)] bg-slate-200 inline-block"></span> Kosong</span>
-            </div>
-         </div>
+           <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Izin</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> PKL</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> Alpa</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Kosong</span>
+           </div>
+        </div>
          
          <div className="overflow-x-auto relative">
            <table className="w-full text-left border-collapse min-w-max">
