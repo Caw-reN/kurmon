@@ -81,67 +81,27 @@ export default function Login({
 
   return (
     <div
-      className="min-h-screen w-full flex items-stretch bg-[var(--ui-bg-page,#eef2f7)] font-sans text-slate-900"
+      className="min-h-screen w-full flex items-center justify-center bg-slate-50/90 relative overflow-hidden font-sans text-slate-900 p-4"
       style={uiTheme}
     >
-      {/* ── Left Side: Branding Panel (desktop only) ──────────────── */}
-      <div className="hidden lg:flex w-[420px] flex-shrink-0 flex-col justify-between p-10 relative overflow-hidden"
-        style={{ background: 'linear-gradient(145deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #000) 100%)' }}
-      >
-        {/* Decorative circles */}
-        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-white/8 pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+      {/* Ambient decorative blur background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--ui-primary)]/10 rounded-full blur-[140px] pointer-events-none" />
 
-        {/* Top brand */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-white/20 flex items-center justify-center text-[15px] font-black text-white shadow-sm">
+      {/* Centered Login Card */}
+      <div className="w-full max-w-[420px] bg-white rounded-3xl p-6 sm:p-9 shadow-xl border border-slate-200/80 flex flex-col relative z-10 animate-in fade-in duration-300">
+
+        {/* Brand Logo */}
+        <div className="flex justify-center mb-6">
+          <div
+            className="w-14 h-14 flex items-center justify-center text-[20px] font-black text-white shadow-md transition-transform hover:scale-105"
+            style={{
+              backgroundColor: "var(--ui-primary)",
+              borderRadius: "var(--ui-radius-control, 16px)"
+            }}
+          >
             {appSettings.logoText || "TS"}
           </div>
-          <div>
-            <p className="text-white font-black text-sm leading-tight">{appSettings.appName || "TimeSchedule"}</p>
-            <p className="text-white/60 text-[10px] font-semibold">Portal Akademik</p>
-          </div>
         </div>
-
-        {/* Center message */}
-        <div className="relative z-10">
-          <h2 className="text-white font-black text-3xl leading-tight mb-4">
-            Selamat Datang<br />di Sistem<br />Akademik
-          </h2>
-          <p className="text-white/70 text-sm font-medium leading-relaxed">
-            Kelola kehadiran, jurnal PKL, dan administrasi akademik dalam satu platform terintegrasi.
-          </p>
-        </div>
-
-        {/* Bottom info */}
-        <div className="relative z-10">
-          <p className="text-white/40 text-[11px] font-semibold">
-            {appSettings.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}`}
-          </p>
-        </div>
-      </div>
-
-      {/* ── Right Side: Form Panel ─────────────────────────────────── */}
-      <div className="flex-1 flex flex-col justify-center items-center p-5 sm:p-8 relative bg-white overflow-hidden">
-
-        {/* Ambient blur */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="w-full max-w-[340px] flex flex-col relative z-10">
-
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-5">
-            <div
-              className="w-12 h-12 flex items-center justify-center text-[18px] font-black text-white shadow-[var(--ui-shadow-float)]"
-              style={{
-                backgroundColor: "var(--ui-primary)",
-                borderRadius: "var(--ui-radius-control, 14px)"
-              }}
-            >
-              {appSettings.logoText || "TS"}
-            </div>
-          </div>
 
           {/* Title */}
           <div className="text-center mb-7">
@@ -386,7 +346,6 @@ export default function Login({
             <p>{appSettings.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}.`}</p>
           </div>
         </div>
-      </div>
     </div>
   );
 }
