@@ -547,36 +547,24 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         />
       )}
 
-      {/* Top Search & Title Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-            <Briefcase size={18} />
-          </div>
-          <div>
-            <h3 className="text-xs font-black text-slate-800">Laporan Absensi Karyawan</h3>
-            <p className="text-[10px] text-slate-500 font-medium">Rekap matriks kehadiran karyawan per bulan</p>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative w-full md:w-72">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama atau NIP karyawan..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
-          />
-        </div>
-      </div>
-
       <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Control Bar: Filters + Actions */}
+        {/* Top Control Bar: Filters + Search + Actions */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
-          {/* Filters Group */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 min-w-0">
+          {/* Filters & Search Group */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 flex-1 min-w-0">
+            <div className="min-w-0 col-span-2 sm:col-span-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Karyawan</label>
+              <div className="relative w-full">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Nama / NIP..." 
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+                />
+              </div>
+            </div>
             <div className="min-w-0">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
               <CustomSelect 
