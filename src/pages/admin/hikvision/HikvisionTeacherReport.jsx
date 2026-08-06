@@ -637,7 +637,12 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     setCurrentPage(1);
   }, [search, filter.month, filter.year, sortBy, sortDir]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+  const paginatedData = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredData, currentPage, itemsPerPage]);
+
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printPeriod, setPrintPeriod] = useState("bulanan");
   const [printDate, setPrintDate] = useState(new Date().getDate());
