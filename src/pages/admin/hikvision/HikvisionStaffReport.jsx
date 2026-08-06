@@ -402,6 +402,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         head: headers,
         body: body,
         foot: pdfFooters,
+        showFoot: 'lastPage',
         theme: 'grid',
         styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
         headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
@@ -411,6 +412,45 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           1: { halign: 'left', cellWidth: 40 },
           2: { cellWidth: 6 },
           3: { cellWidth: 6 },
+        },
+        didParseCell: function (data) {
+          if (data.section === 'body' && data.column.index >= 4 && typeof data.cell.raw === 'string') {
+            const val = data.cell.raw;
+            if (val === 'H') {
+              data.cell.styles.fillColor = [220, 252, 231]; 
+              data.cell.styles.textColor = [22, 101, 52];
+            } else if (val === 'T') {
+              data.cell.styles.fillColor = [254, 226, 226]; 
+              data.cell.styles.textColor = [153, 27, 27];
+            } else if (val === 'S') {
+              data.cell.styles.fillColor = [254, 243, 199]; 
+              data.cell.styles.textColor = [146, 64, 14];
+            } else if (val === 'I') {
+              data.cell.styles.fillColor = [219, 234, 254]; 
+              data.cell.styles.textColor = [30, 58, 138];
+            } else if (val === 'A') {
+              data.cell.styles.fillColor = [15, 23, 42]; 
+              data.cell.styles.textColor = [255, 255, 255];
+            }
+          } else if (data.section === 'foot') {
+            data.cell.styles.fontStyle = 'bold';
+            if (data.row.index === 0) {
+              data.cell.styles.fillColor = [220, 252, 231];
+              data.cell.styles.textColor = [22, 101, 52];
+            } else if (data.row.index === 1) {
+              data.cell.styles.fillColor = [254, 226, 226];
+              data.cell.styles.textColor = [153, 27, 27];
+            } else if (data.row.index === 2) {
+              data.cell.styles.fillColor = [219, 234, 254];
+              data.cell.styles.textColor = [30, 58, 138];
+            } else if (data.row.index === 3) {
+              data.cell.styles.fillColor = [254, 243, 199];
+              data.cell.styles.textColor = [146, 64, 14];
+            } else if (data.row.index === 4) {
+              data.cell.styles.fillColor = [15, 23, 42];
+              data.cell.styles.textColor = [255, 255, 255];
+            }
+          }
         }
       });
 
