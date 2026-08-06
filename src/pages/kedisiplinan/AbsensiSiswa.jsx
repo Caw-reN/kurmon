@@ -143,7 +143,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         const sNis = String(s.nis || s.code || '').trim();
         const iNis = String(item.siswa_nis || '').trim();
         if (!sNis || !iNis) return false;
-        return sNis === iNis || sNis.endsWith(iNis) || iNis.endsWith(sNis);
+        return sNis === iNis || (sNis.length >= 5 && iNis.length >= 5 && (sNis.endsWith(iNis) || iNis.endsWith(sNis)));
       });
       const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
       const studentClass = student ? (student.class_name || student.kelas || "") : "";
@@ -232,7 +232,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           const itemNis = String(item.siswa_nis || '').trim();
           const targetKey = Object.keys(data).find(k => {
             const keyStr = String(k || '').trim();
-            return keyStr === itemNis || keyStr.endsWith(itemNis) || itemNis.endsWith(keyStr);
+            return keyStr === itemNis || (keyStr.length >= 5 && itemNis.length >= 5 && (keyStr.endsWith(itemNis) || itemNis.endsWith(keyStr)));
           });
           if (targetKey && data[targetKey]) {
             const day = parseInt(item.tanggal.split('-')[2], 10);

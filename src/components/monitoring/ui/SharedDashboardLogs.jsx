@@ -303,7 +303,7 @@ export const SharedDashboardLogs = () => {
         resolvedStudent = studentLookupMap.nisMap.get(empId);
         if (!resolvedStudent) {
           for (const [sNis, sObj] of studentLookupMap.nisMap.entries()) {
-            if (sNis.endsWith(empId) || empId.endsWith(sNis)) {
+            if (sNis.length >= 5 && empId.length >= 5 && (sNis.endsWith(empId) || empId.endsWith(sNis))) {
               resolvedStudent = sObj;
               break;
             }

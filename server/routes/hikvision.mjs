@@ -21,9 +21,8 @@ export async function autoLinkHikvisionStudents(dbPool) {
         const sName = String(s.name || s.nama || '').trim().toLowerCase();
         return (
           (sNis && hNis && sNis === hNis) ||
-          (hNis && sNis && sNis.endsWith(hNis)) ||
-          (sNis && hNis && hNis.endsWith(sNis)) ||
-          (sName && hName && sName === hName)
+          (sName && hName && sName === hName) ||
+          (hNis && sNis && hNis.length >= 5 && sNis.length >= 5 && (sNis.endsWith(hNis) || hNis.endsWith(sNis)))
         );
       });
 
@@ -969,7 +968,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 const mStud = matrix[mNis];
                 const mName = String(mStud.name || '').trim().toLowerCase();
                 const mNisStr = String(mNis).toLowerCase();
-                return mName === hName || mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr);
+                return (mName && hName && mName === hName) || mNisStr === hNis || (hNis.length >= 5 && mNisStr.length >= 5 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
               });
               if (matchedNis) {
                 employeeToNisMap[hNis] = matchedNis;
@@ -1107,7 +1106,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const targetKey = Object.keys(matrix).find(k => {
               const kStr = String(k || '').trim();
               const canonNis = String(matrix[k]?.nis || '').trim();
-              return kStr === recNis || kStr.endsWith(recNis) || recNis.endsWith(kStr) || canonNis === recNis || canonNis.endsWith(recNis) || recNis.endsWith(canonNis);
+              const rNis = recNis.toLowerCase();
+              const kLower = kStr.toLowerCase();
+              const cLower = canonNis.toLowerCase();
+              return kLower === rNis || cLower === rNis || (rNis.length >= 5 && kLower.length >= 5 && (kLower.endsWith(rNis) || rNis.endsWith(kLower))) || (rNis.length >= 5 && cLower.length >= 5 && (cLower.endsWith(rNis) || rNis.endsWith(cLower)));
             });
             if (targetKey && matrix[targetKey]) {
               const recDate = new Date(rec.tanggal);
