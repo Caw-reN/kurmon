@@ -436,23 +436,44 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           3: { cellWidth: 6 },
         },
         didParseCell: function (data) {
-          if (data.section === 'body' && data.column.index >= 4 && typeof data.cell.raw === 'string') {
-            const val = data.cell.raw;
-            if (val === 'H') {
-              data.cell.styles.fillColor = [220, 252, 231]; 
-              data.cell.styles.textColor = [22, 101, 52];
-            } else if (val === 'T') {
-              data.cell.styles.fillColor = [254, 226, 226]; 
-              data.cell.styles.textColor = [153, 27, 27];
-            } else if (val === 'S') {
-              data.cell.styles.fillColor = [254, 243, 199]; 
-              data.cell.styles.textColor = [146, 64, 14];
-            } else if (val === 'I') {
-              data.cell.styles.fillColor = [219, 234, 254]; 
-              data.cell.styles.textColor = [30, 58, 138];
-            } else if (val === 'A') {
-              data.cell.styles.fillColor = [15, 23, 42]; 
-              data.cell.styles.textColor = [255, 255, 255];
+          if (data.section === 'body') {
+            const rowItem = filteredData[data.row.index];
+            if (rowItem) {
+              const v = checkViolation(rowItem, daysToRender);
+              if (v.level === 4) {
+                data.cell.styles.fillColor = [159, 18, 57];
+                data.cell.styles.textColor = [255, 255, 255];
+                data.cell.styles.fontStyle = 'bold';
+              } else if (v.level === 3) {
+                data.cell.styles.fillColor = [254, 226, 226];
+                data.cell.styles.textColor = [153, 27, 27];
+              } else if (v.level === 2) {
+                data.cell.styles.fillColor = [255, 237, 213];
+                data.cell.styles.textColor = [194, 65, 12];
+              } else if (v.level === 1) {
+                data.cell.styles.fillColor = [254, 243, 199];
+                data.cell.styles.textColor = [146, 64, 14];
+              }
+            }
+
+            if (data.column.index >= 4 && typeof data.cell.raw === 'string') {
+              const val = data.cell.raw;
+              if (val === 'H') {
+                data.cell.styles.fillColor = [220, 252, 231]; 
+                data.cell.styles.textColor = [22, 101, 52];
+              } else if (val === 'T') {
+                data.cell.styles.fillColor = [254, 226, 226]; 
+                data.cell.styles.textColor = [153, 27, 27];
+              } else if (val === 'S') {
+                data.cell.styles.fillColor = [254, 243, 199]; 
+                data.cell.styles.textColor = [146, 64, 14];
+              } else if (val === 'I') {
+                data.cell.styles.fillColor = [219, 234, 254]; 
+                data.cell.styles.textColor = [30, 58, 138];
+              } else if (val === 'A') {
+                data.cell.styles.fillColor = [15, 23, 42]; 
+                data.cell.styles.textColor = [255, 255, 255];
+              }
             }
           } else if (data.section === 'foot') {
             data.cell.styles.fontStyle = 'bold';
@@ -476,18 +497,22 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         }
       });
 
-      const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-      doc.setFontSize(8);
+      const finalY = (doc.lastAutoTable?.finalY || 120) + 6;
+      doc.setFontSize(7);
       doc.setFont("Helvetica", "bold");
-      doc.text("Keterangan:", 14, finalY);
+      doc.text("Keterangan Status & Sorotan Peringatan:", 14, finalY);
       
       doc.setFont("Helvetica", "normal");
-      doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 3, 4, 4, 'F'); doc.text("Hadir (H)", 20, finalY + 6);
-      doc.setFillColor(254, 226, 226); doc.rect(40, finalY + 3, 4, 4, 'F'); doc.text("Terlambat (T)", 46, finalY + 6);
-      doc.setFillColor(254, 243, 199); doc.rect(70, finalY + 3, 4, 4, 'F'); doc.text("Sakit (S)", 76, finalY + 6);
-      doc.setFillColor(219, 234, 254); doc.rect(95, finalY + 3, 4, 4, 'F'); doc.text("Izin (I)", 101, finalY + 6);
-      doc.setFillColor(15, 23, 42);    doc.rect(120, finalY + 3, 4, 4, 'F'); doc.text("Alpa (A)", 126, finalY + 6);
-      doc.setDrawColor(200, 200, 200); doc.rect(145, finalY + 3, 4, 4, 'D'); doc.text("Kosong (-)", 151, finalY + 6);
+      doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 2, 3, 3, 'F'); doc.text("Hadir (H)", 18, finalY + 4.5);
+      doc.setFillColor(254, 226, 226); doc.rect(34, finalY + 2, 3, 3, 'F'); doc.text("Terlambat (T)", 38, finalY + 4.5);
+      doc.setFillColor(254, 243, 199); doc.rect(60, finalY + 2, 3, 3, 'F'); doc.text("Sakit (S)", 64, finalY + 4.5);
+      doc.setFillColor(219, 234, 254); doc.rect(80, finalY + 2, 3, 3, 'F'); doc.text("Izin (I)", 84, finalY + 4.5);
+      doc.setFillColor(15, 23, 42);    doc.rect(98, finalY + 2, 3, 3, 'F'); doc.text("Alpa (A)", 102, finalY + 4.5);
+
+      doc.setFillColor(254, 243, 199); doc.rect(122, finalY + 2, 3, 3, 'F'); doc.text("Kuning: Peringatan (≥3x)", 126, finalY + 4.5);
+      doc.setFillColor(255, 237, 213); doc.rect(162, finalY + 2, 3, 3, 'F'); doc.text("Orange: Pelanggaran Sedang (≥5x)", 166, finalY + 4.5);
+      doc.setFillColor(254, 226, 226); doc.rect(212, finalY + 2, 3, 3, 'F'); doc.text("Merah: Pelanggaran Berat (≥7x)", 216, finalY + 4.5);
+      doc.setFillColor(159, 18, 57);   doc.rect(258, finalY + 2, 3, 3, 'F'); doc.text("Merah Gelap: SP (≥10x)", 262, finalY + 4.5);
       
       doc.save(`Laporan_Absensi_Guru_${filter.year}_${filter.month}.pdf`);
       showToast("Laporan PDF Guru berhasil diunduh!", "success");
@@ -873,31 +898,40 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               </tr>
             </thead>
             <tbody>
-              ${filteredData.map((s, idx) => `
-                <tr>
-                  <td>${idx + 1}</td>
-                  <td style="text-align: left; font-weight: bold;">
-                    <div>${s.name}</div>
-                    <div style="font-size: 8px; color: #64748b;">${s.nis || ''}</div>
-                  </td>
-                  <td class="bg-hadir">${s.total_hadir || 0}</td>
-                  <td class="bg-terlambat">${s.total_terlambat || 0}</td>
-                  <td class="bg-izin">${s.total_izin || 0}</td>
-                  <td class="bg-sakit">${s.total_sakit || 0}</td>
-                  <td class="bg-alpa">${s.total_alpa || 0}</td>
-                  ${printDays.map(d => {
-                    const dayData = (s.days || {})[d];
-                    if (!dayData) return `<td>-</td>`;
-                    const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
-                    if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
-                    if (status === "Izin" || status === "Dinas Luar") return `<td class="bg-izin">I</td>`;
-                    if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") return `<td class="bg-alpa">A</td>`;
-                    if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
-                    if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
-                    return `<td>-</td>`;
-                  }).join('')}
-                </tr>
-              `).join('')}
+              ${filteredData.map((s, idx) => {
+                const v = checkViolation(s, printDays);
+                let warnClass = "";
+                if (v.level === 4) warnClass = "row-warn-4";
+                else if (v.level === 3) warnClass = "row-warn-3";
+                else if (v.level === 2) warnClass = "row-warn-2";
+                else if (v.level === 1) warnClass = "row-warn-1";
+
+                return `
+                  <tr class="${warnClass}">
+                    <td>${idx + 1}</td>
+                    <td style="text-align: left; font-weight: bold;">
+                      <div>${s.name}</div>
+                      <div style="font-size: 8px; opacity: 0.8;">${s.nis || ''}</div>
+                    </td>
+                    <td class="bg-hadir">${s.total_hadir || 0}</td>
+                    <td class="bg-terlambat">${s.total_terlambat || 0}</td>
+                    <td class="bg-izin">${s.total_izin || 0}</td>
+                    <td class="bg-sakit">${s.total_sakit || 0}</td>
+                    <td class="bg-alpa">${s.total_alpa || 0}</td>
+                    ${printDays.map(d => {
+                      const dayData = (s.days || {})[d];
+                      if (!dayData) return `<td>-</td>`;
+                      const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+                      if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
+                      if (status === "Izin" || status === "Dinas Luar") return `<td class="bg-izin">I</td>`;
+                      if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") return `<td class="bg-alpa">A</td>`;
+                      if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
+                      if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
+                      return `<td>-</td>`;
+                    }).join('')}
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
             <tfoot>
               <tr class="bg-hadir" style="background-color: #f0fdf4;">
@@ -960,6 +994,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
             .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
             .bg-alpa { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
+            .row-warn-1 td { background-color: #fef3c7 !important; color: #92400e !important; }
+            .row-warn-2 td { background-color: #ffedd5 !important; color: #c2410c !important; }
+            .row-warn-3 td { background-color: #fee2e2 !important; color: #991b1b !important; }
+            .row-warn-4 td { background-color: #9f1239 !important; color: #ffffff !important; font-weight: bold; }
             .sig-section { display: flex; justify-content: space-between; margin-top: 20px; page-break-inside: avoid; }
             .sig-box { text-align: center; width: 220px; font-size: 10px; font-weight: 600; }
             .sig-space { height: 50px; }
@@ -980,6 +1018,14 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           </div>
 
           ${tableHtml}
+
+          <div style="margin-top: 10px; font-size: 8.5px; border-top: 1px solid #cbd5e1; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: #475569;">
+            <span style="font-weight: bold;">Keterangan Sorotan Peringatan:</span>
+            <span><span style="display:inline-block; width:9px; height:9px; background:#fef3c7; border:1px solid #fde68a; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Kuning: Peringatan (Telat ≥3x / Alpa >4x)</span>
+            <span><span style="display:inline-block; width:9px; height:9px; background:#ffedd5; border:1px solid #fed7aa; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Orange: Pelanggaran Sedang (≥5x)</span>
+            <span><span style="display:inline-block; width:9px; height:9px; background:#fee2e2; border:1px solid #fca5a5; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Merah: Pelanggaran Berat (≥7x)</span>
+            <span><span style="display:inline-block; width:9px; height:9px; background:#9f1239; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Merah Gelap: Pelanggaran SP (≥10x)</span>
+          </div>
 
           <div class="sig-section">
             <div class="sig-box">
@@ -1351,17 +1397,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                         key={d.nis} 
                         className={`border-b transition-colors ${v.bgClass}`}
                       >
-                         <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[210px] ${v.stickyBgClass}`}>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`font-bold text-xs truncate max-w-[130px] ${v.textClass}`} title={d.name}>{d.name}</span>
-                              {v.isLateViolation && (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500 text-white font-black text-[7.5px] uppercase tracking-tight shrink-0 shadow-2xs" title="Pelanggaran I: Telat ≥3x">
-                                  <AlertTriangle size={8} className="shrink-0" /> Pelanggaran I
-                                </span>
-                              )}
-                              {v.isAlpaViolation && (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-rose-600 text-white font-black text-[7.5px] uppercase tracking-tight shrink-0 shadow-2xs" title="Pelanggaran: Alpa >4x">
-                                  <AlertTriangle size={8} className="shrink-0" /> Alpha &gt;4x
+                         <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[190px] ${v.stickyBgClass}`}>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className={`font-bold text-xs truncate max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
+                              {v.level > 0 && (
+                                <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa >4x)"}>
+                                  <AlertTriangle 
+                                    size={13} 
+                                    className={`shrink-0 ${v.level === 4 ? "text-amber-300 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`} 
+                                  />
                                 </span>
                               )}
                             </div>
