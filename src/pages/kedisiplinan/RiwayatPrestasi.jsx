@@ -52,60 +52,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       });
       const data = await res.json();
       if (data.ok) {
-        if (Array.isArray(data.data) && data.data.length > 0) {
-          setPrestasiList(data.data);
-        } else {
-          setPrestasiList([
-            {
-              id: 1,
-              siswa_nis: "1001",
-              nama_siswa: "Ahmad Rizky Pratama",
-              kelas: "XII RPL 1",
-              nama_prestasi: "Juara 1 Lomba Kompetensi Siswa (LKS) Web Technologies",
-              peringkat: "Juara 1",
-              tingkat: "Provinsi",
-              penyelenggara: "Dinas Pendidikan Provinsi",
-              tanggal_prestasi: new Date().toISOString().slice(0, 10),
-              keterangan: "Lolos seleksi ke tingkat Nasional mewakili provinsi."
-            },
-            {
-              id: 2,
-              siswa_nis: "1002",
-              nama_siswa: "Budi Santoso",
-              kelas: "XII TKJ 2",
-              nama_prestasi: "Juara 2 Olimpiade Jaringan & Cyber Security",
-              peringkat: "Juara 2",
-              tingkat: "Kabupaten/Kota",
-              penyelenggara: "Politeknik Negeri",
-              tanggal_prestasi: new Date().toISOString().slice(0, 10),
-              keterangan: "Piala kejuaraan & Beasiswa sertifikasi."
-            },
-            {
-              id: 3,
-              siswa_nis: "1003",
-              nama_siswa: "Citra Dewi",
-              kelas: "XI AKL 1",
-              nama_prestasi: "Juara 1 Turnamen Futsal Putri Antar SMK",
-              peringkat: "Juara 1",
-              tingkat: "Kabupaten/Kota",
-              penyelenggara: "Kemenpora Kab/Kota",
-              tanggal_prestasi: new Date().toISOString().slice(0, 10),
-              keterangan: "Kapten tim futsal putri sekolah."
-            },
-            {
-              id: 4,
-              siswa_nis: "1004",
-              nama_siswa: "Dian Permata",
-              kelas: "X DKV 1",
-              nama_prestasi: "Medali Emas FLS2N Desain Grafis & Komunikasi Visual",
-              peringkat: "Medali Emas",
-              tingkat: "Nasional",
-              penyelenggara: "Kemendikbudristek",
-              tanggal_prestasi: new Date().toISOString().slice(0, 10),
-              keterangan: "Peringkat 1 Nasional Kategori SMK."
-            }
-          ]);
-        }
+        setPrestasiList(Array.isArray(data.data) ? data.data : []);
       }
     } catch (e) {
       console.error("Gagal mengambil data prestasi:", e);
