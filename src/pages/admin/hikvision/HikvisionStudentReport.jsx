@@ -594,8 +594,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const currentPageData = React.useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredData.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredData, currentPage]);
+  }, [filteredData, currentPage, itemsPerPage]);
   const paginatedData = currentPageData;
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
 
   const dailyTotals = React.useMemo(() => {
     const totals = {
