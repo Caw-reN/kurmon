@@ -411,13 +411,23 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         return row;
       });
 
+      const pdfFooters = [
+        ["TOTAL HADIR (HDR)", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.hadir[i + 1] || 0))],
+        ["TOTAL TERLAMBAT (TLT)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.terlambat[i + 1] || 0))],
+        ["TOTAL IZIN (IZN)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.izin[i + 1] || 0))],
+        ["TOTAL SAKIT (SKT)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.sakit[i + 1] || 0))],
+        ["TOTAL ALPA (ALP)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.alpa[i + 1] || 0))]
+      ];
+
       autoTable(doc, {
         startY: startY + 16,
         head: headers,
         body: body,
+        foot: pdfFooters,
         theme: 'grid',
         styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
         headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
+        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold', fontSize: 5 },
         columnStyles: {
           0: { halign: 'left', cellWidth: 20 },
           1: { halign: 'left', cellWidth: 40 },

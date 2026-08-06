@@ -403,6 +403,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         }
       });
 
+      // Summary Rows for Excel
+      sheet.addRow([]);
+      sheet.addRow(['TOTAL HADIR (HDR)', '', '', filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.hadir[i + 1] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL TERLAMBAT (TLT)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.terlambat[i + 1] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL IZIN (IZN)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.izin[i + 1] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL SAKIT (SKT)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.sakit[i + 1] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL ALPA (ALP)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.alpa[i + 1] || 0)]).font = { bold: true };
+
       const legendRow = sheet.addRow([]);
       const legendRow2 = sheet.addRow(['Keterangan:']);
       legendRow2.font = { bold: true };
@@ -514,13 +522,23 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         return row;
       });
 
+      const pdfFooters = [
+        ["TOTAL HADIR (HDR)", "", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.hadir[i + 1] || 0))],
+        ["TOTAL TERLAMBAT (TLT)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.terlambat[i + 1] || 0))],
+        ["TOTAL IZIN (IZN)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.izin[i + 1] || 0))],
+        ["TOTAL SAKIT (SKT)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.sakit[i + 1] || 0))],
+        ["TOTAL ALPA (ALP)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.alpa[i + 1] || 0))]
+      ];
+
       autoTable(doc, {
         startY: startY + 16,
         head: headers,
         body: body,
+        foot: pdfFooters,
         theme: 'grid',
         styles: { fontSize: 6, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [203, 213, 225], lineWidth: 0.1 },
         headStyles: { fillColor: [241, 245, 249], textColor: [51, 65, 85], fontStyle: 'bold' },
+        footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold', fontSize: 5 },
         columnStyles: {
           0: { halign: 'left', cellWidth: 15 },
           1: { halign: 'left', cellWidth: 35 },
