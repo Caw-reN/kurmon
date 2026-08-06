@@ -671,6 +671,33 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     return totals;
   }, [filteredData, daysToRender]);
 
+  const checkViolation = useCallback((d, daysList = []) => {
+    let maxConsecutiveLate = 0;
+    let currConsecutiveLate = 0;
+
+    daysList.forEach(dayNum => {
+      const dayData = (d.days || {})[dayNum];
+      if (dayData && (dayData.isLate || dayData.status === "Terlambat")) {
+        currConsecutiveLate++;
+        if (currConsecutiveLate > maxConsecutiveLate) {
+          maxConsecutiveLate = currConsecutiveLate;
+        }
+      } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
+        currConsecutiveLate = 0;
+      }
+    });
+
+    const isLateViolation = maxConsecutiveLate >= 3 || (d.total_terlambat || 0) >= 3;
+    const isAlpaViolation = (d.total_alpa || 0) > 4;
+
+    return {
+      isLateViolation,
+      isAlpaViolation,
+      hasViolation: isLateViolation || isAlpaViolation,
+      maxConsecutiveLate
+    };
+  }, []);
+
   const schoolProfile = useAppStore(state => state.schoolProfile) || {};
   const schoolName = schoolProfile.schoolName || "SMK NEGERI INTEGRATED SCHOOL";
   const schoolAddress = schoolProfile.address || "Jl. Pendidikan No. 1, Kota Edukasi";
@@ -1616,41 +1643,59 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  ))}
                </tr>
              </thead>
-             <tbody className="text-sm font-medium text-slate-700">
-               {loading ? (
-                 <tr>
-                   <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
-                 </tr>
-               ) : paginatedData.length === 0 ? (
-                 <tr>
-                   <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
-                 </tr>
-               ) : (
-                 paginatedData.map(d => (
-                   <tr key={d.nis} className="border-b border-slate-100 hover:bg-slate-50/50">
-                      <td className="px-4 py-3 sticky left-0 bg-white border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] z-10">
-                         <div className="font-bold text-slate-800 text-xs truncate max-w-[150px]" title={d.name}>{d.name}</div>
-                         <div className="text-[9px] text-slate-400 font-bold truncate max-w-[150px]">{d.class_name ||'Tanpa Kelas'}</div>
-                      </td>
-                      <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                      <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
-                          <div>{d.total_terlambat || 0}</div>
-                          {(d.total_terlambat || 0) > 3 && (
-                            <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8.5px] font-black rounded border border-amber-200" title="Siswa mendapatkan Teguran & Poin Disiplin (+10) karena Terlambat > 3x">
-                              <AlertTriangle size={9} /> Teguran (+10)
-                            </span>
-                          )}
-                       </td>
-                      <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
-                      <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                      <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
-                          <div>{d.total_alpa || 0}</div>
-                          {(d.total_alpa || 0) > 5 && (
-                            <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-100 text-red-800 text-[8.5px] font-black rounded border border-red-200" title="Siswa mendapatkan SP-1 & Poin Disiplin (+15) karena Alpa > 5 Hari">
-                              <AlertTriangle size={9} /> SP-1 (+15 Poin)
-                            </span>
-                          )}
-                       </td>
+              <tbody className="text-sm font-medium text-slate-700">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
+                  </tr>
+                ) : paginatedData.length === 0 ? (
+                  <tr>
+                    <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
+                  </tr>
+                ) : (
+                  paginatedData.map(d => {
+                    const v = checkViolation(d, daysToRender);
+                    return (
+                      <tr 
+                        key={d.nis} 
+                        className={`border-b transition-colors ${
+                          v.hasViolation 
+                            ? 'bg-amber-100/90 hover:bg-amber-200/90 border-amber-300 font-semibold' 
+                            : 'border-slate-100 hover:bg-slate-50/50'
+                        }`}
+                      >
+                         <td className={`px-4 py-3 sticky left-0 border-r z-10 min-w-[200px] ${
+                           v.hasViolation 
+                             ? 'bg-amber-100 border-amber-300 shadow-[2px_0_5px_-2px_rgba(217,119,6,0.25)]' 
+                             : 'bg-white border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]'
+                         }`}>
+                            <div className="font-bold text-slate-800 text-xs truncate max-w-[160px]" title={d.name}>{d.name}</div>
+                            <div className="text-[9px] text-slate-500 font-bold truncate max-w-[160px]">{d.class_name ||'Tanpa Kelas'}</div>
+                            
+                            {v.isLateViolation && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran Pertama: Telat ≥ 3x">
+                                  <AlertTriangle size={10} className="shrink-0" /> Pelanggaran I (Telat ≥3x)
+                                </span>
+                              </div>
+                            )}
+                            {v.isAlpaViolation && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran: Alpa > 4 Hari">
+                                  <AlertTriangle size={10} className="shrink-0" /> Pelanggaran (Alpa &gt;4x)
+                                </span>
+                              </div>
+                            )}
+                         </td>
+                         <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
+                         <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
+                             <div>{d.total_terlambat || 0}</div>
+                          </td>
+                         <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
+                         <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
+                         <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
+                             <div>{d.total_alpa || 0}</div>
+                         </td>
                       {daysToRender.map((dayNum) => {
                          const dayData = d.days[dayNum];
                          if (!dayData) {
@@ -1699,8 +1744,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                          );
                       })}
                    </tr>
-                 ))
-               )}
+                 );
+               })
+             )}
               </tbody>
               <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
                 {/* JML HADIR */}

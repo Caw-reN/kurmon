@@ -672,6 +672,33 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     return filteredData.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredData, currentPage, itemsPerPage]);
 
+  const checkViolation = useCallback((d, daysList = []) => {
+    let maxConsecutiveLate = 0;
+    let currConsecutiveLate = 0;
+
+    daysList.forEach(dayNum => {
+      const dayData = (d.days || {})[dayNum];
+      if (dayData && (dayData.isLate || dayData.status === "Terlambat")) {
+        currConsecutiveLate++;
+        if (currConsecutiveLate > maxConsecutiveLate) {
+          maxConsecutiveLate = currConsecutiveLate;
+        }
+      } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
+        currConsecutiveLate = 0;
+      }
+    });
+
+    const isLateViolation = maxConsecutiveLate >= 3 || (d.total_terlambat || 0) >= 3;
+    const isAlpaViolation = (d.total_alpa || 0) > 4;
+
+    return {
+      isLateViolation,
+      isAlpaViolation,
+      hasViolation: isLateViolation || isAlpaViolation,
+      maxConsecutiveLate
+    };
+  }, []);
+
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printPeriod, setPrintPeriod] = useState("bulanan");
   const [printDate, setPrintDate] = useState(new Date().getDate());
@@ -1280,27 +1307,55 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                     <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
                   </tr>
                 ) : (
-                  paginatedData.map(d => (
-                    <tr key={d.nis} className="border-b border-slate-100 hover:bg-slate-50/50">
-                       <td className="px-4 py-3 sticky left-0 bg-white border-r border-slate-100 z-10 min-w-[220px]">
-                          <div className="font-bold text-slate-800 text-xs whitespace-normal" title={d.name}>{d.name}</div>
-                          <div className="text-[9px] text-slate-400 font-bold mt-0.5">{d.nis ||'-'}</div>
-                       </td>
-                       <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                       <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
-                       <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin}</td>
-                       <td className="px-3 py-3 text-center font-black text-amber-700 border-r border-slate-100">{d.total_sakit}</td>
-                       <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_alpa}</td>
-                       {daysToRender.map((dayNum) => {
-                          const dayData = d.days[dayNum];
-                          return (
-                             <td key={dayNum} className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px]">
-                                {getDayBadge(dayData)}
-                             </td>
-                          );
-                       })}
-                    </tr>
-                  ))
+                  paginatedData.map(d => {
+                    const v = checkViolation(d, daysToRender);
+                    return (
+                      <tr 
+                        key={d.nis} 
+                        className={`border-b transition-colors ${
+                          v.hasViolation 
+                            ? 'bg-amber-100/90 hover:bg-amber-200/90 border-amber-300 font-semibold' 
+                            : 'border-slate-100 hover:bg-slate-50/50'
+                        }`}
+                      >
+                         <td className={`px-4 py-3 sticky left-0 border-r z-10 min-w-[220px] ${
+                           v.hasViolation 
+                             ? 'bg-amber-100 border-amber-300 shadow-[2px_0_5px_-2px_rgba(217,119,6,0.25)]' 
+                             : 'bg-white border-slate-100'
+                         }`}>
+                            <div className="font-bold text-slate-800 text-xs whitespace-normal" title={d.name}>{d.name}</div>
+                            <div className="text-[9px] text-slate-500 font-bold mt-0.5">{d.nis ||'-'}</div>
+                            {v.isLateViolation && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran Pertama: Telat ≥ 3x">
+                                  <AlertTriangle size={10} className="shrink-0" /> Pelanggaran I (Telat ≥3x)
+                                </span>
+                              </div>
+                            )}
+                            {v.isAlpaViolation && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[8.5px] uppercase tracking-wide shadow-2xs" title="Pelanggaran: Alpa > 4 Hari">
+                                  <AlertTriangle size={10} className="shrink-0" /> Pelanggaran (Alpa &gt;4x)
+                                </span>
+                              </div>
+                            )}
+                         </td>
+                         <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
+                         <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
+                         <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin}</td>
+                         <td className="px-3 py-3 text-center font-black text-amber-700 border-r border-slate-100">{d.total_sakit}</td>
+                         <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_alpa}</td>
+                         {daysToRender.map((dayNum) => {
+                            const dayData = d.days[dayNum];
+                            return (
+                               <td key={dayNum} className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px]">
+                                  {getDayBadge(dayData)}
+                               </td>
+                            );
+                         })}
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
               <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
