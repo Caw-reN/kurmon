@@ -143,7 +143,7 @@ export default function AdminSidebar({
     <aside
       className={cn("app-sidebar border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 ease-in-out",
         isCollapsed ?"w-[68px]" :"w-[268px]",
-        isMobileMenuOpen ?"fixed inset-y-0 left-0 z-50 shadow-lg translate-x-0" :"hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
+        isMobileMenuOpen ?"fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" :"hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
     >
       <div className={cn("flex items-center shrink-0 relative z-10 bg-transparent transition-all h-[80px] border-none px-[18px]",
@@ -156,7 +156,7 @@ export default function AdminSidebar({
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage ||"/favicon.svg"}
                   alt="Brand Logo"
-                  className="w-11 h-11 object-contain shrink-0 rounded-xl"
+                  className="w-11 h-11 object-contain shrink-0 rounded-[var(--ui-radius-small)]"
                 />
               )}
               {appSettings.sidebarLogoMode !=="logo" && (
@@ -176,7 +176,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center"
+                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-[var(--ui-radius-small)] lg:hidden border-none cursor-pointer flex items-center justify-center"
                 title="Tutup Menu"
               >
                 <X size={15} strokeWidth={2.5} />
@@ -185,7 +185,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-2xs"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-[var(--ui-radius-small)] hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-2xs"
                 title="Sembunyikan Sidebar"
               >
                 <PanelLeftClose size={16} strokeWidth={2.5} />
@@ -197,7 +197,7 @@ export default function AdminSidebar({
             <img
               src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage ||"/favicon.svg"}
               alt="Brand Logo"
-              className="w-11 h-11 object-contain shrink-0 rounded-xl cursor-pointer hover:opacity-85 transition-opacity"
+              className="w-11 h-11 object-contain shrink-0 rounded-[var(--ui-radius-small)] cursor-pointer hover:opacity-85 transition-opacity"
               onClick={toggleSidebar}
             />
           </div>
@@ -1335,7 +1335,7 @@ export default function AdminSidebar({
               onClick={handleBackupExport}
               disabled={isBackingUp}
               type="button"
-              className="w-full flex items-center justify-center gap-2 p-2.5 text-secondary-foreground font-bold text-xs hover:bg-secondary/80 transition-all cursor-pointer bg-secondary rounded-xl disabled:opacity-50 border-none"
+              className="w-full flex items-center justify-center gap-2 p-2.5 text-secondary-foreground font-bold text-xs hover:bg-secondary/80 transition-all cursor-pointer bg-secondary rounded-[var(--ui-radius-small)] disabled:opacity-50 border-none"
             >
               {isBackingUp ? (
                 <RefreshCw
@@ -1362,7 +1362,7 @@ export default function AdminSidebar({
           <button
             onClick={handleLogout}
             type="button"
-            className="flex items-center justify-center p-2.5 text-red-600 hover:text-red-700 hover:bg-red-100 transition-all cursor-pointer bg-red-50 w-10 h-10 rounded-xl border-none"
+            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-red-700 hover:bg-red-100 transition-all cursor-pointer bg-red-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none"
             title="Keluar Sistem"
           >
             <LogOut size={16} />
@@ -1371,7 +1371,7 @@ export default function AdminSidebar({
           <button
             onClick={handleLogout}
             type="button"
-            className="w-full flex items-center justify-center gap-2 p-2.5 text-red-600 font-bold text-xs hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer bg-red-50 rounded-xl border-none"
+            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer bg-red-50 rounded-[var(--ui-radius-small)] border-none"
           >
             <LogOut size={15} strokeWidth={2.5} />
             <span>Keluar Sistem</span>

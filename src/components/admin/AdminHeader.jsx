@@ -20,7 +20,7 @@ const GuidePortalButton = ({ onClick }) => {
       size="sm"
       onClick={onClick}
       title="Panduan"
-      className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shrink-0 active:translate-y-[1px] shadow-sm transition-all"
+      className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold shrink-0 active:translate-y-[1px] shadow-sm transition-all"
     >
       <HelpCircle size={14} />
       <span>Panduan</span>
@@ -279,7 +279,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className={`flex lg:hidden p-2.5 text-foreground hover:bg-muted active:translate-y-[1px] border border-border rounded-xl items-center justify-center cursor-pointer transition-all shrink-0 ${currentUser?.role ==='guru' ?'hidden sm:flex' :''}`}
+          className={`flex lg:hidden p-2.5 text-foreground hover:bg-muted active:translate-y-[1px] border border-border rounded-[var(--ui-radius-small)] items-center justify-center cursor-pointer transition-all shrink-0 ${currentUser?.role ==='guru' ?'hidden sm:flex' :''}`}
           title="Buka Menu Mobile"
         >
           <Menu size={18} strokeWidth={2.5} />
@@ -314,7 +314,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             variant="ghost"
             onClick={onOpenGuide}
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shrink-0 active:translate-y-[1px] transition-all w-fit h-9.5"
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold shrink-0 active:translate-y-[1px] transition-all w-fit h-9.5"
             title="Bantuan / Panduan Penggunaan"
           >
             <HelpCircle size={14} />
@@ -328,18 +328,18 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             ref={notifBtnRef}
             type="button"
             onClick={() => setShowNotifDropdown(prev => !prev)}
-            className="relative flex items-center justify-center w-9 h-9 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-[var(--ui-primary)] hover:bg-slate-50 transition-all shadow-sm shrink-0 cursor-pointer"
+            className="relative flex items-center justify-center w-9 h-9 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-slate-600 hover:text-[var(--ui-primary)] hover:bg-slate-50 transition-all shadow-sm shrink-0 cursor-pointer"
             title="Notifikasi"
           >
             <Bell size={18} strokeWidth={2} stroke="currentColor" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 border-2 border-white" />
           </button>
 
           {/* Notifications Dropdown */}
           {showNotifDropdown && (
             <div
               ref={notifDropdownRef}
-              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-11 sm:w-80 max-h-[70vh] sm:max-h-[420px] overflow-y-auto bg-card border border-slate-200/80 shadow-xl rounded-2xl p-4 z-[999] flex flex-col gap-3.5 animate-in fade-in slide-in-from-top-2 duration-200"
+              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-11 sm:w-80 max-h-[70vh] sm:max-h-[420px] overflow-y-auto bg-card border border-slate-200/80 shadow-sm rounded-[var(--ui-radius-card)] p-4 z-[999] flex flex-col gap-3.5 animate-in fade-in slide-in-from-top-2 duration-200"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 shrink-0">
                 <span className="font-extrabold text-xs text-slate-800 tracking-tight">Notifikasi &amp; Informasi</span>
@@ -353,7 +353,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
               {/* Realtime Notification Consent Prompt */}
               {notifPermission ==="default" && (
-                <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 flex flex-col gap-2 shrink-0">
+                <div className="bg-primary/10 border border-primary/20 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-2 shrink-0">
                   <div className="flex items-start gap-2.5">
                     <Bell className="text-primary w-4 h-4 shrink-0 mt-0.5" />
                     <div className="flex flex-col">
@@ -363,7 +363,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   </div>
                   <button
                     onClick={requestPushPermission}
-                    className="w-full py-1.5 text-white font-bold text-[10px] rounded-lg active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-1.5 text-white font-bold text-[10px] rounded-[var(--ui-radius-small)] active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
                     style={{ backgroundColor: appSettings?.primaryColor ||"var(--ui-primary)" }}
                   >
                     <span>Izinkan Sekarang</span>
@@ -377,13 +377,13 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   Jadwal Mengajar Hari Ini
                 </span>
                 {todayClasses.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-xl">
+                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-[var(--ui-radius-small)]">
                     Tidak ada jadwal mengajar hari ini.
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-primary/5 border border-primary/10 rounded-xl">
+                      <div key={idx} className="flex gap-2.5 p-2.5 bg-primary/5 border border-primary/10 rounded-[var(--ui-radius-small)]">
                         <Clock className="text-primary w-4 h-4 mt-0.5 shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="text-[11px] font-extrabold text-slate-800 truncate">
@@ -410,13 +410,13 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   Pengumuman Terbaru
                 </span>
                 {!dashboardMessages || dashboardMessages.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-xl">
+                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-[var(--ui-radius-small)]">
                     Belum ada pengumuman terbaru.
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                      <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)]">
                         <MessageSquare className="text-slate-500 w-4 h-4 mt-0.5 shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="text-[11px] font-extrabold text-slate-800 truncate">
@@ -442,10 +442,10 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
         <div
           onClick={onOpenProfile}
-          className="flex items-center gap-1.5 sm:gap-2.5 rounded-xl cursor-pointer min-w-0 transition-colors hover:bg-muted/80 p-0.5 sm:p-1 pr-1.5 sm:pr-2.5 shrink-0"
+          className="flex items-center gap-1.5 sm:gap-2.5 rounded-[var(--ui-radius-small)] cursor-pointer min-w-0 transition-colors hover:bg-muted/80 p-0.5 sm:p-1 pr-1.5 sm:pr-2.5 shrink-0"
           title="Profil Pengguna"
         >
-          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xs shrink-0 border border-primary/20">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xs shrink-0 border border-primary/20">
             {getInitials(currentUser?.name)}
           </div>
           <div className="flex flex-col hidden sm:flex min-w-0 max-w-[140px]">
@@ -460,7 +460,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <button
             type="button"
             onClick={handleLogout}
-            className="flex sm:hidden p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-100 rounded-xl items-center justify-center cursor-pointer transition-all shrink-0 active:translate-y-[1px] w-8 h-8"
+            className="flex sm:hidden p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] items-center justify-center cursor-pointer transition-all shrink-0 active:translate-y-[1px] w-8 h-8"
             title="Keluar"
           >
             <LogOut size={14} strokeWidth={2.5} />

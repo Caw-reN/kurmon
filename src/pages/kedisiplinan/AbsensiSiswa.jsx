@@ -141,7 +141,9 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         item.pelapor_nama === "Mesin Hikvision" || 
         item.source === "hikvision" || 
         item.is_machine || 
-        String(item.keterangan || '').startsWith("Mesin:")
+        String(item.keterangan || '').startsWith("Mesin:") ||
+        item.status === 'Terlambat' ||
+        item.status === 'Hadir'
       ) {
         return false;
       }
@@ -177,7 +179,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       Sakit: baseSuratItems.filter(i => i.status === "Sakit").length,
       Izin: baseSuratItems.filter(i => i.status === "Izin").length,
       Alpha: baseSuratItems.filter(i => i.status === "Alpha").length,
-      Terlambat: baseSuratItems.filter(i => i.status === "Terlambat").length,
     };
   }, [baseSuratItems]);
 
@@ -408,9 +409,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600" },
             { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500" },
             { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500" },
-            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-blue-600 text-white border-blue-600" },
+            { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-blue-600" },
             { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600" },
-            { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-rose-600 text-white border-rose-600" },
           ].map(tab => (
             <button
               key={tab.id}
@@ -786,7 +786,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 ))}
                 <th className="px-2 py-3 border-b border-l border-slate-100 text-center text-amber-600">S</th>
                 <th className="px-2 py-3 border-b border-slate-100 text-center text-blue-600">I</th>
-                <th className="px-2 py-3 border-b border-slate-100 text-center text-red-600">A</th>
+                <th className="px-2 py-3 border-b border-slate-100 text-center text-rose-600">A</th>
               </tr>
             </thead>
             <tbody className="text-slate-700 font-medium divide-y divide-slate-50">
@@ -807,7 +807,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                       let colorClass ="text-slate-300";
                       if (initial ==='S') colorClass ="text-amber-500 font-black bg-amber-50/50 rounded";
                       else if (initial ==='I') colorClass ="text-blue-500 font-black bg-blue-50/50 rounded";
-                      else if (initial ==='A') colorClass ="text-red-500 font-black bg-red-50/50 rounded";
+                      else if (initial ==='A') colorClass ="text-rose-500 font-black bg-red-50/50 rounded";
                       return (
                         <td key={i} className={`px-2 py-3 text-center ${colorClass}`}>
                           {initial ||"-"}
@@ -816,7 +816,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     })}
                     <td className="px-2 py-3 border-l border-slate-50 text-center font-bold text-amber-600 bg-amber-50/30">{d.totals.S}</td>
                     <td className="px-2 py-3 text-center font-bold text-blue-600 bg-blue-50/30">{d.totals.I}</td>
-                    <td className="px-2 py-3 text-center font-bold text-red-600 bg-red-50/30">{d.totals.A}</td>
+                    <td className="px-2 py-3 text-center font-bold text-rose-600 bg-red-50/30">{d.totals.A}</td>
                   </tr>
                 ))
               )}
@@ -904,11 +904,20 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
              {["Sakit","Izin"].includes(form.status) && (
                <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Surat / Bukti (Gambar)</label>
-                 <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all">
-                   <div className="flex flex-col items-center gap-1">
-                     <UploadCloud size={24} className="text-slate-400" />
-                     <span className="text-xs font-bold text-slate-600">{form.fileName ? `${form.fileName} (${form.fileSizeKB} KB)` :'Pilih foto/dokumen surat...'}</span>
-                   </div>
+                 <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
+                   {form.fileData ? (
+                     <div className="relative w-full h-32 flex justify-center items-center group">
+                       <img src={form.fileData} alt="Preview" className="max-h-full max-w-full object-contain rounded-md" />
+                       <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                         <span className="text-white text-xs font-bold flex items-center gap-2"><UploadCloud size={16}/> Ganti Surat</span>
+                       </div>
+                     </div>
+                   ) : (
+                     <div className="flex flex-col items-center gap-1">
+                       <UploadCloud size={24} className="text-slate-400" />
+                       <span className="text-xs font-bold text-slate-600">Pilih foto/dokumen surat...</span>
+                     </div>
+                   )}
                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                      const file = e.target.files[0];
                      if (file) {
@@ -954,11 +963,20 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                {["Sakit","Izin"].includes(editForm.status) && (
                  <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Surat (Otomatis ke GDrive)</label>
-                  <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all">
-                    <div className="flex flex-col items-center gap-1">
-                      <UploadCloud size={24} className="text-slate-400" />
-                      <span className="text-xs font-bold text-slate-600">{editForm.fileName ? `${editForm.fileName} (${editForm.fileSizeKB ? editForm.fileSizeKB +' KB' :''})` :'Pilih foto/dokumen surat...'}</span>
-                    </div>
+                  <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
+                    {editForm.surat_base64 || editForm.surat_url || editForm.gdrive_url ? (
+                      <div className="relative w-full h-32 flex justify-center items-center group">
+                        <img src={editForm.surat_base64 || editForm.surat_url || editForm.gdrive_url} alt="Preview" className="max-h-full max-w-full object-contain rounded-md" />
+                        <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                          <span className="text-white text-xs font-bold flex items-center gap-2"><UploadCloud size={16}/> Ganti Surat</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1">
+                        <UploadCloud size={24} className="text-slate-400" />
+                        <span className="text-xs font-bold text-slate-600">Pilih foto/dokumen surat...</span>
+                      </div>
+                    )}
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
@@ -988,7 +1006,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         <Modal isOpen={!!previewItem} onClose={() => setPreviewItem(null)} title="Preview Surat / Bukti Absensi" maxWidth="max-w-xl">
           <div className="space-y-4 p-1">
             {/* Header Info */}
-            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Siswa &amp; Tanggal</div>
                 <div className="font-extrabold text-slate-900 text-sm mt-0.5">
@@ -998,13 +1016,13 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   Tanggal: {new Date(previewItem.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-xl font-black text-xs uppercase border ${getAttendanceStatusTone(previewItem.status)}`}>
+              <span className={`px-3 py-1 rounded-[var(--ui-radius-small)] font-black text-xs uppercase border ${getAttendanceStatusTone(previewItem.status)}`}>
                 {previewItem.status}
               </span>
             </div>
 
             {/* Document Content View */}
-            <div className="bg-slate-900/90 rounded-2xl p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
+            <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
               {previewItem.gdrive_url ? (
                 <div className="w-full flex flex-col items-center gap-3 text-white py-6">
                   <FileText className="w-16 h-16 text-blue-400 animate-pulse" />
@@ -1013,7 +1031,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     href={previewItem.gdrive_url} 
                     target="_blank" 
                     rel="noreferrer" 
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all"
+                    className="px-4 py-2 bg-[var(--ui-primary)] hover:opacity-90 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-sm flex items-center gap-2 transition-all"
                   >
                     <ExternalLink size={14} /> Buka Surat di Google Drive
                   </a>
@@ -1023,7 +1041,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   <img 
                     src={previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path} 
                     alt="Surat Bukti Absensi" 
-                    className="max-h-[380px] w-auto max-w-full object-contain rounded-xl shadow-md border border-slate-700" 
+                    className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" 
                   />
                 </div>
               ) : (
@@ -1040,7 +1058,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                       setPreviewItem(null);
                       handleEdit(itemToEdit);
                     }} 
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-2 transition-all cursor-pointer"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer"
                   >
                     <UploadCloud size={14} /> Upload Surat Sekarang
                   </button>
@@ -1050,7 +1068,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
             {/* Keterangan */}
             {previewItem.keterangan && (
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs text-slate-700">
                 <span className="font-bold text-slate-400 text-[10px] uppercase block mb-0.5">Catatan Keterangan:</span>
                 {previewItem.keterangan}
               </div>

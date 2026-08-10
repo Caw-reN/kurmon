@@ -250,7 +250,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
                 {!isViewOnly && (
                   <div className="flex justify-end gap-1.5">
                     <Button variant="ghost" size="icon" onClick={() => openModal('siswa','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete('siswa', item.id || item.code || item.nis)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete('siswa', item.id || item.code || item.nis)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
                   </div>
                 )}
               </td>
@@ -351,7 +351,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
       {/* Feedback Modal */}
       <Modal isOpen={feedbackModal.open} onClose={() => setFeedbackModal(prev => ({ ...prev, open: false }))} title={feedbackModal.title}>
         <div className="p-6 text-center">
-          <div className={`mx-auto w-16 h-16 flex items-center justify-center rounded-full mb-4 ${feedbackModal.type ==='success' ?'bg-emerald-100 text-emerald-600' : feedbackModal.type ==='error' ?'bg-red-100 text-red-600' :'bg-blue-100 text-blue-600'}`}>
+          <div className={`mx-auto w-16 h-16 flex items-center justify-center rounded-full mb-4 ${feedbackModal.type ==='success' ?'bg-emerald-100 text-emerald-600' : feedbackModal.type ==='error' ?'bg-red-100 text-rose-600' :'bg-blue-100 text-blue-600'}`}>
             {feedbackModal.type ==='success' ? <CheckCircle2 size={32} /> : feedbackModal.type ==='error' ? <AlertTriangle size={32} /> : <HardDrive size={32} />}
           </div>
           <h3 className="text-xl font-bold text-slate-800 mb-2">{feedbackModal.title}</h3>

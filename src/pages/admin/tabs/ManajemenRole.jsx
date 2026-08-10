@@ -13,7 +13,7 @@ const ORGANOGRAM = [
     key: 'kepsek',
     title: 'Kepala Sekolah',
     color: 'from-blue-600 to-indigo-600',
-    headerBg: 'bg-blue-600 text-white',
+    headerBg: 'bg-[var(--ui-primary)] text-white',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
     description: 'Monitoring semua data, kebijakan & laporan sekolah',
     defaultAssignValue: 'kepsek',
@@ -176,7 +176,7 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
   const totalAll = headStaff.length + totalSubStaff;
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all w-full">
+    <div className="bg-white border border-slate-200/90 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col hover:shadow-xs transition-all w-full">
       {/* Header Banner */}
       <div className={`bg-gradient-to-r ${node.color} p-4 text-white flex items-start justify-between gap-3`}>
         <div>
@@ -190,7 +190,7 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
         <button
           type="button"
           onClick={() => onQuickAssign(node.defaultAssignValue)}
-          className="shrink-0 bg-white/20 hover:bg-white/30 text-white text-[11px] font-black px-2.5 py-1.5 rounded-xl border border-white/30 backdrop-blur-xs transition-all flex items-center gap-1 cursor-pointer"
+          className="shrink-0 bg-white/20 hover:bg-white/30 text-white text-[11px] font-black px-2.5 py-1.5 rounded-[var(--ui-radius-small)] border border-white/30 backdrop-blur-xs transition-all flex items-center gap-1 cursor-pointer"
           title={`Tugaskan Staf di ${node.title}`}
         >
           <UserPlus size={12} />
@@ -206,7 +206,7 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="text-[10px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer bg-blue-50 px-2 py-0.5 rounded-lg"
+              className="text-[10px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer bg-blue-50 px-2 py-0.5 rounded-[var(--ui-radius-small)]"
             >
               {expanded ? 'Sembunyikan Tim' : `Lihat Tim (${totalSubStaff})`}
               {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -217,8 +217,8 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
         {headStaff.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {headStaff.map(t => (
-              <div key={getPersonId(t)} className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 p-2 rounded-xl">
-                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs shrink-0">
+              <div key={getPersonId(t)} className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 p-2 rounded-[var(--ui-radius-small)]">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs shrink-0">
                   {(t.name || '?')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -229,7 +229,7 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
             ))}
           </div>
         ) : (
-          <div className="p-3 bg-amber-50/60 border border-dashed border-amber-200/80 rounded-xl text-center">
+          <div className="p-3 bg-amber-50/60 border border-dashed border-amber-200/80 rounded-[var(--ui-radius-small)] text-center">
             <p className="text-[11px] font-bold text-amber-700">Belum ada pejabat utama ditunjuk</p>
             <button
               type="button"
@@ -249,7 +249,7 @@ function OrgCard({ node, teachers, staffs, onQuickAssign }) {
               {node.children.map(child => {
                 const childStaff = getStaffForRoleKey(teachers, staffs, child.key);
                 return (
-                  <div key={child.key} className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 flex flex-col justify-between gap-1.5">
+                  <div key={child.key} className="bg-slate-50/70 border border-slate-200/70 rounded-[var(--ui-radius-small)] p-2.5 flex flex-col justify-between gap-1.5">
                     <div className="flex items-center justify-between gap-1">
                       <span className="text-xs font-extrabold text-slate-800">{child.title}</span>
                       <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border ${BADGE_COLORS[child.badge] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
@@ -394,7 +394,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
 
   if (!isSuperAdminRole(currentUser?.role)) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
         <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
         <h3 className="text-base font-black text-slate-700">Akses SuperAdmin Diperlukan</h3>
         <p className="text-sm text-slate-400 mt-1">Halaman ini hanya dapat diakses oleh SuperAdmin.</p>
@@ -542,7 +542,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
               key={key}
               type="button"
               onClick={() => { setFilterRole(key); setActiveView('assignment'); }}
-              className="rounded-2xl border border-slate-200/80 bg-white p-3 text-left cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between"
+              className="rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-white p-3 text-left cursor-pointer transition-all hover:shadow-xs hover:-translate-y-0.5 flex flex-col justify-between"
             >
               <span className={`w-2.5 h-2.5 rounded-full ${info.color.split(' ')[0]} mb-1.5`} />
               <div>
@@ -557,7 +557,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
       {/* Organogram View */}
       {activeView === 'organogram' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between bg-blue-50/60 border border-blue-200/70 p-4 rounded-2xl">
+          <div className="flex items-center justify-between bg-blue-50/60 border border-blue-200/70 p-4 rounded-[var(--ui-radius-card)]">
             <div className="flex items-center gap-3">
               <Sparkles size={18} className="text-blue-600 shrink-0" />
               <div>
@@ -596,7 +596,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
                 placeholder="Cari nama atau kode/NIP staf…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
               />
             </div>
             
@@ -615,7 +615,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredPeople.length === 0 ? (
-              <div className="col-span-full text-center py-16 text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+              <div className="col-span-full text-center py-16 text-slate-400 bg-slate-50/50 rounded-[var(--ui-radius-card)] border border-dashed border-slate-200">
                 <Users size={36} className="mx-auto mb-2 opacity-30" />
                 <p className="text-sm font-bold">Tidak ada staf ditemukan</p>
                 <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter.</p>
@@ -629,10 +629,10 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
                 return (
                   <div 
                     key={`${person._source}_${getPersonId(person)}`} 
-                    className="border border-slate-200/80 hover:border-blue-400 rounded-2xl p-4 bg-white hover:shadow-md transition-all flex items-start gap-3.5 relative group"
+                    className="border border-slate-200/80 hover:border-blue-400 rounded-[var(--ui-radius-card)] p-4 bg-white hover:shadow-xs transition-all flex items-start gap-3.5 relative group"
                   >
                     {/* Initials Avatar */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-black shadow-xs border ${
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 text-sm font-black shadow-xs border ${
                       isStaffSource ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-blue-50 text-blue-700 border-blue-200'
                     }`}>
                       {(person.name || '?')[0].toUpperCase()}
@@ -652,7 +652,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
                       <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">{getPersonId(person)}</p>
                       
                       <div className="mt-2.5">
-                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200/80 uppercase tracking-wide">
+                        <span className="inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200/80 uppercase tracking-wide">
                           {currentOpt.label}
                         </span>
                       </div>
@@ -662,7 +662,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
                     <button
                       type="button"
                       onClick={() => handleOpenEditRole(person)}
-                      className="absolute right-3.5 top-3.5 p-2 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors border border-slate-200/80 cursor-pointer flex items-center justify-center"
+                      className="absolute right-3.5 top-3.5 p-2 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors border border-slate-200/80 cursor-pointer flex items-center justify-center"
                       title="Ubah Jabatan"
                     >
                       <Edit2 size={14} />
@@ -728,8 +728,8 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
 
             {/* Selected Person Card Info */}
             {editingPerson && (
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center font-black text-sm shrink-0 ${
+              <div className="bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] p-3.5 flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] text-white flex items-center justify-center font-black text-sm shrink-0 ${
                   editingPerson._source === 'staff' ? 'bg-cyan-600' : 'bg-blue-600'
                 }`}>
                   {(editingPerson.name || '?')[0].toUpperCase()}
@@ -770,7 +770,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
             </div>
 
             {/* Hint Box */}
-            <div className="bg-blue-50 border border-blue-200/80 rounded-xl p-3 flex gap-2.5">
+            <div className="bg-blue-50 border border-blue-200/80 rounded-[var(--ui-radius-small)] p-3 flex gap-2.5">
               <Sparkles size={16} className="text-blue-600 shrink-0 mt-0.5" />
               <p className="text-[11px] text-blue-800 leading-relaxed font-medium">
                 Peran ini otomatis memperbarui posisi personel di organogram sekolah serta hak akses bawaan untuk login akunnya.
@@ -791,7 +791,7 @@ export default function ManajemenRole({ teachers, staffs, setTeachers, setStaffs
                 type="button"
                 onClick={handleSaveRole}
                 disabled={isSaving || !editingPerson}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black px-5"
+                className="bg-[var(--ui-primary)] hover:opacity-90 text-white font-black px-5"
               >
                 {isSaving ? 'Menyimpan...' : 'Simpan Jabatan'}
               </Button>

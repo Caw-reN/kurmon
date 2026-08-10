@@ -189,24 +189,24 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 type="button"
                 key={preset.service_name_prefix} 
                 onClick={() => openAdd(preset)}
-                className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${
+                className={`w-full text-left p-4 rounded-[var(--ui-radius-card)] border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 ${
                   isConfigured 
                     ? 'border-emerald-200/90 bg-emerald-50/20 hover:border-emerald-400' 
                     : 'border-slate-200/80 bg-white hover:border-violet-400 hover:bg-slate-50/50'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 ${style.bg}`}>
+                  <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center border shrink-0 ${style.bg}`}>
                     <Icon size={20} />
                   </div>
 
                   {isConfigured ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
                       <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
                       <span>Dikonfigurasi</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200/80 shrink-0">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200/80 shrink-0">
                       <Plus size={11} className="text-slate-400 shrink-0" />
                       <span>Tambah</span>
                     </span>
@@ -224,10 +224,10 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
       </div>
 
       {/* CONFIGURED KEYS LIST */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+            <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
               <KeyRound size={15} />
             </div>
             <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">
@@ -238,7 +238,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
           <button
             type="button"
             onClick={() => openAdd(null)}
-            className="py-1.5 px-3 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+            className="py-1.5 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
           >
             <Plus size={14} />
             <span>Tambah Key Custom</span>
@@ -260,14 +260,14 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
               return (
                 <div key={key.id} className="p-4 sm:px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
                   <div className="flex items-start sm:items-center gap-3 min-w-0 w-full sm:w-auto">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 mt-0.5 sm:mt-0 ${style.bg}`}>
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center border shrink-0 mt-0.5 sm:mt-0 ${style.bg}`}>
                       <Icon size={18} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-800 text-xs sm:text-sm">{key.service_label}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider border ${
+                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black uppercase tracking-wider border ${
                           key.is_active 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                             : 'bg-slate-100 text-slate-500 border-slate-200'
@@ -277,13 +277,13 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                       </div>
 
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[11px] font-mono text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/60">
+                        <span className="text-[11px] font-mono text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60">
                           {showKey[key.id] ? (key.api_key?.substring?.(0, 24) + '...') : '••••••••••••••••••••'}
                         </span>
                         <button 
                           type="button" 
                           onClick={() => setShowKey(prev => ({ ...prev, [key.id]: !prev[key.id] }))} 
-                          className="p-1 text-slate-400 hover:text-slate-700 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-slate-700 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                           title={showKey[key.id] ? "Sembunyikan" : "Tampilkan Key"}
                         >
                           {showKey[key.id] ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -302,7 +302,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                         type="button"
                         onClick={handleTestWA} 
                         disabled={isTesting}
-                        className="py-1.5 px-3 rounded-xl font-bold text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                        className="py-1.5 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         <RefreshCw size={12} className={isTesting ? 'animate-spin' : ''} />
                         <span>Test WA</span>
@@ -312,7 +312,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                     <button
                       type="button"
                       onClick={() => openEdit(key)}
-                      className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                       title="Edit Key"
                     >
                       <Edit2 size={14} />
@@ -320,7 +320,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(key)}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                       title="Hapus Key"
                     >
                       <Trash2 size={14} />
@@ -342,7 +342,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
       >
         <div className="space-y-4 text-xs font-semibold text-slate-600">
           {selectedPreset && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500 font-medium leading-relaxed">
+            <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-100 text-xs text-slate-500 font-medium leading-relaxed">
               {selectedPreset.description}
             </div>
           )}
@@ -354,7 +354,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
               value={form.service_name} 
               onChange={e => setForm(p => ({ ...p, service_name: e.target.value.toLowerCase().replace(/\s/g, '_') }))}
               disabled={!!selectedPreset && selectedPreset.service_name_prefix !== 'custom' && !selectedPreset.service_name_prefix.startsWith('whatsapp')}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60 font-semibold" 
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60 font-semibold" 
             />
             {form.service_name.startsWith('whatsapp') && (
               <p className="text-[10px] text-slate-400 mt-1 font-semibold">Anda bisa mengubah suffix Service ID ini (misal: whatsapp_fonnte_rpl) untuk banyak nomor.</p>
@@ -367,7 +367,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
               type="text" 
               value={form.service_label} 
               onChange={e => setForm(p => ({ ...p, service_label: e.target.value }))}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" 
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" 
             />
           </div>
 
@@ -379,7 +379,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 value={form.api_key} 
                 onChange={e => setForm(p => ({ ...p, api_key: e.target.value }))}
                 placeholder={selectedPreset?.placeholder_key || 'Masukkan token/key...'}
-                className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
               />
               <button 
                 type="button" 
@@ -415,7 +415,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 value={form.extra_config?.phone_number_id || ''} 
                 onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, phone_number_id: e.target.value } }))}
                 placeholder="Contoh: 1234567890"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
               />
               <p className="text-[10px] text-slate-400 mt-1 font-semibold">ID Nomor Telepon dari dasbor Facebook/Meta Business.</p>
             </div>
@@ -429,7 +429,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 value={form.extra_config?.folder_id || ''} 
                 onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, folder_id: e.target.value } }))}
                 placeholder="Contoh: 1A2b3C4d5E6f7G8h9I0j"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
               />
               <p className="text-[10px] text-slate-400 mt-1 font-semibold">Buat folder di GDrive Anda, bagikan akses "Editor" ke email Service Account, lalu copas ID folder dari URL.</p>
             </div>
@@ -443,7 +443,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 value={form.extra_config?.chat_id || ''} 
                 onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, chat_id: e.target.value } }))}
                 placeholder="Contoh: 123456789 atau -100987654321"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
               />
               <p className="text-[10px] text-slate-400 mt-1 font-semibold">ID Chat pribadi Anda atau ID Grup tempat bot diundang. Buka @userinfobot di Telegram untuk mengetahui Chat ID Anda.</p>
             </div>
@@ -458,7 +458,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                   value={form.extra_config?.endpoint || ''} 
                   onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, endpoint: e.target.value } }))}
                   placeholder="Contoh: https://<account_id>.r2.cloudflarestorage.com"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
                 />
               </div>
               <div>
@@ -468,13 +468,13 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                   value={form.extra_config?.bucket || ''} 
                   onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, bucket: e.target.value } }))}
                   placeholder="Contoh: kurmon-backup-bucket"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
                 />
               </div>
             </div>
           )}
 
-          <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 transition-colors">
+          <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 hover:bg-slate-100/50 transition-colors">
             <input 
               type="checkbox" 
               checked={form.is_active} 
@@ -491,14 +491,14 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="py-2 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="py-2 px-4 rounded-xl font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             >
               <ShieldCheck size={14} />
               <span>Simpan Key</span>
@@ -510,7 +510,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
       {/* VERIFIKASI HAPUS MODAL */}
       <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Konfirmasi Hapus API Key" maxWidth="max-w-md">
         <div className="space-y-4 text-xs font-semibold text-slate-600">
-          <div className="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-800">
+          <div className="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] text-rose-800">
             <AlertTriangle size={24} className="shrink-0 text-rose-600" />
             <div>
               <p className="font-black text-xs">Hapus API Key {deleteTarget?.service_label}?</p>
@@ -522,14 +522,14 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
             <button
               type="button"
               onClick={() => setDeleteTarget(null)}
-              className="py-2 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="button"
               onClick={confirmDelete}
-              className="py-2 px-4 rounded-xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs"
             >
               Ya, Hapus
             </button>
@@ -539,7 +539,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
 
       {/* TOAST */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} {toast.message}
         </div>
       )}

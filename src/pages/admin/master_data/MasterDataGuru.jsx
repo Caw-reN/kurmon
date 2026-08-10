@@ -308,7 +308,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
                         );
                       }
                       return (
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete('guru', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete('guru', item.code)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
                       );
                     })()}
                   </div>

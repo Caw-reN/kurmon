@@ -2,6 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import React from'react';
 import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
+import { applyDocumentBranding } from '../../../utils/branding.js';
 import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2 } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
@@ -77,6 +78,13 @@ export default function TabTampilan(props) {
     });
   }, [globalAppSettings]);
 
+  // Real-time live theme preview while editing
+  React.useEffect(() => {
+    if (appSettings) {
+      applyDocumentBranding(appSettings);
+    }
+  }, [appSettings]);
+
   const applyThemePreset = (preset) => {
     setAppSettings(prev => ({
       ...prev,
@@ -112,6 +120,21 @@ export default function TabTampilan(props) {
     showNotification(`Auto-fix kontras diterapkan (${nextText}). Klik"Simpan Perubahan" untuk menyimpan.`,"success");
   };
 
+  const applySafeColors = () => {
+    setAppSettings(prev => ({
+      ...prev,
+      primaryColor: "#064e3b",
+      accentColor: "#f59e0b",
+      primaryButtonColor: "#064e3b",
+      actionButtonColor: "#f59e0b",
+      bgColor: "#eef2f7",
+      surfaceColor: "#ffffff",
+      textColor: "#0f172a",
+      cardTextColor: "#0f172a",
+    }));
+    showNotification("Warna berhasil dikembalikan ke Setelan Aman & Standar (Clean Enterprise).", "success");
+  };
+
   const resetThemeDefaults = () => {
     setAppSettings(prev => ({
       ...prev,
@@ -120,9 +143,10 @@ export default function TabTampilan(props) {
       accentColor:"#a3e635",
       primaryButtonColor:"#064e3b",
       actionButtonColor:"#a3e635",
-      bgColor:"#f8fafc",
+      bgColor:"#eef2f7",
       surfaceColor:"#ffffff",
       textColor:"#0f172a",
+      cardTextColor:"#0f172a",
       fontFamily:"Lexend"
     }));
     showNotification("Tema dikembalikan ke default secara lokal. Klik \"Simpan Perubahan\" untuk menyimpan.","success");
@@ -579,7 +603,7 @@ export default function TabTampilan(props) {
                           const selectedIcon = appSettings[iconKey] || ["book","chat","grid","users"][number - 1];
                           const selectedColor = appSettings[`partnerColor${number}`] || ["red","blue","purple","emerald"][number - 1];
                           const BANNER_COLORS = [
-                            { value:"red", label:"Merah", bg:"bg-red-500" },
+                            { value:"red", label:"Merah", bg:"bg-rose-500" },
                             { value:"blue", label:"Biru", bg:"bg-blue-500" },
                             { value:"emerald", label:"Hijau", bg:"bg-emerald-500" },
                             { value:"purple", label:"Ungu", bg:"bg-purple-500" },
@@ -757,7 +781,7 @@ export default function TabTampilan(props) {
                             <input type="text" placeholder="https://facebook.com/..." value={appSettings.socialFacebook ||""} onChange={(e) => setAppSettings({ ...appSettings, socialFacebook: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-red-100 text-red-600 flex items-center justify-center shrink-0"><Youtube size={14} /></div>
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0"><Youtube size={14} /></div>
                             <input type="text" placeholder="https://youtube.com/..." value={appSettings.socialYoutube ||""} onChange={(e) => setAppSettings({ ...appSettings, socialYoutube: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                         </div>
@@ -860,8 +884,15 @@ export default function TabTampilan(props) {
                     {tampilanTab ==="tema" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                        <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Warna & Tipografi</p>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          onClick={applySafeColors}
+                          className="bg-emerald-700 text-white hover:bg-emerald-800 border-none font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-2"
+                        >
+                          🛡️ Setel Ke Warna Aman &amp; Standar
+                        </Button>
                         <Button variant="outline" type="button" onClick={applyAutoRecommendedTheme} >Auto Rekomendasi Tema</Button>
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
@@ -888,12 +919,20 @@ export default function TabTampilan(props) {
                           <input type="color" value={appSettings.actionButtonColor || appSettings.accentColor ||"#a3e635"} onChange={(e) => setAppSettings({ ...appSettings, actionButtonColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
                         </div>
                         <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Bg / Surface</label>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Background Web (BG)</label>
                           <input type="color" value={appSettings.bgColor ||"#f8fafc"} onChange={(e) => setAppSettings({ ...appSettings, bgColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Warna Kartu/Box (Surface)</label>
+                          <input type="color" value={appSettings.surfaceColor ||"#ffffff"} onChange={(e) => setAppSettings({ ...appSettings, surfaceColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Utama</label>
                           <input type="color" value={appSettings.textColor ||"#0f172a"} onChange={(e) => setAppSettings({ ...appSettings, textColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Kartu/Box</label>
+                          <input type="color" value={appSettings.cardTextColor || (appSettings.textColor || "#0f172a")} onChange={(e) => setAppSettings({ ...appSettings, cardTextColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
                         </div>
                       </div>
                       <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -917,6 +956,13 @@ export default function TabTampilan(props) {
                       <div className="pt-4 border-t border-slate-200/60 mt-4 space-y-4">
                         <p className="text-[11px] font-black text-slate-850 uppercase tracking-widest">Desain Gaya & Estetika Visual (Premium & Berwarna)</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Lebar Konten Layar (Layout Mode)</label>
+                            <UISelect value={appSettings.layoutMode ||"full"} onChange={(e) => setAppSettings({ ...appSettings, layoutMode: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="full">Layar Penuh (Full Width)</option>
+                              <option value="boxed">Terkotak di Tengah (Boxed Container)</option>
+                            </UISelect>
+                          </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Sidebar Kiri</label>
                             <UISelect value={appSettings.sidebarStyle ||"putih"} onChange={(e) => setAppSettings({ ...appSettings, sidebarStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
@@ -1029,7 +1075,7 @@ export default function TabTampilan(props) {
                       <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Kontras</p>
                       <p className="text-xl font-black text-slate-800">{contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc").toFixed(2)} : 1</p>
                       {contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc") < 4.5 ? (
-                        <p className="text-red-600 text-[10px] font-bold bg-red-50 p-2 rounded-[var(--ui-radius-small)] border border-red-100">⚠️ Sulit dibaca.</p>
+                        <p className="text-rose-600 text-[10px] font-bold bg-red-50 p-2 rounded-[var(--ui-radius-small)] border border-red-100">⚠️ Sulit dibaca.</p>
                       ) : (
                         <p className="text-emerald-600 text-[10px] font-bold bg-emerald-50 p-2 rounded-[var(--ui-radius-small)] border border-emerald-100"><CheckCircle2 size={14} className="inline mr-1" /> Ideal.</p>
                       )}

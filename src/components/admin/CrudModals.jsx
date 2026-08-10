@@ -144,7 +144,7 @@ export default function CrudModals({
                   </UISelect>
                 </div>
               )}
-              {isClassMajorMismatch && <div className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-[var(--ui-radius-small)]">Nama kelas harus memuat jurusan yang dipilih.</div>}
+              {isClassMajorMismatch && <div className="text-xs font-bold text-rose-600 bg-red-50 border border-red-200 px-3 py-2 rounded-[var(--ui-radius-small)]">Nama kelas harus memuat jurusan yang dipilih.</div>}
             </>
           )}
           {modalConfig.type ==="jurusan" && (
@@ -300,7 +300,7 @@ export default function CrudModals({
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Prioritas Jurusan</label>
-                    <div className="border border-slate-200 bg-white rounded-xl p-2.5 shadow-sm">
+                    <div className="border border-slate-200 bg-white rounded-[var(--ui-radius-small)] p-2.5 shadow-sm">
                       <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-slate-100">
                         <input 
                           type="checkbox" 

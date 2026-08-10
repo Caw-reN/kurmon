@@ -59,7 +59,7 @@
   }
 
   html {
-    font-size: 14px;
+    font-size: var(--ui-font-size, 14px) !important;
     font-family: var(--font-sans-family, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -98,8 +98,169 @@
   #root {
     min-height: 100vh;
     background-color: var(--ui-bg-page, #eef2f7);
-    color: var(--ui-text, #0f172a);
+    width: var(--radix-select-trigger-width);
   }
+}
+
+/* 
+ * =========================================
+ * GLOBAL THEMING ENGINE (from TabTampilan)
+ * =========================================
+ */
+
+/* 1. Aksesibilitas Touch */
+.accessibility-touch-large {
+  --ui-radius-control: 24px !important;
+}
+.accessibility-touch-large button,
+.accessibility-touch-large .btn,
+.accessibility-touch-large input,
+.accessibility-touch-large select,
+.accessibility-touch-large a,
+.accessibility-touch-large [role="button"] {
+  min-height: 46px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  font-size: 105% !important;
+}
+
+/* 2. Sidebar Styles (overrides standard shadcn colors for sidebar specific areas) */
+.sidebar-gray aside .bg-card,
+.sidebar-gray aside.bg-white { background-color: var(--ui-surface-muted, #f5f8fb) !important; }
+.sidebar-primary aside .bg-card,
+.sidebar-primary aside.bg-white { 
+  background-color: var(--ui-primary) !important; 
+  color: #ffffff !important; 
+}
+.sidebar-primary aside .text-foreground,
+.sidebar-primary aside .text-muted-foreground,
+.sidebar-primary aside p,
+.sidebar-primary aside span { color: rgba(255,255,255,0.9) !important; }
+.sidebar-primary aside .hover\:bg-muted:hover { background-color: rgba(255,255,255,0.15) !important; }
+.sidebar-primary aside svg { stroke: rgba(255,255,255,0.9); }
+.sidebar-white aside .bg-card,
+.sidebar-white aside.bg-white { background-color: #ffffff !important; border-right: 1px solid var(--ui-border-soft); }
+
+/* 3. Header Styles */
+.header-solid header { 
+  background-color: var(--ui-surface-raised) !important; 
+  backdrop-filter: none !important;
+  border-bottom: 1px solid var(--ui-border-soft) !important;
+}
+.header-glass header {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.3) !important;
+}
+.header-primary header {
+  background-color: var(--ui-primary) !important;
+  color: white !important;
+  border-bottom: none !important;
+}
+.header-primary header .text-foreground,
+.header-primary header .text-muted-foreground,
+.header-primary header button,
+.header-primary header svg { color: white !important; }
+.header-minimal header {
+  background-color: transparent !important;
+  border-bottom: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* 4. Background Grids */
+.bg-grid-dots {
+  background-image: radial-gradient(color-mix(in srgb, var(--ui-primary) 20%, transparent) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+}
+.bg-grid-lines {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--ui-primary) 5%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--ui-primary) 5%, transparent) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+.bg-grid-gradient {
+  background-image: radial-gradient(circle at top left, color-mix(in srgb, var(--ui-primary) 10%, transparent) 0%, transparent 50%),
+                    radial-gradient(circle at bottom right, color-mix(in srgb, var(--ui-accent) 15%, transparent) 0%, transparent 50%) !important;
+}
+.bg-grid-plain {
+  background-image: none !important;
+  background-color: var(--ui-bg-page) !important;
+}
+
+/* 5. Transisi Animasi */
+.transition-smooth * {
+  transition: all var(--ui-motion) !important;
+}
+.transition-slide * {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out !important;
+}
+.transition-none * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* 6. Button Styles */
+.btn-style-outline button.bg-\[var\(--ui-primary\)\],
+.btn-style-outline .bg-\[var\(--ui-primary\)\] {
+  background-color: transparent !important;
+  border: 2px solid var(--ui-primary) !important;
+  color: var(--ui-primary) !important;
+}
+.btn-style-shadow button.bg-\[var\(--ui-primary\)\],
+.btn-style-shadow .bg-\[var\(--ui-primary\)\] {
+  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--ui-primary) 50%, transparent) !important;
+}
+.btn-style-gradient button.bg-\[var\(--ui-primary\)\],
+.btn-style-gradient .bg-\[var\(--ui-primary\)\] {
+  background: linear-gradient(135deg, var(--ui-primary) 0%, var(--ui-accent) 100%) !important;
+  border: none !important;
+}
+.btn-style-flat button.bg-\[var\(--ui-primary\)\],
+.btn-style-flat .bg-\[var\(--ui-primary\)\] {
+  box-shadow: none !important;
+}
+
+/* 7. Layout Mode (Boxed vs Full) */
+.layout-boxed #root > div > .flex-1,
+.layout-boxed .w-full.max-w-7xl {
+  max-width: 1440px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  background-color: var(--ui-surface, #ffffff);
+  border-left: 1px solid var(--ui-border-soft);
+  border-right: 1px solid var(--ui-border-soft);
+  box-shadow: var(--ui-shadow-modal);
+}
+
+/* 8. Card Styles (Bordered vs Elevated Shadow vs Flat) */
+.card-flat .bg-white,
+.card-flat .bg-card {
+  background-color: var(--ui-surface-muted, #f1f5f9) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.card-elevated .bg-white,
+.card-elevated .bg-card {
+  background-color: var(--ui-surface, #ffffff) !important;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04) !important;
+  border-color: transparent !important;
+}
+.card-bordered .bg-white,
+.card-bordered .bg-card {
+  border: 1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08)) !important;
+}
+
+/* 9. Vibransi Warna & Efek */
+.vibrancy-soft {
+  filter: saturate(85%) contrast(98%);
+}
+.vibrancy-bright {
+  filter: saturate(115%) contrast(102%);
+}
+.vibrancy-gradient .bg-\[var\(--ui-primary\)\] {
+  background-image: linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 70%, var(--ui-accent, #10b981)) 100%) !important;
+}
+
 
   /* Memaksa penggunaan font Plus Jakarta Sans di seluruh form input/button */
   *,

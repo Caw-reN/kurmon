@@ -13,7 +13,7 @@ const TabSilabusGuru = lazy(() => import('../tabs/TabSilabusGuru.jsx'));
 // ── Helpers ──────────────────────────────────────────────────────
 const getLinkIcon = (url) => {
   if (!url) return <Link2 size={14} />;
-  if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-red-500" />;
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-rose-500" />;
   if (url.includes('drive.google.com')) return <Globe size={14} className="text-blue-500" />;
   return <ExternalLink size={14} className="text-indigo-500" />;
 };
@@ -398,8 +398,8 @@ export default function ModulAjar(props) {
 
   // ── JSX: Shared Card ───────────────────────────────────────
   const renderMateriCard = (item, showDelete = false) => (
-    <div key={item.id} className="group flex items-start gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:shadow-sm hover:border-slate-200 transition-all duration-200">
-      <div className="w-10 h-10 rounded-xl bg-[var(--ui-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
+    <div key={item.id} className="group flex items-start gap-4 p-4 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/60 hover:bg-white hover:shadow-sm hover:border-slate-200 transition-all duration-200">
+      <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
         {item.tipe === 'link'
           ? <span className="text-[var(--ui-primary)]">{getLinkIcon(item.link_url)}</span>
           : <FileText size={16} className="text-[var(--ui-primary)]" />
@@ -418,14 +418,14 @@ export default function ModulAjar(props) {
                   <Eye size={12} /> Lihat
                 </Button>
                 <Button onClick={() => downloadFile(item.file_url, item.nama_dokumen)}
-                  className="px-2.5 py-1.5 text-xs font-bold rounded-lg no-underline transition-colors text-white bg-[var(--ui-primary)] flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] no-underline transition-colors text-white bg-[var(--ui-primary)] flex items-center gap-1 cursor-pointer"
                   title="Unduh">
                   <Download size={12} /> Unduh
                 </Button>
               </>
             ) : (
               <a href={item.link_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg text-white bg-[var(--ui-primary)] no-underline"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline"
               >
                 {getLinkIcon(item.link_url)} {getLinkLabel(item.link_url)}
               </a>
@@ -595,7 +595,7 @@ export default function ModulAjar(props) {
           {/* Mobile Card List View (< sm) */}
           <div className="sm:hidden flex flex-col gap-3">
             {(isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 ? (
-              <div className="p-6 text-center text-slate-400 font-bold bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <div className="p-6 text-center text-slate-400 font-bold bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
                 Tidak ada Modul Ajar yang diunggah.
               </div>
             ) : (
@@ -603,9 +603,9 @@ export default function ModulAjar(props) {
                 const isMyOwn = doc.teacher_code === teacherCode;
                 const canDelete = isCurriculum || isMyOwn;
                 return (
-                  <div key={doc.id} className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
+                  <div key={doc.id} className="bg-white rounded-[var(--ui-radius-small)] p-3.5 border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
                     <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100">
+                      <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100">
                         {doc.mapel || 'Umum'}
                       </span>
                       <span className="text-[10.5px] font-bold text-slate-500">
@@ -614,7 +614,7 @@ export default function ModulAjar(props) {
                     </div>
 
                     <div className="flex items-start gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
                         <FileText size={16} className="text-rose-600" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -676,7 +676,7 @@ export default function ModulAjar(props) {
                         <td className="px-6 py-4 text-slate-600 font-semibold">{doc.tahun_ajaran}</td>
                         <td className="px-6 py-4 text-slate-500 text-xs">
                           <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-red-500 shrink-0" />
+                            <FileText size={16} className="text-rose-500 shrink-0" />
                             <span className="truncate max-w-[150px]" title={doc.nama_dokumen}>{doc.nama_dokumen}</span>
                           </div>
                         </td>
@@ -739,7 +739,7 @@ export default function ModulAjar(props) {
                   className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-[var(--ui-radius-small)] file:border-0 file:text-sm file:font-semibold file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90" />
               </div>
               {form.nama_dokumen && (
-                <div className="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
+                <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
                   <p className="text-slate-500">File terpilih:</p>
                   <p className="font-bold text-slate-800 truncate">{form.nama_dokumen}</p>
                 </div>
@@ -781,7 +781,7 @@ export default function ModulAjar(props) {
                         <td className="px-6 py-4 text-slate-600 font-semibold">{doc.tahun_ajaran}</td>
                         <td className="px-6 py-4 text-slate-500 text-xs">
                           <div className="flex items-center gap-2">
-                            <FileText size={14} className="text-red-500 shrink-0" />
+                            <FileText size={14} className="text-rose-500 shrink-0" />
                             <span className="truncate max-w-[150px]" title={doc.nama_dokumen}>{doc.nama_dokumen}</span>
                           </div>
                         </td>
@@ -809,7 +809,7 @@ export default function ModulAjar(props) {
             </div>
             <div className="flex items-center gap-2">
               <a href="/materi-ajar" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-lg text-white bg-[var(--ui-primary)] no-underline">
+                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline">
                 <ExternalLink size={12} /> Buka Halaman Publik
               </a>
               <div className="relative w-full md:w-52">
@@ -844,7 +844,7 @@ export default function ModulAjar(props) {
               <p className="text-xs text-slate-500 mt-1">Materi yang Anda publikasikan — dapat dilihat semua siswa.</p>
             </div>
             <a href="/materi-ajar" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-lg text-white bg-[var(--ui-primary)] no-underline shrink-0">
+              className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline shrink-0">
               <ExternalLink size={12} /> Lihat Tampilan Siswa
             </a>
           </div>
@@ -871,7 +871,7 @@ export default function ModulAjar(props) {
             <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
               <BookOpenText size={16} className="text-[var(--ui-primary)]" /> Publikasikan Materi Ajar Baru
             </h3>
-            <p className="text-xs text-slate-500 bg-emerald-50 border border-emerald-100 rounded-lg p-3 leading-relaxed">
+            <p className="text-xs text-slate-500 bg-emerald-50 border border-emerald-100 rounded-[var(--ui-radius-small)] p-3 leading-relaxed">
               Materi yang Anda upload akan <strong className="text-emerald-700">langsung terlihat oleh semua siswa</strong> di halaman publik. Pastikan materi sudah siap sebelum dipublikasikan.
             </p>
             <form onSubmit={handleMateriUploadSubmit} className="space-y-4">
@@ -882,7 +882,7 @@ export default function ModulAjar(props) {
                   {[{ value: 'file', label: 'File PDF', icon: <FileText size={14} /> }, { value: 'link', label: 'Link/URL', icon: <Link2 size={14} /> }].map(opt => (
                     <button type="button" key={opt.value}
                       onClick={() => setMateriForm(f => ({ ...f, tipe: opt.value }))}
-                      className={`flex items-center gap-2 flex-1 py-2.5 px-3 rounded-lg text-xs font-bold border transition-all cursor-pointer ${materiForm.tipe === opt.value ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}>
+                      className={`flex items-center gap-2 flex-1 py-2.5 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold border transition-all cursor-pointer ${materiForm.tipe === opt.value ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}>
                       {opt.icon} {opt.label}
                     </button>
                   ))}
@@ -986,7 +986,7 @@ export default function ModulAjar(props) {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'} z-50`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} z-50`}>
           {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}
@@ -994,7 +994,7 @@ export default function ModulAjar(props) {
       {/* PDF Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] w-full max-w-4xl shadow-xs overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-2">
                 <BookOpen className="text-slate-500 w-5 h-5" />
@@ -1010,7 +1010,7 @@ export default function ModulAjar(props) {
               </Button>
             </div>
             <div className="flex-1 bg-slate-800 p-2 relative flex items-center justify-center">
-              <iframe src={previewDoc.url} title="Pratinjau" className="w-full h-full border-none rounded-lg bg-white" />
+              <iframe src={previewDoc.url} title="Pratinjau" className="w-full h-full border-none rounded-[var(--ui-radius-small)] bg-white" />
             </div>
           </div>
         </div>

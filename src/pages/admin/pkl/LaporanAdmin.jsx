@@ -224,7 +224,7 @@ const LaporanAdmin = ({ students = [], teachers = [] }) => {
                     placeholder={selectedType ==="rekap_guru" ?"Nama guru..." :"Nama / NIS..."}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/30"
+                    className="w-full pl-8 pr-3 py-2 text-xs rounded-[var(--ui-radius-small)] border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/30"
                   />
                 </div>
               </div>
@@ -290,7 +290,7 @@ const LaporanAdmin = ({ students = [], teachers = [] }) => {
                     </td>
                     <td className="px-5 py-3 text-center font-bold text-emerald-600">{s.totalHadir || 0}</td>
                     <td className="px-5 py-3 text-center font-bold text-amber-500">{(s.totalIzin || 0) + (s.totalSakit || 0)}</td>
-                    <td className="px-5 py-3 text-center font-bold text-red-500">{s.totalAbsen || 0}</td>
+                    <td className="px-5 py-3 text-center font-bold text-rose-500">{s.totalAbsen || 0}</td>
                     <td className="px-5 py-3 text-center">
                       <span className={`px-2 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold ${s.persenKehadiran >= 80 ?'bg-emerald-100 text-emerald-700' :'bg-red-100 text-red-700'}`}>
                         {s.persenKehadiran || 0}%
@@ -407,7 +407,7 @@ const LaporanAdmin = ({ students = [], teachers = [] }) => {
       </div>
       </div>
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}

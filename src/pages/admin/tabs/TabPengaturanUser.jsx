@@ -192,7 +192,7 @@ export default function TabPengaturanUser(props) {
                       <p className="text-[11px] font-bold text-slate-400 mt-0.5">Daftar permintaan lupa password dari Guru, Karyawan, dan Siswa</p>
                     </div>
                   </div>
-                  <span className="bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-xs">
+                  <span className="bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-[var(--ui-radius-pill)] shadow-xs">
                     {pendingRequests.length} Pending
                   </span>
                 </div>
@@ -442,7 +442,7 @@ export default function TabPengaturanUser(props) {
                                 <Button variant="outline"
                                   onClick={() => handleDelete(item._source === 'staffs' ? 'Karyawan' : 'guru', item.code)}
                                   disabled={!!isCurrentSessionTeacher}
-                                  className={`flex items-center justify-center ${isCurrentSessionTeacher ?"text-slate-300 bg-slate-50 border-slate-100 cursor-not-allowed" :"text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 hover:border-red-200 border-slate-200 cursor-pointer"}`}
+                                  className={`flex items-center justify-center ${isCurrentSessionTeacher ?"text-slate-300 bg-slate-50 border-slate-100 cursor-not-allowed" :"text-slate-400 hover:text-rose-600 bg-white hover:bg-red-50 hover:border-red-200 border-slate-200 cursor-pointer"}`}
                                   title={
                                     isCurrentSessionTeacher
                                       ?"Tidak bisa menghapus akun sendiri"

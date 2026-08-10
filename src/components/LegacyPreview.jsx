@@ -300,7 +300,7 @@ export function LegacyDenahPreview({
                   {fixedBlock("kampus-a-musholla","Musholla","-","neutral", true)}
                 </div>
                 <div className="col-span-3 grid grid-cols-[1fr_0.32fr] gap-2 min-h-[230px] items-end">
-                  <div className="w-full h-40 bg-green-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
                     <div className="absolute inset-4 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
                     <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
@@ -309,7 +309,7 @@ export function LegacyDenahPreview({
                       <div className="text-5xl font-black leading-none">LAPANGAN</div>
                     </div>
                   </div>
-                  <div className="w-full h-40 bg-green-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
                     <div className="absolute inset-3 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
                     <div className="absolute left-0 right-0 top-1/2 border-t-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-12 h-12 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>

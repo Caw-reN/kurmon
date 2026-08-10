@@ -202,13 +202,13 @@ const AdministrasiSiswa = () => {
       case 'STAMPED':
       case 'DISETUJUI':
       case 'ACC':
-        return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-xl text-[10px] font-black">DISETUJUI &amp; DITEMPEL</span>;
+        return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black">DISETUJUI &amp; DITEMPEL</span>;
       case 'ACC_PEMBIMBING':
-        return <span className="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-xl text-[10px] font-black">ACC PEMBIMBING</span>;
+        return <span className="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black">ACC PEMBIMBING</span>;
       case 'DITOLAK':
-        return <span className="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-xl text-[10px] font-black">DITOLAK</span>;
+        return <span className="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black">DITOLAK</span>;
       default:
-        return <span className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-xl text-[10px] font-black">MENUNGGU VERIFIKASI</span>;
+        return <span className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black">MENUNGGU VERIFIKASI</span>;
     }
   };
 
@@ -217,7 +217,7 @@ const AdministrasiSiswa = () => {
       
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-[110] px-4 py-3 rounded-2xl shadow-lg border text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 ${
+        <div className={`fixed top-5 right-5 z-[110] px-4 py-3 rounded-[var(--ui-radius-card)] shadow-sm border text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 ${
           toast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
         }`}>
           <CheckCircle2 size={16} className={toast.type === 'error' ? 'text-rose-600' : 'text-emerald-600'} />
@@ -229,7 +229,7 @@ const AdministrasiSiswa = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-black text-slate-900 text-base sm:text-lg">Administrasi PKL Siswa</h2>
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-[var(--ui-radius-pill)] text-xs font-bold flex items-center gap-1.5">
             <Calendar size={14} className="text-emerald-600" /> Hari Ini, {dateFormatted}
           </span>
         </div>
@@ -267,7 +267,7 @@ const AdministrasiSiswa = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('surat')}
-                className={`px-4 py-2 rounded-2xl text-xs font-black transition-all border-none cursor-pointer ${
+                className={`px-4 py-2 rounded-[var(--ui-radius-card)] text-xs font-black transition-all border-none cursor-pointer ${
                   activeTab === 'surat' ? 'bg-white text-[var(--ui-primary,#064e3b)] shadow-xs' : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
@@ -277,7 +277,7 @@ const AdministrasiSiswa = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('konfirmasi')}
-                className={`px-4 py-2 rounded-2xl text-xs font-black transition-all border-none cursor-pointer ${
+                className={`px-4 py-2 rounded-[var(--ui-radius-card)] text-xs font-black transition-all border-none cursor-pointer ${
                   activeTab === 'konfirmasi' ? 'bg-white text-[var(--ui-primary,#064e3b)] shadow-xs' : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
@@ -287,7 +287,7 @@ const AdministrasiSiswa = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('mutasi')}
-                className={`px-4 py-2 rounded-2xl text-xs font-black transition-all border-none cursor-pointer ${
+                className={`px-4 py-2 rounded-[var(--ui-radius-card)] text-xs font-black transition-all border-none cursor-pointer ${
                   activeTab === 'mutasi' ? 'bg-white text-[var(--ui-primary,#064e3b)] shadow-xs' : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
@@ -327,7 +327,7 @@ const AdministrasiSiswa = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {suratList.map((item) => (
-                <div key={item.id} className="bg-white p-6 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] space-y-3.5 hover:shadow-md transition-all">
+                <div key={item.id} className="bg-white p-6 rounded-[var(--ui-radius-card,24px)] border border-slate-100 shadow-[var(--ui-shadow-card)] space-y-3.5 hover:shadow-xs transition-all">
                   <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
                     <div>
                       <h3 className="font-black text-sm text-slate-900 uppercase">{item.pt_name}</h3>

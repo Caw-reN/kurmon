@@ -152,7 +152,7 @@ export default function TabHakAkses(props) {
 
   if (!isSuperAdminRole(currentUser?.role)) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
         <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
         <h3 className="text-base font-black text-slate-700">Akses SuperAdmin Diperlukan</h3>
         <p className="text-sm text-slate-400 mt-1">Hak akses hanya dapat diubah oleh operator SuperAdmin.</p>
@@ -368,7 +368,7 @@ export default function TabHakAkses(props) {
             <button
               type="button"
               onClick={() => setCreateModalOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-blue-50 text-blue-600 font-black text-xs flex items-center gap-1 cursor-pointer border border-blue-200"
+              className="lg:hidden p-2 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 font-black text-xs flex items-center gap-1 cursor-pointer border border-blue-200"
             >
               <Plus size={14} />
               <span>Role Baru</span>
@@ -380,7 +380,7 @@ export default function TabHakAkses(props) {
             <button
               type="button"
               onClick={() => setCreateModalOpen(true)}
-              className="hidden lg:flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-dashed border-blue-300 hover:border-blue-500 text-xs font-black text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-50 transition-all cursor-pointer w-full shadow-xs"
+              className="hidden lg:flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-dashed border-blue-300 hover:border-blue-500 text-xs font-black text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-50 transition-all cursor-pointer w-full shadow-xs"
             >
               <Plus size={14} />
               Tambah Role Baru
@@ -400,9 +400,9 @@ export default function TabHakAkses(props) {
                   <button
                     type="button"
                     onClick={() => setSelectedRoleKey(roleKey)}
-                    className={`flex items-center justify-between gap-3 text-left px-3.5 py-2.5 rounded-xl transition-all cursor-pointer border w-full ${
+                    className={`flex items-center justify-between gap-3 text-left px-3.5 py-2.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border w-full ${
                       isSelected
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm font-black'
+                        ? 'bg-[var(--ui-primary)] text-white border-blue-600 shadow-sm font-black'
                         : 'hover:bg-slate-50 text-slate-700 bg-white border-slate-200/80'
                     }`}
                   >
@@ -410,7 +410,7 @@ export default function TabHakAkses(props) {
                       <Shield size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
                       <span className="text-xs font-black truncate">{info.label}</span>
                     </div>
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] shrink-0 ${
                       isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {currentAllowedCount} Menu
@@ -422,7 +422,7 @@ export default function TabHakAkses(props) {
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setDeleteRoleKey(roleKey); }}
                       title="Hapus role ini"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded-md border border-red-200"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 text-rose-500 rounded-md border border-red-200"
                     >
                       <Trash2 size={12} />
                     </button>
@@ -440,7 +440,7 @@ export default function TabHakAkses(props) {
           <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${currentRoleInfo.color} border border-slate-200/20`}>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black uppercase tracking-wider ${currentRoleInfo.color} border border-slate-200/20`}>
                   {currentRoleInfo.label}
                 </span>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -460,13 +460,13 @@ export default function TabHakAkses(props) {
                 placeholder="Cari nama modul…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
+                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-xs"
               />
             </div>
           </div>
 
           {/* Preset Panel Card */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-sm flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-blue-600 shrink-0" />
               <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Preset Hak Akses Cepat</span>
@@ -482,14 +482,14 @@ export default function TabHakAkses(props) {
                 { key: 'hubin', label: 'Full Hubin / PKL', color: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' },
                 { key: 'tu', label: 'Full Tata Usaha', color: 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border-cyan-200' },
                 { key: 'guru_biasa', label: 'Guru Biasa', color: 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' },
-                { key: 'full', label: 'Centang Semua', color: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600 font-black' },
+                { key: 'full', label: 'Centang Semua', color: 'bg-[var(--ui-primary)] hover:opacity-90 text-white border-blue-600 font-black' },
                 { key: 'empty', label: 'Reset (Kosongkan)', color: 'bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-300' }
               ].map(preset => (
                 <button
                   key={preset.key}
                   type="button"
                   onClick={() => applyPreset(preset.key)}
-                  className={`text-[10px] font-extrabold px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${preset.color}`}
+                  className={`text-[10px] font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer shadow-xs ${preset.color}`}
                 >
                   {preset.label}
                 </button>
@@ -500,7 +500,7 @@ export default function TabHakAkses(props) {
           {/* Permission Group Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredGroups.length === 0 ? (
-              <div className="col-span-full text-center py-16 text-slate-400 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+              <div className="col-span-full text-center py-16 text-slate-400 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs">
                 <AlertCircle size={36} className="mx-auto mb-2 opacity-30" />
                 <p className="text-sm font-bold">Tidak ada modul ditemukan</p>
                 <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian Anda.</p>
@@ -510,7 +510,7 @@ export default function TabHakAkses(props) {
                 return (
                   <div 
                     key={group.key} 
-                    className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all"
+                    className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col hover:shadow-xs transition-all"
                   >
                     {/* Group Header */}
                     <div className="bg-slate-50 border-b border-slate-200/80 px-4 py-3 flex items-center justify-between">
@@ -552,7 +552,7 @@ export default function TabHakAkses(props) {
                         return (
                           <div 
                             key={tab} 
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-slate-50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/40 hover:bg-slate-50 transition-colors"
                           >
                             <div className="min-w-0 flex-1">
                               <span className="text-xs font-black text-slate-800 block truncate">
@@ -564,15 +564,15 @@ export default function TabHakAkses(props) {
                             </div>
                             
                             {/* Segmented 3-State Radio Buttons */}
-                            <div className="flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shrink-0 self-start sm:self-center shadow-xs">
+                            <div className="flex items-center bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] p-1 shrink-0 self-start sm:self-center shadow-xs">
                               
                               {/* Nonaktif */}
                               <button
                                 type="button"
                                 onClick={() => setTabPermission(tab, 'nonaktif')}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
                                   currentLevel === 'nonaktif'
-                                    ? 'bg-red-500 text-white shadow-xs'
+                                    ? 'bg-rose-500 text-white shadow-xs'
                                     : 'text-slate-400 hover:text-slate-600'
                                 }`}
                                 title="Nonaktifkan akses modul ini"
@@ -585,7 +585,7 @@ export default function TabHakAkses(props) {
                               <button
                                 type="button"
                                 onClick={() => setTabPermission(tab, 'view')}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
                                   currentLevel === 'view'
                                     ? 'bg-amber-500 text-white shadow-xs'
                                     : 'text-slate-400 hover:text-slate-600'
@@ -600,7 +600,7 @@ export default function TabHakAkses(props) {
                               <button
                                 type="button"
                                 onClick={() => setTabPermission(tab, 'edit')}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer ${
                                   currentLevel === 'edit'
                                     ? 'bg-emerald-600 text-white shadow-xs'
                                     : 'text-slate-400 hover:text-slate-600'
@@ -623,7 +623,7 @@ export default function TabHakAkses(props) {
           </div>
 
           {/* Sticky Update Footer */}
-          <div className="bg-slate-900 border border-slate-800 text-white rounded-2xl p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-[320px] shadow-2xl z-30 transition-all">
+          <div className="bg-slate-900 border border-slate-800 text-white rounded-[var(--ui-radius-card)] p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-[320px] shadow-xs z-30 transition-all">
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${isModified ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
               <span className="text-xs font-bold text-slate-200">
@@ -659,9 +659,9 @@ export default function TabHakAkses(props) {
                 type="button"
                 onClick={handleUpdateRole}
                 disabled={!isModified}
-                className={`px-5 py-2 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all ${
+                className={`px-5 py-2 text-xs font-black rounded-[var(--ui-radius-small)] flex items-center gap-1.5 transition-all ${
                   isModified 
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30' 
+                    ? 'bg-[var(--ui-primary)] hover:opacity-90 text-white shadow-sm shadow-blue-600/30' 
                     : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                 }`}
               >
@@ -692,7 +692,7 @@ export default function TabHakAkses(props) {
                 placeholder="Contoh: Kepala Lab Komputer, Laboran RPL"
                 value={newRoleName}
                 onChange={e => setNewRoleName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all text-slate-800"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all text-slate-800"
               />
             </div>
 
@@ -700,7 +700,7 @@ export default function TabHakAkses(props) {
               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5">
                 Key Kustom (Huruf Kecil & Angka)
               </label>
-              <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+              <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-semibold text-slate-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 transition-all">
                 <span>custom_</span>
                 <input
                   type="text"
@@ -742,7 +742,7 @@ export default function TabHakAkses(props) {
                 type="button"
                 onClick={handleCreateRole}
                 disabled={isCreating}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black px-5"
+                className="bg-[var(--ui-primary)] hover:opacity-90 text-white font-black px-5"
               >
                 {isCreating ? 'Membuat...' : 'Buat Role'}
               </Button>
@@ -760,13 +760,13 @@ export default function TabHakAkses(props) {
           maxWidth="max-w-sm"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-              <Trash2 size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)]">
+              <Trash2 size={18} className="text-rose-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-black text-red-700">
                   Role <span className="underline">{getRoleLabelExtended(deleteRoleKey).label}</span> akan dihapus permanen.
                 </p>
-                <p className="text-[10px] text-red-500 font-semibold mt-1">
+                <p className="text-[10px] text-rose-500 font-semibold mt-1">
                   Aksi ini tidak bisa dibatalkan.
                 </p>
               </div>
@@ -778,7 +778,7 @@ export default function TabHakAkses(props) {
               <Button
                 type="button"
                 onClick={() => handleDeleteRole(deleteRoleKey)}
-                className="bg-red-600 hover:bg-red-700 text-white font-black px-5"
+                className="bg-rose-600 hover:bg-red-700 text-white font-black px-5"
               >
                 Ya, Hapus Role
               </Button>
@@ -796,7 +796,7 @@ export default function TabHakAkses(props) {
           maxWidth="max-w-sm"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)]">
               <Sparkles size={18} className="text-amber-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-black text-amber-700">
@@ -814,7 +814,7 @@ export default function TabHakAkses(props) {
               <Button
                 type="button"
                 onClick={() => applyPresetConfirmed(pendingPreset)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black px-5"
+                className="bg-[var(--ui-primary)] hover:opacity-90 text-white font-black px-5"
               >
                 Ya, Terapkan Preset
               </Button>

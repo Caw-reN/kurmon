@@ -81,7 +81,7 @@ export function useAdminRenderers(props) {
     };
 
     return (
-      <div className="bg-[var(--ui-surface)] border border-slate-200 rounded-lg p-3 md:p-5 overflow-x-auto denah-scrollbar">
+      <div className="bg-[var(--ui-surface)] border border-slate-200 rounded-[var(--ui-radius-small)] p-3 md:p-5 overflow-x-auto denah-scrollbar">
         <div className="min-w-[1000px]">
           <div className="grid grid-cols-[1.22fr_0.78fr] gap-4">
             <div className="space-y-3">
@@ -115,7 +115,7 @@ export function useAdminRenderers(props) {
                   {fixedBlock("kampus-a-musholla","Musholla","-","neutral", true)}
                 </div>
                 <div className="col-span-3 grid grid-cols-[1fr_0.32fr] gap-2 min-h-[230px] items-end">
-                  <div className="w-full h-40 bg-green-500 border-4 border-green-700 rounded-md relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-md relative overflow-hidden">
                     <div className="absolute inset-4 border-2 border-white/80 rounded"></div>
                     <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-full"></div>
@@ -124,7 +124,7 @@ export function useAdminRenderers(props) {
                       <div className="text-5xl font-black leading-none">LAPANGAN</div>
                     </div>
                   </div>
-                  <div className="w-full h-40 bg-green-500 border-4 border-green-700 rounded-md relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-md relative overflow-hidden">
                     <div className="absolute inset-3 border-2 border-white/80 rounded"></div>
                     <div className="absolute left-0 right-0 top-1/2 border-t-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-12 h-12 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-full"></div>
@@ -227,8 +227,8 @@ export function useAdminRenderers(props) {
     };
 
     return (
-      <div className="bg-[var(--ui-surface)] border border-slate-200 rounded-lg p-3 md:p-5 overflow-x-auto">
-        <div className="min-w-[980px] max-w-[1200px] mx-auto bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="bg-[var(--ui-surface)] border border-slate-200 rounded-[var(--ui-radius-small)] p-3 md:p-5 overflow-x-auto">
+        <div className="min-w-[980px] max-w-[1200px] mx-auto bg-white p-6 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-sm">
           {/* Row 1: Lt.2 */}
           <div className="grid grid-cols-8 gap-3 mb-3">
             <div className="col-span-2"></div>

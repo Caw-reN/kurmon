@@ -166,7 +166,7 @@ function PrintPreviewPaper({ template, student, school, appSettings = {}, custom
   return (
     <div 
       ref={paperRef}
-      className="print-paper-canvas bg-white shadow-2xl rounded-sm border border-slate-200 p-8 sm:p-12 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none"
+      className="print-paper-canvas bg-white shadow-xs rounded-sm border border-slate-200 p-8 sm:p-12 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none"
     >
       <div>
         {/* Kop Surat Header */}
@@ -723,7 +723,7 @@ export default function ESurat() {
           </div>
 
           {/* Right Panel: Realtime A4 Paper Studio Preview (7 cols) */}
-          <div className="xl:col-span-7 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-4 sm:p-6 shadow-xl space-y-4 sticky top-4">
+          <div className="xl:col-span-7 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-4 sm:p-6 shadow-sm space-y-4 sticky top-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-amber-400 shrink-0" />
@@ -838,7 +838,7 @@ export default function ESurat() {
                   return (
                     <div 
                       key={t.id} 
-                      className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between space-y-4"
+                      className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-5 shadow-xs hover:shadow-xs hover:-translate-y-0.5 transition-all flex flex-col justify-between space-y-4"
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
@@ -863,7 +863,7 @@ export default function ESurat() {
                             <button
                               type="button"
                               onClick={() => handleDelete(t.id)}
-                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200/80 cursor-pointer transition-colors"
+                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 cursor-pointer transition-colors"
                               title="Hapus Template"
                             >
                               <Trash2 size={13} />
@@ -1025,7 +1025,7 @@ export default function ESurat() {
 
       {/* Global Toast Alert */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-lg font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-sm font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         } z-[9999]`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 

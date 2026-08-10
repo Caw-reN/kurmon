@@ -216,7 +216,7 @@ export default function TabKetersediaan({
                         Mapel Kompetensi
                       </p>
                       <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${subjectsList.length ?"bg-emerald-100 text-emerald-700" :"bg-red-50 text-red-600"}`}
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${subjectsList.length ?"bg-emerald-100 text-emerald-700" :"bg-red-50 text-rose-600"}`}
                       >
                         {subjectsList.length || 0} mapel
                       </span>
@@ -232,7 +232,7 @@ export default function TabKetersediaan({
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-red-500 font-bold">
+                        <span className="text-xs text-rose-500 font-bold">
                           Belum ada mapel. Klik Ubah Mapel.
                         </span>
                       )}

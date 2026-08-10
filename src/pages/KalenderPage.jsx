@@ -95,8 +95,8 @@ export default function KalenderPage() {
   const eventCardTone = {
     blue:"bg-blue-500 -blue-500/20",
     emerald:"bg-emerald-500 -emerald-500/20",
-    green:"bg-green-500 -green-500/20",
-    red:"bg-red-500 -red-500/20",
+    green:"bg-emerald-500 -green-500/20",
+    red:"bg-rose-500 -red-500/20",
     rose:"bg-rose-500 -rose-500/20",
     amber:"bg-amber-500 -amber-500/20",
     orange:"bg-orange-500 -orange-500/20",
@@ -251,7 +251,7 @@ export default function KalenderPage() {
                 <div className="w-full md:min-w-[720px]">
                   <div className="grid grid-cols-7 mb-3">
                     {dayNames.map((d, idx) => (
-                      <div key={d} className={`px-2 text-left text-[11px] font-black uppercase tracking-widest ${idx === 0 ?"text-red-500" :"text-slate-400"}`}>
+                      <div key={d} className={`px-2 text-left text-[11px] font-black uppercase tracking-widest ${idx === 0 ?"text-rose-500" :"text-slate-400"}`}>
                         {d.slice(0, 3)}
                       </div>
                     ))}
@@ -281,7 +281,7 @@ export default function KalenderPage() {
                         : isMultiDayActive 
                           ? (categoryTextColor[activeMultiDay.color] ||"text-slate-700") 
                           : isRedDay 
-                            ?"text-red-500" 
+                            ?"text-rose-500" 
                             :"text-slate-700";
 
                       return (

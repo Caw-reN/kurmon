@@ -140,8 +140,8 @@ export default function Login({
             ) : (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 {forgotError && (
-                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-red-600">
-                    <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-500" />
+                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-rose-600">
+                    <AlertCircle size={14} className="mt-0.5 shrink-0 text-rose-500" />
                     <span className="leading-snug">{forgotError}</span>
                   </div>
                 )}
@@ -161,7 +161,7 @@ export default function Login({
 
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    Username / NIS / Kode Guru <span className="text-red-500 normal-case">*</span>
+                    Username / NIS / Kode Guru <span className="text-rose-500 normal-case">*</span>
                   </label>
                   <input
                     type="text"
@@ -176,7 +176,7 @@ export default function Login({
 
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    Nomor WhatsApp Aktif <span className="text-red-500 normal-case">*</span>
+                    Nomor WhatsApp Aktif <span className="text-rose-500 normal-case">*</span>
                   </label>
                   <input
                     type="text"
@@ -191,7 +191,7 @@ export default function Login({
 
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    Verifikasi Captcha <span className="text-red-500 normal-case">*</span>
+                    Verifikasi Captcha <span className="text-rose-500 normal-case">*</span>
                   </label>
                   <div className="flex gap-2 items-stretch">
                     <div className="bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] h-10 flex items-center justify-center text-[12px] font-black text-slate-700 select-none rounded-[var(--ui-radius-control)] w-24 shrink-0 text-center shadow-[var(--ui-shadow-control)]">
@@ -233,8 +233,8 @@ export default function Login({
             /* ── Login Form ──────────────────────────────────────── */
             <>
               {loginError && (
-                <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-red-600">
-                  <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-500" />
+                <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-rose-600">
+                  <AlertCircle size={14} className="mt-0.5 shrink-0 text-rose-500" />
                   <span className="leading-snug">{loginError}</span>
                 </div>
               )}
@@ -242,7 +242,7 @@ export default function Login({
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    Username / Kode Guru <span className="text-red-500 normal-case">*</span>
+                    Username / Kode Guru <span className="text-rose-500 normal-case">*</span>
                   </label>
                   <input
                     type="text"
@@ -258,7 +258,7 @@ export default function Login({
 
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    Kata Sandi <span className="text-red-500 normal-case">*</span>
+                    Kata Sandi <span className="text-rose-500 normal-case">*</span>
                   </label>
                   <div className="relative">
                     <input

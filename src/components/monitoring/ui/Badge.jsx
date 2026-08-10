@@ -9,7 +9,7 @@ const variantMap = {
   // Status Kehadiran
   hadir:       { bg:'bg-emerald-100', text:'text-emerald-700', dot:'bg-emerald-500' },
   tepat_waktu: { bg:'bg-emerald-100', text:'text-emerald-700', dot:'bg-emerald-500' },
-  terlambat:   { bg:'bg-red-100',     text:'text-red-700',     dot:'bg-red-500'     },
+  terlambat:   { bg:'bg-red-100',     text:'text-red-700',     dot:'bg-rose-500'     },
   izin:        { bg:'bg-blue-100',    text:'text-blue-700',    dot:'bg-blue-500'    },
   sakit:       { bg:'bg-yellow-100',  text:'text-amber-700',   dot:'bg-amber-500'   },
   alpa:        { bg:'bg-slate-900',   text:'text-slate-100',   dot:'bg-slate-300'   },
@@ -18,10 +18,10 @@ const variantMap = {
   // Status Jurnal
   pending:   { bg:'bg-amber-100',   text:'text-amber-700',   dot:'bg-amber-500'   },
   approved:  { bg:'bg-emerald-100', text:'text-emerald-700', dot:'bg-emerald-500' },
-  revision:  { bg:'bg-red-100',     text:'text-red-700',     dot:'bg-red-500'     },
+  revision:  { bg:'bg-red-100',     text:'text-red-700',     dot:'bg-rose-500'     },
 
   // Jurusan
-  TKR:        { bg:'bg-red-100',    text:'text-red-700',     dot:'bg-red-500'     },
+  TKR:        { bg:'bg-red-100',    text:'text-red-700',     dot:'bg-rose-500'     },
   TKJ:        { bg:'bg-[var(--ui-primary)]/15',   text:'text-[var(--ui-primary)]',    dot:'bg-[var(--ui-primary)]'    },
   MP:         { bg:'bg-purple-100', text:'text-purple-700',  dot:'bg-purple-500'  },
   AKL:        { bg:'bg-emerald-100',text:'text-emerald-700', dot:'bg-emerald-500' },

@@ -300,7 +300,7 @@ const StudentAbsensi = () => {
       
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-between shadow-lg fixed top-5 right-5 z-[110] animate-in fade-in slide-in-from-top-3">
+        <div className="p-4 rounded-[var(--ui-radius-card)] bg-emerald-600 text-white font-bold text-xs flex items-center justify-between shadow-sm fixed top-5 right-5 z-[110] animate-in fade-in slide-in-from-top-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={18} /> {toastMsg}
           </div>
@@ -314,14 +314,14 @@ const StudentAbsensi = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-black text-slate-900 text-base sm:text-lg">Presensi &amp; Kehadiran Siswa</h2>
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-[var(--ui-radius-pill)] text-xs font-bold flex items-center gap-1.5">
             <Calendar size={14} className="text-emerald-600" /> Hari Ini, {dateFormatted}
           </span>
         </div>
 
         {/* Dynamic Theme Banner Hero Card */}
         <div 
-          className="rounded-[24px] p-5 sm:p-6 text-white space-y-4 relative overflow-hidden transition-all shadow-md"
+          className="rounded-[24px] p-5 sm:p-6 text-white space-y-4 relative overflow-hidden transition-all shadow-xs"
           style={{ 
             background: `linear-gradient(135deg, ${themeColorCSS} 0%, color-mix(in srgb, ${themeColorCSS} 80%, #0f172a) 100%)`
           }}
@@ -337,7 +337,7 @@ const StudentAbsensi = () => {
 
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider">STATUS PRESENSI:</span>
-              <span className={`font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider ${
+              <span className={`font-black text-xs px-3 py-1 rounded-[var(--ui-radius-pill)] uppercase tracking-wider ${
                 todayStatus 
                   ? 'bg-emerald-400/20 text-emerald-200 border border-emerald-400/40' 
                   : 'bg-amber-400/20 text-amber-200 border border-amber-400/40'
@@ -350,7 +350,7 @@ const StudentAbsensi = () => {
           {/* Student Profile Info */}
           <div className="flex items-center gap-3.5 relative z-10 pt-1">
             <div 
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm font-black text-lg overflow-hidden p-1"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-[var(--ui-radius-card)] bg-white flex items-center justify-center shrink-0 shadow-sm font-black text-lg overflow-hidden p-1"
               style={{ color: themeColorCSS }}
             >
               <User size={30} className="text-slate-400" />
@@ -372,7 +372,7 @@ const StudentAbsensi = () => {
           </div>
 
           {/* Inset Company & GPS Status Box */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-white/15 space-y-2.5 relative z-10">
+          <div className="bg-white/10 backdrop-blur-md rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 border border-white/15 space-y-2.5 relative z-10">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-white/90">
               <div className="flex items-center gap-2 truncate">
                 <Building2 size={16} className="text-white/80 shrink-0" />
@@ -397,7 +397,7 @@ const StudentAbsensi = () => {
               if (!userCoords) getLiveLocation();
               setShowFormModal(true);
             }}
-            className="w-full bg-white hover:bg-slate-50 text-[var(--ui-primary,#064e3b)] rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-2.5 shadow-sm cursor-pointer border-none transition-all active:scale-[0.99] group relative z-10"
+            className="w-full bg-white hover:bg-slate-50 text-[var(--ui-primary,#064e3b)] rounded-[var(--ui-radius-card)] py-3.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-2.5 shadow-sm cursor-pointer border-none transition-all active:scale-[0.99] group relative z-10"
             style={{ color: themeColorCSS }}
           >
             <Fingerprint size={20} className="transition-transform group-hover:scale-110" />
@@ -409,40 +409,40 @@ const StudentAbsensi = () => {
 
       {/* ── 2. SUMMARY STAT CARDS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between h-24">
+        <div className="bg-white p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tepat Waktu</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <h4 className="text-xl font-black text-emerald-700 leading-none">{totalHadir} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between h-24">
+        <div className="bg-white p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Terlambat</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
               <Clock size={16} />
             </div>
           </div>
           <h4 className="text-xl font-black text-amber-700 leading-none">{totalTerlambat} <span className="text-xs font-bold text-slate-400">Kali</span></h4>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between h-24">
+        <div className="bg-white p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Izin / Sakit</span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
               <Calendar size={16} />
             </div>
           </div>
           <h4 className="text-xl font-black text-sky-700 leading-none">{totalIzinSakit} <span className="text-xs font-bold text-slate-400">Hari</span></h4>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between h-24">
+        <div className="bg-white p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs flex flex-col justify-between h-24">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Alpa</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
               <AlertCircle size={16} />
             </div>
           </div>
@@ -451,7 +451,7 @@ const StudentAbsensi = () => {
       </div>
 
       {/* ── 3. CALENDAR & HISTORY GRID CONTAINER ── */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
+      <div className="bg-white p-5 sm:p-6 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-4">
         {/* Header & Filter Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -519,7 +519,7 @@ const StudentAbsensi = () => {
           {Array.from({ length: firstDayIndex }).map((_, idx) => (
             <div 
               key={`empty-${idx}`} 
-              className="p-2 sm:p-3 rounded-xl border border-dashed border-slate-100 bg-slate-50/40 min-h-[72px] sm:min-h-[88px] opacity-30" 
+              className="p-2 sm:p-3 rounded-[var(--ui-radius-small)] border border-dashed border-slate-100 bg-slate-50/40 min-h-[72px] sm:min-h-[88px] opacity-30" 
             />
           ))}
 
@@ -547,7 +547,7 @@ const StudentAbsensi = () => {
             return (
               <div 
                 key={day}
-                className={`p-2 sm:p-3 rounded-xl border transition-all flex flex-col justify-between min-h-[72px] sm:min-h-[88px] ${tileStyle}`}
+                className={`p-2 sm:p-3 rounded-[var(--ui-radius-small)] border transition-all flex flex-col justify-between min-h-[72px] sm:min-h-[88px] ${tileStyle}`}
               >
                 <div className="flex items-center justify-between">
                   <span className={`font-black text-xs sm:text-sm ${isToday ? 'text-emerald-700 font-extrabold' : 'text-slate-800'}`}>
@@ -603,7 +603,7 @@ const StudentAbsensi = () => {
       {/* ── SHARELOK ABSEN MODAL ── */}
       {showFormModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowFormModal(false)}>
-          <div className="bg-white w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl border border-slate-100" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-lg rounded-[var(--ui-radius-card)] p-5 sm:p-6 space-y-5 shadow-sm border border-slate-100" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <MapPin className="text-[var(--ui-primary,#064e3b)]" size={20} />
@@ -615,7 +615,7 @@ const StudentAbsensi = () => {
             </div>
 
             {/* GPS Location Status Box */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div className="bg-slate-50 p-4 rounded-[var(--ui-radius-small)] border border-slate-200 space-y-2">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-600 flex items-center gap-1.5">
                   <Crosshair size={14} className="text-emerald-600" /> Posisi GPS Anda:
@@ -626,7 +626,7 @@ const StudentAbsensi = () => {
               </div>
 
               {userCoords ? (
-                <div className="text-xs text-slate-700 font-mono bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                <div className="text-xs text-slate-700 font-mono bg-white p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200 flex items-center justify-between">
                   <span>{userCoords.lat.toFixed(5)}, {userCoords.lng.toFixed(5)}</span>
                   {distanceMeters !== null && (
                     <span className={`font-bold px-2 py-0.5 rounded text-[11px] ${withinRadius ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
@@ -635,7 +635,7 @@ const StudentAbsensi = () => {
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-amber-700 font-medium bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                <p className="text-xs text-amber-700 font-medium bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-200">
                   {gpsError || 'Sedang mengambil posisi GPS terbaru...'}
                 </p>
               )}
@@ -647,14 +647,14 @@ const StudentAbsensi = () => {
                   <Camera size={14} className="text-sky-600" /> Foto Selfie Mandatory
                 </label>
                 {selfiePhoto ? (
-                  <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-200">
+                  <div className="relative w-full h-36 rounded-[var(--ui-radius-small)] overflow-hidden border border-slate-200">
                     <img src={selfiePhoto} alt="Selfie" className="w-full h-full object-cover" />
                     <button type="button" onClick={() => setSelfiePhoto(null)} className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/70 text-white border-none cursor-pointer">
                       <X size={14} />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors">
+                  <label className="flex flex-col items-center justify-center h-28 rounded-[var(--ui-radius-small)] border-2 border-dashed border-slate-200 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors">
                     <Camera size={24} className="text-slate-400 mb-1" />
                     <span className="text-xs font-bold text-slate-600">Ambil / Upload Foto Selfie</span>
                     <input type="file" accept="image/*" capture="user" onChange={handlePhotoUpload} className="hidden" />
@@ -668,7 +668,7 @@ const StudentAbsensi = () => {
                 type="button" 
                 onClick={() => handleDoAbsen('masuk')} 
                 disabled={checkingIn} 
-                className="py-3 rounded-xl bg-[var(--ui-primary,#064e3b)] text-white text-xs font-black shadow-xs border-none cursor-pointer hover:opacity-90 transition-opacity"
+                className="py-3 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary,#064e3b)] text-white text-xs font-black shadow-xs border-none cursor-pointer hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: themeColorCSS }}
               >
                 Absen Masuk
@@ -677,7 +677,7 @@ const StudentAbsensi = () => {
                 type="button" 
                 onClick={() => handleDoAbsen('pulang')} 
                 disabled={checkingIn} 
-                className="py-3 rounded-xl bg-slate-800 text-white text-xs font-black shadow-xs border-none cursor-pointer hover:bg-slate-900 transition-colors"
+                className="py-3 rounded-[var(--ui-radius-small)] bg-slate-800 text-white text-xs font-black shadow-xs border-none cursor-pointer hover:bg-slate-900 transition-colors"
               >
                 Absen Pulang
               </button>

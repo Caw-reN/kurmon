@@ -250,10 +250,10 @@ export default function TatibSkorKredit() {
       />
 
       {/* Settings Bar & Collapsible Trigger for Mobile */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
               <Settings2 size={18} />
             </div>
             <div>
@@ -264,7 +264,7 @@ export default function TatibSkorKredit() {
 
           <button 
             onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all"
           >
             {showSettingsPanel ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {showSettingsPanel ? 'Sembunyikan' : 'Atur Parameter'}
@@ -274,19 +274,19 @@ export default function TatibSkorKredit() {
         {/* Setting Cards Container (Always visible on Desktop, Collapsible on Mobile) */}
         <div className={`${showSettingsPanel ? 'block' : 'hidden md:grid'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1 border-t border-slate-100`}>
           {/* Card 1: Tingkat Pelanggaran */}
-          <div className="p-3.5 rounded-xl bg-red-50/70 border border-red-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-red-50/70 border border-red-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0">
               <ShieldAlert size={20} />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-500">Tingkat Pelanggaran</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-500">Tingkat Pelanggaran</span>
               <p className="text-xs font-black text-red-800 mt-0.5">Maks. {batasPoin} Poin (Drop Out)</p>
             </div>
           </div>
 
           {/* Card 2: Batas Poin Bermasalah */}
-          <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-blue-50/70 border border-blue-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
               <HelpCircle size={20} />
             </div>
             <div className="flex-1 min-w-0">
@@ -298,7 +298,7 @@ export default function TatibSkorKredit() {
                     inputMode="numeric"
                     value={batasPoin}
                     onChange={(e) => handleUpdateBatasPoin(parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0)}
-                    className="w-16 px-2 py-0.5 text-xs font-black border border-blue-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900"
+                    className="w-16 px-2 py-0.5 text-xs font-black border border-blue-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900"
                   />
                   <span className="text-[10px] font-bold text-blue-600">Poin</span>
                 </div>
@@ -309,8 +309,8 @@ export default function TatibSkorKredit() {
           </div>
 
           {/* Card 3: Mulai Hitung Absensi */}
-          <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-amber-50/70 border border-amber-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
               <Calendar size={20} />
             </div>
             <div className="flex-1 min-w-0">
@@ -321,7 +321,7 @@ export default function TatibSkorKredit() {
                     type="date"
                     value={startDate}
                     onChange={(e) => handleUpdateStartDate(e.target.value)}
-                    className="px-2 py-0.5 text-xs font-bold border border-amber-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-900"
+                    className="px-2 py-0.5 text-xs font-bold border border-amber-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-900"
                   />
                 </div>
               ) : (
@@ -331,8 +331,8 @@ export default function TatibSkorKredit() {
           </div>
 
           {/* Card 4: PDF Peraturan Sekolah */}
-          <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-purple-50/70 border border-purple-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
               <FileText size={20} />
             </div>
             <div className="flex-1 min-w-0">
@@ -351,7 +351,7 @@ export default function TatibSkorKredit() {
                     {isAdmin && (
                       <button
                         onClick={handlePdfDelete}
-                        className="text-[10px] text-red-600 hover:underline font-bold"
+                        className="text-[10px] text-rose-600 hover:underline font-bold"
                       >
                         Hapus
                       </button>
@@ -381,15 +381,15 @@ export default function TatibSkorKredit() {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden">
         {/* Controls Toolbar: Search, Filter Tabs & Add Button */}
         <div className="p-4 sm:p-5 border-b border-slate-100 space-y-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Filter Tabs */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
+            <div className="flex items-center bg-slate-100 p-1 rounded-[var(--ui-radius-small)] shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
               <button
                 onClick={() => setFilterType('all')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
                   filterType === 'all'
                     ? 'bg-white text-slate-800 shadow-xs'
                     : 'text-slate-500 hover:text-slate-700'
@@ -399,17 +399,17 @@ export default function TatibSkorKredit() {
               </button>
               <button
                 onClick={() => setFilterType('pelanggaran')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
                   filterType === 'pelanggaran'
-                    ? 'bg-red-500 text-white shadow-xs'
-                    : 'text-slate-500 hover:text-red-600'
+                    ? 'bg-rose-500 text-white shadow-xs'
+                    : 'text-slate-500 hover:text-rose-600'
                 }`}
               >
                 Pelanggaran ({countPelanggaran})
               </button>
               <button
                 onClick={() => setFilterType('prestasi')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
                   filterType === 'prestasi'
                     ? 'bg-emerald-600 text-white shadow-xs'
                     : 'text-slate-500 hover:text-emerald-700'
@@ -421,7 +421,7 @@ export default function TatibSkorKredit() {
 
             {/* Add Button */}
             {isAdmin && (
-              <Button onClick={openAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+              <Button onClick={openAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-[var(--ui-radius-small)] shadow-sm flex items-center justify-center gap-1.5 shrink-0">
                 <Plus size={16} /> Tambah Aturan Baru
               </Button>
             )}
@@ -434,7 +434,7 @@ export default function TatibSkorKredit() {
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Cari nama tindakan, aturan, atau pelanggaran..."
-              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
             />
             {searchTerm && (
               <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -477,14 +477,14 @@ export default function TatibSkorKredit() {
                         {item.nama_tindakan}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-black ${
+                        <span className={`inline-flex px-3 py-1 rounded-[var(--ui-radius-pill)] text-xs font-black ${
                           isPelanggaran ? 'bg-red-50 text-red-700 border border-red-200/60' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
                         }`}>
                           {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center font-black text-sm">
-                        <span className={isPelanggaran ? 'text-red-600' : 'text-emerald-600'}>
+                        <span className={isPelanggaran ? 'text-rose-600' : 'text-emerald-600'}>
                           {isPelanggaran ? `- ${item.nilai_poin}` : `+ ${item.nilai_poin}`}
                         </span>
                       </td>
@@ -493,14 +493,14 @@ export default function TatibSkorKredit() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openEdit(item)}
-                              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-[var(--ui-radius-small)] transition-colors"
                               title="Edit Aturan"
                             >
                               <Edit2 size={15} />
                             </button>
                             <button
                               onClick={() => handleDelete(item.id)}
-                              className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors"
                               title="Hapus Aturan"
                             >
                               <Trash2 size={15} />
@@ -529,11 +529,11 @@ export default function TatibSkorKredit() {
                 <div key={item.id} className="p-4 hover:bg-slate-50/60 transition-colors flex flex-col gap-2.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-2 flex-1">
-                      <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${isPelanggaran ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                      <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${isPelanggaran ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                       <span className="font-extrabold text-xs text-slate-800 leading-snug">{item.nama_tindakan}</span>
                     </div>
 
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${
+                    <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-black shrink-0 ${
                       isPelanggaran ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
                     }`}>
                       {isPelanggaran ? `- ${item.nilai_poin} POIN` : `+ ${item.nilai_poin} POIN`}
@@ -542,7 +542,7 @@ export default function TatibSkorKredit() {
 
                   <div className="flex items-center justify-between pt-1">
                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                      isPelanggaran ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                      isPelanggaran ? 'bg-red-50 text-rose-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                     }`}>
                       {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
                     </span>
@@ -551,13 +551,13 @@ export default function TatibSkorKredit() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEdit(item)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1"
                         >
                           <Edit2 size={12} /> Edit
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-rose-600 text-xs font-bold rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1"
                         >
                           <Trash2 size={12} /> Hapus
                         </button>
@@ -587,7 +587,7 @@ export default function TatibSkorKredit() {
                 value={form.nama_tindakan}
                 onChange={e => setForm({ ...form, nama_tindakan: e.target.value })}
                 placeholder="Contoh: Terlambat masuk sekolah..."
-                className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-[var(--ui-radius-small)] text-xs font-bold bg-slate-50 text-slate-800 placeholder:text-slate-400"
               />
             </div>
 
@@ -597,7 +597,7 @@ export default function TatibSkorKredit() {
                 <UISelect
                   value={form.jenis}
                   onChange={e => setForm({ ...form, jenis: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-[var(--ui-radius-small)] text-xs font-bold bg-slate-50 text-slate-800"
                 >
                   <option value="pelanggaran">Pelanggaran (Minus)</option>
                   <option value="prestasi">Prestasi (Plus)</option>
@@ -612,16 +612,16 @@ export default function TatibSkorKredit() {
                   required
                   value={form.nilai_poin}
                   onChange={e => setForm({ ...form, nilai_poin: parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0 })}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl text-xs font-bold bg-slate-50 text-slate-800"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-[var(--ui-radius-small)] text-xs font-bold bg-slate-50 text-slate-800"
                 />
               </div>
             </div>
 
             <div className="pt-3 flex justify-end gap-2 border-t border-slate-100 mt-2">
-              <Button variant="ghost" type="button" onClick={() => setShowModal(false)} className="rounded-xl text-xs font-bold">
+              <Button variant="ghost" type="button" onClick={() => setShowModal(false)} className="rounded-[var(--ui-radius-small)] text-xs font-bold">
                 Batal
               </Button>
-              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black px-4 py-2">
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black px-4 py-2">
                 <Save size={14} className="mr-1.5" /> Simpan Aturan
               </Button>
             </div>
@@ -631,8 +631,8 @@ export default function TatibSkorKredit() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${
-          toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${
+          toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         } z-50`}>
           {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>

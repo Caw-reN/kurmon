@@ -40,7 +40,7 @@ const ClickPicker = ({ value, onChange, options, placeholder = "Pilih..." }) => 
       <button
         type="button"
         onClick={() => { setIsOpen(!isOpen); setSearch(''); }}
-        className="w-full text-left flex justify-between items-center px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20"
+        className="w-full text-left flex justify-between items-center px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20"
       >
         <span className={selectedOpt ? "text-slate-800 font-bold" : "text-slate-400"}>
           {selectedOpt ? selectedOpt.label : placeholder}
@@ -49,7 +49,7 @@ const ClickPicker = ({ value, onChange, options, placeholder = "Pilih..." }) => 
       </button>
 
       {isOpen && (
-        <div className="absolute z-[60] mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95">
+        <div className="absolute z-[60] mt-1 w-full bg-white border border-slate-200 rounded-[var(--ui-radius-small)] shadow-sm max-h-60 overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95">
           <div className="p-2 border-b border-slate-100 bg-slate-50 shrink-0">
             <input
               type="text"
@@ -57,7 +57,7 @@ const ClickPicker = ({ value, onChange, options, placeholder = "Pilih..." }) => 
               placeholder="Cari..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+              className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
             />
           </div>
           <div className="overflow-y-auto flex-1 py-1 custom-scrollbar">
@@ -331,11 +331,11 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       >
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Tingkat PKL selector */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/25 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2 shadow-sm">
+          <div className="bg-white/10 backdrop-blur-md border border-white/25 px-3 py-1.5 rounded-[var(--ui-radius-small)] flex items-center justify-between gap-2 shadow-sm">
             <div className="flex items-center gap-2">
               <Settings size={14} className="text-white shrink-0"/>
               <span className="text-[10px] font-black text-white uppercase tracking-wider">Tingkat:</span>
-              <div className="flex bg-black/20 p-0.5 rounded-lg">
+              <div className="flex bg-black/20 p-0.5 rounded-[var(--ui-radius-small)]">
                 {["X", "XI", "XII"].map(lvl => (
                   <button
                     key={lvl}
@@ -355,7 +355,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             <button 
               onClick={saveSettings} 
               disabled={isSavingSettings} 
-              className="cursor-pointer bg-white/20 hover:bg-white/30 text-white border-none p-1.5 rounded-lg transition-all active:scale-95 flex items-center gap-1 text-[11px] font-bold" 
+              className="cursor-pointer bg-white/20 hover:bg-white/30 text-white border-none p-1.5 rounded-[var(--ui-radius-small)] transition-all active:scale-95 flex items-center gap-1 text-[11px] font-bold" 
               title="Simpan Pengaturan Tingkat"
             >
               <Save size={13} />
@@ -369,13 +369,13 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               onClick={() => {
                 const f = document.createElement('input'); f.type = 'file'; f.accept = '.xlsx,.xls'; f.onchange = handleImport; f.click();
               }} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-xl text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
             >
               <Upload size={14} strokeWidth={2.5} /> Impor
             </button>
             <button 
               onClick={handleExport} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-xl text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
             >
               <Download size={14} strokeWidth={2.5} /> Ekspor
             </button>
@@ -388,10 +388,10 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         <div 
           onClick={() => { setFilterStatus('Semua'); setCurrentPage(1); }}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-md bg-slate-50/50' : 'hover:border-slate-300'
+            filterStatus === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-xs bg-slate-50/50' : 'hover:border-slate-300'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
             <Users size={22} />
           </div>
           <div>
@@ -403,10 +403,10 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         <div 
           onClick={() => { setFilterStatus('Sudah PKL'); setCurrentPage(1); }}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Sudah PKL' ? 'ring-2 ring-emerald-500 shadow-md bg-emerald-50/30' : 'hover:border-emerald-200'
+            filterStatus === 'Sudah PKL' ? 'ring-2 ring-emerald-500 shadow-xs bg-emerald-50/30' : 'hover:border-emerald-200'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
             <CheckCircle2 size={22} />
           </div>
           <div>
@@ -418,14 +418,14 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         <div 
           onClick={() => { setFilterStatus('Belum PKL'); setCurrentPage(1); }}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Belum PKL' ? 'ring-2 ring-red-500 shadow-md bg-red-50/30' : 'hover:border-red-200'
+            filterStatus === 'Belum PKL' ? 'ring-2 ring-red-500 shadow-xs bg-red-50/30' : 'hover:border-red-200'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0">
             <XCircle size={22} />
           </div>
           <div>
-            <p className="text-[11px] font-extrabold uppercase text-red-600 tracking-wider">BELUM PKL</p>
+            <p className="text-[11px] font-extrabold uppercase text-rose-600 tracking-wider">BELUM PKL</p>
             <h3 className="text-2xl font-black text-red-700 mt-0.5">{belumPklCount}</h3>
           </div>
         </div>
@@ -442,7 +442,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               placeholder="Cari nama siswa, NIS, atau kelas..."
-              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
             />
             {search && (
               <button 
@@ -455,13 +455,13 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           </div>
 
           {/* Status Pill Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full md:w-auto shrink-0 overflow-x-auto">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto shrink-0 overflow-x-auto">
             {['Semua', 'Sudah PKL', 'Belum PKL'].map(st => (
               <button
                 key={st}
                 type="button"
                 onClick={() => { setFilterStatus(st); setCurrentPage(1); }}
-                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
+                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
                   filterStatus === st 
                     ? 'bg-white text-slate-800 shadow-sm' 
                     : 'text-slate-500 hover:text-slate-800 bg-transparent'
@@ -476,7 +476,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           <button
             type="button"
             onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all border-none cursor-pointer"
+            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer"
           >
             <Filter size={14} />
             <span>Filter & Sortir ({filterKelas !== 'Semua' || filterJurusan !== 'Semua' || sortBy !== 'kelas_nis' ? 'Aktif' : 'Semua'})</span>
@@ -581,7 +581,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
                     {/* Jurusan */}
                     <td className="px-4 py-3">
-                      <span className="inline-block px-2.5 py-1 text-[10px] font-black rounded-lg bg-purple-50 text-purple-700 border border-purple-200 uppercase">
+                      <span className="inline-block px-2.5 py-1 text-[10px] font-black rounded-[var(--ui-radius-small)] bg-purple-50 text-purple-700 border border-purple-200 uppercase">
                         {s.jurusan}
                       </span>
                     </td>
@@ -616,7 +616,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
                     {/* Status */}
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-block px-2.5 py-1 text-[10px] font-black rounded-lg border ${
+                      <span className={`inline-block px-2.5 py-1 text-[10px] font-black rounded-[var(--ui-radius-small)] border ${
                         s.statusPKL === 'Sudah PKL' 
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                           : 'bg-red-50 text-red-700 border-red-200'
@@ -629,7 +629,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setSelectedSiswa(s)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-lg transition-all border-none cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
                       >
                         <span>Penugasan</span>
                         <ChevronRight size={13} />
@@ -667,7 +667,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                   </span>
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-xl space-y-2 text-xs">
+                <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 font-medium">Perusahaan:</span>
                     <span className="font-bold text-slate-800 truncate max-w-[180px]">
@@ -684,7 +684,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
                 <button
                   onClick={() => setSelectedSiswa(s)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-xl transition-all border-none cursor-pointer active:scale-95"
+                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
                 >
                   <span>Atur Penugasan PKL</span>
                   <ChevronRight size={14} />
@@ -721,7 +721,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setSelectedSiswa(null)} 
           />
-          <div className="relative bg-[#f8fafc] w-full max-w-md h-full overflow-y-auto shadow-2xl z-10 p-5 flex flex-col space-y-4 animate-in slide-in-from-right-full duration-300">
+          <div className="relative bg-[#f8fafc] w-full max-w-md h-full overflow-y-auto shadow-xs z-10 p-5 flex flex-col space-y-4 animate-in slide-in-from-right-full duration-300">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 shrink-0">
               <div>
                 <h2 className="font-extrabold text-slate-800 text-base">Detail Penugasan PKL</h2>
@@ -737,10 +737,10 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
             {/* Profile Header Card */}
             <div className="ui-card p-5 flex flex-col items-center text-center">
-              <Avatar name={selectedSiswa.nama} size="xl" className="mb-3 shadow-md" />
+              <Avatar name={selectedSiswa.nama} size="xl" className="mb-3 shadow-xs" />
               <h3 className="font-black text-lg text-slate-800 tracking-tight">{selectedSiswa.nama}</h3>
               <p className="text-xs font-semibold text-slate-400 mt-0.5">NIS: {selectedSiswa.nis} • Kelas: {selectedSiswa.kelas}</p>
-              <span className="mt-3 px-3 py-1 text-xs font-black rounded-lg bg-purple-100 text-purple-700 border border-purple-200">
+              <span className="mt-3 px-3 py-1 text-xs font-black rounded-[var(--ui-radius-small)] bg-purple-100 text-purple-700 border border-purple-200">
                 Jurusan {selectedSiswa.jurusan}
               </span>
             </div>
@@ -843,8 +843,8 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
       {/* Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-xl font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
-          toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+          toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 
           <span>{toast.message}</span>

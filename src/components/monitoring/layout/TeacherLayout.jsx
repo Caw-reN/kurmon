@@ -101,7 +101,7 @@ const TeacherLayout = () => {
                <p className="text-[11px] text-slate-500 truncate mt-0.5">Pembimbing PKL</p>
              </div>
           </div>
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 rounded-[var(--ui-radius-small)] hover:bg-red-100 transition-colors border border-red-100 h-10 px-4 text-sm font-bold">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-red-50 text-rose-600 rounded-[var(--ui-radius-small)] hover:bg-red-100 transition-colors border border-red-100 h-10 px-4 text-sm font-bold">
             <LogOut size={14} /> Keluar Akun
           </button>
         </div>
@@ -122,7 +122,7 @@ const TeacherLayout = () => {
             <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] flex items-center justify-center">
               <span className="text-xs font-bold text-white">{initials}</span>
             </div>
-            <button onClick={handleLogout} className="w-9 h-9 flex items-center justify-center bg-red-50 text-red-600 rounded-[var(--ui-radius-small)] border border-red-100">
+            <button onClick={handleLogout} className="w-9 h-9 flex items-center justify-center bg-red-50 text-rose-600 rounded-[var(--ui-radius-small)] border border-red-100">
               <LogOut size={16} />
             </button>
           </div>

@@ -84,7 +84,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       onClick={() => setActiveLang('ID')}
       className={`w-7 h-[18px] rounded-[3px] overflow-hidden border flex flex-col cursor-pointer transition-all duration-200 ${
         activeLang ==='ID' 
-          ?'scale-105 border-transparent shadow-md' 
+          ?'scale-105 border-transparent shadow-xs' 
           :'border-slate-200 opacity-60 hover:opacity-100'
       }`}
       style={{
@@ -106,7 +106,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       viewBox="0 0 60 30" 
       className={`w-7 h-[18px] rounded-[3px] overflow-hidden border cursor-pointer transition-all duration-200 ${
         activeLang ==='EN' 
-          ?'scale-105 border-transparent shadow-md' 
+          ?'scale-105 border-transparent shadow-xs' 
           :'border-slate-200 opacity-60 hover:opacity-100'
       }`}
       style={{
@@ -307,7 +307,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-lg border transition-colors cursor-pointer bg-transparent"
+              className="p-1.5 rounded-[var(--ui-radius-small)] border transition-colors cursor-pointer bg-transparent"
               style={{
                 borderColor: hexToRgba(headerTextColor, 0.3),
                 color: headerTextColor
@@ -322,7 +322,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed top-[75px] left-4 right-4 backdrop-blur-md border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-xl"
+          className="md:hidden fixed top-[75px] left-4 right-4 backdrop-blur-md border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-sm"
           style={{
             backgroundColor: headerBgColor === 'transparent' ? primaryColor : headerBgColor,
             borderColor: headerBorderColor
@@ -360,7 +360,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 setMobileMenuOpen(false);
                 if (setIsLoginModalOpen) setIsLoginModalOpen(true);
               }}
-              className="flex items-center gap-2 border rounded-lg text-[13px] transition-colors cursor-pointer h-10 px-4 text-sm font-bold"
+              className="flex items-center gap-2 border rounded-[var(--ui-radius-small)] text-[13px] transition-colors cursor-pointer h-10 px-4 text-sm font-bold"
               style={{
                 borderColor: surfaceColor,
                 color: surfaceColor,
@@ -377,7 +377,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       {/* MODAL BANTUAN */}
       {isBantuanOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             
             {/* Body */}
             <div className="p-6 space-y-4 text-xs font-semibold text-slate-600 max-h-[70vh] overflow-y-auto">
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-blue-800 flex items-start gap-2.5">
+              <div className="bg-blue-50 border border-blue-100 rounded-[var(--ui-radius-small)] p-4 text-blue-800 flex items-start gap-2.5">
                 <Info size={16} className="shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                   Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
@@ -403,11 +403,11 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
               <div className="space-y-3">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pertanyaan Umum (FAQ)</p>
-                <div className="border border-slate-100 rounded-xl p-3 bg-slate-50/40">
+                <div className="border border-slate-100 rounded-[var(--ui-radius-small)] p-3 bg-slate-50/40">
                   <p className="font-extrabold text-slate-800 mb-1">Bagaimana cara masuk ke sistem?</p>
                   <p className="leading-relaxed font-medium">Klik tombol"Masuk" di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.</p>
                 </div>
-                <div className="border border-slate-100 rounded-xl p-3 bg-slate-50/40">
+                <div className="border border-slate-100 rounded-[var(--ui-radius-small)] p-3 bg-slate-50/40">
                   <p className="font-extrabold text-slate-800 mb-1">Lupa password atau tidak bisa login?</p>
                   <p className="leading-relaxed font-medium">Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.</p>
                 </div>
@@ -421,9 +421,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getWaLink()} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-xl transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <MessageSquare size={16} />
                     </div>
                     <div>
@@ -436,9 +436,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 {contactEmail && (
                   <a 
                     href={`mailto:${contactEmail}`}
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-xl transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Mail size={16} />
                     </div>
                     <div>
@@ -453,9 +453,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getAbsoluteUrl(appSettings.socialInstagram)} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-pink-200 hover:bg-pink-50/30 rounded-xl transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-pink-200 hover:bg-pink-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                     </div>
                     <div>
@@ -470,9 +470,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getAbsoluteUrl(appSettings.socialFacebook)} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-xl transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                     </div>
                     <div>
@@ -487,9 +487,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getAbsoluteUrl(appSettings.socialYoutube)} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-red-200 hover:bg-red-50/30 rounded-xl transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-red-200 hover:bg-red-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-red-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
                     </div>
                     <div>
@@ -505,7 +505,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button 
                 onClick={() => setIsBantuanOpen(false)}
-                className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg cursor-pointer border-none transition-colors h-10 px-4 text-sm font-bold"
+                className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-[var(--ui-radius-small)] cursor-pointer border-none transition-colors h-10 px-4 text-sm font-bold"
               >
                 Tutup
               </button>
@@ -517,7 +517,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       {/* MODAL PANDUAN (Fallback for subpages where PublicGuideModal is not mounted) */}
       {isPanduanOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
@@ -573,7 +573,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button 
                 onClick={() => setIsPanduanOpen(false)}
-                className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg cursor-pointer border-none transition-colors h-10 px-4 text-sm font-bold"
+                className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-[var(--ui-radius-small)] cursor-pointer border-none transition-colors h-10 px-4 text-sm font-bold"
               >
                 Tutup
               </button>

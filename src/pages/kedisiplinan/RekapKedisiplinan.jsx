@@ -487,13 +487,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
   return (
     <div className="space-y-4 relative animate-in fade-in duration-300">
+      {/* ── Page Header ────────────────────────────────────────── */}
+      <PageHeader 
+        title="Rekap Kedisiplinan" 
+        subtitle="Analisis Komprehensif Kinerja Kedisiplinan & Kehadiran Siswa"
+        icon={FileSpreadsheet}
+      />
+
       {/* Navigation Tabs & Export Button */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 overflow-x-auto">
+        <div className="flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveSection('siswa')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'siswa' 
                 ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
                 : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -504,7 +511,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           <button
             type="button"
             onClick={() => setActiveSection('kelas')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'kelas' 
                 ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
                 : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -515,7 +522,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           <button
             type="button"
             onClick={() => setActiveSection('leaderboard')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
               activeSection === 'leaderboard' 
                 ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
                 : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -525,7 +532,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           </button>
         </div>
 
-        <Button onClick={exportExcel} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+        <Button onClick={exportExcel} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 flex items-center justify-center gap-1.5 cursor-pointer shrink-0 rounded-[var(--ui-radius-small)] shadow-2xs">
           <Download size={14} />
           <span>Ekspor Excel</span>
         </Button>
@@ -568,7 +575,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               <Users size={16} className="text-[var(--ui-primary)]" />
               <h2 className="font-bold text-xs sm:text-sm text-slate-800">Data Kinerja & Skor Kredit Per Siswa</h2>
             </div>
-            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">{filteredStudentsList.length} siswa</span>
+            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)]">{filteredStudentsList.length} siswa</span>
           </div>
 
           {/* Desktop Table */}
@@ -611,17 +618,17 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                         <td className="px-4 py-3 text-center font-bold text-emerald-600">{att.hadir}</td>
                         <td className="px-4 py-3 text-center font-bold text-blue-600">{att.izin}</td>
                         <td className="px-4 py-3 text-center font-bold text-amber-600">{att.sakit}</td>
-                        <td className="px-4 py-3 text-center font-bold text-red-500">{att.alpa}</td>
+                        <td className="px-4 py-3 text-center font-bold text-rose-500">{att.alpa}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] font-black text-xs ${
-                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-red-50/60 text-red-600'
+                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-red-50/60 text-rose-600'
                           }`}>
                             {score} Poin
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex gap-2 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-xs px-2.5 py-1 cursor-pointer">
+                            <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]">
                               <FileText size={13} className="mr-1"/> Rapor PDF
                             </Button>
                           </div>
@@ -646,20 +653,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
                   const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
                   return (
-                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white">
+                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-100 rounded-[var(--ui-radius-card)] shadow-xs mb-3">
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="font-extrabold text-xs text-slate-800">{name}</div>
                           <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black shrink-0 ${
+                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black shrink-0 ${
                           score >= 85 ? 'bg-emerald-100 text-emerald-700' : score >= 70 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                         }`}>
                           Skor: {score} Poin
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-lg text-center text-[10px]">
+                      <div className="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-[var(--ui-radius-small)] text-center text-[10px]">
                         <div><span className="block text-slate-400">Hadir</span><span className="font-extrabold text-emerald-600">{att.hadir}</span></div>
                         <div><span className="block text-slate-400">Izin</span><span className="font-extrabold text-blue-600">{att.izin}</span></div>
                         <div><span className="block text-slate-400">Sakit</span><span className="font-extrabold text-amber-600">{att.sakit}</span></div>
@@ -667,7 +674,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                       </div>
 
                       <div className="flex justify-end pt-1">
-                        <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-[11px] px-2.5 py-1 cursor-pointer">
+                        <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-[11px] px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]">
                           <FileText size={13} className="mr-1"/> Rapor PDF
                         </Button>
                       </div>
@@ -699,11 +706,11 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               <thead className="text-[10px] text-slate-500 uppercase bg-white border-b border-slate-150">
                 <tr>
                   <th className="px-4 py-3 font-bold">Kelas</th>
-                  <th className="px-4 py-3 font-bold text-center text-red-600">Total Poin Pelanggaran</th>
+                  <th className="px-4 py-3 font-bold text-center text-rose-600">Total Poin Pelanggaran</th>
                   <th className="px-4 py-3 font-bold text-center text-[var(--ui-primary)]">Rata-rata Skor Kredit</th>
                   <th className="px-4 py-3 font-bold text-center text-amber-600">Total Alpa</th>
                   <th className="px-4 py-3 font-bold text-center text-blue-600">Total Sakit</th>
-                  <th className="px-4 py-3 font-bold text-center text-green-600">Total Izin</th>
+                  <th className="px-4 py-3 font-bold text-center text-emerald-600">Total Izin</th>
                 </tr>
               </thead>
               <tbody>
@@ -717,7 +724,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   classStats.map(cs => (
                     <tr key={cs.class_name} className="border-b border-slate-50 hover:bg-slate-50/50">
                       <td className="px-4 py-3 font-bold text-slate-800">{cs.class_name}</td>
-                      <td className="px-4 py-3 text-center font-bold text-red-600 bg-red-50/20">{cs.poin}</td>
+                      <td className="px-4 py-3 text-center font-bold text-rose-600 bg-red-50/20">{cs.poin}</td>
                       <td className="px-4 py-3 text-center font-black text-[var(--ui-primary)] bg-blue-50/20">{cs.avg_score} / 100</td>
                       <td className="px-4 py-3 text-center font-bold text-slate-600">{cs.alpa}</td>
                       <td className="px-4 py-3 text-center font-bold text-slate-600">{cs.sakit}</td>
@@ -735,7 +742,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       {activeSection ==='leaderboard' && (
         <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
           <div className="p-3.5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <AlertOctagon size={16} className="text-red-500" />
+            <AlertOctagon size={16} className="text-rose-500" />
             <h2 className="font-bold text-xs sm:text-sm text-slate-800 flex-1">Top Siswa Pelanggaran Tertinggi</h2>
           </div>
           <div className="overflow-x-auto">
@@ -770,7 +777,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                         <p className="font-bold text-slate-800">{lb.name}</p>
                         <p className="text-[10px] text-slate-500 font-semibold">{lb.class_name}</p>
                       </td>
-                      <td className="px-4 py-3 text-center font-bold text-red-600">{lb.total_poin}</td>
+                      <td className="px-4 py-3 text-center font-bold text-rose-600">{lb.total_poin}</td>
                       <td className="px-4 py-3 text-center font-bold text-slate-600">{lb.kasus_count}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
@@ -778,7 +785,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedStudentForRapor(lb)}
-                            className="text-xs px-2.5 py-1 cursor-pointer"
+                            className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]"
                           >
                             <Printer size={12} className="mr-1.5" /> Cetak
                           </Button>
@@ -811,7 +818,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           width="md"
         >
             <div className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded-lg text-xs space-y-1">
+              <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
                 <p className="text-slate-500 font-semibold">Nama Siswa:</p>
                 <p className="font-bold text-slate-800 text-sm">{selectedStudentForRapor.name || selectedStudentForRapor.nama || selectedStudentForRapor.namaSiswa}</p>
                 <p className="text-slate-600">Kelas: {selectedStudentForRapor.class_name || selectedStudentForRapor.kelas ||"-"}</p>
@@ -820,10 +827,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Pilih Ukuran Kertas</label>
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('A4')}
-                    className={`text-center py-2 rounded-lg border-2 font-bold transition-all ${raporPaperSize === 'A4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'A4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
                     A4 (Standar)</Button>
                   <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('F4')}
-                    className={`text-center py-2 rounded-lg border-2 font-bold transition-all ${raporPaperSize === 'F4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                    className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'F4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
                     F4 (Folio/HVS)</Button>
                 </div>
               </div>
@@ -852,7 +859,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'} z-[9999]`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'} z-[9999]`}>
           {toast.message}
         </div>
       )}

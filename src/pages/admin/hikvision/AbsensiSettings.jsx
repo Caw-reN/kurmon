@@ -86,7 +86,7 @@ const AbsensiSettings = () => {
             </span>
           )}
           <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-[var(--ui-radius-small)] shadow-sm backdrop-blur-sm border ${
-            activeCount > 0 ?'bg-white text-[var(--ui-primary)] border-white' :'bg-red-500/20 text-white border-red-500/30'
+            activeCount > 0 ?'bg-white text-[var(--ui-primary)] border-white' :'bg-rose-500/20 text-white border-rose-500/30'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-[var(--ui-radius-small)] ${activeCount > 0 ?'bg-[var(--ui-primary)]' :'bg-white'}`} />
             {activeCount > 0 ? `${activeCount} Metode Aktif` :'Tidak Ada Metode Aktif!'}
@@ -97,7 +97,7 @@ const AbsensiSettings = () => {
       {/* Warning jika tidak ada metode aktif */}
       {activeCount === 0 && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)] p-3">
-          <Info size={14} className="text-red-500 shrink-0" />
+          <Info size={14} className="text-rose-500 shrink-0" />
           <p className="text-xs text-red-700 font-medium">⚠️ Minimal 1 metode harus aktif agar siswa bisa absen.</p>
         </div>
       )}

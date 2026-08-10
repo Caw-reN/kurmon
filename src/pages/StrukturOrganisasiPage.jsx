@@ -96,7 +96,7 @@ const OrgNode = ({ node, primaryColor }) => {
   return (
     <li>
       {/* Node Card */}
-      <div className={`${cardWidth} bg-white border-none rounded-[var(--ui-radius-small)] ${cardPadding} shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative z-10 flex flex-col items-center text-center mx-auto`}>
+      <div className={`${cardWidth} bg-white border-none rounded-[var(--ui-radius-small)] ${cardPadding} shadow-sm hover:shadow-sm hover:-translate-y-1 transition-all duration-300 relative z-10 flex flex-col items-center text-center mx-auto`}>
         <div className={`rounded-[var(--ui-radius-small)] shadow-sm flex items-center justify-center overflow-hidden bg-slate-50 transition-transform duration-300 hover:scale-105 ${avatarSize}`} style={{ borderColor: primaryColor }}>
            {node.photoUrl ? (
              <img src={node.photoUrl} alt={node.name} className="w-full h-full object-cover" />

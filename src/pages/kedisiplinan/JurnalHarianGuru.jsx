@@ -141,7 +141,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         <form onSubmit={handleSubmit} className="p-6 space-y-4.5 overflow-y-auto custom-scrollbar flex-1">
           
           {/* Tanggal & Hari info */}
-          <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-xl border border-slate-100/50">
+          <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-[var(--ui-radius-small)] border border-slate-100/50">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
               <Calendar size={14} className="text-slate-400" />
               Tanggal KBM: {new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
@@ -153,7 +153,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
 
           {/* Absent Students Info Card */}
           {classStudents.length > 0 ? (
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4.5 space-y-3">
+            <div className="rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/60 p-4.5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black text-slate-550 uppercase tracking-widest flex items-center gap-1.5">
                   <Users size={14} className="text-[var(--ui-primary)]" />
@@ -166,7 +166,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               
               {absentStudents.length > 0 ? (
                 <div className="space-y-2.5">
-                  <div className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100/50 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <div className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100/50 px-2.5 py-1.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
                     <AlertCircle size={12} className="shrink-0" />
                     Terdeteksi {absentStudents.length} siswa tidak hadir pada tanggal ini:
                   </div>
@@ -176,7 +176,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                       if (s.status.toLowerCase() ==='izin') badgeColor ='bg-blue-50 text-blue-700 border-blue-200/50';
                       if (s.status.toLowerCase() ==='alpa' || s.status.toLowerCase() ==='alpha') badgeColor ='bg-rose-50 text-rose-700 border-rose-200/50';
                       return (
-                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-100 shadow-xs">
+                        <div key={idx} className="flex items-center justify-between p-2 rounded-[var(--ui-radius-small)] bg-white border border-slate-100 shadow-xs">
                           <span className="text-xs font-bold text-slate-700 truncate max-w-[125px]" title={s.name}>{s.name}</span>
                           <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${badgeColor}`}>
                             {s.status.toUpperCase()}
@@ -187,14 +187,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   </div>
                 </div>
               ) : (
-                <div className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100/50 px-3 py-2.5 rounded-lg flex items-center gap-1.5">
+                <div className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
                   <CheckCircle2 size={13} />
                   Semua siswa hadir (tidak ada catatan tidak hadir hari ini)
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100/50 px-3 py-2.5 rounded-lg flex items-center gap-1.5">
+            <div className="text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
               <AlertCircle size={13} />
               Info: Kelas {className} belum memiliki data siswa terdaftar di sistem.
             </div>
@@ -214,7 +214,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   max={classStudents.length || 100}
                   value={form.jumlah_hadir}
                   onChange={e => setForm({ ...form, jumlah_hadir: parseInt(e.target.value) || 0 })}
-                  className="w-full pl-3 pr-8 py-2 bg-slate-50 border-2 border-transparent rounded-xl text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
+                  className="w-full pl-3 pr-8 py-2 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-450">
                   / {classStudents.length || 0}
@@ -256,7 +256,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               placeholder="Contoh: Menggambar denah jaringan komputer atau SPLDV"
               value={form.materi_pokok}
               onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-xl text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
               required
             />
           </div>
@@ -272,7 +272,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               placeholder="Jelaskan alur belajar (contoh: Guru memaparkan teori koding, siswa mempraktikkan langsung membuat web layout di lab komputer, diakhiri tanya jawab...)"
               value={form.kegiatan_pembelajaran}
               onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
               required
             />
           </div>
@@ -288,13 +288,13 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               placeholder="Contoh: 2 siswa terlambat karena macet, LCD proyektor lab agak buram, atau target materi tercapai dengan baik..."
               value={form.catatan}
               onChange={e => setForm({ ...form, catatan: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
             />
           </div>
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+            <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
               <AlertCircle size={14} className="shrink-0 mt-0.5" />
               <span className="leading-relaxed">{errorMsg}</span>
             </div>
@@ -697,7 +697,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       {activeView === 'harian' && (
         <>
           {/* Mobile Filter & Export Card (Reference Layout matching media__1785567800000.png) */}
-          <div className="sm:hidden ui-card rounded-3xl p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
+          <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
             <div className="flex items-center gap-2">
               {/* Date selector button */}
               <div 
@@ -707,11 +707,11 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     try { inputEl.showPicker(); } catch (err) { inputEl.click(); }
                   }
                 }}
-                className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
+                className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
               >
                 <div className="flex items-center gap-2.5 min-w-0 pointer-events-none">
                   <div 
-                    className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
+                    className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0"
                     style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
                   >
                     <Calendar size={16} strokeWidth={2.2} />
@@ -738,7 +738,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                 type="button"
                 onClick={fetchJurnal}
                 title="Refresh"
-                className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
+                className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 <RefreshCw size={18} strokeWidth={2} />
               </button>
@@ -759,7 +759,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             <button
               type="button"
               onClick={exportExcel}
-              className="w-full py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="w-full py-3 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
               style={{
                 background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
                 color: "var(--ui-primary)",
@@ -851,7 +851,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam</div>
                           <div className="text-sm font-black text-slate-700 leading-tight">{slot.slot_label.replace('Jam','')}</div>
                           {slot.time_range && (
-                            <div className="text-[9px] font-bold text-slate-500 sm:mt-1 leading-normal bg-slate-100 px-1.5 py-0.5 rounded-full border border-slate-200/50">{slot.time_range}</div>
+                            <div className="text-[9px] font-bold text-slate-500 sm:mt-1 leading-normal bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border border-slate-200/50">{slot.time_range}</div>
                           )}
                         </div>
                         {/* On mobile, we can show a small badge or status next to the time */}
@@ -1061,9 +1061,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           )}
 
           {!isLoading && totalSlots === 0 && jurnalList.length === 0 && (
-            <div className="ui-card rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
+            <div className="ui-card rounded-[var(--ui-radius-card)] p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
               <div 
-                className="w-20 h-20 rounded-3xl flex items-center justify-center mb-1 shadow-inner"
+                className="w-20 h-20 rounded-[var(--ui-radius-card)] flex items-center justify-center mb-1 shadow-inner"
                 style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
               >
                 <Coffee size={38} strokeWidth={2.2} />
@@ -1160,7 +1160,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-semibold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type ==='error' ?'bg-red-600 text-white' :'bg-emerald-600 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-semibold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type ==='error' ?'bg-rose-600 text-white' :'bg-emerald-600 text-white'}`}>
           <CheckCircle2 size={14} />
           {toast.msg}
         </div>

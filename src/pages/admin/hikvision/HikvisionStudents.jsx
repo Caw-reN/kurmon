@@ -16,7 +16,7 @@ const Toast = ({ message, type, onClose }) => {
   if (!message) return null;
   const bg = { success:"bg-emerald-50 border-emerald-200 text-emerald-800", error:"bg-red-50 border-red-200 text-red-800", info:"bg-blue-50 border-blue-200 text-blue-800" };
   const Icon = type ==='success' ? CheckCircle2 : type ==='error' ? AlertTriangle : Info;
-  const ic = { success:"text-emerald-500", error:"text-red-500", info:"text-blue-500" };
+  const ic = { success:"text-emerald-500", error:"text-rose-500", info:"text-blue-500" };
   return (
     <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
       <div className={`flex items-center gap-3 px-4 py-3 rounded-[var(--ui-radius-small)] border shadow-sm ${bg[type] || bg.info} max-w-sm`}>

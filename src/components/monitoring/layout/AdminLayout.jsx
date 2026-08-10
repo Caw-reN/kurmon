@@ -4,6 +4,7 @@ import { LayoutDashboard, Upload, Settings2, Users, Building2, GraduationCap, Bo
 import { cn } from'@/lib/utils';
 import useAuthStore from'../../../store/monitoring/authStore';
 import useFiturStore from'../../../store/monitoring/fiturStore';
+import { useAppStore } from'../../../store/useAppStore.js';
 import { NavLink, Outlet } from'react-router-dom';
 import { LogOut, Menu, Bell, ChevronDown } from'lucide-react';
 import { Avatar, Button } from'../ui/index.js';
@@ -71,19 +72,25 @@ const AdminLayout = () => {
 
   const handleLogout = () => { logout(); navigate('/'); };
 
-  const SidebarContent = ({ mobile = false }) => (
+  const SidebarContent = ({ mobile = false }) => {
+    const appSettings = useAppStore((state) => state.appSettings) || {};
+    const logoMode = appSettings.sidebarLogoMode || 'both';
+
+    return (
     <div className="flex flex-col h-full bg-card">
       {/* Logo */}
       <div className={cn("flex items-center gap-3 flex-shrink-0 border-b border-border h-[72px]",
         sidebarOpen || mobile ?"px-4" :"justify-center px-3"
       )}>
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-          <GraduationCap size={16} className="text-primary-foreground" />
-        </div>
-        {(sidebarOpen || mobile) && (
+        {logoMode !== 'text' && (
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-primary flex items-center justify-center flex-shrink-0">
+            <GraduationCap size={16} className="text-primary-foreground" />
+          </div>
+        )}
+        {(sidebarOpen || mobile) && logoMode !== 'logo' && (
           <div className="min-w-0">
-            <p className="font-bold text-sm text-foreground leading-tight">PKL Monitor</p>
-            <p className="text-xs text-muted-foreground truncate">SMK Karya Guna 2</p>
+            <p className="font-bold text-sm text-foreground leading-tight">{appSettings.appName || 'PKL Monitor'}</p>
+            <p className="text-xs text-muted-foreground truncate">{appSettings.instansiName || 'SMK Karya Guna 2'}</p>
           </div>
         )}
       </div>
@@ -144,7 +151,8 @@ const AdminLayout = () => {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -162,7 +170,7 @@ const AdminLayout = () => {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileSidebarOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-64 shadow-lg border-r border-border z-50">
+          <aside className="absolute left-0 top-0 h-full w-64 shadow-sm border-r border-border z-50">
             <SidebarContent mobile />
           </aside>
         </div>
@@ -201,7 +209,7 @@ const AdminLayout = () => {
           </Button>
 
           {/* User */}
-          <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer border-none bg-transparent">
+          <button className="flex items-center gap-2 px-2 py-1.5 rounded-[var(--ui-radius-small)] hover:bg-muted transition-colors cursor-pointer border-none bg-transparent">
             <Avatar name={user?.nama ||'Admin'} size="xs" />
             <span className="text-xs font-semibold text-foreground hidden sm:block">
               {user?.nama ||'Administrator'}

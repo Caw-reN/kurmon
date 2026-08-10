@@ -91,7 +91,7 @@ const JurnalAdmin = ({ readOnly }) => {
     { label:'Total Jurnal',  value: localJurnal.length,                                    icon: BookOpen,    iconBg:'bg-blue-100',    iconColor:'text-blue-600' },
     { label:'Menunggu',      value: localJurnal.filter(j => j.status ==='pending').length, icon: Clock,       iconBg:'bg-amber-100',   iconColor:'text-amber-600' },
     { label:'Disetujui',     value: localJurnal.filter(j => j.status ==='approved').length,icon: CheckCircle2,iconBg:'bg-emerald-100', iconColor:'text-emerald-600' },
-    { label:'Perlu Revisi',  value: localJurnal.filter(j => j.status ==='revision').length,icon: XCircle,     iconBg:'bg-red-100',     iconColor:'text-red-600' },
+    { label:'Perlu Revisi',  value: localJurnal.filter(j => j.status ==='revision').length,icon: XCircle,     iconBg:'bg-red-100',     iconColor:'text-rose-600' },
   ];
 
   return (

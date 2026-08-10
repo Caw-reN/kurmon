@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { HelpCircle, ChevronLeft } from 'lucide-react';
 import { Button } from './index.js';
+import { useAppStore } from '../../../store/useAppStore.js';
 
 export default function PageHeader({
   icon: Icon,
@@ -15,6 +16,9 @@ export default function PageHeader({
   onBack,
   children
 }) {
+  const appSettings = useAppStore((state) => state.appSettings) || {};
+  const headerStyle = appSettings.headerStyle || 'solid';
+
   const mappedTabs = tabs.map(tab => ({
     ...tab,
     isActive: tab.isActive !== undefined ? tab.isActive : tab.id === activeTab,
@@ -54,21 +58,20 @@ export default function PageHeader({
       {/* Mobile Hero Header Card (Shown on Mobile screens when not plain) */}
       {!isPlain && (
         <div 
-          className="sm:hidden w-full rounded-3xl p-4 text-white shadow-md flex items-center gap-3.5 relative overflow-hidden mb-1"
-          style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0f172a) 100%)" }}
+          className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-4 bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5 relative overflow-hidden mb-1"
         >
           {Icon && (
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-              <Icon size={22} strokeWidth={2.2} />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ui-primary,#064e3b)] to-[color-mix(in_srgb,var(--ui-primary,#064e3b)_80%,#0f172a)] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Icon size={20} strokeWidth={2.2} />
             </div>
           )}
           <div className="flex-1 min-w-0">
             {description ? (
-              <p className="text-xs font-semibold text-white/95 leading-relaxed">
+              <p className="text-xs font-semibold text-slate-600 leading-relaxed">
                 {description}
               </p>
             ) : (
-              <p className="text-xs font-semibold text-white/80 leading-relaxed">
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
                 Kelola &amp; pantau informasi modul sekolah secara real-time.
               </p>
             )}
@@ -88,7 +91,7 @@ export default function PageHeader({
                   key={tab.id || tab.label}
                   onClick={tab.onClick}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px]",
+                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px]",
                     isLastOdd ? "col-span-2" : "",
                     tab.isActive
                       ? "bg-slate-900 text-white border-slate-900 shadow-xs font-black"
@@ -112,27 +115,45 @@ export default function PageHeader({
       {/* Desktop & Default Header Container */}
       <div
         className={cn(
-          !isPlain ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-xl w-full p-3.5 sm:p-4 border-none bg-primary text-white shadow-md' : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-xl w-full p-0'
+          !isPlain 
+            ? headerStyle === 'primary'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 text-white shadow-sm transition-all'
+              : headerStyle === 'glass'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 shadow-xs transition-all'
+              : headerStyle === 'minimal'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-none w-full p-0 bg-transparent text-slate-900 border-none shadow-none transition-all'
+              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 shadow-xs transition-all'
+            : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-[var(--ui-radius-small)] w-full p-0'
         )}
+        style={!isPlain && headerStyle === 'primary' ? { backgroundColor: 'var(--ui-primary, #064e3b)' } : undefined}
       >
-        <div className="flex items-center gap-3 relative z-10 w-full md:w-auto">
+        <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto">
           {Icon && (
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-              !isPlain ?"bg-accent text-slate-950 border border-accent/20" :"bg-primary/10 text-primary border border-primary/20"
-            )}>
-              <Icon size={18} className="shrink-0" />
+            <div 
+              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm border"
+              style={
+                headerStyle === 'primary'
+                  ? { backgroundColor: "rgba(255, 255, 255, 0.2)", borderColor: "rgba(255, 255, 255, 0.3)", color: "#ffffff" }
+                  : !isPlain 
+                  ? { backgroundColor: "var(--ui-primary, #064e3b)", borderColor: "var(--ui-primary, #064e3b)", color: "#ffffff" } 
+                  : { backgroundColor: "color-mix(in srgb, var(--ui-primary, #064e3b) 12%, transparent)", borderColor: "color-mix(in srgb, var(--ui-primary, #064e3b) 20%, transparent)", color: "var(--ui-primary, #064e3b)" }
+              }
+            >
+              <Icon size={20} className="shrink-0" strokeWidth={2.2} />
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className={cn("text-sm sm:text-base md:text-lg font-bold tracking-tight leading-tight truncate",
-              !isPlain ?"text-white font-black" :"text-foreground"
-            )}>
+            <h1 
+              className={cn("text-base md:text-lg font-black tracking-tight leading-tight truncate")}
+              style={headerStyle === 'primary' ? { color: '#ffffff' } : { color: 'var(--card-foreground, #0f172a)' }}
+            >
               {title}
             </h1>
             {description && (
-              <p className={cn("text-[10.5px] md:text-[11.5px] font-semibold mt-0.5 line-clamp-2 md:line-clamp-none leading-normal",
-                !isPlain ?"text-white/85" :"text-muted-foreground"
-              )}>
+              <p 
+                className={cn("text-xs font-medium mt-0.5 line-clamp-2 md:line-clamp-none leading-relaxed")}
+                style={headerStyle === 'primary' ? { color: 'rgba(255, 255, 255, 0.85)' } : { color: 'var(--card-muted, #64748b)' }}
+              >
                 {description}
               </p>
             )}
@@ -140,35 +161,58 @@ export default function PageHeader({
         </div>
 
         {mappedTabs.length > 0 && (
-          <div className="overflow-x-auto w-full md:w-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden relative z-10 -mx-1 px-1">
-            <div className="flex flex-nowrap items-center gap-2 w-max md:w-auto pb-0.5">
+          <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10">
+            <div className={cn(
+              "flex items-center gap-1.5 p-1.5 rounded-xl w-max md:w-auto border",
+              headerStyle === 'primary' ? "bg-black/20 border-white/10" : "bg-slate-100/80 border-slate-200/60"
+            )}>
               
               {mappedTabs.map((tab) => (
                 <button
                   key={tab.id || tab.label}
                   onClick={tab.onClick}
-                  className={cn("flex-none flex items-center justify-center gap-1.5 px-3 py-2 md:px-4 md:py-2","text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer border shrink-0 whitespace-nowrap",
+                  className={cn(
+                    "flex-none flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer border shrink-0 whitespace-nowrap",
                     tab.isActive
-                      ? (!isPlain ?'bg-accent text-slate-950 border-accent shadow-md font-black' :'bg-primary text-white border-primary shadow-sm')
-                      : (!isPlain ?'bg-white/15 hover:bg-white/25 text-white border-white/15 font-semibold' :'bg-transparent hover:bg-muted text-muted-foreground border-border')
+                      ? 'bg-white shadow-xs font-extrabold border-white'
+                      : headerStyle === 'primary'
+                      ? 'bg-transparent border-transparent hover:bg-white/15 font-semibold'
+                      : 'bg-transparent border-transparent hover:bg-white/60 font-semibold'
                   )}
+                  style={
+                    tab.isActive
+                      ? { color: 'var(--ui-primary, #064e3b)', backgroundColor: '#ffffff' }
+                      : headerStyle === 'primary'
+                      ? { color: 'rgba(255, 255, 255, 0.95)' }
+                      : { color: 'var(--card-foreground, #334155)' }
+                  }
                 >
-                  {tab.icon && <tab.icon size={14} className="shrink-0" />}
+                  {tab.icon && (
+                    <tab.icon 
+                      size={15} 
+                      className="shrink-0" 
+                      style={
+                        tab.isActive
+                          ? { color: 'var(--ui-primary, #064e3b)' }
+                          : headerStyle === 'primary'
+                          ? { color: 'rgba(255, 255, 255, 0.85)' }
+                          : { color: 'var(--card-muted, #94a3b8)' }
+                      }
+                    />
+                  )}
                   <span>{tab.label}</span>
                 </button>
               ))}
-   
+
               {onGuideClick && (
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   onClick={onGuideClick}
                   title={guideText ||"Panduan"}
-                  className={cn("shrink-0 rounded-xl w-9.5 h-9.5 flex items-center justify-center border",
-                    !isPlain ?"text-white/90 hover:bg-white/25 border-white/10 bg-white/10" :"text-muted-foreground hover:text-primary hover:bg-muted border-border"
-                  )}
+                  className="shrink-0 rounded-lg w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white/80 border border-transparent"
                 >
-                  <HelpCircle size={14} />
+                  <HelpCircle size={15} />
                 </Button>
               )}
             </div>

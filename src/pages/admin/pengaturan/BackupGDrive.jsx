@@ -221,7 +221,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
           <div className="flex items-center gap-2"><HardDrive size={16} /> Google Drive</div></Button>
         <Button variant="outline" onClick={() =>setActiveTab('restore')} className={`${activeTab ==='restore' ?'border-[var(--ui-primary)] text-[var(--ui-primary)]' :'border-transparent text-slate-500 hover:text-slate-700'}`}>
           <div className="flex items-center gap-2"><UploadCloud size={16} /> Pulihkan Data</div></Button>
-        <Button variant="outline" onClick={() =>setActiveTab('archive')} className={`${activeTab ==='archive' ?'border-red-500 text-red-600' :'border-transparent text-slate-500 hover:text-slate-700'}`}>
+        <Button variant="outline" onClick={() =>setActiveTab('archive')} className={`${activeTab ==='archive' ?'border-rose-500 text-rose-600' :'border-transparent text-slate-500 hover:text-slate-700'}`}>
           <div className="flex items-center gap-2"><Trash2 size={16} /> Arsip & Bersihkan</div></Button>
       </div>
 
@@ -374,7 +374,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             </div>
           )}
 
-          <div className="bg-white rounded-xl border-none shadow-sm p-6">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6">
             <h2 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><Info size={16} className="text-[var(--ui-primary)]" /> Cara Setup Cloudflare R2</h2>
             <ol className="space-y-3">
               {[
@@ -434,7 +434,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* TAB CONTENT: RESTORE */}
       {activeTab ==='restore' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="bg-white rounded-xl border-none shadow-sm p-8 text-center">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-8 text-center">
             <div className="w-20 h-20 bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] rounded-full flex items-center justify-center mx-auto mb-6">
               <UploadCloud size={36} />
             </div>
@@ -445,7 +445,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             
             <div className="inline-block p-4 bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)] text-left mb-8 max-w-lg">
               <p className="text-sm font-bold text-red-700 flex items-center gap-2 mb-1"><AlertCircle size={16} /> PERINGATAN KRITIKAL!</p>
-              <p className="text-xs text-red-600 leading-relaxed">
+              <p className="text-xs text-rose-600 leading-relaxed">
                 Melakukan restore akan <b>MENGHAPUS SELURUH DATA</b> saat ini dan menggantinya dengan data dari file JSON yang diunggah.
               </p>
             </div>
@@ -463,8 +463,8 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* TAB CONTENT: ARCHIVE */}
       {activeTab ==='archive' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="bg-white rounded-xl border-none shadow-sm p-8 text-center">
-            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-8 text-center">
+            <div className="w-20 h-20 bg-red-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <Trash2 size={36} />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Arsip & Pembersihan (Purging)</h2>
@@ -532,7 +532,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}

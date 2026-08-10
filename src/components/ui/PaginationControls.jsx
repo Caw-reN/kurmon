@@ -39,7 +39,7 @@ export function PaginationControls({
           <button
             type="button"
             onClick={() => setShowDropdown(v => !v)}
-            className="h-6 px-2 rounded-lg border border-slate-200 bg-white text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer"
+            className="h-6 px-2 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer"
           >
             <span>{itemsPerPage} baris</span>
             <span className="text-[8px] text-slate-400">▼</span>
@@ -50,7 +50,7 @@ export function PaginationControls({
                 className="fixed inset-0 z-40"
                 onClick={() => setShowDropdown(false)}
               />
-              <div className="absolute left-0 bottom-7 min-w-[90px] bg-white border border-slate-200 shadow-lg rounded-xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
+              <div className="absolute left-0 bottom-7 min-w-[90px] bg-white border border-slate-200 shadow-sm rounded-[var(--ui-radius-small)] p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
                 {pageSizeOptions.map(size => (
                   <button
                     key={size}
@@ -60,7 +60,7 @@ export function PaginationControls({
                       onPageChange?.(1);
                       setShowDropdown(false);
                     }}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer border-none ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-colors cursor-pointer border-none ${
                       itemsPerPage === size
                         ?'bg-[var(--ui-primary)] text-white'
                         :'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
@@ -81,7 +81,7 @@ export function PaginationControls({
           type="button"
           onClick={() => onPageChange?.(safePage - 1)}
           disabled={safePage <= 1}
-          className="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="w-7 h-7 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           <ChevronLeft size={13} />
         </button>
@@ -94,7 +94,7 @@ export function PaginationControls({
           type="button"
           onClick={() => onPageChange?.(safePage + 1)}
           disabled={safePage >= totalPages}
-          className="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="w-7 h-7 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           <ChevronRight size={13} />
         </button>

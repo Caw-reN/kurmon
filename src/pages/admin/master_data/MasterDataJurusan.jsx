@@ -66,7 +66,7 @@ const MasterDataJurusan = memo(function MasterDataJurusan({
                 );
               }
               return (
-                <Button variant="ghost" size="icon" onClick={() => handleDelete('jurusan', item.name)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDelete('jurusan', item.name)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
               );
             })()}
           </div>

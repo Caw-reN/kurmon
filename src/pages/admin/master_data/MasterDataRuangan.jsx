@@ -55,7 +55,7 @@ const MasterDataRuangan = memo(function MasterDataRuangan({
                     );
                   }
                   return (
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete('ruangan', item.id)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete('ruangan', item.id)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
                   );
                 })()}
               </div>

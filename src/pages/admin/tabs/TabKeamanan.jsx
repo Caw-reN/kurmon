@@ -107,7 +107,7 @@ export default function TabKeamanan(props) {
         </div>
 
         {/* Password Policy Banner */}
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6 text-xs text-slate-600 space-y-1.5 max-w-md">
+        <div className="bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] p-4 mb-6 text-xs text-slate-600 space-y-1.5 max-w-md">
           <p className="font-black uppercase tracking-widest text-[9px] text-slate-550 mb-2 flex items-center gap-1.5">
             <Lock size={12} className="text-[var(--ui-primary)]" /> Kebijakan Keamanan Password:
           </p>

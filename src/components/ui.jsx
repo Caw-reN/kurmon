@@ -144,7 +144,7 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
 
       {open && createPortal(
         <div 
-          className="ui-select-portal fixed bg-white border border-slate-200/90 rounded-[var(--ui-radius-control)] shadow-xl p-1.5 min-w-[200px] z-[99999] animate-in fade-in zoom-in-95 duration-150 font-inherit"
+          className="ui-select-portal fixed bg-white border border-slate-200/90 rounded-[var(--ui-radius-control)] shadow-sm p-1.5 min-w-[200px] z-[99999] animate-in fade-in zoom-in-95 duration-150 font-inherit"
           style={dropdownStyle}
         >
           {options.length > 5 && (
@@ -227,7 +227,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
       <div data-slot="dialog-content" className={cn(
-        "bg-white w-full rounded-[var(--ui-radius-card)] shadow-2xl overflow-hidden flex flex-col relative z-10 border border-slate-100 animate-in zoom-in-95 duration-200", 
+        "bg-white w-full rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col relative z-10 border border-slate-100 animate-in zoom-in-95 duration-200", 
         maxWidth,
         scrollable ? "max-h-[85vh]" : ""
       )}>
@@ -391,7 +391,7 @@ export const DebouncedSearchInput = ({ value, onChange, placeholder, className, 
         placeholder={placeholder}
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        className={className || cn("h-9.5 w-full min-w-0 rounded-xl border border-transparent bg-slate-100/80 py-1.5 text-xs transition-all outline-none","placeholder:text-muted-foreground/60 focus-visible:bg-white focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/10","font-bold",
+        className={className || cn("h-9.5 w-full min-w-0 rounded-[var(--ui-radius-small)] border border-transparent bg-slate-100/80 py-1.5 text-xs transition-all outline-none","placeholder:text-muted-foreground/60 focus-visible:bg-white focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/10","font-bold",
           IconComponent ?"pl-9 pr-3.5" :"px-3.5"
         )}
       />
@@ -573,7 +573,7 @@ export const UITimeInput24 = ({
             width: `${dropdownPos.width}px`,
             zIndex: 99999
           }}
-          className="bg-white border border-slate-200 rounded-lg shadow-xl p-2 animate-in fade-in-50 zoom-in-95"
+          className="bg-white border border-slate-200 rounded-[var(--ui-radius-small)] shadow-sm p-2 animate-in fade-in-50 zoom-in-95"
         >
           <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 px-1 flex justify-between">
             <span>Pilih Jam (24H)</span>

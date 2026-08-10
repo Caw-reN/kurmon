@@ -144,14 +144,14 @@ export default function TabAbsensiGuru(props) {
                     </span>
                   </div>
                   {!featureAllowsCurrentMode && (
-                    <p className="mb-3 text-xs text-red-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                    <p className="mb-3 text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
                       Mode absensi ini sedang tidak lengkap/aktif. Hubungi
                       admin untuk mengaktifkan fitur terkait.
                     </p>
                   )}
                   {needsLocation ? (
                     locationError ? (
-                      <p className="text-xs text-red-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                      <p className="text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
                         {locationError}
                       </p>
                     ) : teacherLocation ? (
@@ -159,7 +159,7 @@ export default function TabAbsensiGuru(props) {
                         <p>
                           Jarak Anda dari Sekolah:{""}
                           <span
-                            className={`font-black ${inRadius ?"text-[var(--ui-primary)]" :"text-red-600"}`}
+                            className={`font-black ${inRadius ?"text-[var(--ui-primary)]" :"text-rose-600"}`}
                           >
                             {Math.round(distance)} meter
                           </span>{""}
@@ -167,7 +167,7 @@ export default function TabAbsensiGuru(props) {
                           {attendanceSettings.radiusMeters || 50}m)
                         </p>
                         {!inRadius && (
-                          <p className="text-[10px] text-red-500 font-bold">
+                          <p className="text-[10px] text-rose-500 font-bold">
                             Anda berada di luar area sekolah. Absen
                             dinonaktifkan.
                           </p>
@@ -301,7 +301,7 @@ export default function TabAbsensiGuru(props) {
                       className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:bg-white shadow-sm cursor-pointer"
                     />
                     {photoError && (
-                      <p className="text-xs text-red-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                      <p className="text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
                         {photoError}
                       </p>
                     )}

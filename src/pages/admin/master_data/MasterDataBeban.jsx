@@ -207,7 +207,7 @@ const MasterDataBeban = memo(function MasterDataBeban({
                       <span className="text-slate-600 font-medium"><strong className="text-slate-800">Sedang:</strong> Kompeten mapel, namun tidak sesuai prioritas jurusan/tingkat.</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-2.5 h-2.5 rounded-[var(--ui-radius-small)] bg-red-500"></span>
+                      <span className="inline-block w-2.5 h-2.5 rounded-[var(--ui-radius-small)] bg-rose-500"></span>
                       <span className="text-slate-600 font-medium"><strong className="text-slate-800">Rendah:</strong> Mapel tidak terdaftar dalam kompetensi mengajar guru.</span>
                     </div>
                   </div>
@@ -295,7 +295,7 @@ const MasterDataBeban = memo(function MasterDataBeban({
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-1.5">
                               <Button variant="ghost" size="icon" onClick={() => openModal('beban','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete('beban', item.id)}><Trash2 size={14} className="text-red-500" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete('beban', item.id)}><Trash2 size={14} className="text-rose-500" /></Button>
                             </div>
                           </td>
                         </tr>

@@ -92,7 +92,7 @@ export default function MateriAjarPage() {
 
   const getLinkIcon = (url) => {
     if (!url) return <Link2 size={14} />;
-    if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-red-500" />;
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-rose-500" />;
     if (url.includes('drive.google.com')) return <Globe size={14} className="text-blue-500" />;
     return <ExternalLink size={14} className="text-indigo-500" />;
   };
@@ -202,7 +202,7 @@ export default function MateriAjarPage() {
                   {filteredMateri.map((item) => (
                     <div
                       key={item.id}
-                      className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-md"
+                      className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-xs"
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
@@ -302,7 +302,7 @@ export default function MateriAjarPage() {
             <iframe
               src={previewDoc.url}
               title="Pratinjau Materi Ajar"
-              className="w-full h-full border-none rounded-lg bg-white"
+              className="w-full h-full border-none rounded-[var(--ui-radius-small)] bg-white"
             />
           </div>
         </Modal>

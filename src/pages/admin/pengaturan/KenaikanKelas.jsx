@@ -141,7 +141,7 @@ export default function KenaikanKelas({ appSettings = {} }) {
           { label:'Lulus (XII)', value: summary.lulus, icon: Star, color:'violet' },
           { label:'Tidak Naik', value: summary.tidak, icon: AlertTriangle, color:'red' },
         ].map(s => (
-          <div key={s.label} className="bg-white p-5 rounded-xl border-none shadow-sm flex items-center gap-4">
+          <div key={s.label} className="bg-white p-5 rounded-[var(--ui-radius-small)] border-none shadow-sm flex items-center gap-4">
             <div className={`w-12 h-12 rounded-[var(--ui-radius-small)] flex items-center justify-center bg-${s.color}-50 shrink-0`}>
               <s.icon size={22} className={`text-${s.color}-500`} />
             </div>
@@ -168,7 +168,7 @@ export default function KenaikanKelas({ appSettings = {} }) {
           )}
 
           {/* Controls */}
-          <div className="bg-white rounded-xl border-none shadow-sm p-4 flex flex-wrap gap-4 items-end">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-4 flex flex-wrap gap-4 items-end">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tahun Ajaran Baru (yang akan dimulai)</label>
               <UISelect value={selectedTA} onChange={e => setSelectedTA(e.target.value)}
@@ -244,7 +244,7 @@ export default function KenaikanKelas({ appSettings = {} }) {
                             <td className="px-4 py-2.5 text-slate-500">{s.class_name}</td>
                             <td className="px-4 py-2.5 text-center">
                               {isExcluded ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-red-100 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
                                   <AlertCircle size={12} className="shrink-0" />
                                   <span>Tidak Naik</span>
                                 </span>
@@ -311,7 +311,7 @@ export default function KenaikanKelas({ appSettings = {} }) {
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}

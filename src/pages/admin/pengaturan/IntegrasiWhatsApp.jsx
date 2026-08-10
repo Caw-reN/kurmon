@@ -218,7 +218,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
           { label:'Pending', value: stats.pending, icon: Clock, color:'amber' },
           { label:'Gagal', value: stats.failed, icon: AlertCircle, color:'red' },
         ].map(stat => (
-          <div key={stat.label} className="bg-white p-5 rounded-xl border-none shadow-sm flex items-center gap-4">
+          <div key={stat.label} className="bg-white p-5 rounded-[var(--ui-radius-small)] border-none shadow-sm flex items-center gap-4">
             <div className={`w-12 h-12 rounded-[var(--ui-radius-small)] flex items-center justify-center bg-${stat.color}-50`}>
               <stat.icon size={22} className={`text-${stat.color}-500`} />
             </div>
@@ -316,7 +316,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       {activeTab ==='kirim' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Single Send */}
-          <div className="bg-white rounded-xl border-none shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4">
             <h2 className="font-bold text-slate-700 flex items-center gap-2"><Phone size={16} /> Kirim Pesan Tunggal</h2>
             
             {/* Template Picker */}
@@ -356,7 +356,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
           </div>
 
           {/* Broadcast */}
-          <div className="bg-white rounded-xl border-none shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4">
             <h2 className="font-bold text-slate-700 flex items-center gap-2"><Users size={16} /> Broadcast ke Banyak Siswa</h2>
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)]">
               <p className="text-xs font-bold text-amber-700 mb-1">⚠️ Perhatian</p>
@@ -423,7 +423,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       {/* Rekap Tab */}
       {activeTab ==='rekap' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border-none shadow-sm p-6 space-y-4 text-center hover:border-[var(--ui-primary)] transition-all group">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4 text-center hover:border-[var(--ui-primary)] transition-all group">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
               <FileText size={32} />
             </div>
@@ -437,7 +437,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
             </div>
           </div>
           
-          <div className="bg-white rounded-xl border-none shadow-sm p-6 space-y-4 text-center hover:border-emerald-500 transition-all group">
+          <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4 text-center hover:border-emerald-500 transition-all group">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Calendar size={32} />
             </div>
@@ -533,7 +533,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       )}
       {/* Walikelas Tab */}
       {activeTab ==='walikelas' && (
-        <div className="bg-white rounded-xl border-none shadow-sm p-6 space-y-6">
+        <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-6">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-slate-100 gap-3">
             <div>
               <h2 className="font-bold text-slate-700 flex items-center gap-2"><UserCog size={18} /> Data Walikelas</h2>
@@ -577,7 +577,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}

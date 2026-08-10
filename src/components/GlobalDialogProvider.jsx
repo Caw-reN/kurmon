@@ -76,7 +76,7 @@ export default function GlobalDialogProvider({ children }) {
             <Button variant="secondary" onClick={handleCancelAction} className="flex-1">
               Batal
             </Button>
-            <Button variant="danger" onClick={handleConfirmAction} className="flex-1 text-white bg-red-600 hover:bg-red-700 border-none">
+            <Button variant="danger" onClick={handleConfirmAction} className="flex-1 text-white bg-rose-600 hover:bg-red-700 border-none">
               Ya, Lanjutkan
             </Button>
           </div>

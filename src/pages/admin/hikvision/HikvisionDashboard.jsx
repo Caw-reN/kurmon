@@ -176,7 +176,7 @@ export default function HikvisionDashboard() {
       </div>
 
       {syncMessage && (
-        <div className={`p-4 rounded-[var(--ui-radius-small)] border-l-4 shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50 border-emerald-500 text-emerald-800' :'bg-red-50 border-red-500 text-red-800'}`}>
+        <div className={`p-4 rounded-[var(--ui-radius-small)] border-l-4 shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50 border-emerald-500 text-emerald-800' :'bg-red-50 border-rose-500 text-red-800'}`}>
           <div className="flex justify-between items-start">
             <p className="font-bold">{syncMessage.text}</p>
             <Button variant="outline" onClick={() =>setSyncMessage(null)} >×</Button>
@@ -204,7 +204,7 @@ export default function HikvisionDashboard() {
 
           {syncMessage.results && (
             <div className="mt-3 space-y-2">
-              <ul className="list-disc list-inside text-xs space-y-1 bg-white/60 p-2.5 rounded-xl border border-slate-200/60">
+              <ul className="list-disc list-inside text-xs space-y-1 bg-white/60 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/60">
                 {syncMessage.results.map((res, i) => {
                   const isFailed = String(res.status).toLowerCase().includes('fetch failed') || String(res.status).toLowerCase().includes('error');
                   return (
@@ -217,7 +217,7 @@ export default function HikvisionDashboard() {
               </ul>
 
               {syncMessage.results.some(r => String(r.status).toLowerCase().includes('fetch failed')) && (
-                <div className="p-3 bg-rose-50/90 border border-rose-200 text-rose-800 rounded-xl text-xs space-y-1.5">
+                <div className="p-3 bg-rose-50/90 border border-rose-200 text-rose-800 rounded-[var(--ui-radius-small)] text-xs space-y-1.5">
                   <p className="font-black flex items-center gap-1.5 text-rose-900">
                     <AlertTriangle size={15} className="text-rose-600 shrink-0" />
                     Penyebab Utama "Error: fetch failed":
@@ -432,7 +432,7 @@ export default function HikvisionDashboard() {
         </div>
       </div>
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}

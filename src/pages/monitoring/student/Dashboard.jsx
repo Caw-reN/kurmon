@@ -140,7 +140,7 @@ const StudentDashboard = () => {
 
         {/* Compact Dynamic Theme Hero Card */}
         <div 
-          className="rounded-[24px] p-5 text-white space-y-4 relative overflow-hidden transition-all shadow-md"
+          className="rounded-[24px] p-5 text-white space-y-4 relative overflow-hidden transition-all shadow-xs"
           style={{ 
             background: `linear-gradient(135deg, ${themeColorCSS} 0%, color-mix(in srgb, ${themeColorCSS} 80%, #000) 100%)`
           }}
@@ -152,11 +152,11 @@ const StudentDashboard = () => {
           <div className="flex items-center gap-3.5 relative z-10">
             {/* White Rounded Square Avatar Container */}
             <div 
-              className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm font-black text-xl overflow-hidden p-1"
+              className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-white flex items-center justify-center shrink-0 shadow-sm font-black text-xl overflow-hidden p-1"
               style={{ color: themeColorCSS }}
             >
               {studentPhoto ? (
-                <img src={studentPhoto} alt="Foto Siswa" className="w-full h-full object-cover rounded-xl" />
+                <img src={studentPhoto} alt="Foto Siswa" className="w-full h-full object-cover rounded-[var(--ui-radius-small)]" />
               ) : (
                 <User size={30} className="text-slate-300" />
               )}
@@ -179,7 +179,7 @@ const StudentDashboard = () => {
           {/* Inset Status Lokasi Box (Bottom of Card) */}
           <div 
             onClick={() => navigate('/student/lokasi')}
-            className="bg-white/20 backdrop-blur-md border border-white/25 rounded-2xl p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-white/25 transition-all relative z-10"
+            className="bg-white/20 backdrop-blur-md border border-white/25 rounded-[var(--ui-radius-card)] p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-white/25 transition-all relative z-10"
           >
             <div className="flex items-center gap-3 min-w-0">
               {/* Round White Icon Container */}
@@ -202,7 +202,7 @@ const StudentDashboard = () => {
             </div>
 
             {/* Right Pill Badge — conditional on PKL status */}
-            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 border ${pklData ? 'bg-white/20 border-white/30 text-white' : 'bg-white/10 border-white/20 text-white/60'}`}>
+            <span className={`px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider shrink-0 border ${pklData ? 'bg-white/20 border-white/30 text-white' : 'bg-white/10 border-white/20 text-white/60'}`}>
               {pklData ? 'Aktif PKL' : 'Belum PKL'}
             </span>
           </div>
@@ -220,9 +220,9 @@ const StudentDashboard = () => {
               key={item.label}
               type="button"
               onClick={() => navigate(item.route)}
-              className="bg-white rounded-3xl p-4 border border-slate-100 hover:border-slate-200 hover:shadow-md cursor-pointer transition-all flex flex-col items-center justify-center text-center space-y-3 group"
+              className="bg-white rounded-[var(--ui-radius-card)] p-4 border border-slate-100 hover:border-slate-200 hover:shadow-xs cursor-pointer transition-all flex flex-col items-center justify-center text-center space-y-3 group"
             >
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border p-3.5 transition-transform group-hover:scale-105 ${item.bg}`}>
+              <div className={`w-14 h-14 rounded-[var(--ui-radius-card)] flex items-center justify-center border p-3.5 transition-transform group-hover:scale-105 ${item.bg}`}>
                 <img src={item.iconSrc} alt={item.label} className="w-full h-full object-contain" />
               </div>
               <span className="text-xs font-black text-slate-800 group-hover:text-emerald-700 transition-colors">

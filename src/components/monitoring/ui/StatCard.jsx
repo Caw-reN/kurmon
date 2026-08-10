@@ -33,8 +33,8 @@ const StatCard = ({
   return (
     <div
       className={`bg-white border border-border/80 rounded-[var(--ui-radius-card)]
-        p-4 sm:p-5 flex flex-col min-[450px]:flex-row items-start min-[450px]:items-center gap-3 sm:gap-4 shadow-md
-        transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5
+        p-4 sm:p-5 flex flex-col min-[450px]:flex-row items-start min-[450px]:items-center gap-3 sm:gap-4 shadow-xs
+        transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5
         ${className}`}
     >
       {/* Icon */}
@@ -55,7 +55,7 @@ const StatCard = ({
           <div
             className={`inline-flex items-center gap-1 mt-2 text-xs font-semibold px-2 py-0.5 rounded-[var(--ui-radius-small)]
               ${trendIsNeutral ?'bg-gray-100 text-gray-500' :
-                trendIsPositive ?'bg-emerald-100 text-emerald-700' :'bg-red-100 text-red-600'}`}
+                trendIsPositive ?'bg-emerald-100 text-emerald-700' :'bg-red-100 text-rose-600'}`}
           >
             {trendIsNeutral ? (
               <Minus size={12} />

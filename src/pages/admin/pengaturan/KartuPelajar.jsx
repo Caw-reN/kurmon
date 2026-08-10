@@ -206,7 +206,7 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
 
   const renderFront = (
     <div 
-      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-md relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
+      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
       style={{ 
         backgroundImage: frontBg ? `url(${frontBg})` : 'none', 
         backgroundSize: 'cover', 
@@ -278,7 +278,7 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
 
   const renderBack = (
     <div 
-      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-md relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
+      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
       style={{ 
         backgroundImage: backBg ? `url(${backBg})` : 'none', 
         backgroundSize: 'cover', 
@@ -1309,7 +1309,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
             </div>
 
             {/* Right Column: Live Interactive Card Preview Studio (5 cols) */}
-            <div className="xl:col-span-5 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-lg space-y-4 sticky top-4">
+            <div className="xl:col-span-5 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-sm space-y-4 sticky top-4">
               
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
@@ -1466,7 +1466,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={() => setConfig(p => ({ ...p, front_template: '' }))}
-                      className="text-[10px] font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[10px] font-bold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 size={11} /> Hapus
                     </button>
@@ -1508,7 +1508,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={() => setConfig(p => ({ ...p, back_template: '' }))}
-                      className="text-[10px] font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[10px] font-bold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 size={11} /> Hapus
                     </button>
@@ -1626,7 +1626,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           </div>
 
           {/* Right Live Preview Column (5 cols) */}
-          <div className="xl:col-span-5 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-5 shadow-lg space-y-4 sticky top-4">
+          <div className="xl:col-span-5 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-5 shadow-sm space-y-4 sticky top-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-amber-400 shrink-0" />
@@ -1826,7 +1826,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                   fetchRequests();
                                 }
                               }}
-                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200/80 cursor-pointer"
+                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 cursor-pointer"
                               title="Hapus Log"
                             >
                               <Trash2 size={13} />
@@ -2281,7 +2281,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
 
       {/* Global Toast Alert */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-lg font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-sm font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         } z-[9999]`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 

@@ -243,7 +243,7 @@ const LokasiPKL = () => {
       
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-[110] px-4 py-3 rounded-2xl shadow-lg border text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 ${
+        <div className={`fixed top-5 right-5 z-[110] px-4 py-3 rounded-[var(--ui-radius-card)] shadow-sm border text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-3 ${
           toast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
         }`}>
           <CheckCircle2 size={16} className={toast.type === 'error' ? 'text-rose-600' : 'text-emerald-600'} />
@@ -255,7 +255,7 @@ const LokasiPKL = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-black text-slate-900 text-base sm:text-lg">Lokasi Tempat PKL</h2>
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-[var(--ui-radius-pill)] text-xs font-bold flex items-center gap-1.5">
             <Calendar size={14} className="text-emerald-600" /> Hari Ini, {dateFormatted}
           </span>
         </div>
@@ -282,7 +282,7 @@ const LokasiPKL = () => {
                 }
                 setShowUpdateModal(true);
               }}
-              className="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-3.5 py-1.5 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border-none"
+              className="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-3.5 py-1.5 rounded-[var(--ui-radius-card)] text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border-none"
             >
               <RefreshCw size={13} />
               <span>Ajukan Perubahan Lokasi</span>

@@ -138,7 +138,7 @@ export default function KunjunganPKL() {
                       const dist = Math.round(getDistance(location.lat, location.lng, companyLat, companyLng));
                       const isInside = dist <= 150;
                       return (
-                        <p className={`text-xs font-bold mt-1 ${isInside ?'text-emerald-600' :'text-red-600'}`}>
+                        <p className={`text-xs font-bold mt-1 ${isInside ?'text-emerald-600' :'text-rose-600'}`}>
                           Jarak ke Perusahaan (Target): {dist} meter {isInside ?'(Sesuai Radius)' :'(Di luar Radius)'}
                         </p>
                       );
@@ -193,7 +193,7 @@ export default function KunjunganPKL() {
         </form>
       )}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}

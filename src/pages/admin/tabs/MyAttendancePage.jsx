@@ -16,7 +16,7 @@ function getStatusStyle(dayData) {
     if (s === 'Izin')       return { bg:'bg-blue-100',   text:'text-blue-700',   border:'border-blue-200',   label:'Izin',      dot:'bg-blue-500' };
     if (s === 'Sakit')      return { bg:'bg-yellow-100', text:'text-yellow-700', border:'border-yellow-200', label:'Sakit',     dot:'bg-yellow-500' };
     if (s === 'Dinas Luar') return { bg:'bg-purple-100', text:'text-purple-700', border:'border-purple-200', label:'Dinas',     dot:'bg-purple-500' };
-    if (s === 'Alpa')       return { bg:'bg-red-100',    text:'text-red-700',    border:'border-red-200',    label:'Alpa',      dot:'bg-red-500' };
+    if (s === 'Alpa')       return { bg:'bg-red-100',    text:'text-red-700',    border:'border-red-200',    label:'Alpa',      dot:'bg-rose-500' };
   }
   if (dayData.in) {
     if (dayData.isLate)     return { bg:'bg-amber-100',  text:'text-amber-700',  border:'border-amber-200',  label:'Terlambat', dot:'bg-amber-500' };
@@ -31,7 +31,7 @@ const LEGEND = [
   { dot:'bg-blue-500',    label:'Izin' },
   { dot:'bg-yellow-500',  label:'Sakit' },
   { dot:'bg-purple-500',  label:'Dinas Luar' },
-  { dot:'bg-red-500',     label:'Alpa' },
+  { dot:'bg-rose-500',     label:'Alpa' },
 ];
 
 // Helper
@@ -298,10 +298,10 @@ export default function MyAttendancePage() {
           { label:'Terlambat', value:stats.terlambat, dot:'bg-amber-500',   bg:'bg-amber-50',   text:'text-amber-700' },
           { label:'Izin',      value:stats.izin,      dot:'bg-blue-500',    bg:'bg-blue-50',    text:'text-blue-700' },
           { label:'Sakit',     value:stats.sakit,     dot:'bg-yellow-500',  bg:'bg-yellow-50',  text:'text-yellow-700' },
-          { label:'Alpa',      value:stats.alpa,      dot:'bg-red-500',     bg:'bg-red-50',     text:'text-red-700' },
+          { label:'Alpa',      value:stats.alpa,      dot:'bg-rose-500',     bg:'bg-red-50',     text:'text-red-700' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-[var(--ui-radius-small)] px-2 py-2.5 flex flex-col items-center gap-0.5`}>
-            <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+            <span className={`w-2 h-2 rounded-[var(--ui-radius-pill)] ${s.dot}`} />
             <span className={`text-[18px] font-black leading-none ${s.text}`}>{s.value}</span>
             <span className={`text-[9px] font-black uppercase tracking-wider ${s.text} opacity-60 text-center leading-tight`}>{s.label}</span>
           </div>
@@ -312,14 +312,14 @@ export default function MyAttendancePage() {
       <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm border border-slate-100 overflow-hidden w-full">
         {/* Nav */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <button onClick={prevMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">
+          <button onClick={prevMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-[var(--ui-radius-small)] hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">
             <ChevronLeft size={18} className="text-slate-600" />
           </button>
           <div className="text-center">
             <h2 className="font-black text-slate-800 text-sm">{MONTH_NAMES[filter.month-1]} {filter.year}</h2>
             {loading && <span className="text-[9px] text-slate-400 font-medium animate-pulse">Memuat...</span>}
           </div>
-          <button onClick={nextMonth} disabled={isCurrentMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent disabled:opacity-25 disabled:cursor-not-allowed">
+          <button onClick={nextMonth} disabled={isCurrentMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-[var(--ui-radius-small)] hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent disabled:opacity-25 disabled:cursor-not-allowed">
             <ChevronRight size={18} className="text-slate-600" />
           </button>
         </div>
@@ -370,7 +370,7 @@ export default function MyAttendancePage() {
 
                 {/* Status pill (desktop) */}
                 {style && (
-                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-full ${style.bg} border ${style.border} max-w-full`}>
+                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] ${style.bg} border ${style.border} max-w-full`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${style.dot} shrink-0`} />
                     <span className={`text-[8px] font-black ${style.text} truncate`}>{style.label}</span>
                   </div>
@@ -423,7 +423,7 @@ export default function MyAttendancePage() {
             </div>
             <div className="flex items-center gap-2">
               {selectedDayStyle && (
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${selectedDayStyle.bg} ${selectedDayStyle.text} ${selectedDayStyle.border}`}>
+                <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase border ${selectedDayStyle.bg} ${selectedDayStyle.text} ${selectedDayStyle.border}`}>
                   {selectedDayStyle.label}
                 </span>
               )}

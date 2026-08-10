@@ -93,7 +93,7 @@ export default function TabAkademik(props) {
     switch (catColor) {
       case"rose":
       case"red":
-        return { bg:"bg-red-500 text-white", border:"border-red-600", lightBg:"bg-red-100/90 text-red-800" };
+        return { bg:"bg-rose-500 text-white", border:"border-red-600", lightBg:"bg-red-100/90 text-red-800" };
       case"amber":
       case"orange":
         return { bg:"bg-amber-500 text-white", border:"border-amber-600", lightBg:"bg-amber-100/90 text-amber-800" };
@@ -238,7 +238,7 @@ export default function TabAkademik(props) {
                   return (
                     <div
                       key={evt.id}
-                      className="group relative bg-white border-none rounded-[var(--ui-radius-card)] p-5 hover:shadow-md hover:border-slate-350 transition-all flex flex-col justify-between"
+                      className="group relative bg-white border-none rounded-[var(--ui-radius-card)] p-5 hover:shadow-xs hover:border-slate-350 transition-all flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-3 mb-3">
@@ -330,7 +330,7 @@ export default function TabAkademik(props) {
           </div>
 
           {selectStart && (
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-2.5 flex items-center justify-between text-xs font-bold text-amber-800 animate-in fade-in duration-200">
+            <div className="bg-amber-50 border border-amber-100 rounded-[var(--ui-radius-small)] p-2.5 flex items-center justify-between text-xs font-bold text-amber-800 animate-in fade-in duration-200">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                 Pilih tanggal akhir range kegiatan
@@ -348,7 +348,7 @@ export default function TabAkademik(props) {
           <div className="overflow-hidden border border-slate-150 rounded-[var(--ui-radius-small)] bg-white shadow-xs">
             {/* Days of Week Header */}
             <div className="grid grid-cols-7 border-b border-slate-150 bg-slate-50/70 text-center font-bold text-[10px] text-slate-500 py-2 uppercase tracking-wider">
-              <div className="text-red-500">Min</div>
+              <div className="text-rose-500">Min</div>
               <div>Sen</div>
               <div>Sel</div>
               <div>Rab</div>
@@ -385,7 +385,7 @@ export default function TabAkademik(props) {
                 const isSunday = dayOfWeek === 0;
 
                 let cellBg ="bg-white";
-                let textClass = isSunday ?"text-red-500 font-bold" :"text-slate-800 font-semibold";
+                let textClass = isSunday ?"text-rose-500 font-bold" :"text-slate-800 font-semibold";
                 let tooltip ="";
                 let roundingClass ="rounded-none";
 

@@ -193,7 +193,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
     { label:'Total Mutasi',  value: mutasiList.length,  icon: GitMerge,   iconBg:'bg-blue-100',    iconColor:'text-blue-600' },
     { label:'Menunggu',      value: mutasiPending,       icon: AlertCircle,iconBg:'bg-amber-100',   iconColor:'text-amber-600' },
     { label:'Disetujui',     value: mutasiAcc,           icon: CheckCircle,iconBg:'bg-emerald-100', iconColor:'text-emerald-600' },
-    { label:'Ditolak',       value: mutasiList.filter(m => m.final_status ==='rejected').length, icon: XCircle, iconBg:'bg-red-100', iconColor:'text-red-600' },
+    { label:'Ditolak',       value: mutasiList.filter(m => m.final_status ==='rejected').length, icon: XCircle, iconBg:'bg-red-100', iconColor:'text-rose-600' },
   ];
 
   const tabs = [
@@ -441,7 +441,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
                               <div key={label} className="flex justify-between items-center text-xs font-semibold">
                                 <span className={highlight ?'text-[var(--ui-primary)]' :'text-slate-600'}>{label}</span>
                                 {val ==='acc'      ? <CheckCircle size={14} className="text-emerald-500" />
-                                : val ==='rejected' ? <XCircle size={14} className="text-red-500" />
+                                : val ==='rejected' ? <XCircle size={14} className="text-rose-500" />
                                 :                     <span className="text-slate-300 text-[10px]">Pending</span>}
                               </div>
                             ))}
@@ -558,7 +558,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
       </Modal>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle size={18} />} {toast.message}
         </div>
       )}

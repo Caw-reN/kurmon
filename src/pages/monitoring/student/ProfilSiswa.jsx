@@ -85,7 +85,7 @@ const ProfilSiswa = () => {
           }
         </div>
         <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <div className="w-24 h-24 md:w-28 md:h-28 rounded-[var(--ui-radius-control)] overflow-hidden bg-white/20 border-2 border-white/30 flex items-center justify-center shrink-0 shadow-lg">
+          <div className="w-24 h-24 md:w-28 md:h-28 rounded-[var(--ui-radius-control)] overflow-hidden bg-white/20 border-2 border-white/30 flex items-center justify-center shrink-0 shadow-sm">
             {loading ? (
               <Loader2 size={32} className="text-white animate-spin" />
             ) : photoUrl ? (
@@ -101,11 +101,11 @@ const ProfilSiswa = () => {
               {jurusan !== '-' && <p className="text-white/60 text-xs font-semibold mt-0.5">{jurusan}</p>}
             </div>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${isAktif ? 'bg-emerald-400/20 text-emerald-200 border-emerald-300/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border ${isAktif ? 'bg-emerald-400/20 text-emerald-200 border-emerald-300/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
                 <CheckCircle2 size={12} className={isAktif ? 'text-emerald-300' : 'text-white/50'} />
                 {statusPKL}
               </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 text-white/70 border border-white/20 text-[10px] font-black uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-pill)] bg-white/10 text-white/70 border border-white/20 text-[10px] font-black uppercase tracking-wider">
                 <Shield size={12} className="text-cyan-300" /> Terverifikasi
               </span>
             </div>
@@ -134,7 +134,7 @@ const ProfilSiswa = () => {
               { label: 'Status Akun', value: statusPKL, Icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50 border-emerald-200' },
             ].map(({ label, value, Icon, color, bg }) => (
               <div key={label} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/60 transition-colors">
-                <div className={`w-9 h-9 rounded-xl ${bg} border flex items-center justify-center shrink-0`}>
+                <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] ${bg} border flex items-center justify-center shrink-0`}>
                   <Icon size={16} className={color} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -178,7 +178,7 @@ const ProfilSiswa = () => {
                   { label: 'Kontak / Telp', value: perusahaan.telp || perusahaan.kontak || '-', Icon: Phone },
                 ].map(({ label, value, Icon }) => (
                   <div key={label} className="flex items-start gap-3 py-1">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
                       <Icon size={15} className="text-slate-500" />
                     </div>
                     <div className="min-w-0">
@@ -190,7 +190,7 @@ const ProfilSiswa = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-slate-100 border border-slate-200 flex items-center justify-center">
                   <Building size={26} className="text-slate-300" />
                 </div>
                 <div>
@@ -227,10 +227,10 @@ const ProfilSiswa = () => {
       {/* ── MODAL GANTI PASSWORD ─────────────────────────────── */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowPasswordModal(false)}>
-          <div className="bg-white w-full max-w-sm rounded-[var(--ui-radius-card)] p-6 space-y-4 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-sm rounded-[var(--ui-radius-card)] p-6 space-y-4 shadow-xs overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200"><Lock size={16} /></div>
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200"><Lock size={16} /></div>
                 <h3 className="font-black text-slate-800 text-base">Ganti Kata Sandi</h3>
               </div>
               <button type="button" onClick={() => { setShowPasswordModal(false); setPassError(''); }} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer text-xs font-black">✕</button>

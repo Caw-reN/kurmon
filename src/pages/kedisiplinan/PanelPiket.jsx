@@ -5,13 +5,14 @@ import { CheckCircle2, Check, User, Search, X, History, ChevronRight, Trash2 } f
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { Button } from '../../components/ui.jsx';
 import useFiturStore from'../../store/monitoring/fiturStore.js';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 
 const getViolationStyle = (poin) => {
-  if (poin >= 20) return { icon: ShieldAlert, color:'text-red-600', bg:'bg-red-100' };
+  if (poin >= 20) return { icon: ShieldAlert, color:'text-rose-600', bg:'bg-red-100' };
   if (poin >= 10) return { icon: AlertTriangle, color:'text-orange-500', bg:'bg-orange-50' };
   if (poin >= 5) return { icon: Clock, color:'text-amber-500', bg:'bg-amber-50' };
-  if (poin >= 20) return { icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-100' };
+  if (poin >= 20) return { icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-red-100' };
   if (poin >= 10) return { icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50' };
   if (poin >= 5) return { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' };
   return { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-50' };
@@ -204,12 +205,18 @@ export default function PanelPiket({ students = [], classes = [] }) {
 
   return (
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10 pb-24 lg:pb-0">
+      <PageHeader 
+        title="Panel Piket Kedisiplinan"
+        description="Input cepat pelanggaran kedisiplinan dan notifikasi WhatsApp."
+        icon={ShieldAlert}
+      />
+
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md border flex items-center gap-3 transition-all ${
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-xs border flex items-center gap-3 transition-all ${
           toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-red-50 border-red-200 text-red-800"
         }`}>
-          {toast.type === "success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-red-500"/>}
+          {toast.type === "success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-rose-500"/>}
           <p className="font-bold text-sm">{toast.message}</p>
         </div>
       )}
@@ -217,7 +224,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
       {/* Confirmation Modal */}
       {confirmViolation && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                <div className="p-6">
                   <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4 mx-auto">
                      <ShieldAlert size={24} className="text-amber-600" />
@@ -227,18 +234,18 @@ export default function PanelPiket({ students = [], classes = [] }) {
                      Menyimpan <strong className="text-slate-700">{selectedViolations.length} jenis pelanggaran</strong> untuk <strong className="text-slate-700">{selectedStudents.length} siswa</strong>. Total Tambahan: <span className="font-black text-rose-600">+{totalPoin} Poin</span>.
                   </p>
                   
-                  <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 mb-3 border border-slate-100 max-h-[90px] overflow-y-auto">
+                  <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-600 mb-3 border border-slate-100 max-h-[90px] overflow-y-auto">
                      <span className="font-extrabold text-slate-700 block mb-1">Daftar Pelanggaran (+{totalPoin} Poin):</span>
                      {selectedViolations.map(v => v.nama_tindakan).join(", ")}
                   </div>
                   
-                  <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 mb-6 border border-slate-100 max-h-[90px] overflow-y-auto">
+                  <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-600 mb-6 border border-slate-100 max-h-[90px] overflow-y-auto">
                      <span className="font-extrabold text-slate-700 block mb-1">Daftar Siswa Terpilih:</span>
                      {selectedStudents.map(s => s.namaSiswa || s.name).join(", ")}
                   </div>
 
                   {errorMsg && (
-                    <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold mb-4">
+                    <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold mb-4">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                       <span className="leading-relaxed">{errorMsg}</span>
                     </div>
@@ -271,11 +278,11 @@ export default function PanelPiket({ students = [], classes = [] }) {
       )}
 
       {/* MOBILE STEP TABS SWITCHER (< lg) */}
-      <div className="flex lg:hidden bg-slate-100 p-1 rounded-2xl border border-slate-200 gap-1 shrink-0">
+      <div className="flex lg:hidden bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
         <button
           type="button"
           onClick={() => setMobileTab('siswa')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
             mobileTab === 'siswa'
               ? 'bg-white text-[var(--ui-primary)] shadow-sm'
               : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -287,7 +294,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
         <button
           type="button"
           onClick={() => setMobileTab('pelanggaran')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
             mobileTab === 'pelanggaran'
               ? 'bg-white text-[var(--ui-primary)] shadow-sm'
               : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -299,7 +306,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
         <button
           type="button"
           onClick={() => setMobileTab('riwayat')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
             mobileTab === 'riwayat'
               ? 'bg-white text-[var(--ui-primary)] shadow-sm'
               : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -348,7 +355,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                        key={student.nis}
                        type="button"
                        onClick={() => toggleStudent(student)}
-                       className={`w-full text-left flex items-center justify-between p-3 rounded-xl border transition-all text-slate-800 cursor-pointer ${
+                       className={`w-full text-left flex items-center justify-between p-3 rounded-[var(--ui-radius-small)] border transition-all text-slate-800 cursor-pointer ${
                          isSelected
                            ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 font-bold shadow-xs'
                            : 'border-slate-100 bg-white hover:bg-slate-50'
@@ -387,14 +394,14 @@ export default function PanelPiket({ students = [], classes = [] }) {
                  )}
               </div>
               
-              <div className="min-h-[60px] p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-wrap gap-1.5">
+              <div className="min-h-[60px] p-3 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] flex flex-wrap gap-1.5">
                  {selectedStudents.length === 0 ? (
                     <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs italic py-2">
                        Belum ada siswa yang dipilih. Cari & klik siswa di langkah ke-1.
                     </div>
                  ) : (
                     selectedStudents.map(student => (
-                       <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-xs">
+                       <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-700 shadow-xs">
                           {student.namaSiswa || student.name}
                           <button 
                             type="button" 
@@ -419,7 +426,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                   <p className="text-xs text-slate-500 mt-0.5">Pilih jenis pelanggaran di bawah ini (bisa lebih dari 1).</p>
                 </div>
                 {selectedViolations.length > 0 && (
-                  <span className="text-xs font-black px-3 py-1 rounded-full bg-rose-100 text-rose-700 self-start sm:self-auto">
+                  <span className="text-xs font-black px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-700 self-start sm:self-auto">
                     +{totalPoin} Poin Terpilih
                   </span>
                 )}
@@ -427,7 +434,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
               
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                  {violations.length === 0 ? (
-                    <div className="col-span-full py-8 text-center text-slate-400 text-xs italic border border-dashed border-slate-200 rounded-xl">
+                    <div className="col-span-full py-8 text-center text-slate-400 text-xs italic border border-dashed border-slate-200 rounded-[var(--ui-radius-small)]">
                        Belum ada master poin pelanggaran.
                     </div>
                  ) : (
@@ -442,7 +449,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                              type="button"
                              disabled={isDisabled}
                              onClick={() => toggleViolation(v)}
-                             className={`flex flex-col items-center justify-center text-center p-3 sm:p-4 rounded-xl border transition-all select-none focus:outline-none w-full ${
+                             className={`flex flex-col items-center justify-center text-center p-3 sm:p-4 rounded-[var(--ui-radius-small)] border transition-all select-none focus:outline-none w-full ${
                                isDisabled
                                  ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-100'
                                  : isSelected
@@ -450,11 +457,11 @@ export default function PanelPiket({ students = [], classes = [] }) {
                                    : 'border-slate-200 bg-white hover:bg-slate-50 shadow-xs text-slate-700 cursor-pointer'
                              }`}
                           >
-                             <div className={`p-2.5 rounded-lg mb-2 ${style.bg} ${isSelected ? 'ring-2 ring-[var(--ui-primary)]/30' : ''}`}>
+                             <div className={`p-2.5 rounded-[var(--ui-radius-small)] mb-2 ${style.bg} ${isSelected ? 'ring-2 ring-[var(--ui-primary)]/30' : ''}`}>
                                 <Icon size={18} className={style.color} />
                              </div>
                              <h3 className={`text-xs font-extrabold leading-tight mb-1.5 ${isSelected ? 'text-[var(--ui-primary)]' : 'text-slate-800'}`}>{v.nama_tindakan}</h3>
-                             <span className={`text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider ${isSelected ? 'text-white bg-rose-500 shadow-xs' : 'text-rose-600 bg-rose-50 border border-rose-100'}`}>+{v.nilai_poin} POIN</span>
+                             <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider ${isSelected ? 'text-white bg-rose-500 shadow-xs' : 'text-rose-600 bg-rose-50 border border-rose-100'}`}>+{v.nilai_poin} POIN</span>
                           </button>
                        );
                     })
@@ -480,7 +487,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                  <History size={18} className="text-[var(--ui-primary)]"/> Riwayat Input Hari Ini
               </h2>
               {history.length === 0 ? (
-                 <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                 <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
                     Belum ada pelanggaran yang diinput hari ini.
                  </div>
               ) : (
@@ -489,7 +496,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                        const student = students.find(s => s.nis === item.siswa_nis);
                        const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
                        return (
-                          <div key={item.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded-xl gap-2">
+                          <div key={item.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded-[var(--ui-radius-small)] gap-2">
                              <div className="min-w-0 flex-1">
                                 <div className="font-extrabold text-slate-800 text-xs truncate flex items-center gap-1.5">
                                    <span className="truncate">{studentName}</span>
@@ -501,7 +508,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                                 </div>
                              </div>
                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] font-black text-rose-600 bg-white border border-rose-100 px-2 py-0.5 rounded-lg shadow-xs">
+                                <span className="text-[10px] font-black text-rose-600 bg-white border border-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
                                    +{item.poin}
                                 </span>
                                 <Button variant="ghost" size="icon" onClick={() => deleteHistory(item.id)} title="Hapus Riwayat" className="h-8 w-8 text-rose-500 hover:bg-rose-50">
@@ -519,7 +526,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
 
       {/* FLOATING STICKY MOBILE ACTION BAR */}
       {(selectedStudents.length > 0 || selectedViolations.length > 0) && (
-        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-xl border border-slate-800 flex items-center justify-between gap-2 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-[var(--ui-radius-card)] shadow-sm border border-slate-800 flex items-center justify-between gap-2 animate-in slide-in-from-bottom-4 duration-200">
           <div className="flex flex-col min-w-0 pl-1">
             <span className="text-[11px] font-extrabold text-amber-400 truncate">
               {selectedStudents.length} Siswa • {selectedViolations.length} Pelanggaran

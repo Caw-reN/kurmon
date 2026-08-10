@@ -161,7 +161,7 @@ const Logbook = () => {
         <div className="pointer-events-none absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-cyan-400/10 blur-xl" />
 
         <div className="relative z-10 space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white text-[10px] font-black uppercase tracking-wider border border-white/20 mb-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--ui-radius-pill)] bg-white/15 text-white text-[10px] font-black uppercase tracking-wider border border-white/20 mb-1">
             <BookOpen size={14} /> Jurnal Harian PKL
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
@@ -408,7 +408,7 @@ const Logbook = () => {
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary,#064e3b)] text-white text-xs font-black hover:opacity-95 border-none cursor-pointer shadow-md flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary,#064e3b)] text-white text-xs font-black hover:opacity-95 border-none cursor-pointer shadow-xs flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -510,7 +510,7 @@ const Logbook = () => {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-lg font-bold text-xs flex items-center gap-2 text-white z-[100] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-sm font-bold text-xs flex items-center gap-2 text-white z-[100] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           {toast.type === 'error' ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />} {toast.message}
         </div>
       )}

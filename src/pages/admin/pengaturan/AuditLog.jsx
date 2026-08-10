@@ -60,11 +60,11 @@ function AuditDetailModal({ log, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose} style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
+      <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className={"w-10 h-10 rounded-xl flex items-center justify-center " + colors.bg + " " + colors.text}>
+            <div className={"w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center " + colors.bg + " " + colors.text}>
               <ActionIcon size={18} />
             </div>
             <div>
@@ -74,37 +74,37 @@ function AuditDetailModal({ log, onClose }) {
               </span>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <button onClick={onClose} className="w-8 h-8 rounded-[var(--ui-radius-small)] hover:bg-slate-100 flex items-center justify-center transition-colors">
             <X size={16} className="text-slate-500" />
           </button>
         </div>
         <div className="p-5 space-y-3">
-          <div className="bg-slate-50 rounded-xl p-4">
+          <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-4">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Keterangan Aktivitas</p>
             <p className="text-sm text-slate-800 font-medium leading-relaxed">{log.detail || "Tidak ada keterangan."}</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><User size={10} /> Pengguna</p>
               <p className="text-sm font-bold text-slate-800">{log.user_name || "—"}</p>
               <p className="text-[11px] text-slate-500">{log.user_role || "—"}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Clock size={10} /> Waktu</p>
               <p className="text-sm font-bold text-slate-800">{new Date(log.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>
               <p className="text-[11px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} WIB</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Database size={10} /> Objek Data</p>
               <p className="text-sm font-bold text-slate-800 font-mono">{log.target_type || "—"}</p>
               {log.target_id && <p className="text-[11px] text-slate-500">ID: #{log.target_id}</p>}
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><MapPin size={10} /> Alamat IP</p>
               <p className="text-sm font-bold text-slate-800 font-mono">{log.ip_address || "—"}</p>
             </div>
           </div>
-          <div className="bg-slate-50 rounded-xl p-3">
+          <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1"><Monitor size={10} /> Perangkat & Browser</p>
             <div className="flex items-center gap-2">
               <DeviceIcon icon={icon} size={16} />
@@ -279,7 +279,7 @@ export default function AuditLog({ activeTab, setActiveTab }) {
       {selectedLog && <AuditDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
 
       {toast && (
-        <div className={"fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white " + (toast.type === "error" ? "bg-red-600" : "bg-emerald-600")}>
+        <div className={"fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white " + (toast.type === "error" ? "bg-rose-600" : "bg-emerald-600")}>
           {toast.type === "error" ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
         </div>
       )}

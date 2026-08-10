@@ -827,9 +827,9 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   if (user?.isWalas && !user.walasClass) {
      return (
         <div className="p-8 text-center bg-red-50 rounded-[var(--ui-radius-small)] border border-red-200">
-           <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
+           <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
            <h3 className="text-xl font-bold text-red-700">Data Wali Kelas Belum Lengkap</h3>
-           <p className="text-red-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
+           <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
         </div>
      );
   }
@@ -864,7 +864,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     if (totalLate >= 10 || totalAlpa >= 10) {
       level = 4; // Dark Red
       bgClass = "bg-rose-900 text-white hover:bg-rose-950 border-rose-950 font-bold";
-      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-md";
+      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-xs";
       textClass = "text-white font-extrabold";
       subTextClass = "text-rose-200 font-semibold";
     } else if (totalLate >= 7 || totalAlpa >= 8) {
@@ -995,7 +995,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 placeholder="Nama / NIP..." 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
               />
             </div>
           </div>
@@ -1047,7 +1047,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 type="button"
                 onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
                 title={sortDir === "asc" ? "Naik" : "Turun"}
-                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${
                   sortDir === 'desc' 
                     ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
@@ -1088,7 +1088,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
             type="button"
             onClick={() => setShowPrintModal(true)}
             disabled={loading || data.length === 0}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-md disabled:opacity-50"
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
           >
             <Printer size={14} className="shrink-0" />
             <span>Cetak Per Periode</span>
@@ -1163,7 +1163,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                        <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
                        <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
                        <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                       <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">{d.total_alpa || 0}</td>
+                       <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_alpa || 0}</td>
                        {daysToRender.map((dayNum) => {
                           const dayData = d.days[dayNum];
                           return (
@@ -1229,7 +1229,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-blue-200/80">
                     {dailyTotals.izin[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-blue-600 text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-2xs">
                         {dailyTotals.izin[d]}
                       </span>
                     ) : (
@@ -1294,10 +1294,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
        {/* Modal Cetak Laporan Per Periode */}
        {showPrintModal && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
-           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
              <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
                <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
                    <Printer size={18} />
                  </div>
                  <div>
@@ -1308,7 +1308,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                <button
                  type="button"
                  onClick={() => setShowPrintModal(false)}
-                 className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+                 className="w-7 h-7 rounded-[var(--ui-radius-small)] hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
                >
                  <X size={16} />
                </button>
@@ -1328,7 +1328,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                        key={item.id}
                        type="button"
                        onClick={() => setPrintPeriod(item.id)}
-                       className={`p-3 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
+                       className={`p-3 rounded-[var(--ui-radius-card)] text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
                          printPeriod === item.id 
                            ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-2xs font-bold ring-2 ring-indigo-500/20' 
                            : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
@@ -1345,12 +1345,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                </div>
 
                {printPeriod === 'harian' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
                    <select
                      value={printDate}
                      onChange={e => setPrintDate(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                        <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
@@ -1360,12 +1360,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                )}
 
                {printPeriod === 'mingguan' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
                    <select
                      value={printWeek}
                      onChange={e => setPrintWeek(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value={1}>Minggu ke-1 (Tgl 1 - 7)</option>
                      <option value={2}>Minggu ke-2 (Tgl 8 - 14)</option>
@@ -1377,12 +1377,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                )}
 
                {printPeriod === 'semester' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
                    <select
                      value={printSemester}
                      onChange={e => setPrintSemester(e.target.value)}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
                      <option value="genap">Semester Genap (Januari - Juni)</option>
@@ -1390,7 +1390,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                  </div>
                )}
 
-               <div className="p-3 bg-indigo-50/60 rounded-2xl border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
+               <div className="p-3 bg-indigo-50/60 rounded-[var(--ui-radius-card)] border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
                  <Printer size={15} className="shrink-0 text-indigo-600 mt-0.5" />
                  <span>Laporan akan dicetak lengkap dengan Kop Surat Sekolah, Rekapan Jumlah Harian (Hadir/Telat/Izin/Sakit/Alpa), serta Kolom Tanda Tangan Kepala Sekolah.</span>
                </div>
@@ -1401,14 +1401,14 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                  variant="outline"
                  type="button"
                  onClick={() => setShowPrintModal(false)}
-                 className="px-4 py-2 rounded-xl text-xs font-bold"
+                 className="px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
                >
                  Batal
                </Button>
                <Button
                  type="button"
                  onClick={handlePrintPeriod}
-                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer"
+                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer"
                >
                  <Printer size={15} />
                  <span>Cetak Sekarang</span>
@@ -1418,7 +1418,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
          </div>
        )}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}

@@ -227,7 +227,7 @@ export default function SilabusPage() {
                           key={session.id || index}
                           type="button"
                           onClick={() => setSelectedSessionId(session.id || String(index))}
-                          className={`shrink-0 text-left px-3 py-2 rounded-lg transition-all ${isActive ? "text-white btn-primary-theme" : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`}
+                          className={`shrink-0 text-left px-3 py-2 rounded-[var(--ui-radius-small)] transition-all ${isActive ? "text-white btn-primary-theme" : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`}
                           data-slot={isActive ? "button" : undefined}
                           data-variant={isActive ? "primary" : undefined}
                           style={isActive ? { backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' } : undefined}
@@ -297,7 +297,7 @@ export default function SilabusPage() {
                     {filteredDocs.map((doc) => (
                       <div
                         key={doc.id}
-                        className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-md"
+                        className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-xs"
                       >
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
@@ -369,7 +369,7 @@ export default function SilabusPage() {
               <iframe
                 src={previewDoc.url}
                 title="Pratinjau Modul Ajar"
-                className="w-full h-full border-none rounded-lg bg-white"
+                className="w-full h-full border-none rounded-[var(--ui-radius-small)] bg-white"
               />
             </div>
         </Modal>

@@ -693,7 +693,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
                             )}
                           </>
                         ) : (
-                          <span className="text-xs text-red-500 font-semibold">
+                          <span className="text-xs text-rose-500 font-semibold">
                             {item.reason ==='no_guru_jurusan' ?'Tidak ada guru jurusan ini' :'Kapasitas penuh'}
                           </span>
                         )}

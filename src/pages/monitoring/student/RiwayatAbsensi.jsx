@@ -117,14 +117,14 @@ const RiwayatAbsensi = () => {
             <p className="text-xs text-slate-500 font-semibold mt-0.5">Rekapitulasi aktivitas presensi harian siswa</p>
           </div>
 
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-[var(--ui-radius-pill)] text-xs font-bold flex items-center gap-1.5 shrink-0">
             <CalendarDays size={14} className="text-emerald-600" /> {currentMonth}
           </span>
         </div>
 
         {/* Clean Theme Hero Card */}
         <div 
-          className="rounded-[24px] p-6 text-white space-y-4 relative overflow-hidden transition-all shadow-md"
+          className="rounded-[24px] p-6 text-white space-y-4 relative overflow-hidden transition-all shadow-xs"
           style={{ 
             background: `linear-gradient(135deg, ${themeColorCSS} 0%, color-mix(in srgb, ${themeColorCSS} 80%, #000) 100%)`
           }}
@@ -153,40 +153,40 @@ const RiwayatAbsensi = () => {
 
       {/* ── 2. METRIC SUMMARY STAT CARDS (2x2 Mobile Grid) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hadir Tepat</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <p className="text-2xl font-black text-emerald-700 leading-none">{counts.hadir}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Terlambat</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
               <Clock size={16} />
             </div>
           </div>
           <p className="text-2xl font-black text-amber-700 leading-none">{counts.terlambat}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Izin / Sakit</span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
               <Calendar size={16} />
             </div>
           </div>
           <p className="text-2xl font-black text-sky-700 leading-none">{counts.izin}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Alpa / Absen</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
               <XCircle size={16} />
             </div>
           </div>
@@ -195,7 +195,7 @@ const RiwayatAbsensi = () => {
       </div>
 
       {/* ── 3. ATTENDANCE HISTORY LOG LIST & FILTER SEARCH ── */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-2xs space-y-4">
+      <div className="bg-white p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <h2 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
             <Clock size={16} style={{ color: themeColorCSS }} /> Histori Absensi Harian
@@ -209,7 +209,7 @@ const RiwayatAbsensi = () => {
               placeholder="Cari tanggal atau status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ const RiwayatAbsensi = () => {
             <p className="text-xs font-semibold">Memuat catatan riwayat absensi...</p>
           </div>
         ) : filteredAttendance.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-2">
+          <div className="p-8 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-[var(--ui-radius-card)] space-y-2">
             <CalendarDays size={32} className="mx-auto text-slate-300" />
             <p className="font-extrabold text-xs text-slate-700">Belum ada catatan riwayat absensi.</p>
             <p className="text-[11px] text-slate-400">Absensi harian via Sharelok GPS atau Mesin Tap akan otomatis dicatat di sini.</p>
@@ -243,9 +243,9 @@ const RiwayatAbsensi = () => {
                 : '-';
 
               return (
-                <div key={item.id || idx} className="py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors px-2 rounded-xl">
+                <div key={item.id || idx} className="py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors px-2 rounded-[var(--ui-radius-small)]">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.bg}`}>
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${cfg.bg}`}>
                       <IconComp size={18} className={cfg.color} />
                     </div>
                     <div className="min-w-0">
@@ -256,7 +256,7 @@ const RiwayatAbsensi = () => {
                     </div>
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 border ${cfg.badge}`}>
+                  <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider shrink-0 border ${cfg.badge}`}>
                     {cfg.label}
                   </span>
                 </div>

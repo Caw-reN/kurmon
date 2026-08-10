@@ -63,7 +63,7 @@ export default function ValidasiSiswa() {
       <div className="max-w-md w-full bg-white rounded-[var(--ui-radius-small)] shadow-sm overflow-hidden border-none">
         
         {/* Header */}
-        <div className={`p-6 text-white flex flex-col items-center justify-center text-center ${status ==='valid' ?'bg-emerald-600' :'bg-red-600'}`}>
+        <div className={`p-6 text-white flex flex-col items-center justify-center text-center ${status ==='valid' ?'bg-emerald-600' :'bg-rose-600'}`}>
           {status ==='valid' ? (
             <ShieldCheck size={56} className="mb-2" />
           ) : (
@@ -123,7 +123,7 @@ export default function ValidasiSiswa() {
             </>
           ) : (
             <div className="text-center py-6">
-              <XCircle size={48} className="mx-auto text-red-500 mb-4 opacity-50" />
+              <XCircle size={48} className="mx-auto text-rose-500 mb-4 opacity-50" />
               <h3 className="text-lg font-bold text-slate-800 mb-2">Validasi Gagal</h3>
               <p className="text-sm text-slate-500">
                 Data untuk kartu ini (NIS: <span className="font-mono font-bold">{nis ||'Kosong'}</span>) tidak ditemukan di dalam database {schoolName}. 

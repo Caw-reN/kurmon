@@ -98,11 +98,11 @@ export default function TabGenerate(props) {
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">Pilih penyusunan secara Otomatis via Algoritma Generator atau Manual per slot.</p>
             </div>
             
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 shrink-0">
               <button
                 type="button"
                 onClick={() => setScheduleGenerationMode && setScheduleGenerationMode("auto")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center gap-1.5 cursor-pointer ${
                   scheduleGenerationMode === "auto"
                     ? "bg-white text-[var(--ui-primary)] shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -114,7 +114,7 @@ export default function TabGenerate(props) {
               <button
                 type="button"
                 onClick={() => setScheduleGenerationMode && setScheduleGenerationMode("manual")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center gap-1.5 cursor-pointer ${
                   scheduleGenerationMode === "manual"
                     ? "bg-white text-[var(--ui-primary)] shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -154,7 +154,7 @@ export default function TabGenerate(props) {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-[var(--ui-radius-small)]">
               <div className="flex items-center gap-2.5 text-xs text-emerald-900 font-medium">
                 <Edit3 size={18} className="text-emerald-600 shrink-0" />
                 <div>
@@ -196,7 +196,7 @@ export default function TabGenerate(props) {
       )}
       {swapWarning && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-start gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
-          <AlertCircle size={17} className="text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle size={17} className="text-rose-500 shrink-0 mt-0.5" />
           <div className="flex-1">
             {typeof swapWarning ==='string' ? <><strong className="mr-1">Perhatian:</strong> {swapWarning}</> : swapWarning}
           </div>
@@ -330,7 +330,7 @@ export default function TabGenerate(props) {
 
             {/* Quick Pick from Class Teaching Loads */}
             {classTeachingLoads.length > 0 && (
-              <div className="bg-amber-50/60 border border-amber-200/80 p-3 rounded-xl flex flex-col gap-2">
+              <div className="bg-amber-50/60 border border-amber-200/80 p-3 rounded-[var(--ui-radius-small)] flex flex-col gap-2">
                 <div className="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
                   <Sparkles size={14} className="text-amber-600 shrink-0" />
                   <span>Pilihan Cepat Beban Mengajar ({slotFormData.className}):</span>
@@ -351,7 +351,7 @@ export default function TabGenerate(props) {
                             teacherCode: load.teacherCode || ""
                           }));
                         }}
-                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all text-left flex items-center gap-1 cursor-pointer ${
+                        className={`text-[11px] px-2.5 py-1 rounded-[var(--ui-radius-small)] border font-medium transition-all text-left flex items-center gap-1 cursor-pointer ${
                           isSelected 
                             ? "bg-[var(--ui-primary)] text-white border-transparent font-bold shadow-sm"
                             : "bg-white border-amber-200 text-slate-800 hover:border-[var(--ui-primary)] hover:bg-white"

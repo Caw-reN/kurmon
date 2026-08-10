@@ -726,7 +726,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (totalLate >= 10 || totalAlpa >= 10) {
       level = 4; // Dark Red
       bgClass = "bg-rose-900 text-white hover:bg-rose-950 border-rose-950 font-bold";
-      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-md";
+      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-xs";
       textClass = "text-white font-extrabold";
       subTextClass = "text-rose-200 font-semibold";
     } else if (totalLate >= 7 || totalAlpa >= 8) {
@@ -1105,9 +1105,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
      return (
         <div className="p-8 text-center bg-red-50 rounded-[var(--ui-radius-small)] border border-red-200">
-           <AlertTriangle size={48} className="mx-auto text-red-500 mb-4" />
+           <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
            <h3 className="text-xl font-bold text-red-700">Data Wali Kelas Belum Lengkap</h3>
-           <p className="text-red-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
+           <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
         </div>
      );
   }
@@ -1141,8 +1141,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       )}
 
       {/* Top Ergonomic Mode Switcher Bar */}
-      <div className="hidden sm:flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/70 w-full md:w-auto">
+      <div className="hidden sm:flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 w-full md:w-auto">
           {[
             { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
             { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
@@ -1151,7 +1151,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
                 activeTab === tab.id
                   ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -1171,18 +1171,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             placeholder="Cari nama atau NIS siswa..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
           />
         </div>
       </div>
 
       {/* Mobile Hero Header Card (Reference Layout matching media__1785568140000.png) */}
       <div 
-        className="sm:hidden w-full rounded-3xl p-5 text-white shadow-md flex flex-col gap-4 relative overflow-hidden"
+        className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-5 text-white shadow-xs flex flex-col gap-4 relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0d9488) 100%)" }}
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-card)] bg-white/20 backdrop-blur-md text-white flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
             <PieChart size={24} strokeWidth={2.2} />
           </div>
           <div className="flex-1 min-w-0">
@@ -1194,11 +1194,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </div>
 
         {/* Segmented Pill Tabs */}
-        <div className="bg-white rounded-2xl p-1 flex items-center gap-1 shadow-sm border border-slate-100/90">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-sm border border-slate-100/90">
           <button
             type="button"
             onClick={() => setActiveTab('matriks')}
-            className={`flex-1 py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
               activeTab === 'matriks'
                 ? 'bg-slate-100 shadow-xs'
                 : 'text-slate-400 hover:text-slate-600 bg-transparent'
@@ -1213,7 +1213,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           <button
             type="button"
             onClick={() => setActiveTab('surat')}
-            className={`flex-1 py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
               activeTab === 'surat'
                 ? 'bg-slate-100 shadow-xs'
                 : 'text-slate-400 hover:text-slate-600 bg-transparent'
@@ -1242,7 +1242,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <UserCheck size={16} />
                 Siswa Masuk Hari Ini
               </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+              <span className="text-[10px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-[var(--ui-radius-pill)]">
                 {presentStudentsToday.length} Siswa
               </span>
             </div>
@@ -1287,7 +1287,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <ShieldAlert size={16} />
                 Siswa Terlambat Hari Ini
               </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full">
+              <span className="text-[10px] font-black px-2 py-0.5 bg-amber-100 text-amber-800 rounded-[var(--ui-radius-pill)]">
                 {lateStudentsToday.length} Siswa
               </span>
             </div>
@@ -1313,7 +1313,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           </span>
                           <Button variant="outline"
                             onClick={() =>handleCellClick(s, todayNum)}
-                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-xl flex items-center justify-center font-bold shadow-sm"
+                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-[var(--ui-radius-small)] flex items-center justify-center font-bold shadow-sm"
                           >
                             Ubah</Button>
                         </div>
@@ -1332,7 +1332,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <UserX size={16} />
                 Siswa Tidak Masuk Hari Ini
               </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-rose-100 text-rose-800 rounded-full">
+              <span className="text-[10px] font-black px-2 py-0.5 bg-rose-100 text-rose-800 rounded-[var(--ui-radius-pill)]">
                 {absentStudentsToday.length} Siswa
               </span>
             </div>
@@ -1367,7 +1367,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           </span>
                           <Button variant="outline"
                             onClick={() =>handleCellClick(s, todayNum)}
-                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-xl flex items-center justify-center font-bold shadow-sm"
+                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-[var(--ui-radius-small)] flex items-center justify-center font-bold shadow-sm"
                           >
                             Input Surat</Button>
                         </div>
@@ -1382,11 +1382,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       )}
 
       {/* Mobile Filter Card (Reference Layout matching media__1785568140000.png) */}
-      <div className="sm:hidden ui-card rounded-3xl p-4 shadow-sm border border-slate-100/90 flex flex-col gap-4">
+      <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-4 shadow-sm border border-slate-100/90 flex flex-col gap-4">
         {/* Top Row: Class Filter Label + Export Buttons */}
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
               <Users size={16} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
@@ -1403,7 +1403,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => handleExportPDF(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
               title="Export PDF"
             >
               PDF
@@ -1412,7 +1412,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => handleExport(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
               title="Export Excel"
             >
               XLS
@@ -1422,7 +1422,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
         {/* Form Grid 2x2 */}
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipe Laporan</label>
             <CustomSelect
               value={viewMode}
@@ -1434,7 +1434,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             />
           </div>
 
-          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Format</label>
             <CustomSelect
               value={exportMode}
@@ -1446,7 +1446,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             />
           </div>
 
-          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Bulan</label>
             <CustomSelect 
               value={filter.month} 
@@ -1455,7 +1455,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             />
           </div>
 
-          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tahun</label>
             <CustomSelect 
               value={filter.year} 
@@ -1466,7 +1466,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </div>
 
         {(!user?.isWalas || isKesiswaanOrAdmin) && (
-          <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
             <CustomSelect 
               value={filter.class_name} 
@@ -1480,7 +1480,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         )}
 
-        <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+        <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Urutkan Data</label>
           <div className="flex items-center gap-1.5 w-full min-w-0">
             <div className="flex-1 min-w-0">
@@ -1501,7 +1501,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
               title={sortDir === "asc" ? "Urutan Naik" : "Urutan Turun"}
-              className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+              className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${
                 sortDir === 'desc' 
                   ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
@@ -1516,7 +1516,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <button
           type="button"
           onClick={fetchData}
-          className="w-full py-3 rounded-2xl font-black text-xs text-white flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
+          className="w-full py-3 rounded-[var(--ui-radius-card)] font-black text-xs text-white flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
           style={{ background: "var(--ui-primary)" }}
         >
           <Wand2 size={16} strokeWidth={2.2} />
@@ -1538,16 +1538,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-[10px] font-extrabold no-scrollbar">
-          <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> HADIR
           </span>
-          <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> TELAT
           </span>
-          <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-blue-50 text-blue-700 border border-blue-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> IZIN/SKT
           </span>
-          <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> ALPA
           </span>
         </div>
@@ -1566,7 +1566,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 placeholder="Nama / NIS..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
               />
             </div>
           </div>
@@ -1630,7 +1630,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 type="button"
                 onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
                 title={sortDir === "asc" ? "Naik" : "Turun"}
-                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${
                   sortDir === 'desc' 
                     ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
@@ -1649,7 +1649,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <UISelect 
               value={exportMode}
               onChange={(e) => setExportMode(e.target.value)}
-              className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-xl bg-slate-50 font-bold focus:bg-white"
+              className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-[var(--ui-radius-small)] bg-slate-50 font-bold focus:bg-white"
             >
               <option value="summary">Ringkas (Status H/T/I/S/A)</option>
               <option value="detailed">Lengkap (Jam Masuk / Pulang)</option>
@@ -1684,7 +1684,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => setShowPrintModal(true)}
               disabled={loading || data.length === 0}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-md disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
             >
               <Printer size={14} className="shrink-0" />
               <span>Cetak Per Periode</span>
@@ -1763,7 +1763,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           </td>
                          <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
                          <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                         <td className="px-3 py-3 text-center font-black text-red-600 border-r border-slate-100">
+                         <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">
                              <div>{d.total_alpa || 0}</div>
                          </td>
                       {daysToRender.map((dayNum) => {
@@ -1870,7 +1870,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   {daysToRender.map(d => (
                     <td key={d} className="px-1 py-1.5 text-center border-r border-blue-200/80">
                       {dailyTotals.izin[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-blue-600 text-white font-black text-[10px] shadow-2xs">
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-2xs">
                           {dailyTotals.izin[d]}
                         </span>
                       ) : (
@@ -1936,7 +1936,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
        {/* Input Ketidakhadiran Modal */}
        {selectedCell && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-lg max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
+           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
              <div className="flex items-center justify-between p-4 border-b border-slate-100">
                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Input Ketidakhadiran</h3>
                <Button variant="outline" 
@@ -2031,10 +2031,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
        {/* Modal Cetak Laporan Per Periode */}
        {showPrintModal && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
-           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
              <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
                <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
                    <Printer size={18} />
                  </div>
                  <div>
@@ -2045,7 +2045,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                <button
                  type="button"
                  onClick={() => setShowPrintModal(false)}
-                 className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+                 className="w-7 h-7 rounded-[var(--ui-radius-small)] hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
                >
                  <X size={16} />
                </button>
@@ -2065,7 +2065,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                        key={item.id}
                        type="button"
                        onClick={() => setPrintPeriod(item.id)}
-                       className={`p-3 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
+                       className={`p-3 rounded-[var(--ui-radius-card)] text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
                          printPeriod === item.id 
                            ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-2xs font-bold ring-2 ring-indigo-500/20' 
                            : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
@@ -2082,12 +2082,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                </div>
 
                {printPeriod === 'harian' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
                    <select
                      value={printDate}
                      onChange={e => setPrintDate(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                        <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
@@ -2097,12 +2097,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                )}
 
                {printPeriod === 'mingguan' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
                    <select
                      value={printWeek}
                      onChange={e => setPrintWeek(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value={1}>Minggu ke-1 (Tgl 1 - 7)</option>
                      <option value={2}>Minggu ke-2 (Tgl 8 - 14)</option>
@@ -2114,12 +2114,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                )}
 
                {printPeriod === 'semester' && (
-                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
                    <select
                      value={printSemester}
                      onChange={e => setPrintSemester(e.target.value)}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-bold focus:outline-indigo-500"
+                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
                      <option value="genap">Semester Genap (Januari - Juni)</option>
@@ -2127,7 +2127,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  </div>
                )}
 
-               <div className="p-3 bg-indigo-50/60 rounded-2xl border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
+               <div className="p-3 bg-indigo-50/60 rounded-[var(--ui-radius-card)] border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
                  <CheckCircle2 size={15} className="shrink-0 text-indigo-600 mt-0.5" />
                  <span>Laporan akan dicetak lengkap dengan Kop Surat Sekolah, Rekapan Jumlah Harian (Hadir/Telat/Izin/Sakit/Alpa), serta Kolom Tanda Tangan Wali Kelas.</span>
                </div>
@@ -2138,14 +2138,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  variant="outline"
                  type="button"
                  onClick={() => setShowPrintModal(false)}
-                 className="px-4 py-2 rounded-xl text-xs font-bold"
+                 className="px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
                >
                  Batal
                </Button>
                <Button
                  type="button"
                  onClick={handlePrintPeriod}
-                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer"
+                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer"
                >
                  <Printer size={15} />
                  <span>Cetak Sekarang</span>
@@ -2157,7 +2157,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </>
       )}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}

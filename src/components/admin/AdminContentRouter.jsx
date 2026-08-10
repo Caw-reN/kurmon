@@ -403,7 +403,7 @@ export default function AdminContentRouter({ context }) {
                     </button>
                   );
                 }
-                return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
+                return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-red-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
                   <Trash2 size={14} />
                 </button>;
               })()}

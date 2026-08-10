@@ -14,19 +14,19 @@ export function GlobalAdminUI({ notification, setNotification, confirmDialog, se
         const isWarning = notification.includes("[WARNING]") || lower.includes("peringatan") || lower.includes("perhatian") || lower.includes("wajib") || lower.includes("harus") || lower.includes("belum") || lower.includes("tidak boleh") || (notification.includes("⚠️") && !isError);
         const isSuccess = notification.includes("[SUCCESS]") || notification.includes("✅") || lower.includes("berhasil") || lower.includes("disimpan") || lower.includes("ditambahkan") || lower.includes("selesai");
         let IconToUse = Info;
-        let colorClass ="bg-white border-slate-200 text-slate-800 shadow-lg";
+        let colorClass ="bg-white border-slate-200 text-slate-800 shadow-sm";
         let iconClass ="text-blue-500";
         if (isError) {
           IconToUse = AlertCircle;
-          colorClass ="bg-red-50 border-red-200 text-red-800 shadow-lg";
-          iconClass ="text-red-600";
+          colorClass ="bg-red-50 border-red-200 text-red-800 shadow-sm";
+          iconClass ="text-rose-600";
         } else if (isWarning) {
           IconToUse = AlertCircle;
-          colorClass ="bg-amber-50 border-amber-200 text-amber-800 shadow-lg";
+          colorClass ="bg-amber-50 border-amber-200 text-amber-800 shadow-sm";
           iconClass ="text-amber-600";
         } else if (isSuccess) {
           IconToUse = CheckCircle2;
-          colorClass ="bg-emerald-50 border-emerald-200 text-emerald-800 shadow-lg";
+          colorClass ="bg-emerald-50 border-emerald-200 text-emerald-800 shadow-sm";
           iconClass ="text-emerald-600";
         }
         const cleanMsg = notification
@@ -34,7 +34,7 @@ export function GlobalAdminUI({ notification, setNotification, confirmDialog, se
           .replace(/(✅|⚠️|❌|🗑️|✏️|🚀|⚙️|🔄|💾|👥|🏫|📅)/gu,"")
           .trim();
         return (
-          <div className={cn("fixed bottom-6 right-6 z-[99999] flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg max-w-md bg-white","animate-in slide-in-from-bottom-3 fade-in duration-200",
+          <div className={cn("fixed bottom-6 right-6 z-[99999] flex items-center gap-3 px-4 py-3 rounded-[var(--ui-radius-small)] border shadow-sm max-w-md bg-white","animate-in slide-in-from-bottom-3 fade-in duration-200",
             colorClass
           )}>
             <IconToUse size={18} className={cn("shrink-0", iconClass)} />

@@ -306,7 +306,7 @@ export default function SystemModals({
         title={`Edit Profil Akun`}
       >
         {/* Password Policy Banner */}
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-5 text-xs text-slate-650 space-y-1.5">
+        <div className="bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] p-4 mb-5 text-xs text-slate-650 space-y-1.5">
           <p className="font-black uppercase tracking-widest text-[9px] text-slate-550 mb-2 flex items-center gap-1.5">
             <Lock size={12} className="text-[var(--ui-primary)]" /> Kebijakan Keamanan Password:
           </p>
@@ -365,7 +365,7 @@ export default function SystemModals({
               />
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 border-t border-slate-100 mt-4">
-              <div className="text-red-500 font-bold text-xs text-left max-w-[280px]">
+              <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
                 {pwError && `⚠️ ${pwError}`}
               </div>
               <div className="flex gap-3 w-full sm:w-auto justify-end">
@@ -413,7 +413,7 @@ export default function SystemModals({
               />
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 border-t border-slate-100 mt-4">
-              <div className="text-red-500 font-bold text-xs text-left max-w-[280px]">
+              <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
                 {pwError && `⚠️ ${pwError}`}
               </div>
               <div className="flex gap-3 w-full sm:w-auto justify-end">
@@ -460,7 +460,7 @@ export default function SystemModals({
       >
         <div className="p-6 w-full max-w-md space-y-4 font-sans">
           <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
               <Lock size={22} />
             </div>
             <div>
@@ -469,14 +469,14 @@ export default function SystemModals({
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs font-medium text-amber-900 leading-relaxed">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-amber-50/80 border border-amber-200 text-xs font-medium text-amber-900 leading-relaxed">
             Data ini dikunci oleh sistem dan <strong className="font-bold">tidak dapat dihapus</strong> karena sedang terhubung dengan data di modul lain:
           </div>
 
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {Array.isArray(modalConfig.data?.deps) && modalConfig.data.deps.length > 0 ? (
               modalConfig.data.deps.map((dep, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-800">
+                <div key={i} className="flex items-center justify-between p-3 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-800">
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                     <span>{typeof dep === 'object' ? dep.name || dep.title : dep}</span>
@@ -491,7 +491,7 @@ export default function SystemModals({
             )}
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-100/70 border border-slate-200 text-[11px] text-slate-600 font-medium leading-normal">
+          <div className="p-3 rounded-[var(--ui-radius-small)] bg-slate-100/70 border border-slate-200 text-[11px] text-slate-600 font-medium leading-normal">
             💡 <strong>Petunjuk:</strong> Untuk menghapus data ini, Anda harus melepaskan atau menghapus koneksi pada modul terkait di atas terlebih dahulu.
           </div>
 

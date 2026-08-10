@@ -159,7 +159,7 @@ export function useAdminTableRenderer(context) {
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
         {actualPageHeader}
-        <section className="rounded-xl bg-card ring-1 ring-foreground/10 flex flex-col flex-1 overflow-hidden">
+        <section className="rounded-[var(--ui-radius-small)] bg-card ring-1 ring-foreground/10 flex flex-col flex-1 overflow-hidden">
           {options.customTabs && (
             <div className="px-4 pt-4 pb-2 border-b border-border bg-muted/30">
               {options.customTabs}
@@ -427,7 +427,7 @@ export function useAdminTableRenderer(context) {
                   <button
                     type="button"
                     onClick={() => setShowRowsDropdown(!showRowsDropdown)}
-                    className="h-6 rounded-lg border border-border bg-card px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer select-none"
+                    className="h-6 rounded-[var(--ui-radius-small)] border border-border bg-card px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer select-none"
                   >
                     <span>{itemsPerPage} baris</span>
                     <span className="text-[8px] text-slate-400">▼</span>
@@ -439,7 +439,7 @@ export function useAdminTableRenderer(context) {
                         className="fixed inset-0 z-40 bg-transparent" 
                         onClick={() => setShowRowsDropdown(false)}
                       />
-                      <div className="absolute left-0 bottom-7 min-w-[90px] bg-card border border-slate-200/60 shadow-lg rounded-xl p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
+                      <div className="absolute left-0 bottom-7 min-w-[90px] bg-card border border-slate-200/60 shadow-sm rounded-[var(--ui-radius-small)] p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
                         {[20, 50, 100].map(val => (
                           <button
                             key={val}
@@ -449,7 +449,7 @@ export function useAdminTableRenderer(context) {
                               setTablePage(1);
                               setShowRowsDropdown(false);
                             }}
-                            className={cn("w-full text-left px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer",
+                            className={cn("w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-colors cursor-pointer",
                               itemsPerPage === val 
                                 ?"bg-primary text-white" 
                                 :"text-slate-600 hover:bg-slate-50 hover:text-slate-800"

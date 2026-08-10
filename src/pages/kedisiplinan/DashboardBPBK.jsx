@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
-import { StatCard } from '../../components/monitoring/ui/index.js';
+import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import * as XLSX from 'xlsx';
 
@@ -327,7 +327,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
     <div className="flex flex-col gap-5 w-full pb-10">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 ${
+        <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 ${
           toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
@@ -335,14 +335,21 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
         </div>
       )}
 
+      {/* ── Page Header ────────────────────────────────────────── */}
+      <PageHeader 
+        title="Bimbingan & Konseling" 
+        subtitle="Sistem Peringatan Dini, Manajemen Konseling & Dossier 360°"
+        icon={ShieldAlert}
+      />
+
       {/* ── Sub Navigation Tabs ────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-200/70">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/70">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setSubTab('ews')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'ews'
-                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -351,25 +358,25 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </button>
           <button
             onClick={() => setSubTab('konseling')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'konseling'
-                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100'
             }`}
           >
             <HeartHandshake size={15} />
             <span>Sesi Konseling</span>
             {bkSessions.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono">
+              <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] bg-white/20 text-white font-mono">
                 {bkSessions.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setSubTab('surat')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'surat'
-                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -378,9 +385,9 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </button>
           <button
             onClick={() => setSubTab('dossier')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'dossier'
-                ? 'bg-[var(--ui-primary)] text-white shadow-md'
+                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -406,7 +413,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               });
               setShowSessionModal(true);
             }}
-            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-xl"
+            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)]"
           >
             <Plus size={15} strokeWidth={2.5} />
             <span>Catat Konseling</span>
@@ -456,7 +463,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           {/* Early Warning System & Category Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Left Col: EWS List */}
-            <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+            <div className="lg:col-span-2 bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
@@ -470,8 +477,8 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               </div>
 
               {highRiskStudents.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-gradient-to-b from-slate-50/50 to-emerald-50/20 rounded-xl border border-slate-100/80 my-1">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-2xs">
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-gradient-to-b from-slate-50/50 to-emerald-50/20 rounded-[var(--ui-radius-card)] border border-slate-100/80 my-1">
+                  <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-2xs">
                     <ShieldCheck size={28} strokeWidth={2.2} />
                   </div>
                   <div className="max-w-md space-y-1">
@@ -486,10 +493,10 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                   {highRiskStudents.slice(0, 8).map(st => (
                     <div 
                       key={st.nis}
-                      className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3"
+                      className="p-3.5 rounded-[var(--ui-radius-small)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-2xs ${
+                        <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center font-black text-sm shadow-2xs ${
                           st.total_poin >= 75 ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
                         }`}>
                           {st.total_poin}
@@ -497,7 +504,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                         <div>
                           <div className="font-bold text-slate-800 text-xs flex items-center gap-2">
                             <span>{st.name}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white font-black text-slate-500 border border-slate-200">
+                            <span className="text-[10px] px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white font-black text-slate-500 border border-slate-200">
                               {st.class_name || 'Tanpa Kelas'}
                             </span>
                           </div>
@@ -513,7 +520,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                             setFormLetter({ student_nis: st.nis, letter_type: st.total_poin >= 75 ? 'SP 1' : 'Panggilan Orang Tua', reason: `Akumulasi poin kedisiplinan mencapai ${st.total_poin} poin.` });
                             setShowLetterModal(true);
                           }}
-                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all border border-rose-200/70 cursor-pointer flex items-center gap-1"
+                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-rose-200/70 cursor-pointer flex items-center gap-1 shadow-2xs"
                         >
                           <FileText size={13} />
                           <span>{st.total_poin >= 75 ? 'Terbit SP' : 'Surat Ortu'}</span>
@@ -521,7 +528,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
                         <button
                           onClick={() => openDossier(st)}
-                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                         >
                           <Eye size={13} />
                           <span>Lihat Dossier</span>
@@ -534,7 +541,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
             </div>
 
             {/* Right Col: Category Distribution & Quick Action */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+            <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2 pb-3 border-b border-slate-100">
                 <TrendingUp size={17} className="text-[var(--ui-primary)]" />
                 Distribusi Kategori Konseling
@@ -568,14 +575,14 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => { setShowVisitModal(true); }}
-                    className="p-2.5 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold text-xs border border-sky-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+                    className="p-2.5 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold text-xs border border-sky-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
                   >
                     <Home size={14} />
                     <span>Catat Home Visit</span>
                   </button>
                   <button
                     onClick={() => { setShowLetterModal(true); }}
-                    className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs border border-emerald-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+                    className="p-2.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs border border-emerald-200/70 cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
                   >
                     <Printer size={14} />
                     <span>Surat Ortu</span>
@@ -591,7 +598,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       {subTab === 'konseling' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
           {/* Search & Filters */}
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="bg-white p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="relative w-full md:w-80">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -599,7 +606,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Cari nama siswa / deskripsi..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
@@ -631,7 +638,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </div>
 
           {/* Sessions Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -662,7 +669,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                           <div className="text-[10px] text-slate-400 font-bold">{ses.class_name || 'NIS: ' + ses.student_nis}</div>
                         </td>
                         <td className="px-3 py-3">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">
+                          <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black bg-slate-100 text-slate-700">
                             {ses.category}
                           </span>
                         </td>
@@ -674,7 +681,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                           {ses.solution && <div className="text-[10px] text-slate-400 truncate" title={ses.solution}>Solusi: {ses.solution}</div>}
                         </td>
                         <td className="px-3 py-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                          <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black ${
                             ses.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' :
                             ses.status === 'Follow-up' ? 'bg-amber-100 text-amber-800' :
                             'bg-sky-100 text-sky-800'
@@ -702,14 +709,14 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                                 });
                                 setShowSessionModal(true);
                               }}
-                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all border-none cursor-pointer"
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer shadow-2xs bg-white"
                               title="Edit Sesi"
                             >
                               <FileText size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteSession(ses.id)}
-                              className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-lg transition-all border-none cursor-pointer"
+                              className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer shadow-2xs bg-white"
                               title="Hapus Sesi"
                             >
                               <Trash2 size={14} />
@@ -739,7 +746,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       {subTab === 'surat' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-in fade-in duration-200">
           {/* Left: Home Visit Log */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
                 <Home size={17} className="text-sky-600" />
@@ -761,7 +768,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 </div>
               ) : (
                 homeVisits.map(hv => (
-                  <div key={hv.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
+                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
                       <span className="font-extrabold text-slate-800 text-xs">{hv.student_name || 'Siswa'}</span>
                       <span className="text-[10px] font-bold text-slate-400">
@@ -782,7 +789,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </div>
 
           {/* Right: Printed Letters Log */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
                 <FileText size={17} className="text-emerald-600" />
@@ -804,11 +811,11 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 </div>
               ) : (
                 bkLetters.map(lettr => (
-                  <div key={lettr.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
+                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-slate-800 text-xs">{lettr.student_name || 'Siswa'}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800">
+                        <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black bg-emerald-100 text-emerald-800">
                           {lettr.letter_type}
                         </span>
                       </div>
@@ -832,7 +839,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       {subTab === 'dossier' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
           {/* Header Action Bar */}
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div className="bg-white p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="relative w-full sm:w-80">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -840,7 +847,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Cari siswa untuk lihat berkas 360°..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
@@ -858,7 +865,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           </div>
 
           {/* Student Dossier Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -888,7 +895,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                           {s.total_poin}
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                          <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black ${
                             s.risk_level === 'Tinggi' ? 'bg-rose-100 text-rose-800' :
                             s.risk_level === 'Sedang' ? 'bg-amber-100 text-amber-800' :
                             'bg-emerald-100 text-emerald-800'
@@ -985,7 +992,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Tuliskan gambaran permasalahan siswa..."
                 value={formSession.problem}
                 onChange={e => setFormSession({ ...formSession, problem: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
@@ -996,7 +1003,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Rencana tindak lanjut / komitmen siswa..."
                 value={formSession.solution}
                 onChange={e => setFormSession({ ...formSession, solution: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
@@ -1038,7 +1045,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 type="date"
                 value={formVisit.visit_date}
                 onChange={e => setFormVisit({ ...formVisit, visit_date: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none"
               />
             </div>
 
@@ -1049,7 +1056,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Tuliskan hasil diskusi dengan orang tua/wali..."
                 value={formVisit.result}
                 onChange={e => setFormVisit({ ...formVisit, result: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
               />
             </div>
 
@@ -1106,7 +1113,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Tuliskan alasan/keterangan pemanggilan..."
                 value={formLetter.reason}
                 onChange={e => setFormLetter({ ...formLetter, reason: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
               />
             </div>
 
@@ -1130,7 +1137,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           title={`Berkas 360° BK — ${dossierStudent.name}`}
         >
           <div className="flex flex-col gap-4 max-h-[500px] overflow-y-auto pr-1">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center">
+            <div className="p-3 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 flex justify-between items-center">
               <div>
                 <div className="font-black text-slate-800 text-sm">{dossierStudent.name}</div>
                 <div className="text-xs text-slate-500 font-bold">Kelas: {dossierStudent.class_name || '-'} • NIS: {dossierStudent.nis}</div>
@@ -1149,7 +1156,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               ) : (
                 <div className="flex flex-col gap-2">
                   {dossierStudent.riwayat_list.map((r, i) => (
-                    <div key={i} className="p-2.5 rounded-lg border border-slate-100 bg-white text-xs flex justify-between items-center">
+                    <div key={i} className="p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100 bg-white text-xs flex justify-between items-center shadow-2xs">
                       <div>
                         <div className="font-bold text-slate-800">{r.tindakan_nama}</div>
                         <div className="text-[10px] text-slate-400">{new Date(r.tanggal).toLocaleDateString('id-ID')}</div>
@@ -1169,7 +1176,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               ) : (
                 <div className="flex flex-col gap-2">
                   {bkSessions.filter(s => s.student_nis === dossierStudent.nis).map((ses, i) => (
-                    <div key={i} className="p-2.5 rounded-lg border border-slate-100 bg-white text-xs flex flex-col gap-1">
+                    <div key={i} className="p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100 bg-white text-xs flex flex-col gap-1 shadow-2xs">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-slate-800">{ses.category} ({ses.status})</span>
                         <span className="text-[10px] text-slate-400">{new Date(ses.session_date).toLocaleDateString('id-ID')}</span>

@@ -23,6 +23,17 @@ const ensureFaviconTag = () => {
   return tag;
 };
 
+const isColorDark = (hexColor) => {
+  if (!hexColor || typeof hexColor !== "string") return false;
+  const hex = hexColor.replace("#", "");
+  if (hex.length !== 6) return false;
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq < 135;
+};
+
 export const applyDocumentBranding = (settings = {}) => {
   if (typeof document === "undefined") return;
 
@@ -67,6 +78,19 @@ export const applyDocumentBranding = (settings = {}) => {
     root.style.setProperty('--ui-text', settings.textColor);
     root.style.setProperty('--foreground', settings.textColor);
   }
+  if (settings.surfaceColor) {
+    root.style.setProperty('--ui-surface', settings.surfaceColor);
+    root.style.setProperty('--card', settings.surfaceColor);
+    root.style.setProperty('--popover', settings.surfaceColor);
+  }
+
+  // Smart Contrast for Card / Header Text
+  const surfaceHex = settings.surfaceColor || '#ffffff';
+  const cardIsDark = isColorDark(surfaceHex);
+  const cardText = settings.cardTextColor || (cardIsDark ? '#f8fafc' : (settings.textColor || '#0f172a'));
+  const cardMuted = cardIsDark ? 'rgba(248, 250, 252, 0.75)' : 'rgba(15, 23, 42, 0.65)';
+  root.style.setProperty('--card-foreground', cardText);
+  root.style.setProperty('--card-muted', cardMuted);
   if (settings.uiRadius) {
     // Map radius settings from Tampilan WEB (sm, md, lg, full) to px sizes
     let radiusControl = '16px';
@@ -119,8 +143,10 @@ export const applyDocumentBranding = (settings = {}) => {
     else if (settings.fontSizeScale === "besar") size = "15.5px";
     else if (settings.fontSizeScale === "sangat-besar") size = "17px";
     root.style.fontSize = size;
+    root.style.setProperty('--ui-font-size', size);
   } else {
     root.style.fontSize = "14px";
+    root.style.setProperty('--ui-font-size', "14px");
   }
 
   // Accessibility Touch Targets
@@ -195,15 +221,25 @@ export const applyDocumentBranding = (settings = {}) => {
   }
 
   // Button Style Classes
-  root.classList.remove("btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient");
+  root.classList.remove("btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient", "btn-style-flat");
   if (settings.buttonStyle === "outline") {
     root.classList.add("btn-style-outline");
   } else if (settings.buttonStyle === "shadow") {
     root.classList.add("btn-style-shadow");
   } else if (settings.buttonStyle === "gradient") {
     root.classList.add("btn-style-gradient");
+  } else if (settings.buttonStyle === "flat") {
+    root.classList.add("btn-style-flat");
   } else {
     root.classList.add("btn-style-solid");
+  }
+
+  // Layout Mode Classes
+  root.classList.remove("layout-boxed", "layout-full");
+  if (settings.layoutMode === "boxed") {
+    root.classList.add("layout-boxed");
+  } else {
+    root.classList.add("layout-full");
   }
 
   // Dynamic Print Size (A4 / F4)

@@ -168,7 +168,7 @@ export default function JadwalPiket({ teachers = [] }) {
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm border flex items-center gap-3 transition-all ${
           toast.type ==="success" ?"bg-emerald-50 border-emerald-200 text-emerald-800" :"bg-red-50 border-red-200 text-red-800"
         }`}>
-          {toast.type ==="success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-red-500"/>}
+          {toast.type ==="success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-rose-500"/>}
           <p className="font-bold text-sm">{toast.message}</p>
         </div>
       )}
@@ -187,13 +187,13 @@ export default function JadwalPiket({ teachers = [] }) {
          </div>
          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Pilih Kampus:</label>
-            <div className="flex bg-slate-100/90 p-1 rounded-xl w-full sm:w-auto border border-slate-200/60">
+            <div className="flex bg-slate-100/90 p-1 rounded-[var(--ui-radius-small)] w-full sm:w-auto border border-slate-200/60">
                {["Kampus A", "Kampus B"].map(k => (
                   <Button variant="outline" 
                      key={k} 
                      type="button"
                      onClick={() => setFilterKampus(k)}
-                     className={`flex-1 sm:flex-initial text-xs font-black py-1.5 px-4 rounded-lg transition-all cursor-pointer border-none ${filterKampus === k ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'}`}
+                     className={`flex-1 sm:flex-initial text-xs font-black py-1.5 px-4 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none ${filterKampus === k ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'}`}
                   >
                      {k}
                   </Button>
@@ -311,7 +311,7 @@ export default function JadwalPiket({ teachers = [] }) {
                    placeholder="Cari nama atau kode guru..."
                    value={searchGuru}
                    onChange={(e) => setSearchGuru(e.target.value)}
-                   className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
+                   className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
                  />
                  {searchGuru && (
                    <button type="button" onClick={() => setSearchGuru('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -342,7 +342,7 @@ export default function JadwalPiket({ teachers = [] }) {
                               type="button"
                               key={t.code}
                               onClick={() => toggleTeacher(t.code)}
-                              className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer border ${
+                              className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-[var(--ui-radius-small)] transition-colors cursor-pointer border ${
                                 isSelected 
                                   ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs" 
                                   : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700"
@@ -356,7 +356,7 @@ export default function JadwalPiket({ teachers = [] }) {
                   })()}
                </div>
                {form.guru_ids && form.guru_ids.filter(id => !teachers.find(t => t.code === id)).length > 0 && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-rose-600">
                     <AlertTriangle size={14} className="inline mr-1" />
                     Terdeteksi data guru tidak valid. Silakan uncheck semua atau hapus jadwal ini.
                     <div className="mt-1 flex flex-wrap gap-1">
@@ -390,7 +390,7 @@ export default function JadwalPiket({ teachers = [] }) {
             )}
             
             {errorMsg && (
-              <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
                 <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                 <span className="leading-relaxed">{errorMsg}</span>
               </div>

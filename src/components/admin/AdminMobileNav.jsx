@@ -168,7 +168,7 @@ export default function AdminMobileNav({
             onClick={() => {
               setActiveTab(tab.id);
             }}
-            className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-95 ${
+            className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-[var(--ui-radius-card)] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-95 ${
               isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >

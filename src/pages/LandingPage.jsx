@@ -113,13 +113,13 @@ export default function LandingPage() {
     if (!showRulesModal) return null;
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
           
           {/* Header */}
           <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
             <div className="text-left">
               <h3 className="font-black text-slate-800 text-[16px] tracking-tight flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 flex items-center justify-center text-rose-500">
                   <ShieldCheck size={18} strokeWidth={2.5} />
                 </div>
                 Peraturan &amp; Tata Tertib Sekolah
@@ -235,7 +235,7 @@ export default function LandingPage() {
                             <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                               <td className="px-5 py-3.5 align-middle break-words text-slate-700 text-[12px]">{r.nama_tindakan}</td>
                               <td className="px-5 py-3.5 text-center align-middle">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-extrabold border ${
+                                <span className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-extrabold border ${
                                   isPrestasi
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                     : 'bg-rose-50 text-rose-600 border-rose-100'
@@ -702,12 +702,12 @@ export default function LandingPage() {
             <h2 className="text-lg font-extrabold text-slate-800 uppercase tracking-tight mt-0.5">JURUSAN / PROGRAM</h2>
           </div>
 
-          <div className="relative w-full h-[115px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-md border border-slate-100 bg-white">
+          <div className="relative w-full h-[115px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 bg-white">
             {partners.map((partner, index) => {
               const isActive = index === activeSlide % (partners.length || 1);
               const rawColor = partner.color ||"blue";
               const colorMap = {
-                red:"bg-red-500",
+                red:"bg-rose-500",
                 blue:"bg-blue-600",
                 emerald:"bg-emerald-500",
                 purple:"bg-purple-600",
@@ -731,13 +731,13 @@ export default function LandingPage() {
                   <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
 
                   {/* Logo/Icon overlapping right bottom */}
-                  <div className="absolute right-3.5 bottom-3.5 pointer-events-none z-20 drop-shadow-md">
+                  <div className="absolute right-3.5 bottom-3.5 pointer-events-none z-20 drop-shadow-xs">
                     {imageSrc ? (
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1.5 shadow-md">
+                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1.5 shadow-xs">
                         <img src={imageSrc} alt={partner.name} className="w-full h-full object-contain rounded-[var(--ui-radius-small)]" />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-slate-800 p-2 shadow-md">
+                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-slate-800 p-2 shadow-xs">
                         <IconComponent className="w-full h-full opacity-90" strokeWidth={1.5} />
                       </div>
                     )}
@@ -949,7 +949,7 @@ export default function LandingPage() {
                     className="flex flex-col items-center justify-center gap-2.5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer bg-transparent border-none py-1 group w-full relative mx-auto"
                   >
                     <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
+                      className="w-12 h-12 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
                       style={{ 
                         backgroundColor: hexToRgba(activeColor, 0.08),
                         border: `1px solid ${hexToRgba(activeColor, 0.12)}`
@@ -992,7 +992,7 @@ export default function LandingPage() {
 
                 const rawColor = appSettings[`partnerColor${idx}`] || ["orange","blue","emerald","pink"][idx - 1] ||"blue";
                 const colorMap = {
-                  red:"bg-red-500",
+                  red:"bg-rose-500",
                   blue:"bg-blue-600",
                   emerald:"bg-emerald-500",
                   purple:"bg-purple-600",
@@ -1005,7 +1005,7 @@ export default function LandingPage() {
                 const imageSrc = appSettings[`partnerImage${idx}`];
 
                 return (
-                  <div key={idx} className="group relative rounded-[var(--ui-radius-small)] p-3 lg:p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-24 lg:h-28 w-full z-10">
+                  <div key={idx} className="group relative rounded-[var(--ui-radius-small)] p-3 lg:p-4 shadow-sm hover:shadow-xs transition-all duration-300 flex flex-col justify-between h-24 lg:h-28 w-full z-10">
 
                     <div 
                       className={`absolute inset-0 rounded-[var(--ui-radius-small)] overflow-hidden shadow-inner -z-10 ${bgColorClass}`}
@@ -1023,10 +1023,10 @@ export default function LandingPage() {
 
                     <div className="relative z-10 pr-10 text-white flex flex-col text-left">
                       <span className="text-[8px] font-black uppercase tracking-wider opacity-85 mb-0.5">Keahlian</span>
-                      <h4 className="text-[12px] lg:text-[13px] font-black leading-tight drop-shadow-md group-hover:-translate-y-0.5 transition-transform">{name}</h4>
+                      <h4 className="text-[12px] lg:text-[13px] font-black leading-tight drop-shadow-xs group-hover:-translate-y-0.5 transition-transform">{name}</h4>
                     </div>
 
-                    <div className="absolute -right-3 -bottom-4 lg:-right-4 lg:-bottom-5 pointer-events-none z-20 group-hover:-translate-y-3 group-hover:scale-110 transition-transform duration-500 drop-shadow-md">
+                    <div className="absolute -right-3 -bottom-4 lg:-right-4 lg:-bottom-5 pointer-events-none z-20 group-hover:-translate-y-3 group-hover:scale-110 transition-transform duration-500 drop-shadow-xs">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} className="w-16 h-16 lg:w-20 lg:h-20 object-contain" />
                       ) : (
@@ -1084,7 +1084,7 @@ export default function LandingPage() {
           onClick={() => setIsLoginModalOpen(true)} 
           data-slot="button"
           data-variant="primary"
-          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
+          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
           style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
         >
           Masuk Sekarang
@@ -1119,7 +1119,7 @@ export default function LandingPage() {
 
 // ── Beautiful SVG Illustration for"Butuh Panduan" banner
 const StudentIllustration = () => (
-  <svg viewBox="0 0 100 100" className="w-24 h-24 drop-shadow-md">
+  <svg viewBox="0 0 100 100" className="w-24 h-24 drop-shadow-xs">
     {/* Head */}
     <circle cx="50" cy="35" r="14" fill="#FDBA74" />
     {/* Cap/Hair */}
@@ -1203,7 +1203,7 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 
       {/* Sheet/Modal Drawer */}
-      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
+      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-xs border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
         {/* iOS/Android drag handle bar - hidden on desktop */}
         <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0 md:hidden"></div>
 
@@ -1355,7 +1355,7 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 
       {/* Sheet/Modal Drawer */}
-      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10 max-h-[85vh]">
+      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-xs border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10 max-h-[85vh]">
         {/* iOS/Android drag handle bar - hidden on desktop */}
         <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0 md:hidden"></div>
 
@@ -1414,7 +1414,7 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 border border-slate-155 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
               >
-                <div className="w-8.5 h-8.5 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                   <MessageSquare size={16} strokeWidth={2.2} />
                 </div>
                 <div>
@@ -1429,7 +1429,7 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
                 href={`mailto:${contactEmail}`}
                 className="flex items-center gap-3 p-3 border border-slate-155 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
               >
-                <div className="w-8.5 h-8.5 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                   <Mail size={16} strokeWidth={2.2} />
                 </div>
                 <div>

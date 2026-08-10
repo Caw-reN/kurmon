@@ -289,7 +289,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                       <ImageIcon size={16} className="opacity-50" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleRemove(index)}  title="Hapus Data">
+                  <Button variant="ghost" size="icon" className="text-rose-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleRemove(index)}  title="Hapus Data">
                     <Trash2 size={16} />
                   </Button>
                 </div>

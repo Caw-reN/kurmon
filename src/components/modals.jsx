@@ -266,7 +266,7 @@ export function TeacherCompetencyModal({
           placeholder="Cari mata pelajaran, jurusan, atau tingkat kelas..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
+          className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)] focus:bg-white transition-colors"
         />
         {searchTerm && (
           <button type="button" onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">

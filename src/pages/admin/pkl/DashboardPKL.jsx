@@ -88,7 +88,7 @@ const DashboardPKL = () => {
   if (error) return (
     <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
       <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-        <AlertTriangle size={22} className="text-red-500" />
+        <AlertTriangle size={22} className="text-rose-500" />
       </div>
       <p className="text-sm font-semibold text-slate-700">{error}</p>
       <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={fetchData} >
@@ -142,7 +142,7 @@ const DashboardPKL = () => {
         <div className="xl:col-span-2 ui-card overflow-hidden flex flex-col h-[500px]">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10 shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 flex items-center justify-center text-indigo-600">
                 <MapIcon size={18} />
               </div>
               <div>
@@ -150,7 +150,7 @@ const DashboardPKL = () => {
                 <p className="text-xs font-semibold text-slate-400">Sebaran penempatan Praktek Kerja Lapangan siswa.</p>
               </div>
             </div>
-            <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
+            <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-[var(--ui-radius-pill)] border border-indigo-100">
               {locationsWithCoords.length} Titik Lokasi
             </span>
           </div>
@@ -193,7 +193,7 @@ const DashboardPKL = () => {
               <h3 className="font-black text-slate-800 text-sm tracking-tight">Aktivitas Terkini</h3>
             </div>
             {pendingJurnals.length > 0 && (
-              <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
+              <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-[var(--ui-radius-pill)] border border-amber-100">
                 Perlu Review
               </span>
             )}

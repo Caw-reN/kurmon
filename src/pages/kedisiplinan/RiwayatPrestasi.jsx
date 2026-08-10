@@ -256,7 +256,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
 
       {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
           <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <Trophy size={24} />
           </div>
@@ -267,7 +267,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
           <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <Award size={24} />
           </div>
@@ -278,7 +278,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
           <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-2xs">
             <TrendingUp size={24} />
           </div>
@@ -336,7 +336,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
             <div className="p-8 text-center text-slate-400 text-xs font-semibold">Memuat data prestasi...</div>
           ) : paginatedPrestasi.length === 0 ? (
             <div className="p-10 text-center text-slate-400 space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto">
                 <Trophy size={24} />
               </div>
               <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
@@ -350,7 +350,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 <div key={item.id} className="p-4 hover:bg-slate-50/50 transition-colors space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 border border-amber-200/80 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                      <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-100/70 text-amber-700 border border-amber-200/80 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
                         {sInfo.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
@@ -359,12 +359,12 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       </div>
                     </div>
                     
-                    <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full border ${badgeStyle} shrink-0`}>
+                    <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border ${badgeStyle} shrink-0`}>
                       {item.tingkat}
                     </span>
                   </div>
 
-                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5">
+                  <div className="bg-slate-50/80 rounded-[var(--ui-radius-card)] p-3 border border-slate-200/70 space-y-1.5">
                     <p className="font-black text-xs text-slate-800">{item.nama_prestasi}</p>
                     {item.peringkat && (
                       <div className="flex items-center gap-1.5">
@@ -396,7 +396,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                        className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                         title="Edit Prestasi"
                       >
                         <Edit2 size={13} />
@@ -404,7 +404,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       <button
                         type="button"
                         onClick={() => setDeleteTarget(item)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                         title="Hapus Prestasi"
                       >
                         <Trash2 size={13} />
@@ -438,7 +438,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               ) : filteredPrestasi.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-16 text-center text-slate-400 space-y-2">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-2xs">
+                    <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-2xs">
                       <Trophy size={28} />
                     </div>
                     <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
@@ -453,7 +453,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 shrink-0">
+                          <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 shrink-0">
                             {sInfo.name.charAt(0)}
                           </div>
                           <div>
@@ -475,11 +475,11 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       <td className="px-5 py-3.5">
                         <div className="flex flex-col items-center gap-1">
                           {item.peringkat && (
-                            <span className="px-2.5 py-0.5 bg-amber-100/80 text-amber-800 border border-amber-200/80 rounded-full text-[10px] font-black shadow-2xs">
+                            <span className="px-2.5 py-0.5 bg-amber-100/80 text-amber-800 border border-amber-200/80 rounded-[var(--ui-radius-pill)] text-[10px] font-black shadow-2xs">
                               {item.peringkat}
                             </span>
                           )}
-                          <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
+                          <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border ${badgeStyle}`}>
                             {item.tingkat}
                           </span>
                         </div>
@@ -502,7 +502,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                           <button
                             type="button"
                             onClick={() => handleEdit(item)}
-                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
+                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                             title="Edit Data"
                           >
                             <Edit2 size={13} />
@@ -510,7 +510,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(item)}
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border-none bg-transparent cursor-pointer"
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
                             title="Hapus Data"
                           >
                             <Trash2 size={13} />
@@ -565,7 +565,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 type="text" 
                 value={formData.nama_prestasi}
                 onChange={e => setFormData({ ...formData, nama_prestasi: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
                 placeholder="Contoh: Juara 1 Lomba LKS RPL" 
               />
             </div>
@@ -576,7 +576,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 type="text" 
                 value={formData.peringkat}
                 onChange={e => setFormData({ ...formData, peringkat: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
                 placeholder="Contoh: Juara 1, Medali Emas" 
               />
             </div>
@@ -604,7 +604,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 type="text" 
                 value={formData.penyelenggara}
                 onChange={e => setFormData({ ...formData, penyelenggara: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
                 placeholder="Contoh: Kemendikbudristek" 
               />
             </div>
@@ -616,7 +616,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 type="date" 
                 value={formData.tanggal_prestasi}
                 onChange={e => setFormData({ ...formData, tanggal_prestasi: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
               />
             </div>
           </div>
@@ -627,7 +627,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               rows="3"
               value={formData.keterangan}
               onChange={e => setFormData({ ...formData, keterangan: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold resize-none"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold resize-none"
               placeholder="Tulis rincian prestasi, skor, anggota tim jika beregu..."
             />
           </div>
@@ -636,13 +636,13 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
             <button 
               type="button" 
               onClick={() => setShowModal(false)}
-              className="py-2 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button 
               type="submit"
-              className="py-2 px-4 rounded-xl font-black text-xs bg-amber-600 hover:bg-amber-700 text-white transition-colors cursor-pointer shadow-xs"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-amber-600 hover:bg-amber-700 text-white transition-colors cursor-pointer shadow-xs"
             >
               {isEditing ? "Simpan Perubahan" : "Catat Prestasi"}
             </button>
@@ -653,7 +653,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       {/* VERIFIKASI HAPUS MODAL */}
       <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Konfirmasi Hapus Prestasi" maxWidth="max-w-md">
         <div className="space-y-4 text-xs font-semibold text-slate-600">
-          <div className="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-800">
+          <div className="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] text-rose-800">
             <AlertTriangle size={24} className="shrink-0 text-rose-600" />
             <div>
               <p className="font-black text-xs">Apakah Anda yakin ingin menghapus data ini?</p>
@@ -662,7 +662,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           </div>
 
           {deleteTarget && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+            <div className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-100 space-y-1">
               <p className="text-slate-800 font-extrabold text-xs">{deleteTarget.nama_prestasi}</p>
               <p className="text-[11px] text-slate-500">
                 Siswa: <span className="font-bold text-slate-700">{getStudentInfo(deleteTarget.siswa_nis).name} ({deleteTarget.siswa_nis})</span>
@@ -674,14 +674,14 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
             <button
               type="button"
               onClick={() => setDeleteTarget(null)}
-              className="py-2 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="button"
               onClick={confirmDelete}
-              className="py-2 px-4 rounded-xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs"
+              className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs"
             >
               Ya, Hapus Permanen
             </button>
@@ -691,7 +691,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
 
       {/* TOAST */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} {toast.message}
         </div>
       )}

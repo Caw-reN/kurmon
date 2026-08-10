@@ -29,7 +29,7 @@ const RejectModal = ({ jurnal, siswa, onConfirm, onCancel }) => {
 
       {/* Modal */}
       <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-[var(--ui-radius-card)]
-        shadow-xl p-6 z-10">
+        shadow-sm p-6 z-10">
         {/* Handle bar (mobile) */}
         <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5 sm:hidden" />
 
@@ -40,8 +40,8 @@ const RejectModal = ({ jurnal, siswa, onConfirm, onCancel }) => {
 
         <div className="bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)] p-3 mb-4">
           <p className="text-xs text-red-700 font-semibold">{siswa?.nama}</p>
-          <p className="text-xs text-red-500 mt-0.5">Jurnal: {jurnal.tanggal}</p>
-          <p className="text-xs text-red-600 mt-1 line-clamp-2">{jurnal.kegiatan}</p>
+          <p className="text-xs text-rose-500 mt-0.5">Jurnal: {jurnal.tanggal}</p>
+          <p className="text-xs text-rose-600 mt-1 line-clamp-2">{jurnal.kegiatan}</p>
         </div>
 
         <label className="text-sm font-semibold text-slate-800 mb-1.5 block">
@@ -240,7 +240,7 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
           {localStatus ==='revision' && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200
               rounded-[var(--ui-radius-small)] px-4 py-3">
-              <XCircle size={16} className="text-red-600" />
+              <XCircle size={16} className="text-rose-600" />
               <p className="text-sm font-semibold text-red-700">Jurnal dikembalikan untuk revisi</p>
             </div>
           )}
@@ -370,7 +370,7 @@ const ValidasiJurnal = () => {
         />
       )}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-red-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}

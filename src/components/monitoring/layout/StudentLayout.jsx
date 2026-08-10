@@ -144,24 +144,28 @@ const StudentLayout = () => {
         {/* Brand Header with School Logo */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary,#064e3b)] flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden p-1">
-              {schoolLogo ? (
-                <img src={schoolLogo} alt="Logo Sekolah" className="w-full h-full object-contain" />
-              ) : (
-                <GraduationCap size={22} className="text-white" />
-              )}
-            </div>
-            <div>
-              <p className="font-black text-sm text-slate-800 leading-tight tracking-tight">PORTAL SISWA</p>
-              <span className="inline-block text-[9px] font-black text-[var(--ui-primary,#064e3b)] uppercase tracking-wider bg-[color-mix(in_srgb,var(--ui-primary,#064e3b)_10%,transparent)] px-2 py-0.5 rounded-full mt-1">
-                PKL &amp; AKADEMIK
-              </span>
-            </div>
+            {(appSettings.sidebarLogoMode || 'both') !== 'text' && (
+              <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary,#064e3b)] flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden p-1">
+                {schoolLogo ? (
+                  <img src={schoolLogo} alt="Logo Sekolah" className="w-full h-full object-contain" />
+                ) : (
+                  <GraduationCap size={22} className="text-white" />
+                )}
+              </div>
+            )}
+            {(appSettings.sidebarLogoMode || 'both') !== 'logo' && (
+              <div>
+                <p className="font-black text-sm text-slate-800 leading-tight tracking-tight">{appSettings.appName || 'PORTAL SISWA'}</p>
+                <span className="inline-block text-[9px] font-black text-[var(--ui-primary,#064e3b)] uppercase tracking-wider bg-[color-mix(in_srgb,var(--ui-primary,#064e3b)_10%,transparent)] px-2 py-0.5 rounded-[var(--ui-radius-pill)] mt-1">
+                  {appSettings.logoSmallText || 'PKL & AKADEMIK'}
+                </span>
+              </div>
+            )}
           </div>
           <button
             type="button"
             onClick={() => setShowProfileModal(true)}
-            className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors border-none cursor-pointer"
+            className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors border-none cursor-pointer"
             title="Pengaturan Profil"
           >
             <Settings size={16} />
@@ -200,7 +204,7 @@ const StudentLayout = () => {
         <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
           <div 
             onClick={() => setShowProfileModal(true)}
-            className="flex items-center gap-3 cursor-pointer group hover:bg-slate-100/80 p-1.5 rounded-xl transition-colors"
+            className="flex items-center gap-3 cursor-pointer group hover:bg-slate-100/80 p-1.5 rounded-[var(--ui-radius-small)] transition-colors"
           >
             <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-black text-white shadow-xs shrink-0">
               {initials}
@@ -248,8 +252,8 @@ const StudentLayout = () => {
         <nav 
           className={`md:hidden z-50 transition-all duration-200 ${
             tabbarMode === 'floating'
-              ? 'fixed bottom-3 left-4 right-4 rounded-3xl bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-2 py-2'
-              : 'fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2.5 px-3 shadow-lg'
+              ? 'fixed bottom-3 left-4 right-4 rounded-[var(--ui-radius-card)] bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-2 py-2'
+              : 'fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2.5 px-3 shadow-sm'
           }`}
         >
           <div className="flex items-center justify-around gap-1">
@@ -259,13 +263,13 @@ const StudentLayout = () => {
                 to={to}
                 end={end}
                 className={({ isActive }) => [
-                  'flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-xl cursor-pointer gap-1',
+                  'flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1',
                   isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold',
                 ].join(' ')}
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all ${
+                    <div className={`w-9 h-9 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-all ${
                       isActive 
                         ? 'bg-emerald-100/80 text-emerald-600 scale-105' 
                         : 'text-slate-400'
@@ -287,7 +291,7 @@ const StudentLayout = () => {
       {showProfileModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowProfileModal(false)}>
           <div
-            className="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl overflow-hidden"
+            className="bg-white w-full max-w-sm rounded-[var(--ui-radius-card)] p-5 space-y-4 shadow-xs overflow-hidden"
             onClick={e => e.stopPropagation()}
             style={{ animation: 'slideUpFadeIn 0.2s ease-out' }}
           >
@@ -303,7 +307,7 @@ const StudentLayout = () => {
             </div>
 
             {/* User Card */}
-            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center gap-3.5">
+            <div className="p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/50 flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-base shadow-xs shrink-0">
                 {initials}
               </div>
@@ -317,7 +321,7 @@ const StudentLayout = () => {
             </div>
 
             {/* Gaya Tabbar Navigasi Mobile */}
-            <div className="space-y-2 p-3 rounded-2xl border border-slate-200/80 bg-slate-50/30">
+            <div className="space-y-2 p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/30">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 GAYA TABBAR NAVIGASI MOBILE
               </p>
@@ -325,7 +329,7 @@ const StudentLayout = () => {
                 <button
                   type="button"
                   onClick={() => handleSetTabbarMode('floating')}
-                  className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     tabbarMode === 'floating'
                       ? 'bg-white border-emerald-500 text-emerald-600 shadow-xs'
                       : 'bg-slate-100/80 border-slate-200 text-slate-500'
@@ -336,7 +340,7 @@ const StudentLayout = () => {
                 <button
                   type="button"
                   onClick={() => handleSetTabbarMode('fixed')}
-                  className={`py-2 px-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     tabbarMode === 'fixed'
                       ? 'bg-white border-emerald-500 text-emerald-600 shadow-xs'
                       : 'bg-slate-100/80 border-slate-200 text-slate-500'
@@ -355,7 +359,7 @@ const StudentLayout = () => {
                   setShowProfileModal(false);
                   setShowPasswordModal(true);
                 }}
-                className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
               >
                 <User size={15} /> Edit Profil &amp; Kata Sandi
               </button>
@@ -366,7 +370,7 @@ const StudentLayout = () => {
                   setShowProfileModal(false);
                   handleLogout();
                 }}
-                className="w-full py-3 px-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
               >
                 <LogOut size={15} /> Keluar Akun (Logout)
               </button>
@@ -378,10 +382,10 @@ const StudentLayout = () => {
       {/* ── MODAL ARAHAN GANTI PASSWORD ─────────────────────────────── */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-[var(--ui-radius-card)] p-6 space-y-4 shadow-2xl overflow-hidden">
+          <div className="bg-white w-full max-w-md rounded-[var(--ui-radius-card)] p-6 space-y-4 shadow-xs overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200">
                   <Lock size={18} />
                 </div>
                 <div>
@@ -406,7 +410,7 @@ const StudentLayout = () => {
                   value={passForm.newPass}
                   onChange={e => setPassForm({ ...passForm, newPass: e.target.value })}
                   placeholder="Minimal 6 karakter"
-                  className="w-full h-10 px-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  className="w-full h-10 px-3 text-xs rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
                   required
                 />
               </div>
@@ -418,7 +422,7 @@ const StudentLayout = () => {
                   value={passForm.confirmPass}
                   onChange={e => setPassForm({ ...passForm, confirmPass: e.target.value })}
                   placeholder="Ketik ulang password baru"
-                  className="w-full h-10 px-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  className="w-full h-10 px-3 text-xs rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
                   required
                 />
               </div>
@@ -427,14 +431,14 @@ const StudentLayout = () => {
                 <button
                   type="button"
                   onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 h-10 rounded-xl bg-slate-100 text-slate-600 text-xs font-extrabold hover:bg-slate-200 transition-colors border-none cursor-pointer"
+                  className="flex-1 h-10 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-xs font-extrabold hover:bg-slate-200 transition-colors border-none cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={submittingPass}
-                  className="flex-1 h-10 rounded-xl bg-emerald-600 text-white text-xs font-extrabold hover:opacity-90 transition-opacity border-none cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                  className="flex-1 h-10 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white text-xs font-extrabold hover:opacity-90 transition-opacity border-none cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                 >
                   {submittingPass ? 'Menyimpan...' : 'Simpan Password'}
                 </button>

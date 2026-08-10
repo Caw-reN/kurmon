@@ -272,10 +272,10 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
       >
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* List / Map view toggle */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/25 p-1 rounded-xl flex items-center shadow-sm">
+          <div className="bg-white/10 backdrop-blur-md border border-white/25 p-1 rounded-[var(--ui-radius-small)] flex items-center shadow-sm">
             <button
               onClick={() => setView('list')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-none ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
                 view === 'list' 
                   ? 'bg-white text-[var(--ui-primary)] shadow-sm' 
                   : 'bg-transparent text-white hover:bg-white/10'
@@ -286,7 +286,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
             </button>
             <button
               onClick={() => setView('map')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-none ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
                 view === 'map' 
                   ? 'bg-white text-[var(--ui-primary)] shadow-sm' 
                   : 'bg-transparent text-white hover:bg-white/10'
@@ -302,14 +302,14 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
             {!readOnly && (
               <button 
                 onClick={() => setShowImportModal(true)} 
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-xl text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
               >
                 <Upload size={14} strokeWidth={2.5} /> Impor
               </button>
             )}
             <button 
               onClick={handleExport} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-xl text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
             >
               <Download size={14} strokeWidth={2.5} /> Ekspor
             </button>
@@ -319,7 +319,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                   setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: '', bidang: '', telepon: '', jurusan: '', kuota: 0, lat: -6.2618, lng: 107.0005, kompetensi: [] }); 
                   setShowAddModal(true); 
                 }} 
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-black text-xs shadow-sm cursor-pointer active:scale-95 transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-white bg-emerald-600 hover:bg-emerald-700 font-black text-xs shadow-sm cursor-pointer active:scale-95 transition-all"
               >
                 <Plus size={15} strokeWidth={2.5} /> Tambah Mitra
               </button>
@@ -333,10 +333,10 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         <div 
           onClick={() => setFilterVerified('Semua')}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-md bg-slate-50/50' : 'hover:border-slate-300'
+            filterVerified === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-xs bg-slate-50/50' : 'hover:border-slate-300'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
             <Building2 size={22} />
           </div>
           <div>
@@ -348,10 +348,10 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         <div 
           onClick={() => setFilterVerified('verified')}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'verified' ? 'ring-2 ring-emerald-500 shadow-md bg-emerald-50/30' : 'hover:border-emerald-200'
+            filterVerified === 'verified' ? 'ring-2 ring-emerald-500 shadow-xs bg-emerald-50/30' : 'hover:border-emerald-200'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
             <CheckCircle2 size={22} />
           </div>
           <div>
@@ -363,10 +363,10 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         <div 
           onClick={() => setFilterVerified('pending')}
           className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'pending' ? 'ring-2 ring-amber-500 shadow-md bg-amber-50/30' : 'hover:border-amber-200'
+            filterVerified === 'pending' ? 'ring-2 ring-amber-500 shadow-xs bg-amber-50/30' : 'hover:border-amber-200'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
             <Clock size={22} />
           </div>
           <div>
@@ -387,7 +387,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
               value={search} 
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari nama perusahaan, alamat, atau kota..."
-              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
             />
             {search && (
               <button 
@@ -400,7 +400,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
           </div>
 
           {/* Status Pill Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full md:w-auto shrink-0 overflow-x-auto">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto shrink-0 overflow-x-auto">
             {[
               { id: 'Semua', label: 'Semua Status' },
               { id: 'verified', label: 'Terverifikasi' },
@@ -410,7 +410,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                 key={st.id}
                 type="button"
                 onClick={() => setFilterVerified(st.id)}
-                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
+                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
                   filterVerified === st.id 
                     ? 'bg-white text-slate-800 shadow-sm' 
                     : 'text-slate-500 hover:text-slate-800 bg-transparent'
@@ -425,7 +425,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
           <button
             type="button"
             onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all border-none cursor-pointer"
+            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer"
           >
             <Filter size={14} />
             <span>Filter & Sortir ({filterJurusan !== 'Semua' || sortBy !== 'nama_asc' ? 'Aktif' : 'Semua'})</span>
@@ -502,7 +502,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                 >
                   <div className="flex items-start gap-3.5 flex-1 min-w-0">
                     <div 
-                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-0.5"
+                      className="w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm mt-0.5"
                       style={{ backgroundColor: jurusanColor + '18' }}
                     >
                       <Building2 size={20} style={{ color: jurusanColor }} />
@@ -558,13 +558,13 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                       <div className="w-36 sm:w-32 space-y-1">
                         <div className="flex items-center justify-between text-[10px] font-black">
                           <span className="text-slate-400 uppercase">Kapasitas:</span>
-                          <span className={isFull ? 'text-red-600' : 'text-emerald-600'}>
+                          <span className={isFull ? 'text-rose-600' : 'text-emerald-600'}>
                             {terisi} / {kuota} Siswa
                           </span>
                         </div>
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} 
+                            className={`h-full rounded-full transition-all ${isFull ? 'bg-rose-500' : 'bg-emerald-500'}`} 
                             style={{ width: `${percent}%` }}
                           />
                         </div>
@@ -577,7 +577,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                         {!p.verified && (
                           <button 
                             onClick={() => handleVerify(p.id, p.nama_perusahaan)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-lg transition-all cursor-pointer active:scale-95"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all cursor-pointer active:scale-95"
                             title="Verifikasi sebagai mitra resmi"
                           >
                             <CheckCircle2 size={13} />
@@ -587,7 +587,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                         
                         <button 
                           onClick={() => handleEdit(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all border-none cursor-pointer active:scale-95"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
                           title="Edit Perusahaan"
                         >
                           <Edit3 size={13} />
@@ -596,7 +596,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
 
                         <button 
                           onClick={() => handleDelete(p.id, p.nama_perusahaan)}
-                          className="inline-flex items-center gap-1 px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-lg transition-all cursor-pointer active:scale-95"
+                          className="inline-flex items-center gap-1 px-2 py-1.5 bg-red-50 hover:bg-red-100 text-rose-600 border border-red-200 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all cursor-pointer active:scale-95"
                           title="Hapus Perusahaan"
                         >
                           <Trash2 size={13} />
@@ -647,7 +647,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
       {/* Add / Edit Company Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
                 <h3 className="font-extrabold text-slate-800 text-base">{formData.id ? 'Edit Perusahaan Mitra' : 'Tambah Perusahaan Mitra Baru'}</h3>
@@ -669,7 +669,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                   type="text" 
                   value={formData.nama_perusahaan} 
                   onChange={e => setFormData({ ...formData, nama_perusahaan: e.target.value })} 
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
                   placeholder="Contoh: PT Inovasi Teknologi Indonesia" 
                 />
               </div>
@@ -680,7 +680,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                   required 
                   value={formData.alamat} 
                   onChange={e => setFormData({ ...formData, alamat: e.target.value })} 
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
                   rows="2" 
                   placeholder="Jl. Raya industri No. 123, Kawasan Industri..." 
                 />
@@ -693,7 +693,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                     type="text" 
                     value={formData.kota} 
                     onChange={e => setFormData({ ...formData, kota: e.target.value })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
                     placeholder="Contoh: Bekasi" 
                   />
                 </div>
@@ -704,7 +704,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                     type="text" 
                     value={formData.telepon} 
                     onChange={e => setFormData({ ...formData, telepon: e.target.value })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
                     placeholder="Contoh: 021-88997766" 
                   />
                 </div>
@@ -730,7 +730,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                     inputMode="numeric" 
                     value={formData.kuota} 
                     onChange={e => setFormData({ ...formData, kuota: e.target.value.replace(/[^0-9]/g, '') })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
                     placeholder="5" 
                   />
                 </div>
@@ -740,14 +740,14 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                 <button 
                   type="button" 
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border-none cursor-pointer transition-all"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] border-none cursor-pointer transition-all"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white font-bold text-xs rounded-xl border-none cursor-pointer shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white font-bold text-xs rounded-[var(--ui-radius-small)] border-none cursor-pointer shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
                 >
                   {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : null}
                   <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Perusahaan'}</span>
@@ -774,8 +774,8 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
 
       {/* Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-xl font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
-          toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+          toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 
           <span>{toast.message}</span>

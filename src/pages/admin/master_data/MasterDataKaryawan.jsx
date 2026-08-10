@@ -305,7 +305,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
                         );
                       }
                       return (
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete('Karyawan', item.code)} title="Hapus"><Trash2 size={14} className="text-red-500" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete('Karyawan', item.code)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
                       );
                     })()}
                   </div>

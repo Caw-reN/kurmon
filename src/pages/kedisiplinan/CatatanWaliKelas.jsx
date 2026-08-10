@@ -113,7 +113,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
               type="date"
               value={form.tanggal}
               onChange={e => setForm({ ...form, tanggal: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
             />
           </div>
           <div>
@@ -121,7 +121,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
             <UISelect
               value={form.jenis_catatan}
               onChange={e => setForm({ ...form, jenis_catatan: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
             >
               {JENIS_CATATAN.map(j => <option key={j.value} value={j.value}>{j.label}</option>)}
             </UISelect>
@@ -137,7 +137,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
             placeholder="Contoh: Memanggil siswa untuk mendiskusikan penurunan nilai pada mapel Matematika..."
             value={form.isi_catatan}
             onChange={e => setForm({ ...form, isi_catatan: e.target.value })}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
             required
           />
         </div>
@@ -149,7 +149,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
             placeholder="Rencana atau langkah tindak lanjut yang akan dilakukan..."
             value={form.tindak_lanjut}
             onChange={e => setForm({ ...form, tindak_lanjut: e.target.value })}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
           />
         </div>
 
@@ -161,13 +161,13 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
               <span>Kaitkan dengan Riwayat Pelanggaran (Opsional)</span>
             </label>
             {selectedPoin ? (
-              <div className="flex items-center gap-2.5 p-3 bg-amber-50/50 border border-amber-200 rounded-xl">
+              <div className="flex items-center gap-2.5 p-3 bg-amber-50/50 border border-amber-200 rounded-[var(--ui-radius-small)]">
                 <AlertCircle size={14} className="text-amber-600 shrink-0" />
                 <span className="text-xs font-bold text-amber-850 flex-1">{selectedPoin.tindakan_nama} — {selectedPoin.poin} poin</span>
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, poin_pelanggaran_id: null })}
-                  className="p-1 hover:bg-amber-100 rounded-lg text-slate-500 border-none bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-amber-100 rounded-[var(--ui-radius-small)] text-slate-500 border-none bg-transparent cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -177,14 +177,14 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
                 variant="outline"
                 type="button"
                 onClick={() => setShowPoinPicker(!showPoinPicker)}
-                className="w-full text-left flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-50/30 hover:bg-amber-50/80 border border-amber-200/50 text-amber-800 text-xs font-bold transition-colors cursor-pointer"
+                className="w-full text-left flex items-center justify-between px-3.5 py-2 rounded-[var(--ui-radius-small)] bg-amber-50/30 hover:bg-amber-50/80 border border-amber-200/50 text-amber-800 text-xs font-bold transition-colors cursor-pointer"
               >
                 <span>+ Hubungkan dengan riwayat pelanggaran</span>
               </Button>
             )}
 
             {showPoinPicker && !selectedPoin && (
-              <div className="mt-2 border border-slate-100 rounded-xl overflow-hidden max-h-40 overflow-y-auto bg-white shadow-inner divide-y divide-slate-50">
+              <div className="mt-2 border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden max-h-40 overflow-y-auto bg-white shadow-inner divide-y divide-slate-50">
                 {siswaRiwayatPoin.map(p => (
                   <button
                     key={p.id}
@@ -198,7 +198,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
                         {p.tanggal_kejadian ? new Date(p.tanggal_kejadian).toLocaleDateString('id-ID') : ''}
                       </p>
                     </div>
-                    <span className="font-black text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                    <span className="font-black text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
                       +{p.poin}p
                     </span>
                   </button>
@@ -209,7 +209,7 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
         )}
 
         {errorMsg && (
-          <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-2">
+          <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-2">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             <span className="leading-relaxed">{errorMsg}</span>
           </div>
@@ -715,11 +715,11 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
       {/* Mobile Tab Switcher */}
       {(isWalas || isKesiswaan) && (
-        <div className="lg:hidden flex bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 shrink-0">
+        <div className="lg:hidden flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
           <button
             type="button"
             onClick={() => setMobileTab('siswa')}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
               mobileTab === 'siswa' 
                 ? 'bg-white text-violet-700 shadow-xs font-black' 
                 : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -731,7 +731,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
           <button
             type="button"
             onClick={() => setMobileTab('catatan')}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
               mobileTab === 'catatan' 
                 ? 'bg-white text-violet-700 shadow-xs font-black' 
                 : 'text-slate-600 hover:text-slate-900 bg-transparent'
@@ -746,7 +746,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">
         {/* Kiri: Daftar Siswa (untuk walikelas/kesiswaan) */}
         {(isWalas || isKesiswaan) && (
-          <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px] col-span-12 lg:col-span-4 ${
+          <div className={`bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px] col-span-12 lg:col-span-4 ${
             mobileTab === 'siswa' ? 'block' : 'hidden lg:flex'
           }`}>
             <div className="p-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
@@ -754,7 +754,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                 <Users size={15} className="text-violet-600" />
                 <span>Siswa Binaan {walasClass && `— ${walasClass}`}</span>
               </h3>
-              <span className="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
                 {siswaKelas.length}
               </span>
             </div>
@@ -766,7 +766,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                   placeholder="Cari nama siswa..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
                 />
               </div>
               {(!isWalas || isKesiswaan) && (
@@ -805,7 +805,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                      <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-xs font-black shrink-0 ${
                         isSelected ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-650'
                       }`}>
                         {getInitials(siswa.namaSiswa || siswa.name)}
@@ -817,12 +817,12 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 pl-2">
                       {siswaCatatan.length > 0 && (
-                        <span className="text-[9px] font-black bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
+                        <span className="text-[9px] font-black bg-violet-100 text-violet-700 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
                           {siswaCatatan.length}
                         </span>
                       )}
                       {totalPoin > 0 && (
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] ${
                           totalPoin >= 100 
                             ? 'bg-rose-100 text-rose-700' 
                             : totalPoin >= 50 
@@ -854,7 +854,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         <div className={`${isWalas || isKesiswaan ? 'col-span-12 lg:col-span-8' : 'col-span-12'} flex flex-col gap-4 ${
           mobileTab === 'catatan' ? 'block' : 'hidden lg:block'
         }`}>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px]">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px]">
             {/* Morphing Header Card */}
             {selectedSiswa ? (
               <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-3.5 sm:p-5 relative overflow-hidden shrink-0 shadow-sm">
@@ -867,12 +867,12 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     <button
                       type="button"
                       onClick={() => { setSelectedSiswa(null); setMobileTab('siswa'); }}
-                      className="lg:hidden p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 shrink-0"
+                      className="lg:hidden p-1.5 rounded-[var(--ui-radius-small)] bg-white/15 hover:bg-white/25 text-white border border-white/20 shrink-0"
                       title="Kembali ke Daftar Siswa"
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 text-white border border-white/30 flex items-center justify-center text-xs sm:text-sm font-black shrink-0 shadow-sm">
+                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small)] bg-white/20 text-white border border-white/30 flex items-center justify-center text-xs sm:text-sm font-black shrink-0 shadow-sm">
                       {getInitials(selectedSiswa.namaSiswa || selectedSiswa.name)}
                     </div>
                     <div className="min-w-0">
@@ -889,7 +889,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                         .filter(p => String(p.siswa_nis) === String(selectedSiswa.nis))
                         .reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
                       return totalPoin > 0 ? (
-                        <div className={`px-2.5 py-1 rounded-xl text-[11px] font-black flex items-center gap-1 border shadow-xs ${
+                        <div className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[11px] font-black flex items-center gap-1 border shadow-xs ${
                           totalPoin >= 100 
                             ? 'bg-rose-500/20 text-rose-100 border-rose-400/30' 
                             : 'bg-amber-500/20 text-amber-100 border-amber-400/30'
@@ -902,7 +902,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
                     <Button
                       onClick={downloadRapotSiswa}
-                      className="bg-white/15 hover:bg-white/25 border border-white/20 text-white font-bold text-xs px-2.5 py-1.5 h-8 cursor-pointer rounded-xl flex items-center gap-1 shrink-0"
+                      className="bg-white/15 hover:bg-white/25 border border-white/20 text-white font-bold text-xs px-2.5 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0"
                     >
                       <Printer size={13} />
                       <span className="hidden sm:inline">Cetak Rapot</span>
@@ -915,7 +915,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                           siswa_name: selectedSiswa.namaSiswa || selectedSiswa.name,
                           kelas: walasClass || selectedSiswa.class_name
                         })}
-                        className="bg-white text-violet-700 hover:bg-violet-50 border-none font-bold text-xs px-3 py-1.5 h-8 cursor-pointer rounded-xl flex items-center gap-1 shrink-0"
+                        className="bg-white text-violet-700 hover:bg-violet-50 border-none font-bold text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0"
                       >
                         <Plus size={13} />
                         <span>Catat</span>
@@ -924,7 +924,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
                     <button
                       onClick={() => setSelectedSiswa(null)}
-                      className="p-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl transition-all cursor-pointer flex items-center justify-center h-8 w-8"
+                      className="p-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center h-8 w-8"
                       title="Tutup Detail"
                     >
                       <X size={15} />
@@ -943,7 +943,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       </p>
                       <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-0.5 hide-scrollbar">
                         {studentPoin.map(p => (
-                          <div key={p.id} className="text-[10px] bg-white/10 border border-white/15 px-2 py-0.5 rounded-lg shrink-0 flex items-center gap-1">
+                          <div key={p.id} className="text-[10px] bg-white/10 border border-white/15 px-2 py-0.5 rounded-[var(--ui-radius-small)] shrink-0 flex items-center gap-1">
                             <span className="font-semibold text-white/90">{p.tindakan_nama}</span>
                             <span className="font-black text-rose-300">+{p.poin}p</span>
                           </div>
@@ -958,7 +958,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                 <div className="flex items-center justify-between sm:justify-start gap-2.5 w-full sm:w-auto">
                   <div className="flex items-center gap-2.5">
                     <div 
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-xs"
                       style={{ background: "var(--ui-primary)" }}
                     >
                       <MessageSquare size={16} strokeWidth={2.2} />
@@ -989,7 +989,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     <button
                       type="button"
                       onClick={() => setActiveModal({ kelas: walasClass })}
-                      className="flex-1 sm:flex-none py-2 px-3 rounded-xl font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      className="flex-1 sm:flex-none py-2 px-3 rounded-[var(--ui-radius-small)] font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
                       style={{ background: "var(--ui-primary)" }}
                     >
                       <Plus size={14} strokeWidth={2.5} />
@@ -999,7 +999,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                   <button
                     type="button"
                     onClick={exportExcel}
-                    className="py-2 px-3 rounded-xl font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                    className="py-2 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
                     title="Export semua riwayat catatan ke Excel"
                   >
                     <Download size={13} className="text-slate-500" />
@@ -1008,7 +1008,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                   <button
                     type="button"
                     onClick={exportClassRecapExcel}
-                    className="py-2 px-3 rounded-xl font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                    className="py-2 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
                     title="Export Rekapitulasi Kelas ke Excel"
                   >
                     <Download size={13} className="text-emerald-600" />
@@ -1024,7 +1024,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
               </div>
             ) : filteredCatatan.length === 0 ? (
               <div className="p-10 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-violet-50 text-violet-500 border border-violet-100 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-violet-50 text-violet-500 border border-violet-100 flex items-center justify-center mb-4">
                   <MessageSquare size={28} />
                 </div>
                 <h3 className="font-extrabold text-slate-800 text-sm">Belum Ada Catatan</h3>
@@ -1042,7 +1042,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       return (
                         <div key={c.id} className="p-5 hover:bg-slate-50/20 transition-colors flex gap-4 items-start">
                           {/* Left icon denoting category */}
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-solid ${
+                          <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-solid ${
                             c.jenis_catatan === 'akademik' ? 'bg-blue-50 text-blue-600 border-blue-100/70' :
                             c.jenis_catatan === 'perilaku' ? 'bg-amber-50 text-amber-600 border-amber-100/70' :
                             c.jenis_catatan === 'prestasi' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/70' :
@@ -1063,9 +1063,9 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                                 {!selectedSiswa && <span className="text-slate-300 text-xs">·</span>}
                                 <span className="text-[10px] font-bold text-slate-400">{c.kelas}</span>
                                 <span className="text-slate-300 text-xs">·</span>
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border border-solid ${jenis.color}`}>{jenis.label}</span>
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-solid ${jenis.color}`}>{jenis.label}</span>
                                 {c.poin_pelanggaran_id && (
-                                  <span className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                  <span className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] flex items-center gap-0.5">
                                     <LinkIcon size={8} /> Terkait Poin
                                   </span>
                                 )}
@@ -1075,14 +1075,14 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                               <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
                                 <button 
                                   onClick={() => setActiveModal(c)} 
-                                  className="p-2.5 md:p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-650 rounded-xl transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  className="p-2.5 md:p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-650 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Edit Catatan"
                                 >
                                   <Edit2 size={12} />
                                 </button>
                                 <button 
                                   onClick={() => handleDelete(c.id)} 
-                                  className="p-2.5 md:p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-xl transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  className="p-2.5 md:p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Hapus Catatan"
                                 >
                                   <Trash2 size={12} />
@@ -1093,7 +1093,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                             <p className="text-xs text-slate-750 font-medium leading-relaxed mt-1 break-words">{c.isi_catatan}</p>
 
                             {c.tindak_lanjut && (
-                              <div className="mt-2.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl flex items-start gap-2">
+                              <div className="mt-2.5 bg-slate-50 border border-slate-100 p-2.5 rounded-[var(--ui-radius-small)] flex items-start gap-2">
                                 <CheckCircle2 size={12} className="text-violet-500 shrink-0 mt-0.5" />
                                 <p className="text-[11px] text-slate-600 leading-normal font-medium">
                                   <span className="font-extrabold text-slate-700">Tindak Lanjut:</span> {c.tindak_lanjut}
@@ -1143,7 +1143,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
           <CheckCircle2 size={14} /> {toast.msg}
         </div>
       )}

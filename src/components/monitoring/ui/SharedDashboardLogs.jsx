@@ -466,7 +466,7 @@ export const SharedDashboardLogs = () => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -503,7 +503,7 @@ export const SharedDashboardLogs = () => {
               className={`py-2 px-1 rounded-[var(--ui-radius-card)] border flex flex-col items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer text-center w-full min-h-[70px] relative ${
                 isActive
                   ? 'bg-white border-[var(--ui-primary)]/40 shadow-sm ring-1 ring-[var(--ui-primary)]/20'
-                  : 'bg-white border-slate-200/60 shadow-xs hover:-translate-y-0.5 hover:shadow-md'
+                  : 'bg-white border-slate-200/60 shadow-xs hover:-translate-y-0.5 hover:shadow-xs'
               }`}
             >
               <div className="relative mt-1">

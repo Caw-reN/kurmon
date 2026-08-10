@@ -215,7 +215,7 @@ export default function BulkEditModal({
         
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <Edit3 size={22} />
           </div>
           <div>
@@ -227,7 +227,7 @@ export default function BulkEditModal({
         </div>
 
         {/* Info Box */}
-        <div className="p-3.5 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs font-medium text-indigo-900 leading-relaxed">
+        <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-xs font-medium text-indigo-900 leading-relaxed">
           Perubahan yang dimasukkan di bawah ini akan diterapkan secara otomatis ke <strong className="font-bold">{count} item</strong> yang Anda centang.
         </div>
 
@@ -243,7 +243,7 @@ export default function BulkEditModal({
                 <select
                   value={targetClass}
                   onChange={(e) => setTargetClass(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Kelas --</option>
                   {(classes || []).map(c => (
@@ -259,7 +259,7 @@ export default function BulkEditModal({
                 <select
                   value={targetGender}
                   onChange={(e) => setTargetGender(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jenis Kelamin --</option>
                   <option value="L">Laki-laki (L)</option>
@@ -279,7 +279,7 @@ export default function BulkEditModal({
                 <select
                   value={targetHomeroom}
                   onChange={(e) => setTargetHomeroom(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Wali Kelas --</option>
                   {(teachers || []).map(t => (
@@ -295,7 +295,7 @@ export default function BulkEditModal({
                 <select
                   value={targetMajor}
                   onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
                   {(majors || []).map(m => {
@@ -317,7 +317,7 @@ export default function BulkEditModal({
                 <select
                   value={targetType}
                   onChange={(e) => setTargetType(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Tipe --</option>
                   <option value="Umum">Umum</option>
@@ -333,7 +333,7 @@ export default function BulkEditModal({
                 <select
                   value={targetMajor}
                   onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
                   <option value="Semua">Semua Jurusan</option>
@@ -356,7 +356,7 @@ export default function BulkEditModal({
                 <select
                   value={targetMajor}
                   onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
                   <option value="Umum">Mata Pelajaran Umum</option>
@@ -374,7 +374,7 @@ export default function BulkEditModal({
                 <select
                   value={targetGrade}
                   onChange={(e) => setTargetGrade(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Tingkat --</option>
                   <option value="Semua">Semua Tingkat</option>
@@ -396,7 +396,7 @@ export default function BulkEditModal({
                 <select
                   value={targetType}
                   onChange={(e) => setTargetType(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jenis --</option>
                   <option value="Teori">Ruang Teori (Kelas)</option>
@@ -411,7 +411,7 @@ export default function BulkEditModal({
                 <select
                   value={targetMajor}
                   onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
+                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
                 >
                   <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
                   <option value="All">Semua Jurusan (Umum)</option>

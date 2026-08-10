@@ -95,7 +95,7 @@ const AdminDashboard = () => {
       {/* Row: Jurnal Pending */}
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-4">
-          <div className="bg-card border border-border/80 rounded-[var(--ui-radius-card)] p-5 shadow-md h-full flex flex-col">
+          <div className="bg-card border border-border/80 rounded-[var(--ui-radius-card)] p-5 shadow-xs h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-extrabold text-sm text-foreground uppercase tracking-wider">Jurnal Perlu Validasi</h2>
               <Badge variant="pending" label={`${stats.jurnalPending?.length || 0}`} className="px-2.5 py-1 text-[11px] font-bold" />
@@ -104,8 +104,8 @@ const AdminDashboard = () => {
               <div className="space-y-3.5 flex-1 overflow-y-auto max-h-[320px] pr-1">
                 {stats.jurnalPending.slice(0, 4).map((j) => (
                   <div key={j.id}
-                    className="flex items-start gap-3.5 p-3.5 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 hover:border-amber-500/20 rounded-xl transition-all duration-200">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center
+                    className="flex items-start gap-3.5 p-3.5 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 hover:border-amber-500/20 rounded-[var(--ui-radius-small)] transition-all duration-200">
+                    <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-500/10 flex items-center justify-center
                       text-xs font-black text-amber-600 flex-shrink-0 border border-amber-500/20">
                       ?
                     </div>
@@ -118,15 +118,15 @@ const AdminDashboard = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 border border-dashed border-border rounded-xl flex-1 flex flex-col items-center justify-center">
+              <div className="text-center py-10 border border-dashed border-border rounded-[var(--ui-radius-small)] flex-1 flex flex-col items-center justify-center">
                 <AlertTriangle className="text-muted-foreground/60 mb-2.5" size={28} />
                 <p className="text-muted-foreground text-xs font-semibold">Belum ada jurnal yang menunggu validasi.</p>
               </div>
             )}
           </div>
           
-          <div className="bg-card border border-border/80 rounded-[var(--ui-radius-card)] p-6 shadow-md h-full flex flex-col items-center justify-center text-center">
-             <div className="p-4.5 bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] rounded-xl mb-3.5 border border-[var(--ui-primary)]/20 shadow-inner">
+          <div className="bg-card border border-border/80 rounded-[var(--ui-radius-card)] p-6 shadow-xs h-full flex flex-col items-center justify-center text-center">
+             <div className="p-4.5 bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] rounded-[var(--ui-radius-small)] mb-3.5 border border-[var(--ui-primary)]/20 shadow-inner">
                <Users size={28} />
              </div>
              <h3 className="font-extrabold text-sm text-foreground uppercase tracking-wider">Kehadiran Siswa PKL</h3>
