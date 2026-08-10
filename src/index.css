@@ -8,7 +8,11 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/montserrat";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark {
+  &:is(.dark *) {
+    @slot;
+  }
+}
 
 @theme {
   --font-sans: var(--font-sans-family, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
