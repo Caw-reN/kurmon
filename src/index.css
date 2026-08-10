@@ -3,16 +3,12 @@
 
 /* Direktif resmi Tailwind v4 */
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+/* @import "tw-animate-css"; */
+/* @import "shadcn/tailwind.css"; */
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/montserrat";
 
-@custom-variant dark {
-  &:is(.dark *) {
-    @slot;
-  }
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: var(--font-sans-family, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -104,7 +100,6 @@
     background-color: var(--ui-bg-page, #eef2f7);
     width: var(--radix-select-trigger-width);
   }
-}
 
 /* 
  * =========================================
