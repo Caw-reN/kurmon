@@ -261,7 +261,8 @@
 }
 
 
-  /* Memaksa penggunaan font Plus Jakarta Sans di seluruh form input/button */
+@layer base {
+  /* Memaksa penggunaan font di seluruh form input/button */
   *,
   input,
   button,

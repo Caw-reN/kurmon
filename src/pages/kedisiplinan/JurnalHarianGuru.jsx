@@ -3,7 +3,7 @@ import { BookOpen } from'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
 import * as XLSX from'xlsx';
-import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft } from'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
@@ -44,80 +44,163 @@ function StatusBadge({ submitted, isLate }) {
   );
 }
 
-// Modal Form Isi Jurnal
+// Modal Form Isi Jurnal - Modern, Intuitive, Fast & Auto-Synced
 function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance = [] }) {
-  const className = jurnal?.kelas ||'';
-  
-  // Get total students in this class
-  const classStudents = useMemo(() => {
+  const className = jurnal?.kelas || '';
+  const user = useAuthStore(state => state.user);
+  const authToken = user?.authToken;
+
+  // Normalized Class Name Matcher
+  const normalizeText = (txt) => (txt || '').replace(/[\s\-_.]/g, '').toLowerCase();
+
+  // Local fallback students from store
+  const localClassStudents = useMemo(() => {
+    const target = normalizeText(className);
     return students.filter(s => {
-      const sClass = (s.class_name || s.kelas ||'').trim().toLowerCase();
-      const targetClass = className.trim().toLowerCase();
-      return sClass === targetClass;
+      const sClass = normalizeText(s.class_name || s.kelas || s.rombel || '');
+      return sClass === target;
     });
   }, [students, className]);
+
+  // Live Attendance State from Database
+  const [liveStudents, setLiveStudents] = useState([]);
+  const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
 
   // Initial form state
   const [form, setForm] = useState({
     id: jurnal?.id || null,
-    kelas: jurnal?.kelas ||'',
-    mapel: jurnal?.mapel ||'',
+    kelas: jurnal?.kelas || '',
+    mapel: jurnal?.mapel || '',
     jam_ke: jurnal?.jam_ke || 1,
-    slot_label: jurnal?.slot_label ||'',
-    materi_pokok: jurnal?.materi_pokok ||'',
-    kegiatan_pembelajaran: jurnal?.kegiatan_pembelajaran ||'',
-    metode_pembelajaran: jurnal?.metode_pembelajaran ||'Ceramah & Diskusi',
-    catatan: jurnal?.catatan ||'',
+    slot_label: jurnal?.slot_label || '',
+    materi_pokok: jurnal?.materi_pokok || '',
+    kegiatan_pembelajaran: jurnal?.kegiatan_pembelajaran || '',
+    metode_pembelajaran: jurnal?.metode_pembelajaran || 'Ceramah & Diskusi',
+    catatan: jurnal?.catatan || '',
     jumlah_hadir: jurnal?.jumlah_hadir || 0,
     tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
-    status:'submitted',
+    status: 'submitted',
   });
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Get absent students in this class for the selected date
-  const absentStudents = useMemo(() => {
-    return studentAttendance.filter(item => {
-      // match date
-      const isSameDate = item.tanggal === form.tanggal || item.tanggal.startsWith(form.tanggal);
-      if (!isSameDate) return false;
-      
-      // find student
-      const student = classStudents.find(s => s.nis === item.siswa_nis || s.code === item.siswa_nis);
-      if (!student) return false;
-      
-      // absent status: Sakit, Izin, Alpa
-      const statusLower = String(item.status ||'').toLowerCase();
-      return ['sakit','izin','alpa'].includes(statusLower);
-    }).map(item => {
-      const student = classStudents.find(s => s.nis === item.siswa_nis || s.code === item.siswa_nis);
-      return {
-        name: student ? (student.namaSiswa || student.name || student.nama || student.nama_siswa) : item.siswa_nis,
-        status: item.status,
-        keterangan: item.keterangan ||''
-      };
-    });
-  }, [studentAttendance, classStudents, form.tanggal]);
-
-  const totalHadirCalculated = Math.max(0, classStudents.length - absentStudents.length);
-
-  // Pre-fill jumlah_hadir when class data is available on load
-  useEffect(() => {
-    if (!form.id && form.jumlah_hadir === 0 && classStudents.length > 0) {
-      setForm(f => ({
-        ...f,
-        jumlah_hadir: totalHadirCalculated
-      }));
+  // Fetch Live Attendance from /api/kedisiplinan/absensi-kelas
+  const fetchLiveAttendance = useCallback(async () => {
+    if (!className) return;
+    setIsLoadingAttendance(true);
+    try {
+      if (authToken) {
+        const res = await fetch(`/api/kedisiplinan/absensi-kelas?kelas=${encodeURIComponent(className)}&tanggal=${form.tanggal}`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.data) && json.data.length > 0) {
+          setLiveStudents(json.data);
+          setIsLoadingAttendance(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed fetching live attendance, using local fallback", e);
     }
-  }, [classStudents.length, absentStudents.length, form.id]);
 
-  const handleAutoFill = () => {
-    setForm(f => ({
-      ...f,
-      jumlah_hadir: totalHadirCalculated
-    }));
+    // Fallback if API returns empty or fails
+    if (localClassStudents.length > 0) {
+      const mapped = localClassStudents.map(s => {
+        const nis = String(s.nis || s.code || s.id || '').trim();
+        const att = studentAttendance.find(a => {
+          const isSameDate = a.tanggal === form.tanggal || a.tanggal?.startsWith(form.tanggal);
+          return isSameDate && String(a.siswa_nis).trim() === nis && a.approval_status !== 'rejected';
+        });
+        return {
+          nis,
+          name: s.namaSiswa || s.name || s.nama || nis,
+          class_name: s.class_name || s.kelas || className,
+          status: att ? att.status : 'Hadir',
+          keterangan: att?.keterangan || ''
+        };
+      });
+      setLiveStudents(mapped);
+    } else {
+      setLiveStudents([]);
+    }
+    setIsLoadingAttendance(false);
+  }, [className, form.tanggal, authToken, localClassStudents, studentAttendance]);
+
+  useEffect(() => {
+    fetchLiveAttendance();
+  }, [fetchLiveAttendance]);
+
+  // Derived Attendance Stats
+  const totalStudentsCount = liveStudents.length > 0 ? liveStudents.length : localClassStudents.length;
+
+  const absentList = useMemo(() => {
+    return liveStudents.filter(s => {
+      const st = (s.status || '').toLowerCase();
+      return ['sakit', 'izin', 'alpa', 'alpha', 'dispen', 'dispensasi', 'terlambat'].includes(st);
+    });
+  }, [liveStudents]);
+
+  const sakitCount = useMemo(() => liveStudents.filter(s => (s.status || '').toLowerCase() === 'sakit').length, [liveStudents]);
+  const izinCount = useMemo(() => liveStudents.filter(s => ['izin', 'dispen', 'dispensasi'].includes((s.status || '').toLowerCase())).length, [liveStudents]);
+  const alpaCount = useMemo(() => liveStudents.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length, [liveStudents]);
+
+  const totalCalculatedHadir = Math.max(0, totalStudentsCount - absentList.length);
+
+  // Auto initialize jumlah_hadir when data is loaded
+  useEffect(() => {
+    if (!form.id && form.jumlah_hadir === 0 && totalStudentsCount > 0) {
+      setForm(f => ({ ...f, jumlah_hadir: totalCalculatedHadir }));
+    }
+  }, [totalStudentsCount, totalCalculatedHadir, form.id]);
+
+  // Quick Preset Handlers
+  const handleSetSemuaHadir = () => {
+    setForm(f => ({ ...f, jumlah_hadir: totalStudentsCount }));
   };
 
-  const [errorMsg, setErrorMsg] = useState('');
+  const handleSetSinkronAbsensi = () => {
+    setForm(f => ({ ...f, jumlah_hadir: totalCalculatedHadir }));
+  };
+
+  const handleStepHadir = (delta) => {
+    setForm(f => {
+      const maxVal = totalStudentsCount || 100;
+      const nextVal = Math.max(0, Math.min(maxVal, (f.jumlah_hadir || 0) + delta));
+      return { ...f, jumlah_hadir: nextVal };
+    });
+  };
+
+  // Quick Lesson Plan Templates
+  const handleApplyKegiatanTemplate = (templateType) => {
+    const mapelName = form.mapel || 'Mata Pelajaran';
+    const materiName = form.materi_pokok || 'materi pokok';
+
+    if (templateType === 'lengkap') {
+      setForm(f => ({
+        ...f,
+        kegiatan_pembelajaran: `1. Pendahuluan: Berdoa, memeriksa presensi siswa, dan apersepsi materi ${mapelName}.\n2. Kegiatan Inti: Guru menjelaskan materi ${materiName}, siswa menyimak, berdiskusi aktif, dan mengerjakan latihan/tugas terbimbing.\n3. Penutup: Refleksi pembelajaran, sesi tanya jawab, evaluasi singkat, dan penugasan mandiri.`
+      }));
+    } else if (templateType === 'praktik') {
+      setForm(f => ({
+        ...f,
+        kegiatan_pembelajaran: `1. Persiapan: Pengarahan K3 dan pembagian perangkat/komputer praktikum ${materiName}.\n2. Praktik Langsung: Siswa mempraktikkan jobsheet secara mandiri/kelompok dengan bimbingan guru dan troubleshooting aktif.\n3. Evaluasi: Pengujian output hasil praktikum dan perapihan kembali alat/ruang lab.`
+      }));
+    } else if (templateType === 'diskusi') {
+      setForm(f => ({
+        ...f,
+        kegiatan_pembelajaran: `1. Pembentukan Kelompok: Pembagian studi kasus terkait ${materiName} ke dalam kelompok kerja.\n2. Diskusi & Pemecahan Masalah: Setiap kelompok mendiskusikan solusi dan menyusun bahan paparan.\n3. Presentasi & Penguatan: Presentasi perwakilan kelompok, tanggapan rekan, dan penguatan konsep oleh guru.`
+      }));
+    }
+  };
+
+  // Quick Note Templates
+  const handleAddCatatan = (noteText) => {
+    setForm(f => ({
+      ...f,
+      catatan: f.catatan ? `${f.catatan}. ${noteText}` : noteText
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,186 +217,366 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     setSaving(false);
   };
 
-  return (
-    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-xl">
+  // Common quick method options
+  const QUICK_METHODS = [
+    'Ceramah & Diskusi',
+    'Demonstrasi & Praktik',
+    'Project Based Learning',
+    'Problem Based Learning',
+    'Cooperative Learning',
+    'Discovery Learning'
+  ];
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4.5 overflow-y-auto custom-scrollbar flex-1">
-          
-          {/* Tanggal & Hari info */}
-          <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-[var(--ui-radius-small)] border border-slate-100/50">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-              <Calendar size={14} className="text-slate-400" />
-              Tanggal KBM: {new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
+  return (
+    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-2xl">
+      <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1 max-h-[82vh]">
+        
+        {/* Header KBM Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border border-emerald-100/80 shadow-2xs">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800">
+              <Calendar size={15} className="text-[var(--ui-primary)]" />
+              <span>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</span>
             </div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-5">
-              Kelas: {form.kelas} &bull; Mapel: <span className="text-[var(--ui-primary)]">{form.mapel}</span> &bull; Waktu: {form.slot_label || `Jam ke-${form.jam_ke}`}
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+              <span className="px-2 py-0.5 rounded-md bg-white border border-emerald-200/80 text-emerald-900 font-extrabold">{form.kelas}</span>
+              <span>&bull;</span>
+              <span className="text-[var(--ui-primary)] font-extrabold">{form.mapel}</span>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-200/70 text-xs font-bold text-emerald-800 shadow-2xs">
+            <Clock size={13} className="text-emerald-600" />
+            <span>{form.slot_label || `Jam ke-${form.jam_ke}`}</span>
+          </div>
+        </div>
+
+        {/* Real-time Attendance Breakdown Card */}
+        <div className="rounded-[var(--ui-radius-card)] border border-slate-200/90 bg-white p-4 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <Users size={15} className="text-[var(--ui-primary)]" />
+              Kehadiran Siswa ({className})
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-extrabold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/70">
+                Total: {totalStudentsCount} Siswa
+              </span>
+              <button
+                type="button"
+                onClick={fetchLiveAttendance}
+                disabled={isLoadingAttendance}
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Refresh data kehadiran"
+              >
+                <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin' : ''} />
+              </button>
             </div>
           </div>
 
-          {/* Absent Students Info Card */}
-          {classStudents.length > 0 ? (
-            <div className="rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/60 p-4.5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black text-slate-550 uppercase tracking-widest flex items-center gap-1.5">
-                  <Users size={14} className="text-[var(--ui-primary)]" />
-                  Kehadiran Siswa ({className})
-                </span>
-                <span className="text-[11px] font-bold text-slate-450 bg-white px-2 py-0.5 rounded-md border border-slate-100">
-                  Total: {classStudents.length} Siswa
-                </span>
+          {/* Quick Attendance KPI Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50/70 border border-emerald-200/60">
+              <UserCheck size={14} className="text-emerald-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Hadir</p>
+                <p className="text-xs font-black text-emerald-900">{totalCalculatedHadir} Siswa</p>
               </div>
-              
-              {absentStudents.length > 0 ? (
-                <div className="space-y-2.5">
-                  <div className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100/50 px-2.5 py-1.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
-                    <AlertCircle size={12} className="shrink-0" />
-                    Terdeteksi {absentStudents.length} siswa tidak hadir pada tanggal ini:
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[110px] overflow-y-auto pr-1 custom-scrollbar">
-                    {absentStudents.map((s, idx) => {
-                      let badgeColor ='bg-amber-50 text-amber-700 border-amber-200/50';
-                      if (s.status.toLowerCase() ==='izin') badgeColor ='bg-blue-50 text-blue-700 border-blue-200/50';
-                      if (s.status.toLowerCase() ==='alpa' || s.status.toLowerCase() ==='alpha') badgeColor ='bg-rose-50 text-rose-700 border-rose-200/50';
-                      return (
-                        <div key={idx} className="flex items-center justify-between p-2 rounded-[var(--ui-radius-small)] bg-white border border-slate-100 shadow-xs">
-                          <span className="text-xs font-bold text-slate-700 truncate max-w-[125px]" title={s.name}>{s.name}</span>
-                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${badgeColor}`}>
-                            {s.status.toUpperCase()}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
-                  <CheckCircle2 size={13} />
-                  Semua siswa hadir (tidak ada catatan tidak hadir hari ini)
-                </div>
-              )}
+            </div>
+
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/70 border border-amber-200/60">
+              <HeartPulse size={14} className="text-amber-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-wider text-amber-700">Sakit</p>
+                <p className="text-xs font-black text-amber-900">{sakitCount} Siswa</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-blue-50/70 border border-blue-200/60">
+              <UserMinus size={14} className="text-blue-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-wider text-blue-700">Izin</p>
+                <p className="text-xs font-black text-blue-900">{izinCount} Siswa</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-rose-50/70 border border-rose-200/60">
+              <UserX size={14} className="text-rose-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-wider text-rose-700">Alpa</p>
+                <p className="text-xs font-black text-rose-900">{alpaCount} Siswa</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Absent Students Details List */}
+          {absentList.length > 0 ? (
+            <div className="space-y-2 pt-1">
+              <div className="text-[11px] font-bold text-rose-700 bg-rose-50/80 border border-rose-200/60 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <ShieldAlert size={14} className="shrink-0 text-rose-600" />
+                <span>Terdeteksi {absentList.length} siswa tidak hadir pada hari ini:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
+                {absentList.map((s, idx) => {
+                  const st = (s.status || '').toLowerCase();
+                  let badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300/80';
+                  if (st === 'izin' || st === 'dispen' || st === 'dispensasi') badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300/80';
+                  if (st === 'alpa' || st === 'alpha') badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300/80';
+
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 shadow-2xs gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 truncate" title={s.name}>{s.name}</p>
+                        {s.keterangan && <p className="text-[10px] text-slate-500 truncate">{s.keterangan}</p>}
+                      </div>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border shrink-0 uppercase tracking-wider ${badgeStyle}`}>
+                        {s.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
-            <div className="text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
-              <AlertCircle size={13} />
-              Info: Kelas {className} belum memiliki data siswa terdaftar di sistem.
+            <div className="text-xs font-bold text-emerald-800 bg-emerald-50/80 border border-emerald-200/70 px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+              <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+              <span>Semua siswa ({totalStudentsCount} anak) terdata hadir lengkap hari ini.</span>
             </div>
           )}
+        </div>
 
-          {/* Form Fields: Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5">
-                <Users size={12} className="text-slate-400" />
-                Jumlah Siswa Hadir
-              </label>
-              <div className="relative">
+        {/* Input Fields Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Jumlah Siswa Hadir - Super Fast Controls */}
+          <div className="space-y-1.5 bg-slate-50/80 p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/70">
+            <label className="flex items-center justify-between text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <Users size={13} className="text-[var(--ui-primary)]" />
+                Jumlah Siswa Hadir <span className="text-rose-500 font-bold">*</span>
+              </span>
+              <span className="text-slate-400 font-bold">Maks: {totalStudentsCount}</span>
+            </label>
+
+            {/* Stepper Counter */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleStepHadir(-1)}
+                className="w-10 h-10 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-black shadow-2xs cursor-pointer transition-all"
+                title="Kurangi 1"
+              >
+                <Minus size={15} />
+              </button>
+              
+              <div className="relative flex-1">
                 <input
                   type="number"
                   min={0}
-                  max={classStudents.length || 100}
+                  max={totalStudentsCount || 100}
                   value={form.jumlah_hadir}
-                  onChange={e => setForm({ ...form, jumlah_hadir: parseInt(e.target.value) || 0 })}
-                  className="w-full pl-3 pr-8 py-2 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
+                  onChange={e => setForm({ ...form, jumlah_hadir: Math.max(0, parseInt(e.target.value) || 0) })}
+                  className="w-full text-center py-2 px-3 bg-white border border-slate-200/90 rounded-xl text-base font-black text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 shadow-2xs"
+                  required
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-450">
-                  / {classStudents.length || 0}
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">
+                  / {totalStudentsCount}
                 </span>
               </div>
-              {form.jumlah_hadir !== totalHadirCalculated && classStudents.length > 0 && (
+
+              <button
+                type="button"
+                onClick={() => handleStepHadir(1)}
+                className="w-10 h-10 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-black shadow-2xs cursor-pointer transition-all"
+                title="Tambah 1"
+              >
+                <Plus size={15} />
+              </button>
+            </div>
+
+            {/* Quick Fill Buttons */}
+            <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+              <button
+                type="button"
+                onClick={handleSetSemuaHadir}
+                className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200/80 shadow-2xs cursor-pointer transition-all active:scale-95"
+              >
+                ✨ Semua Hadir ({totalStudentsCount})
+              </button>
+              {absentList.length > 0 && (
                 <button
                   type="button"
-                  onClick={handleAutoFill}
-                  className="mt-1 cursor-pointer block text-left"
+                  onClick={handleSetSinkronAbsensi}
+                  className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 shadow-2xs cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                 >
-                  Set otomatis: {totalHadirCalculated} siswa hadir
+                  ⚡ Sesuai Absensi ({totalCalculatedHadir})
                 </button>
               )}
             </div>
+          </div>
 
+          {/* Metode Pembelajaran */}
+          <div className="space-y-1.5 bg-slate-50/80 p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/70 flex flex-col justify-between">
             <div>
-              <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5">
-                <ClipboardList size={12} className="text-slate-400" />
-                Metode Pembelajaran
+              <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                <ClipboardList size={13} className="text-[var(--ui-primary)]" />
+                Metode Pembelajaran <span className="text-rose-500 font-bold">*</span>
               </label>
               <CustomSelect
                 options={METODE_OPTIONS.map(m => ({ value: m, label: m }))}
                 value={form.metode_pembelajaran}
                 onChange={val => setForm({ ...form, metode_pembelajaran: val })}
-                className="w-full text-sm z-50 relative"
+                className="w-full text-xs font-bold z-50 relative"
               />
             </div>
-          </div>
 
-          {/* Materi Pokok */}
-          <div>
-            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5">
-              <Award size={12} className="text-slate-400" />
+            {/* Quick Method Chips */}
+            <div className="flex items-center gap-1 flex-wrap pt-1.5">
+              {QUICK_METHODS.slice(0, 4).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setForm({ ...form, metode_pembelajaran: m })}
+                  className={`text-[9px] font-black px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                    form.metode_pembelajaran === m
+                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
+                      : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-100'
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Materi Pokok / KD */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              <Award size={13} className="text-[var(--ui-primary)]" />
               Materi Pokok / Kompetensi Dasar <span className="text-rose-500 font-bold">*</span>
             </label>
-            <input
-              type="text"
-              placeholder="Contoh: Menggambar denah jaringan komputer atau SPLDV"
-              value={form.materi_pokok}
-              onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
-              required
-            />
           </div>
+          <input
+            type="text"
+            placeholder="Contoh: Menggambar denah jaringan komputer atau SPLDV"
+            value={form.materi_pokok}
+            onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
+            className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all shadow-2xs"
+            required
+          />
+        </div>
 
-          {/* Kegiatan Pembelajaran */}
-          <div>
-            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5">
-              <FileText size={12} className="text-slate-400" />
+        {/* Kegiatan Pembelajaran - With 1-Click Fast Outlines */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              <FileText size={13} className="text-[var(--ui-primary)]" />
               Kegiatan Pembelajaran <span className="text-rose-500 font-bold">*</span>
             </label>
-            <textarea
-              rows={3}
-              placeholder="Jelaskan alur belajar (contoh: Guru memaparkan teori koding, siswa mempraktikkan langsung membuat web layout di lab komputer, diakhiri tanya jawab...)"
-              value={form.kegiatan_pembelajaran}
-              onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
-              required
-            />
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-[10px] font-extrabold text-slate-400 mr-1 flex items-center gap-1">
+                <Sparkles size={11} className="text-amber-500" /> Template Cepat:
+              </span>
+              <button
+                type="button"
+                onClick={() => handleApplyKegiatanTemplate('lengkap')}
+                className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200/80 transition-all cursor-pointer"
+              >
+                📝 Lengkap
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyKegiatanTemplate('praktik')}
+                className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200/80 transition-all cursor-pointer"
+              >
+                🛠️ Praktik Lab
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyKegiatanTemplate('diskusi')}
+                className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200/80 transition-all cursor-pointer"
+              >
+                👥 Diskusi
+              </button>
+            </div>
           </div>
+          <textarea
+            rows={3}
+            placeholder="Jelaskan alur belajar (contoh: Guru memaparkan teori, siswa mempraktikkan konfigurasi di lab komputer, diakhiri tanya jawab...)"
+            value={form.kegiatan_pembelajaran}
+            onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
+            className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all resize-none shadow-2xs leading-relaxed"
+            required
+          />
+        </div>
 
-          {/* Catatan Tambahan */}
-          <div>
-            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5">
-              <MessageSquare size={12} className="text-slate-400" />
+        {/* Catatan / Kendala Kelas */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              <MessageSquare size={13} className="text-[var(--ui-primary)]" />
               Catatan / Kendala Kelas (Opsional)
             </label>
-            <textarea
-              rows={2}
-              placeholder="Contoh: 2 siswa terlambat karena macet, LCD proyektor lab agak buram, atau target materi tercapai dengan baik..."
-              value={form.catatan}
-              onChange={e => setForm({ ...form, catatan: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-transparent rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all resize-none shadow-inner"
-            />
-          </div>
-
-          {/* Error Message */}
-          {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
-              <AlertCircle size={14} className="shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{errorMsg}</span>
+            <div className="flex items-center gap-1 flex-wrap">
+              <button
+                type="button"
+                onClick={() => handleAddCatatan('KBM berjalan dengan tertib & kondusif')}
+                className="text-[9px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/80 cursor-pointer"
+              >
+                + Tertib &amp; Lancar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddCatatan('Target materi KBM tercapai penuh')}
+                className="text-[9px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/80 cursor-pointer"
+              >
+                + Target Tercapai
+              </button>
             </div>
-          )}
-
-          {/* Actions */}
-          <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 shrink-0">
-            <Button variant="outline" type="button" onClick={onClose}>Batal</Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? (
-                <>
-                  <RefreshCw size={14} className="animate-spin mr-1.5" />
-                  Menyimpan...
-                </>
-              ) : (form.id ?'Perbarui Jurnal' :'Simpan & Submit Jurnal')}
-            </Button>
           </div>
-        </form>
-      </Modal>
+          <textarea
+            rows={2}
+            placeholder="Contoh: Siswa antusias menyelesaikan tugas praktikum tepat waktu..."
+            value={form.catatan}
+            onChange={e => setForm({ ...form, catatan: e.target.value })}
+            className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all resize-none shadow-2xs"
+          />
+        </div>
+
+        {/* Error Notification */}
+        {errorMsg && (
+          <div className="p-3 bg-rose-50 border border-rose-200/80 rounded-xl flex items-start gap-2.5 text-rose-700 text-xs font-bold animate-in zoom-in-95 duration-200">
+            <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-600" />
+            <span className="leading-relaxed">{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Footer Actions */}
+        <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+          <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-4 py-2 font-bold cursor-pointer">
+            Batal
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={saving}
+            className="rounded-xl px-5 py-2 font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-2"
+          >
+            {saving ? (
+              <>
+                <RefreshCw size={14} className="animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Check size={15} />
+                {form.id ? 'Perbarui Jurnal' : 'Simpan & Submit Jurnal'}
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

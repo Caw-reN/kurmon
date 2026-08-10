@@ -267,9 +267,14 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         return;
       }
 
-      // 1. Ambil daftar siswa di kelas
+      // 1. Ambil daftar siswa di kelas dengan pencocokan nama kelas yang fleksibel
       const { rows: siswaPaged } = await dbPool.query(
-        `SELECT payload FROM mst_students WHERE payload->>'class_name' = $1 ORDER BY payload->>'name' ASC`,
+        `SELECT payload FROM mst_students 
+         WHERE LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))) = LOWER(TRIM($1))
+            OR REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), ' ', '') = REPLACE(LOWER(TRIM($1)), ' ', '')
+            OR REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), '-', '') = REPLACE(LOWER(TRIM($1)), '-', '')
+            OR REPLACE(REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), ' ', ''), '-', '') = REPLACE(REPLACE(LOWER(TRIM($1)), ' ', ''), '-', '')
+         ORDER BY payload->>'name' ASC`,
         [filterKelas]
       );
       const siswaList = siswaPaged.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
@@ -277,11 +282,13 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       // 2. Ambil data absensi manual hari ini (sakit/izin/alpa)
       const { rows: absensiManual } = await dbPool.query(
         `SELECT siswa_nis, status, keterangan FROM kedisiplinan_absensi 
-         WHERE tanggal = $1 AND approval_status != 'rejected'`,
+         WHERE tanggal::date = $1::date AND COALESCE(approval_status, 'approved') != 'rejected'`,
         [filterDate]
       );
       const absensiMap = {};
-      absensiManual.forEach(a => { absensiMap[a.siswa_nis] = { status: a.status, keterangan: a.keterangan }; });
+      absensiManual.forEach(a => { 
+        absensiMap[String(a.siswa_nis).trim()] = { status: a.status, keterangan: a.keterangan }; 
+      });
 
       // 3. Ambil log Hikvision hari ini (yang hadir scan mesin)
       const { rows: hikLogs } = await dbPool.query(
@@ -289,33 +296,31 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
          WHERE timestamp::date = $1::date AND person_type = 'siswa'`,
         [filterDate]
       );
-      const hadirSet = new Set(hikLogs.map(l => String(l.employee_id)));
+      const hadirSet = new Set(hikLogs.map(l => String(l.employee_id).trim()));
 
       // 4. Bangun status per siswa
       const result = siswaList.map(siswa => {
-        const nis = String(siswa.nis || siswa.id || '');
+        const nis = String(siswa.nis || siswa.code || siswa.id || '').trim();
         const manual = absensiMap[nis];
         let statusKehadiran = 'Hadir';
         let keterangan = '';
 
         if (manual) {
-          statusKehadiran = manual.status; // Sakit / Izin / Alpa
+          statusKehadiran = manual.status; // Sakit / Izin / Alpa / Dispen
           keterangan = manual.keterangan || '';
-        } else if (!hadirSet.has(nis)) {
-          statusKehadiran = 'Belum Terdeteksi';
         }
 
         return {
           nis,
-          name: siswa.name || siswa.namaSiswa || nis,
-          class_name: siswa.class_name || filterKelas,
+          name: siswa.name || siswa.namaSiswa || siswa.nama || nis,
+          class_name: siswa.class_name || siswa.kelas || filterKelas,
           status: statusKehadiran,
           keterangan,
           hadir_scan: hadirSet.has(nis)
         };
       });
 
-      send(req, res, 200, { ok: true, data: result, tanggal: filterDate, kelas: filterKelas });
+      send(req, res, 200, { ok: true, data: result, total: result.length, tanggal: filterDate, kelas: filterKelas });
       return;
 
     } catch (err) {
