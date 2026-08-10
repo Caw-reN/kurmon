@@ -8,6 +8,8 @@ RUN npm ci || npm install
 
 # Copy source code and build
 COPY . .
+# Fix CRLF line endings from Windows to prevent Tailwind v4 parsing errors on Linux
+RUN sed -i 's/\r$//' src/index.css
 RUN npm run build
 
 # Stage 2: Serve with Nginx
