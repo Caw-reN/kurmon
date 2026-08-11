@@ -100,6 +100,7 @@
     background-color: var(--ui-bg-page, #eef2f7);
     width: var(--radix-select-trigger-width);
   }
+}
 
 /* 
  * =========================================
