@@ -47,9 +47,15 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
   if (req.method === "GET" && url.pathname === "/api/auth/captcha") {
     const id = Math.random().toString(36).substring(2, 9);
-    const num1 = Math.floor(Math.random() * 9) + 1;
-    const num2 = Math.floor(Math.random() * 9) + 1;
-    const answer = num1 + num2;
+    // FIX BUG-08: Captcha lebih kompleks (angka puluhan dan variasi operator)
+    const num1 = Math.floor(Math.random() * 90) + 10;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    const ops = ['+', '-', '*'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    let answer = 0;
+    if (op === '+') answer = num1 + num2;
+    else if (op === '-') answer = num1 - num2;
+    else answer = num1 * num2;
     activeCaptchas.set(id, { answer: String(answer), expires: Date.now() + 5 * 60 * 1000 });
     
     // Cleanup expired captchas
@@ -60,7 +66,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       }
     }
     
-    send(req, res, 200, { ok: true, id, question: `${num1} + ${num2} = ?` });
+    send(req, res, 200, { ok: true, id, question: `${num1} ${op} ${num2} = ?` });
     return true;
   }
 
@@ -186,18 +192,25 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     
     try {
       const payload = await readMainPayload();
+      // FIX BUG-09: Jangan menelan error, minimal log warning agar bisa di-debug
       try {
         const dbTeachers = await dbPool.query('SELECT payload FROM mst_teachers');
         if (dbTeachers.rows.length > 0) payload.teachers = dbTeachers.rows.map(r => r.payload);
-      } catch (e) {}
+      } catch (e) {
+        console.warn("[Auth] Failed to load mst_teachers:", e.message);
+      }
       try {
         const dbStaffs = await dbPool.query('SELECT payload FROM mst_staffs');
         if (dbStaffs.rows.length > 0) payload.staffs = dbStaffs.rows.map(r => r.payload);
-      } catch (e) {}
+      } catch (e) {
+        console.warn("[Auth] Failed to load mst_staffs:", e.message);
+      }
       try {
         const dbClasses = await dbPool.query('SELECT payload FROM mst_classes');
         if (dbClasses.rows.length > 0) payload.classes = dbClasses.rows.map(r => r.payload);
-      } catch (e) {}
+      } catch (e) {
+        console.warn("[Auth] Failed to load mst_classes:", e.message);
+      }
       if (!payload) throw new Error("Main payload empty");
       
       // Admin login

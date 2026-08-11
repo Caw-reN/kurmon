@@ -334,84 +334,94 @@ async function autoSyncGuruAttendanceToAppData() {
     `);
     if (logs.length === 0) return;
 
-    const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-    const mainData = mainRes.rowCount > 0 ? JSON.parse(mainRes.rows[0].data) : {};
-    const existingRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
-    const existingIds = new Set(existingRecords.map(r => r.id));
+    const client = await dbPool.connect();
+    try {
+      await client.query('BEGIN');
+      const mainRes = await client.query("SELECT data FROM app_data WHERE store_key = 'main_store' FOR UPDATE");
+      const mainData = mainRes.rowCount > 0 ? (typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data) : {};
+      const existingRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
+      const existingIds = new Set(existingRecords.map(r => r.id));
 
-    const conf = await getHikvisionConfig();
-    let added = 0;
-    const newRecords = [];
+      const conf = await getHikvisionConfig();
+      let added = 0;
+      const newRecords = [];
 
-    const getRoleTimeConfigLocal = (conf, role) => {
-      const defaults = {
-        siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
-        guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
-        karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "18:00" }
+      const getRoleTimeConfigLocal = (conf, role) => {
+        const defaults = {
+          siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
+          guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "18:00" },
+          karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "18:00" }
+        };
+        const roleDefault = defaults[role] || defaults.siswa;
+        const roleConf = conf[role] || {};
+        const formatTime = (timeStr) => {
+          if (!timeStr) return "";
+          return timeStr.substring(0, 5); // "HH:MM"
+        };
+        return {
+          masuk_open: formatTime(roleConf.masuk_open) || roleDefault.masuk_open,
+          masuk_late: formatTime(roleConf.masuk_late) || roleDefault.masuk_late,
+          masuk_close: formatTime(roleConf.masuk_close) || roleDefault.masuk_close,
+          pulang_open: formatTime(roleConf.pulang_open) || roleDefault.pulang_open,
+          pulang_close: formatTime(roleConf.pulang_close) || roleDefault.pulang_close,
+        };
       };
-      const roleDefault = defaults[role] || defaults.siswa;
-      const roleConf = conf[role] || {};
-      const formatTime = (timeStr) => {
-        if (!timeStr) return "";
-        return timeStr.substring(0, 5); // "HH:MM"
-      };
-      return {
-        masuk_open: formatTime(roleConf.masuk_open) || roleDefault.masuk_open,
-        masuk_late: formatTime(roleConf.masuk_late) || roleDefault.masuk_late,
-        masuk_close: formatTime(roleConf.masuk_close) || roleDefault.masuk_close,
-        pulang_open: formatTime(roleConf.pulang_open) || roleDefault.pulang_open,
-        pulang_close: formatTime(roleConf.pulang_close) || roleDefault.pulang_close,
-      };
-    };
 
-    logs.forEach(log => {
-      const empId = String(log.employee_id || '').trim();
-      const teacherCode = nipToCode[empId.toLowerCase()] || null;
-      if (!teacherCode) return;
+      logs.forEach(log => {
+        const empId = String(log.employee_id || '').trim();
+        const teacherCode = nipToCode[empId.toLowerCase()] || null;
+        if (!teacherCode) return;
 
-      const date = log.time_str.substring(0, 10);
-      const time = log.time_str.substring(11, 16);
-      
-      const roleType = log.device_type === 'karyawan' ? 'karyawan' : 'guru';
-      const roleConf = getRoleTimeConfigLocal(conf, roleType);
+        const date = log.time_str.substring(0, 10);
+        const time = log.time_str.substring(11, 16);
+        
+        const roleType = log.device_type === 'karyawan' ? 'karyawan' : 'guru';
+        const roleConf = getRoleTimeConfigLocal(conf, roleType);
 
-      let sessionName = '';
-      let status = '';
-      if (time >= roleConf.masuk_open && time <= roleConf.masuk_close) {
-        sessionName = 'Masuk Pagi';
-        status = time > roleConf.masuk_late ? 'Terlambat' : 'Hadir';
-      } else if (time >= roleConf.pulang_open && time <= roleConf.pulang_close) {
-        sessionName = 'Pulang Sore';
-        status = 'Hadir';
-      } else {
-        return;
+        let sessionName = '';
+        let status = '';
+        if (time >= roleConf.masuk_open && time <= roleConf.masuk_close) {
+          sessionName = 'Masuk Pagi';
+          status = time > roleConf.masuk_late ? 'Terlambat' : 'Hadir';
+        } else if (time >= roleConf.pulang_open && time <= roleConf.pulang_close) {
+          sessionName = 'Pulang Sore';
+          status = 'Hadir';
+        } else {
+          return;
+        }
+
+        const recordId = `hik-${teacherCode}-${date}-${sessionName}`;
+        if (existingIds.has(recordId)) return;
+
+        const record = {
+          id: recordId,
+          teacherCode,
+          date,
+          time,
+          sessionName,
+          status,
+          mode: 'hikvision',
+          note: `Dari mesin Hikvision: ${log.location || log.ip_address}`,
+        };
+        newRecords.push(record);
+        existingIds.add(recordId);
+        added++;
+      });
+
+      if (added > 0) {
+        mainData.attendanceRecords = [...existingRecords, ...newRecords];
+        await client.query(
+          "INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
+          [JSON.stringify(mainData)]
+        );
+        console.log(`[CRON] Berhasil otomatis sinkronisasi ${added} data absensi guru/karyawan dari mesin.`);
       }
-
-      const recordId = `hik-${teacherCode}-${date}-${sessionName}`;
-      if (existingIds.has(recordId)) return;
-
-      const record = {
-        id: recordId,
-        teacherCode,
-        date,
-        time,
-        sessionName,
-        status,
-        mode: 'hikvision',
-        note: `Dari mesin Hikvision: ${log.location || log.ip_address}`,
-      };
-      newRecords.push(record);
-      existingIds.add(recordId);
-      added++;
-    });
-
-    if (added > 0) {
-      mainData.attendanceRecords = [...existingRecords, ...newRecords];
-      await dbPool.query(
-        "INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
-        [JSON.stringify(mainData)]
-      );
-      console.log(`[CRON] Berhasil otomatis sinkronisasi ${added} data absensi guru/karyawan dari mesin.`);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Error in autoSyncGuruAttendanceToAppData transaction:', err);
+    } finally {
+      client.release();
     }
   } catch (err) {
     console.error('Error in autoSyncGuruAttendanceToAppData:', err);
@@ -1097,12 +1107,19 @@ const initDb = async () => {
         const tableName = row.table_name;
         const columnName = row.column_name;
         const seqRes = await dbPool.query(
-          "SELECT pg_get_serial_sequence('" + tableName + "', '" + columnName + "') AS seq"
+          "SELECT pg_get_serial_sequence($1, $2) AS seq",
+          [tableName, columnName]
         );
         const seqName = seqRes.rows[0]?.seq;
         if (seqName) {
+          const quotedTableRes = await dbPool.query("SELECT quote_ident($1) AS q", [tableName]);
+          const quotedColRes = await dbPool.query("SELECT quote_ident($1) AS q", [columnName]);
+          const qTable = quotedTableRes.rows[0].q;
+          const qCol = quotedColRes.rows[0].q;
+
           await dbPool.query(
-            "SELECT setval('" + seqName + "', COALESCE((SELECT MAX(" + columnName + ") FROM " + tableName + "), 1), true)"
+            `SELECT setval($1, COALESCE((SELECT MAX(${qCol}) FROM ${qTable}), 1), true)`,
+            [seqName]
           );
         }
       }
@@ -1130,6 +1147,18 @@ const initDb = async () => {
       }
     } catch (cleanErr) {
       console.warn("Failed to clean duplicate majors:", cleanErr.message);
+    }
+
+    try {
+      await dbPool.query(`
+        CREATE INDEX IF NOT EXISTS idx_hikvision_logs_emp_time ON hikvision_logs (employee_id, timestamp);
+        CREATE INDEX IF NOT EXISTS idx_hikvision_logs_device_time ON hikvision_logs (device_id, timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_tanggal ON kedisiplinan_absensi (tanggal);
+        CREATE INDEX IF NOT EXISTS idx_jurnal_guru_code_date ON jurnal_harian_guru (teacher_code, tanggal);
+      `);
+      console.log("Database indexes verified/created.");
+    } catch (idxErr) {
+      console.warn("Failed to create database indexes:", idxErr.message);
     }
 
     dbStatus = { ok: true, code: "DB_CONNECTED", message: "Database PostgreSQL tersambung." };
