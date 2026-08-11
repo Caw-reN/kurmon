@@ -53,6 +53,12 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
 
         query += ' ORDER BY tanggal DESC, jam_ke ASC';
 
+        // FIX FLOW-05: Pagination
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+        query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(limit, offset);
+
         const { rows } = await dbPool.query(query, params);
         send(req, res, 200, { ok: true, data: rows });
         return;

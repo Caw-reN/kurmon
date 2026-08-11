@@ -245,7 +245,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/riwayat") {
-          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_riwayat_poin ORDER BY tanggal_kejadian DESC");
+          const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_riwayat_poin ORDER BY tanggal_kejadian DESC LIMIT $1 OFFSET $2", [limit, offset]);
           send(req, res, 200, { ok: true, data: rows });
           return;
         }
@@ -262,7 +264,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
         
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/konseling") {
-          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_buku_konseling ORDER BY tanggal_konseling DESC");
+          const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_buku_konseling ORDER BY tanggal_konseling DESC LIMIT $1 OFFSET $2", [limit, offset]);
           send(req, res, 200, { ok: true, data: rows });
           return;
         }
@@ -296,6 +300,12 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             params.push(startDate);
           }
           query += " ORDER BY tanggal DESC, id DESC";
+          
+          const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10), 500);
+          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+          params.push(limit, offset);
+
           const { rows } = await dbPool.query(query, params);
           send(req, res, 200, { ok: true, data: rows });
           return;
