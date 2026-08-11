@@ -1148,37 +1148,39 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           title="Laporan & Rekap Absensi Guru"
           description="Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."
           icon={Users}
-          tabs={[
-            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar, onClick: () => setSubTab('matriks'), isActive: subTab === 'matriks' },
-            { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award, onClick: () => setSubTab('perguru'), isActive: subTab === 'perguru' }
-          ]}
         />
       )}
 
-      {isNested && (
-        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 w-fit mb-2">
-          {[
-            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
-            { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setSubTab(tab.id)}
-              className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
-                subTab === tab.id
-                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
-              }`}
-            >
-              <tab.icon size={14} className="shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
+        {/* Top Header Row with Segmented Sub-tabs */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-full sm:w-fit">
+            {[
+              { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+              { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSubTab(tab.id)}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
+                  subTab === tab.id
+                    ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                }`}
+              >
+                <tab.icon size={14} className={subTab === tab.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="text-xs font-bold text-slate-500 flex items-center gap-2 self-end sm:self-center">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Total: <strong className="text-slate-800 font-extrabold">{data.length}</strong> Guru</span>
+          </div>
+        </div>
+
         {/* Top Filter Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="min-w-0">
