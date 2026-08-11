@@ -73,17 +73,29 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             send(req, res, 400, { ok: false, error: "File data is required" });
             return;
           }
+          // FIX BUG-07: Validasi tipe file dan ukuran maksimal
+          const mimeMatch = String(body.fileData).match(/^data:([^;]+);base64,/);
+          const mimeType = mimeMatch ? mimeMatch[1] : '';
+          if (!['application/pdf'].includes(mimeType)) {
+            send(req, res, 400, { ok: false, error: "Hanya file PDF yang diizinkan." });
+            return;
+          }
           const base64Data = body.fileData.split(';base64,').pop();
+          const fileSizeBytes = Math.round(base64Data.length * 3 / 4);
+          if (fileSizeBytes > 10 * 1024 * 1024) { // max 10 MB
+            send(req, res, 400, { ok: false, error: "Ukuran file maksimal 10MB." });
+            return;
+          }
           const payload = {
             base64: base64Data,
             fileName: body.fileName || "peraturan_sekolah.pdf"
           };
-          
+
           await dbPool.query(`
             INSERT INTO app_data (store_key, data) VALUES ('school_rules_pdf', $1)
             ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
           `, [JSON.stringify(payload)]);
-          
+
           send(req, res, 200, { ok: true });
           return;
         }
@@ -181,18 +193,34 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/master") {
           const body = await readJsonBody(req);
+          const VALID_JENIS = ['pelanggaran', 'penghargaan'];
+
           if (body.action === 'delete') {
-             await dbPool.query("DELETE FROM kedisiplinan_master_poin WHERE id = $1", [body.id]);
+            if (!body.id) return send(req, res, 400, { ok: false, error: "ID diperlukan." });
+            await dbPool.query("DELETE FROM kedisiplinan_master_poin WHERE id = $1", [body.id]);
           } else if (body.action === 'import' && Array.isArray(body.items)) {
-             for (const item of body.items) {
-                if (item.nama_tindakan && item.jenis && item.nilai_poin !== undefined) {
-                   await dbPool.query("INSERT INTO kedisiplinan_master_poin (nama_tindakan, jenis, nilai_poin) VALUES ($1, $2, $3)", [item.nama_tindakan, item.jenis, item.nilai_poin]);
+            for (const item of body.items) {
+              if (item.nama_tindakan && VALID_JENIS.includes(item.jenis) && item.nilai_poin !== undefined) {
+                const poin = parseInt(item.nilai_poin, 10);
+                if (!isNaN(poin)) {
+                  await dbPool.query("INSERT INTO kedisiplinan_master_poin (nama_tindakan, jenis, nilai_poin) VALUES ($1, $2, $3)", [String(item.nama_tindakan).trim(), item.jenis, poin]);
                 }
-             }
+              }
+            }
           } else if (body.id) {
-             await dbPool.query("UPDATE kedisiplinan_master_poin SET nama_tindakan = $1, jenis = $2, nilai_poin = $3 WHERE id = $4", [body.nama_tindakan, body.jenis, body.nilai_poin, body.id]);
+            // FIX FLOW-04: Validasi input sebelum update
+            if (!body.nama_tindakan?.trim()) return send(req, res, 400, { ok: false, error: "Nama tindakan wajib diisi." });
+            if (!VALID_JENIS.includes(body.jenis)) return send(req, res, 400, { ok: false, error: "Jenis harus 'pelanggaran' atau 'penghargaan'." });
+            const poin = parseInt(body.nilai_poin, 10);
+            if (isNaN(poin) || poin < 0 || poin > 1000) return send(req, res, 400, { ok: false, error: "Nilai poin harus angka 0-1000." });
+            await dbPool.query("UPDATE kedisiplinan_master_poin SET nama_tindakan = $1, jenis = $2, nilai_poin = $3 WHERE id = $4", [String(body.nama_tindakan).trim(), body.jenis, poin, body.id]);
           } else {
-             await dbPool.query("INSERT INTO kedisiplinan_master_poin (nama_tindakan, jenis, nilai_poin) VALUES ($1, $2, $3)", [body.nama_tindakan, body.jenis, body.nilai_poin]);
+            // FIX FLOW-04: Validasi input sebelum insert
+            if (!body.nama_tindakan?.trim()) return send(req, res, 400, { ok: false, error: "Nama tindakan wajib diisi." });
+            if (!VALID_JENIS.includes(body.jenis)) return send(req, res, 400, { ok: false, error: "Jenis harus 'pelanggaran' atau 'penghargaan'." });
+            const poin = parseInt(body.nilai_poin, 10);
+            if (isNaN(poin) || poin < 0 || poin > 1000) return send(req, res, 400, { ok: false, error: "Nilai poin harus angka 0-1000." });
+            await dbPool.query("INSERT INTO kedisiplinan_master_poin (nama_tindakan, jenis, nilai_poin) VALUES ($1, $2, $3)", [String(body.nama_tindakan).trim(), body.jenis, poin]);
           }
           send(req, res, 200, { ok: true });
           return;

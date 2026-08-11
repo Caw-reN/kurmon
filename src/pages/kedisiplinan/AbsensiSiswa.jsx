@@ -87,8 +87,10 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
-        const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
+        // FIX PERF-06: Formula standar base64 → bytes (dikurangi padding karakter '=')
+        const base64Part = dataUrl.split(',')[1] || '';
+        const paddingCount = (base64Part.match(/=+$/) || [''])[0].length;
+        const sizeInBytes = Math.floor(base64Part.length * 3 / 4) - paddingCount;
         const sizeInKB = Math.round(sizeInBytes / 1024);
 
         callback(dataUrl, sizeInKB);

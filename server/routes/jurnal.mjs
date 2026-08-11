@@ -83,11 +83,12 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const body = await readJsonBody(req);
         const teacherCode = session?.code || session?.id || '';
         const teacherName = session?.name || '';
+        // Definisikan role & isAdmin di scope luar agar tersedia di semua branch
+        const role = session?.role || '';
+        const isAdmin = ['admin', 'superadmin'].includes(role);
 
         if (body.action === 'delete') {
           // Guru hanya bisa hapus milik sendiri, admin bisa semua
-          const role = session?.role || '';
-          const isAdmin = ['admin', 'superadmin'].includes(role);
           if (isAdmin) {
             await dbPool.query('DELETE FROM jurnal_harian_guru WHERE id = $1', [body.id]);
           } else {

@@ -136,6 +136,12 @@ async function syncAllUsersToModules() {
   }
 }
 
+// Helper: konversi "HH:MM" ke menit (numerik) untuk perbandingan waktu yang aman
+function toMinutes(hhmm) {
+  const [h, m] = String(hhmm || '00:00').split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
 async function pullHikvisionLogs(force = false) {
   if (!dbPool) return { logs_found: 0, logs_saved: 0 };
   const config = await getHikvisionConfig();
@@ -143,23 +149,56 @@ async function pullHikvisionLogs(force = false) {
   let totalFound = 0;
   try {
     const nowLocal = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-    
+    const nowMinutes = toMinutes(nowLocal);
+
     const isRoleActive = (role) => {
       const roleConf = config[role] || {};
-      const masukOpen = (roleConf.masuk_open || roleConf.masuk_start || config.masuk_open || "05:00").substring(0, 5);
-      const masukClose = (roleConf.masuk_close || roleConf.masuk_end || config.masuk_close || "12:00").substring(0, 5);
-      const pulangOpen = (roleConf.pulang_open || roleConf.pulang_start || config.pulang_open || "14:00").substring(0, 5);
-      const pulangClose = (roleConf.pulang_close || roleConf.pulang_end || config.pulang_close || "18:00").substring(0, 5);
-      return (nowLocal >= masukOpen && nowLocal <= masukClose) || (nowLocal >= pulangOpen && nowLocal <= pulangClose);
+      const masukOpen  = toMinutes((roleConf.masuk_open  || roleConf.masuk_start || config.masuk_open  || "05:00").substring(0, 5));
+      const masukClose = toMinutes((roleConf.masuk_close || roleConf.masuk_end   || config.masuk_close || "12:00").substring(0, 5));
+      const pulangOpen  = toMinutes((roleConf.pulang_open  || roleConf.pulang_start || config.pulang_open  || "14:00").substring(0, 5));
+      const pulangClose = toMinutes((roleConf.pulang_close || roleConf.pulang_end   || config.pulang_close || "18:00").substring(0, 5));
+      return (nowMinutes >= masukOpen && nowMinutes <= masukClose) || (nowMinutes >= pulangOpen && nowMinutes <= pulangClose);
     };
 
-    let isActiveAny = ['siswa', 'guru', 'karyawan'].some(r => isRoleActive(r));
+    const isActiveAny = ['siswa', 'guru', 'karyawan'].some(r => isRoleActive(r));
 
-    // Stop pulling if current time is outside ALL attendance windows and force is false
     if (!isActiveAny && !force) {
       console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active attendance windows.`);
       return { logs_found: 0, logs_saved: 0 };
     }
+
+    // ── FIX BUG-04: Pre-load identity lookup tables ONCE before device loop ──
+    const [hikStudentsRes, teachersRes, staffsRes, featureStoreRes] = await Promise.all([
+      dbPool.query("SELECT nis, name, class_name FROM hikvision_students"),
+      dbPool.query("SELECT id, payload FROM mst_teachers"),
+      dbPool.query("SELECT id, payload FROM mst_staffs"),
+      dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'")
+    ]);
+
+    // Build O(1) lookup maps
+    const hikStudentMap = new Map(hikStudentsRes.rows.map(r => [String(r.nis || '').toLowerCase(), r]));
+    const teacherMap    = new Map();
+    for (const r of teachersRes.rows) {
+      const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
+      const name = p.name || p.nama || r.id;
+      if (r.id)         teacherMap.set(String(r.id).toLowerCase(), { name });
+      if (p.code)       teacherMap.set(String(p.code).toLowerCase(), { name });
+      if (p.nip)        teacherMap.set(String(p.nip).toLowerCase(), { name });
+    }
+    const staffMap = new Map();
+    for (const r of staffsRes.rows) {
+      const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
+      const name = p.name || p.nama || r.id;
+      if (r.id)            staffMap.set(String(r.id).toLowerCase(), { name });
+      if (p.staff_code)    staffMap.set(String(p.staff_code).toLowerCase(), { name });
+      if (p.code)          staffMap.set(String(p.code).toLowerCase(), { name });
+    }
+    // Feature settings (loaded once)
+    let featureSettings = {};
+    try {
+      const raw = featureStoreRes.rows[0]?.data;
+      featureSettings = (raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {}).featureSettings || {};
+    } catch { /* ignore parse error */ }
 
     const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
     for (const device of devices) {
@@ -172,111 +211,92 @@ async function pullHikvisionLogs(force = false) {
       try {
         const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
         const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
-        
-        // Find the last pulled log for this device
+
         const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
         let startTime = new Date();
-        startTime.setHours(0, 0, 0, 0); // Default to today 00:00:00
+        startTime.setHours(0, 0, 0, 0);
         if (lastLogRes.rows[0].last_ts) {
-           startTime = new Date(lastLogRes.rows[0].last_ts);
+          startTime = new Date(lastLogRes.rows[0].last_ts);
         } else {
-           startTime.setDate(startTime.getDate() - 3); // If no logs, fetch last 3 days
+          startTime.setDate(startTime.getDate() - 3);
         }
-        
+
         const endTime = new Date();
         const logs = await api.searchEvents(startTime, endTime);
         totalFound += logs.length;
-        
+
         for (const log of logs) {
           const employeeNo = log.employeeNoString;
           if (!employeeNo) continue;
           const eventType = `${log.major}-${log.minor}`;
-          // Use standard JS Date parsing which respects ISO offsets (+00:00 vs +07:00) 
-          // and output strictly in WIB format (sv-SE gives YYYY-MM-DD HH:mm:ss)
           const logTime = new Date(log.time).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' });
-          
+          const logHhmm = logTime.substring(11, 16);
+          const logMin  = toMinutes(logHhmm);
+
+          // Skip duplicate logs
           const existing = await dbPool.query(
             "SELECT 1 FROM hikvision_logs WHERE device_id = $1 AND employee_id = $2 AND timestamp = $3 AND event_type = $4",
             [device.id, employeeNo, logTime, eventType]
           );
-          
-          if (existing.rowCount === 0) {
-            let personType = 'unknown';
-            let userName = 'Unknown';
-            const isStudent = await dbPool.query("SELECT name, class_name FROM hikvision_students WHERE nis = $1", [employeeNo]);
-            if (isStudent.rowCount > 0 && isStudent.rows[0].class_name !== 'guru' && isStudent.rows[0].class_name !== 'karyawan') {
-              personType = 'siswa';
-              userName = isStudent.rows[0].name;
-            } else {
-              const isTeacher = await dbPool.query("SELECT id, payload FROM mst_teachers WHERE id = $1 OR payload->>'code' = $1 OR payload->>'nip' = $1", [employeeNo]);
-              if (isTeacher.rowCount > 0) {
-                personType = 'guru';
-                const p = typeof isTeacher.rows[0].payload === 'string' ? JSON.parse(isTeacher.rows[0].payload) : isTeacher.rows[0].payload;
-                userName = p.name || p.nama || isTeacher.rows[0].id;
-              } else {
-                const isStaff = await dbPool.query("SELECT id, payload FROM mst_staffs WHERE id = $1 OR payload->>'staff_code' = $1", [employeeNo]);
-                if (isStaff.rowCount > 0) {
-                  personType = 'karyawan';
-                  const p = typeof isStaff.rows[0].payload === 'string' ? JSON.parse(isStaff.rows[0].payload) : isStaff.rows[0].payload;
-                  userName = p.name || p.nama || isStaff.rows[0].id;
-                } else {
-                  if (isStudent.rowCount > 0) {
-                    personType = isStudent.rows[0].class_name === 'karyawan' ? 'karyawan' : (isStudent.rows[0].class_name === 'guru' ? 'guru' : 'siswa');
-                    userName = isStudent.rows[0].name;
-                  }
-                }
-              }
-            }
+          if (existing.rowCount > 0) continue;
 
-            // FILTER: Hanya masukkan log jika berada di dalam rentang waktu buka absen untuk role tersebut
-            if (personType !== 'unknown') {
-               const pConf = config[personType] || {};
-               const mOpen = (pConf.masuk_open || "05:00").substring(0, 5);
-               const mClose = (pConf.masuk_close || "12:00").substring(0, 5);
-               const pOpen = (pConf.pulang_open || "14:00").substring(0, 5);
-               const pClose = (pConf.pulang_close || "18:00").substring(0, 5);
-               const logHhmm = logTime.substring(11, 16);
-               
-               const isMasuk = logHhmm >= mOpen && logHhmm <= mClose;
-               const isPulang = logHhmm >= pOpen && logHhmm <= pClose;
-               
-               if (!isMasuk && !isPulang) {
-                  // Skip inserting log because it is outside attendance window
-                  continue;
-               }
-            }
+          // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
+          const empKey = String(employeeNo).toLowerCase();
+          let personType = 'unknown';
+          let userName   = 'Unknown';
 
-            await dbPool.query(
-              "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
-              [device.id, employeeNo, logTime, eventType, personType]
+          const hikStu = hikStudentMap.get(empKey);
+          if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
+            personType = 'siswa';
+            userName   = hikStu.name;
+          } else if (hikStu && (hikStu.class_name === 'guru' || hikStu.class_name === 'karyawan')) {
+            personType = hikStu.class_name;
+            userName   = hikStu.name;
+          } else if (teacherMap.has(empKey)) {
+            personType = 'guru';
+            userName   = teacherMap.get(empKey).name;
+          } else if (staffMap.has(empKey)) {
+            personType = 'karyawan';
+            userName   = staffMap.get(empKey).name;
+          }
+
+          // ── Time-window filter (numeric minutes comparison) ──
+          if (personType !== 'unknown') {
+            const pConf   = config[personType] || {};
+            const mOpen   = toMinutes((pConf.masuk_open  || "05:00").substring(0, 5));
+            const mClose  = toMinutes((pConf.masuk_close || "12:00").substring(0, 5));
+            const pOpen   = toMinutes((pConf.pulang_open  || "14:00").substring(0, 5));
+            const pClose  = toMinutes((pConf.pulang_close || "18:00").substring(0, 5));
+            const isMasuk  = logMin >= mOpen  && logMin <= mClose;
+            const isPulang = logMin >= pOpen  && logMin <= pClose;
+            if (!isMasuk && !isPulang) continue; // outside window, skip
+          }
+
+          await dbPool.query(
+            "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
+            [device.id, employeeNo, logTime, eventType, personType]
+          );
+          totalSaved++;
+
+          // ── Late notification (feature flag already pre-loaded) ──
+          let lateLimit  = null;
+          let roleTarget = null;
+          if (personType === 'siswa')     { lateLimit = config.siswa?.masuk_late;     roleTarget = 'parent';    }
+          else if (personType === 'guru')     { lateLimit = config.guru?.masuk_late;      roleTarget = 'kurikulum'; }
+          else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late;  roleTarget = 'tu';        }
+
+          if (lateLimit && eventType === '5-75') {
+            const closeLimit = toMinutes(
+              (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
             );
-            totalSaved++;
-
-            const logHhmmStr = logTime.substring(11, 16);
-            
-            let lateLimit = null;
-            let roleTarget = null;
-            if (personType === 'siswa') { lateLimit = config.siswa?.masuk_late; roleTarget = 'parent'; }
-            else if (personType === 'guru') { lateLimit = config.guru?.masuk_late; roleTarget = 'kurikulum'; }
-            else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late; roleTarget = 'tu'; }
-
-            if (lateLimit && logHhmmStr > lateLimit && eventType === '5-75') { 
-               // Check if they are scanning IN the morning (not afternoon!)
-               // We don't want "late" notifications sent when they are clocking out!
-               const closeLimit = (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00";
-               if (logHhmmStr <= closeLimit) {
-                 const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmmStr} (terlambat, batas: ${lateLimit}).`;
-                 
-                 const storeRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-                 const store = storeRes.rows[0]?.data ? (typeof storeRes.rows[0].data === 'string' ? JSON.parse(storeRes.rows[0].data) : storeRes.rows[0].data) : {};
-                 // Check if wa_auto_terlambat is ON
-                 if (store.featureSettings && store.featureSettings.wa_auto_terlambat !== false) {
-                   await dbPool.query(
-                     "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-                     [roleTarget, message, `late_${personType}`]
-                   );
-                 }
-               }
+            if (logMin > toMinutes(lateLimit) && logMin <= closeLimit) {
+              if (featureSettings.wa_auto_terlambat !== false) {
+                const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmm} (terlambat, batas: ${lateLimit}).`;
+                await dbPool.query(
+                  "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
+                  [roleTarget, message, `late_${personType}`]
+                );
+              }
             }
           }
         }
@@ -402,61 +422,67 @@ async function sendDailyClassSummary() {
   if (!dbPool) return;
   try {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    // 1. Get classes and their homeroom teacher phones
+
     const { rows: mstRows } = await dbPool.query("SELECT payload FROM mst_classes");
     const classes = mstRows.map(r => r.payload);
-    
+
     // Fetch teachers once outside the loop to avoid N+1 queries
     const { rows: tRows } = await dbPool.query("SELECT payload FROM mst_teachers");
     const teachers = tRows.map(r => r.payload);
-    
+
     for (const cls of classes) {
       if (!cls.id || !cls.walas_id) continue;
-      
+
       const walas = teachers.find(t => t.id === cls.walas_id || t.code === cls.walas_id);
-      
       if (!walas || !walas.phone) continue;
-      
+
       // Get all students in this class
-      const { rows: sRows } = await dbPool.query("SELECT nis, name FROM hikvision_students WHERE class_name = $1", [cls.id]);
+      const { rows: sRows } = await dbPool.query(
+        "SELECT nis, name FROM hikvision_students WHERE class_name = $1",
+        [cls.id]
+      );
       if (sRows.length === 0) continue;
-      
+
+      const nisList = sRows.map(s => s.nis);
+
+      // ── FIX BUG-03: Batch-query BOTH tables for all students at once ──
+      const [hikRes, manualRes] = await Promise.all([
+        dbPool.query(
+          "SELECT DISTINCT employee_id FROM hikvision_logs WHERE employee_id = ANY($1) AND timestamp::date = $2::date",
+          [nisList, today]
+        ),
+        dbPool.query(
+          "SELECT user_id, status FROM kedisiplinan_absensi WHERE siswa_nis = ANY($1) AND tanggal = $2 AND approval_status = 'approved'",
+          [nisList, today]
+        )
+      ]);
+
+      const hadirSet    = new Set(hikRes.rows.map(r => String(r.employee_id)));
+      const manualMap   = new Map(manualRes.rows.map(r => [String(r.user_id), r.status]));
+
       let hadir = 0;
-      let tidakHadirNames = [];
-      
+      const tidakHadirNames = [];
+
       for (const s of sRows) {
-        // Check if there's an attendance log for today
-        const existing = await dbPool.query(
-          "SELECT 1 FROM hikvision_logs WHERE employee_id = $1 AND timestamp::date = $2::date",
-          [s.nis, today]
-        );
-        if (existing.rowCount > 0) {
+        const nisStr = String(s.nis);
+        if (hadirSet.has(nisStr)) {
           hadir++;
+        } else if (manualMap.has(nisStr)) {
+          tidakHadirNames.push(`${s.name} (${manualMap.get(nisStr)})`);
         } else {
-          // Check manual attendance (izin/sakit)
-          const manual = await dbPool.query(
-            "SELECT status FROM attendance_manual WHERE user_id = $1 AND date = $2",
-            [s.nis, today]
-          );
-          if (manual.rowCount > 0) {
-             tidakHadirNames.push(`${s.name} (${manual.rows[0].status})`);
-          } else {
-             tidakHadirNames.push(`${s.name} (Alpa)`);
-          }
+          tidakHadirNames.push(`${s.name} (Alpa)`);
         }
       }
-      
-      let tidakHadirCount = sRows.length - hadir;
-      
-      const message = `Halo Bapak/Ibu Wali Kelas ${cls.id},\nBerikut rekap absensi kelas hari ini (${today}):\n- Total Siswa: ${sRows.length}\n- Hadir: ${hadir}\n- Tidak Hadir: ${tidakHadirCount}\n\nDaftar Tidak Hadir:\n${tidakHadirNames.join('\\n')}`;
-      
+
+      const tidakHadirCount = sRows.length - hadir;
+      const message = `Halo Bapak/Ibu Wali Kelas ${cls.id},\nBerikut rekap absensi kelas hari ini (${today}):\n- Total Siswa: ${sRows.length}\n- Hadir: ${hadir}\n- Tidak Hadir: ${tidakHadirCount}\n\nDaftar Tidak Hadir:\n${tidakHadirNames.join('\n')}`;
+
       await dbPool.query(
-         "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-         [walas.phone, message, 'daily_recap_walas']
+        "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
+        [walas.phone, message, 'daily_recap_walas']
       );
     }
-  } catch(e) {
+  } catch (e) {
     console.error("Error in sendDailyClassSummary:", e);
   }
 }
@@ -1166,6 +1192,22 @@ const pruneOldSessions = () => {
   }
 };
 pruneOldSessions();
+
+// FIX BUG-02: Periodic cleanup untuk mencegah memory leak pada in-memory Maps
+// Sessions + loginAttempts dibersihkan setiap 1 jam
+const pruneLoginAttempts = () => {
+  const now = Date.now();
+  for (const [key, val] of loginAttempts.entries()) {
+    if (!val || !val.lockUntil || val.lockUntil < now) loginAttempts.delete(key);
+  }
+  for (const [key, val] of loginAttemptsByIp.entries()) {
+    if (!val || !val.lockUntil || val.lockUntil < now) loginAttemptsByIp.delete(key);
+  }
+};
+setInterval(() => {
+  pruneOldSessions();
+  pruneLoginAttempts();
+}, 60 * 60 * 1000); // Setiap 1 jam
 
 const getHeaders = (req) => {
   const origin = req.__corsOrigin || resolveCorsOrigin(req.headers.origin, ALLOWED_ORIGINS);
