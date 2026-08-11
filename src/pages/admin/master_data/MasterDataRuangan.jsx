@@ -61,7 +61,7 @@ const MasterDataRuangan = memo(function MasterDataRuangan({
               </div>
             </td>
           </tr>
-        ), { tabKey:"ruangan" });
+        ), { tabKey:"ruangan", pageHeader: null });
 
 });
 

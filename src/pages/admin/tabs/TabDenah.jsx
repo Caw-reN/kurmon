@@ -73,38 +73,50 @@ export default function TabDenah(props) {
           );
         };
         return (
-          <div className="flex flex-col gap-4">
-            <div className="bg-white border-none rounded-[var(--ui-radius-card)] p-4 md:p-5 shadow-sm">
-              <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
-                <div className="grid grid-cols-3 gap-2 w-full xl:w-auto">
-                  <div className="rounded-[var(--ui-radius-small)] bg-slate-50 border-none px-3 py-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kelas</p>
-                    <p className="text-lg font-black text-slate-800">{denahClassRows.length}</p>
-                  </div>
-                  <div className="rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200 px-3 py-2">
-                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Terpasang</p>
-                    <p className="text-lg font-black text-emerald-700">{assignedClassNames.size}</p>
-                  </div>
-                  <div className="rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200 px-3 py-2">
-                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Belum</p>
-                    <p className="text-lg font-black text-amber-700">{unassignedCount}</p>
-                  </div>
+          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 md:p-5 shadow-xs flex flex-col gap-4 overflow-hidden">
+            {/* Top Toolbar & KPI in unified box */}
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 pb-3 border-b border-slate-100">
+              <div className="grid grid-cols-3 gap-2 w-full xl:w-auto">
+                <div className="rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200/60 px-3.5 py-2">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Kelas</p>
+                  <p className="text-base font-black text-slate-800">{denahClassRows.length}</p>
+                </div>
+                <div className="rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 px-3.5 py-2">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Terpasang</p>
+                  <p className="text-base font-black text-emerald-800">{assignedClassNames.size}</p>
+                </div>
+                <div className="rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200/80 px-3.5 py-2">
+                  <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Belum</p>
+                  <p className="text-base font-black text-amber-800">{unassignedCount}</p>
                 </div>
               </div>
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4 rounded-[var(--ui-radius-small)] border-none bg-slate-50 p-2.5">
-                <div className="flex w-full lg:w-auto gap-1 rounded-[var(--ui-radius-small)] bg-white border-none p-1">
-                  <Button variant="outline" type="button" onClick={() =>setLayoutPreset("kampus_a")} className={`flex-1 lg:flex-none ${layoutPreset ==="kampus_a" ?"bg-[var(--ui-primary)] text-white" :"text-slate-600 hover:bg-slate-50"}`}>Kampus A - Teori</Button>
-                  <Button variant="outline" type="button" onClick={() =>setLayoutPreset("kampus_b")} className={`flex-1 lg:flex-none ${layoutPreset ==="kampus_b" ?"bg-[var(--ui-primary)] text-white" :"text-slate-600 hover:bg-slate-50"}`}>Kampus B - Praktik</Button>
+
+              <div className="flex flex-wrap items-center gap-2 justify-start xl:justify-end">
+                <div className="flex gap-1 rounded-xl bg-slate-100/90 p-1 border border-slate-200/60">
+                  <button 
+                    type="button" 
+                    onClick={() => setLayoutPreset("kampus_a")} 
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_a" ? "bg-white text-slate-900 shadow-2xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
+                  >
+                    Kampus A - Teori
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setLayoutPreset("kampus_b")} 
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_b" ? "bg-white text-slate-900 shadow-2xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
+                  >
+                    Kampus B - Praktik
+                  </button>
                 </div>
-                <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
-                  <Button variant="outline" type="button" onClick={generateRoomLayout} ><Wand2 size={14} /> Susun Awal Otomatis</Button>
-                  <Button variant="outline" type="button" onClick={handleCopyCurrentDenahToAllDays} ><Copy size={14} /> Salin ke Semua Hari</Button>
-                  <Button variant="outline" type="button" onClick={handleClearCurrentDenahDay} ><RefreshCw size={14} /> Kosongkan Hari Ini</Button>
-                </div>
+
+                <Button variant="outline" type="button" onClick={generateRoomLayout} className="text-xs font-bold"><Wand2 size={13} /> Susun Otomatis</Button>
+                <Button variant="outline" type="button" onClick={handleCopyCurrentDenahToAllDays} className="text-xs font-bold"><Copy size={13} /> Salin ke Semua Hari</Button>
+                <Button variant="outline" type="button" onClick={handleClearCurrentDenahDay} className="text-xs font-bold"><RefreshCw size={13} /> Kosongkan Hari Ini</Button>
               </div>
             </div>
-            <div className="bg-white border-none rounded-[var(--ui-radius-card)] p-4 md:p-5 shadow-sm overflow-hidden">
-              <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-3 mb-4">
+
+            {/* Days Tabs & Selected Class */}
+            <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-3">
                 <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
                   {days.map((day) => {
                     const dayMap = layoutByDay?.[day] || {};
@@ -337,6 +349,5 @@ export default function TabDenah(props) {
               </div>
               </details>
             </div>
-          </div>
         );
 }

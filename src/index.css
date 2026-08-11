@@ -157,10 +157,21 @@
   color: white !important;
   border-bottom: none !important;
 }
-.header-primary header .text-foreground,
-.header-primary header .text-muted-foreground,
-.header-primary header button,
-.header-primary header svg { color: white !important; }
+.header-primary header > nav,
+.header-primary header > div > h1,
+.header-primary header > div > p,
+.header-primary header > .text-foreground,
+.header-primary header > .text-muted-foreground {
+  color: white !important;
+}
+.header-primary header button.bg-white,
+.header-primary header button.bg-white *,
+.header-primary header .bg-white,
+.header-primary header .bg-white *,
+.header-primary header .bg-card,
+.header-primary header .bg-card * {
+  color: #334155 !important;
+}
 .header-minimal header {
   background-color: transparent !important;
   border-bottom: none !important;

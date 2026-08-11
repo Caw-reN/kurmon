@@ -328,11 +328,12 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             ref={notifBtnRef}
             type="button"
             onClick={() => setShowNotifDropdown(prev => !prev)}
-            className="relative flex items-center justify-center w-9 h-9 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-slate-600 hover:text-[var(--ui-primary)] hover:bg-slate-50 transition-all shadow-sm shrink-0 cursor-pointer"
+            className="relative flex items-center justify-center w-9 h-9 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-slate-700 hover:text-[var(--ui-primary)] hover:bg-slate-50 transition-all shadow-xs shrink-0 cursor-pointer"
+            style={{ color: '#334155' }}
             title="Notifikasi"
           >
-            <Bell size={18} strokeWidth={2} stroke="currentColor" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 border-2 border-white" />
+            <Bell size={18} strokeWidth={2.2} style={{ color: '#334155' }} />
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 border-2 border-white ring-1 ring-rose-400" />
           </button>
 
           {/* Notifications Dropdown */}
