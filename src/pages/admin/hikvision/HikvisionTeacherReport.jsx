@@ -1148,12 +1148,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           title="Laporan & Rekap Absensi Guru"
           description="Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."
           icon={Users}
+          tabs={[
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar, onClick: () => setSubTab('matriks'), isActive: subTab === 'matriks' },
+            { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award, onClick: () => setSubTab('perguru'), isActive: subTab === 'perguru' }
+          ]}
         />
       )}
 
-      {/* Top Ergonomic Mode Switcher Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 w-full md:w-auto">
+      {isNested && (
+        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 w-fit mb-2">
           {[
             { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
             { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
@@ -1162,30 +1165,18 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               key={tab.id}
               type="button"
               onClick={() => setSubTab(tab.id)}
-              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
+              className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
                 subTab === tab.id
                   ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-900 bg-transparent'
               }`}
             >
-              <tab.icon size={15} className="shrink-0" />
+              <tab.icon size={14} className="shrink-0" />
               <span>{tab.label}</span>
             </button>
           ))}
         </div>
-
-        {/* Unified Search Input */}
-        <div className="relative w-full md:w-72">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama atau kode guru..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
-          />
-        </div>
-      </div>
+      )}
 
       <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
         {/* Top Filter Grid */}
