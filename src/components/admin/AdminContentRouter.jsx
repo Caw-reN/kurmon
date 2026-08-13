@@ -516,7 +516,7 @@ export default function AdminContentRouter({ context }) {
       case "absensiguru":
         // Guru/karyawan lihat kalender absensi pribadi; admin/waka/kepsek lihat rekap semua guru
         if (currentUser?.role === "guru" || currentUser?.role === "karyawan") {
-          return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><MyAttendancePage /></Suspense>;
+          return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><MyAttendancePage setActiveTab={setActiveTab} /></Suspense>;
         }
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><HikvisionTeacherReport /></Suspense>;
       case"keamanan":

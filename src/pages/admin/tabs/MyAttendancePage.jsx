@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, Download, Send, X, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, Download, Send, X, FileText, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -41,7 +41,7 @@ function isFutureDay(day, filter, today) {
 
 function fmt5(t) { return t ? String(t).substring(0, 5) : '-'; }
 
-export default function MyAttendancePage() {
+export default function MyAttendancePage({ setActiveTab }) {
   const user        = useAuthStore(state => state.user);
   const authToken   = user?.authToken;
   const teacherCode = user?.teacherCode || user?.code || user?.username;
@@ -259,13 +259,23 @@ export default function MyAttendancePage() {
     setSubmitting(false);
   };
 
+  const handleBack = () => {
+    if (typeof setActiveTab === 'function') {
+      setActiveTab('dashboard');
+    } else if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.hash = '#dashboard';
+    }
+  };
+
   /* ---------- RENDER ---------- */
   return (
     <div className="w-full flex flex-col gap-3 animate-in fade-in duration-300 pb-10">
 
       {/* HEADER */}
       <div
-        className="rounded-[var(--ui-radius-card)] px-5 py-4 relative overflow-hidden text-white"
+        className="rounded-[var(--ui-radius-card)] px-4 sm:px-5 py-3.5 sm:py-4 relative overflow-hidden text-white shadow-sm"
         style={{ background:'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 65%, black) 100%)' }}
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -273,20 +283,34 @@ export default function MyAttendancePage() {
           <div className="absolute bottom-0 left-1/3 w-24 h-24 rounded-full border-[11px] border-white -mb-7" />
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Fingerprint size={12} className="text-white/70" />
-              <span className="text-white/70 text-[10px] font-black uppercase tracking-widest">Data Fingerprint Hikvision</span>
+          <div className="flex items-start sm:items-center gap-3">
+            {/* Tombol Back */}
+            <button
+              type="button"
+              onClick={handleBack}
+              className="p-2 sm:p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/20 text-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
+              title="Kembali ke Beranda"
+              aria-label="Kembali ke Beranda"
+            >
+              <ArrowLeft size={18} strokeWidth={2.5} />
+            </button>
+
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Fingerprint size={12} className="text-white/70" />
+                <span className="text-white/70 text-[10px] font-black uppercase tracking-widest">Data Fingerprint Hikvision</span>
+              </div>
+              <h1 className="text-xl md:text-2xl font-black tracking-tight leading-tight">Absensi Saya</h1>
+              <p className="text-white/65 text-xs font-medium mt-0.5">Rekap kehadiran perorangan — {MONTH_NAMES[filter.month-1]} {filter.year}</p>
             </div>
-            <h1 className="text-xl md:text-2xl font-black tracking-tight">Absensi Saya</h1>
-            <p className="text-white/65 text-xs font-medium mt-0.5">Rekap kehadiran perorangan — {MONTH_NAMES[filter.month-1]} {filter.year}</p>
           </div>
+
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer w-fit shrink-0"
+            className="flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
           >
             <Download size={13} />
-            Download PDF
+            <span>Download PDF</span>
           </button>
         </div>
       </div>
