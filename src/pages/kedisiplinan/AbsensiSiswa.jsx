@@ -615,7 +615,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                      )}
                   </td>
                   <td className="px-4 py-3.5 text-right">
-                    {(hasApprovalPermission || item.approval_status === "pending") && (
+                    {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
                       <div className="flex items-center justify-end gap-1.5">
                         <button 
                           type="button"
@@ -686,7 +686,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     <span>{hasAttachment ? 'Surat' : 'Upload'}</span>
                   </button>
 
-                  {(hasApprovalPermission || item.approval_status === "pending") && (
+                  {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
                     <div className="flex items-center gap-1.5">
                       <button 
                         type="button"
