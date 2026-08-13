@@ -24,6 +24,10 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const filterTeacher = url.searchParams.get('teacher_code') || '';
         const filterKelas = url.searchParams.get('kelas') || '';
         const filterMonth = url.searchParams.get('bulan') || '';
+        const startDate = url.searchParams.get('start_date') || '';
+        const endDate = url.searchParams.get('end_date') || '';
+        const filterSemester = (url.searchParams.get('semester') || '').toLowerCase(); // 'ganjil' | 'genap' | '1' | '2'
+        const filterYear = parseInt(url.searchParams.get('tahun') || new Date().getFullYear(), 10);
 
         let query = 'SELECT * FROM jurnal_harian_guru WHERE 1=1';
         const params = [];
@@ -40,7 +44,17 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         if (filterDate) {
           params.push(filterDate);
           query += ` AND tanggal = $${params.length}`;
+        } else if (startDate && endDate) {
+          params.push(startDate, endDate);
+          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
+        } else if (filterSemester === 'ganjil' || filterSemester === '1') {
+          params.push(`${filterYear}-07-01`, `${filterYear}-12-31`);
+          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
+        } else if (filterSemester === 'genap' || filterSemester === '2') {
+          params.push(`${filterYear}-01-01`, `${filterYear}-06-30`);
+          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
         }
+
         if (filterMonth) {
           // format: YYYY-MM
           params.push(filterMonth + '%');
@@ -51,16 +65,24 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           query += ` AND kelas = $${params.length}`;
         }
 
-        query += ' ORDER BY tanggal DESC, jam_ke ASC';
+        const sortDir = (url.searchParams.get('sort') || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        query += ` ORDER BY tanggal ${sortDir}, jam_ke ASC`;
 
-        // FIX FLOW-05: Pagination
-        const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
-        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-        query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-        params.push(limit, offset);
+        const rawLimit = url.searchParams.get('limit');
+        if (rawLimit === 'all' || rawLimit === '1000' || rawLimit === '2000') {
+          const limit = 3000;
+          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+          params.push(limit, offset);
+        } else {
+          const limit = Math.min(parseInt(rawLimit || '50', 10), 200);
+          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+          params.push(limit, offset);
+        }
 
         const { rows } = await dbPool.query(query, params);
-        send(req, res, 200, { ok: true, data: rows });
+        send(req, res, 200, { ok: true, data: rows, total: rows.length });
         return;
       }
 

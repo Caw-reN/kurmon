@@ -3,7 +3,10 @@ import { BookOpen } from'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
 import * as XLSX from'xlsx';
-import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench } from'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { drawKopSurat, getPrimaryColorRgb, getPrimaryColorLight } from '../../utils/pdfHelpers.js';
+import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench, Printer } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
@@ -135,6 +138,607 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
       <AlertCircle size={10} className="stroke-[3] shrink-0" />
       <span>Belum Diisi</span>
     </span>
+  );
+}
+
+// Helper Generator PDF Rekap Jurnal KBM Per Semester
+export async function generateRekapJurnalPDF({
+  jurnalRecords = [],
+  teacherInfo = {},
+  semester = 'Ganjil',
+  tahunAjaran = '2026/2027',
+  kelasFilter = 'Semua Kelas',
+  mapelFilter = 'Semua Mata Pelajaran',
+  appSettings = {},
+  schoolProfile = {},
+  kepsekInfo = {}
+}) {
+  const isF4 = appSettings?.defaultPaperSize === 'F4';
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: isF4 ? [330, 215] : 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const [r, g, b] = getPrimaryColorRgb();
+
+  // 1. Draw Kop Surat
+  let yPos = drawKopSurat(doc, true);
+
+  // 2. Title Header
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(r, g, b);
+  doc.text("JURNAL KEGIATAN PEMBELAJARAN GURU (KBM)", pageWidth / 2, yPos, { align: "center" });
+
+  yPos += 4.5;
+  doc.setFontSize(9.5);
+  doc.setFont("Helvetica", "bold");
+  doc.setTextColor(50, 50, 50);
+  const semTitle = `SEMESTER ${semester.toUpperCase()} TAHUN AJARAN ${tahunAjaran}`;
+  doc.text(semTitle, pageWidth / 2, yPos, { align: "center" });
+
+  yPos += 6;
+
+  // 3. Teacher and Subject Information Block (2 columns)
+  doc.setFontSize(8.5);
+  doc.setFont("Helvetica", "normal");
+  doc.setTextColor(30, 30, 30);
+
+  const leftX = 14;
+  const rightX = pageWidth / 2 + 10;
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Nama Guru", leftX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${teacherInfo.name || teacherInfo.code || '-'}`, leftX + 26, yPos);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Kelas / Rombel", rightX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${kelasFilter}`, rightX + 26, yPos);
+
+  yPos += 4;
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("NIP / Kode", leftX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${teacherInfo.nip || teacherInfo.code || '-'}`, leftX + 26, yPos);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Mata Pelajaran", rightX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${mapelFilter}`, rightX + 26, yPos);
+
+  yPos += 4;
+
+  const tepatCount = jurnalRecords.filter(j => {
+    const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+    return !st.isLate && !!j.submitted_at;
+  }).length;
+  const telatCount = jurnalRecords.filter(j => {
+    const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+    return st.isLate;
+  }).length;
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Total Jurnal", leftX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${jurnalRecords.length} Pertemuan (${tepatCount} Tepat Waktu, ${telatCount} Terlambat)`, leftX + 26, yPos);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Semester", rightX, yPos);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${semester} (${tahunAjaran})`, rightX + 26, yPos);
+
+  yPos += 5.5;
+
+  // 4. Build Table Rows
+  const tableRows = jurnalRecords.map((j, idx) => {
+    const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+    const dateFormatted = j.tanggal 
+      ? new Date(j.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+      : '-';
+
+    let rincianHadirStr = `${j.jumlah_hadir || 0} Siswa`;
+    if (j.rincian_absensi && Array.isArray(j.rincian_absensi) && j.rincian_absensi.length > 0) {
+      const sCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'sakit').length;
+      const iCount = j.rincian_absensi.filter(s => ['izin', 'dispen', 'dispensasi'].includes((s.status || '').toLowerCase())).length;
+      const aCount = j.rincian_absensi.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length;
+      const tCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'terlambat').length;
+      
+      const parts = [];
+      if (tCount > 0) parts.push(`${tCount} Telat`);
+      if (sCount > 0) parts.push(`${sCount} S`);
+      if (iCount > 0) parts.push(`${iCount} I`);
+      if (aCount > 0) parts.push(`${aCount} A`);
+
+      if (parts.length > 0) {
+        rincianHadirStr += `\n(${parts.join(', ')})`;
+      }
+    }
+
+    let statusSubmitStr = st.label;
+    if (st.timeStr) {
+      statusSubmitStr += `\n(${st.timeStr})`;
+    }
+
+    return [
+      idx + 1,
+      dateFormatted,
+      `Jam ${j.jam_ke}`,
+      j.kelas || '-',
+      j.mapel || '-',
+      j.materi_pokok || '-',
+      `${j.kegiatan_pembelajaran || '-'}\n[Metode: ${j.metode_pembelajaran || 'Ceramah'}]${j.catatan ? `\nCatatan: ${j.catatan}` : ''}`,
+      rincianHadirStr,
+      statusSubmitStr,
+      ''
+    ];
+  });
+
+  // 5. Draw Table with autoTable
+  autoTable(doc, {
+    startY: yPos,
+    head: [[
+      'No',
+      'Hari, Tanggal',
+      'Jam Ke',
+      'Kelas',
+      'Mata Pelajaran',
+      'Materi Pokok / KD',
+      'Kegiatan Pembelajaran & Metode',
+      'Kehadiran Siswa',
+      'Status Submit',
+      'Paraf'
+    ]],
+    body: tableRows.length > 0 ? tableRows : [[
+      { content: 'Tidak ada data jurnal pada periode semester ini.', colSpan: 10, styles: { halign: 'center', fontStyle: 'italic', textColor: [120, 120, 120] } }
+    ]],
+    theme: 'grid',
+    styles: {
+      fontSize: 7,
+      cellPadding: 1.8,
+      valign: 'middle',
+      lineColor: [200, 200, 200],
+      lineWidth: 0.1
+    },
+    headStyles: {
+      fillColor: [r, g, b],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      halign: 'center',
+      fontSize: 7.5
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 8 },
+      1: { halign: 'center', cellWidth: 26 },
+      2: { halign: 'center', cellWidth: 15 },
+      3: { halign: 'center', cellWidth: 18 },
+      4: { cellWidth: 28 },
+      5: { cellWidth: 42 },
+      6: { cellWidth: 'auto' },
+      7: { halign: 'center', cellWidth: 25 },
+      8: { halign: 'center', cellWidth: 25 },
+      9: { halign: 'center', cellWidth: 14 }
+    },
+    didDrawPage: () => {
+      const str = `Halaman ${doc.internal.getNumberOfPages()}`;
+      doc.setFontSize(7);
+      doc.setTextColor(140, 140, 140);
+      doc.text(str, pageWidth - 14, pageHeight - 5, { align: 'right' });
+      doc.text(`Dicetak melalui Sistem Kurmon pada ${new Date().toLocaleString('id-ID')}`, 14, pageHeight - 5);
+    }
+  });
+
+  // 6. Signatures Section on Final Page
+  let finalY = doc.lastAutoTable.finalY + 7;
+  if (finalY + 36 > pageHeight) {
+    doc.addPage();
+    finalY = 18;
+  }
+
+  const kota = schoolProfile.kabupaten || schoolProfile.kota || appSettings.kopSuratKota || 'Kota';
+  const tglCetakStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  doc.setFontSize(8);
+  doc.setFont("Helvetica", "normal");
+  doc.setTextColor(20, 20, 20);
+
+  const sigLeftX = 40;
+  const sigRightX = pageWidth - 60;
+
+  doc.text("Mengetahui,", sigLeftX, finalY, { align: "center" });
+  doc.text("Kepala Sekolah", sigLeftX, finalY + 4, { align: "center" });
+
+  doc.text(`${kota}, ${tglCetakStr}`, sigRightX, finalY, { align: "center" });
+  doc.text("Guru Mata Pelajaran,", sigRightX, finalY + 4, { align: "center" });
+
+  const namaKepsek = kepsekInfo.nama || schoolProfile.kepala_sekolah || appSettings.namaKepalaSekolah || 'Kepala Sekolah';
+  const nipKepsek = kepsekInfo.nip || schoolProfile.nip_kepala_sekolah || appSettings.nipKepalaSekolah || '-';
+
+  const namaGuru = teacherInfo.name || teacherInfo.code || 'Guru Pengampu';
+  const nipGuru = teacherInfo.nip || teacherInfo.nip_guru || '-';
+
+  doc.setFont("Helvetica", "bold");
+  doc.text(namaKepsek, sigLeftX, finalY + 22, { align: "center" });
+  doc.setFont("Helvetica", "normal");
+  doc.text(`NIP. ${nipKepsek}`, sigLeftX, finalY + 26, { align: "center" });
+
+  doc.setFont("Helvetica", "bold");
+  doc.text(namaGuru, sigRightX, finalY + 22, { align: "center" });
+  doc.setFont("Helvetica", "normal");
+  doc.text(`NIP. ${nipGuru}`, sigRightX, finalY + 26, { align: "center" });
+
+  // Save PDF
+  const cleanTeacher = (teacherInfo.name || teacherInfo.code || 'Guru').replace(/[\s\-_.]/g, '_');
+  const fileName = `Rekap_Jurnal_KBM_${semester}_${cleanTeacher}_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(fileName);
+}
+
+// Modal Dialog Export Rekap Jurnal Semester PDF
+function ExportSemesterModal({ 
+  isOpen, 
+  onClose, 
+  user, 
+  teachers = [], 
+  classes = [],
+  schedule = [],
+  appSettings = {},
+  schoolProfile = {}
+}) {
+  if (!isOpen) return null;
+  const authToken = user?.authToken;
+  const role = user?.role || '';
+  const isKurikulum = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || '').toLowerCase() === 'kurikulum');
+  
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  
+  const defaultSemester = currentMonth >= 7 ? 'Ganjil' : 'Genap';
+  const defaultTahunAjaran = currentMonth >= 7 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`;
+
+  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
+  const [selectedTahunAjaran, setSelectedTahunAjaran] = useState(defaultTahunAjaran);
+  const [selectedTeacher, setSelectedTeacher] = useState(isKurikulum ? '' : (user?.code || user?.id || ''));
+  const [selectedKelas, setSelectedKelas] = useState('all');
+  const [selectedMapel, setSelectedMapel] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+
+  // Teacher list options
+  const teacherOptions = useMemo(() => {
+    const list = teachers.map(t => ({ value: t.code, label: `${t.name} (${t.code})` }));
+    return [{ value: '', label: 'Semua Guru' }, ...list];
+  }, [teachers]);
+
+  // Class list options
+  const classOptions = useMemo(() => {
+    const names = [...new Set(classes.map(c => c.name || c.kelas || c.class_name).filter(Boolean))].sort();
+    return [{ value: 'all', label: 'Semua Kelas' }, ...names.map(n => ({ value: n, label: n }))];
+  }, [classes]);
+
+  // Subject list options
+  const subjectOptions = useMemo(() => {
+    const subjects = [...new Set(schedule.map(s => s.subject || s.mapel).filter(Boolean))].sort();
+    return [{ value: 'all', label: 'Semua Mata Pelajaran' }, ...subjects.map(s => ({ value: s, label: s }))];
+  }, [schedule]);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    setExportError('');
+
+    try {
+      const startYear = parseInt(selectedTahunAjaran.split('/')[0], 10) || currentYear;
+      let startDate = `${startYear}-07-01`;
+      let endDate = `${startYear}-12-31`;
+
+      if (selectedSemester === 'Genap') {
+        startDate = `${startYear + 1}-01-01`;
+        endDate = `${startYear + 1}-06-30`;
+      } else if (selectedSemester === 'Penuh') {
+        startDate = `${startYear}-07-01`;
+        endDate = `${startYear + 1}-06-30`;
+      }
+
+      const params = new URLSearchParams();
+      params.set('start_date', startDate);
+      params.set('end_date', endDate);
+      params.set('limit', 'all');
+      params.set('sort', 'asc');
+
+      const targetTeacherCode = selectedTeacher || (isKurikulum ? '' : (user?.code || user?.id || ''));
+      if (targetTeacherCode) {
+        params.set('teacher_code', targetTeacherCode);
+      }
+      if (selectedKelas !== 'all') {
+        params.set('kelas', selectedKelas);
+      }
+
+      const res = await fetch(`/api/jurnal/harian?${params}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const json = await res.json();
+
+      if (!json.ok) {
+        throw new Error(json.error || 'Gagal memuat data jurnal');
+      }
+
+      let records = json.data || [];
+      if (selectedMapel !== 'all') {
+        records = records.filter(j => j.mapel === selectedMapel);
+      }
+
+      if (records.length === 0) {
+        setExportError(`Tidak ditemukan rekaman jurnal untuk Semester ${selectedSemester} (${selectedTahunAjaran}). Pastikan tanggal KBM sudah sesuai.`);
+        setIsExporting(false);
+        return;
+      }
+
+      const teacherObj = teachers.find(t => t.code === targetTeacherCode) || {
+        name: user?.name || user?.code || 'Guru Pengampu',
+        code: targetTeacherCode,
+        nip: user?.nip || '-'
+      };
+
+      await generateRekapJurnalPDF({
+        jurnalRecords: records,
+        teacherInfo: teacherObj,
+        semester: selectedSemester,
+        tahunAjaran: selectedTahunAjaran,
+        kelasFilter: selectedKelas === 'all' ? 'Semua Kelas' : selectedKelas,
+        mapelFilter: selectedMapel === 'all' ? 'Semua Mata Pelajaran' : selectedMapel,
+        appSettings,
+        schoolProfile,
+        kepsekInfo: {
+          nama: schoolProfile?.kepala_sekolah || appSettings?.namaKepalaSekolah || 'Kepala Sekolah',
+          nip: schoolProfile?.nip_kepala_sekolah || appSettings?.nipKepalaSekolah || '-'
+        }
+      });
+
+      onClose();
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      setExportError(err.message || 'Terjadi kesalahan saat membuat file PDF.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportExcelSemester = async () => {
+    setIsExporting(true);
+    setExportError('');
+
+    try {
+      const startYear = parseInt(selectedTahunAjaran.split('/')[0], 10) || currentYear;
+      let startDate = `${startYear}-07-01`;
+      let endDate = `${startYear}-12-31`;
+
+      if (selectedSemester === 'Genap') {
+        startDate = `${startYear + 1}-01-01`;
+        endDate = `${startYear + 1}-06-30`;
+      } else if (selectedSemester === 'Penuh') {
+        startDate = `${startYear}-07-01`;
+        endDate = `${startYear + 1}-06-30`;
+      }
+
+      const params = new URLSearchParams();
+      params.set('start_date', startDate);
+      params.set('end_date', endDate);
+      params.set('limit', 'all');
+      params.set('sort', 'asc');
+
+      const targetTeacherCode = selectedTeacher || (isKurikulum ? '' : (user?.code || user?.id || ''));
+      if (targetTeacherCode) {
+        params.set('teacher_code', targetTeacherCode);
+      }
+      if (selectedKelas !== 'all') {
+        params.set('kelas', selectedKelas);
+      }
+
+      const res = await fetch(`/api/jurnal/harian?${params}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const json = await res.json();
+      let records = json.data || [];
+      if (selectedMapel !== 'all') {
+        records = records.filter(j => j.mapel === selectedMapel);
+      }
+
+      if (records.length === 0) {
+        setExportError(`Tidak ditemukan rekaman jurnal untuk Semester ${selectedSemester} (${selectedTahunAjaran}).`);
+        setIsExporting(false);
+        return;
+      }
+
+      const data = records.map(j => {
+        const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+        return {
+          Tanggal: j.tanggal,
+          Guru: j.teacher_name || j.teacher_code,
+          Kelas: j.kelas,
+          'Mata Pelajaran': j.mapel,
+          'Jam Ke': j.jam_ke,
+          'Materi Pokok': j.materi_pokok || '',
+          'Kegiatan Pembelajaran': j.kegiatan_pembelajaran || '',
+          Metode: j.metode_pembelajaran || '',
+          'Siswa Hadir': j.jumlah_hadir || 0,
+          Catatan: j.catatan || '',
+          'Status Pengisian': st.label,
+          'Jam & Waktu Submit': st.fullSubmitStr || '-',
+          'Keterlambatan': st.isLate ? `Terlambat ${st.diffDays} Hari (H+${st.diffDays})` : (j.submitted_at ? 'Tepat Waktu' : 'Belum Diisi')
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, `Jurnal_Sem_${selectedSemester}`);
+      XLSX.writeFile(wb, `Rekap_Jurnal_Semester_${selectedSemester}_${selectedTahunAjaran.replace('/', '_')}.xlsx`);
+      onClose();
+    } catch (err) {
+      console.error('Excel Export Error:', err);
+      setExportError(err.message || 'Terjadi kesalahan saat membuat file Excel.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Cetak &amp; Rekap Jurnal KBM (PDF)" maxWidth="max-w-xl">
+      <div className="space-y-4">
+        {/* Banner Info */}
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-2xs flex items-start gap-2.5">
+          <FileText size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-xs font-black text-slate-800">
+              Rekapitulasi Jurnal Pembelajaran Per Semester
+            </p>
+            <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+              Format dokumen resmi lengkap dengan Kop Surat Sekolah, identitas guru pengampu, rincian materi &amp; kehadiran, status keterlambatan, serta lembar pengesahan tanda tangan.
+            </p>
+          </div>
+        </div>
+
+        {/* Filter Controls Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Semester Selector */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              Pilihan Semester <span className="text-rose-500">*</span>
+            </label>
+            <CustomSelect
+              options={[
+                { value: 'Ganjil', label: 'Semester Ganjil (Juli - Desember)' },
+                { value: 'Genap', label: 'Semester Genap (Januari - Juni)' },
+                { value: 'Penuh', label: 'Tahun Penuh (1 Tahun Ajaran)' }
+              ]}
+              value={selectedSemester}
+              onChange={setSelectedSemester}
+              className="w-full text-xs font-bold"
+            />
+          </div>
+
+          {/* Tahun Ajaran */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              Tahun Ajaran <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={selectedTahunAjaran}
+              onChange={e => setSelectedTahunAjaran(e.target.value)}
+              placeholder="Contoh: 2026/2027"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+            />
+          </div>
+
+          {/* Filter Guru (If Kurikulum / Admin) */}
+          {isKurikulum && (
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                Guru Pengampu
+              </label>
+              <CustomSelect
+                options={teacherOptions}
+                value={selectedTeacher}
+                onChange={setSelectedTeacher}
+                placeholder="Semua Guru"
+                className="w-full text-xs font-bold"
+              />
+            </div>
+          )}
+
+          {/* Filter Kelas */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              Kelas / Rombel (Opsional)
+            </label>
+            <CustomSelect
+              options={classOptions}
+              value={selectedKelas}
+              onChange={setSelectedKelas}
+              className="w-full text-xs font-bold"
+            />
+          </div>
+
+          {/* Filter Mapel */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+              Mata Pelajaran (Opsional)
+            </label>
+            <CustomSelect
+              options={subjectOptions}
+              value={selectedMapel}
+              onChange={setSelectedMapel}
+              className="w-full text-xs font-bold"
+            />
+          </div>
+        </div>
+
+        {/* Pengesahan Preview Card */}
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 space-y-1">
+          <p className="font-extrabold text-slate-800 flex items-center gap-1.5">
+            <CheckCircle2 size={13} className="text-emerald-600" />
+            Pengesahan Otomatis Dokumen:
+          </p>
+          <p className="pl-4">
+            • <b>Kepala Sekolah:</b> {schoolProfile?.kepala_sekolah || appSettings?.namaKepalaSekolah || 'Kepala Sekolah'} (NIP: {schoolProfile?.nip_kepala_sekolah || appSettings?.nipKepalaSekolah || '-'})
+          </p>
+          <p className="pl-4">
+            • <b>Guru Pengampu:</b> {selectedTeacher ? (teachers.find(t => t.code === selectedTeacher)?.name || selectedTeacher) : (user?.name || user?.code || 'Guru')}
+          </p>
+        </div>
+
+        {/* Error notice */}
+        {exportError && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
+            <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
+            <span>{exportError}</span>
+          </div>
+        )}
+
+        {/* Footer Actions */}
+        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <Button variant="outline" type="button" onClick={onClose} disabled={isExporting} className="w-full sm:w-auto rounded-xl px-4 py-2 text-xs font-bold cursor-pointer">
+            Batal
+          </Button>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleExportExcelSemester}
+              disabled={isExporting}
+              className="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer flex items-center justify-center gap-1.5"
+              title="Download format Spreadsheet Excel"
+            >
+              <Download size={13} />
+              <span>Excel</span>
+            </button>
+
+            <Button
+              type="button"
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="w-full sm:w-auto rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              {isExporting ? (
+                <>
+                  <RefreshCw size={13} className="animate-spin" />
+                  <span>Membuat PDF...</span>
+                </>
+              ) : (
+                <>
+                  <FileText size={14} />
+                  <span>Download PDF Semester</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -986,11 +1590,15 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [rekapList, setRekapList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // null | jurnal object
+  const [isExportSemesterOpen, setIsExportSemesterOpen] = useState(false);
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterTeacher, setFilterTeacher] = useState('');
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [activeView, setActiveView] = useState('harian'); // harian | rekap
   const [toast, setToast] = useState(null);
+
+  const appSettings = useDataStore(state => state.appSettings || {});
+  const schoolProfile = useDataStore(state => state.schoolProfile || {});
 
   const showToast = (msg, type ='success') => {
     setToast({ msg, type });
@@ -1423,10 +2031,10 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               </div>
             )}
 
-            {/* Export Jurnal Hari Ini button */}
+            {/* Export Jurnal PDF Rekap Semester button */}
             <button
               type="button"
-              onClick={exportExcel}
+              onClick={() => setIsExportSemesterOpen(true)}
               className="w-full py-3 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
               style={{
                 background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
@@ -1434,8 +2042,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                 border: "1px solid color-mix(in srgb, var(--ui-primary) 25%, transparent)"
               }}
             >
-              <FileDown size={16} strokeWidth={2.2} />
-              Export Jurnal Hari Ini
+              <FileText size={16} strokeWidth={2.2} />
+              <span>Export PDF Rekap Semester</span>
             </button>
           </div>
 
@@ -1469,8 +2077,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               )}
             </div>
             
-            <Button variant="outline" onClick={exportExcel} className="w-full md:w-auto flex justify-center items-center gap-2 shrink-0">
-              <Download size={14} /> Export
+            <Button variant="outline" onClick={() => setIsExportSemesterOpen(true)} className="w-full md:w-auto flex justify-center items-center gap-2 shrink-0 cursor-pointer font-bold">
+              <FileText size={14} className="text-[var(--ui-primary)]" />
+              <span>Export PDF Semester</span>
             </Button>
           </div>
 
@@ -1839,6 +2448,18 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           studentAttendance={studentAttendance}
         />
       )}
+
+      {/* Modal Export Rekap Semester PDF */}
+      <ExportSemesterModal
+        isOpen={isExportSemesterOpen}
+        onClose={() => setIsExportSemesterOpen(false)}
+        user={user}
+        teachers={teachers}
+        classes={classes}
+        schedule={schedule}
+        appSettings={appSettings}
+        schoolProfile={schoolProfile}
+      />
 
       {/* Toast */}
       {toast && (
