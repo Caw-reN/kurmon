@@ -291,18 +291,17 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       }
 
       // 1. Ambil daftar siswa di kelas dengan pencocokan nama kelas yang fleksibel
+      const cleanKelas = filterKelas.replace(/[\s\-_.]/g, '').toLowerCase();
       const { rows: siswaPaged } = await dbPool.query(
         `SELECT payload FROM mst_students 
-         WHERE LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))) = LOWER(TRIM($1))
-            OR REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), ' ', '') = REPLACE(LOWER(TRIM($1)), ' ', '')
-            OR REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), '-', '') = REPLACE(LOWER(TRIM($1)), '-', '')
-            OR REPLACE(REPLACE(LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))), ' ', ''), '-', '') = REPLACE(REPLACE(LOWER(TRIM($1)), ' ', ''), '-', '')
+         WHERE LOWER(REGEXP_REPLACE(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''), '[\\s\\-_.]', '', 'g')) = $1
+            OR LOWER(TRIM(COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel', ''))) = LOWER(TRIM($2))
          ORDER BY payload->>'name' ASC`,
-        [filterKelas]
+        [cleanKelas, filterKelas]
       );
       const siswaList = siswaPaged.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
 
-      // 2. Ambil data absensi manual hari ini (sakit/izin/alpa)
+      // 2. Ambil data absensi manual hari ini (sakit/izin/alpa/terlambat/dispen)
       const { rows: absensiManual } = await dbPool.query(
         `SELECT siswa_nis, status, keterangan FROM kedisiplinan_absensi 
          WHERE tanggal::date = $1::date AND COALESCE(approval_status, 'approved') != 'rejected'`,
@@ -313,24 +312,42 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         absensiMap[String(a.siswa_nis).trim()] = { status: a.status, keterangan: a.keterangan }; 
       });
 
-      // 3. Ambil log Hikvision hari ini (yang hadir scan mesin)
+      // 3. Ambil log Hikvision hari ini (deteksi hadir dan terlambat)
       const { rows: hikLogs } = await dbPool.query(
-        `SELECT DISTINCT employee_id FROM hikvision_logs 
-         WHERE timestamp::date = $1::date AND person_type = 'siswa'`,
+        `SELECT employee_id, status, MIN(timestamp) as first_time FROM hikvision_logs 
+         WHERE timestamp::date = $1::date AND person_type = 'siswa'
+         GROUP BY employee_id, status`,
         [filterDate]
       );
-      const hadirSet = new Set(hikLogs.map(l => String(l.employee_id).trim()));
+      const hikMap = {};
+      hikLogs.forEach(l => {
+        const nis = String(l.employee_id).trim();
+        const st = (l.status || '').toLowerCase();
+        const isLate = st.includes('terlambat') || st.includes('late');
+        const timeStr = l.first_time ? new Date(l.first_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':') : '';
+        hikMap[nis] = {
+          hadir: true,
+          isLate,
+          timeStr
+        };
+      });
 
       // 4. Bangun status per siswa
       const result = siswaList.map(siswa => {
         const nis = String(siswa.nis || siswa.code || siswa.id || '').trim();
         const manual = absensiMap[nis];
+        const hik = hikMap[nis];
         let statusKehadiran = 'Hadir';
         let keterangan = '';
 
         if (manual) {
-          statusKehadiran = manual.status; // Sakit / Izin / Alpa / Dispen
+          statusKehadiran = manual.status; // Sakit / Izin / Alpa / Dispen / Terlambat
           keterangan = manual.keterangan || '';
+        } else if (hik?.isLate) {
+          statusKehadiran = 'Terlambat';
+          keterangan = `Scan masuk ${hik.timeStr}`;
+        } else if (hik?.timeStr) {
+          keterangan = `Scan masuk ${hik.timeStr}`;
         }
 
         return {
@@ -339,7 +356,8 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           class_name: siswa.class_name || siswa.kelas || filterKelas,
           status: statusKehadiran,
           keterangan,
-          hadir_scan: hadirSet.has(nis)
+          hadir_scan: !!hik,
+          scan_time: hik?.timeStr || ''
         };
       });
 

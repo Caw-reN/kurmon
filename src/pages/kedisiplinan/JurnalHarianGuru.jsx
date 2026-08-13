@@ -138,7 +138,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   );
 }
 
-// Modal Form Isi Jurnal - Modern, Intuitive, Fast & Auto-Synced
+// Modal Form Isi Jurnal - Modern, Super Padat, Cepat, Intuitif & Auto-Synced
 function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance = [] }) {
   const className = jurnal?.kelas || '';
   const user = useAuthStore(state => state.user);
@@ -152,7 +152,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     const target = normalizeText(className);
     return students.filter(s => {
       const sClass = normalizeText(s.class_name || s.kelas || s.rombel || '');
-      return sClass === target;
+      return sClass === target || sClass.includes(target) || target.includes(sClass);
     });
   }, [students, className]);
 
@@ -161,11 +161,33 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     if (jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
       return jurnal.rincian_absensi;
     }
+    const target = normalizeText(className);
+    const matched = students.filter(s => {
+      const sClass = normalizeText(s.class_name || s.kelas || s.rombel || '');
+      return sClass === target || sClass.includes(target) || target.includes(sClass);
+    });
+    if (matched.length > 0) {
+      return matched.map(s => {
+        const nis = String(s.nis || s.code || s.id || '').trim();
+        const att = studentAttendance.find(a => {
+          const isSameDate = a.tanggal === (jurnal?.tanggal || new Date().toISOString().split('T')[0]);
+          return isSameDate && String(a.siswa_nis).trim() === nis && a.approval_status !== 'rejected';
+        });
+        return {
+          nis,
+          name: s.namaSiswa || s.name || s.nama || nis,
+          class_name: s.class_name || s.kelas || className,
+          status: att ? att.status : 'Hadir',
+          keterangan: att?.keterangan || ''
+        };
+      });
+    }
     return [];
   });
-  const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
+
+  const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
   const [searchRollCall, setSearchRollCall] = useState('');
-  const [filterRollCall, setFilterRollCall] = useState('all'); // 'all' | 'hadir' | 'sakit' | 'izin' | 'alpa'
+  const [filterRollCall, setFilterRollCall] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'sakit' | 'izin' | 'alpa'
 
   const [form, setForm] = useState({
     id: jurnal?.id || null,
@@ -185,13 +207,12 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   
   // DRAFT LOGIC - Muat Draf Saat Inisialisasi
   useEffect(() => {
-    if (!jurnal?.id) { // Hanya muat draf untuk entri jurnal baru
+    if (!jurnal?.id) {
       try {
         const draftKey = `draft_jurnal_${user?.code || 'guest'}`;
         const savedDraft = localStorage.getItem(draftKey);
         if (savedDraft) {
           const parsed = JSON.parse(savedDraft);
-          // Gabungkan draf dengan nilai awal agar id/kelas bawaan dari props tidak hilang
           setForm(prev => ({ ...prev, ...parsed, id: prev.id, kelas: prev.kelas || parsed.kelas }));
         }
       } catch (e) {
@@ -246,7 +267,8 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         const json = await res.json();
         if (json.ok && Array.isArray(json.data) && json.data.length > 0) {
           setLiveStudents(json.data);
-          setForm(f => ({ ...f, rincian_absensi: json.data }));
+          const hCount = json.data.filter(s => ['hadir', 'terlambat'].includes((s.status || 'Hadir').toLowerCase())).length;
+          setForm(f => ({ ...f, jumlah_hadir: f.jumlah_hadir > 0 ? f.jumlah_hadir : hCount, rincian_absensi: json.data }));
           setIsLoadingAttendance(false);
           return;
         }
@@ -272,9 +294,8 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         };
       });
       setLiveStudents(mapped);
-      setForm(f => ({ ...f, rincian_absensi: mapped }));
-    } else {
-      setLiveStudents([]);
+      const hCount = mapped.filter(s => ['hadir', 'terlambat'].includes((s.status || 'Hadir').toLowerCase())).length;
+      setForm(f => ({ ...f, jumlah_hadir: f.jumlah_hadir > 0 ? f.jumlah_hadir : hCount, rincian_absensi: mapped }));
     }
     setIsLoadingAttendance(false);
   }, [className, form.tanggal, authToken, localClassStudents, studentAttendance, jurnal?.rincian_absensi]);
@@ -286,37 +307,32 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   // Derived Attendance Stats
   const totalStudentsCount = liveStudents.length > 0 ? liveStudents.length : localClassStudents.length;
 
-  const absentList = useMemo(() => {
-    return liveStudents.filter(s => {
-      const st = (s.status || '').toLowerCase();
-      return ['sakit', 'izin', 'alpa', 'alpha', 'dispen', 'dispensasi', 'terlambat'].includes(st);
-    });
-  }, [liveStudents]);
-
+  const hadirCount = useMemo(() => liveStudents.filter(s => (s.status || 'Hadir').toLowerCase() === 'hadir').length, [liveStudents]);
+  const telatCount = useMemo(() => liveStudents.filter(s => (s.status || '').toLowerCase() === 'terlambat').length, [liveStudents]);
   const sakitCount = useMemo(() => liveStudents.filter(s => (s.status || '').toLowerCase() === 'sakit').length, [liveStudents]);
   const izinCount = useMemo(() => liveStudents.filter(s => ['izin', 'dispen', 'dispensasi'].includes((s.status || '').toLowerCase())).length, [liveStudents]);
   const alpaCount = useMemo(() => liveStudents.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length, [liveStudents]);
 
-  const totalCalculatedHadir = Math.max(0, totalStudentsCount - absentList.length);
+  // Total Hadir di kelas mencakup Siswa Hadir Tepat Waktu + Siswa Terlambat
+  const totalCalculatedHadir = hadirCount + telatCount;
 
-  // Auto initialize jumlah_hadir when data is loaded
+  // Auto synchronize jumlah_hadir if 0 or when live attendance updates
   useEffect(() => {
-    if (!form.id && form.jumlah_hadir === 0 && totalStudentsCount > 0) {
+    if (totalCalculatedHadir > 0 && form.jumlah_hadir === 0) {
       setForm(f => ({ ...f, jumlah_hadir: totalCalculatedHadir }));
     }
-  }, [totalStudentsCount, totalCalculatedHadir, form.id]);
+  }, [totalCalculatedHadir, form.jumlah_hadir]);
 
   // Filtered Students for Roll Call
   const filteredRollCallStudents = useMemo(() => {
     return liveStudents.filter(s => {
-      // Filter tab
       const st = (s.status || 'Hadir').toLowerCase();
       if (filterRollCall === 'hadir' && st !== 'hadir') return false;
+      if (filterRollCall === 'terlambat' && st !== 'terlambat') return false;
       if (filterRollCall === 'sakit' && st !== 'sakit') return false;
       if (filterRollCall === 'izin' && !['izin', 'dispen', 'dispensasi'].includes(st)) return false;
       if (filterRollCall === 'alpa' && !['alpa', 'alpha'].includes(st)) return false;
 
-      // Filter search
       if (searchRollCall) {
         const q = searchRollCall.toLowerCase();
         const name = (s.name || '').toLowerCase();
@@ -336,12 +352,8 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         }
         return s;
       });
-      const absent = updated.filter(s => {
-        const st = (s.status || '').toLowerCase();
-        return ['sakit', 'izin', 'alpa', 'alpha', 'dispen', 'dispensasi', 'terlambat'].includes(st);
-      });
-      const newHadir = Math.max(0, updated.length - absent.length);
-      setForm(f => ({ ...f, jumlah_hadir: newHadir, rincian_absensi: updated }));
+      const hCount = updated.filter(s => ['hadir', 'terlambat'].includes((s.status || 'Hadir').toLowerCase())).length;
+      setForm(f => ({ ...f, jumlah_hadir: hCount, rincian_absensi: updated }));
       return updated;
     });
   };
@@ -427,7 +439,6 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     if (result?.error) {
       setErrorMsg(result.error);
     } else {
-      // Hapus draf setelah berhasil simpan (jika ini entri baru)
       if (!jurnal?.id) {
         localStorage.removeItem(`draft_jurnal_${user?.code || 'guest'}`);
       }
@@ -446,588 +457,512 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   ];
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-2xl">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-xl">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         
-        {/* Step Indicator Header */}
-        <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/60">
+        {/* TOP COMPACT UNIFIED HERO CARD (1x Lihat Langsung Paham) */}
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-2xs space-y-1.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="px-2 py-0.5 rounded-md bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0">
+                {form.kelas}
+              </span>
+              <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
+                {form.mapel}
+              </span>
+            </div>
+            <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
+              {form.slot_label || `Jam ke-${form.jam_ke}`}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-600 pt-1 border-t border-emerald-100 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Calendar size={13} className="text-emerald-600 shrink-0" />
+              <span>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'short', year:'numeric' })}</span>
+            </div>
+            
+            {/* Status Pengisian / Keterlambatan */}
+            {jurnal?.submitted_at ? (
+              existingStatusInfo.isLate ? (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                  ⚠️ Terlambat H+{existingStatusInfo.diffDays} ({existingStatusInfo.timeStr})
+                </span>
+              ) : (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                  ✓ Tepat Waktu ({existingStatusInfo.timeStr})
+                </span>
+              )
+            ) : isFillingPastDate ? (
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                ⚠️ Terlambat H+{diffDaysFromToday}
+              </span>
+            ) : (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                Belum Disimpan
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* STEPPER TABS (Super Compact) */}
+        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/70">
           <button
             type="button"
             onClick={() => { setErrorMsg(''); setStep(1); }}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
               step === 1 
-                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/70' 
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/80' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
               step === 1 ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-200 text-slate-700'
             }`}>
               1
             </span>
-            <span className="truncate">1. Presensi Siswa</span>
+            <span className="truncate">1. Presensi ({totalCalculatedHadir}/{totalStudentsCount})</span>
           </button>
 
           <button
             type="button"
             onClick={() => { setErrorMsg(''); setStep(2); }}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
               step === 2 
-                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/70' 
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/80' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
               step === 2 ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-200 text-slate-700'
             }`}>
               2
             </span>
-            <span className="truncate">2. Materi &amp; KBM</span>
+            <span className="truncate">2. Materi &amp; KBM *</span>
           </button>
         </div>
 
-        {/* Status Pengisian / Keterlambatan Notice */}
-        {jurnal?.submitted_at ? (
-          <div className="p-3 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/90 text-xs text-slate-700 flex items-center justify-between flex-wrap gap-2 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <Clock size={14} className="text-slate-500 shrink-0" />
-              <span>Waktu Pengisian: <strong className="text-slate-800">{existingStatusInfo.fullSubmitStr}</strong></span>
-            </div>
-            {existingStatusInfo.isLate ? (
-              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-300">
-                ⚠️ Terlambat (Diisi H+{existingStatusInfo.diffDays})
-              </span>
-            ) : (
-              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
-                ✓ Tepat Waktu
-              </span>
-            )}
-          </div>
-        ) : isFillingPastDate ? (
-          <div className="p-3.5 rounded-[var(--ui-radius-card)] bg-amber-50/90 border border-amber-300/80 text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
-            <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-extrabold text-amber-950">
-                  Pengisian Jurnal Tanggal Lampau (Terlambat)
-                </p>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-200/80 text-amber-900 border border-amber-300">
-                  Note: Terlambat H+{diffDaysFromToday}
-                </span>
-              </div>
-              <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                Jurnal ini dicatat untuk jadwal mengajar tanggal <b>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</b>. Jam pengisian riil saat submit akan otomatis dicatat sebagai bukti keterlambatan di sistem.
-              </p>
-            </div>
-          </div>
-        ) : null}
-
         {/* TAHAP 1: PRESENSI & KEHADIRAN KELAS */}
         {step === 1 && (
-          <div className="space-y-4 animate-in fade-in-50 duration-200">
-            {/* Header KBM Card */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border border-emerald-100/80 shadow-2xs">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800">
-                  <Calendar size={15} className="text-[var(--ui-primary)]" />
-                  <span>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                  <span className="px-2 py-0.5 rounded-md bg-white border border-emerald-200/80 text-emerald-900 font-extrabold">{form.kelas}</span>
-                  <span>&bull;</span>
-                  <span className="text-[var(--ui-primary)] font-extrabold">{form.mapel}</span>
-                </div>
-              </div>
-              <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-200/70 text-xs font-bold text-emerald-800 shadow-2xs">
-                <Clock size={13} className="text-emerald-600" />
-                <span>{form.slot_label || `Jam ke-${form.jam_ke}`}</span>
-              </div>
+          <div className="space-y-3 animate-in fade-in-50 duration-200">
+            {/* 5 Quick KPI Attendance Filter Pills */}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')}
+                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
+                  filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/50'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Hadir</span>
+                <span className="text-xs font-black text-emerald-900">{hadirCount}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')}
+                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
+                  filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-yellow-50/70 border-yellow-200 hover:bg-yellow-100/50'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-wider text-yellow-700">Telat</span>
+                <span className="text-xs font-black text-yellow-900">{telatCount}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')}
+                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
+                  filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-amber-50/70 border-amber-200 hover:bg-amber-100/50'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-wider text-amber-700">Sakit</span>
+                <span className="text-xs font-black text-amber-900">{sakitCount}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')}
+                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
+                  filterRollCall === 'izin' ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-400/20' : 'bg-blue-50/70 border-blue-200 hover:bg-blue-100/50'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-wider text-blue-700">Izin</span>
+                <span className="text-xs font-black text-blue-900">{izinCount}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')}
+                className={`col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
+                  filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-rose-50/70 border-rose-200 hover:bg-rose-100/50'
+                }`}
+              >
+                <span className="text-[9px] font-black uppercase tracking-wider text-rose-700">Alpa</span>
+                <span className="text-xs font-black text-rose-900">{alpaCount}</span>
+              </button>
             </div>
 
-            {/* Real-time Attendance Breakdown Card with Interactive Student Roll Call */}
-            <div className="rounded-[var(--ui-radius-card)] border border-slate-200/90 bg-white p-4 space-y-3.5 shadow-xs">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Users size={15} className="text-[var(--ui-primary)]" />
-                  Presensi &amp; Absen Ulang Siswa ({className})
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-extrabold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/70">
-                    Total: {totalStudentsCount} Siswa
-                  </span>
+            {/* Presensi Student Roll Call Box */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="relative flex-1 min-w-[150px]">
+                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama / NIS..."
+                    value={searchRollCall}
+                    onChange={e => setSearchRollCall(e.target.value)}
+                    className="w-full pl-7 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleSetSemuaHadir}
+                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                    title="Set semua siswa hadir"
+                  >
+                    <CheckCheck size={12} />
+                    <span>Semua Hadir ({totalStudentsCount})</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleSetSinkronAbsensi}
                     disabled={isLoadingAttendance}
                     className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-                    title="Sinkronkan ulang data kehadiran dari mesin/piket"
+                    title="Sinkronkan ulang absensi dari mesin/piket"
                   >
-                    <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin' : ''} />
+                    <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin text-emerald-600' : ''} />
                   </button>
                 </div>
               </div>
 
-              {/* Quick Attendance KPI Filter Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                    filterRollCall === 'hadir' ? 'bg-emerald-100/80 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-emerald-50/70 border-emerald-200/60 hover:bg-emerald-50'
-                  }`}
-                >
-                  <UserCheck size={14} className="text-emerald-600 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Hadir</p>
-                    <p className="text-xs font-black text-emerald-900">{totalCalculatedHadir} Siswa</p>
+              {/* Roll Call Student Rows (Compact & Responsive) */}
+              <div className="max-h-[200px] overflow-y-auto pr-1 space-y-1 custom-scrollbar border border-slate-100 rounded-xl p-1 bg-slate-50/50">
+                {filteredRollCallStudents.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                    {liveStudents.length === 0 ? 'Memuat data siswa kelas...' : 'Tidak ada siswa pada filter ini.'}
                   </div>
-                </button>
+                ) : (
+                  filteredRollCallStudents.map((s, idx) => {
+                    const currentStatus = s.status || 'Hadir';
+                    const isTelat = currentStatus.toLowerCase() === 'terlambat';
+                    const isNonHadir = !['hadir', 'terlambat'].includes(currentStatus.toLowerCase());
 
-                <button
-                  type="button"
-                  onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                    filterRollCall === 'sakit' ? 'bg-amber-100/80 border-amber-400 ring-2 ring-amber-400/20' : 'bg-amber-50/70 border-amber-200/60 hover:bg-amber-50'
-                  }`}
-                >
-                  <HeartPulse size={14} className="text-amber-600 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black uppercase tracking-wider text-amber-700">Sakit</p>
-                    <p className="text-xs font-black text-amber-900">{sakitCount} Siswa</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                    filterRollCall === 'izin' ? 'bg-blue-100/80 border-blue-400 ring-2 ring-blue-400/20' : 'bg-blue-50/70 border-blue-200/60 hover:bg-blue-50'
-                  }`}
-                >
-                  <UserMinus size={14} className="text-blue-600 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black uppercase tracking-wider text-blue-700">Izin</p>
-                    <p className="text-xs font-black text-blue-900">{izinCount} Siswa</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                    filterRollCall === 'alpa' ? 'bg-rose-100/80 border-rose-400 ring-2 ring-rose-400/20' : 'bg-rose-50/70 border-rose-200/60 hover:bg-rose-50'
-                  }`}
-                >
-                  <UserX size={14} className="text-rose-600 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-black uppercase tracking-wider text-rose-700">Alpa</p>
-                    <p className="text-xs font-black text-rose-900">{alpaCount} Siswa</p>
-                  </div>
-                </button>
-              </div>
-
-              {/* Interactive Student List Table / Roll Call Section */}
-              <div className="pt-1 space-y-2">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="relative flex-1 min-w-[160px]">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari nama / NIS siswa..."
-                      value={searchRollCall}
-                      onChange={e => setSearchRollCall(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={handleSetSemuaHadir}
-                      className="text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shrink-0"
-                    >
-                      <CheckCheck size={12} />
-                      <span>Semua Hadir</span>
-                    </button>
-                    {filterRollCall !== 'all' && (
-                      <button
-                        type="button"
-                        onClick={() => setFilterRollCall('all')}
-                        className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                    return (
+                      <div
+                        key={s.nis || idx}
+                        className={`p-1.5 rounded-lg border transition-all ${
+                          currentStatus === 'Hadir' ? 'bg-white border-slate-200/70 hover:border-emerald-200' :
+                          isTelat ? 'bg-yellow-50/60 border-yellow-300' :
+                          currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-200' :
+                          ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/60 border-blue-200' :
+                          'bg-rose-50/60 border-rose-200'
+                        }`}
                       >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Roll Call Student Rows */}
-                <div className="max-h-[220px] sm:max-h-[260px] overflow-y-auto pr-1 space-y-1.5 custom-scrollbar border border-slate-100 rounded-xl p-1.5 bg-slate-50/50">
-                  {filteredRollCallStudents.length === 0 ? (
-                    <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                      Tidak ada siswa ditemukan dalam filter ini.
-                    </div>
-                  ) : (
-                    filteredRollCallStudents.map((s, idx) => {
-                      const currentStatus = s.status || 'Hadir';
-                      const isNonHadir = currentStatus !== 'Hadir';
-
-                      return (
-                        <div
-                          key={s.nis || idx}
-                          className={`p-2 rounded-lg border transition-all ${
-                            currentStatus === 'Hadir' ? 'bg-white border-slate-200/70 hover:border-emerald-200' :
-                            currentStatus === 'Sakit' ? 'bg-amber-50/40 border-amber-200' :
-                            ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/40 border-blue-200' :
-                            'bg-rose-50/40 border-rose-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-mono font-bold text-slate-400">#{idx + 1}</span>
-                                <span className="text-xs font-black text-slate-800 truncate" title={s.name}>{s.name}</span>
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="min-w-0 flex-1 flex items-center gap-1.5">
+                            <span className="text-[9px] font-mono font-bold text-slate-400 shrink-0">#{idx + 1}</span>
+                            <div className="min-w-0 truncate">
+                              <p className="text-xs font-black text-slate-800 truncate" title={s.name}>{s.name}</p>
+                              <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-mono">
+                                <span>{s.nis}</span>
+                                {isTelat && s.keterangan && (
+                                  <span className="text-yellow-700 font-bold bg-yellow-100 px-1 rounded">{s.keterangan}</span>
+                                )}
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono">NIS: {s.nis}</div>
-                            </div>
-
-                            {/* Status Switcher (H / S / I / A) */}
-                            <div className="flex items-center gap-1 shrink-0 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')}
-                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                                  currentStatus === 'Hadir'
-                                    ? 'bg-emerald-600 text-white shadow-2xs'
-                                    : 'text-slate-600 hover:text-emerald-700 hover:bg-white/80'
-                                }`}
-                                title="Hadir"
-                              >
-                                H
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')}
-                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                                  currentStatus === 'Sakit'
-                                    ? 'bg-amber-500 text-white shadow-2xs'
-                                    : 'text-slate-600 hover:text-amber-700 hover:bg-white/80'
-                                }`}
-                                title="Sakit"
-                              >
-                                S
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')}
-                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                                  ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus)
-                                    ? 'bg-blue-600 text-white shadow-2xs'
-                                    : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-                                }`}
-                                title="Izin"
-                              >
-                                I
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')}
-                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                                  ['Alpa', 'Alpha'].includes(currentStatus)
-                                    ? 'bg-rose-600 text-white shadow-2xs'
-                                    : 'text-slate-600 hover:text-rose-700 hover:bg-white/80'
-                                }`}
-                                title="Alpa"
-                              >
-                                A
-                              </button>
                             </div>
                           </div>
 
-                          {/* Keterangan input for non-hadir */}
-                          {isNonHadir && (
-                            <div className="mt-1.5 pt-1.5 border-t border-slate-200/50 flex items-center gap-1.5">
-                              <span className="text-[10px] font-bold text-slate-500 shrink-0">Alasan:</span>
-                              <input
-                                type="text"
-                                placeholder={`Keterangan ${currentStatus} (contoh: izin UKS / terlambat)...`}
-                                value={s.keterangan || ''}
-                                onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
-                                className="w-full px-2 py-0.5 text-[11px] bg-white border border-slate-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
-                              />
-                            </div>
-                          )}
+                          {/* 5 Status Switcher Buttons: [H] [T] [S] [I] [A] */}
+                          <div className="flex items-center gap-0.5 shrink-0 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                                currentStatus === 'Hadir'
+                                  ? 'bg-emerald-600 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-emerald-700'
+                              }`}
+                              title="Hadir Tepat Waktu"
+                            >
+                              H
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStudentStatus(s.nis, 'Terlambat')}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                                isTelat
+                                  ? 'bg-yellow-500 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-yellow-700'
+                              }`}
+                              title="Terlambat Masuk"
+                            >
+                              T
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                                currentStatus === 'Sakit'
+                                  ? 'bg-amber-500 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-amber-700'
+                              }`}
+                              title="Sakit"
+                            >
+                              S
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                                ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus)
+                                  ? 'bg-blue-600 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-blue-700'
+                              }`}
+                              title="Izin / Dispensasi"
+                            >
+                              I
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                                ['Alpa', 'Alpha'].includes(currentStatus)
+                                  ? 'bg-rose-600 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-rose-700'
+                              }`}
+                              title="Alpa / Tanpa Keterangan"
+                            >
+                              A
+                            </button>
+                          </div>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
 
-            {/* Jumlah Siswa Hadir - Super Fast Controls */}
-            <div className="space-y-2 bg-slate-50/80 p-4 rounded-[var(--ui-radius-card)] border border-slate-200/70 shadow-2xs">
-              <label className="flex items-center justify-between text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                <span className="flex items-center gap-1.5">
-                  <Users size={13} className="text-[var(--ui-primary)]" />
-                  Jumlah Siswa Hadir <span className="text-rose-500 font-bold">*</span>
-                </span>
-                <span className="text-slate-400 font-bold">Maks: {totalStudentsCount}</span>
-              </label>
-
-              {/* Stepper Counter */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleStepHadir(-1)}
-                  className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-black shadow-2xs cursor-pointer transition-all shrink-0"
-                  title="Kurangi 1"
-                >
-                  <Minus size={16} />
-                </button>
-                
-                <div className="relative flex-1">
-                  <input
-                    type="number"
-                    min={0}
-                    max={totalStudentsCount || 100}
-                    value={form.jumlah_hadir}
-                    onChange={e => setForm({ ...form, jumlah_hadir: Math.max(0, parseInt(e.target.value) || 0) })}
-                    className="w-full text-center py-2.5 px-3 bg-white border border-slate-200/90 rounded-xl text-lg font-black text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 shadow-2xs"
-                    required
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">
-                    / {totalStudentsCount}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleStepHadir(1)}
-                  className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-black shadow-2xs cursor-pointer transition-all shrink-0"
-                  title="Tambah 1"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-
-              {/* Quick Fill Buttons */}
-              <div className="flex items-center gap-2 pt-1 flex-wrap">
-                <button
-                  type="button"
-                  onClick={handleSetSemuaHadir}
-                  className="text-[11px] font-extrabold px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200/90 shadow-2xs cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
-                >
-                  <CheckCheck size={13} className="text-emerald-600" />
-                  <span>Semua Hadir ({totalStudentsCount})</span>
-                </button>
-                {absentList.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleSetSinkronAbsensi}
-                    className="text-[11px] font-extrabold px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 shadow-2xs cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
-                  >
-                    <Zap size={13} className="text-amber-600" />
-                    <span>Sesuai Presensi ({totalCalculatedHadir})</span>
-                  </button>
+                        {/* Keterangan input for non-hadir / catatan */}
+                        {(isNonHadir || (isTelat && !s.keterangan)) && (
+                          <div className="mt-1 pt-1 border-t border-slate-200/50 flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-slate-500 shrink-0">Alasan:</span>
+                            <input
+                              type="text"
+                              placeholder={`Alasan ${currentStatus} (contoh: izin UKS / terlambat 15 menit)...`}
+                              value={s.keterangan || ''}
+                              onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
+                              className="w-full px-2 py-0.5 text-[10px] bg-white border border-slate-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
+
+              {/* Integrated Attendance Counter Footer */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-slate-700">Total Hadir:</span>
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 text-xs font-black">
+                    {form.jumlah_hadir} / {totalStudentsCount} Siswa
+                  </span>
+                  {telatCount > 0 && (
+                    <span className="text-[10px] font-bold text-yellow-700 bg-yellow-50 px-1.5 py-0.5 rounded border border-yellow-200">
+                      Termasuk {telatCount} Telat
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleStepHadir(-1)}
+                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-black cursor-pointer"
+                    title="Kurangi 1"
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStepHadir(1)}
+                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-black cursor-pointer"
+                    title="Tambah 1"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Step 1 Footer Navigation */}
-            <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 font-bold cursor-pointer">
+            {/* Step 1 Footer Action */}
+            <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs font-bold cursor-pointer">
                 Batal
               </Button>
               <Button 
                 type="button" 
                 onClick={() => { setErrorMsg(''); setStep(2); }}
-                className="rounded-xl px-5 py-2.5 font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-2"
+                className="rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                <span>Lanjut: Materi KBM</span>
-                <ArrowRight size={15} />
+                <span>Lanjut: Isi Materi KBM</span>
+                <ArrowRight size={14} />
               </Button>
             </div>
           </div>
         )}
 
-        {/* TAHAP 2: MATERI & KEGIATAN PEMBELAJARAN */}
+        {/* TAHAP 2: MATERI & KEGIATAN PEMBELAJARAN (Tonjolkan yang Wajib Diisi) */}
         {step === 2 && (
-          <div className="space-y-4 animate-in fade-in-50 duration-200">
-            {/* Quick Context Summary */}
-            <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="px-2 py-0.5 rounded-md bg-white border border-emerald-200/80 text-emerald-900 font-extrabold shrink-0">{form.kelas}</span>
-                <span className="font-extrabold truncate text-slate-800">{form.mapel}</span>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0 text-[11px] font-extrabold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/70">
-                <Users size={12} className="text-[var(--ui-primary)]" />
-                <span>{form.jumlah_hadir} / {totalStudentsCount} Hadir</span>
-              </div>
+          <div className="space-y-3.5 animate-in fade-in-50 duration-200">
+            {/* Quick Context Strip */}
+            <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700">
+              <span className="font-extrabold text-slate-800 truncate">{form.mapel} ({form.kelas})</span>
+              <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                {form.jumlah_hadir} Siswa Hadir
+              </span>
             </div>
 
-            {/* Metode Pembelajaran */}
-            <div className="space-y-2 bg-slate-50/80 p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/70">
-              <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                <ClipboardList size={13} className="text-[var(--ui-primary)]" />
-                Metode Pembelajaran <span className="text-rose-500 font-bold">*</span>
-              </label>
-              <CustomSelect
-                options={METODE_OPTIONS.map(m => ({ value: m, label: m }))}
-                value={form.metode_pembelajaran}
-                onChange={val => setForm({ ...form, metode_pembelajaran: val })}
-                className="w-full text-xs font-bold z-50 relative"
-              />
-
-              {/* Quick Method Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                {QUICK_METHODS.slice(0, 4).map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setForm({ ...form, metode_pembelajaran: m })}
-                    className={`text-[10px] font-black px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                      form.metode_pembelajaran === m
-                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
-                        : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-100'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Materi Pokok / KD */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                <Award size={13} className="text-[var(--ui-primary)]" />
-                Materi Pokok / Kompetensi Dasar <span className="text-rose-500 font-bold">*</span>
+            {/* 1. MATERI POKOK (WAJIB DIISI) */}
+            <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-xl border border-emerald-200/90 shadow-2xs">
+              <label className="flex items-center justify-between text-xs font-black text-slate-800">
+                <span className="flex items-center gap-1.5">
+                  <Award size={14} className="text-emerald-700" />
+                  Materi Pokok / Pokok Bahasan
+                </span>
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white uppercase tracking-wider">
+                  Wajib Diisi *
+                </span>
               </label>
               <input
                 type="text"
-                placeholder="Contoh: Menggambar denah jaringan komputer atau SPLDV"
+                placeholder="Contoh: Konfigurasi Routing Dinamis BGP / SPLDV"
                 value={form.materi_pokok}
                 onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
                 required
+                autoFocus
               />
             </div>
 
-            {/* Kegiatan Pembelajaran - With Fast Outlines */}
-            <div className="space-y-1.5">
+            {/* 2. KEGIATAN PEMBELAJARAN (WAJIB DIISI + QUICK TEMPLATE) */}
+            <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/90 shadow-2xs">
               <div className="flex items-center justify-between flex-wrap gap-1">
-                <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                  <FileText size={13} className="text-[var(--ui-primary)]" />
-                  Kegiatan Pembelajaran <span className="text-rose-500 font-bold">*</span>
+                <label className="flex items-center gap-1.5 text-xs font-black text-slate-800">
+                  <FileText size={14} className="text-[var(--ui-primary)]" />
+                  Kegiatan Pembelajaran &amp; Alur Belajar <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex items-center gap-1 flex-wrap">
                   <button
                     type="button"
                     onClick={() => handleApplyKegiatanTemplate('lengkap')}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200/80 transition-all cursor-pointer flex items-center gap-1"
+                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
                   >
-                    <FileText size={11} className="text-emerald-600" />
-                    <span>Lengkap</span>
+                    + Lengkap
                   </button>
                   <button
                     type="button"
                     onClick={() => handleApplyKegiatanTemplate('praktik')}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200/80 transition-all cursor-pointer flex items-center gap-1"
+                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-blue-50 text-blue-800 border border-blue-200 transition-all cursor-pointer"
                   >
-                    <Wrench size={11} className="text-blue-600" />
-                    <span>Praktik Lab</span>
+                    + Praktik Lab
                   </button>
                   <button
                     type="button"
                     onClick={() => handleApplyKegiatanTemplate('diskusi')}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200/80 transition-all cursor-pointer flex items-center gap-1"
+                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all cursor-pointer"
                   >
-                    <Users size={11} className="text-indigo-600" />
-                    <span>Diskusi</span>
+                    + Diskusi
                   </button>
                 </div>
               </div>
               <textarea
                 rows={3}
-                placeholder="Jelaskan alur belajar (contoh: Guru memaparkan teori, siswa mempraktikkan konfigurasi di lab komputer, diakhiri tanya jawab...)"
+                placeholder="Tuliskan ringkasan kegiatan KBM di kelas..."
                 value={form.kegiatan_pembelajaran}
                 onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all resize-none shadow-2xs leading-relaxed"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] resize-none leading-relaxed"
                 required
               />
             </div>
 
-            {/* Catatan / Kendala Kelas */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between flex-wrap gap-1">
-                <label className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                  <MessageSquare size={13} className="text-[var(--ui-primary)]" />
-                  Catatan / Kendala Kelas (Opsional)
+            {/* 3. METODE & CATATAN TAMBAHAN (KOMPAK) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Metode */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                  <ClipboardList size={12} className="text-[var(--ui-primary)]" />
+                  Metode Pembelajaran
                 </label>
-                <div className="flex items-center gap-1 flex-wrap">
+                <CustomSelect
+                  options={METODE_OPTIONS.map(m => ({ value: m, label: m }))}
+                  value={form.metode_pembelajaran}
+                  onChange={val => setForm({ ...form, metode_pembelajaran: val })}
+                  className="w-full text-xs font-bold z-50 relative"
+                />
+              </div>
+
+              {/* Catatan / Kendala */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                    <MessageSquare size={12} className="text-[var(--ui-primary)]" />
+                    Catatan Kelas (Opsional)
+                  </label>
                   <button
                     type="button"
-                    onClick={() => handleAddCatatan('KBM berjalan dengan tertib & kondusif')}
-                    className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer flex items-center gap-1"
+                    onClick={() => handleAddCatatan('KBM berjalan tertib & kondusif')}
+                    className="text-[9px] font-bold text-emerald-700 hover:underline cursor-pointer"
                   >
-                    <Check size={11} className="text-emerald-600" />
-                    <span>Tertib &amp; Lancar</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAddCatatan('Target materi KBM tercapai penuh')}
-                    className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer flex items-center gap-1"
-                  >
-                    <Check size={11} className="text-blue-600" />
-                    <span>Target Tercapai</span>
+                    + Tertib
                   </button>
                 </div>
+                <input
+                  type="text"
+                  placeholder="Contoh: Siswa aktif bertanya..."
+                  value={form.catatan}
+                  onChange={e => setForm({ ...form, catatan: e.target.value })}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                />
               </div>
-              <textarea
-                rows={2}
-                placeholder="Contoh: Siswa antusias menyelesaikan tugas praktikum tepat waktu..."
-                value={form.catatan}
-                onChange={e => setForm({ ...form, catatan: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/15 transition-all resize-none shadow-2xs"
-              />
             </div>
 
             {/* Error Notification */}
             {errorMsg && (
-              <div className="p-3 bg-rose-50 border border-rose-200/80 rounded-xl flex items-start gap-2.5 text-rose-700 text-xs font-bold animate-in zoom-in-95 duration-200">
-                <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-600" />
-                <span className="leading-relaxed">{errorMsg}</span>
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
+                <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
+                <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Step 2 Footer Navigation */}
-            <div className="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
+            <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
               <Button 
                 variant="outline" 
                 type="button" 
                 onClick={() => { setErrorMsg(''); setStep(1); }} 
-                className="rounded-xl px-4 py-2.5 font-bold cursor-pointer flex items-center gap-1.5"
+                className="rounded-xl px-4 py-2 text-xs font-bold cursor-pointer flex items-center gap-1"
               >
-                <ArrowLeft size={14} />
-                <span>Kembali</span>
+                <ArrowLeft size={13} />
+                <span>Presensi</span>
               </Button>
               <Button 
                 type="submit" 
                 disabled={saving}
-                className="rounded-xl px-5 py-2.5 font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-2"
+                className="rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 {saving ? (
                   <>
-                    <RefreshCw size={14} className="animate-spin" />
+                    <RefreshCw size={13} className="animate-spin" />
                     <span>Menyimpan...</span>
                   </>
                 ) : (
                   <>
-                    <Check size={15} />
+                    <Check size={14} />
                     <span>{form.id ? 'Perbarui Jurnal' : 'Simpan Jurnal'}</span>
                   </>
                 )}
