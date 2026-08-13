@@ -62,6 +62,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const [toast, setToast] = useState(null);
 
   // Auto-resize image down to max 800x800px with 0.6 quality for compact file size (~30-80 KB)
+  // Auto-resize image down to max 600x600px with 0.5 quality for compact file size (~30-80 KB)
   const compressImage = (file, callback) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -70,8 +71,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         const canvas = document.createElement("canvas");
         let width = img.width;
         let height = img.height;
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 800;
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
 
         if (width > height) {
           if (width > MAX_WIDTH) {
@@ -91,7 +92,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
         // FIX PERF-06: Formula standar base64 → bytes (dikurangi padding karakter '=')
         const base64Part = dataUrl.split(',')[1] || '';
         const paddingCount = (base64Part.match(/=+$/) || [''])[0].length;
@@ -406,7 +407,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           <div className="flex flex-wrap items-center gap-2">
             {[
               { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-2xs" },
-              { id: "pending", label: "Pending Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
+              { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
               { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
               { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-blue-600 shadow-2xs" },
               { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
@@ -588,8 +589,9 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                         </span>
                      ) : (
                         <div className="flex flex-col items-center gap-1.5">
-                          <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
-                            PENDING
+                          <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
+                            <Clock size={12} />
+                            MENUNGGU
                           </span>
                           {hasApprovalPermission && (
                             <div className="flex items-center gap-1.5 mt-0.5">
@@ -749,6 +751,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             Next
           </Button>
         </div>
+      </div>
 
       {showFormModal && (
         <Modal isOpen={showFormModal} onClose={() => setShowFormModal(false)} title="Input Absensi Siswa" maxWidth="max-w-lg">
@@ -913,7 +916,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
             {/* Document Content View */}
             <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
-              {previewItem.gdrive_url ? (
+              {(previewItem.gdrive_url && !previewItem.gdrive_url.startsWith('data:image')) ? (
                 <div className="w-full flex flex-col items-center gap-3 text-white py-6">
                   <FileText className="w-16 h-16 text-blue-400 animate-pulse" />
                   <p className="text-xs font-semibold text-slate-300">Dokumen tersimpan di Google Drive</p>
@@ -925,11 +928,22 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   >
                     <ExternalLink size={14} /> Buka Surat di Google Drive
                   </a>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const itemToEdit = previewItem;
+                      setPreviewItem(null);
+                      handleEdit(itemToEdit);
+                    }} 
+                    className="mt-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-sm inline-flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <UploadCloud size={14} /> Ganti Foto/Berkas
+                  </button>
                 </div>
-              ) : (previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path) ? (
+              ) : (previewItem.gdrive_url?.startsWith('data:image') || previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path) ? (
                 <div className="flex flex-col items-center gap-2 w-full">
                   <img 
-                    src={previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path} 
+                    src={previewItem.gdrive_url?.startsWith('data:image') ? previewItem.gdrive_url : (previewItem.fileData || previewItem.surat_base64 || previewItem.surat_url || previewItem.surat_path)} 
                     alt="Surat Bukti Absensi" 
                     className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" 
                   />

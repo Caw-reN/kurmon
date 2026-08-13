@@ -283,6 +283,11 @@ export default function AdminSidebar({
                   icon: MessageSquare,
                   label:"Catatan Wali Kelas"
                 })}
+                {renderNavItem({
+                  id:"walas_report",
+                  icon: FileText,
+                  label:"Laporan Rekap Wali Kelas"
+                })}
               </>
             )}
             <SidebarSection label="Kesiswaan & Piket" />
@@ -316,11 +321,7 @@ export default function AdminSidebar({
               icon: BookOpen,
               label:"Skor Kredit & Tatib"
             })}
-            {renderNavItem({
-              id:"walas_report",
-              icon: FileText,
-              label:"Laporan Rekap Wali Kelas"
-            })}
+
             <SidebarSection label="Komunikasi" />
             {renderNavItem({
               id:"pesan",

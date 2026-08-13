@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2 } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -79,9 +79,38 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
   const [permissionForm, setPermissionForm] = useState({ status:"Sakit", keterangan:"", fileData: null, fileName: null, fileSizeKB: null });
   const [isSubmittingCell, setIsSubmittingCell] = useState(false);
+  const [showPermissionPreviewModal, setShowPermissionPreviewModal] = useState(false);
 
   const handleCellClick = (d, dayNum) => {
     if (user?.role ==="siswa") return; // Siswa cannot edit their own or others' data
+    
+    const dayData = d.days[dayNum];
+    let pd = dayData?.pending_permission || dayData;
+
+    let initialStatus = "Sakit";
+    let initialKet = "";
+    let initialUrl = null;
+    let initialId = null;
+
+    if (pd && (["Sakit", "Izin", "Alpa", "Terlambat"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
+        initialStatus = pd.status;
+        initialKet = pd.keterangan || pd.note || "";
+        initialUrl = pd.gdrive_url || null;
+        initialId = pd.id || null;
+    }
+
+    setPermissionForm({ 
+       id: initialId,
+       action: initialId ? 'update' : 'create',
+       status: initialStatus, 
+       keterangan: initialKet, 
+       gdriveUrl: initialUrl, 
+       fileData: null, 
+       fileName: null, 
+       fileSizeKB: null,
+       replaceImage: !initialUrl
+    });
+
     setSelectedCell({
       nis: d.nis,
       name: d.name,
@@ -96,32 +125,31 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 1000;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const MAX_WIDTH = 600;
+          const MAX_HEIGHT = 600;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
           }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
 
-        canvas.width = width;
-        canvas.height = height;
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
 
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
         const stringLength = dataUrl.length -'data:image/jpeg;base64,'.length;
         const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
         const sizeInKB = Math.round(sizeInBytes / 1024);
@@ -149,12 +177,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
         },
         body: JSON.stringify({
+          id: permissionForm.id,
+          action: permissionForm.action,
           siswa_nis: selectedCell.nis,
           tanggal: dateStr,
           status: permissionForm.status,
           keterangan: permissionForm.keterangan,
           fileData: permissionForm.fileData,
-          fileName: permissionForm.fileName
+          fileName: permissionForm.fileName,
+          gdrive_url: permissionForm.gdriveUrl
         })
       });
       const json = await res.json();
@@ -1802,23 +1833,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                             <td 
                               key={dayNum} 
                               onClick={() => handleCellClick(d, dayNum)}
-                              className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors"
+                              className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors relative"
                             >
+                              {dayData?.pending_permission && (
+                                 <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
+                              )}
                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] ${cellColors.className}`} style={cellColors.style}>
                                   {["Sakit","Izin","Alpa"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
                                       <span className="font-extrabold">{dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
-                                      {dayData.gdrive_url && (
-                                        <a 
-                                          href={dayData.gdrive_url} 
-                                          target="_blank" 
-                                          rel="noreferrer" 
-                                          onClick={(e) => e.stopPropagation()} 
-                                          className="text-[7.5px] text-blue-600 hover:underline font-bold bg-white/60 px-1 rounded border border-blue-200 mt-0.5"
-                                        >
-                                          Lihat Surat
-                                        </a>
-                                      )}
                                     </div>
                                   ) : (
                                     <>
@@ -1997,18 +2020,28 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
                      Upload Surat / Bukti (Gambar)
                    </label>
-                   <input
-                     type="file"
-                     accept="image/*"
-                     onChange={handleFileChange}
-                     className="w-full bg-slate-50 border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-semibold"
-                   />
-                    {permissionForm.fileData && (
-                      <div className="inline-flex items-center gap-1 text-[9px] text-emerald-600 font-bold mt-1">
-                        <CheckCircle2 size={11} className="shrink-0 text-emerald-600" />
-                        <span>Gambar dikompres ({permissionForm.fileSizeKB} KB)</span>
+                   {permissionForm.gdriveUrl && !permissionForm.replaceImage ? (
+                      <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-[var(--ui-radius-small)] text-center">
+                        <button type="button" onClick={() => setShowPermissionPreviewModal(true)} className="w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2">
+                           <Eye size={14} /> Lihat Surat / Foto
+                        </button>
                       </div>
-                    )}
+                   ) : (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="w-full bg-slate-50 border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-semibold"
+                        />
+                         {permissionForm.fileData && (
+                           <div className="inline-flex items-center gap-1 text-[9px] text-emerald-600 font-bold mt-1">
+                             <CheckCircle2 size={11} className="shrink-0 text-emerald-600" />
+                             <span>Gambar siap diupload ({permissionForm.fileSizeKB} KB)</span>
+                           </div>
+                         )}
+                      </>
+                   )}
                  </div>
                )}
 
@@ -2045,6 +2078,39 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
              </form>
            </div>
          </div>
+       )}
+       {/* Modal Preview Surat / Foto */}
+       {showPermissionPreviewModal && (
+         <Modal isOpen={true} onClose={() => setShowPermissionPreviewModal(false)} title="Lihat Surat / Bukti" maxWidth="max-w-md">
+           <div className="p-2 flex flex-col gap-4">
+              <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
+                {(permissionForm.gdriveUrl && !permissionForm.gdriveUrl.startsWith('data:image/')) ? (
+                   <div className="text-center">
+                     <p className="text-sm font-bold text-white mb-3">Dokumen tersimpan di Google Drive</p>
+                     <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow transition-colors">
+                       <ExternalLink size={16} /> Buka Link Foto/Surat
+                     </a>
+                   </div>
+                ) : permissionForm.gdriveUrl?.startsWith('data:image/') ? (
+                   <img src={permissionForm.gdriveUrl} alt="Bukti" className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" />
+                ) : (
+                   <p className="text-slate-400 font-medium text-sm">Tidak ada foto.</p>
+                )}
+              </div>
+              
+              <div className="flex justify-between items-center gap-3 pt-4 border-t border-slate-100">
+                 <Button type="button" variant="outline" className="text-xs text-rose-600 hover:bg-rose-50 border-rose-200" onClick={() => {
+                    setPermissionForm({...permissionForm, replaceImage: true, gdriveUrl: null});
+                    setShowPermissionPreviewModal(false);
+                 }}>
+                    Ganti Foto/Berkas
+                 </Button>
+                 <Button type="button" onClick={() => setShowPermissionPreviewModal(false)}>
+                    Tutup
+                 </Button>
+              </div>
+           </div>
+         </Modal>
        )}
        {/* Modal Cetak Laporan Per Periode */}
        {showPrintModal && (

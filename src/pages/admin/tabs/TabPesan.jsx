@@ -11,26 +11,7 @@ export default function TabPesan(props) {
 
         const permLevel = getTabPermissionLevel("pesan");
         const canEdit = permLevel ==="edit" || (permLevel ==="otomatis" && activeUserRole !=="kepsek");
-        if (!isLeadershipRole(currentUser?.role)) {
-          return (
-            <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
-              <PageHeader
-                title="Pengumuman & Pesan Dashboard"
-                icon={MessageSquare}
-                description="Buat dan kelola pengumuman resmi dari sekolah yang tayang langsung di dashboard seluruh pengguna."
-              />
-              <div className="ui-card p-6 text-center">
-                <h3 className="text-lg font-black text-slate-800">
-                  Akses tidak tersedia
-                </h3>
-                <p className="text-sm font-medium text-slate-500 mt-1">
-                  Pesan dashboard dikelola oleh SuperAdmin, kepala sekolah, atau
-                  Waka.
-                </p>
-              </div>
-            </div>
-          );
-        }
+
         return (
           <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
             <PageHeader

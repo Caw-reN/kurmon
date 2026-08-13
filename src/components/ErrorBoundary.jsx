@@ -1,4 +1,4 @@
-﻿import React from"react";
+import React from"react";
 import { getDatabaseSnapshot } from"../utils/dataSource.js";
 
 /**
@@ -15,7 +15,22 @@ export default class ErrorBoundary extends React.Component {
     return { hasError: true, error };
   }
 
+  componentDidMount() {
+    // Hapus flag penanda jika aplikasi berhasil berjalan dengan normal
+    sessionStorage.removeItem('chunk_failed_reload');
+  }
+
   componentDidCatch(error, errorInfo) {
+    // Tangani otomatis error saat ada update versi (chunk failed)
+    if (error?.message?.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Importing a module script failed')) {
+      const hasReloaded = sessionStorage.getItem('chunk_failed_reload');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_failed_reload', 'true');
+        window.location.reload();
+        return;
+      }
+    }
+
     this.setState({ errorInfo });
     console.error("[ErrorBoundary] Komponen mengalami crash:", error, errorInfo);
   }

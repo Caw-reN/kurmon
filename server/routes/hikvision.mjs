@@ -1054,6 +1054,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             };
             employeeToNisMap[String(s.nis).toLowerCase()] = s.nis;
             if (s.name) employeeToNisMap[String(s.name).trim().toLowerCase()] = s.nis;
+            
+            // Map numeric IDs for Karyawan (e.g. 'K5' -> '5') which are commonly used in fingerprint machines
+            if (s.class_name === 'karyawan' && /^k\d+$/i.test(String(s.nis))) {
+                const numPart = String(s.nis).replace(/^k/i, '');
+                employeeToNisMap[numPart] = s.nis;
+            }
         });
 
         if (reportType === 'siswa') {
@@ -1196,7 +1202,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         if (reportType === 'siswa') {
           const sAbsRes = await dbPool.query(`
-            SELECT siswa_nis, tanggal, status, keterangan, gdrive_url 
+            SELECT id, siswa_nis, tanggal, status, keterangan, gdrive_url, approval_status
             FROM kedisiplinan_absensi 
             WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
             AND (approval_status = 'approved' OR approval_status IS NULL OR approval_status = 'pending')
@@ -1218,15 +1224,32 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const status = rec.status;
               const isLate = status === "Terlambat";
               
-              matrix[targetKey].days[day] = {
-                in: isLate ? (rec.keterangan || "Terlambat") : status,
-                out: isLate ? null : status,
-                isLate: isLate,
-                isManual: true,
-                status: status,
-                note: rec.keterangan,
-                gdrive_url: rec.gdrive_url
-              };
+              if (rec.approval_status === 'pending') {
+                 if (!matrix[targetKey].days[day]) matrix[targetKey].days[day] = {};
+                 matrix[targetKey].days[day].pending_permission = {
+                    id: rec.id,
+                    status: rec.status,
+                    keterangan: rec.keterangan,
+                    gdrive_url: rec.gdrive_url,
+                    approval_status: rec.approval_status
+                 };
+              } else {
+                 const existingPending = matrix[targetKey].days[day]?.pending_permission;
+                 matrix[targetKey].days[day] = {
+                   in: isLate ? (rec.keterangan || "Terlambat") : status,
+                   out: isLate ? null : status,
+                   isLate: isLate,
+                   isManual: true,
+                   status: status,
+                   note: rec.keterangan,
+                   gdrive_url: rec.gdrive_url,
+                   id: rec.id,
+                   approval_status: rec.approval_status
+                 };
+                 if (existingPending) {
+                     matrix[targetKey].days[day].pending_permission = existingPending;
+                 }
+              }
             }
           });
         }
@@ -1238,19 +1261,44 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const calendarCategories = mainData.calendarCategories || [];
 
         // Function to check if YYYY-MM-DD is holiday or weekend
-        const isHolidayOrWeekend = (dateStr) => {
+        const isHolidayOrWeekend = (dateStr, personItem) => {
           const d = new Date(dateStr);
           const day = d.getDay();
           if (day === 0 || day === 6) return true; // Saturday & Sunday are weekends
+          
+          let personGrade = "";
+          let personRole = "siswa";
+          
+          if (personItem) {
+            const cn = String(personItem.class_name || "").toUpperCase();
+            if (cn === "GURU") { personRole = "guru"; }
+            else if (cn === "KARYAWAN" || cn === "STAFF") { personRole = "karyawan"; }
+            else {
+              if (cn.startsWith("X ")) personGrade = "X";
+              else if (cn.startsWith("XI ")) personGrade = "XI";
+              else if (cn.startsWith("XII ")) personGrade = "XII";
+            }
+          }
           
           const matchedEvent = academicCalendar.find(evt => {
             const start = evt.dateStart;
             const end = evt.dateEnd || evt.dateStart;
             if (dateStr >= start && dateStr <= end) {
-              const cat = calendarCategories.find(c => c.id === evt.categoryId);
-              const catName = cat ? String(cat.name).toLowerCase() : "";
-              const title = String(evt.title).toLowerCase();
-              return catName.includes("libur") || title.includes("libur");
+              const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
+              const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+              
+              if (isEventHoliday) {
+                if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
+                if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
+              }
+              
+              // Fallback to legacy check if isHoliday is not set
+              if (evt.isHoliday === undefined) {
+                const cat = calendarCategories.find(c => c.id === evt.categoryId);
+                const catName = cat ? String(cat.name).toLowerCase() : "";
+                const title = String(evt.title).toLowerCase();
+                return catName.includes("libur") || title.includes("libur");
+              }
             }
             return false;
           });
@@ -1324,7 +1372,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             }
 
             // Skip weekends & academic calendar holidays
-            if (isHolidayOrWeekend(dateStr)) continue;
+            if (isHolidayOrWeekend(dateStr, item)) continue;
 
             // If no fingerprint record exists for this day:
             const dayData = item.days[day];

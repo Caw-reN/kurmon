@@ -23,7 +23,7 @@ import {  Users, HelpCircle, X as CloseIcon, FileText,
   UserX,
   Clock3,
   ShieldAlert,
-  Loader2, MessageSquare, ChevronLeft, ChevronRight, Megaphone, Bell, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
+  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
@@ -1471,27 +1471,39 @@ export default function DashboardPage({
 
       {/* Backup Error Alert */}
       {dashLogs?.backupErrors?.length > 0 && isSuperAdmin && (
-        <div className="bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] p-4 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
-            <AlertTriangle size={20} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-black text-rose-800 text-sm mb-1">Peringatan: Proses Backup Gagal</h3>
-            <p className="text-xs text-rose-600 font-medium leading-relaxed mb-3">
-              Terdapat kegagalan saat melakukan backup otomatis ke Cloud dalam 7 hari terakhir. Mohon segera periksa ketersediaan Storage Cloud atau Kredensial API Anda.
-            </p>
-            <div className="space-y-1.5">
+        <details className="group bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] overflow-hidden open:pb-3 transition-all mb-4">
+          <summary className="p-4 flex items-center justify-between cursor-pointer list-none select-none hover:bg-rose-100/30 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600 shadow-xs group-open:bg-rose-600 group-open:text-white transition-colors duration-300">
+                <AlertTriangle size={20} strokeWidth={2.5} />
+              </div>
+              <div>
+                <h3 className="font-black text-rose-800 text-sm leading-tight">Peringatan: Proses Backup Gagal</h3>
+                <p className="text-[11.5px] text-rose-600 font-semibold mt-0.5 group-open:hidden">
+                  Terdapat {dashLogs.backupErrors.length} kegagalan backup ke Cloud. Klik untuk melihat detail.
+                </p>
+                <p className="text-[11px] text-rose-600 font-medium mt-0.5 hidden group-open:block">
+                  Mohon periksa ketersediaan Storage Cloud atau kredensial API.
+                </p>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-rose-100/80 flex items-center justify-center text-rose-500 group-open:rotate-180 transition-transform duration-300 shrink-0">
+               <ChevronDown size={16} strokeWidth={2.5} />
+            </div>
+          </summary>
+          <div className="px-4 pb-1">
+            <div className="space-y-1.5 pt-2 border-t border-rose-200/60 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
               {dashLogs.backupErrors.map((err, i) => (
-                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/60 rounded-md">
+                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-md border border-rose-100/80 shadow-xs">
                   <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">
                     {new Date(err.time).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {err.action}
                   </span>
-                  <span className="text-[11px] font-medium text-slate-700">{err.detail}</span>
+                  <span className="text-[11px] font-semibold text-slate-700 leading-relaxed">{err.detail}</span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </details>
       )}
 
       {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}

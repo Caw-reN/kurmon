@@ -303,7 +303,7 @@ export default function SystemModals({
       <Modal
         isOpen={modalConfig.isOpen && (modalConfig.type ==="admin" || modalConfig.type ==="profile_edit")}
         onClose={closeModal}
-        title={`Edit Profil Akun`}
+        title={currentUser?.role === "admin" ? "Edit Profil Akun" : null}
       >
         {/* Password Policy Banner */}
         <div className="bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] p-4 mb-5 text-xs text-slate-650 space-y-1.5">
@@ -385,53 +385,64 @@ export default function SystemModals({
             </div>
           </form>
         ) : (
-          <form onSubmit={handleNonAdminSubmit} className="space-y-4">
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                Password Baru
-              </label>
-              <input
-                type="password"
-                required
-                value={nonAdminPassword}
-                onChange={(e) => setNonAdminPassword(e.target.value)}
-                className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] transition-colors"
-                placeholder="Masukkan password baru"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                Konfirmasi Password Baru
-              </label>
-              <input
-                type="password"
-                required
-                value={nonAdminConfirm}
-                onChange={(e) => setNonAdminConfirm(e.target.value)}
-                className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] transition-colors"
-                placeholder="Ulangi password baru"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 border-t border-slate-100 mt-4">
-              <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
-                {pwError && `⚠️ ${pwError}`}
+          <div className="p-1">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-50 text-indigo-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
+                <Lock size={22} />
               </div>
-              <div className="flex gap-3 w-full sm:w-auto justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={closeModal}
-                  className="px-8 gap-2"
-                  disabled={localSaving}
-                >
-                  <X size={16} /> Batal
-                </Button>
-                <Button type="submit" className="px-8 gap-2" disabled={localSaving || !!pwError}>
-                  <KeyRound size={16} /> {localSaving ?"Menyimpan..." :"Simpan Password"}
-                </Button>
+              <div>
+                <h2 className="font-extrabold text-slate-800 text-base">Ganti Password Akun</h2>
+                <p className="text-xs text-slate-500 font-semibold mt-1">Perbarui password demi keamanan akun</p>
               </div>
             </div>
-          </form>
+
+            <form onSubmit={handleNonAdminSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Password Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={nonAdminPassword}
+                  onChange={(e) => setNonAdminPassword(e.target.value)}
+                  className="w-full h-10 px-3 text-xs rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  placeholder="Minimal 6 karakter"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Konfirmasi Password Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={nonAdminConfirm}
+                  onChange={(e) => setNonAdminConfirm(e.target.value)}
+                  className="w-full h-10 px-3 text-xs rounded-[var(--ui-radius-small)] border border-slate-200 focus:outline-none focus:border-indigo-500 bg-slate-50"
+                  placeholder="Ketik ulang password baru"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 mt-4">
+                <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
+                  {pwError && `⚠️ ${pwError}`}
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="h-10 px-6 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors"
+                    disabled={localSaving}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={localSaving || !!pwError}
+                    className="h-10 px-6 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  >
+                    {localSaving ? "Menyimpan..." : "Simpan Password"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         )}
       </Modal>
 

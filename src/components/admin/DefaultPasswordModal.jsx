@@ -114,48 +114,30 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
       <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-100/80 w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
         
         {/* Dynamic Theme Banner Header */}
-        <div className="bg-gradient-to-r from-[var(--ui-primary)] via-teal-600 to-emerald-600 px-5 py-5 sm:px-6 sm:py-6 text-white text-center relative overflow-hidden shrink-0">
+        <div className="bg-white px-5 py-6 sm:px-8 sm:py-8 text-slate-800 text-center relative shrink-0 border-b border-slate-100/60">
           <button
             type="button"
             onClick={handleDismiss}
             title="Nanti Saja"
-            className="absolute top-3.5 right-3.5 w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/15 hover:bg-white/25 active:scale-90 text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs border border-white/20"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
           
-          <div className="absolute -right-8 -bottom-8 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-          <div className="absolute -left-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-
-          {/* Header Content with Theme Accent */}
           <div className="flex flex-col items-center justify-center relative z-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-[var(--ui-radius-card)] bg-white/20 backdrop-blur-md mb-2.5 shadow-inner border border-white/30">
-              <ShieldAlert size={24} className="text-white animate-pulse" />
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 mb-4 shadow-sm border border-slate-100">
+              <ShieldAlert size={28} className="text-slate-700" />
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-widest bg-black/20 text-emerald-100 border border-white/20 mb-1.5 backdrop-blur-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span>
-              <span>Imbauan Keamanan Akun</span>
-            </div>
-
-            <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">Ubah Kata Sandi Bawaan</h2>
-            <p className="text-xs font-medium text-emerald-100/90 mt-0.5 max-w-xs mx-auto leading-relaxed">
-              Akun Anda saat ini masih menggunakan kata sandi default.
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Ubah Kata Sandi</h2>
+            <p className="text-sm font-medium text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">
+              Silakan perbarui kata sandi bawaan Anda ke kata sandi yang lebih aman untuk melindungi akun Anda.
             </p>
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar">
-          {/* Warning Info Box */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] p-3.5 flex items-start gap-3 shadow-2xs">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 mt-0.5">
-              <KeyRound size={17} />
-            </div>
-            <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-              Demi keamanan akun &amp; data sekolah, silakan perbarui kata sandi Anda ke kata sandi baru yang lebih aman.
-            </p>
-          </div>
+        <div className="p-5 sm:p-8 space-y-5 overflow-y-auto custom-scrollbar bg-white">
 
           {errorMessage && (
             <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold animate-in shake duration-200 flex items-center gap-2">
@@ -211,28 +193,26 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+            <div className="pt-4 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2 cursor-pointer border border-slate-200"
+              >
+                <span>Nanti Saja</span>
+              </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] active:scale-95 text-white font-black py-2.5 sm:py-3 px-4 rounded-[var(--ui-radius-small)] shadow-sm shadow-[var(--ui-primary)]/25 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-50 cursor-pointer"
+                className="flex-1 bg-[var(--ui-primary)] hover:opacity-90 active:scale-95 text-white font-black py-3 px-5 rounded-xl shadow-md shadow-[var(--ui-primary)]/20 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer border-none"
               >
                 {isLoading ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 ) : (
                   <>
-                    <Lock size={15} />
-                    <span>Simpan &amp; Terapkan</span>
+                    <span>Simpan Sandi Baru</span>
                   </>
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="w-full sm:w-auto px-4 py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 font-bold rounded-[var(--ui-radius-small)] transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/80"
-              >
-                <Clock size={15} />
-                <span>Nanti Saja</span>
               </button>
             </div>
           </form>

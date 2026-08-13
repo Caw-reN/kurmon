@@ -340,102 +340,13 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           } else {
              // Handle insert & update with potential Google Drive file uploads
              let gdriveUrl = body.gdrive_url || null;
-
-             if (body.fileData && body.fileName) {
-               try {
-                 const { rows: driveRows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'google_drive' AND is_active = true LIMIT 1");
-                 if (driveRows.length > 0 && driveRows[0].api_key) {
-                   const credentials = JSON.parse(driveRows[0].api_key);
-                   const driveConf = driveRows[0];
-                   let extraConfig = {};
-                   try {
-                     extraConfig = typeof driveConf.extra_config === 'string' ? JSON.parse(driveConf.extra_config) : (driveConf.extra_config || {});
-                   } catch(e) {}
-                   
-                   let rootParentId = extraConfig.folder_id || null;
-
-                   const auth = new google.auth.GoogleAuth({
-                     credentials,
-                     scopes: ['https://www.googleapis.com/auth/drive.file']
-                   });
-                   const drive = google.drive({ version: 'v3', auth });
-
-                   // Retrieve student metadata to build path hierarchy
-                   const studentNis = body.siswa_nis;
-                   const studentRes = await dbPool.query(`
-                     SELECT payload 
-                     FROM mst_students 
-                     WHERE id = $1 
-                        OR payload->>'nis' = $2 
-                        OR payload->>'username' = $2
-                     LIMIT 1
-                   `, [studentNis, studentNis]);
-                   
-                   let name = studentNis;
-                   let className = "Umum";
-                   let major = "Umum";
-                   let tingkat = "Umum";
-
-                   if (studentRes.rows.length > 0) {
-                     const sp = studentRes.rows[0].payload;
-                     name = sp.name || sp.namaSiswa || name;
-                     className = sp.class_name || className;
-                     major = sp.major || major;
-                     
-                     const classFirstWord = className.split(" ")[0] || "";
-                     if (["X", "XI", "XII", "10", "11", "12"].includes(classFirstWord.toUpperCase())) {
-                       tingkat = `Kelas ${classFirstWord.toUpperCase()}`;
-                     }
-                   }
-
-                   // Navigate / create directory structure sequentially
-                   const mainRootId = await getOrCreateFolder(drive, "Kurmon Absensi", rootParentId);
-                   const tingkatId = await getOrCreateFolder(drive, tingkat, mainRootId);
-                   const majorId = await getOrCreateFolder(drive, major, tingkatId);
-                   const classId = await getOrCreateFolder(drive, className, majorId);
-                   const studentFolderId = await getOrCreateFolder(drive, name, classId);
-
-                   // Convert base64 data to stream
-                   const base64Data = body.fileData.split(';base64,').pop();
-                   const buffer = Buffer.from(base64Data, 'base64');
-                   const bufferStream = new Readable();
-                   bufferStream.push(buffer);
-                   bufferStream.push(null);
-
-                   const uploadRes = await drive.files.create({
-                     requestBody: {
-                       name: body.fileName,
-                       parents: [studentFolderId]
-                     },
-                     media: {
-                       mimeType: 'image/jpeg',
-                       body: bufferStream
-                     },
-                     fields: 'id, webViewLink',
-                     supportsAllDrives: true
-                   });
-
-                   // Grant reader permission to anyone with link
-                   try {
-                     await drive.permissions.create({
-                       fileId: uploadRes.data.id,
-                       requestBody: {
-                         role: 'reader',
-                         type: 'anyone'
-                       },
-                       supportsAllDrives: true
-                     });
-                   } catch(e) {
-                     console.warn("Failed to set open permission on GDrive file", e);
-                   }
-
-                   gdriveUrl = uploadRes.data.webViewLink;
-                 }
-               } catch(err) {
-                 console.error("Gagal mengupload berkas ke Google Drive:", err);
-               }
+             
+             // Initial save with base64 fallback
+             if (body.fileData && !gdriveUrl) {
+               gdriveUrl = body.fileData;
              }
 
+             let finalId = body.id;
              if (body.action === 'update') {
                 await dbPool.query("UPDATE kedisiplinan_absensi SET status = $1, keterangan = $2, gdrive_url = COALESCE($3, gdrive_url) WHERE id = $4", [body.status, body.keterangan, gdriveUrl, body.id]);
              } else {
@@ -444,10 +355,10 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                 const approvedById = isDirectApproved ? session?.id : null;
                 const approvedByName = isDirectApproved ? (session?.name || 'Sistem') : null;
 
-                await dbPool.query(`
+                const insertRes = await dbPool.query(`
                   INSERT INTO kedisiplinan_absensi 
                   (siswa_nis, tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name, gdrive_url) 
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
                 `, [
                   body.siswa_nis, 
                   body.tanggal, 
@@ -460,10 +371,80 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                   approvedByName,
                   gdriveUrl
                 ]);
+                finalId = insertRes.rows[0].id;
              }
+
               if (body.siswa_nis) {
                 checkAndApplyAutoSpAndPoints(dbPool, body.siswa_nis).catch(e => console.error("Auto SP error:", e));
               }
+
+             // Background GDrive Upload
+             if (body.fileData && body.fileName) {
+               (async () => {
+                 try {
+                   const { rows: driveRows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'google_drive' AND is_active = true LIMIT 1");
+                   if (driveRows.length > 0 && driveRows[0].api_key) {
+                     const credentials = JSON.parse(driveRows[0].api_key);
+                     const driveConf = driveRows[0];
+                     let extraConfig = {};
+                     try { extraConfig = typeof driveConf.extra_config === 'string' ? JSON.parse(driveConf.extra_config) : (driveConf.extra_config || {}); } catch(e) {}
+                     
+                     let rootParentId = extraConfig.folder_id || null;
+                     const auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/drive.file'] });
+                     const drive = google.drive({ version: 'v3', auth });
+
+                     const studentNis = body.siswa_nis;
+                     const studentRes = await dbPool.query(`
+                       SELECT payload 
+                       FROM mst_students 
+                       WHERE id = $1 OR payload->>'nis' = $2 OR payload->>'username' = $2 LIMIT 1
+                     `, [studentNis, studentNis]);
+                     
+                     let name = studentNis; let className = "Umum"; let major = "Umum"; let tingkat = "Umum";
+                     if (studentRes.rows.length > 0) {
+                       const sp = studentRes.rows[0].payload;
+                       name = sp.name || sp.namaSiswa || name;
+                       className = sp.class_name || className;
+                       major = sp.major || major;
+                       const classFirstWord = className.split(" ")[0] || "";
+                       if (["X", "XI", "XII", "10", "11", "12"].includes(classFirstWord.toUpperCase())) { tingkat = `Kelas ${classFirstWord.toUpperCase()}`; }
+                     }
+
+                     const mainRootId = await getOrCreateFolder(drive, "Kurmon Absensi", rootParentId);
+                     const tingkatId = await getOrCreateFolder(drive, tingkat, mainRootId);
+                     const majorId = await getOrCreateFolder(drive, major, tingkatId);
+                     const classId = await getOrCreateFolder(drive, className, majorId);
+                     const studentFolderId = await getOrCreateFolder(drive, name, classId);
+
+                     const base64Data = body.fileData.split(';base64,').pop();
+                     const buffer = Buffer.from(base64Data, 'base64');
+                     const bufferStream = new Readable();
+                     bufferStream.push(buffer);
+                     bufferStream.push(null);
+
+                     const uploadRes = await drive.files.create({
+                       requestBody: { name: body.fileName, parents: [studentFolderId] },
+                       media: { mimeType: 'image/jpeg', body: bufferStream },
+                       fields: 'id, webViewLink',
+                       supportsAllDrives: true
+                     });
+
+                     try {
+                       await drive.permissions.create({
+                         fileId: uploadRes.data.id,
+                         requestBody: { role: 'reader', type: 'anyone' },
+                         supportsAllDrives: true
+                       });
+                     } catch(e) { console.warn("Failed to set open permission on GDrive file", e); }
+
+                     const newGdriveUrl = uploadRes.data.webViewLink;
+                     await dbPool.query("UPDATE kedisiplinan_absensi SET gdrive_url = $1 WHERE id = $2", [newGdriveUrl, finalId]);
+                   }
+                 } catch(err) {
+                   console.error("Background GDrive upload failed:", err);
+                 }
+               })();
+             }
           }
           send(req, res, 200, { ok: true });
           return;

@@ -359,14 +359,30 @@ export default function ModulAjar(props) {
       const teacherDocs = documents.filter(doc =>
         doc.teacher_code === t.code && doc.tahun_ajaran === (activeYear || form.tahun_ajaran)
       );
+      
+      const teacherCode = String(t.code || '').toLowerCase();
+      
+      const walasClasses = (classes || []).filter(c => 
+        String(c.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(teacherCode)
+      );
+      const walasStr = walasClasses.length > 0 ? `Walas: ${walasClasses.map(c => c.name).join(', ')}` : '';
+      
+      const loads = (teachingLoads || []).filter(l => 
+        String(l.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(teacherCode)
+      );
+      const uniqueSubjects = [...new Set(loads.map(l => l.subject).filter(Boolean))];
+      const subjectStr = uniqueSubjects.length > 0 ? `Mapel: ${uniqueSubjects.join(', ')}` : '';
+      
+      const combinedStr = [walasStr, subjectStr].filter(Boolean).join(' | ');
+
       return {
         code: t.code, name: t.name,
-        class_name: t.class_name || '-',
+        class_name: combinedStr || '-',
         hasSubmitted: teacherDocs.length > 0,
         documents: teacherDocs
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [teachers, documents, activeYear, form.tahun_ajaran]);
+  }, [teachers, documents, activeYear, form.tahun_ajaran, classes, teachingLoads]);
 
   const stats = useMemo(() => {
     const total = monitoringData.length;

@@ -676,6 +676,26 @@ export default function CrudModals({
                   ))}
                 </UISelect>
               </div>
+              <div className="flex gap-4 mt-1">
+                <div className="flex-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Status Kegiatan</label>
+                  <UISelect value={formData.isHoliday !== undefined ? String(formData.isHoliday) : "false"} onChange={(e) => setFormData({ ...formData, isHoliday: e.target.value === "true" })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
+                    <option value="false">Masuk (Ada KBM/Absen)</option>
+                    <option value="true">Libur (Tidak ada KBM/Absen)</option>
+                  </UISelect>
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Sasaran Kelas</label>
+                  <UISelect value={formData.applicableClasses || "Semua"} onChange={(e) => setFormData({ ...formData, applicableClasses: e.target.value })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
+                    <option value="Semua">Semua Kelas</option>
+                    <option value="X">Hanya Kelas X</option>
+                    <option value="XI">Hanya Kelas XI</option>
+                    <option value="XII">Hanya Kelas XII</option>
+                    <option value="X,XI">Kelas X & XI</option>
+                    <option value="XI,XII">Kelas XI & XII</option>
+                  </UISelect>
+                </div>
+              </div>
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Deskripsi / Keterangan Tambahan</label>
                 <textarea value={formData.description ||""} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] min-h-[80px]" placeholder="Penjelasan tambahan terkait acara..." />
