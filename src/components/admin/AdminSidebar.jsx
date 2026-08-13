@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from'react';
 import { cn } from'@/lib/utils';
-import { Calendar, CalendarDays, Users, BookOpen, LayoutDashboard, Settings, MessageSquare, History, SlidersHorizontal, Clock, FileText, FileSpreadsheet, DoorOpen, User, UserPlus, AppWindow, PieChart, Wand2, MonitorSmartphone, CheckCircle2, FolderOpen, Phone, Briefcase, Shield, ShieldAlert, Activity, HardDrive, GraduationCap, Building2, DatabaseBackup, UserCog, ClipboardList, Trophy, UserMinus, ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen } from'lucide-react';
+import { Calendar, CalendarDays, Users, BookOpen, LayoutDashboard, Settings, MessageSquare, History, SlidersHorizontal, Clock, FileText, FileSpreadsheet, DoorOpen, User, UserPlus, AppWindow, PieChart, Wand2, MonitorSmartphone, CheckCircle2, FolderOpen, Phone, Briefcase, Shield, ShieldAlert, Activity, HardDrive, GraduationCap, Building2, DatabaseBackup, UserCog, ClipboardList, Trophy, UserMinus, ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, UserCheck } from'lucide-react';
 
 
 export default function AdminSidebar({
