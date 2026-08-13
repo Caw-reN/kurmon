@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
   Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
-  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send, AlertCircle
+  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send, AlertCircle, Edit2
 } from 'lucide-react';
 import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -335,34 +334,35 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
         </div>
       )}
 
-      {/* ── Sub Navigation Tabs ────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
-        <div className="flex flex-wrap items-center gap-1.5">
+      {/* ── Sub Navigation Toolbar ────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
+        {/* Horizontal scrollable pills on mobile */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 w-full sm:w-auto scroll-smooth">
           <button
             type="button"
             onClick={() => setSubTab('ews')}
-            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
               subTab === 'ews'
                 ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
-            <ShieldAlert size={15} />
+            <ShieldAlert size={15} className="shrink-0" />
             <span>Dashboard &amp; EWS</span>
           </button>
           <button
             type="button"
             onClick={() => setSubTab('konseling')}
-            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
               subTab === 'konseling'
                 ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
-            <HeartHandshake size={15} />
+            <HeartHandshake size={15} className="shrink-0" />
             <span>Sesi Konseling</span>
             {bkSessions.length > 0 && (
-              <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-mono ${
+              <span className={`px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-mono leading-none ${
                 subTab === 'konseling' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
               }`}>
                 {bkSessions.length}
@@ -372,30 +372,30 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
           <button
             type="button"
             onClick={() => setSubTab('surat')}
-            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
               subTab === 'surat'
                 ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
-            <FileText size={15} />
+            <FileText size={15} className="shrink-0" />
             <span>Surat &amp; Home Visit</span>
           </button>
           <button
             type="button"
             onClick={() => setSubTab('dossier')}
-            className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
+            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
               subTab === 'dossier'
                 ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
                 : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
-            <Users size={15} />
+            <Users size={15} className="shrink-0" />
             <span>Rekap &amp; Berkas 360°</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
           <Button
             type="button"
             onClick={() => {
@@ -412,7 +412,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               });
               setShowSessionModal(true);
             }}
-            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
+            className="w-full sm:w-auto px-4 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
           >
             <Plus size={15} strokeWidth={2.5} />
             <span>Catat Konseling</span>
@@ -422,24 +422,26 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
       {/* ── TAB 1: DASHBOARD & EARLY WARNING SYSTEM (EWS) ────────────────── */}
       {subTab === 'ews' && (
-        <div className="flex flex-col gap-5 animate-in fade-in duration-200">
-          {/* Stat Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="flex flex-col gap-4 sm:gap-5 animate-in fade-in duration-200">
+          {/* Stat Cards Row - 2 columns on mobile, 4 on desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             <StatCard
               label="Kasus / Sesi Aktif"
               value={bkSessions.filter(s => s.status === 'Berjalan' || s.status === 'Follow-up').length}
-              sub="Perlu penanganan & pendampingan"
+              sub="Perlu penanganan"
               icon={Clock}
               iconBg="bg-amber-50"
               iconColor="text-amber-600"
+              className="p-3 sm:p-5"
             />
             <StatCard
               label="Siswa Resiko Tinggi"
               value={highRiskStudents.filter(s => s.risk_level === 'Tinggi').length}
-              sub="Total Poin > 75 atau > 5 Sesi"
+              sub="Poin > 75 / > 5 Sesi"
               icon={ShieldAlert}
               iconBg="bg-rose-50"
               iconColor="text-rose-600"
+              className="p-3 sm:p-5"
             />
             <StatCard
               label="Kunjungan Rumah"
@@ -448,6 +450,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               icon={Home}
               iconBg="bg-sky-50"
               iconColor="text-sky-600"
+              className="p-3 sm:p-5"
             />
             <StatCard
               label="Surat Ortu & SP"
@@ -456,6 +459,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               icon={FileText}
               iconBg="bg-emerald-50"
               iconColor="text-emerald-600"
+              className="p-3 sm:p-5"
             />
           </div>
 
@@ -513,13 +517,13 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
                         <button
                           onClick={() => {
                             setFormLetter({ student_nis: st.nis, letter_type: st.total_poin >= 75 ? 'SP 1' : 'Panggilan Orang Tua', reason: `Akumulasi poin kedisiplinan mencapai ${st.total_poin} poin.` });
                             setShowLetterModal(true);
                           }}
-                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-rose-200/70 cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-rose-200/70 cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                         >
                           <FileText size={13} />
                           <span>{st.total_poin >= 75 ? 'Terbit SP' : 'Surat Ortu'}</span>
@@ -527,7 +531,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
 
                         <button
                           onClick={() => openDossier(st)}
-                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-3 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                         >
                           <Eye size={13} />
                           <span>Lihat Dossier</span>
@@ -597,7 +601,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       {subTab === 'konseling' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
           {/* Search & Filters */}
-          <div className="bg-white p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
             <div className="relative w-full md:w-80">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -605,39 +609,43 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Cari nama siswa / deskripsi..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
-            <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
-              <CustomSelect
-                value={filterCategory}
-                onChange={val => setFilterCategory(val)}
-                options={[
-                  { value: 'all', label: '-- Semua Kategori --' },
-                  { value: 'Kedisiplinan', label: 'Kedisiplinan' },
-                  { value: 'Akademik', label: 'Akademik' },
-                  { value: 'Pribadi', label: 'Pribadi' },
-                  { value: 'Sosial', label: 'Sosial' },
-                  { value: 'Karir', label: 'Karir' }
-                ]}
-              />
+            <div className="grid grid-cols-2 md:flex flex-wrap gap-2 w-full md:w-auto">
+              <div className="col-span-1 md:w-44">
+                <CustomSelect
+                  value={filterCategory}
+                  onChange={val => setFilterCategory(val)}
+                  options={[
+                    { value: 'all', label: 'Semua Kategori' },
+                    { value: 'Kedisiplinan', label: 'Kedisiplinan' },
+                    { value: 'Akademik', label: 'Akademik' },
+                    { value: 'Pribadi', label: 'Pribadi' },
+                    { value: 'Sosial', label: 'Sosial' },
+                    { value: 'Karir', label: 'Karir' }
+                  ]}
+                />
+              </div>
 
-              <CustomSelect
-                value={filterStatus}
-                onChange={val => setFilterStatus(val)}
-                options={[
-                  { value: 'all', label: '-- Semua Status --' },
-                  { value: 'Berjalan', label: 'Berjalan' },
-                  { value: 'Follow-up', label: 'Follow-up' },
-                  { value: 'Selesai', label: 'Selesai' }
-                ]}
-              />
+              <div className="col-span-1 md:w-40">
+                <CustomSelect
+                  value={filterStatus}
+                  onChange={val => setFilterStatus(val)}
+                  options={[
+                    { value: 'all', label: 'Semua Status' },
+                    { value: 'Berjalan', label: 'Berjalan' },
+                    { value: 'Follow-up', label: 'Follow-up' },
+                    { value: 'Selesai', label: 'Selesai' }
+                  ]}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Sessions Table */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -711,7 +719,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                               className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer shadow-2xs bg-white"
                               title="Edit Sesi"
                             >
-                              <FileText size={14} />
+                              <Edit2 size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteSession(ses.id)}
@@ -728,15 +736,117 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 </tbody>
               </table>
             </div>
+          </div>
 
-            <div className="p-4 border-t border-slate-100">
-              <TablePagination
-                totalItems={filteredSessions.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+          {/* Mobile Card List View */}
+          <div className="md:hidden flex flex-col gap-3">
+            {isLoading ? (
+              <div className="bg-white rounded-[var(--ui-radius-card)] p-8 text-center text-slate-400 font-bold text-xs shadow-xs border border-slate-100">
+                Memuat data sesi konseling...
+              </div>
+            ) : filteredSessions.length === 0 ? (
+              <div className="bg-white rounded-[var(--ui-radius-card)] p-8 text-center text-slate-400 font-bold text-xs shadow-xs border border-slate-100">
+                Belum ada catatan sesi konseling.
+              </div>
+            ) : (
+              filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(ses => (
+                <div 
+                  key={ses.id}
+                  className="bg-white rounded-[var(--ui-radius-card)] p-3.5 shadow-xs border border-slate-200/80 flex flex-col gap-2.5"
+                >
+                  {/* Card Header: Student name, class, status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-xs leading-snug">{ses.student_name || 'Siswa'}</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                        NIS: {ses.student_nis} • {ses.class_name || 'Tanpa Kelas'}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black shrink-0 ${
+                      ses.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/70' :
+                      ses.status === 'Follow-up' ? 'bg-amber-100 text-amber-800 border border-amber-200/70' :
+                      'bg-sky-100 text-sky-800 border border-sky-200/70'
+                    }`}>
+                      {ses.status}
+                    </span>
+                  </div>
+
+                  {/* Category & Date badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10.5px]">
+                    <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] font-bold bg-slate-100 text-slate-700">
+                      {ses.category}
+                    </span>
+                    <span className="text-slate-400 font-medium flex items-center gap-1">
+                      <Calendar size={11} className="text-slate-400" />
+                      {new Date(ses.session_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+
+                  {/* Problem & Solution snippet */}
+                  <div className="p-2.5 bg-slate-50/80 rounded-[var(--ui-radius-small)] border border-slate-100 text-xs">
+                    <p className="font-semibold text-slate-700 leading-relaxed">
+                      <span className="font-bold text-slate-900 block text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">Permasalahan</span>
+                      {ses.problem}
+                    </p>
+                    {ses.solution && (
+                      <p className="text-slate-600 mt-2 pt-2 border-t border-slate-200/50 leading-relaxed">
+                        <span className="font-bold text-slate-900 block text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">Rencana Tindak Lanjut</span>
+                        {ses.solution}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Footer: Counselor & Action buttons */}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      Guru BK: <strong className="text-slate-600">{ses.counselor_name || 'Guru BK'}</strong>
+                    </span>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          setEditingSession(ses);
+                          setFormSession({
+                            student_nis: ses.student_nis,
+                            category: ses.category || 'Kedisiplinan',
+                            session_date: ses.session_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+                            problem: ses.problem || '',
+                            solution: ses.solution || '',
+                            follow_up_date: ses.follow_up_date?.slice(0, 10) || '',
+                            status: ses.status || 'Berjalan',
+                            privacy_level: ses.privacy_level || 'Terbatas'
+                          });
+                          setShowSessionModal(true);
+                        }}
+                        className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1"
+                        title="Edit Sesi"
+                      >
+                        <Edit2 size={12} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(ses.id)}
+                        className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1"
+                        title="Hapus Sesi"
+                      >
+                        <Trash2 size={12} />
+                        <span>Hapus</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pagination Container */}
+          <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100">
+            <TablePagination
+              totalItems={filteredSessions.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
       )}
@@ -838,7 +948,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       {subTab === 'dossier' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
           {/* Header Action Bar */}
-          <div className="bg-white p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div className="bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
             <div className="relative w-full sm:w-80">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -846,16 +956,16 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 placeholder="Cari siswa untuk lihat berkas 360°..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleExportExcel}
-                className="px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-3.5 py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Download size={15} />
                 <span>Export Excel</span>
@@ -863,8 +973,8 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
             </div>
           </div>
 
-          {/* Student Dossier Table */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -921,15 +1031,69 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 </tbody>
               </table>
             </div>
+          </div>
 
-            <div className="p-4 border-t border-slate-100">
-              <TablePagination
-                totalItems={studentPointsList.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+          {/* Mobile Card List View */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            {studentPointsList.length === 0 ? (
+              <div className="bg-white rounded-[var(--ui-radius-card)] p-8 text-center text-slate-400 font-bold text-xs shadow-xs border border-slate-100">
+                Tidak ada data siswa ditemukan.
+              </div>
+            ) : (
+              studentPointsList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(s => (
+                <div
+                  key={s.nis}
+                  className="bg-white rounded-[var(--ui-radius-card)] p-3.5 shadow-xs border border-slate-200/80 flex flex-col gap-2.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-xs leading-snug">{s.name}</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                        NIS: {s.nis} • Kelas: {s.class_name || '-'}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black shrink-0 ${
+                      s.risk_level === 'Tinggi' ? 'bg-rose-100 text-rose-800 border border-rose-200/70' :
+                      s.risk_level === 'Sedang' ? 'bg-amber-100 text-amber-800 border border-amber-200/70' :
+                      'bg-emerald-100 text-emerald-800 border border-emerald-200/70'
+                    }`}>
+                      {s.risk_level}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-2 rounded-[var(--ui-radius-small)] border border-slate-100 text-center text-xs">
+                    <div>
+                      <span className="block text-[9.5px] text-slate-400 font-bold">Total Poin Pelanggaran</span>
+                      <span className="font-black text-rose-600 text-xs sm:text-sm">{s.total_poin} Poin</span>
+                    </div>
+                    <div>
+                      <span className="block text-[9.5px] text-slate-400 font-bold">Total Sesi BK</span>
+                      <span className="font-black text-slate-700 text-xs sm:text-sm">{s.sesi_count} Sesi</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => openDossier(s)}
+                    className="w-full py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <Eye size={13} />
+                    <span>Buka Dossier 360°</span>
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pagination Container */}
+          <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100">
+            <TablePagination
+              totalItems={studentPointsList.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
       )}
