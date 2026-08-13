@@ -751,7 +751,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             Next
           </Button>
         </div>
-      </div>
 
       {showFormModal && (
         <Modal isOpen={showFormModal} onClose={() => setShowFormModal(false)} title="Input Absensi Siswa" maxWidth="max-w-lg">
