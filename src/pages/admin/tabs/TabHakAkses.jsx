@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { 
   UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
@@ -46,6 +46,7 @@ const ALL_TABS_METADATA = {
   absensi: { label: 'Rekap Fingerprint Mesin', desc: 'Monitoring log mesin absensi kehadiran sekolah' },
   absensiguru: { label: 'Kehadiran & Absensi Guru', desc: 'Rekap absensi mengajar dan piket guru' },
   kedisiplinan_absensi: { label: 'Rekap Kehadiran Siswa', desc: 'Rekap absensi siswa (Sakit, Izin, Alpa)' },
+  hikvision_report_siswa: { label: 'Absensi & Kehadiran Siswa', desc: 'Rekap absensi per kelas harian' },
 
   // Sarpras & Administrasi
   ruangan: { label: 'Data Ruangan & Lab', desc: 'Manajemen ruang teori, bengkel praktikum, dan lab' },
@@ -71,7 +72,7 @@ const PERMISSION_GROUPS = [
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate'] },
   { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian'] },
-  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi'] },
+  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'hikvision_report_siswa'] },
   { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'esurat', 'kartu_pelajar'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
 ];

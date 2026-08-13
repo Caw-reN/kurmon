@@ -2706,7 +2706,12 @@ export default function App() {
     }
 
     let isAllowed = false;
-    if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
+    const isWalasUser = currentUser?.isWalas || currentUser?.walasClass;
+
+    if (isWalasUser && ["hikvision_report_siswa", "catatan_walikelas", "walas_report"].includes(id)) {
+      // Wali Kelas override: always allow walas-specific tabs
+      isAllowed = true;
+    } else if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
       isAllowed = true;
     } else if (level === "nonaktif" || level === "none" || level === "off") {
       isAllowed = false;
