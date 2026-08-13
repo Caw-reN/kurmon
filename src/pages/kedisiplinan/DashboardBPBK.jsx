@@ -98,7 +98,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     setIsLoading(true);
     try {
       const [resRiwayat, resSessions, resVisits, resLetters] = await Promise.all([
-        fetch("/api/kedisiplinan/riwayat", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/riwayat?limit=5000", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/home-visits", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/letters", { headers: { "Authorization": `Bearer ${authToken}` } })
@@ -141,23 +141,28 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       };
     });
 
+    // Sum points from riwayat
     riwayat.forEach(r => {
-      if (map[r.siswa_nis]) {
-        map[r.siswa_nis].total_poin += (r.poin || 0);
-        map[r.siswa_nis].riwayat_list.push(r);
+      const nis = r.siswa_nis;
+      if (map[nis]) {
+        map[nis].total_poin += parseInt(r.poin || 0, 10);
+        map[nis].riwayat_list.push(r);
       }
     });
 
+    // Count sessions
     bkSessions.forEach(ses => {
-      if (map[ses.student_nis]) {
-        map[ses.student_nis].sesi_count += 1;
+      const nis = ses.student_nis;
+      if (map[nis]) {
+        map[nis].sesi_count = (map[nis].sesi_count || 0) + 1;
       }
     });
 
+    // Determine risk level
     Object.values(map).forEach(s => {
       if (s.total_poin >= 75 || s.sesi_count >= 5) {
         s.risk_level = 'Tinggi';
-      } else if (s.total_poin >= 40 || s.sesi_count >= 2) {
+      } else if (s.total_poin >= 35 || s.sesi_count >= 2) {
         s.risk_level = 'Sedang';
       } else {
         s.risk_level = 'Rendah';
@@ -167,36 +172,41 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     return map;
   }, [students, riwayat, bkSessions]);
 
-  // Students list with points/violations
+  // Filtered student list for Dossier / High Risk Table
   const studentPointsList = useMemo(() => {
     return Object.values(studentPointsMap).filter(s => {
       if (filterClass !== "all" && s.class_name !== filterClass) return false;
       if (search) {
-        const query = search.toLowerCase();
-        return (s.name?.toLowerCase().includes(query) || s.nis?.toLowerCase().includes(query));
+        const q = search.toLowerCase();
+        return (
+          (s.name && s.name.toLowerCase().includes(q)) ||
+          (s.nis && s.nis.toLowerCase().includes(q)) ||
+          (s.class_name && s.class_name.toLowerCase().includes(q))
+        );
       }
       return true;
-    });
+    }).sort((a, b) => b.total_poin - a.total_poin);
   }, [studentPointsMap, filterClass, search]);
 
-  // High Risk EWS Students
+  // High Risk Students (EWS)
   const highRiskStudents = useMemo(() => {
     return Object.values(studentPointsMap)
-      .filter(s => s.risk_level === 'Tinggi' || s.total_poin > 0)
+      .filter(s => s.risk_level === 'Tinggi' || s.total_poin >= 50)
       .sort((a, b) => b.total_poin - a.total_poin);
   }, [studentPointsMap]);
 
   // Filtered Sessions List
   const filteredSessions = useMemo(() => {
-    return bkSessions.filter(s => {
-      if (filterCategory !== "all" && s.category !== filterCategory) return false;
-      if (filterStatus !== "all" && s.status !== filterStatus) return false;
+    return bkSessions.filter(ses => {
+      if (filterCategory !== "all" && ses.category !== filterCategory) return false;
+      if (filterStatus !== "all" && ses.status !== filterStatus) return false;
       if (search) {
-        const query = search.toLowerCase();
+        const q = search.toLowerCase();
         return (
-          (s.student_name || '')?.toLowerCase().includes(query) || 
-          (s.student_nis || '')?.toLowerCase().includes(query) ||
-          (s.problem || '')?.toLowerCase().includes(query)
+          (ses.student_name && ses.student_name.toLowerCase().includes(q)) ||
+          (ses.student_nis && ses.student_nis.toLowerCase().includes(q)) ||
+          (ses.problem && ses.problem.toLowerCase().includes(q)) ||
+          (ses.solution && ses.solution.toLowerCase().includes(q))
         );
       }
       return true;
@@ -312,7 +322,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     }
   };
 
-  // Download PDF Surat Resmi BK
+  // Download PDF Surat Resmi BK (Panggilan, SP, Perjanjian)
   const downloadLetterPDF = (letter) => {
     if (!letter) return;
     try {
@@ -340,6 +350,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       const appointPlace = letter.appointment_place || 'Ruang Bimbingan & Konseling (BK)';
       const appointPerson = letter.appointed_person || 'Guru BK / Koordinator BK';
       const reason = letter.reason || 'Koordinasi pembinaan kedisiplinan dan evaluasi perkembangan belajar siswa.';
+
+      const isSP = letterType.toUpperCase().includes('SP') || letterType.toUpperCase().includes('PERINGATAN');
+      const isPerjanjian = letterType.toUpperCase().includes('PERJANJIAN') || letterType.toUpperCase().includes('PERNYATAAN');
 
       let yPos = 20;
 
@@ -383,106 +396,192 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         yPos = 38;
       }
 
-      // Metadata Surat
-      doc.setFont("Helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text("Nomor", 15, yPos);
-      doc.text(`: ${letterNo}`, 35, yPos);
-      doc.text("Lampiran", 15, yPos + 5);
-      doc.text(": -", 35, yPos + 5);
-      doc.text("Perihal", 15, yPos + 10);
-      doc.setFont("Helvetica", "bold");
-      doc.text(`: ${letterType.toUpperCase()}`, 35, yPos + 10);
+      if (isPerjanjian) {
+        // ── FORMAT: SURAT PERNYATAAN / PERJANJIAN SISWA ──
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("SURAT PERNYATAAN & PERJANJIAN KEDISIPLINAN", pageWidth / 2, yPos, { align: "center" });
+        doc.setFontSize(10);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`Nomor: ${letterNo}`, pageWidth / 2, yPos + 5, { align: "center" });
+        yPos += 14;
 
-      // Tanggal Surat di Kanan Atas
-      doc.setFont("Helvetica", "normal");
-      doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 15, yPos, { align: 'right' });
+        doc.text("Yang bertanda tangan di bawah ini, saya:", 15, yPos);
+        yPos += 7;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Nama Siswa", 25, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentName}`, 65, yPos);
 
-      // Tujuan Surat
-      yPos += 18;
-      doc.text("Kepada Yth.", 15, yPos);
-      doc.setFont("Helvetica", "bold");
-      doc.text("Bapak / Ibu Orang Tua / Wali Siswa", 15, yPos + 5);
-      doc.setFont("Helvetica", "normal");
-      doc.text("di Tempat", 15, yPos + 10);
+        doc.setFont("Helvetica", "bold");
+        doc.text("NIS / Kelas", 25, yPos + 6);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentNis} / ${className}`, 65, yPos + 6);
 
-      // Salam Pembuka & Isi
-      yPos += 18;
-      doc.text("Dengan hormat,", 15, yPos);
-      yPos += 6;
-      const paragraf1 = "Sehubungan dengan perkembangan pembinaan ketertiban dan kedisiplinan putra/putri Bapak/Ibu di sekolah, dengan ini kami mengharap kehadiran Bapak/Ibu pada:";
-      const splitParagraf1 = doc.splitTextToSize(paragraf1, pageWidth - 30);
-      doc.text(splitParagraf1, 15, yPos);
+        yPos += 16;
+        const textPerjanjian = `Menyatakan dengan sesungguhnya dan penuh kesadaran bahwa saya telah melakukan pelanggaran tata tertib sekolah berupa: "${reason}".\n\nDengan ini saya berjanji dengan sungguh-sungguh untuk:\n1. Menaati dan mematuhi seluruh peraturan serta tata tertib yang berlaku di sekolah.\n2. Tidak akan mengulangi perbuatan pelanggaran tersebut maupun pelanggaran tata tertib lainnya.\n3. Bersungguh-sungguh mengikuti kegiatan pembelajaran dan memperbaiki sikap serta kedisiplinan.\n\nApabila di kemudian hari saya melanggar pernyataan ini, maka saya bersedia menerima sanksi yang lebih berat dari pihak sekolah sampai dengan dikembalikan kepada orang tua / dikeluarkan dari sekolah.`;
+        const splitPerjanjian = doc.splitTextToSize(textPerjanjian, pageWidth - 30);
+        doc.text(splitPerjanjian, 15, yPos);
 
-      // Detail Identitas Siswa
-      yPos += 12;
-      doc.setFont("Helvetica", "bold");
-      doc.text("Nama Siswa", 25, yPos);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${studentName}`, 60, yPos);
+        yPos += 68;
+        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
+        yPos += 7;
 
-      doc.setFont("Helvetica", "bold");
-      doc.text("NIS / Kelas", 25, yPos + 6);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${studentNis} / ${className}`, 60, yPos + 6);
+        // 4 Columns Signatures
+        doc.text("Mengetahui,", 20, yPos);
+        doc.text("Orang Tua / Wali Siswa,", 20, yPos + 5);
+        doc.text("Yang Membuat Pernyataan,", pageWidth - 20, yPos + 5, { align: "right" });
 
-      // Detail Waktu & Tempat Pertemuan
-      yPos += 14;
-      doc.setFont("Helvetica", "bold");
-      doc.text("Hari / Tanggal", 25, yPos);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${appointDateStr}`, 60, yPos);
+        yPos += 24;
+        doc.setFont("Helvetica", "bold");
+        doc.text("( .......................................... )", 20, yPos);
+        doc.text(`( ${studentName} )`, pageWidth - 20, yPos, { align: "right" });
 
-      doc.setFont("Helvetica", "bold");
-      doc.text("Waktu / Pukul", 25, yPos + 6);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${appointTime}`, 60, yPos + 6);
+        yPos += 14;
+        doc.setFont("Helvetica", "normal");
+        doc.text("Guru BK / Wali Kelas,", 20, yPos);
+        doc.text("Kepala Sekolah,", pageWidth - 20, yPos, { align: "right" });
 
-      doc.setFont("Helvetica", "bold");
-      doc.text("Tempat", 25, yPos + 12);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${appointPlace}`, 60, yPos + 12);
+        yPos += 22;
+        doc.setFont("Helvetica", "bold");
+        doc.text(user?.name || user?.username || "( Guru BK )", 20, yPos);
+        doc.text(appSettings.namaKepsek || "( .......................................... )", pageWidth - 20, yPos, { align: "right" });
 
-      doc.setFont("Helvetica", "bold");
-      doc.text("Menghadap", 25, yPos + 18);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`: ${appointPerson}`, 60, yPos + 18);
+      } else if (isSP) {
+        // ── FORMAT: SURAT PERINGATAN (SP 1 / SP 2 / SP 3) ──
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text(`SURAT PERINGATAN (${letterType.toUpperCase()})`, pageWidth / 2, yPos, { align: "center" });
+        doc.setFontSize(10);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`Nomor: ${letterNo}`, pageWidth / 2, yPos + 5, { align: "center" });
+        yPos += 14;
 
-      doc.setFont("Helvetica", "bold");
-      doc.text("Keperluan", 25, yPos + 24);
-      doc.setFont("Helvetica", "normal");
-      const splitReason = doc.splitTextToSize(`: ${reason}`, pageWidth - 75);
-      doc.text(splitReason, 60, yPos + 24);
+        doc.text("Berdasarkan evaluasi tata tertib dan catatan buku kedisiplinan siswa, diterbitkan kepada:", 15, yPos);
+        yPos += 7;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Nama Siswa", 25, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentName}`, 65, yPos);
 
-      // Kalimat Penutup
-      yPos += (splitReason.length * 5) + 26;
-      const paragrafPenutup = "Mengingat pentingnya koordinasi ini demi kebaikan dan kelancaran pendidikan putra/putri Bapak/Ibu, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.";
-      const splitPenutup = doc.splitTextToSize(paragrafPenutup, pageWidth - 30);
-      doc.text(splitPenutup, 15, yPos);
+        doc.setFont("Helvetica", "bold");
+        doc.text("NIS / Kelas", 25, yPos + 6);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentNis} / ${className}`, 65, yPos + 6);
 
-      // Tanda Tangan
-      yPos += 20;
-      doc.text("Mengetahui,", 25, yPos);
-      doc.text("Kepala Sekolah,", 25, yPos + 5);
+        yPos += 16;
+        const textSP = `Bahwa siswa tersebut di atas telah melakukan pelanggaran terhadap peraturan dan tata tertib sekolah, yaitu:\n"${reason}".\n\nSehubungan dengan hal tersebut di atas, pihak sekolah memberikan sanksi pembinaan berupa ${letterType.toUpperCase()}.\n\nKami mengingatkan kepada siswa bersangkutan serta orang tua/wali murid agar segera melakukan pembinaan intensif. Apabila setelah diterbitkannya surat peringatan ini siswa tetap tidak menunjukkan perubahan sikap positif, pihak sekolah akan mengambil tindakan tegas berikutnya sesuai regulasi kedisiplinan yang berlaku.`;
+        const splitSP = doc.splitTextToSize(textSP, pageWidth - 30);
+        doc.text(splitSP, 15, yPos);
 
-      doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
+        yPos += 60;
+        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
+        yPos += 7;
 
-      yPos += 26;
-      doc.setFont("Helvetica", "bold");
-      doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
-      doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+        doc.text("Mengetahui,", 25, yPos);
+        doc.text("Kepala Sekolah,", 25, yPos + 5);
+        doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
 
-      doc.setFont("Helvetica", "normal");
-      doc.setFontSize(9);
-      if (appSettings.nipKepsek) {
-        doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
-      }
-      if (user?.nip) {
-        doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
+        yPos += 26;
+        doc.setFont("Helvetica", "bold");
+        doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
+        doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(9);
+        if (appSettings.nipKepsek) doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
+        if (user?.nip) doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
+
+      } else {
+        // ── FORMAT: SURAT PANGGILAN ORANG TUA / WALI ──
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text("Nomor", 15, yPos);
+        doc.text(`: ${letterNo}`, 35, yPos);
+        doc.text("Lampiran", 15, yPos + 5);
+        doc.text(": -", 35, yPos + 5);
+        doc.text("Perihal", 15, yPos + 10);
+        doc.setFont("Helvetica", "bold");
+        doc.text(`: ${letterType.toUpperCase()}`, 35, yPos + 10);
+
+        doc.setFont("Helvetica", "normal");
+        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 15, yPos, { align: 'right' });
+
+        yPos += 18;
+        doc.text("Kepada Yth.", 15, yPos);
+        doc.setFont("Helvetica", "bold");
+        doc.text("Bapak / Ibu Orang Tua / Wali Siswa", 15, yPos + 5);
+        doc.setFont("Helvetica", "normal");
+        doc.text("di Tempat", 15, yPos + 10);
+
+        yPos += 18;
+        doc.text("Dengan hormat,", 15, yPos);
+        yPos += 6;
+        const paragraf1 = "Sehubungan dengan perkembangan pembinaan ketertiban dan kedisiplinan putra/putri Bapak/Ibu di sekolah, dengan ini kami mengharap kehadiran Bapak/Ibu pada:";
+        const splitParagraf1 = doc.splitTextToSize(paragraf1, pageWidth - 30);
+        doc.text(splitParagraf1, 15, yPos);
+
+        yPos += 12;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Nama Siswa", 25, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentName}`, 60, yPos);
+
+        doc.setFont("Helvetica", "bold");
+        doc.text("NIS / Kelas", 25, yPos + 6);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${studentNis} / ${className}`, 60, yPos + 6);
+
+        yPos += 14;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Hari / Tanggal", 25, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointDateStr}`, 60, yPos);
+
+        doc.setFont("Helvetica", "bold");
+        doc.text("Waktu / Pukul", 25, yPos + 6);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointTime}`, 60, yPos + 6);
+
+        doc.setFont("Helvetica", "bold");
+        doc.text("Tempat", 25, yPos + 12);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointPlace}`, 60, yPos + 12);
+
+        doc.setFont("Helvetica", "bold");
+        doc.text("Menghadap", 25, yPos + 18);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointPerson}`, 60, yPos + 18);
+
+        doc.setFont("Helvetica", "bold");
+        doc.text("Keperluan", 25, yPos + 24);
+        doc.setFont("Helvetica", "normal");
+        const splitReason = doc.splitTextToSize(`: ${reason}`, pageWidth - 75);
+        doc.text(splitReason, 60, yPos + 24);
+
+        yPos += (splitReason.length * 5) + 26;
+        const paragrafPenutup = "Mengingat pentingnya koordinasi ini demi kebaikan dan kelancaran pendidikan putra/putri Bapak/Ibu, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.";
+        const splitPenutup = doc.splitTextToSize(paragrafPenutup, pageWidth - 30);
+        doc.text(splitPenutup, 15, yPos);
+
+        yPos += 20;
+        doc.text("Mengetahui,", 25, yPos);
+        doc.text("Kepala Sekolah,", 25, yPos + 5);
+        doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
+
+        yPos += 26;
+        doc.setFont("Helvetica", "bold");
+        doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
+        doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(9);
+        if (appSettings.nipKepsek) doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
+        if (user?.nip) doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
       }
 
       // Download file PDF
-      const cleanFileName = `Surat_BK_${studentName.replace(/[^a-zA-Z0-9]/g, '_')}_${letterType.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      const cleanFileName = `${letterType.replace(/[^a-zA-Z0-9]/g, '_')}_${studentName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       doc.save(cleanFileName);
       showToast("File PDF Surat resmi berhasil diunduh!");
     } catch (err) {

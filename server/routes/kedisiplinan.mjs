@@ -245,7 +245,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/riwayat") {
-          const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+          const limit = Math.min(parseInt(url.searchParams.get('limit') || '5000', 10), 10000);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);
           const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_riwayat_poin ORDER BY tanggal_kejadian DESC LIMIT $1 OFFSET $2", [limit, offset]);
           send(req, res, 200, { ok: true, data: rows });
