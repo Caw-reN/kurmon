@@ -269,7 +269,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
 
   return (
     <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-2xl">
-      <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 max-h-[82vh]">
+      <form onSubmit={handleSubmit} className="space-y-4">
         
         {/* Step Indicator Header */}
         <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/60">

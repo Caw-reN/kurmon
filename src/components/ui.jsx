@@ -208,7 +208,7 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
   );
 };
 
-// Modal — wraps shadcn Dialog
+// Modal — wraps shadcn Dialog / Responsive Bottom Sheet on mobile
 export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl", scrollable = true }) => {
   useEffect(() => {
     if (isOpen) {
@@ -224,15 +224,23 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
-      <div data-slot="dialog-content" className={cn(
-        "bg-white w-full rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col relative z-10 border border-slate-100 animate-in zoom-in-95 duration-200", 
-        maxWidth,
-        scrollable ? "max-h-[85vh]" : ""
-      )}>
+      <div 
+        data-slot="dialog-content" 
+        className={cn(
+          "bg-white w-full rounded-t-3xl sm:rounded-[var(--ui-radius-card)] shadow-2xl sm:shadow-xs overflow-hidden flex flex-col relative z-10 border-t sm:border border-slate-100/80 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-250", 
+          maxWidth,
+          scrollable ? "max-h-[92vh] sm:max-h-[85vh]" : ""
+        )}
+      >
+        {/* Mobile Top Drag Handle */}
+        <div className="w-full flex justify-center pt-2.5 pb-1 sm:hidden shrink-0">
+          <div className="w-12 h-1.5 rounded-full bg-slate-300/80" />
+        </div>
+
         {title ? (
-          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 shrink-0">
+          <div className="flex items-center justify-between gap-3 px-5 py-3.5 sm:py-4 border-b border-slate-100 shrink-0">
             <h3 className="text-sm font-bold text-slate-800 tracking-tight min-w-0 truncate">
               {title}
             </h3>
@@ -241,19 +249,19 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
               onClick={onClose}
               className="inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
             >
-              <X size={15} strokeWidth={2.5} />
+              <X size={16} strokeWidth={2.5} />
             </button>
           </div>
         ) : (
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 z-50 inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
+            className="absolute right-4 top-3 sm:top-4 z-50 inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
           >
-            <X size={15} strokeWidth={2.5} />
+            <X size={16} strokeWidth={2.5} />
           </button>
         )}
-        <div className={cn("p-5 flex-1 min-h-0", scrollable ? "overflow-y-auto" : "")}>
+        <div className={cn("p-4 sm:p-5 flex-1 min-h-0", scrollable ? "overflow-y-auto custom-scrollbar" : "")}>
           {children}
         </div>
       </div>
