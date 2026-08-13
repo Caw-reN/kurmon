@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
 import { useAppStore } from './store/useAppStore.js';
 import { useDataStore } from './store/useDataStore.js';
@@ -1564,7 +1564,11 @@ export default function App() {
     ];
 
     let allowed = false;
+    const isWalasUser = currentUser?.isWalas || !!currentUser?.walasClass;
+    const walasTabs = ["hikvision_report_siswa", "catatan_walikelas", "walas_report", "laporan_rekap_walas"];
+
     if (activeTab === "dashboard" || activeTab === "pesan") allowed = true;
+    else if (isWalasUser && walasTabs.includes(activeTab)) allowed = true;
     else if (attendanceReportTabs.has(activeTab) && (role === "tu" || role === "tata_usaha" || role === "karyawan")) allowed = true;
     else if (role === "guru") {
       // Cek subrole dulu (guru dengan jabatan struktural seperti bpbk, walikelas, dst)
