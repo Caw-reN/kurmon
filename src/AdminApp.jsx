@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
+﻿import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
 import { useAppStore } from './store/useAppStore.js';
 import { useDataStore } from './store/useDataStore.js';
@@ -2663,168 +2663,80 @@ export default function App() {
     icon,
     label,
     badge,
-    roles = ["admin", "guru", "waka", "tu", "karyawan", "kepsek", "tata_usaha"],
     collapsed,
     featureKey,
     activeIds
   }) => {
     const activeRole = normalizeUserRole(currentUser?.role);
 
-    const alwaysAllowedTuTabs = [
-      "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan",
-      "laporan_absensi", "absensi", "absensiguru", "esurat", "kartu_pelajar",
-      "siswa", "guru", "karyawan", "data_pegawai", "kelas", "jurusan"
-    ];
+    // Admin & superadmin always get everything
+    if (activeRole === "superadmin" || activeRole === "admin") {
+      if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
+      const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
+      const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
+      return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
+    }
 
-    // Check dynamic permission
-    const checkAllowed = roleKey => {
-      const perms = rolePermissions?.[roleKey];
-      if (!perms) return null;
-      if (Array.isArray(perms)) {
-        return perms.includes(id) ? "view" : "nonaktif";
-      }
-      return perms[id];
-    };
-
-    // Helper: does the rolePermissions object have ANY data for a given roleKey?
-    const hasRoleData = roleKey => {
-      const perms = rolePermissions?.[roleKey];
-      if (!perms) return false;
-      if (Array.isArray(perms)) return perms.length > 0;
-      return Object.keys(perms).length > 0;
-    };
-
-    let level = undefined;
-    let roleKeyUsed = null;
-
+    // Determine effective rolePermissions key
+    let effectiveKey = null;
     if (activeRole === "guru") {
       const subrole = (currentUser?.subrole || "").toLowerCase().trim();
-      const SUBROLE_KEYS_GURU = [
-        'bpbk', 'pembina_osis', 'sekretaris_osis', 'walikelas',
-        'sekretaris_kesiswaan', 'anggota_kesiswaan',
-        'sekretaris_kurikulum', 'anggota_kurikulum',
-        'sekretaris_hubin', 'anggota_hubin',
-        'sekretaris_sarpras', 'anggota_sarpras',
-      ];
-      if (subrole && SUBROLE_KEYS_GURU.includes(subrole)) {
-        const subroleLevel = checkAllowed(subrole);
-        level = subroleLevel ?? checkAllowed("guru");
-        roleKeyUsed = hasRoleData(subrole) || hasRoleData("guru") ? "guru" : null;
-      } else {
-        level = checkAllowed("guru");
-        roleKeyUsed = hasRoleData("guru") ? "guru" : null;
-      }
-    }
-    else if (activeRole === "karyawan") {
+      const GURU_SUBROLES = ['bpbk','pembina_osis','sekretaris_osis','walikelas','sekretaris_kesiswaan','anggota_kesiswaan','sekretaris_kurikulum','anggota_kurikulum','sekretaris_hubin','anggota_hubin','sekretaris_sarpras','anggota_sarpras'];
+      effectiveKey = (subrole && GURU_SUBROLES.includes(subrole) && rolePermissions?.[subrole]) ? subrole : "guru";
+    } else if (activeRole === "karyawan") {
       const subrole = (currentUser?.subrole || "").toLowerCase().trim();
-      const SUBROLE_KEYS_KARYAWAN = ['sekretaris_tu', 'bendahara', 'karyawan'];
-      if (subrole && SUBROLE_KEYS_KARYAWAN.includes(subrole)) {
-        const subroleLevel = checkAllowed(subrole);
-        level = subroleLevel ?? checkAllowed("karyawan");
-        roleKeyUsed = hasRoleData(subrole) || hasRoleData("karyawan") ? "karyawan" : null;
-      } else {
-        level = checkAllowed("karyawan");
-        roleKeyUsed = hasRoleData("karyawan") ? "karyawan" : null;
-      }
-    }
-    else if (activeRole === "tu" || activeRole === "tata_usaha") {
+      effectiveKey = (subrole && ['sekretaris_tu','bendahara'].includes(subrole) && rolePermissions?.[subrole]) ? subrole : "karyawan";
+    } else if (activeRole === "tu" || activeRole === "tata_usaha") {
       const subrole = (currentUser?.subrole || "").toLowerCase().trim();
-      if (subrole && ['sekretaris_tu', 'bendahara'].includes(subrole)) {
-        const subroleLevel = checkAllowed(subrole);
-        level = subroleLevel ?? checkAllowed("tu");
-        roleKeyUsed = hasRoleData(subrole) || hasRoleData("tu") ? "tu" : null;
-      } else {
-        level = checkAllowed("tu");
-        roleKeyUsed = hasRoleData("tu") ? "tu" : null;
-      }
-    }
-    else if (activeRole === "kepsek") {
-      level = checkAllowed("kepsek");
-      roleKeyUsed = hasRoleData("kepsek") ? "kepsek" : null;
-    }
-    else if (activeRole === "waka") {
+      effectiveKey = (subrole && ['sekretaris_tu','bendahara'].includes(subrole) && rolePermissions?.[subrole]) ? subrole : "tu";
+    } else if (activeRole === "kepsek") {
+      effectiveKey = "kepsek";
+    } else if (activeRole === "waka") {
       const division = (currentUser?.division || "kurikulum").toLowerCase();
-      level = checkAllowed(`waka_${division}`);
-      roleKeyUsed = hasRoleData(`waka_${division}`) ? `waka_${division}` : null;
+      effectiveKey = `waka_${division}`;
+    }
+
+    // Look up permission — rolePermissions is the SINGLE source of truth
+    const perms = effectiveKey ? rolePermissions?.[effectiveKey] : null;
+    let level = null;
+    if (perms && typeof perms === 'object' && !Array.isArray(perms)) {
+      level = perms[id] ?? null;
+    } else if (Array.isArray(perms)) {
+      level = perms.includes(id) ? "view" : "nonaktif";
     }
 
     let isAllowed = false;
-
-    if (activeRole === "superadmin" || activeRole === "admin") {
-      // Superadmin & admin always have full access
+    if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
       isAllowed = true;
     } else if (level === "nonaktif" || level === "none" || level === "off") {
-      // Explicitly blocked by Hak Akses panel
       isAllowed = false;
-    } else if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
-      // Explicitly granted by Hak Akses panel
-      isAllowed = true;
+    } else if (level == null && perms != null) {
+      // rolePermissions exists for this role but tab not configured — deny
+      isAllowed = false;
     } else {
-      // No explicit permission set (level is null/undefined).
-      // Use hardcoded fallback ONLY if rolePermissions for this role has no data at all.
-      // If rolePermissions HAS data for this role but this specific tab is undefined,
-      // treat as "nonaktif" (not explicitly permitted = not shown).
-      if (roleKeyUsed !== null) {
-        // rolePermissions exists for this role but this tab isn't configured — deny.
-        isAllowed = false;
-      } else {
-        // rolePermissions not configured at all — use hardcoded defaults as safety net.
-        if (activeRole === "tu" || activeRole === "tata_usaha") {
-          const tuDefaultTabs = [
-            "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
-            "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
-            "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
-            "kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"
-          ];
-          isAllowed = tuDefaultTabs.includes(id);
-        } else if (activeRole === "karyawan") {
-          isAllowed = ["dashboard","absensiguru","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","akademik","pesan"].includes(id);
-        } else if (activeRole === "kepsek") {
-          const kepsekDefaultTabs = [
-            "dashboard","generate","akademik","kalender","kalender_akademik",
-            "absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report",
-            "pesan","kedisiplinan_piket","siswa","guru","kelas","data_pegawai",
-            "pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan",
-            "pkl_administrasi","pkl_jurnal","pkl_laporan",
-            "kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi",
-            "laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"
-          ];
-          isAllowed = kepsekDefaultTabs.includes(id);
-        } else if (activeRole === "guru") {
-          const guruDefaultTabs = [
-            "dashboard","generate","akademik","absensi","jurnal_harian",
-            "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-            "absensiguru","silabusguru","ketersediaan","beban","pesan",
-            "kedisiplinan_piket"
-          ];
-          isAllowed = guruDefaultTabs.includes(id);
-        } else if (activeRole === "waka") {
-          const division = (currentUser?.division || "kurikulum").toLowerCase();
-          const wakaByDivision = {
-            kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi"],
-            kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa","absensiguru"],
-            sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
-            humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
-            hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
-          };
-          const allowedTabs = wakaByDivision[division] || wakaByDivision.kurikulum;
-          isAllowed = allowedTabs.includes(id);
-        } else {
-          // Fallback: check roles array (for any unlisted role)
-          const normalizedRoles = (roles || []).map(r => normalizeUserRole(r));
-          isAllowed = normalizedRoles.includes(activeRole);
-        }
-      }
+      // No rolePermissions configured at all — use safe defaults as fallback
+      const DEFAULTS = {
+        guru: ["dashboard","generate","akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi","absensiguru","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
+        kepsek: ["dashboard","generate","akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket","siswa","guru","kelas","data_pegawai","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"],
+        tu: ["dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
+        tata_usaha: ["dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
+        karyawan: ["dashboard","absensiguru","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","akademik","pesan"],
+        waka_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi"],
+        waka_kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa","absensiguru"],
+        waka_sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
+        waka_humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
+        waka_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"],
+      };
+      isAllowed = (DEFAULTS[effectiveKey] || []).includes(id);
     }
-    if (id === "data_pegawai" && activeRole !== "waka" && activeRole !== "tu" && activeRole !== "admin") return null;
-    if ((id === "guru" || id === "karyawan") && activeRole === "waka") return null;
+
     if (!isAllowed) return null;
     if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
     const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
     return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
   };
-  const hasAnyConfigAccess = () => {
+    const hasAnyConfigAccess = () => {
     const configTabs = ["fitur", "hak_akses", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup", "audit_log"];
     const activeRole = normalizeUserRole(currentUser?.role);
     if (activeRole === "superadmin" || activeRole === "admin") return false;
