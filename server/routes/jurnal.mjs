@@ -116,7 +116,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
                    materi_pokok = $5, kegiatan_pembelajaran = $6,
                    metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
                    rincian_absensi = $10::jsonb,
-                   submitted_at = CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE submitted_at END,
+                   submitted_at = COALESCE(submitted_at, CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE NULL END),
                    updated_at = CURRENT_TIMESTAMP
                WHERE id = $12`
             : `UPDATE jurnal_harian_guru 
@@ -124,7 +124,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
                    materi_pokok = $5, kegiatan_pembelajaran = $6,
                    metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
                    rincian_absensi = $10::jsonb,
-                   submitted_at = CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE submitted_at END,
+                   submitted_at = COALESCE(submitted_at, CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE NULL END),
                    updated_at = CURRENT_TIMESTAMP
                WHERE id = $12 AND teacher_code = $13`;
           

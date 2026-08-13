@@ -22,24 +22,118 @@ const JENIS_CATATAN_LABEL = {
   kesehatan: { label:'Kesehatan', color:'bg-rose-100 text-rose-700' },
 };
 
-function StatusBadge({ submitted, isLate }) {
-  if (submitted && isLate) {
+export function getJurnalSubmissionStatus(tanggalKBM, submittedAt) {
+  if (!submittedAt) {
+    const today = new Date().toISOString().split('T')[0];
+    if (tanggalKBM && tanggalKBM < today) {
+      const diffMs = new Date(today) - new Date(tanggalKBM);
+      const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+      return { 
+        status: 'unsubmitted_past', 
+        isLate: true, 
+        diffDays, 
+        label: `Belum Diisi (H-${diffDays})`,
+        timeStr: '',
+        dateStr: '',
+        fullSubmitStr: ''
+      };
+    }
+    return { 
+      status: 'unsubmitted', 
+      isLate: false, 
+      diffDays: 0, 
+      label: 'Belum Diisi',
+      timeStr: '',
+      dateStr: '',
+      fullSubmitStr: ''
+    };
+  }
+
+  const submitObj = new Date(submittedAt);
+  const kbmObj = tanggalKBM ? new Date(tanggalKBM) : submitObj;
+
+  const dSubmit = new Date(submitObj.getFullYear(), submitObj.getMonth(), submitObj.getDate());
+  const dKbm = new Date(kbmObj.getFullYear(), kbmObj.getMonth(), kbmObj.getDate());
+
+  const diffMs = dSubmit - dKbm;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  const timeStr = submitObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+  const dateStr = submitObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  if (diffDays > 0) {
+    return {
+      status: 'submitted_late',
+      isLate: true,
+      diffDays,
+      timeStr,
+      dateStr,
+      fullSubmitStr: `${dateStr}, ${timeStr} WIB`,
+      label: `Terlambat (H+${diffDays})`,
+      note: `Diisi terlambat pada ${dateStr} pukul ${timeStr} WIB (H+${diffDays})`
+    };
+  }
+
+  return {
+    status: 'submitted_on_time',
+    isLate: false,
+    diffDays: 0,
+    timeStr,
+    dateStr,
+    fullSubmitStr: `${dateStr}, ${timeStr} WIB`,
+    label: 'Tepat Waktu',
+    note: `Diisi pada ${dateStr} pukul ${timeStr} WIB`
+  };
+}
+
+function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true }) {
+  const statusInfo = getJurnalSubmissionStatus(tanggal, submittedAt);
+
+  if (statusInfo.status === 'submitted_late') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
-        <Clock size={10} className="stroke-[3]" /> Tidak Tepat Waktu
+      <div className="inline-flex flex-col items-center">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
+          <Clock size={10} className="stroke-[3] text-rose-600 shrink-0" />
+          <span>{statusInfo.label}</span>
+        </span>
+        {showTime && statusInfo.timeStr && (
+          <span className="text-[9px] font-bold text-rose-600/80 mt-0.5" title={statusInfo.fullSubmitStr}>
+            {statusInfo.timeStr} WIB
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (statusInfo.status === 'submitted_on_time') {
+    return (
+      <div className="inline-flex flex-col items-center">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+          <CheckCircle2 size={10} className="stroke-[3] text-emerald-600 shrink-0" />
+          <span>Tepat Waktu</span>
+        </span>
+        {showTime && statusInfo.timeStr && (
+          <span className="text-[9px] font-bold text-emerald-700/80 mt-0.5" title={statusInfo.fullSubmitStr}>
+            {statusInfo.timeStr} WIB
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (statusInfo.status === 'unsubmitted_past') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+        <AlertCircle size={10} className="stroke-[3] text-amber-600 shrink-0" />
+        <span>Terlewat (H-{statusInfo.diffDays})</span>
       </span>
     );
   }
-  if (submitted) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-250">
-        <CheckCircle2 size={10} className="stroke-[3]" /> Tepat Waktu
-      </span>
-    );
-  }
+
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-550 border border-slate-200">
-      <AlertCircle size={10} className="stroke-[3]" /> Belum Diisi
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+      <AlertCircle size={10} className="stroke-[3] shrink-0" />
+      <span>Belum Diisi</span>
     </span>
   );
 }
@@ -123,6 +217,17 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Late Calculation for Form Modal
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const isFillingPastDate = form.tanggal && form.tanggal < todayStr;
+  const diffDaysFromToday = useMemo(() => {
+    if (!isFillingPastDate) return 0;
+    const dKbm = new Date(form.tanggal);
+    const dNow = new Date(todayStr);
+    return Math.max(1, Math.round((dNow - dKbm) / (1000 * 60 * 60 * 24)));
+  }, [form.tanggal, todayStr, isFillingPastDate]);
+  const existingStatusInfo = useMemo(() => getJurnalSubmissionStatus(form.tanggal, jurnal?.submitted_at), [form.tanggal, jurnal?.submitted_at]);
 
   // Fetch Live Attendance from /api/kedisiplinan/absensi-kelas
   const fetchLiveAttendance = useCallback(async () => {
@@ -380,6 +485,42 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             <span className="truncate">2. Materi &amp; KBM</span>
           </button>
         </div>
+
+        {/* Status Pengisian / Keterlambatan Notice */}
+        {jurnal?.submitted_at ? (
+          <div className="p-3 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/90 text-xs text-slate-700 flex items-center justify-between flex-wrap gap-2 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <Clock size={14} className="text-slate-500 shrink-0" />
+              <span>Waktu Pengisian: <strong className="text-slate-800">{existingStatusInfo.fullSubmitStr}</strong></span>
+            </div>
+            {existingStatusInfo.isLate ? (
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-300">
+                ⚠️ Terlambat (Diisi H+{existingStatusInfo.diffDays})
+              </span>
+            ) : (
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                ✓ Tepat Waktu
+              </span>
+            )}
+          </div>
+        ) : isFillingPastDate ? (
+          <div className="p-3.5 rounded-[var(--ui-radius-card)] bg-amber-50/90 border border-amber-300/80 text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
+            <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-extrabold text-amber-950">
+                  Pengisian Jurnal Tanggal Lampau (Terlambat)
+                </p>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-200/80 text-amber-900 border border-amber-300">
+                  Note: Terlambat H+{diffDaysFromToday}
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                Jurnal ini dicatat untuk jadwal mengajar tanggal <b>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</b>. Jam pengisian riil saat submit akan otomatis dicatat sebagai bukti keterlambatan di sistem.
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {/* TAHAP 1: PRESENSI & KEHADIRAN KELAS */}
         {step === 1 && (
@@ -1090,10 +1231,10 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         (j.mapel ||'').toLowerCase().includes(q) ||
         (j.materi_pokok ||'').toLowerCase().includes(q);
 
-      const isLate = j.submitted_at && j.submitted_at.substring(0, 10) > j.tanggal;
+      const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
       let matchStatus = true;
-      if (statusFilter ==='tepat') matchStatus = !isLate;
-      if (statusFilter ==='terlambat') matchStatus = isLate;
+      if (statusFilter ==='tepat') matchStatus = !st.isLate && !!j.submitted_at;
+      if (statusFilter ==='terlambat') matchStatus = st.isLate;
 
       return matchSearch && matchStatus;
     });
@@ -1236,14 +1377,24 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const openEdit = (j) => setActiveModal(j);
 
   const exportExcel = () => {
-    const data = jurnalList.map(j => ({
-      Tanggal: j.tanggal,
-      Guru: j.teacher_name || j.teacher_code,
-      Kelas: j.kelas,'Mata Pelajaran': j.mapel,'Jam Ke': j.jam_ke,'Materi Pokok': j.materi_pokok ||'','Kegiatan Pembelajaran': j.kegiatan_pembelajaran ||'',
-      Metode: j.metode_pembelajaran ||'','Siswa Hadir': j.jumlah_hadir || 0,
-      Catatan: j.catatan ||'',
-      Status: j.submitted_at ?'Sudah Diisi' :'Belum Diisi','Waktu Submit': j.submitted_at ? new Date(j.submitted_at).toLocaleString('id-ID') :'-'
-    }));
+    const data = jurnalList.map(j => {
+      const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+      return {
+        Tanggal: j.tanggal,
+        Guru: j.teacher_name || j.teacher_code,
+        Kelas: j.kelas,
+        'Mata Pelajaran': j.mapel,
+        'Jam Ke': j.jam_ke,
+        'Materi Pokok': j.materi_pokok || '',
+        'Kegiatan Pembelajaran': j.kegiatan_pembelajaran || '',
+        Metode: j.metode_pembelajaran || '',
+        'Siswa Hadir': j.jumlah_hadir || 0,
+        Catatan: j.catatan || '',
+        'Status Pengisian': st.label,
+        'Jam & Waktu Submit': st.fullSubmitStr || '-',
+        'Keterlambatan': st.isLate ? `Terlambat ${st.diffDays} Hari (H+${st.diffDays})` : (j.submitted_at ? 'Tepat Waktu' : 'Belum Diisi')
+      };
+    });
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws,'Jurnal');
@@ -1421,7 +1572,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               <div className="divide-y divide-slate-100">
                 {paginatedEnrichedSlots.map((slot, idx) => {
                   const j = slot.filled;
-                  const isLate = j?.submitted_at && j.submitted_at.substring(0, 10) > filterDate;
+                  const statusInfo = getJurnalSubmissionStatus(filterDate, j?.submitted_at);
                   const teacher = teachers.find(t => t.code === slot.teacherCode);
                   const teacherNameDisplay = teacher ? teacher.name : slot.teacherCode;
                   const classAbsentStudents = getAbsentStudentsForClass(slot.className, filterDate);
@@ -1438,7 +1589,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                         </div>
                         {/* On mobile, we can show a small badge or status next to the time */}
                         <div className="sm:hidden">
-                           <StatusBadge submitted={!!j} isLate={isLate} />
+                           <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
                         </div>
                       </div>
 
@@ -1455,7 +1606,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                             </>
                           )}
                           <div className="hidden sm:block">
-                            <StatusBadge submitted={!!j} isLate={isLate} />
+                            <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
                           </div>
                         </div>
                         
@@ -1483,10 +1634,25 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                         )}
 
                         {j ? (
-                          <div className="text-xs text-slate-600 space-y-0.5 mt-1">
+                          <div className="text-xs text-slate-600 space-y-1 mt-1">
                             <p><span className="font-semibold text-slate-500">Materi:</span> {j.materi_pokok}</p>
                             <p><span className="font-semibold text-slate-500">Metode:</span> {j.metode_pembelajaran} &bull; <span className="font-semibold text-slate-500">Hadir:</span> {j.jumlah_hadir} siswa</p>
-                            {j.catatan && <p className="text-[11px] text-slate-400 italic mt-1 bg-slate-50 px-2 py-1 rounded-[var(--ui-radius-small)]">Catatan: {j.catatan}</p>}
+                            {j.catatan && <p className="text-[11px] text-slate-400 italic bg-slate-50 px-2 py-1 rounded-[var(--ui-radius-small)]">Catatan: {j.catatan}</p>}
+                            
+                            {/* Timestamp & Late Note */}
+                            {j.submitted_at && (
+                              <div className="pt-1 flex items-center gap-2 flex-wrap text-[11px]">
+                                <span className="text-slate-500 font-medium flex items-center gap-1">
+                                  <Clock size={11} className="text-slate-400" />
+                                  Diisi: <strong className="text-slate-700">{statusInfo.fullSubmitStr}</strong>
+                                </span>
+                                {statusInfo.isLate && (
+                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 flex items-center gap-1">
+                                    ⚠️ Terlambat (Diisi H+{statusInfo.diffDays})
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <p className="text-[11px] text-rose-500 font-bold mt-0.5">Jurnal belum diisi untuk slot mengajar ini</p>
@@ -1586,7 +1752,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                       <th className="px-5 py-3 text-center font-bold">Jam</th>
                       <th className="px-5 py-3 font-bold">Materi</th>
                       <th className="px-5 py-3 text-center font-bold">Hadir</th>
-                      <th className="px-5 py-3 text-center font-bold">Status</th>
+                      <th className="px-5 py-3 text-center font-bold">Status &amp; Jam Submit</th>
                       <th className="px-5 py-3 text-right font-bold">Aksi</th>
                     </tr>
                   </thead>
@@ -1599,7 +1765,6 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                       </tr>
                     ) : (
                       paginatedJurnalList.map(j => {
-                        const isLate = j.submitted_at && j.submitted_at.substring(0, 10) > j.tanggal;
                         return (
                           <tr key={j.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="px-5 py-2.5">
@@ -1613,7 +1778,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                               <span className="font-bold text-slate-700">{j.jumlah_hadir}</span>
                             </td>
                             <td className="px-5 py-2.5 text-center">
-                              <StatusBadge submitted={!!j.submitted_at} isLate={isLate} />
+                              <StatusBadge submitted={!!j.submitted_at} submittedAt={j.submitted_at} tanggal={j.tanggal} showTime={true} />
                             </td>
                             <td className="px-5 py-2.5 text-right">
                               <div className="flex justify-end gap-1">
