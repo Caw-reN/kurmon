@@ -62,9 +62,16 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     });
   }, [students, className]);
 
-  // Live Attendance State from Database
-  const [liveStudents, setLiveStudents] = useState([]);
+  // Live Attendance State from Database & Interactive Roll Call
+  const [liveStudents, setLiveStudents] = useState(() => {
+    if (jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
+      return jurnal.rincian_absensi;
+    }
+    return [];
+  });
   const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
+  const [searchRollCall, setSearchRollCall] = useState('');
+  const [filterRollCall, setFilterRollCall] = useState('all'); // 'all' | 'hadir' | 'sakit' | 'izin' | 'alpa'
 
   const [form, setForm] = useState({
     id: jurnal?.id || null,
@@ -77,6 +84,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     metode_pembelajaran: jurnal?.metode_pembelajaran || 'Ceramah & Diskusi',
     catatan: jurnal?.catatan || '',
     jumlah_hadir: jurnal?.jumlah_hadir || 0,
+    rincian_absensi: jurnal?.rincian_absensi || [],
     tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
     status: 'submitted',
   });
@@ -119,6 +127,11 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   // Fetch Live Attendance from /api/kedisiplinan/absensi-kelas
   const fetchLiveAttendance = useCallback(async () => {
     if (!className) return;
+    if (jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
+      setIsLoadingAttendance(false);
+      return;
+    }
+
     setIsLoadingAttendance(true);
     try {
       if (authToken) {
@@ -128,6 +141,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         const json = await res.json();
         if (json.ok && Array.isArray(json.data) && json.data.length > 0) {
           setLiveStudents(json.data);
+          setForm(f => ({ ...f, rincian_absensi: json.data }));
           setIsLoadingAttendance(false);
           return;
         }
@@ -153,11 +167,12 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         };
       });
       setLiveStudents(mapped);
+      setForm(f => ({ ...f, rincian_absensi: mapped }));
     } else {
       setLiveStudents([]);
     }
     setIsLoadingAttendance(false);
-  }, [className, form.tanggal, authToken, localClassStudents, studentAttendance]);
+  }, [className, form.tanggal, authToken, localClassStudents, studentAttendance, jurnal?.rincian_absensi]);
 
   useEffect(() => {
     fetchLiveAttendance();
@@ -186,13 +201,71 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     }
   }, [totalStudentsCount, totalCalculatedHadir, form.id]);
 
+  // Filtered Students for Roll Call
+  const filteredRollCallStudents = useMemo(() => {
+    return liveStudents.filter(s => {
+      // Filter tab
+      const st = (s.status || 'Hadir').toLowerCase();
+      if (filterRollCall === 'hadir' && st !== 'hadir') return false;
+      if (filterRollCall === 'sakit' && st !== 'sakit') return false;
+      if (filterRollCall === 'izin' && !['izin', 'dispen', 'dispensasi'].includes(st)) return false;
+      if (filterRollCall === 'alpa' && !['alpa', 'alpha'].includes(st)) return false;
+
+      // Filter search
+      if (searchRollCall) {
+        const q = searchRollCall.toLowerCase();
+        const name = (s.name || '').toLowerCase();
+        const nis = (s.nis || '').toLowerCase();
+        return name.includes(q) || nis.includes(q);
+      }
+      return true;
+    });
+  }, [liveStudents, filterRollCall, searchRollCall]);
+
+  // Update Individual Student Status (Absen Ulang Mapel)
+  const handleUpdateStudentStatus = (nis, newStatus) => {
+    setLiveStudents(prev => {
+      const updated = prev.map(s => {
+        if (s.nis === nis) {
+          return { ...s, status: newStatus };
+        }
+        return s;
+      });
+      const absent = updated.filter(s => {
+        const st = (s.status || '').toLowerCase();
+        return ['sakit', 'izin', 'alpa', 'alpha', 'dispen', 'dispensasi', 'terlambat'].includes(st);
+      });
+      const newHadir = Math.max(0, updated.length - absent.length);
+      setForm(f => ({ ...f, jumlah_hadir: newHadir, rincian_absensi: updated }));
+      return updated;
+    });
+  };
+
+  // Update Individual Student Note
+  const handleUpdateStudentKeterangan = (nis, keterangan) => {
+    setLiveStudents(prev => {
+      const updated = prev.map(s => {
+        if (s.nis === nis) {
+          return { ...s, keterangan };
+        }
+        return s;
+      });
+      setForm(f => ({ ...f, rincian_absensi: updated }));
+      return updated;
+    });
+  };
+
   // Quick Preset Handlers
   const handleSetSemuaHadir = () => {
-    setForm(f => ({ ...f, jumlah_hadir: totalStudentsCount }));
+    setLiveStudents(prev => {
+      const updated = prev.map(s => ({ ...s, status: 'Hadir', keterangan: '' }));
+      setForm(f => ({ ...f, jumlah_hadir: updated.length, rincian_absensi: updated }));
+      return updated;
+    });
   };
 
   const handleSetSinkronAbsensi = () => {
-    setForm(f => ({ ...f, jumlah_hadir: totalCalculatedHadir }));
+    fetchLiveAttendance();
   };
 
   const handleStepHadir = (delta) => {
@@ -330,12 +403,12 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               </div>
             </div>
 
-            {/* Real-time Attendance Breakdown Card */}
-            <div className="rounded-[var(--ui-radius-card)] border border-slate-200/90 bg-white p-4 space-y-3 shadow-xs">
+            {/* Real-time Attendance Breakdown Card with Interactive Student Roll Call */}
+            <div className="rounded-[var(--ui-radius-card)] border border-slate-200/90 bg-white p-4 space-y-3.5 shadow-xs">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
                   <Users size={15} className="text-[var(--ui-primary)]" />
-                  Kehadiran Siswa ({className})
+                  Presensi &amp; Absen Ulang Siswa ({className})
                 </span>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[11px] font-extrabold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/70">
@@ -343,85 +416,215 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   </span>
                   <button
                     type="button"
-                    onClick={fetchLiveAttendance}
+                    onClick={handleSetSinkronAbsensi}
                     disabled={isLoadingAttendance}
                     className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-                    title="Refresh data kehadiran"
+                    title="Sinkronkan ulang data kehadiran dari mesin/piket"
                   >
                     <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin' : ''} />
                   </button>
                 </div>
               </div>
 
-              {/* Quick Attendance KPI Badges */}
+              {/* Quick Attendance KPI Filter Badges */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50/70 border border-emerald-200/60">
+                <button
+                  type="button"
+                  onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                    filterRollCall === 'hadir' ? 'bg-emerald-100/80 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-emerald-50/70 border-emerald-200/60 hover:bg-emerald-50'
+                  }`}
+                >
                   <UserCheck size={14} className="text-emerald-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Hadir</p>
                     <p className="text-xs font-black text-emerald-900">{totalCalculatedHadir} Siswa</p>
                   </div>
-                </div>
+                </button>
 
-                <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50/70 border border-amber-200/60">
+                <button
+                  type="button"
+                  onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                    filterRollCall === 'sakit' ? 'bg-amber-100/80 border-amber-400 ring-2 ring-amber-400/20' : 'bg-amber-50/70 border-amber-200/60 hover:bg-amber-50'
+                  }`}
+                >
                   <HeartPulse size={14} className="text-amber-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-black uppercase tracking-wider text-amber-700">Sakit</p>
                     <p className="text-xs font-black text-amber-900">{sakitCount} Siswa</p>
                   </div>
-                </div>
+                </button>
 
-                <div className="flex items-center gap-2 p-2 rounded-xl bg-blue-50/70 border border-blue-200/60">
+                <button
+                  type="button"
+                  onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                    filterRollCall === 'izin' ? 'bg-blue-100/80 border-blue-400 ring-2 ring-blue-400/20' : 'bg-blue-50/70 border-blue-200/60 hover:bg-blue-50'
+                  }`}
+                >
                   <UserMinus size={14} className="text-blue-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-black uppercase tracking-wider text-blue-700">Izin</p>
                     <p className="text-xs font-black text-blue-900">{izinCount} Siswa</p>
                   </div>
-                </div>
+                </button>
 
-                <div className="flex items-center gap-2 p-2 rounded-xl bg-rose-50/70 border border-rose-200/60">
+                <button
+                  type="button"
+                  onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                    filterRollCall === 'alpa' ? 'bg-rose-100/80 border-rose-400 ring-2 ring-rose-400/20' : 'bg-rose-50/70 border-rose-200/60 hover:bg-rose-50'
+                  }`}
+                >
                   <UserX size={14} className="text-rose-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-black uppercase tracking-wider text-rose-700">Alpa</p>
                     <p className="text-xs font-black text-rose-900">{alpaCount} Siswa</p>
                   </div>
-                </div>
+                </button>
               </div>
 
-              {/* Absent Students Details List */}
-              {absentList.length > 0 ? (
-                <div className="space-y-2 pt-1">
-                  <div className="text-[11px] font-bold text-rose-700 bg-rose-50/80 border border-rose-200/60 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                    <ShieldAlert size={14} className="shrink-0 text-rose-600" />
-                    <span>Terdeteksi {absentList.length} siswa tidak hadir pada hari ini:</span>
+              {/* Interactive Student List Table / Roll Call Section */}
+              <div className="pt-1 space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="relative flex-1 min-w-[160px]">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama / NIS siswa..."
+                      value={searchRollCall}
+                      onChange={e => setSearchRollCall(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                    />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-                    {absentList.map((s, idx) => {
-                      const st = (s.status || '').toLowerCase();
-                      let badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300/80';
-                      if (st === 'izin' || st === 'dispen' || st === 'dispensasi') badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300/80';
-                      if (st === 'alpa' || st === 'alpha') badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300/80';
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleSetSemuaHadir}
+                      className="text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shrink-0"
+                    >
+                      <CheckCheck size={12} />
+                      <span>Semua Hadir</span>
+                    </button>
+                    {filterRollCall !== 'all' && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterRollCall('all')}
+                        className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Roll Call Student Rows */}
+                <div className="max-h-[220px] sm:max-h-[260px] overflow-y-auto pr-1 space-y-1.5 custom-scrollbar border border-slate-100 rounded-xl p-1.5 bg-slate-50/50">
+                  {filteredRollCallStudents.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                      Tidak ada siswa ditemukan dalam filter ini.
+                    </div>
+                  ) : (
+                    filteredRollCallStudents.map((s, idx) => {
+                      const currentStatus = s.status || 'Hadir';
+                      const isNonHadir = currentStatus !== 'Hadir';
 
                       return (
-                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 shadow-2xs gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-slate-800 truncate" title={s.name}>{s.name}</p>
-                            {s.keterangan && <p className="text-[10px] text-slate-500 truncate">{s.keterangan}</p>}
+                        <div
+                          key={s.nis || idx}
+                          className={`p-2 rounded-lg border transition-all ${
+                            currentStatus === 'Hadir' ? 'bg-white border-slate-200/70 hover:border-emerald-200' :
+                            currentStatus === 'Sakit' ? 'bg-amber-50/40 border-amber-200' :
+                            ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/40 border-blue-200' :
+                            'bg-rose-50/40 border-rose-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-mono font-bold text-slate-400">#{idx + 1}</span>
+                                <span className="text-xs font-black text-slate-800 truncate" title={s.name}>{s.name}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono">NIS: {s.nis}</div>
+                            </div>
+
+                            {/* Status Switcher (H / S / I / A) */}
+                            <div className="flex items-center gap-1 shrink-0 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')}
+                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                                  currentStatus === 'Hadir'
+                                    ? 'bg-emerald-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-emerald-700 hover:bg-white/80'
+                                }`}
+                                title="Hadir"
+                              >
+                                H
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')}
+                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                                  currentStatus === 'Sakit'
+                                    ? 'bg-amber-500 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-amber-700 hover:bg-white/80'
+                                }`}
+                                title="Sakit"
+                              >
+                                S
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')}
+                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                                  ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus)
+                                    ? 'bg-blue-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
+                                }`}
+                                title="Izin"
+                              >
+                                I
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')}
+                                className={`px-2 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                                  ['Alpa', 'Alpha'].includes(currentStatus)
+                                    ? 'bg-rose-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-rose-700 hover:bg-white/80'
+                                }`}
+                                title="Alpa"
+                              >
+                                A
+                              </button>
+                            </div>
                           </div>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border shrink-0 uppercase tracking-wider ${badgeStyle}`}>
-                            {s.status}
-                          </span>
+
+                          {/* Keterangan input for non-hadir */}
+                          {isNonHadir && (
+                            <div className="mt-1.5 pt-1.5 border-t border-slate-200/50 flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-slate-500 shrink-0">Alasan:</span>
+                              <input
+                                type="text"
+                                placeholder={`Keterangan ${currentStatus} (contoh: izin UKS / terlambat)...`}
+                                value={s.keterangan || ''}
+                                onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
+                                className="w-full px-2 py-0.5 text-[11px] bg-white border border-slate-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                              />
+                            </div>
+                          )}
                         </div>
                       );
-                    })}
-                  </div>
+                    })
+                  )}
                 </div>
-              ) : (
-                <div className="text-xs font-bold text-emerald-800 bg-emerald-50/80 border border-emerald-200/70 px-3.5 py-2.5 rounded-xl flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <span>Semua siswa ({totalStudentsCount} anak) terdata hadir lengkap hari ini.</span>
-                </div>
-              )}
+              </div>
             </div>
 
             {/* Jumlah Siswa Hadir - Super Fast Controls */}
@@ -487,7 +690,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     className="text-[11px] font-extrabold px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 shadow-2xs cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
                   >
                     <Zap size={13} className="text-amber-600" />
-                    <span>Sesuai Absensi ({totalCalculatedHadir})</span>
+                    <span>Sesuai Presensi ({totalCalculatedHadir})</span>
                   </button>
                 )}
               </div>

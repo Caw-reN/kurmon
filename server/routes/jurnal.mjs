@@ -93,6 +93,13 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const role = session?.role || '';
         const isAdmin = ['admin', 'superadmin'].includes(role);
 
+        // Auto migration for rincian_absensi
+        try {
+          await dbPool.query("ALTER TABLE jurnal_harian_guru ADD COLUMN IF NOT EXISTS rincian_absensi JSONB DEFAULT '[]'::jsonb");
+        } catch (_) {}
+
+        const rincianJson = body.rincian_absensi ? JSON.stringify(body.rincian_absensi) : '[]';
+
         if (body.action === 'delete') {
           // Guru hanya bisa hapus milik sendiri, admin bisa semua
           if (isAdmin) {
@@ -108,22 +115,25 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
                SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
                    materi_pokok = $5, kegiatan_pembelajaran = $6,
                    metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
-                   submitted_at = CASE WHEN $10::text IS NOT NULL THEN $10::timestamp ELSE submitted_at END,
+                   rincian_absensi = $10::jsonb,
+                   submitted_at = CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE submitted_at END,
                    updated_at = CURRENT_TIMESTAMP
-               WHERE id = $11`
+               WHERE id = $12`
             : `UPDATE jurnal_harian_guru 
                SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
                    materi_pokok = $5, kegiatan_pembelajaran = $6,
                    metode_pembelajaran = $7, catatan = $8, jumlah_hadir = $9,
-                   submitted_at = CASE WHEN $10::text IS NOT NULL THEN $10::timestamp ELSE submitted_at END,
+                   rincian_absensi = $10::jsonb,
+                   submitted_at = CASE WHEN $11::text IS NOT NULL THEN $11::timestamp ELSE submitted_at END,
                    updated_at = CURRENT_TIMESTAMP
-               WHERE id = $11 AND teacher_code = $12`;
+               WHERE id = $12 AND teacher_code = $13`;
           
           const params = [
             body.kelas, body.mapel, body.jam_ke || 1, body.slot_label || '',
             body.materi_pokok, body.kegiatan_pembelajaran,
             body.metode_pembelajaran || 'Ceramah & Diskusi',
             body.catatan, body.jumlah_hadir || 0,
+            rincianJson,
             submittedAt, body.id
           ];
           
@@ -138,15 +148,17 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           await dbPool.query(`
             INSERT INTO jurnal_harian_guru 
             (teacher_code, teacher_name, tanggal, kelas, mapel, jam_ke, slot_label,
-             materi_pokok, kegiatan_pembelajaran, metode_pembelajaran, catatan, jumlah_hadir, submitted_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             materi_pokok, kegiatan_pembelajaran, metode_pembelajaran, catatan, jumlah_hadir, rincian_absensi, submitted_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14)
           `, [
             teacherCode, teacherName,
             body.tanggal || new Date().toISOString().split('T')[0],
             body.kelas, body.mapel, body.jam_ke || 1, body.slot_label || '',
             body.materi_pokok, body.kegiatan_pembelajaran,
             body.metode_pembelajaran || 'Ceramah & Diskusi',
-            body.catatan, body.jumlah_hadir || 0, submittedAt
+            body.catatan, body.jumlah_hadir || 0,
+            rincianJson,
+            submittedAt
           ]);
         }
         send(req, res, 200, { ok: true });
