@@ -2685,9 +2685,19 @@ export default function App() {
       }
       return perms[id];
     };
+
+    // Helper: does the rolePermissions object have ANY data for a given roleKey?
+    const hasRoleData = roleKey => {
+      const perms = rolePermissions?.[roleKey];
+      if (!perms) return false;
+      if (Array.isArray(perms)) return perms.length > 0;
+      return Object.keys(perms).length > 0;
+    };
+
     let level = undefined;
+    let roleKeyUsed = null;
+
     if (activeRole === "guru") {
-      // Cek subrole dulu (guru dengan jabatan struktural: bpbk, walikelas, sekretaris_kesiswaan, dll)
       const subrole = (currentUser?.subrole || "").toLowerCase().trim();
       const SUBROLE_KEYS_GURU = [
         'bpbk', 'pembina_osis', 'sekretaris_osis', 'walikelas',
@@ -2699,8 +2709,10 @@ export default function App() {
       if (subrole && SUBROLE_KEYS_GURU.includes(subrole)) {
         const subroleLevel = checkAllowed(subrole);
         level = subroleLevel ?? checkAllowed("guru");
+        roleKeyUsed = hasRoleData(subrole) || hasRoleData("guru") ? "guru" : null;
       } else {
         level = checkAllowed("guru");
+        roleKeyUsed = hasRoleData("guru") ? "guru" : null;
       }
     }
     else if (activeRole === "karyawan") {
@@ -2709,8 +2721,10 @@ export default function App() {
       if (subrole && SUBROLE_KEYS_KARYAWAN.includes(subrole)) {
         const subroleLevel = checkAllowed(subrole);
         level = subroleLevel ?? checkAllowed("karyawan");
+        roleKeyUsed = hasRoleData(subrole) || hasRoleData("karyawan") ? "karyawan" : null;
       } else {
         level = checkAllowed("karyawan");
+        roleKeyUsed = hasRoleData("karyawan") ? "karyawan" : null;
       }
     }
     else if (activeRole === "tu" || activeRole === "tata_usaha") {
@@ -2718,80 +2732,89 @@ export default function App() {
       if (subrole && ['sekretaris_tu', 'bendahara'].includes(subrole)) {
         const subroleLevel = checkAllowed(subrole);
         level = subroleLevel ?? checkAllowed("tu");
+        roleKeyUsed = hasRoleData(subrole) || hasRoleData("tu") ? "tu" : null;
       } else {
         level = checkAllowed("tu");
+        roleKeyUsed = hasRoleData("tu") ? "tu" : null;
       }
     }
-    else if (activeRole === "kepsek") level = checkAllowed("kepsek");
+    else if (activeRole === "kepsek") {
+      level = checkAllowed("kepsek");
+      roleKeyUsed = hasRoleData("kepsek") ? "kepsek" : null;
+    }
     else if (activeRole === "waka") {
       const division = (currentUser?.division || "kurikulum").toLowerCase();
       level = checkAllowed(`waka_${division}`);
+      roleKeyUsed = hasRoleData(`waka_${division}`) ? `waka_${division}` : null;
     }
+
     let isAllowed = false;
+
     if (activeRole === "superadmin" || activeRole === "admin") {
+      // Superadmin & admin always have full access
       isAllowed = true;
     } else if (level === "nonaktif" || level === "none" || level === "off") {
+      // Explicitly blocked by Hak Akses panel
       isAllowed = false;
     } else if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
+      // Explicitly granted by Hak Akses panel
       isAllowed = true;
-    } else if (activeRole === "tu" || activeRole === "tata_usaha") {
-      // TU always-allowed tabs (matches router's tuAlwaysAllowed)
-      const tuDefaultTabs = [
-        "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
-        "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
-        "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
-        "kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"
-      ];
-      isAllowed = tuDefaultTabs.includes(id);
-    } else if (activeRole === "karyawan") {
-      isAllowed = ["dashboard", "absensiguru", "laporan_absensi", "hikvision_report_guru", "hikvision_report_karyawan", "akademik", "pesan"].includes(id);
-    } else if (activeRole === "kepsek") {
-      const kepsekDefaultTabs = [
-        "dashboard","generate","akademik","kalender","kalender_akademik",
-        "absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report",
-        "pesan","kedisiplinan_piket","siswa","guru","kelas","data_pegawai",
-        "pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan",
-        "pkl_administrasi","pkl_jurnal","pkl_laporan",
-        "kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi",
-        "laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"
-      ];
-      isAllowed = kepsekDefaultTabs.includes(id);
-    } else if (activeRole === "guru") {
-      // Guru default tabs (always accessible without explicit permission)
-      const guruDefaultTabs = [
-        "dashboard","generate","akademik","absensi","jurnal_harian",
-        "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-        "absensiguru","silabusguru","ketersediaan","beban","pesan",
-        "kedisiplinan_piket"
-      ];
-      // Extra tabs that require explicit permission to be shown
-      const guruPermissionedTabs = [
-        "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
-        "siswa","riwayat_prestasi","kedisiplinan_bpbk","hikvision_report_siswa"
-      ];
-      if (guruDefaultTabs.includes(id)) {
-        isAllowed = true;
-      } else if (guruPermissionedTabs.includes(id)) {
-        // Only show if explicitly permitted via rolePermissions (level was already resolved above)
-        isAllowed = false; // level was null/undefined, so no explicit permission
-      } else {
-        isAllowed = false;
-      }
-    } else if (activeRole === "waka") {
-      const division = (currentUser?.division || "kurikulum").toLowerCase();
-      const wakaByDivision = {
-        kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules"],
-        kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa"],
-        sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
-        humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
-        hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
-      };
-      const allowedTabs = wakaByDivision[division] || wakaByDivision.kurikulum;
-      isAllowed = allowedTabs.includes(id);
     } else {
-      // Fallback: check roles array (for any unlisted role)
-      const normalizedRoles = (roles || []).map(r => normalizeUserRole(r));
-      isAllowed = normalizedRoles.includes(activeRole);
+      // No explicit permission set (level is null/undefined).
+      // Use hardcoded fallback ONLY if rolePermissions for this role has no data at all.
+      // If rolePermissions HAS data for this role but this specific tab is undefined,
+      // treat as "nonaktif" (not explicitly permitted = not shown).
+      if (roleKeyUsed !== null) {
+        // rolePermissions exists for this role but this tab isn't configured — deny.
+        isAllowed = false;
+      } else {
+        // rolePermissions not configured at all — use hardcoded defaults as safety net.
+        if (activeRole === "tu" || activeRole === "tata_usaha") {
+          const tuDefaultTabs = [
+            "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
+            "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
+            "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
+            "kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"
+          ];
+          isAllowed = tuDefaultTabs.includes(id);
+        } else if (activeRole === "karyawan") {
+          isAllowed = ["dashboard","absensiguru","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","akademik","pesan"].includes(id);
+        } else if (activeRole === "kepsek") {
+          const kepsekDefaultTabs = [
+            "dashboard","generate","akademik","kalender","kalender_akademik",
+            "absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report",
+            "pesan","kedisiplinan_piket","siswa","guru","kelas","data_pegawai",
+            "pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan",
+            "pkl_administrasi","pkl_jurnal","pkl_laporan",
+            "kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi",
+            "laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"
+          ];
+          isAllowed = kepsekDefaultTabs.includes(id);
+        } else if (activeRole === "guru") {
+          const guruDefaultTabs = [
+            "dashboard","generate","akademik","absensi","jurnal_harian",
+            "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
+            "absensiguru","silabusguru","ketersediaan","beban","pesan",
+            "kedisiplinan_piket"
+          ];
+          isAllowed = guruDefaultTabs.includes(id);
+        } else if (activeRole === "waka") {
+          const division = (currentUser?.division || "kurikulum").toLowerCase();
+          const wakaByDivision = {
+            kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi"],
+            kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa","absensiguru"],
+            sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
+            humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
+            hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
+          };
+          const allowedTabs = wakaByDivision[division] || wakaByDivision.kurikulum;
+          isAllowed = allowedTabs.includes(id);
+        } else {
+          // Fallback: check roles array (for any unlisted role)
+          const normalizedRoles = (roles || []).map(r => normalizeUserRole(r));
+          isAllowed = normalizedRoles.includes(activeRole);
+        }
+      }
     }
     if (id === "data_pegawai" && activeRole !== "waka" && activeRole !== "tu" && activeRole !== "admin") return null;
     if ((id === "guru" || id === "karyawan") && activeRole === "waka") return null;
