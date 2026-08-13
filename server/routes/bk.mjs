@@ -56,17 +56,27 @@ export async function initBkTables(dbPool) {
 export async function handleBkRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, isAdminRole } = ctx;
 
+  // Pastikan tabel BK sudah ada
+  if (!_bkTablesInitialized && dbPool) {
+    await initBkTables(dbPool);
+  }
+
   // Peran yang boleh mengakses modul BK
-  const BK_ALLOWED_ROLES = ['bk', 'admin', 'superadmin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'];
+  const BK_ALLOWED_ROLES = [
+    'bk', 'bpbk', 'guru', 'walikelas', 'walas', 
+    'admin', 'superadmin', 'waka', 'waka_kesiswaan', 
+    'waka_kurikulum', 'kesiswaan', 'kurikulum', 'kepsek', 'tu', 'tata_usaha', 'karyawan'
+  ];
   const requireBkAccess = (req, res) => {
     const session = getSession(req);
     if (!session) {
-      send(req, res, 401, { ok: false, error: 'Sesi tidak valid.' });
+      send(req, res, 401, { ok: false, error: 'Sesi tidak valid. Silakan login ulang.' });
       return null;
     }
     const role = (session.role || '').toLowerCase();
-    if (!BK_ALLOWED_ROLES.includes(role)) {
-      send(req, res, 403, { ok: false, error: 'Akses ditolak. Hanya Guru BK, Waka Kesiswaan, atau Admin yang dapat mengakses modul ini.' });
+    const subrole = (session.subrole || '').toLowerCase();
+    if (!BK_ALLOWED_ROLES.includes(role) && !BK_ALLOWED_ROLES.includes(subrole)) {
+      send(req, res, 403, { ok: false, error: 'Akses ditolak. Anda tidak memiliki izin untuk mengelola data BK.' });
       return null;
     }
     return session;
@@ -137,13 +147,13 @@ export async function handleBkRoutes(req, res, url, ctx) {
         `, [
           student_nis,
           category || 'Umum',
-          session_date || new Date().toISOString().slice(0, 10),
+          session_date && String(session_date).trim() ? String(session_date).trim() : new Date().toISOString().slice(0, 10),
           problem || '',
           solution || '',
-          follow_up_date || null,
+          follow_up_date && String(follow_up_date).trim() ? String(follow_up_date).trim() : null,
           status || 'Berjalan',
-          session?.id || '',
-          session?.name || 'Guru BK',
+          session?.id || session?.nip || '',
+          session?.name || session?.username || 'Guru BK',
           privacy_level || 'Terbatas'
         ]);
 
@@ -170,7 +180,16 @@ export async function handleBkRoutes(req, res, url, ctx) {
           SET category = $1, session_date = $2, problem = $3, solution = $4, follow_up_date = $5, status = $6, privacy_level = $7
           WHERE id = $8
           RETURNING *
-        `, [category, session_date, problem, solution, follow_up_date, status, privacy_level, id]);
+        `, [
+          category || 'Umum',
+          session_date && String(session_date).trim() ? String(session_date).trim() : new Date().toISOString().slice(0, 10),
+          problem || '',
+          solution || '',
+          follow_up_date && String(follow_up_date).trim() ? String(follow_up_date).trim() : null,
+          status || 'Berjalan',
+          privacy_level || 'Terbatas',
+          id
+        ]);
 
         send(req, res, 200, { ok: true, data: result.rows[0] });
       } catch (err) {
@@ -223,11 +242,11 @@ export async function handleBkRoutes(req, res, url, ctx) {
           RETURNING *
         `, [
           student_nis,
-          visit_date || new Date().toISOString().slice(0, 10),
+          visit_date && String(visit_date).trim() ? String(visit_date).trim() : new Date().toISOString().slice(0, 10),
           result || '',
           photo_url || null,
-          session?.id || '',
-          session?.name || 'Guru BK'
+          session?.id || session?.nip || '',
+          session?.name || session?.username || 'Guru BK'
         ]);
 
         send(req, res, 200, { ok: true, data: resQuery.rows[0] });

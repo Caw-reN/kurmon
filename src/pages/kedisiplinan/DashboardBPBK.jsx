@@ -199,10 +199,16 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       const url = editingSession ? `/api/kedisiplinan/bk/sessions/${editingSession.id}` : "/api/kedisiplinan/bk/sessions";
       const method = editingSession ? "PUT" : "POST";
 
+      const payload = {
+        ...formSession,
+        follow_up_date: formSession.follow_up_date?.trim() || null,
+        session_date: formSession.session_date?.trim() || new Date().toISOString().slice(0, 10)
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-        body: JSON.stringify(formSession)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
 
