@@ -1,3 +1,4 @@
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
   Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
