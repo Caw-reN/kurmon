@@ -43,8 +43,17 @@ export async function initBkTables(dbPool) {
         issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
         reason TEXT,
         status VARCHAR(50) DEFAULT 'Diterbitkan',
+        appointment_date DATE,
+        appointment_time VARCHAR(100),
+        appointment_place VARCHAR(255),
+        appointed_person VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointment_date DATE;
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointment_time VARCHAR(100);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointment_place VARCHAR(255);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointed_person VARCHAR(255);
     `);
     _bkTablesInitialized = true;
     console.log('[BK] Tables initialized successfully.');
@@ -257,6 +266,22 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
   }
 
+  // 4b. DELETE /api/kedisiplinan/bk/home-visits/:id
+  if (url.pathname.startsWith("/api/kedisiplinan/bk/home-visits/")) {
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
+    const id = parseInt(url.pathname.split("/").pop(), 10);
+    if (req.method === "DELETE") {
+      try {
+        await dbPool.query("DELETE FROM bk_home_visits WHERE id = $1", [id]);
+        send(req, res, 200, { ok: true, message: "Jurnal kunjungan rumah berhasil dihapus" });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return true;
+    }
+  }
+
   // 5. GET & POST /api/kedisiplinan/bk/letters
   if (url.pathname === "/api/kedisiplinan/bk/letters") {
     if (!requireAuthenticated(req, res)) return true;
@@ -265,7 +290,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
         const { rows } = await dbPool.query(`
           SELECT l.*, 
                  s.payload->>'name' as student_name,
-                 COALESCE(s.payload->>'kelas', s.payload->>'class_name') as class_name
+                 COALESCE(s.payload->>'kelas', s.payload->>'class_name') as class_name,
+                 s.payload->>'nisn' as student_nisn
           FROM bk_letters l
           LEFT JOIN mst_students s ON l.student_nis = s.id OR l.student_nis = s.payload->>'nis' OR l.student_nis = s.payload->>'code'
           ORDER BY l.issue_date DESC, l.id DESC
@@ -282,21 +308,47 @@ export async function handleBkRoutes(req, res, url, ctx) {
       if (!session) return true;
       try {
         const body = await readJsonBody(req);
-        const { student_nis, letter_type, letter_no, issue_date, reason } = body;
+        const { 
+          student_nis, letter_type, letter_no, issue_date, reason, 
+          appointment_date, appointment_time, appointment_place, appointed_person 
+        } = body;
 
         const resQuery = await dbPool.query(`
-          INSERT INTO bk_letters (student_nis, letter_type, letter_no, issue_date, reason)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO bk_letters (
+            student_nis, letter_type, letter_no, issue_date, reason, 
+            appointment_date, appointment_time, appointment_place, appointed_person
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING *
         `, [
           student_nis,
           letter_type || 'Panggilan Orang Tua',
           letter_no || `BK/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`,
-          issue_date || new Date().toISOString().slice(0, 10),
-          reason || ''
+          issue_date && String(issue_date).trim() ? String(issue_date).trim() : new Date().toISOString().slice(0, 10),
+          reason || '',
+          appointment_date && String(appointment_date).trim() ? String(appointment_date).trim() : null,
+          appointment_time || '09.00 WIB s/d Selesai',
+          appointment_place || 'Ruang Bimbingan & Konseling (BK)',
+          appointed_person || 'Guru BK / Koordinator BK'
         ]);
 
         send(req, res, 200, { ok: true, data: resQuery.rows[0] });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return true;
+    }
+  }
+
+  // 5b. DELETE /api/kedisiplinan/bk/letters/:id
+  if (url.pathname.startsWith("/api/kedisiplinan/bk/letters/")) {
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
+    const id = parseInt(url.pathname.split("/").pop(), 10);
+    if (req.method === "DELETE") {
+      try {
+        await dbPool.query("DELETE FROM bk_letters WHERE id = $1", [id]);
+        send(req, res, 200, { ok: true, message: "Surat BK berhasil dihapus" });
       } catch (err) {
         sendDatabaseError(req, res, err);
       }

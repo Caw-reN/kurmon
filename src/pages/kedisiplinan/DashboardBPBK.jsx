@@ -2,17 +2,27 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
   Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
-  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send, AlertCircle, Edit2
+  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send, AlertCircle, Edit2, User
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
+import { useAppStore } from "../../store/useAppStore.js";
 import * as XLSX from 'xlsx';
 
 export default function DashboardBPBK({ students = [], classes = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
+  const storeAppSettings = useAppStore(state => state.appSettings) || {};
+  const appSettings = useMemo(() => ({
+    kopSuratBaris1: 'PEMERINTAH DAERAH PROVINSI',
+    kopSuratBaris2: 'DINAS PENDIDIKAN',
+    kopSuratBaris3: 'SEKOLAH MENENGAH KEJURUAN',
+    defaultPaperSize: 'a4',
+    ...storeAppSettings
+  }), [storeAppSettings]);
 
   // Active view: 'ringkasan' (or 'ews') | 'konseling' | 'surat' | 'dossier'
   const currentSubTab = tab === 'ringkasan' || tab === 'ews' ? 'ringkasan' : tab;
@@ -59,7 +69,13 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
   const [showLetterModal, setShowLetterModal] = useState(false);
   const [formLetter, setFormLetter] = useState({
     student_nis: '',
-    letter_type: 'Panggilan Orang Tua',
+    letter_type: 'Panggilan Orang Tua I',
+    letter_no: '',
+    issue_date: new Date().toISOString().slice(0, 10),
+    appointment_date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+    appointment_time: '09.00 WIB s/d Selesai',
+    appointment_place: 'Ruang Bimbingan & Konseling (BK)',
+    appointed_person: 'Guru BK / Koordinator BK',
     reason: ''
   });
 
@@ -264,10 +280,18 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     }
 
     try {
+      const generatedNo = formLetter.letter_no?.trim() || `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`;
+      const payload = {
+        ...formLetter,
+        letter_no: generatedNo,
+        issue_date: formLetter.issue_date?.trim() || new Date().toISOString().slice(0, 10),
+        appointment_date: formLetter.appointment_date?.trim() || null
+      };
+
       const res = await fetch("/api/kedisiplinan/bk/letters", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-        body: JSON.stringify(formLetter)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
 
@@ -275,6 +299,10 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         showToast(`Surat (${formLetter.letter_type}) berhasil diterbitkan!`);
         setShowLetterModal(false);
         fetchData();
+        // Automatically offer download
+        if (data.data) {
+          downloadLetterPDF(data.data);
+        }
       } else {
         showToast(data.error || "Gagal menerbitkan surat", "error");
       }
@@ -284,9 +312,230 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     }
   };
 
+  // Download PDF Surat Resmi BK
+  const downloadLetterPDF = (letter) => {
+    if (!letter) return;
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: appSettings.defaultPaperSize === 'F4' ? [215, 330] : 'a4'
+      });
+
+      const pageWidth = 210;
+      const studentName = letter.student_name || 'Siswa Terkait';
+      const studentNis = letter.student_nis || '-';
+      const className = letter.class_name || '-';
+      const letterNo = letter.letter_no || `421.5/082/SMK-BK/${new Date().getFullYear()}`;
+      const letterType = letter.letter_type || 'Surat Panggilan Orang Tua';
+      const issueDateStr = new Date(letter.issue_date || Date.now()).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      const appointDateStr = letter.appointment_date 
+        ? new Date(letter.appointment_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Hari Kerja Efektif';
+      const appointTime = letter.appointment_time || '09.00 WIB s/d Selesai';
+      const appointPlace = letter.appointment_place || 'Ruang Bimbingan & Konseling (BK)';
+      const appointPerson = letter.appointed_person || 'Guru BK / Koordinator BK';
+      const reason = letter.reason || 'Koordinasi pembinaan kedisiplinan dan evaluasi perkembangan belajar siswa.';
+
+      let yPos = 20;
+
+      // Kop Surat
+      if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
+        try {
+          const format = String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+          doc.addImage(appSettings.kopSuratGambar, format, 15, 10, pageWidth - 30, 28);
+        } catch (e) { console.error(e); }
+        yPos = 44;
+      } else if (appSettings.kopSuratLogo) {
+        try {
+          const format = String(appSettings.kopSuratLogo).includes('data:image/jpeg') || String(appSettings.kopSuratLogo).includes('data:image/jpg') ? 'JPEG' : 'PNG';
+          doc.addImage(appSettings.kopSuratLogo, format, 15, 10, 24, 24);
+        } catch (e) { console.error(e); }
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text(appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH PROVINSI", pageWidth / 2, 16, { align: "center" });
+        doc.setFontSize(13);
+        doc.text(appSettings.kopSuratBaris2 || "DINAS PENDIDIKAN", pageWidth / 2, 22, { align: "center" });
+        doc.setFontSize(15);
+        doc.text(appSettings.kopSuratBaris3 || "LAYANAN BIMBINGAN & KONSELING (BK)", pageWidth / 2, 29, { align: "center" });
+        doc.setLineWidth(0.8);
+        doc.line(15, 36, pageWidth - 15, 36);
+        doc.setLineWidth(0.2);
+        doc.line(15, 37, pageWidth - 15, 37);
+        yPos = 44;
+      } else {
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH / DINAS PENDIDIKAN", pageWidth / 2, 16, { align: "center" });
+        doc.setFontSize(13);
+        doc.text(appSettings.kopSuratBaris2 || "LAYANAN BIMBINGAN DAN KONSELING (BK)", pageWidth / 2, 22, { align: "center" });
+        doc.setFontSize(10);
+        doc.setFont("Helvetica", "normal");
+        doc.text("Pusat Bimbingan, Konseling & Pemantauan Kedisiplinan Siswa", pageWidth / 2, 27, { align: "center" });
+        doc.setLineWidth(0.8);
+        doc.line(15, 30, pageWidth - 15, 30);
+        doc.setLineWidth(0.2);
+        doc.line(15, 31, pageWidth - 15, 31);
+        yPos = 38;
+      }
+
+      // Metadata Surat
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Nomor", 15, yPos);
+      doc.text(`: ${letterNo}`, 35, yPos);
+      doc.text("Lampiran", 15, yPos + 5);
+      doc.text(": -", 35, yPos + 5);
+      doc.text("Perihal", 15, yPos + 10);
+      doc.setFont("Helvetica", "bold");
+      doc.text(`: ${letterType.toUpperCase()}`, 35, yPos + 10);
+
+      // Tanggal Surat di Kanan Atas
+      doc.setFont("Helvetica", "normal");
+      doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 15, yPos, { align: 'right' });
+
+      // Tujuan Surat
+      yPos += 18;
+      doc.text("Kepada Yth.", 15, yPos);
+      doc.setFont("Helvetica", "bold");
+      doc.text("Bapak / Ibu Orang Tua / Wali Siswa", 15, yPos + 5);
+      doc.setFont("Helvetica", "normal");
+      doc.text("di Tempat", 15, yPos + 10);
+
+      // Salam Pembuka & Isi
+      yPos += 18;
+      doc.text("Dengan hormat,", 15, yPos);
+      yPos += 6;
+      const paragraf1 = "Sehubungan dengan perkembangan pembinaan ketertiban dan kedisiplinan putra/putri Bapak/Ibu di sekolah, dengan ini kami mengharap kehadiran Bapak/Ibu pada:";
+      const splitParagraf1 = doc.splitTextToSize(paragraf1, pageWidth - 30);
+      doc.text(splitParagraf1, 15, yPos);
+
+      // Detail Identitas Siswa
+      yPos += 12;
+      doc.setFont("Helvetica", "bold");
+      doc.text("Nama Siswa", 25, yPos);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${studentName}`, 60, yPos);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("NIS / Kelas", 25, yPos + 6);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${studentNis} / ${className}`, 60, yPos + 6);
+
+      // Detail Waktu & Tempat Pertemuan
+      yPos += 14;
+      doc.setFont("Helvetica", "bold");
+      doc.text("Hari / Tanggal", 25, yPos);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${appointDateStr}`, 60, yPos);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("Waktu / Pukul", 25, yPos + 6);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${appointTime}`, 60, yPos + 6);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("Tempat", 25, yPos + 12);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${appointPlace}`, 60, yPos + 12);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("Menghadap", 25, yPos + 18);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`: ${appointPerson}`, 60, yPos + 18);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("Keperluan", 25, yPos + 24);
+      doc.setFont("Helvetica", "normal");
+      const splitReason = doc.splitTextToSize(`: ${reason}`, pageWidth - 75);
+      doc.text(splitReason, 60, yPos + 24);
+
+      // Kalimat Penutup
+      yPos += (splitReason.length * 5) + 26;
+      const paragrafPenutup = "Mengingat pentingnya koordinasi ini demi kebaikan dan kelancaran pendidikan putra/putri Bapak/Ibu, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.";
+      const splitPenutup = doc.splitTextToSize(paragrafPenutup, pageWidth - 30);
+      doc.text(splitPenutup, 15, yPos);
+
+      // Tanda Tangan
+      yPos += 20;
+      doc.text("Mengetahui,", 25, yPos);
+      doc.text("Kepala Sekolah,", 25, yPos + 5);
+
+      doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
+
+      yPos += 26;
+      doc.setFont("Helvetica", "bold");
+      doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
+      doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9);
+      if (appSettings.nipKepsek) {
+        doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
+      }
+      if (user?.nip) {
+        doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
+      }
+
+      // Download file PDF
+      const cleanFileName = `Surat_BK_${studentName.replace(/[^a-zA-Z0-9]/g, '_')}_${letterType.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      doc.save(cleanFileName);
+      showToast("File PDF Surat resmi berhasil diunduh!");
+    } catch (err) {
+      console.error("PDF Export Error:", err);
+      showToast("Gagal mengunduh PDF surat", "error");
+    }
+  };
+
+  // Handle Delete Home Visit
+  const handleDeleteVisit = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus catatan kunjungan rumah ini?")) return;
+    try {
+      const res = await fetch(`/api/kedisiplinan/bk/home-visits/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("Jurnal kunjungan rumah berhasil dihapus");
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menghapus jurnal", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+  };
+
+  // Handle Delete Letter
+  const handleDeleteLetter = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus arsip surat ini?")) return;
+    try {
+      const res = await fetch(`/api/kedisiplinan/bk/letters/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("Arsip surat berhasil dihapus");
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menghapus surat", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+  };
+
   // Handle Delete Session
   const handleDeleteSession = async (id) => {
-    if (!await window.confirmAsync("Apakah Anda yakin ingin menghapus catatan sesi konseling ini?")) return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus catatan sesi konseling ini?")) return;
     try {
       const res = await fetch(`/api/kedisiplinan/bk/sessions/${id}`, {
         method: "DELETE",
@@ -300,6 +549,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         showToast(data.error || "Gagal menghapus", "error");
       }
     } catch (err) {
+      console.error(err);
       showToast("Terjadi kesalahan koneksi", "error");
     }
   };
@@ -858,41 +1108,59 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       {currentSubTab === 'surat' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 animate-in fade-in duration-200">
           {/* Left: Home Visit Log */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
                 <Home size={17} className="text-sky-600" />
-                Jurnal Kunjungan Rumah (Home Visit)
+                <span>Jurnal Kunjungan Rumah (Home Visit)</span>
               </h3>
               <Button
                 type="button"
                 onClick={() => setShowVisitModal(true)}
-                className="px-3 py-1.5 text-xs font-bold cursor-pointer"
+                className="px-3 py-1.5 text-xs font-bold cursor-pointer bg-sky-600 hover:bg-sky-700 text-white rounded-[var(--ui-radius-small)]"
               >
                 + Tambah Visit
               </Button>
             </div>
 
-            <div className="flex flex-col gap-3 max-h-[450px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
               {homeVisits.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 font-bold text-xs">
-                  Belum ada jurnal kunjungan rumah yang dicatat.
+                <div className="py-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
+                  <Home size={28} className="text-slate-300" />
+                  <span>Belum ada jurnal kunjungan rumah yang dicatat.</span>
                 </div>
               ) : (
                 homeVisits.map(hv => (
-                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-extrabold text-slate-800 text-xs">{hv.student_name || 'Siswa'}</span>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {new Date(hv.visit_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-2xs">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <div className="font-black text-slate-900 text-xs sm:text-sm">{hv.student_name || 'Siswa'}</div>
+                        <div className="text-[10px] font-bold text-slate-500">Kelas: {hv.class_name || '-'} • NIS: {hv.student_nis}</div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
+                          {new Date(hv.visit_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteVisit(hv.id)}
+                          className="p-1.5 rounded-[var(--ui-radius-small)] text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all border-none bg-transparent cursor-pointer"
+                          title="Hapus Kunjungan Rumah"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+
+                    <div className="p-2.5 bg-white rounded-[var(--ui-radius-small)] border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium">
                       {hv.result}
-                    </p>
-                    <div className="text-[10px] font-bold text-slate-400 flex justify-between pt-1 border-t border-slate-200/50">
-                      <span>Petugas: {hv.counselor_name || 'Guru BK'}</span>
-                      <span>Kelas: {hv.class_name || '-'}</span>
+                    </div>
+
+                    <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between pt-1 border-t border-slate-200/50">
+                      <span className="flex items-center gap-1">
+                        <User size={11} className="text-slate-400" />
+                        <span>Petugas: <strong className="text-slate-600">{hv.counselor_name || 'Guru BK'}</strong></span>
+                      </span>
                     </div>
                   </div>
                 ))
@@ -901,44 +1169,102 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
           </div>
 
           {/* Right: Printed Letters Log */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
                 <FileText size={17} className="text-emerald-600" />
-                Surat Panggilan & Surat Peringatan (SP)
+                <span>Surat Panggilan &amp; SP</span>
               </h3>
               <Button
                 type="button"
-                onClick={() => setShowLetterModal(true)}
-                className="px-3 py-1.5 text-xs font-bold cursor-pointer"
+                onClick={() => {
+                  setFormLetter({
+                    student_nis: '',
+                    letter_type: 'Panggilan Orang Tua I',
+                    letter_no: `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`,
+                    issue_date: new Date().toISOString().slice(0, 10),
+                    appointment_date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+                    appointment_time: '09.00 WIB s/d Selesai',
+                    appointment_place: 'Ruang Bimbingan & Konseling (BK)',
+                    appointed_person: 'Guru BK / Koordinator BK',
+                    reason: ''
+                  });
+                  setShowLetterModal(true);
+                }}
+                className="px-3 py-1.5 text-xs font-bold cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)]"
               >
                 + Terbitkan Surat
               </Button>
             </div>
 
-            <div className="flex flex-col gap-3 max-h-[450px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
               {bkLetters.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 font-bold text-xs">
-                  Belum ada surat panggilan atau SP yang diterbitkan.
+                <div className="py-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
+                  <FileText size={28} className="text-slate-300" />
+                  <span>Belum ada surat panggilan atau SP yang diterbitkan.</span>
                 </div>
               ) : (
                 bkLetters.map(lettr => (
-                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50/60 flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-800 text-xs">{lettr.student_name || 'Siswa'}</span>
-                        <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black bg-emerald-100 text-emerald-800">
-                          {lettr.letter_type}
-                        </span>
+                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-2xs">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-xs sm:text-sm">{lettr.student_name || 'Siswa'}</span>
+                          <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black ${
+                            lettr.letter_type?.includes('SP 3') ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                            lettr.letter_type?.includes('SP') ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                            'bg-purple-100 text-purple-800 border border-purple-200'
+                          }`}>
+                            {lettr.letter_type}
+                          </span>
+                        </div>
+                        <div className="text-[10px] font-bold text-slate-500">Kelas: {lettr.class_name || '-'} • NIS: {lettr.student_nis}</div>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {new Date(lettr.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {new Date(lettr.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLetter(lettr.id)}
+                          className="p-1.5 rounded-[var(--ui-radius-small)] text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all border-none bg-transparent cursor-pointer"
+                          title="Hapus Surat"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500 font-mono">No: {lettr.letter_no}</div>
-                    <p className="text-xs text-slate-600 font-medium">
-                      Alasan: {lettr.reason || '-'}
-                    </p>
+
+                    <div className="text-[10px] text-slate-500 font-mono">No: {lettr.letter_no || '-'}</div>
+
+                    <div className="p-2.5 bg-white rounded-[var(--ui-radius-small)] border border-slate-100 text-xs text-slate-700 flex flex-col gap-1">
+                      <div className="text-slate-600 font-medium">
+                        <strong>Alasan:</strong> {lettr.reason || 'Pembinaan ketertiban dan kedisiplinan'}
+                      </div>
+                      {lettr.appointment_date && (
+                        <div className="text-[11px] text-slate-500 font-semibold pt-1 border-t border-slate-100">
+                          📅 Menghadap: {new Date(lettr.appointment_date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} • {lettr.appointment_time || '09.00 WIB'}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Bar: Download & Print PDF */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/50">
+                      <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 size={12} />
+                        <span>Status: Diterbitkan</span>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => downloadLetterPDF(lettr)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95"
+                      >
+                        <Printer size={13} strokeWidth={2.5} />
+                        <span>Cetak / Unduh PDF</span>
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -1243,9 +1569,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         <Modal
           isOpen={showLetterModal}
           onClose={() => setShowLetterModal(false)}
-          title="Terbitkan Surat BK / SP"
+          title="Terbitkan Surat BK / SP Resmi"
         >
-          <form onSubmit={handleSaveLetter} className="flex flex-col gap-4">
+          <form onSubmit={handleSaveLetter} className="flex flex-col gap-3.5">
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Pilih Siswa</label>
               <CustomSelect
@@ -1258,25 +1584,98 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
               />
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Jenis Surat</label>
+                <CustomSelect
+                  value={formLetter.letter_type}
+                  onChange={val => setFormLetter({ ...formLetter, letter_type: val })}
+                  options={[
+                    { value: 'Panggilan Orang Tua I', label: 'Panggilan Orang Tua I' },
+                    { value: 'Panggilan Orang Tua II', label: 'Panggilan Orang Tua II' },
+                    { value: 'Panggilan Orang Tua III', label: 'Panggilan Orang Tua III' },
+                    { value: 'SP 1', label: 'Surat Peringatan 1 (SP 1)' },
+                    { value: 'SP 2', label: 'Surat Peringatan 2 (SP 2)' },
+                    { value: 'SP 3', label: 'Surat Peringatan 3 (SP 3)' },
+                    { value: 'Surat Perjanjian Siswa', label: 'Surat Perjanjian Siswa' }
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Nomor Surat</label>
+                <input
+                  type="text"
+                  placeholder="421.5/082/SMK-BK/2026"
+                  value={formLetter.letter_no}
+                  onChange={e => setFormLetter({ ...formLetter, letter_no: e.target.value })}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono font-bold focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tanggal Surat</label>
+                <input
+                  type="date"
+                  value={formLetter.issue_date}
+                  onChange={e => setFormLetter({ ...formLetter, issue_date: e.target.value })}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Hari / Tgl Menghadap</label>
+                <input
+                  type="date"
+                  value={formLetter.appointment_date}
+                  onChange={e => setFormLetter({ ...formLetter, appointment_date: e.target.value })}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Waktu / Jam Menghadap</label>
+                <input
+                  type="text"
+                  placeholder="09.00 WIB s/d Selesai"
+                  value={formLetter.appointment_time}
+                  onChange={e => setFormLetter({ ...formLetter, appointment_time: e.target.value })}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Tempat / Ruangan</label>
+                <input
+                  type="text"
+                  placeholder="Ruang Bimbingan & Konseling (BK)"
+                  value={formLetter.appointment_place}
+                  onChange={e => setFormLetter({ ...formLetter, appointment_place: e.target.value })}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Jenis Surat</label>
-              <CustomSelect
-                value={formLetter.letter_type}
-                onChange={val => setFormLetter({ ...formLetter, letter_type: val })}
-                options={[
-                  { value: 'Panggilan Orang Tua', label: 'Panggilan Orang Tua / Wali' },
-                  { value: 'SP 1', label: 'Surat Peringatan 1 (SP 1)' },
-                  { value: 'SP 2', label: 'Surat Peringatan 2 (SP 2)' },
-                  { value: 'SP 3', label: 'Surat Peringatan 3 (SP 3)' }
-                ]}
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Menghadap Kepada</label>
+              <input
+                type="text"
+                placeholder="Guru BK / Koordinator BK"
+                value={formLetter.appointed_person}
+                onChange={e => setFormLetter({ ...formLetter, appointed_person: e.target.value })}
+                className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Alasan Penerbitan Surat</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Alasan / Keperluan Pemanggilan</label>
               <textarea
-                rows={3}
-                placeholder="Tuliskan alasan/keterangan pemanggilan..."
+                rows={2}
+                placeholder="Tuliskan alasan/keterangan pemanggilan orang tua atau penerbitan SP..."
                 value={formLetter.reason}
                 onChange={e => setFormLetter({ ...formLetter, reason: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none"
@@ -1287,8 +1686,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
               <Button type="button" variant="outline" onClick={() => setShowLetterModal(false)}>
                 Batal
               </Button>
-              <Button type="submit" className="font-bold">
-                Terbitkan Surat
+              <Button type="submit" className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-xs">
+                <Printer size={14} />
+                <span>Terbitkan &amp; Unduh PDF</span>
               </Button>
             </div>
           </form>
