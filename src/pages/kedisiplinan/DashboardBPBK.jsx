@@ -10,12 +10,12 @@ import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import * as XLSX from 'xlsx';
 
-export default function DashboardBPBK({ students = [], classes = [] }) {
+export default function DashboardBPBK({ students = [], classes = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
 
-  // Sub-tabs in BK Dashboard: 'ews' | 'konseling' | 'surat' | 'dossier'
-  const [subTab, setSubTab] = useState('ews');
+  // Active view: 'ringkasan' (or 'ews') | 'konseling' | 'surat' | 'dossier'
+  const currentSubTab = tab === 'ringkasan' || tab === 'ews' ? 'ringkasan' : tab;
 
   // State data from backend
   const [riwayat, setRiwayat] = useState([]);
@@ -335,95 +335,67 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
         </div>
       )}
 
-      {/* ── Sub Navigation Toolbar ────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
-        {/* Horizontal scrollable pills on mobile */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 w-full sm:w-auto scroll-smooth">
-          <button
-            type="button"
-            onClick={() => setSubTab('ews')}
-            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subTab === 'ews'
-                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
-            }`}
-          >
-            <ShieldAlert size={15} className="shrink-0" />
-            <span>Dashboard &amp; EWS</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('konseling')}
-            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subTab === 'konseling'
-                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
-            }`}
-          >
-            <HeartHandshake size={15} className="shrink-0" />
-            <span>Sesi Konseling</span>
-            {bkSessions.length > 0 && (
-              <span className={`px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-mono leading-none ${
-                subTab === 'konseling' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-              }`}>
-                {bkSessions.length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('surat')}
-            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subTab === 'surat'
-                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
-            }`}
-          >
-            <FileText size={15} className="shrink-0" />
-            <span>Surat &amp; Home Visit</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('dossier')}
-            className={`px-3.5 sm:px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subTab === 'dossier'
-                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
-            }`}
-          >
-            <Users size={15} className="shrink-0" />
-            <span>Rekap &amp; Berkas 360°</span>
-          </button>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-          <Button
-            type="button"
-            onClick={() => {
-              setEditingSession(null);
-              setFormSession({
-                student_nis: '',
-                category: 'Kedisiplinan',
-                session_date: new Date().toISOString().slice(0, 10),
-                problem: '',
-                solution: '',
-                follow_up_date: '',
-                status: 'Berjalan',
-                privacy_level: 'Terbatas'
-              });
-              setShowSessionModal(true);
-            }}
-            className="w-full sm:w-auto px-4 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
-          >
-            <Plus size={15} strokeWidth={2.5} />
-            <span>Catat Konseling</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* ── TAB 1: DASHBOARD & EARLY WARNING SYSTEM (EWS) ────────────────── */}
-      {subTab === 'ews' && (
+      {/* ── TAB 1: DASHBOARD RINGKASAN & EARLY WARNING SYSTEM (EWS) ────────────────── */}
+      {currentSubTab === 'ringkasan' && (
         <div className="flex flex-col gap-4 sm:gap-5 animate-in fade-in duration-200">
+          {/* Quick Action Tiles (Touch-Friendly & Clear for Mobile + Desktop) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 bg-white p-2.5 sm:p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setEditingSession(null);
+                setFormSession({
+                  student_nis: '',
+                  category: 'Kedisiplinan',
+                  session_date: new Date().toISOString().slice(0, 10),
+                  problem: '',
+                  solution: '',
+                  follow_up_date: '',
+                  status: 'Berjalan',
+                  privacy_level: 'Terbatas'
+                });
+                setShowSessionModal(true);
+              }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-[var(--ui-radius-small)] bg-emerald-50/90 hover:bg-emerald-100/90 text-emerald-900 border border-emerald-200/80 transition-all font-bold text-xs cursor-pointer shadow-2xs active:scale-95 text-center min-h-[56px] sm:min-h-[58px]"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Plus size={16} strokeWidth={2.5} />
+              </div>
+              <div className="text-center sm:text-left leading-tight">
+                <span className="block font-black text-[11px] sm:text-xs text-emerald-950">+ Sesi BK</span>
+                <span className="hidden sm:block text-[9.5px] text-emerald-700 font-medium">Catat konseling</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowVisitModal(true)}
+              className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-[var(--ui-radius-small)] bg-sky-50/90 hover:bg-sky-100/90 text-sky-900 border border-sky-200/80 transition-all font-bold text-xs cursor-pointer shadow-2xs active:scale-95 text-center min-h-[56px] sm:min-h-[58px]"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Home size={15} strokeWidth={2.5} />
+              </div>
+              <div className="text-center sm:text-left leading-tight">
+                <span className="block font-black text-[11px] sm:text-xs text-sky-950">+ Home Visit</span>
+                <span className="hidden sm:block text-[9.5px] text-sky-700 font-medium">Kunjungan rumah</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowLetterModal(true)}
+              className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-[var(--ui-radius-small)] bg-purple-50/90 hover:bg-purple-100/90 text-purple-900 border border-purple-200/80 transition-all font-bold text-xs cursor-pointer shadow-2xs active:scale-95 text-center min-h-[56px] sm:min-h-[58px]"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Printer size={15} strokeWidth={2.5} />
+              </div>
+              <div className="text-center sm:text-left leading-tight">
+                <span className="block font-black text-[11px] sm:text-xs text-purple-950">+ Surat / SP</span>
+                <span className="hidden sm:block text-[9.5px] text-purple-700 font-medium">Panggilan ortu</span>
+              </div>
+            </button>
+          </div>
+
           {/* Stat Cards Row - 2 columns on mobile, 4 on desktop */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             <StatCard
@@ -599,23 +571,47 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       )}
 
       {/* ── TAB 2: SESI KONSELING ─────────────────────────────────────────── */}
-      {subTab === 'konseling' && (
+      {currentSubTab === 'konseling' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
-          {/* Search & Filters */}
-          <div className="bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
-            <div className="relative w-full md:w-80">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Cari nama siswa / deskripsi..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
-              />
+          {/* Header Action & Filters */}
+          <div className="bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama siswa, NIS, atau deskripsi masalah..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]"
+                />
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => {
+                  setEditingSession(null);
+                  setFormSession({
+                    student_nis: '',
+                    category: 'Kedisiplinan',
+                    session_date: new Date().toISOString().slice(0, 10),
+                    problem: '',
+                    solution: '',
+                    follow_up_date: '',
+                    status: 'Berjalan',
+                    privacy_level: 'Terbatas'
+                  });
+                  setShowSessionModal(true);
+                }}
+                className="px-4 py-2.5 text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95 shrink-0"
+              >
+                <Plus size={15} strokeWidth={2.5} />
+                <span>+ Catat Sesi Baru</span>
+              </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:flex flex-wrap gap-2 w-full md:w-auto">
-              <div className="col-span-1 md:w-44">
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+              <div className="col-span-1">
                 <CustomSelect
                   value={filterCategory}
                   onChange={val => setFilterCategory(val)}
@@ -630,7 +626,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
                 />
               </div>
 
-              <div className="col-span-1 md:w-40">
+              <div className="col-span-1">
                 <CustomSelect
                   value={filterStatus}
                   onChange={val => setFilterStatus(val)}
@@ -853,8 +849,8 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       )}
 
       {/* ── TAB 3: SURAT & HOME VISIT ───────────────────────────────────────── */}
-      {subTab === 'surat' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-in fade-in duration-200">
+      {currentSubTab === 'surat' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 animate-in fade-in duration-200">
           {/* Left: Home Visit Log */}
           <div className="bg-white rounded-[var(--ui-radius-card)] p-5 shadow-xs border border-slate-100 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -946,7 +942,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
       )}
 
       {/* ── TAB 4: REKAP & BERKAS 360° ─────────────────────────────────────── */}
-      {subTab === 'dossier' && (
+      {currentSubTab === 'dossier' && (
         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
           {/* Header Action Bar */}
           <div className="bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
