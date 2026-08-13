@@ -188,8 +188,8 @@ export default function AdminMobileNav({
   ].slice(0, 5); // Guarantee exactly 5 items
 
   const containerClasses = tabbarStyle === 'stay'
-    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200/90 py-1.5 px-2 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] z-[999999] flex items-center justify-around gap-1 text-center pb-[calc(8px+env(safe-area-inset-bottom))] transition-all duration-300"
-    : "lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-[26px] p-2 shadow-[0_12px_36px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.04)] z-[999999] flex items-center justify-around gap-1 text-center transition-all duration-300";
+    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200/90 py-1.5 px-2 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] z-40 flex items-center justify-around gap-1 text-center pb-[calc(8px+env(safe-area-inset-bottom))] transition-all duration-300"
+    : "lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-[26px] p-2 shadow-[0_12px_36px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.04)] z-40 flex items-center justify-around gap-1 text-center transition-all duration-300";
 
   return (
     <div className={containerClasses}>

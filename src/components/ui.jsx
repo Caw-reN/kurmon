@@ -261,7 +261,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
             <X size={16} strokeWidth={2.5} />
           </button>
         )}
-        <div className={cn("p-4 sm:p-5 flex-1 min-h-0", scrollable ? "overflow-y-auto custom-scrollbar" : "")}>
+        <div className={cn("p-4 sm:p-5 flex-1 min-h-0 pb-[calc(16px+env(safe-area-inset-bottom))] sm:pb-5", scrollable ? "overflow-y-auto custom-scrollbar" : "")}>
           {children}
         </div>
       </div>
