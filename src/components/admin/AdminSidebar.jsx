@@ -595,6 +595,12 @@ export default function AdminSidebar({
                   label: `Catatan ${currentUser.walasClass || 'Kelas Saya'}`,
                   roles: ["waka"]
                 })}
+                {renderNavItem({
+                  id: "walas_report",
+                  icon: FileText,
+                  label: `Laporan Rekap Wali Kelas`,
+                  roles: ["waka"]
+                })}
               </>
             )}
             {activeUserDivision ==="kesiswaan" ? (
@@ -696,6 +702,27 @@ export default function AdminSidebar({
                   id:"generate",
                   icon: Calendar,
                   label:"Jadwal Pelajaran",
+                  roles: ["waka"]
+                })}
+                <SidebarSection label="Kehadiran & Absensi" />
+                {renderNavItem({
+                  id:"absensiguru",
+                  icon: CheckCircle2,
+                  label:"Kehadiran Guru",
+                  roles: ["waka"],
+                  featureKey:"attendance"
+                })}
+                {renderNavItem({
+                  id:"absensi",
+                  icon: UserCheck,
+                  label:"Rekap Mesin Finger",
+                  roles: ["waka"],
+                  featureKey:"attendance"
+                })}
+                {renderNavItem({
+                  id:"laporan_absensi",
+                  icon: ClipboardList,
+                  label:"Rekap Kehadiran Siswa",
                   roles: ["waka"]
                 })}
                 <SidebarSection label="Laporan & Komunikasi" />
