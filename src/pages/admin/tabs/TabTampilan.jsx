@@ -538,7 +538,7 @@ export default function TabTampilan(props) {
                                         type="color"
                                         value={currentColor}
                                         onChange={(e) => setAppSettings({ ...appSettings, [colorKey]: e.target.value })}
-                                        className="w-8 h-8 rounded-md border border-slate-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                                        className="w-8 h-8 rounded-[var(--ui-radius-small)] border border-slate-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
                                       />
                                       <input
                                         type="text"
@@ -889,7 +889,7 @@ export default function TabTampilan(props) {
                           variant="outline" 
                           type="button" 
                           onClick={applySafeColors}
-                          className="bg-emerald-700 text-white hover:bg-emerald-800 border-none font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-2"
+                          className="bg-emerald-700 text-white hover:bg-emerald-800 border-none font-black text-xs px-4 py-2.5 rounded-[var(--ui-radius-card)] shadow-xs cursor-pointer flex items-center gap-2"
                         >
                           🛡️ Setel Ke Warna Aman &amp; Standar
                         </Button>

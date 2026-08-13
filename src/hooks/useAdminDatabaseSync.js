@@ -145,7 +145,7 @@ export function useAdminDatabaseSync({
     let cancelled = false;
     setDatabaseHydrated(false);
 
-    const hydrateFullDatabase = async (retries = 2) => {
+    const hydrateFullDatabase = async (retries = 4) => {
       databaseHydrationFailedRef.current = false;
       try {
         const payload = await loadFromServer(authToken);
@@ -164,10 +164,11 @@ export function useAdminDatabaseSync({
         console.warn('Gagal memuat snapshot database lengkap', error);
         if (cancelled) return;
 
-        // Auto retry up to 2 times for transient network glitch / server locks
+        // Auto retry up to 4 times with progressive backoff for transient network glitch / server locks
         if (retries > 0 && error?.status !== 403) {
-          console.log(`Mencoba ulang memuat database dari server (${retries} percobaan tersisa)...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          const backoffDelay = (5 - retries) * 1000;
+          console.log(`Mencoba ulang memuat database dari server dalam ${backoffDelay}ms (${retries} percobaan tersisa)...`);
+          await new Promise(resolve => setTimeout(resolve, backoffDelay));
           return hydrateFullDatabase(retries - 1);
         }
 
@@ -184,8 +185,7 @@ export function useAdminDatabaseSync({
           databaseHydrationFailedRef.current = true;
           hydratedDatabaseTokenRef.current = authToken;
           setDatabaseHydrated(true);
-          setNotification('Peringatan: Data dari server belum sinkron sepenuhnya. Mencoba menyinkronkan kembali...');
-          setTimeout(() => setNotification(''), 4000);
+          // Jangan tampilkan toast mengganggu jika pengguna sedang navigasi normal
         }
       }
     };
@@ -245,6 +245,7 @@ export function useAdminDatabaseSync({
     databaseHydrated,
     databaseHydrationFailedRef,
     lastPersistedPayloadRef,
+    pendingServerPayloadRef,
     saveDatabaseNow,
     applyDatabasePayload,
     ensureDatabaseReadyForWrite,

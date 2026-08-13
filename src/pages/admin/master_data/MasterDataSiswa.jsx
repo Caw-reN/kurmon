@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useMemo } from'react';
 import { GraduationCap } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Trash2, X, RefreshCw, AlertTriangle } from'lucide-react';
+import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Trash2, X, RefreshCw, AlertTriangle, Users } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal, Button } from '../../../components/ui.jsx';
 
@@ -30,8 +30,8 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
     if (!authToken) return;
     setIsFetchingHik(true);
     try {
-      const res = await fetch("/api/hikvision/students", {
-        headers: {"Authorization": `Bearer ${authToken}` }
+      const res = await fetch("/api/hikvision/students?type=siswa", {
+        headers: { "Authorization": `Bearer ${authToken}` }
       });
       const data = await res.json();
       if (data.ok) {
@@ -48,9 +48,9 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
     fetchHikStudents();
   }, [authToken]);
 
-  // Create fast sets for NIS and Name checking (ignore empty strings)
-  const hikNisSet = useMemo(() => new Set(hikStudents.flatMap(s => [s.nis, s.code].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
-  const hikNameSet = useMemo(() => new Set(hikStudents.flatMap(s => [s.name, s.device_name, s.student_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
+  // Create fast sets for NIS and Name checking (only considering items registered on device)
+  const hikNisSet = useMemo(() => new Set(hikStudents.filter(s => s.is_on_device !== false).flatMap(s => [s.nis, s.code].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
+  const hikNameSet = useMemo(() => new Set(hikStudents.filter(s => s.is_on_device !== false).flatMap(s => [s.name, s.device_name, s.student_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikStudents]);
 
   const handleSync = async () => {
     if (hikStudents.length === 0) {
@@ -73,10 +73,15 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
         if (syncMethod ==="nis") {
           matchedHik = hikStudents.find(h => {
             const hNis = String(h.nis ||"").trim().toLowerCase();
-            return hNis === schoolNis || (schoolNis.length > 8 && (hNis === schoolNis.slice(0, 8) || hNis === schoolNis.slice(-8)));
+            return hNis === schoolNis || 
+                   (schoolNis.length > 8 && (hNis === schoolNis.slice(0, 8) || hNis === schoolNis.slice(-8))) ||
+                   (hNis.length >= 5 && (schoolNis.endsWith(hNis) || hNis.endsWith(schoolNis)));
           });
         } else {
-          matchedHik = hikStudents.find(h => String(h.name ||"").trim().toLowerCase() === schoolName);
+          matchedHik = hikStudents.find(h => {
+            const hName = String(h.name || h.device_name || "").trim().toLowerCase();
+            return hName === schoolName || hName.includes(schoolName) || schoolName.includes(hName);
+          });
         }
 
         if (matchedHik) {
@@ -198,31 +203,91 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
     </>
   ) : null;
 
+  const connectedCount = useMemo(() => {
+    return students.filter(item => {
+      const nisKey = String(item.nis || item.code ||"").trim().toLowerCase();
+      const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
+      return (nisKey && (
+        hikNisSet.has(nisKey) ||
+        (nisKey.length >= 8 && Array.from(hikNisSet).some(hn => hn.length >= 8 && (nisKey.endsWith(hn) || hn.endsWith(nisKey))))
+      )) || (nameKey && hikNameSet.has(nameKey));
+    }).length;
+  }, [students, hikNisSet, hikNameSet]);
+
+  const notConnectedCount = Math.max(0, students.length - connectedCount);
+
   const pageHeader = (
-    <PageHeader 
-      title="Data Siswa"
-      icon={GraduationCap}
-      description="Kelola data induk siswa, kelas, dan status mesin absensi."
-    />
+    <div className="space-y-4">
+      <PageHeader 
+        title="Data Siswa"
+        icon={GraduationCap}
+        description="Kelola data induk siswa, rombongan belajar, dan status koneksi mesin absensi."
+      />
+      {/* KPI Cards Header */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Total Siswa */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+            <GraduationCap size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Siswa Terdata</p>
+            <p className="text-lg sm:text-xl font-black text-slate-800">{students.length}</p>
+          </div>
+        </div>
+
+        {/* Terhubung */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
+            <p className="text-lg sm:text-xl font-black text-emerald-700">{connectedCount}</p>
+          </div>
+        </div>
+
+        {/* Belum Ada di Mesin */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <XCircle size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
+            <p className="text-lg sm:text-xl font-black text-rose-700">{notConnectedCount}</p>
+          </div>
+        </div>
+
+        {/* Total Rombel */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Users size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Total Rombel Kelas</p>
+            <p className="text-lg sm:text-xl font-black text-amber-700">{(classes || []).length} Rombel</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   return (
     <>
       {renderTable("Kelola Data Siswa", 
-        ["NIS / NISN","Nama Lengkap","Kelas","Jenis Kelamin","No. HP Ortu","Status Alat"], 
+        ["NIS","Nama Siswa","Kelas","L/P","Status Alat"], 
         students, 
         (item, idx, isSelected) => {
           const nisKey = String(item.nis || item.code ||"").trim().toLowerCase();
           const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
           const isConnected = (nisKey && (
             hikNisSet.has(nisKey) ||
-            (nisKey.length >= 4 && (hikNisSet.has(nisKey.slice(0, 8)) || hikNisSet.has(nisKey.slice(-8)))) ||
-            Array.from(hikNisSet).some(hn => hn.length >= 5 && (hn.endsWith(nisKey) || nisKey.endsWith(hn)))
-          )) || (nameKey && (hikNameSet.has(nameKey) || Array.from(hikNameSet).some(hn => hn.includes(nameKey) || nameKey.includes(hn))));
+            (nisKey.length >= 8 && Array.from(hikNisSet).some(hn => hn.length >= 8 && (nisKey.endsWith(hn) || hn.endsWith(nisKey))))
+          )) || (nameKey && hikNameSet.has(nameKey));
 
           return (
             <tr key={item.id || item.code || item.nis} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>
-              <td className="px-4 py-4 text-center">
+              <td className="px-2.5 py-2.5 text-center">
                 <input
                   type="checkbox"
                   checked={isSelected}
@@ -231,26 +296,46 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
                   aria-label={`Pilih siswa ${item.name || item.nama}`}
                 />
               </td>
-              <td className="px-6 py-4 text-center font-bold text-slate-400">{idx + 1}</td>
-              <td className="px-6 py-4 font-bold text-slate-800">{item.nis || item.code ||'-'}</td>
-              <td className="px-6 py-4 font-bold text-[var(--ui-primary)]">{item.name || item.nama ||'-'}</td>
-              <td className="px-6 py-4 font-black text-slate-700">{item.class_name || item.kelas ||'-'}</td>
-              <td className="px-6 py-4 font-medium text-slate-600">{item.gender ==='P' ?'Perempuan' : item.gender ==='L' ?'Laki-laki' : item.gender ||'-'}</td>
-              <td className="px-6 py-4 font-bold text-emerald-600 font-mono">{item.wa_ortu || item.phone ||'-'}</td>
-              <td className="px-6 py-4">
+              <td className="px-2 py-2.5 text-center font-bold text-slate-400 text-xs">{idx + 1}</td>
+              <td className="px-2.5 py-2.5 font-bold text-slate-800 text-xs font-mono">{item.nis || item.code ||'-'}</td>
+              <td className="px-3 py-2.5">
+                <div className="flex flex-col">
+                  <span className="font-extrabold text-slate-800 text-xs line-clamp-1">{item.name || item.nama ||'-'}</span>
+                  {(item.wa_ortu || item.phone) && (
+                    <span className="text-[10.5px] font-mono text-slate-500 font-semibold mt-0.5">
+                      WA Ortu: {item.wa_ortu || item.phone}
+                    </span>
+                  )}
+                </div>
+              </td>
+              <td className="px-2.5 py-2.5 font-bold text-slate-700 text-xs">
+                <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-700 text-xs font-black">
+                  {item.class_name || item.kelas ||'-'}
+                </span>
+              </td>
+              <td className="px-2.5 py-2.5 text-center font-bold text-slate-600 text-xs">
+                {item.gender ==='P' ? <span className="text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">P</span> : item.gender ==='L' ? <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">L</span> : '-'}
+              </td>
+              <td className="px-2.5 py-2.5 text-center">
                 {isFetchingHik ? (
                   <div className="flex justify-center text-slate-400" title="Memuat..."><div className="w-4 h-4 border-2 border-slate-300 border-t-[var(--ui-primary)] rounded-full animate-spin"></div></div>
                 ) : isConnected ? (
-                  <div className="flex justify-center text-emerald-500" title="Terhubung"><CheckCircle2 size={18} strokeWidth={3} /></div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold whitespace-nowrap">
+                    <CheckCircle2 size={13} className="text-emerald-600" />
+                    <span>Terhubung</span>
+                  </span>
                 ) : (
-                  <div className="flex justify-center text-slate-300" title="Belum Terhubung"><XCircle size={18} strokeWidth={3} /></div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10.5px] font-bold whitespace-nowrap">
+                    <XCircle size={13} className="text-rose-500" />
+                    <span>Belum di Mesin</span>
+                  </span>
                 )}
               </td>
-              <td className="px-6 py-4 text-right">
+              <td className="px-2.5 py-2.5 text-right">
                 {!isViewOnly && (
-                  <div className="flex justify-end gap-1.5">
-                    <Button variant="ghost" size="icon" onClick={() => openModal('siswa','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete('siswa', item.id || item.code || item.nis)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
+                  <div className="flex justify-end items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 p-0" onClick={() => openModal('siswa','edit', item)} title="Edit Siswa"><Edit2 size={13} className="text-slate-600" /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-rose-50 text-rose-500" onClick={() => handleDelete('siswa', item.id || item.code || item.nis)} title="Hapus"><Trash2 size={13} /></Button>
                   </div>
                 )}
               </td>

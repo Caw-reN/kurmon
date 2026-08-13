@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useMemo } from'react';
 import { Users } from'lucide-react';
 import { GRADES } from'../../../utils/constants';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Lock, Trash2 } from'lucide-react';
+import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Lock, Trash2, BookOpen } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { UISelect, Modal, Button } from '../../../components/ui.jsx';
 
@@ -35,7 +35,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
     if (!authToken) return;
     setIsFetchingHik(true);
     try {
-      const res = await fetch("/api/hikvision/students?type=staff", { headers: { Authorization: `Bearer ${authToken}` } });
+      const res = await fetch("/api/hikvision/students?type=guru", { headers: { Authorization: `Bearer ${authToken}` } });
       const json = await res.json();
       if (json.ok) {
         setHikTeachers(json.data || []);
@@ -51,9 +51,9 @@ const MasterDataGuru = memo(function MasterDataGuru({
     fetchHikTeachers();
   }, [authToken]);
 
-  // Create fast sets for Code and Name checking (ignore empty strings)
-  const hikCodeSet = useMemo(() => new Set(hikTeachers.flatMap(s => [s.nis, s.code, s.nip].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
-  const hikNameSet = useMemo(() => new Set(hikTeachers.flatMap(s => [s.name, s.device_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
+  // Create fast sets for Code and Name checking (only considering items registered on device)
+  const hikCodeSet = useMemo(() => new Set(hikTeachers.filter(s => s.is_on_device !== false).flatMap(s => [s.nis, s.code].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
+  const hikNameSet = useMemo(() => new Set(hikTeachers.filter(s => s.is_on_device !== false).flatMap(s => [s.name, s.device_name, s.nama].map(x => String(x || "").trim().toLowerCase()).filter(Boolean))), [hikTeachers]);
 
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -117,9 +117,10 @@ const MasterDataGuru = memo(function MasterDataGuru({
 
         const matchedHik = hikTeachers.find(h => {
           const hNis = String(h.nis ||"").trim().toLowerCase();
+          const hName = String(h.name || h.device_name || "").trim().toLowerCase();
           return hNis === schoolCode || 
                  (schoolCode.length > 8 && (hNis === schoolCode.slice(0, 8) || hNis === schoolCode.slice(-8))) ||
-                 String(h.name ||"").trim().toLowerCase() === schoolName;
+                 hName === schoolName || hName.includes(schoolName) || schoolName.includes(hName);
         });
 
         if (matchedHik) {
@@ -179,28 +180,95 @@ const MasterDataGuru = memo(function MasterDataGuru({
     </>
   ) : null;
 
+  const connectedCount = useMemo(() => {
+    return teachers.filter(item => {
+      const codeKey = String(item.code || item.id ||"").trim().toLowerCase();
+      const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
+      return (codeKey && hikCodeSet.has(codeKey)) ||
+             (nameKey && hikNameSet.has(nameKey));
+    }).length;
+  }, [teachers, hikCodeSet, hikNameSet]);
+
+  const notConnectedCount = Math.max(0, teachers.length - connectedCount);
+
+  const totalTargetJP = useMemo(() => {
+    return teachers.reduce((acc, t) => acc + (teacherTargetJpMap.get(t.code) || 0), 0);
+  }, [teachers, teacherTargetJpMap]);
+
+  const pageHeader = (
+    <div className="space-y-4">
+      <PageHeader 
+        title="Data Guru" 
+        description="Kelola data induk guru, beban mengajar, dan status koneksi mesin absensi." 
+        icon={Users} 
+      />
+      {/* KPI Cards Header */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Total Guru */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 border border-[var(--ui-primary)]/20">
+            <Users size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider">Total Guru Terdata</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">{teachers.length}</p>
+          </div>
+        </div>
+
+        {/* Terhubung */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-emerald-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
+            <CheckCircle2 size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-[11px] font-black text-emerald-600 uppercase tracking-wider">Terhubung (Mesin)</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{connectedCount}</p>
+          </div>
+        </div>
+
+        {/* Belum Ada di Mesin */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-rose-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
+            <XCircle size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-[11px] font-black text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
+            <p className="text-xl sm:text-2xl font-black text-rose-700 tracking-tight">{notConnectedCount}</p>
+          </div>
+        </div>
+
+        {/* Total Target JP */}
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+            <BookOpen size={20} strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-[11px] font-black text-amber-600 uppercase tracking-wider">Total Target Jam (JP)</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{totalTargetJP} <span className="text-xs font-bold text-amber-600">JP</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {renderTable("Kelola Data Guru",
-        ["Kode","Nama Lengkap","Kategori","No. WhatsApp","Wali Kelas","Target/Terjadwal JP","Prioritas Jurusan","Prioritas Tingkat","Status Alat"],
+        ["Kode","Nama Guru","Kategori & Wali","Beban JP","Prioritas","Status Alat"],
         teachers,
         (item, idx, isSelected) => {
           const assignedHomeroom = classes.find((c) => c.homeroom === item.code)?.name ||"-";
           const targetJP = teacherTargetJpMap.get(item.code) || 0;
           const scheduledJP = teacherScheduleCountMap.get(item.code) || 0;
 
-          const codeKey = String(item.code ||"").trim().toLowerCase();
-          const nipKey = String(item.nip ||"").trim().toLowerCase();
+          const codeKey = String(item.code || item.id ||"").trim().toLowerCase();
           const nameKey = String(item.name || item.nama ||"").trim().toLowerCase();
-          const isConnected = (codeKey && (
-            hikCodeSet.has(codeKey) || (codeKey.length >= 4 && (hikCodeSet.has(codeKey.slice(0, 8)) || hikCodeSet.has(codeKey.slice(-8))))
-          )) || (nipKey && (
-            hikCodeSet.has(nipKey) || (nipKey.length >= 4 && (hikCodeSet.has(nipKey.slice(0, 8)) || hikCodeSet.has(nipKey.slice(-8))))
-          )) || (nameKey && (hikNameSet.has(nameKey) || Array.from(hikNameSet).some(hn => hn.includes(nameKey) || nameKey.includes(hn))));
+          const isConnected = (codeKey && hikCodeSet.has(codeKey)) ||
+                              (nameKey && hikNameSet.has(nameKey));
 
           return (
             <tr key={item.code} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>
-              <td className="px-3 py-2.5 text-center">
+              <td className="px-2.5 py-2.5 text-center">
                 <input
                   type="checkbox"
                   checked={isSelected}
@@ -209,108 +277,132 @@ const MasterDataGuru = memo(function MasterDataGuru({
                   aria-label={`Pilih guru ${item.code}`}
                 />
               </td>
-              <td className="px-3 py-2.5 text-center font-bold text-slate-400 text-xs">{idx + 1}</td>
-              <td className="px-3 py-2.5 text-center font-black text-[var(--ui-primary)] text-xs">{item.code}</td>
-              <td className="px-3 py-2.5 font-bold text-slate-800 text-xs">
-                {quickEditGuruCode === item.code ? (
-                  <input type="text" value={quickGuruForm.name ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, name: e.target.value })} className="w-full border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold" />
-                ) : item.name}
+              <td className="px-2 py-2.5 text-center font-bold text-slate-400 text-xs">{idx + 1}</td>
+              <td className="px-2 py-2.5 text-center">
+                <span className="px-2 py-0.5 font-mono text-[11px] font-black text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 rounded-[var(--ui-radius-small)]">
+                  {item.code}
+                </span>
               </td>
-              <td className="px-3 py-2.5 text-center">
+              <td className="px-3 py-2.5">
                 {quickEditGuruCode === item.code ? (
-                  <UISelect value={quickGuruForm.type ||"Umum"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, type: e.target.value })} className="border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold">
+                  <div className="space-y-1">
+                    <input type="text" value={quickGuruForm.name ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, name: e.target.value })} className="w-full border border-slate-200 bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold" placeholder="Nama Guru" />
+                    <input type="text" value={quickGuruForm.phone ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, phone: e.target.value.replace(/[^0-9]/g,'') })} className="w-full border border-slate-200 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[11px] font-mono" placeholder="No. WA: 081xxx" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-slate-800 text-xs line-clamp-1">{item.name}</span>
+                    {item.phone && (
+                      <span className="text-[10.5px] font-mono text-slate-500 font-semibold mt-0.5">
+                        WA: {item.phone}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </td>
+              <td className="px-2.5 py-2.5 text-center">
+                {quickEditGuruCode === item.code ? (
+                  <UISelect value={quickGuruForm.type ||"Umum"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, type: e.target.value })} className="border border-slate-200 bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold">
                     <option value="Umum">Umum</option>
                     <option value="Jurusan">Jurusan</option>
                     <option value="Campuran">Campuran</option>
                   </UISelect>
                 ) : (
-                  <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] whitespace-nowrap ${item.type ==="Umum" ?"bg-slate-100 text-slate-600" :"bg-[var(--ui-accent)]/20 text-[var(--ui-primary)]"}`}>{item.type}</span>
-                )}
-              </td>
-              <td className="px-3 py-2.5 font-semibold text-slate-700 text-xs text-center">
-                {quickEditGuruCode === item.code ? (
-                  <input type="text" value={quickGuruForm.phone ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, phone: e.target.value.replace(/[^0-9]/g,'') })} className="w-full border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold" placeholder="6281xxx" />
-                ) : (item.phone ||"-")}
-              </td>
-              <td className="px-3 py-2.5 text-center">
-                {assignedHomeroom !=="-" ? (
-                  <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100/50 whitespace-nowrap">
-                    {assignedHomeroom}
-                  </span>
-                ) : (
-                  <span className="text-slate-400 font-semibold text-xs">-</span>
-                )}
-              </td>
-              <td className="px-3 py-2.5">
-                <div className="flex flex-col items-center">
-                  {quickEditGuruCode === item.code ? (
-                    <input type="text" inputMode="numeric" value={quickGuruForm.targetWeeklyJp ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, targetWeeklyJp: e.target.value.replace(/[^0-9]/g,'') })} className="w-20 border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-center" placeholder={`${targetJP}`} />
-                  ) : (
-                    <span className="font-bold text-slate-800 text-xs whitespace-nowrap">{targetJP} JP</span>
-                  )}
-                  <span className={`text-[10px] font-bold mt-0.5 whitespace-nowrap ${scheduledJP === targetJP && targetJP > 0 ?"text-[var(--ui-primary)]" : scheduledJP > 0 ?"text-amber-600" :"text-slate-400"}`}>
-                    Terjadwal: {scheduledJP} JP
-                  </span>
-                </div>
-              </td>
-              <td className="px-3 py-2.5 font-semibold text-slate-600 text-xs text-center">
-                {quickEditGuruCode === item.code ? (
-                  <div className="flex items-center gap-2">
-                    <input type="text" value={quickGuruForm.preferredMajor ||"Semua"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, preferredMajor: e.target.value })} className="border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold w-24" placeholder="Semua atau TKJ,TKR" />
-                    <input type="password" value={quickGuruForm.password ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, password: e.target.value })} className="w-20 border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold" placeholder="Kosongkan jika sama" />
+                  <div className="flex flex-col items-center gap-1">
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] whitespace-nowrap ${item.type ==="Umum" ?"bg-slate-100 text-slate-600" :"bg-[var(--ui-accent)]/20 text-[var(--ui-primary)]"}`}>
+                      {item.type}
+                    </span>
+                    {assignedHomeroom !=="-" && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100/50 whitespace-nowrap">
+                        Wali {assignedHomeroom}
+                      </span>
+                    )}
                   </div>
-                ) : (item.preferredMajor && item.preferredMajor !=='Semua' ? item.preferredMajor :'Semua Jurusan')}
+                )}
               </td>
-              <td className="px-3 py-2.5 font-semibold text-slate-600 text-xs text-center">
+              <td className="px-2.5 py-2.5 text-center">
                 {quickEditGuruCode === item.code ? (
-                  <UISelect value={quickGuruForm.preferredGrade ||"Semua"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, preferredGrade: e.target.value })} className="w-24 border-none bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold">
-                    <option value="Semua">Semua</option>
-                    {GRADES.filter(g => g !=='Semua').map((m) => (<option key={m} value={m}>Tingkat {m}</option>))}
-                  </UISelect>
-                ) : (item.preferredGrade && item.preferredGrade !=='Semua' ? `Tingkat ${item.preferredGrade}` :'Semua Tingkat')}
+                  <input type="text" inputMode="numeric" value={quickGuruForm.targetWeeklyJp ||""} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, targetWeeklyJp: e.target.value.replace(/[^0-9]/g,'') })} className="w-16 border border-slate-200 bg-white px-2 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold text-center" placeholder={`${targetJP}`} />
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <span className="font-extrabold text-slate-800 text-xs whitespace-nowrap">{targetJP} JP</span>
+                    <span className={`text-[10px] font-bold whitespace-nowrap ${scheduledJP === targetJP && targetJP > 0 ?"text-[var(--ui-primary)]" : scheduledJP > 0 ?"text-amber-600" :"text-slate-400"}`}>
+                      Terjadwal: {scheduledJP} JP
+                    </span>
+                  </div>
+                )}
+              </td>
+              <td className="px-2.5 py-2.5 text-center">
+                {quickEditGuruCode === item.code ? (
+                  <div className="space-y-1">
+                    <input type="text" value={quickGuruForm.preferredMajor ||"Semua"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, preferredMajor: e.target.value })} className="border border-slate-200 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold w-full" placeholder="Jurusan" />
+                    <UISelect value={quickGuruForm.preferredGrade ||"Semua"} onChange={(e) => setQuickGuruForm({ ...quickGuruForm, preferredGrade: e.target.value })} className="w-full border border-slate-200 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold">
+                      <option value="Semua">Semua Tingkat</option>
+                      {GRADES.filter(g => g !=='Semua').map((m) => (<option key={m} value={m}>Tingkat {m}</option>))}
+                    </UISelect>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-xs">
+                    <span className="font-bold text-slate-700 whitespace-nowrap">{item.preferredMajor && item.preferredMajor !=='Semua' ? item.preferredMajor :'Semua Jurusan'}</span>
+                    <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">{item.preferredGrade && item.preferredGrade !=='Semua' ? `Tingkat ${item.preferredGrade}` :'Semua Tingkat'}</span>
+                  </div>
+                )}
               </td>
               {/* Status Alat Hikvision */}
-              <td className="px-3 py-2.5 text-center">
+              <td className="px-2.5 py-2.5 text-center">
                 {isFetchingHik ? (
                   <div className="flex justify-center text-slate-400" title="Memuat..."><div className="w-4 h-4 border-2 border-slate-300 border-t-[var(--ui-primary)] rounded-full animate-spin"></div></div>
                 ) : isConnected ? (
-                  <div className="flex justify-center text-emerald-500" title="Terhubung"><CheckCircle2 size={16} strokeWidth={3} /></div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold whitespace-nowrap">
+                    <CheckCircle2 size={13} className="text-emerald-600" />
+                    <span>Terhubung</span>
+                  </span>
                 ) : (
-                  <div className="flex justify-center text-slate-300" title="Belum Terhubung"><XCircle size={16} strokeWidth={3} /></div>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10.5px] font-bold whitespace-nowrap">
+                    <XCircle size={13} className="text-rose-500" />
+                    <span>Belum di Mesin</span>
+                  </span>
                 )}
               </td>
-              <td className="px-3 py-2.5 text-right">
+              <td className="px-2.5 py-2.5 text-right">
                 {!isViewOnly ? (
-                  <div className="flex justify-end gap-1.5">
+                  <div className="flex justify-end items-center gap-1">
                     {quickEditGuruCode === item.code ? (
                       <>
-                        <Button size="sm" onClick={() => saveQuickEditGuru(item.code)}>Save</Button>
-                        <Button size="sm" variant="outline" onClick={() => { setQuickEditGuruCode(""); setQuickGuruForm({}); }}>Cancel</Button>
+                        <Button size="sm" className="h-7 px-2 text-xs" onClick={() => saveQuickEditGuru(item.code)}>Save</Button>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => { setQuickEditGuruCode(""); setQuickGuruForm({}); }}>Batal</Button>
                       </>
                     ) : (
-                      <Button size="sm" variant="outline" onClick={() => startQuickEditGuru(item)}>Quick Edit</Button>
+                      <>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 p-0" onClick={() => openModal("ketersediaan_mapel","edit", item)} title="Atur Mapel">
+                          <BookOpen size={13} className="text-slate-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 p-0" onClick={() => openModal('guru','edit', item)} title="Edit Guru">
+                          <Edit2 size={13} className="text-slate-600" />
+                        </Button>
+                        {(() => {
+                          const deps = checkDependencies('guru', item.code);
+                          if (deps.length > 0) {
+                            return (
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-7 w-7 p-0 hover:bg-amber-50 border border-amber-200/80 cursor-pointer"
+                                onClick={() => openModal('lock_info', 'view', { type: 'guru', name: `Guru: ${item.name || item.code}`, deps })}
+                                title="Klik untuk melihat detail koneksi data"
+                              >
+                                <Lock size={13} className="text-amber-500" />
+                              </Button>
+                            );
+                          }
+                          return (
+                            <Button size="icon" variant="ghost" className="h-7 w-7 p-0 hover:bg-rose-50 text-rose-500" onClick={() => handleDelete('guru', item.code)} title="Hapus">
+                              <Trash2 size={13} />
+                            </Button>
+                          );
+                        })()}
+                      </>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => openModal("ketersediaan_mapel","edit", item)}>Mapel</Button>
-                    <Button size="icon" variant="ghost" onClick={() => openModal('guru','edit', item)}><Edit2 size={14} className="text-slate-500" /></Button>
-                    {(() => {
-                      const deps = checkDependencies('guru', item.code);
-                      if (deps.length > 0) {
-                        return (
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            onClick={() => openModal('lock_info', 'view', { type: 'guru', name: `Guru: ${item.name || item.code}`, deps })}
-                            title="Klik untuk melihat detail koneksi data"
-                            className="hover:bg-amber-50 border border-amber-200/80 cursor-pointer"
-                          >
-                            <Lock size={14} className="text-amber-500" />
-                          </Button>
-                        );
-                      }
-                      return (
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete('guru', item.code)} title="Hapus"><Trash2 size={14} className="text-rose-500" /></Button>
-                      );
-                    })()}
                   </div>
                 ) : (
                   <span className="text-xs text-slate-400 italic font-medium">Lihat saja</span>
@@ -319,7 +411,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
             </tr>
           );
         },
-        { customHeaderButtons: customButtons, pageHeader: <PageHeader title="Data Guru" description="Kelola data induk guru, beban mengajar, dan target jam mengajar." icon={Users} /> }
+        { customHeaderButtons: customButtons, pageHeader }
       )}
 
       {/* Import Confirm Modal */}

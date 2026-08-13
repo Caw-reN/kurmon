@@ -26,6 +26,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const [raporPaperSize, setRaporPaperSize] = useState(() => getDatabaseSnapshot()?.appSettings?.defaultPaperSize || 'A4');
 
 
+  const storeAppSettings = useAppStore((state) => state.appSettings) || {};
+  const appSettings = storeAppSettings;
+
   const showToast = (message, type ='success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
@@ -527,128 +530,140 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     }
   };
 
-  const printRaporGuruPDF = (teacher, size ='A4') => {
-    const doc = new jsPDF({
-      orientation:'portrait',
-      unit:'mm',
-      format: size ==='A4' ?'a4' : [215, 330]
-    });
+  const printRaporGuruPDF = (teacher, size = 'A4', action = 'download') => {
+    if (!teacher) return;
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: size === 'A4' ? 'a4' : [215, 330]
+      });
 
-    const pageWidth = size ==='A4' ? 210 : 215;
+      const pageWidth = size === 'A4' ? 210 : 215;
 
-    // Header
-    doc.setFont("Helvetica","bold");
-    doc.setFontSize(14);
-    doc.text("RAPOR KINERJA & KEHADIRAN GURU", pageWidth / 2, 20, { align:"center" });
+      // Header
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("RAPOR KINERJA & KEHADIRAN GURU", pageWidth / 2, 20, { align: "center" });
 
-    doc.setFontSize(10);
-    doc.setFont("Helvetica","normal");
-    doc.text(`Tahun Ajaran: ${filter.year} / ${filter.year + 1}`, pageWidth / 2, 25, { align:"center" });
-    doc.line(15, 28, pageWidth - 15, 28);
+      doc.setFontSize(10);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`Tahun Ajaran: ${filter.year} / ${filter.year + 1}`, pageWidth / 2, 25, { align: "center" });
+      doc.line(15, 28, pageWidth - 15, 28);
 
-    // Identitas Guru
-    doc.setFont("Helvetica","bold");
-    doc.text("IDENTITAS GURU", 15, 36);
-    doc.setFont("Helvetica","normal");
+      // Identitas Guru
+      doc.setFont("Helvetica", "bold");
+      doc.text("IDENTITAS GURU", 15, 36);
+      doc.setFont("Helvetica", "normal");
 
-    doc.text(`Nama Guru`, 15, 42);
-    doc.text(`: ${teacher.name}`, 45, 42);
-    doc.text(`NIP / Kode`, 15, 47);
-    doc.text(`: ${teacher.nis}`, 45, 47);
-    doc.text(`Kategori`, 15, 52);
-    doc.text(`: ${teacher.class_name ||'Guru'}`, 45, 52);
+      doc.text(`Nama Guru`, 15, 42);
+      doc.text(`: ${teacher.name || teacher.nama || "Guru"}`, 45, 42);
+      doc.text(`NIP / Kode`, 15, 47);
+      doc.text(`: ${teacher.nis || teacher.code || "-"}`, 45, 47);
+      doc.text(`Kategori`, 15, 52);
+      doc.text(`: ${teacher.class_name || 'Guru'}`, 45, 52);
 
-    // I. Kehadiran Section
-    doc.setFont("Helvetica","bold");
-    doc.text("I. REKAPITULASI KEHADIRAN FINGERPRINT", 15, 62);
-    doc.setFont("Helvetica","normal");
+      // I. Kehadiran Section
+      doc.setFont("Helvetica", "bold");
+      doc.text("I. REKAPITULASI KEHADIRAN FINGERPRINT", 15, 62);
+      doc.setFont("Helvetica", "normal");
 
-    doc.rect(15, 66, pageWidth - 30, 16);
-    doc.line(15, 74, pageWidth - 15, 74);
+      doc.rect(15, 66, pageWidth - 30, 16);
+      doc.line(15, 74, pageWidth - 15, 74);
 
-    const colWidth = (pageWidth - 30) / 5;
-    doc.line(15 + colWidth, 66, 15 + colWidth, 82);
-    doc.line(15 + colWidth * 2, 66, 15 + colWidth * 2, 82);
-    doc.line(15 + colWidth * 3, 66, 15 + colWidth * 3, 82);
-    doc.line(15 + colWidth * 4, 66, 15 + colWidth * 4, 82);
+      const colWidth = (pageWidth - 30) / 5;
+      doc.line(15 + colWidth, 66, 15 + colWidth, 82);
+      doc.line(15 + colWidth * 2, 66, 15 + colWidth * 2, 82);
+      doc.line(15 + colWidth * 3, 66, 15 + colWidth * 3, 82);
+      doc.line(15 + colWidth * 4, 66, 15 + colWidth * 4, 82);
 
-    doc.setFont("Helvetica","bold");
-    doc.text("Hadir", 15 + colWidth / 2, 71, { align:"center" });
-    doc.text("Telat", 15 + colWidth * 1.5, 71, { align:"center" });
-    doc.text("Izin", 15 + colWidth * 2.5, 71, { align:"center" });
-    doc.text("Sakit", 15 + colWidth * 3.5, 71, { align:"center" });
-    doc.text("Alpa", 15 + colWidth * 4.5, 71, { align:"center" });
+      doc.setFont("Helvetica", "bold");
+      doc.text("Hadir", 15 + colWidth / 2, 71, { align: "center" });
+      doc.text("Telat", 15 + colWidth * 1.5, 71, { align: "center" });
+      doc.text("Izin", 15 + colWidth * 2.5, 71, { align: "center" });
+      doc.text("Sakit", 15 + colWidth * 3.5, 71, { align: "center" });
+      doc.text("Alpa", 15 + colWidth * 4.5, 71, { align: "center" });
 
-    doc.setFont("Helvetica","normal");
-    doc.text(`${teacher.total_hadir || 0} hari`, 15 + colWidth / 2, 79, { align:"center" });
-    doc.text(`${teacher.total_terlambat || 0} kali`, 15 + colWidth * 1.5, 79, { align:"center" });
-    doc.text(`${teacher.total_izin || 0} hari`, 15 + colWidth * 2.5, 79, { align:"center" });
-    doc.text(`${teacher.total_sakit || 0} hari`, 15 + colWidth * 3.5, 79, { align:"center" });
-    doc.text(`${teacher.total_alpa || 0} hari`, 15 + colWidth * 4.5, 79, { align:"center" });
+      doc.setFont("Helvetica", "normal");
+      doc.text(`${teacher.total_hadir || 0} hari`, 15 + colWidth / 2, 79, { align: "center" });
+      doc.text(`${teacher.total_terlambat || 0} kali`, 15 + colWidth * 1.5, 79, { align: "center" });
+      doc.text(`${teacher.total_izin || 0} hari`, 15 + colWidth * 2.5, 79, { align: "center" });
+      doc.text(`${teacher.total_sakit || 0} hari`, 15 + colWidth * 3.5, 79, { align: "center" });
+      doc.text(`${teacher.total_alpa || 0} hari`, 15 + colWidth * 4.5, 79, { align: "center" });
 
-    // II. Kinerja Mengajar Section
-    doc.setFont("Helvetica","bold");
-    doc.text("II. BEBAN MENGAJAR & TUGAS (JP)", 15, 92);
-    doc.setFont("Helvetica","normal");
+      // II. Kinerja Mengajar Section
+      doc.setFont("Helvetica", "bold");
+      doc.text("II. BEBAN MENGAJAR & TUGAS (JP)", 15, 92);
+      doc.setFont("Helvetica", "normal");
 
-    // Find teaching stats
-    const matchedGuruObj = teachers.find(g => String(g.code).trim().toLowerCase() === String(teacher.nis).trim().toLowerCase());
-    const targetJP = matchedGuruObj?.targetWeeklyJp || 24;
-    const preferredGrade = matchedGuruObj?.preferredGrade ||"Semua";
-    const preferredMajor = matchedGuruObj?.preferredMajor ||"Semua";
+      // Find teaching stats
+      const matchedGuruObj = teachers.find(g => String(g.code).trim().toLowerCase() === String(teacher.nis).trim().toLowerCase());
+      const targetJP = matchedGuruObj?.targetWeeklyJp || 24;
+      const preferredGrade = matchedGuruObj?.preferredGrade || "Semua";
+      const preferredMajor = matchedGuruObj?.preferredMajor || "Semua";
 
-    doc.text(`Target JP Mingguan`, 15, 98);
-    doc.text(`: ${targetJP} JP`, 55, 98);
-    doc.text(`Prioritas Tingkat`, 15, 103);
-    doc.text(`: ${preferredGrade !=='Semua' ?'Tingkat' + preferredGrade :'Semua Tingkat'}`, 55, 103);
-    doc.text(`Prioritas Jurusan`, 15, 108);
-    doc.text(`: ${preferredMajor !=='Semua' ? preferredMajor :'Semua Jurusan'}`, 55, 108);
+      doc.text(`Target JP Mingguan`, 15, 98);
+      doc.text(`: ${targetJP} JP`, 55, 98);
+      doc.text(`Prioritas Tingkat`, 15, 103);
+      doc.text(`: ${preferredGrade !== 'Semua' ? 'Tingkat ' + preferredGrade : 'Semua Tingkat'}`, 55, 103);
+      doc.text(`Prioritas Jurusan`, 15, 108);
+      doc.text(`: ${preferredMajor !== 'Semua' ? preferredMajor : 'Semua Jurusan'}`, 55, 108);
 
-    // III. Skor Kredit & Kinerja Guru
-    doc.setFont("Helvetica","bold");
-    doc.text("III. EVALUASI AKHIR SKOR KINERJA & KREDIT GURU", 15, 120);
-    
-    const alpaDeduction = (teacher.total_alpa || 0) * 5;
-    const lateDeduction = (teacher.total_terlambat || 0) * 1;
-    const totalDeductions = alpaDeduction + lateDeduction;
-    const finalScore = Math.max(0, 100 - totalDeductions);
+      // III. Skor Kredit & Kinerja Guru
+      doc.setFont("Helvetica", "bold");
+      doc.text("III. EVALUASI AKHIR SKOR KINERJA & KREDIT GURU", 15, 120);
+      
+      const alpaDeduction = (teacher.total_alpa || 0) * 5;
+      const lateDeduction = (teacher.total_terlambat || 0) * 1;
+      const totalDeductions = alpaDeduction + lateDeduction;
+      const finalScore = Math.max(0, 100 - totalDeductions);
 
-    doc.rect(15, 124, pageWidth - 30, 20);
-    doc.line(15, 124 + 10, pageWidth - 15, 124 + 10);
-    doc.line(pageWidth / 2, 124, pageWidth / 2, 124 + 20);
+      doc.rect(15, 124, pageWidth - 30, 20);
+      doc.line(15, 124 + 10, pageWidth - 15, 124 + 10);
+      doc.line(pageWidth / 2, 124, pageWidth / 2, 124 + 20);
 
-    doc.text("Skor Kinerja Awal: 100 Poin", 15 + (pageWidth - 30) / 4, 124 + 6.5, { align:"center" });
-    doc.text(`Total Poin Pengurangan: -${totalDeductions} Poin`, 15 + (pageWidth - 30) * 0.75, 124 + 6.5, { align:"center" });
+      doc.text("Skor Kinerja Awal: 100 Poin", 15 + (pageWidth - 30) / 4, 124 + 6.5, { align: "center" });
+      doc.text(`Total Poin Pengurangan: -${totalDeductions} Poin`, 15 + (pageWidth - 30) * 0.75, 124 + 6.5, { align: "center" });
 
-    doc.text("SKOR KINERJA AKHIR", 15 + (pageWidth - 30) / 4, 124 + 16.5, { align:"center" });
-    doc.text(`${finalScore} / 100 Poin`, 15 + (pageWidth - 30) * 0.75, 124 + 16.5, { align:"center" });
+      doc.text("SKOR KINERJA AKHIR", 15 + (pageWidth - 30) / 4, 124 + 16.5, { align: "center" });
+      doc.text(`${finalScore} / 100 Poin`, 15 + (pageWidth - 30) * 0.75, 124 + 16.5, { align: "center" });
 
-    // Predicate
-    let predikat ="SANGAT BAIK";
-    if (finalScore < 70) {
-      predikat ="CUKUP / PERLU PEMBINAAN";
-    } else if (finalScore < 85) {
-      predikat ="BAIK";
+      // Predicate
+      let predikat = "SANGAT BAIK";
+      if (finalScore < 70) {
+        predikat = "CUKUP / PERLU PEMBINAAN";
+      } else if (finalScore < 85) {
+        predikat = "BAIK";
+      }
+
+      doc.setFont("Helvetica", "bold");
+      doc.text(`PREDIKAT EVALUASI: ${predikat}`, pageWidth / 2, 153, { align: "center" });
+
+      // Signature Block
+      let currentY = 170;
+      doc.text("Mengetahui,", 20, currentY);
+      doc.text("Guru Bersangkutan,", pageWidth - 60, currentY);
+
+      currentY += 25;
+      doc.line(20, currentY, 70, currentY);
+      doc.line(pageWidth - 60, currentY, pageWidth - 20, currentY);
+
+      doc.setFont("Helvetica", "normal");
+      doc.text("Kepala Sekolah / Waka", 20, currentY + 4);
+      doc.text(teacher.name || "Guru", pageWidth - 60, currentY + 4);
+
+      if (action === 'download') {
+        doc.save(`Rapor_Kinerja_Guru_${String(teacher.name || 'Guru').replace(/\s+/g, '_')}.pdf`);
+        showToast(`Rapor kinerja ${teacher.name} berhasil diunduh!`);
+      } else {
+        doc.autoPrint();
+        window.open(doc.output('bloburl'), '_blank');
+        showToast('Jendela cetak dibuka!');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal mencetak rapor PDF guru', 'error');
     }
-
-    doc.setFont("Helvetica","bold");
-    doc.text(`PREDIKAT EVALUASI: ${predikat}`, pageWidth / 2, 153, { align:"center" });
-
-    // Signature Block
-    let currentY = 170;
-    doc.text("Mengetahui,", 20, currentY);
-    doc.text("Guru Bersangkutan,", pageWidth - 60, currentY);
-
-    currentY += 25;
-    doc.line(20, currentY, 70, currentY);
-    doc.line(pageWidth - 60, currentY, pageWidth - 20, currentY);
-
-    doc.setFont("Helvetica","normal");
-    doc.text("Kepala Sekolah / Waka", 20, currentY + 4);
-    doc.text(teacher.name, pageWidth - 60, currentY + 4);
-
-    doc.save(`Rapor_Kinerja_Guru_${teacher.name.replace(/\s+/g,'_')}.pdf`);
-    showToast(`Rapor kinerja ${teacher.name} berhasil diunduh!`);
   };
 
   const handleManualSubmit = async (e) => {
@@ -1148,39 +1163,16 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           title="Laporan & Rekap Absensi Guru"
           description="Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."
           icon={Users}
+          tabs={[
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+            { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
+          ]}
+          activeTab={subTab}
+          onTabChange={setSubTab}
         />
       )}
 
       <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Header Row with Segmented Sub-tabs */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-full sm:w-fit">
-            {[
-              { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
-              { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSubTab(tab.id)}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
-                  subTab === tab.id
-                    ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
-              >
-                <tab.icon size={14} className={subTab === tab.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="text-xs font-bold text-slate-500 flex items-center gap-2 self-end sm:self-center">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Total: <strong className="text-slate-800 font-extrabold">{data.length}</strong> Guru</span>
-          </div>
-        </div>
-
         {/* Top Filter Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="min-w-0">
@@ -1624,41 +1616,84 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
       {/* Modal Cetak Rapor Guru */}
       {selectedTeacherForRapor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-small)] shadow-sm w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-md w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
                 <FileText size={16} className="text-rose-500" />
-                Cetak Rapor Evaluasi Kinerja Guru
+                <span>Cetak Rapor Evaluasi Kinerja Guru</span>
               </h3>
-              <Button variant="outline" type="button" onClick={() =>setSelectedTeacherForRapor(null)} className="cursor-pointer">
-                <X size={18} /></Button>
+              <button 
+                type="button" 
+                onClick={() => setSelectedTeacherForRapor(null)} 
+                className="w-7 h-7 rounded-[var(--ui-radius-small)] hover:bg-slate-200/80 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X size={16} />
+              </button>
             </div>
             <div className="p-4 space-y-4">
-              <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
+              <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/60 text-xs space-y-1">
                 <p className="text-slate-500 font-semibold">Nama Guru:</p>
-                <p className="font-bold text-slate-800 text-sm">{selectedTeacherForRapor.name}</p>
-                <p className="text-slate-600">NIP / Kode: {selectedTeacherForRapor.nis}</p>
+                <p className="font-extrabold text-slate-800 text-sm">{selectedTeacherForRapor.name}</p>
+                <p className="text-slate-600 font-medium">NIP / Kode: <strong className="font-mono text-slate-800">{selectedTeacherForRapor.nis || "-"}</strong></p>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Pilih Ukuran Kertas</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('A4')}
-                    className={`text-center cursor-pointer`}>
-                    A4 (Standar)</Button>
-                  <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('F4')}
-                    className={`text-center cursor-pointer`}>
-                    F4 (Folio/HVS)</Button>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setRaporPaperSize('A4')}
+                    className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all border cursor-pointer ${
+                      raporPaperSize === 'A4'
+                        ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 shadow-2xs'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    A4 (Standar)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRaporPaperSize('F4')}
+                    className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all border cursor-pointer ${
+                      raporPaperSize === 'F4'
+                        ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 shadow-2xs'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    F4 (Folio/HVS)
+                  </button>
                 </div>
               </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <Button variant="outline" type="button" onClick={() =>setSelectedTeacherForRapor(null)} >
-                  Batal</Button>
-                <Button variant="outline" type="button" onClick={() =>{
-                  printRaporGuruPDF(selectedTeacherForRapor, raporPaperSize);
-                  setSelectedTeacherForRapor(null);
-                }} className="flex items-center gap-1.5">
-                  <Printer size={14} /> Download Rapor</Button>
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => setSelectedTeacherForRapor(null)} 
+                  className="px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] cursor-pointer"
+                >
+                  Batal
+                </Button>
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => {
+                    printRaporGuruPDF(selectedTeacherForRapor, raporPaperSize, 'download');
+                    setSelectedTeacherForRapor(null);
+                  }} 
+                  className="px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 rounded-[var(--ui-radius-small)] border-slate-300 text-slate-800 hover:bg-slate-50 cursor-pointer"
+                >
+                  <Download size={13} /> Unduh PDF
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    printRaporGuruPDF(selectedTeacherForRapor, raporPaperSize, 'print');
+                    setSelectedTeacherForRapor(null);
+                  }} 
+                  className="px-3.5 py-1.5 text-xs font-black bg-[var(--ui-primary)] hover:opacity-90 text-white flex items-center gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs cursor-pointer border-none"
+                >
+                  <Printer size={13} /> Cetak Rapor
+                </Button>
               </div>
             </div>
           </div>
@@ -1796,7 +1831,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                {printPeriod === 'harian' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
-                   <select
+                   <UISelect
                      value={printDate}
                      onChange={e => setPrintDate(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -1804,14 +1839,14 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                        <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
                      ))}
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'mingguan' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
-                   <select
+                   <UISelect
                      value={printWeek}
                      onChange={e => setPrintWeek(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -1821,21 +1856,21 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                      <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
                      <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
                      <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'semester' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
-                   <select
+                   <UISelect
                      value={printSemester}
                      onChange={e => setPrintSemester(e.target.value)}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
                      <option value="genap">Semester Genap (Januari - Juni)</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 

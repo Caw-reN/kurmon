@@ -167,18 +167,106 @@ export function useAdminTableRenderer(context) {
           )}
 
           {/* Toolbar */}
-          <div className="p-3 md:p-4 border-b border-border bg-card/90 shrink-0">
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-              <div className="text-xs font-medium text-muted-foreground shrink-0">
-                <span className="font-semibold text-foreground">{filteredData.length}</span> dari {data.length} data tampil
+          <div className="p-3.5 md:p-4 border-b border-border bg-white flex flex-col gap-3 shrink-0">
+            {/* Top Toolbar Row: Search Input + Primary Actions */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Search Bar */}
+              <div className="relative flex-1 min-w-[240px] max-w-lg">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={`Cari ${title.toLowerCase()}...`}
+                  value={searchTerm}
+                  onChange={e => { setSearchTerm(e.target.value); setTablePage(1); }}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--ui-primary)]/10 transition-all placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end">
+                {options.customHeaderButtons}
+
+                {!isViewOnly && (
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => openModal("bulk","add")} 
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs border-slate-200 hover:bg-slate-50 text-slate-700"
+                  >
+                    <Upload size={13} /> Import Teks
+                  </Button>
+                )}
+
+                {deletedHistory.length > 0 && (
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={undoLastDelete} 
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                  >
+                    <History size={13} /> Undo Hapus
+                  </Button>
+                )}
+
+                {selectedCount > 0 && !isViewOnly && (
+                  <>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
+                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-[var(--ui-radius-small)] shadow-2xs"
+                    >
+                      <Edit3 size={13} /> Edit Massal ({selectedCount})
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="destructive" 
+                      onClick={() => handleBulkDelete(tabKey, selectedKeys)} 
+                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[var(--ui-radius-small)] shadow-2xs"
+                    >
+                      <Trash2 size={13} /> Hapus ({selectedCount})
+                    </Button>
+                  </>
+                )}
+
+                {tabKey === "ruangan" && (
+                  <Button 
+                    type="button"
+                    variant="destructive" 
+                    onClick={handleResetRuangan} 
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs"
+                  >
+                    <Trash2 size={13} /> Kosongkan Semua
+                  </Button>
+                )}
+
+                {!isViewOnly && (
+                  <Button 
+                    type="button"
+                    onClick={() => openModal(tabKey,"add")} 
+                    className="text-xs font-extrabold gap-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] shadow-xs px-3.5 py-2 active:scale-95 transition-all border-none"
+                  >
+                    <Plus size={15} strokeWidth={2.5} /> Tambah Data
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Toolbar Row: Stats Info + Filters & Sorting */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
+              <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                <span>Menampilkan <strong className="text-slate-800">{filteredData.length}</strong> dari {data.length} data</span>
                 {selectedCount > 0 && (
-                  <Badge variant="secondary" className="ml-2">{selectedCount} dipilih</Badge>
+                  <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black">
+                    {selectedCount} Dipilih
+                  </span>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full xl:w-auto">
+              {/* Filters & Sorting Controls */}
+              <div className="flex flex-wrap items-center gap-2">
                 {sortOptions.length > 0 && (
-                  <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <UISelect
                       prefix="Sort:"
                       value={sortConfig.key}
@@ -186,6 +274,7 @@ export function useAdminTableRenderer(context) {
                         ...prev,
                         [tabKey]: { ...(prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey]), key: e.target.value }
                       }))}
+                      className="text-xs font-bold border-slate-200 rounded-[var(--ui-radius-small)]"
                     >
                       {sortOptions.map(option => (
                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -197,9 +286,10 @@ export function useAdminTableRenderer(context) {
                       size="icon"
                       onClick={() => setTableSorts(prev => ({
                         ...prev,
-                        [tabKey]: { ...(prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey]), dir: sortConfig.dir ==="asc" ?"desc" :"asc" }
+                        [tabKey]: { ...(prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey]), dir: sortConfig.dir === "asc" ? "desc" : "asc" }
                       }))}
-                      title={sortConfig.dir ==="asc" ?"Urutan A-Z" :"Urutan Z-A"}
+                      title={sortConfig.dir === "asc" ? "Urutan A-Z" : "Urutan Z-A"}
+                      className="h-8 w-8 rounded-[var(--ui-radius-small)] border-slate-200"
                     >
                       <ArrowUpDown size={13} />
                     </Button>
@@ -210,9 +300,9 @@ export function useAdminTableRenderer(context) {
                 {activeFilters.map(f => {
                   const optionsList = getFilterValues(f.key, f.altKeys);
                   if (optionsList.length <= 1) return null;
-                  const currentValue = tableFilters[`${tabKey}_${f.key}`] ||"Semua";
+                  const currentValue = tableFilters[`${tabKey}_${f.key}`] || "Semua";
                   return (
-                    <div key={f.key} className="col-span-2 sm:col-span-1 flex items-center gap-1.5">
+                    <div key={f.key} className="flex items-center gap-1">
                       <UISelect
                         prefix={`${f.label}:`}
                         value={currentValue}
@@ -223,6 +313,7 @@ export function useAdminTableRenderer(context) {
                           }));
                           setTablePage(1);
                         }}
+                        className="text-xs font-bold border-slate-200 rounded-[var(--ui-radius-small)]"
                       >
                         {optionsList.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
@@ -231,61 +322,6 @@ export function useAdminTableRenderer(context) {
                     </div>
                   );
                 })}
-
-                {options.customHeaderButtons}
-
-                {!isViewOnly && (
-                  <Button variant="outline" onClick={() => openModal("bulk","add")} className="text-xs hidden sm:flex gap-1.5">
-                    <Upload size={13} /> Import Teks
-                  </Button>
-                )}
-
-                {deletedHistory.length > 0 && (
-                  <Button variant="outline" onClick={undoLastDelete} className="text-xs gap-1.5">
-                    <History size={13} /> Undo Hapus
-                  </Button>
-                )}
-
-                {selectedCount > 0 && !isViewOnly && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
-                      className="text-xs gap-1.5 text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100 border-indigo-300 font-bold"
-                    >
-                      <Edit3 size={13} /> Edit Massal ({selectedCount})
-                    </Button>
-                    <Button variant="destructive" onClick={() => handleBulkDelete(tabKey, selectedKeys)} className="text-xs gap-1.5">
-                      <Trash2 size={13} /> Hapus ({selectedCount})
-                    </Button>
-                  </>
-                )}
-
-                {tabKey ==="ruangan" && (
-                  <Button variant="destructive" onClick={handleResetRuangan} className="text-xs gap-1.5">
-                    <Trash2 size={13} /> Kosongkan Semua
-                  </Button>
-                )}
-
-                {!isViewOnly && (
-                  <Button onClick={() => openModal(tabKey,"add")} className="text-xs gap-1.5">
-                    <Plus size={13} strokeWidth={2.5} /> Tambah
-                  </Button>
-                )}
-              </div>
-            </div>
-            {/* Search */}
-            <div className="mt-3">
-              <div className="relative w-full">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={`Cari ${title.toLowerCase()}...`}
-                  value={searchTerm}
-                  onChange={e => { setSearchTerm(e.target.value); setTablePage(1); }}
-                  className={cn("h-7 w-full min-w-0 rounded-md border border-input bg-input/20 pl-8 pr-3 py-0.5 text-xs","transition-colors outline-none placeholder:text-muted-foreground font-medium","focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-                  )}
-                />
               </div>
             </div>
           </div>

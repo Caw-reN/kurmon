@@ -179,7 +179,7 @@ export default function AdminContentRouter({ context }) {
             "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
             "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
             "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
-            "kedisiplinan_absensi","kartu_pelajar","esurat"
+            "kedisiplinan_absensi","kartu_pelajar","esurat","generate"
           ];
           if (tuAlwaysAllowed.includes(activeTab)) return true;
         }
@@ -188,11 +188,11 @@ export default function AdminContentRouter({ context }) {
         if (!perms) {
           if (roleKey.startsWith("waka_")) {
             const wakaTabsByDivision = {
-              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan"],
+              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules"],
               kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa"],
-              sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas"],
-              humas: ["dashboard","pesan","tampilan","akademik","silabus","walas_report","catatan_walikelas"],
-              hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pesan","walas_report","catatan_walikelas"]
+              sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
+              humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
+              hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
             };
             const div = roleKey.replace("waka_","");
             return (wakaTabsByDivision[div] || wakaTabsByDivision.kurikulum).includes(activeTab);
@@ -209,9 +209,22 @@ export default function AdminContentRouter({ context }) {
           const hasModulAjarPerm = perms["modul_ajar"] && perms["modul_ajar"] !=="none" && perms["modul_ajar"] !=="nonaktif";
           return hasSyllabusPerm || hasSyllabusGuruPerm || hasModulAjarPerm;
         }
-        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
-          const defaultGuruTabs = ["dashboard", "generate", "akademik", "absensi", "jurnal_harian", "catatan_walikelas", "modul_ajar", "walas_report", "kedisiplinan_absensi", "absensiguru", "silabusguru", "ketersediaan", "beban", "pesan"];
-          if (defaultGuruTabs.includes(activeTab) && (level === undefined || level === "otomatis" || level === "edit" || level === "view")) return true;
+        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas" || roleKey === "bpbk") {
+          const guruDefaultTabs = [
+            "dashboard","generate","akademik","absensi","jurnal_harian",
+            "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
+            "absensiguru","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"
+          ];
+          const guruPermissionedTabs = [
+            "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
+            "siswa","riwayat_prestasi","kedisiplinan_bpbk","hikvision_report_siswa"
+          ];
+          if (guruDefaultTabs.includes(activeTab)) return true;
+          if (guruPermissionedTabs.includes(activeTab)) {
+            // Only allowed if there's an explicit active permission level
+            return level && level !== "none" && level !== "nonaktif";
+          }
+          return false;
         }
         if (roleKey ==="waka_kesiswaan" || roleKey ==="kesiswaan") {
           const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","laporan_absensi","hikvision_report_siswa","siswa","absensi"];
@@ -234,11 +247,26 @@ export default function AdminContentRouter({ context }) {
         }
         return checkAllowed("guru");
       }
+      const safeGlobalTabs = ["dashboard", "akademik", "kalender", "kalender_akademik", "pesan"];
+      if (safeGlobalTabs.includes(activeTab)) return true;
+
+      if (role === "karyawan") {
+        const subrole = currentUser?.subrole;
+        if (subrole) {
+          return checkAllowed(subrole) || checkAllowed("karyawan");
+        }
+        return checkAllowed("karyawan");
+      }
+      if (role === "tu" || role === "tata_usaha") {
+        const subrole = currentUser?.subrole;
+        if (subrole && (subrole === "sekretaris_tu" || subrole === "bendahara")) {
+          return checkAllowed(subrole) || checkAllowed("tu");
+        }
+        return checkAllowed("tu");
+      }
+
       const commonRoleTabs = ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket"];
       if (commonRoleTabs.includes(activeTab)) return true;
-
-      if (role ==="karyawan") return checkAllowed("karyawan");
-      if (role ==="tu" || role ==="tata_usaha") return checkAllowed("tu");
       if (role ==="kepsek") {
         const kepsekAllowedTabs = [...commonRoleTabs, "siswa","guru","data_pegawai"];
         if (kepsekAllowedTabs.includes(activeTab)) return true;
@@ -283,6 +311,7 @@ export default function AdminContentRouter({ context }) {
             <ManajemenRole
               teachers={context.teachers}
               staffs={context.staffs}
+              classes={context.classes}
               setTeachers={context.setTeachers}
               setStaffs={context.setStaffs}
               saveDatabaseNow={context.saveDatabaseNow}
@@ -409,7 +438,51 @@ export default function AdminContentRouter({ context }) {
               })()}
             </div>
           </td>
-        </tr>, { pageHeader: <PageHeader title="Mata Pelajaran" icon={BookOpen} description="Kelola daftar mata pelajaran beserta alokasi waktu dan jenis ruangannya." /> });
+        </tr>, { 
+          pageHeader: (
+            <div className="space-y-4 mb-4">
+              <PageHeader title="Mata Pelajaran" icon={BookOpen} description="Kelola daftar mata pelajaran beserta alokasi waktu dan jenis ruangannya." />
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+                    <BookOpen size={20} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">TOTAL MAPEL</div>
+                    <div className="text-xl font-black text-slate-800">{subjects.length}</div>
+                  </div>
+                </div>
+                <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <BookOpen size={20} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">MAPEL TEORI</div>
+                    <div className="text-xl font-black text-slate-800">{subjects.filter(s => !s.isBlock).length}</div>
+                  </div>
+                </div>
+                <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <BookOpen size={20} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">MAPEL PRAKTIK</div>
+                    <div className="text-xl font-black text-slate-800">{subjects.filter(s => s.isBlock).length}</div>
+                  </div>
+                </div>
+                <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <BookOpen size={20} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">JURUSAN TERKAIT</div>
+                    <div className="text-xl font-black text-slate-800">{new Set(subjects.map(s => s.major).filter(Boolean)).size}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        });
       case"ruangan":
       case"fasilitas":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
@@ -439,11 +512,7 @@ export default function AdminContentRouter({ context }) {
         return <TabKategoriKalender {...tabProps} />;
       case"kategori_silabus":
         return <TabKategoriSilabus {...tabProps} />;
-      case"silabus":
-      case"silabusguru":
-        // These tabs have been merged into modul_ajar — redirect automatically
-        setActiveTab("modul_ajar");
-        return null;
+
       case "absensiguru":
         // Guru/karyawan lihat kalender absensi pribadi; admin/waka/kepsek lihat rekap semua guru
         if (currentUser?.role === "guru" || currentUser?.role === "karyawan") {
@@ -521,6 +590,8 @@ export default function AdminContentRouter({ context }) {
       case "absensi":
       case "hikvision_report_siswa":
       case "walas_report":
+      case "laporan_rekap_walas":
+      case "kedisiplinan_absensi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
           <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
         </Suspense>;
@@ -531,8 +602,7 @@ export default function AdminContentRouter({ context }) {
           <HikvisionStudents classes={classes} />
         </Suspense>;
 
-      case"kedisiplinan_absensi":
-        return <AbsensiSiswa students={students} classes={classes} />;
+
       case"kedisiplinan_piket":
         return <ManajemenPiket teachers={teachers} students={students} classes={classes} currentUser={currentUser} />;
       case"kedisiplinan_bpbk":
@@ -614,6 +684,9 @@ export default function AdminContentRouter({ context }) {
         </div>}>
           <TatibSkorKredit />
         </Suspense>;
+      case"silabus":
+      case"silabusguru":
+      case"rpp_guru":
       case"modul_ajar":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat Modul Ajar...

@@ -167,7 +167,7 @@ const DashboardPKL = () => {
                       <div className="p-2 min-w-[180px]">
                         <h4 className="font-bold text-slate-800 text-sm mb-1">{loc.nama_perusahaan || loc.name || loc.nama}</h4>
                         {(loc.alamat || loc.address) && <p className="text-xs text-slate-500 font-medium leading-relaxed">{loc.alamat || loc.address}</p>}
-                        {loc.kuota > 0 && <p className="text-[11px] font-bold text-indigo-600 mt-2 bg-indigo-50 px-2 py-0.5 rounded-md inline-block">Kuota: {loc.kuota} Siswa</p>}
+                        {loc.kuota > 0 && <p className="text-[11px] font-bold text-indigo-600 mt-2 bg-indigo-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] inline-block">Kuota: {loc.kuota} Siswa</p>}
                       </div>
                     </Popup>
                   </Marker>

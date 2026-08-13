@@ -2,20 +2,29 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   UserMinus, Search, RotateCcw, AlertCircle, CheckCircle2, 
   User, Calendar, FileText, ArrowRight, X, ShieldAlert,
-  LogOut, Filter, Info, Sparkles
+  LogOut, Filter, Info, Sparkles, Download, AlertTriangle,
+  GraduationCap, RefreshCw, Layers
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { UISelect } from '../../../components/ui.jsx';
 
 export default function SiswaKeluar() {
   const [exitedStudents, setExitedStudents] = useState([]);
   const [activeStudents, setActiveStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [historySearchTerm, setHistorySearchTerm] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState(null);
   
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClassFilter, setSelectedClassFilter] = useState('ALL');
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
+  const [activeTabReason, setActiveTabReason] = useState('SEMUA');
+  
+  // Selection & Modal states
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null); // 'exit' or 'restore'
+  const [targetRestoreStudent, setTargetRestoreStudent] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Exit Form State
   const [exitForm, setExitForm] = useState({
     tanggal_keluar: new Date().toISOString().split('T')[0],
@@ -28,7 +37,7 @@ export default function SiswaKeluar() {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 3800);
   };
 
   const fetchData = async () => {
@@ -49,7 +58,7 @@ export default function SiswaKeluar() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Gagal memuat data', 'error');
+      showToast('Gagal memuat data mutasi siswa', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -59,28 +68,54 @@ export default function SiswaKeluar() {
     fetchData();
   }, [authToken]);
 
+  // Extract unique class list for filter
+  const classList = useMemo(() => {
+    const set = new Set();
+    activeStudents.forEach(s => {
+      const cls = s.class_name || s.kelas || s.className;
+      if (cls) set.add(cls);
+    });
+    return Array.from(set).sort();
+  }, [activeStudents]);
+
   // Search autocomplete for active students
   const filteredActive = useMemo(() => {
-    if (!searchTerm.trim()) return [];
-    return activeStudents.filter(s => 
-      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      s.namaSiswa?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      s.nis?.includes(searchTerm)
-    ).slice(0, 6);
-  }, [activeStudents, searchTerm]);
+    let result = activeStudents;
+    
+    // Filter by class if selected
+    if (selectedClassFilter !== 'ALL') {
+      result = result.filter(s => (s.class_name || s.kelas || s.className) === selectedClassFilter);
+    }
 
-  // Exited students log list search
+    if (!searchTerm.trim()) return result.slice(0, selectedClassFilter !== 'ALL' ? 10 : 0);
+    
+    const term = searchTerm.toLowerCase();
+    return result.filter(s => 
+      (s.name || s.namaSiswa || '').toLowerCase().includes(term) || 
+      (s.nis || '').includes(term)
+    ).slice(0, 8);
+  }, [activeStudents, searchTerm, selectedClassFilter]);
+
+  // Exited students history list filter
   const filteredHistory = useMemo(() => {
-    if (!historySearchTerm.trim()) return exitedStudents;
-    const term = historySearchTerm.toLowerCase();
-    return exitedStudents.filter(s => 
-      s.nama?.toLowerCase().includes(term) || 
-      s.nis?.includes(term) ||
-      s.kelas_terakhir?.toLowerCase().includes(term) ||
-      s.alasan?.toLowerCase().includes(term) ||
-      s.keterangan?.toLowerCase().includes(term)
-    );
-  }, [exitedStudents, historySearchTerm]);
+    return exitedStudents.filter(s => {
+      // Reason filter tab
+      if (activeTabReason !== 'SEMUA' && s.alasan !== activeTabReason) {
+        return false;
+      }
+      // Search term filter
+      if (historySearchTerm.trim()) {
+        const term = historySearchTerm.toLowerCase();
+        const nameMatch = (s.nama || '').toLowerCase().includes(term);
+        const nisMatch = (s.nis || '').toLowerCase().includes(term);
+        const classMatch = (s.kelas_terakhir || '').toLowerCase().includes(term);
+        const reasonMatch = (s.alasan || '').toLowerCase().includes(term);
+        const ketMatch = (s.keterangan || '').toLowerCase().includes(term);
+        return nameMatch || nisMatch || classMatch || reasonMatch || ketMatch;
+      }
+      return true;
+    });
+  }, [exitedStudents, historySearchTerm, activeTabReason]);
 
   // Chart summary reasons count
   const reasonStats = useMemo(() => {
@@ -95,13 +130,35 @@ export default function SiswaKeluar() {
     return stats;
   }, [exitedStudents]);
 
-  const handleProcessExit = async (e) => {
-    e.preventDefault();
-    if (!selectedStudent) return showToast('Pilih siswa aktif terlebih dahulu', 'error');
-    if (!exitForm.tanggal_keluar) return showToast('Pilih tanggal keluar', 'error');
+  // Export to Excel handler
+  const handleExportExcel = () => {
+    if (exitedStudents.length === 0) {
+      showToast('Tidak ada data riwayat untuk diekspor', 'error');
+      return;
+    }
 
+    const exportData = exitedStudents.map((s, idx) => ({
+      'No': idx + 1,
+      'Nama Siswa': s.nama || '-',
+      'NIS': s.nis || '-',
+      'Kelas Terakhir': s.kelas_terakhir || '-',
+      'Alasan Mutasi': s.alasan || '-',
+      'Keterangan / Tujuan': s.keterangan || '-',
+      'Tanggal Keluar': s.tanggal_keluar || '-'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Siswa Keluar');
+    XLSX.writeFile(wb, `Riwayat_Siswa_Keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
+    showToast('Berhasil mengunduh dokumen Excel riwayat siswa keluar');
+  };
+
+  // Submit exit action
+  const executeProcessExit = async () => {
+    if (!selectedStudent) return;
+    setIsSubmitting(true);
     const studentName = selectedStudent.namaSiswa || selectedStudent.name;
-    if (!window.confirm(`Apakah Anda yakin ingin memproses pengeluaran siswa "${studentName}"?\nSiswa ini akan dipindahkan ke arsip riwayat siswa keluar.`)) return;
 
     try {
       const res = await fetch('/api/siswa-keluar', {
@@ -111,7 +168,7 @@ export default function SiswaKeluar() {
           action: 'keluar',
           nis: selectedStudent.nis,
           nama: studentName,
-          kelas_terakhir: selectedStudent.class_name || 'Umum',
+          kelas_terakhir: selectedStudent.class_name || selectedStudent.kelas || selectedStudent.className || 'Umum',
           tanggal_keluar: exitForm.tanggal_keluar,
           alasan: exitForm.alasan,
           keterangan: exitForm.keterangan
@@ -119,7 +176,7 @@ export default function SiswaKeluar() {
       });
       const data = await res.json();
       if (data.ok) {
-        showToast(`Siswa ${studentName} berhasil dicatat keluar!`);
+        showToast(`Siswa "${studentName}" berhasil dicatat mutasi keluar!`);
         setSelectedStudent(null);
         setSearchTerm('');
         setExitForm({
@@ -127,18 +184,24 @@ export default function SiswaKeluar() {
           alasan: 'Pindah Sekolah',
           keterangan: ''
         });
+        setConfirmModal(null);
         fetchData();
       } else {
-        showToast(data.error || 'Gagal memproses pengeluaran', 'error');
+        showToast(data.error || 'Gagal memproses pengeluaran siswa', 'error');
       }
     } catch (e) {
       console.error(e);
-      showToast('Gagal memproses pengeluaran', 'error');
+      showToast('Gagal memproses pengeluaran siswa', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCancelExit = async (nis, name) => {
-    if (!window.confirm(`Batalkan status keluar untuk siswa "${name}"?\nSiswa ini akan dikembalikan ke daftar siswa aktif.`)) return;
+  // Execute restore action
+  const executeRestoreStudent = async () => {
+    if (!targetRestoreStudent) return;
+    setIsSubmitting(true);
+    const { nis, nama } = targetRestoreStudent;
 
     try {
       const res = await fetch('/api/siswa-keluar', {
@@ -148,7 +211,9 @@ export default function SiswaKeluar() {
       });
       const data = await res.json();
       if (data.ok) {
-        showToast(`Status keluar ${name} berhasil dibatalkan. Siswa aktif kembali!`);
+        showToast(`Status keluar "${nama}" berhasil dibatalkan. Siswa aktif kembali!`);
+        setTargetRestoreStudent(null);
+        setConfirmModal(null);
         fetchData();
       } else {
         showToast(data.error || 'Gagal membatalkan status keluar', 'error');
@@ -156,19 +221,20 @@ export default function SiswaKeluar() {
     } catch (e) {
       console.error(e);
       showToast('Gagal membatalkan status keluar', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6 relative animate-in fade-in duration-300 z-10 max-w-7xl mx-auto pb-10">
+    <div className="space-y-6 relative animate-in fade-in duration-300 z-10 max-w-7xl mx-auto pb-12">
       
-      {/* 🟢 Modern Hero Header */}
+      {/* 🟢 Hero Header Banner */}
       <div className="relative overflow-hidden rounded-[var(--ui-radius-card)] bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-8 shadow-sm shadow-emerald-950/10 border border-emerald-500/30">
-        {/* Background Decorative Glow */}
         <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-1/2 -bottom-10 w-48 h-48 bg-teal-400/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
           <div className="flex items-center gap-4">
             <div className="p-3.5 bg-white/15 backdrop-blur-md rounded-[var(--ui-radius-card)] border border-white/20 shadow-inner shrink-0">
               <UserMinus className="w-8 h-8 text-white" />
@@ -178,48 +244,82 @@ export default function SiswaKeluar() {
                 <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/25">
                   Administrasi Kesiswaan
                 </span>
+                <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-extrabold bg-emerald-400/30 text-emerald-100 border border-emerald-300/30">
+                  Resmi / Mutasi
+                </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
                 Pendataan Siswa Keluar
               </h1>
               <p className="text-xs sm:text-sm text-emerald-100/90 font-medium mt-0.5">
-                Pencatatan mutasi pindah sekolah, pengunduran diri, atau siswa non-aktif.
+                Pencatatan mutasi pindah sekolah, pengunduran diri, atau penonaktifan siswa secara terstruktur.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-[var(--ui-radius-card)] border border-white/15 self-stretch sm:self-auto justify-between sm:justify-start">
-            <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-emerald-200">Total Mutasi Keluar</div>
-              <div className="text-lg font-black text-white">{exitedStudents.length} Siswa</div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex-1 md:flex-initial bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-[var(--ui-radius-card)] border border-white/15 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[10px] uppercase font-bold text-emerald-200 tracking-wider">Total Mutasi Keluar</div>
+                <div className="text-xl font-black text-white">{exitedStudents.length} <span className="text-xs font-semibold text-emerald-100">Siswa</span></div>
+              </div>
+              <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
             </div>
-            <Sparkles className="w-5 h-5 text-amber-300 shrink-0 ml-2" />
+
+            <button
+              onClick={fetchData}
+              title="Refresh Data"
+              className="p-3 bg-white/15 hover:bg-white/25 active:scale-95 transition-all backdrop-blur-md rounded-[var(--ui-radius-card)] border border-white/20 text-white cursor-pointer"
+            >
+              <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 🔴 Main Grid Section */}
+      {/* 🔴 Main Workspace Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* 📋 Kolom Kiri: Form Keluar & KPI Stats (4 Cols on LG) */}
+        {/* 📋 Kolom Kiri: Form Keluar & KPI Statistik (4 Cols on LG) */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Card Form */}
+          {/* Card Form Mutasi */}
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-xs transition-shadow">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                   <FileText size={18} />
                 </div>
-                <h3 className="font-extrabold text-slate-800 text-sm">Formulir Keluar</h3>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm">Formulir Keluar</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Input data mutasi keluar</p>
+                </div>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 uppercase">
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 border border-emerald-200/60 uppercase tracking-wide">
                 Input Data
               </span>
             </div>
             
-            <form onSubmit={handleProcessExit} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); if (selectedStudent) setConfirmModal('exit'); }} className="space-y-4">
               
+              {/* Opsi Filter Kelas untuk Memudahkan Pencarian */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                  <Layers size={13} className="text-slate-400" />
+                  <span>Filter Kelas (Opsional)</span>
+                </label>
+                <select
+                  value={selectedClassFilter}
+                  onChange={(e) => setSelectedClassFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer"
+                >
+                  <option value="ALL">✨ Semua Kelas ({activeStudents.length} Siswa)</option>
+                  {classList.map(cls => (
+                    <option key={cls} value={cls}>Kelas {cls}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Autocomplete Input Siswa */}
               <div className="relative">
                 <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
@@ -228,9 +328,9 @@ export default function SiswaKeluar() {
                     <button 
                       type="button" 
                       onClick={() => { setSelectedStudent(null); setSearchTerm(''); }} 
-                      className="text-[10px] text-rose-600 hover:underline font-bold flex items-center gap-1"
+                      className="text-[10px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center gap-1 cursor-pointer"
                     >
-                      <X size={10} /> Reset
+                      <X size={12} /> Reset
                     </button>
                   )}
                 </label>
@@ -246,59 +346,66 @@ export default function SiswaKeluar() {
                         setSelectedStudent(null);
                       }
                     }} 
-                    placeholder="Ketik Nama atau NIS siswa..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" 
+                    placeholder={selectedClassFilter !== 'ALL' ? `Ketik nama siswa kelas ${selectedClassFilter}...` : "Ketik Nama atau NIS siswa..."}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" 
                   />
                 </div>
 
                 {/* Autocomplete Suggestions Dropdown */}
                 {filteredActive.length > 0 && !selectedStudent && (
-                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-sm z-30 max-h-56 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
-                    {filteredActive.map(s => (
-                      <button
-                        key={s.nis}
-                        type="button"
-                        onClick={() => {
-                          setSelectedStudent(s);
-                          setSearchTerm(s.namaSiswa || s.name);
-                        }}
-                        className="w-full text-left p-3 hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                            <User size={14} />
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold text-slate-800 group-hover:text-emerald-950">
-                              {s.namaSiswa || s.name}
+                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-md z-30 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
+                    <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      Siswa Ditemukan ({filteredActive.length})
+                    </div>
+                    {filteredActive.map(s => {
+                      const studentName = s.namaSiswa || s.name || s.nama;
+                      const studentClass = s.class_name || s.kelas || s.className || 'Umum';
+                      return (
+                        <button
+                          key={s.nis || s.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStudent(s);
+                            setSearchTerm(studentName);
+                          }}
+                          className="w-full text-left p-2.5 hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
+                              {studentName.charAt(0)}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-mono">NIS: {s.nis}</div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-extrabold text-slate-800 group-hover:text-emerald-950 truncate">
+                                {studentName}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono">NIS: {s.nis || '-'}</div>
+                            </div>
                           </div>
-                        </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 group-hover:bg-emerald-200 group-hover:text-emerald-800 transition-colors">
-                          {s.class_name || 'Tanpa Kelas'}
-                        </span>
-                      </button>
-                    ))}
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 group-hover:bg-emerald-200 group-hover:text-emerald-800 transition-colors shrink-0 ml-2">
+                            {studentClass}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* Box Info Siswa Terpilih */}
+              {/* Card Ringkasan Siswa Terpilih */}
               {selectedStudent && (
-                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-2xs animate-in zoom-in-95 duration-200">
+                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-2xs animate-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+                    <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
                       {(selectedStudent.namaSiswa || selectedStudent.name || 'S').charAt(0)}
                     </div>
                     <div>
-                      <div className="text-xs font-extrabold text-emerald-950">
+                      <div className="text-xs font-black text-slate-900">
                         {selectedStudent.namaSiswa || selectedStudent.name}
                       </div>
-                      <div className="text-[10px] font-semibold text-emerald-700 flex items-center gap-2 mt-0.5">
-                        <span className="font-mono bg-emerald-200/60 px-1.5 py-0.2 rounded">NIS: {selectedStudent.nis}</span>
+                      <div className="text-[10px] font-semibold text-emerald-800 flex items-center gap-2 mt-0.5">
+                        <span className="font-mono bg-emerald-200/60 px-1.5 py-0.2 rounded font-bold">NIS: {selectedStudent.nis}</span>
                         <span>•</span>
-                        <span>Kelas: {selectedStudent.class_name || 'Umum'}</span>
+                        <span>Kelas: {selectedStudent.class_name || selectedStudent.kelas || selectedStudent.className || 'Umum'}</span>
                       </div>
                     </div>
                   </div>
@@ -308,48 +415,60 @@ export default function SiswaKeluar() {
 
               {/* Tanggal Keluar */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Tanggal Keluar <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <Calendar size={13} className="text-slate-400" />
+                  <span>Tanggal Mutasi Keluar <span className="text-rose-500">*</span></span>
                 </label>
-                <div className="relative">
-                  <input 
-                    type="date"
-                    required
-                    value={exitForm.tanggal_keluar} 
-                    onChange={e => setExitForm({ ...exitForm, tanggal_keluar: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" 
-                  />
-                </div>
+                <input 
+                  type="date"
+                  required
+                  value={exitForm.tanggal_keluar} 
+                  onChange={e => setExitForm({ ...exitForm, tanggal_keluar: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all cursor-pointer" 
+                />
               </div>
 
-              {/* Alasan Keluar */}
+              {/* Alasan Keluar - Quick Choice Pills */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Alasan Keluar <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                  <span>Alasan Mutasi Keluar <span className="text-rose-500">*</span></span>
                 </label>
-                <UISelect 
-                  value={exitForm.alasan} 
-                  onChange={e => setExitForm({ ...exitForm, alasan: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                >
-                  <option value="Pindah Sekolah">Pindah Sekolah (Mutasi Keluar)</option>
-                  <option value="Mengundurkan Diri">Mengundurkan Diri</option>
-                  <option value="Dikeluarkan">Dikeluarkan</option>
-                  <option value="Lainnya">Lainnya</option>
-                </UISelect>
+                
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  {[
+                    { key: 'Pindah Sekolah', label: 'Pindah Sekolah', color: 'border-blue-200 bg-blue-50/70 text-blue-900 active:bg-blue-200 hover:bg-blue-100' },
+                    { key: 'Mengundurkan Diri', label: 'Mengundurkan Diri', color: 'border-amber-200 bg-amber-50/70 text-amber-900 active:bg-amber-200 hover:bg-amber-100' },
+                    { key: 'Dikeluarkan', label: 'Dikeluarkan', color: 'border-rose-200 bg-rose-50/70 text-rose-900 active:bg-rose-200 hover:bg-rose-100' },
+                    { key: 'Lainnya', label: 'Lainnya', color: 'border-slate-200 bg-slate-100 text-slate-800 active:bg-slate-200 hover:bg-slate-200' },
+                  ].map(item => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setExitForm({ ...exitForm, alasan: item.key })}
+                      className={`px-2.5 py-2 rounded-[var(--ui-radius-small)] border text-[11px] font-extrabold transition-all text-center cursor-pointer ${
+                        exitForm.alasan === item.key 
+                          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-600 text-white shadow-2xs' 
+                          : item.color
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Keterangan / Tujuan */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Keterangan / Sekolah Tujuan
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <FileText size={13} className="text-slate-400" />
+                  <span>Keterangan / Sekolah Tujuan</span>
                 </label>
                 <textarea 
                   rows="3"
                   value={exitForm.keterangan} 
                   onChange={e => setExitForm({ ...exitForm, keterangan: e.target.value })}
-                  placeholder="Contoh: Pindah ke SMKN 1 Jakarta Timur / Ikut Orang Tua"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
+                  placeholder="Contoh: Pindah ke SMKN 1 Jakarta / Alasan ikut orang tua..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
                 />
               </div>
 
@@ -357,19 +476,23 @@ export default function SiswaKeluar() {
               <button 
                 type="submit" 
                 disabled={!selectedStudent} 
-                className="w-full py-3 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                className="w-full py-3 px-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs uppercase tracking-wider rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                <UserMinus size={18} /> Proses Siswa Keluar
+                <UserMinus size={16} /> Proses Mutasi Keluar
               </button>
             </form>
           </div>
 
           {/* 📊 Statistik Pengeluaran KPI Grid */}
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 shadow-sm space-y-3">
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
-              <span>Statistik Pengeluaran</span>
-              <Info size={14} className="text-slate-400" />
-            </h4>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Info size={14} className="text-emerald-600" />
+                <span>Statistik Pengeluaran</span>
+              </h4>
+              <span className="text-[10px] font-bold text-slate-400">Total: {exitedStudents.length}</span>
+            </div>
+            
             <div className="grid grid-cols-2 gap-2.5">
               {[
                 { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], bg: 'bg-blue-50/80 border-blue-200/70 text-blue-900', dot: 'bg-blue-500' },
@@ -377,7 +500,7 @@ export default function SiswaKeluar() {
                 { label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'], bg: 'bg-rose-50/80 border-rose-200/70 text-rose-900', dot: 'bg-rose-500' },
                 { label: 'Lainnya', count: reasonStats['Lainnya'], bg: 'bg-slate-50/80 border-slate-200/70 text-slate-900', dot: 'bg-slate-400' },
               ].map(stat => (
-                <div key={stat.label} className={`p-3 rounded-[var(--ui-radius-card)] border ${stat.bg} flex flex-col justify-between transition-transform hover:scale-[1.02]`}>
+                <div key={stat.label} className={`p-3 rounded-[var(--ui-radius-card)] border ${stat.bg} flex flex-col justify-between transition-transform hover:scale-[1.02] shadow-2xs`}>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{stat.label}</span>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-lg font-black">{stat.count}</span>
@@ -390,16 +513,16 @@ export default function SiswaKeluar() {
 
         </div>
 
-        {/* 📑 Kolom Kanan: Daftar Riwayat Keluar (8 Cols on LG) */}
+        {/* 📑 Kolom Kanan: Daftar Riwayat Keluar & Filter Tab (8 Cols on LG) */}
         <div className="lg:col-span-8 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-4">
           
-          {/* Header & Filter Bar */}
+          {/* Header Bar & Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
             <div>
               <h3 className="font-black text-slate-800 text-base flex items-center gap-2">
                 <span>Arsip Riwayat Siswa Keluar</span>
-                <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-xs font-extrabold bg-emerald-100 text-emerald-800">
-                  {exitedStudents.length} Data
+                <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                  {filteredHistory.length} Data
                 </span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -407,26 +530,68 @@ export default function SiswaKeluar() {
               </p>
             </div>
 
-            {/* Instant Search Bar */}
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-              <input 
-                type="text"
-                value={historySearchTerm} 
-                onChange={e => setHistorySearchTerm(e.target.value)} 
-                placeholder="Cari arsip nama, NIS, kelas..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all" 
-              />
-              {historySearchTerm && (
-                <button 
-                  type="button" 
-                  onClick={() => setHistorySearchTerm('')} 
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={14} />
-                </button>
-              )}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {/* Export Excel Button */}
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-[var(--ui-radius-small)] font-extrabold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                title="Ekspor ke Excel"
+              >
+                <Download size={14} />
+                <span>Export Excel</span>
+              </button>
+
+              {/* Instant Search Bar */}
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  type="text"
+                  value={historySearchTerm} 
+                  onChange={e => setHistorySearchTerm(e.target.value)} 
+                  placeholder="Cari nama, NIS, kelas..."
+                  className="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all" 
+                />
+                {historySearchTerm && (
+                  <button 
+                    type="button" 
+                    onClick={() => setHistorySearchTerm('')} 
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* Quick Filter Tabs */}
+          <div className="flex bg-slate-100/80 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/80 gap-1 overflow-x-auto">
+            {[
+              { id: 'SEMUA', label: 'Semua Data', count: exitedStudents.length },
+              { id: 'Pindah Sekolah', label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'] },
+              { id: 'Mengundurkan Diri', label: 'Mundur', count: reasonStats['Mengundurkan Diri'] },
+              { id: 'Dikeluarkan', label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'] },
+              { id: 'Lainnya', label: 'Lainnya', count: reasonStats['Lainnya'] },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTabReason(tab.id)}
+                className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  activeTabReason === tab.id
+                    ? 'bg-white text-emerald-950 shadow-xs border border-slate-200/80 font-black'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                  activeTabReason === tab.id ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
           </div>
 
           {/* 💻 Desktop Table View (Hidden on Mobile) */}
@@ -437,7 +602,7 @@ export default function SiswaKeluar() {
                   <th className="px-4 py-3.5">Nama Siswa</th>
                   <th className="px-3 py-3.5 font-mono">NIS</th>
                   <th className="px-3 py-3.5">Kelas Terakhir</th>
-                  <th className="px-3 py-3.5">Alasan</th>
+                  <th className="px-3 py-3.5">Alasan Mutasi</th>
                   <th className="px-4 py-3.5">Keterangan / Tujuan</th>
                   <th className="px-3 py-3.5">Tgl Keluar</th>
                   <th className="px-4 py-3.5 text-right">Aksi</th>
@@ -449,7 +614,7 @@ export default function SiswaKeluar() {
                     <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-bold">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                        <span>Memuat arsip riwayat...</span>
+                        <span>Memuat arsip riwayat siswa...</span>
                       </div>
                     </td>
                   </tr>
@@ -460,7 +625,7 @@ export default function SiswaKeluar() {
                         <UserMinus className="w-10 h-10 text-slate-300" />
                         <span className="font-extrabold text-slate-600 text-sm">Tidak ada riwayat siswa keluar</span>
                         <span className="text-xs text-slate-400 text-center">
-                          {historySearchTerm ? `Tidak ada pencarian yang cocok dengan "${historySearchTerm}"` : 'Belum ada siswa yang dicatat mutasi keluar.'}
+                          {historySearchTerm ? `Tidak ada data yang cocok dengan "${historySearchTerm}"` : 'Belum ada siswa yang dicatat mutasi keluar.'}
                         </span>
                       </div>
                     </td>
@@ -470,15 +635,15 @@ export default function SiswaKeluar() {
                     <tr key={student.id || student.nis} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="px-4 py-3.5 font-extrabold text-slate-800">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 flex items-center justify-center font-black text-xs shrink-0">
-                            {student.nama?.charAt(0) || 'S'}
+                          <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 flex items-center justify-center font-black text-xs shrink-0 border border-emerald-200/50">
+                            {(student.nama || 'S').charAt(0)}
                           </div>
                           <span className="truncate max-w-[150px]" title={student.nama}>{student.nama}</span>
                         </div>
                       </td>
                       <td className="px-3 py-3.5 font-mono text-slate-500 font-bold">{student.nis}</td>
                       <td className="px-3 py-3.5 font-bold text-slate-700">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/60 text-[11px]">
+                        <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 border border-slate-200/60 text-[11px]">
                           {student.kelas_terakhir || 'Umum'}
                         </span>
                       </td>
@@ -504,7 +669,10 @@ export default function SiswaKeluar() {
                       <td className="px-4 py-3.5 text-right">
                         <button 
                           type="button"
-                          onClick={() => handleCancelExit(student.nis, student.nama)}
+                          onClick={() => {
+                            setTargetRestoreStudent(student);
+                            setConfirmModal('restore');
+                          }}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-emerald-50/60 text-emerald-700 hover:bg-emerald-600 hover:text-white font-extrabold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
                           title="Batalkan status keluar & kembalikan ke siswa aktif"
                         >
@@ -537,7 +705,7 @@ export default function SiswaKeluar() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">
-                        {student.nama?.charAt(0) || 'S'}
+                        {(student.nama || 'S').charAt(0)}
                       </div>
                       <div>
                         <div className="font-extrabold text-slate-900 text-sm">{student.nama}</div>
@@ -567,8 +735,11 @@ export default function SiswaKeluar() {
                     </span>
                     <button 
                       type="button"
-                      onClick={() => handleCancelExit(student.nis, student.nama)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-white text-emerald-700 font-extrabold text-xs shadow-2xs active:scale-95 transition-all"
+                      onClick={() => {
+                        setTargetRestoreStudent(student);
+                        setConfirmModal('restore');
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-white text-emerald-700 font-extrabold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
                     >
                       <RotateCcw size={12} />
                       <span>Batalkan Status</span>
@@ -583,9 +754,125 @@ export default function SiswaKeluar() {
 
       </div>
 
+      {/* ⚠️ Modal Konfirmasi Proses Mutasi Keluar */}
+      {confirmModal === 'exit' && selectedStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center font-bold shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">Konfirmasi Siswa Keluar</h3>
+                <p className="text-xs text-slate-500">Proses pencatatan mutasi pengeluaran siswa</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Nama Siswa:</span>
+                <span className="font-extrabold text-slate-900">{selectedStudent.namaSiswa || selectedStudent.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">NIS / Kelas:</span>
+                <span className="font-mono font-bold text-slate-800">{selectedStudent.nis} ({selectedStudent.class_name || selectedStudent.kelas || selectedStudent.className || 'Umum'})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Alasan Mutasi:</span>
+                <span className="font-bold text-emerald-700">{exitForm.alasan}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Tanggal Keluar:</span>
+                <span className="font-bold text-slate-800">{exitForm.tanggal_keluar}</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Siswa ini akan dipindahkan dari daftar siswa aktif ke <strong>Arsip Riwayat Siswa Keluar</strong>. Anda dapat mengembalikannya kapan saja.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-[var(--ui-radius-small)] border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-extrabold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={executeProcessExit}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : <UserMinus size={14} />}
+                <span>{isSubmitting ? 'Memproses...' : 'Ya, Proses Keluar'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔄 Modal Konfirmasi Pembatalan Status Keluar */}
+      {confirmModal === 'restore' && targetRestoreStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                <RotateCcw size={20} />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">Batalkan Status Keluar</h3>
+                <p className="text-xs text-slate-500">Kembalikan siswa ke daftar siswa aktif</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-[var(--ui-radius-small)] space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Nama Siswa:</span>
+                <span className="font-extrabold text-slate-900">{targetRestoreStudent.nama}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">NIS:</span>
+                <span className="font-mono font-bold text-slate-800">{targetRestoreStudent.nis}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Kelas Terakhir:</span>
+                <span className="font-bold text-slate-800">{targetRestoreStudent.kelas_terakhir || 'Umum'}</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Status keluar untuk siswa ini akan dibatalkan, dan data siswa akan kembali aktif di sistem akademik sekolah.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => { setConfirmModal(null); setTargetRestoreStudent(null); }}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-[var(--ui-radius-small)] border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-extrabold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={executeRestoreStudent}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-[var(--ui-radius-small)] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                <span>{isSubmitting ? 'Memulihkan...' : 'Ya, Pulihkan Siswa'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🔔 Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-sm font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600 shadow-rose-900/20' : 'bg-emerald-600 shadow-emerald-900/20'} z-50`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-md font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600 shadow-rose-900/20' : 'bg-emerald-600 shadow-emerald-900/20'} z-50`}>
           {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} 
           <span>{toast.message}</span>
         </div>

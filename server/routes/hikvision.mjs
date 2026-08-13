@@ -315,12 +315,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         await dbPool.query("DELETE FROM hikvision_logs");
-        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-        if (mainRes.rowCount > 0) {
-          const mainData = JSON.parse(mainRes.rows[0].data);
-          mainData.attendanceRecords = [];
-          await dbPool.query("UPDATE app_data SET data = $1 WHERE store_key = 'main_store'", [JSON.stringify(mainData)]);
-        }
+        await dbPool.query("DELETE FROM guru_attendance_records");
         send(req, res, 200, { ok: true, message: "Seluruh log presensi uji coba berhasil dibersihkan!" });
       } catch (err) {
         sendDatabaseError(req, res, err);
@@ -441,9 +436,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           ORDER BY l.timestamp ASC
         `);
         
-        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-        const mainData = mainRes.rowCount > 0 ? (typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data) : {};
-        
         // Fetch existing kedisiplinan_absensi to avoid duplicate daily attendance
         const existingAbsensiRes = await dbPool.query(`
           SELECT siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as date_str 
@@ -456,8 +448,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         });
 
         // Arrays for tracking
-        const teacherRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
-        const existingTeacherIds = new Set(teacherRecords.map(r => r.id));
+        const recentTeacherAbsensiRes = await dbPool.query(`SELECT record_id FROM guru_attendance_records WHERE tanggal >= NOW() - INTERVAL '4 days'`);
+        const existingTeacherIds = new Set(recentTeacherAbsensiRes.rows.map(r => r.record_id));
         const newTeacherRecords = [];
         const newStudentRecords = [];
 
@@ -512,25 +504,36 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
         });
 
-        // Simpan Data Rekap Guru ke app_data
+        // Simpan Data Rekap Guru ke guru_attendance_records
         if (newTeacherRecords.length > 0) {
-          mainData.attendanceRecords = [...teacherRecords, ...newTeacherRecords];
+          const values = [];
+          const params = [];
+          newTeacherRecords.forEach((rec, i) => {
+            const offset = i * 8;
+            values.push(`($${offset+1}, $${offset+2}, $${offset+3}, $${offset+4}, $${offset+5}, $${offset+6}, $${offset+7}, $${offset+8})`);
+            params.push(rec.id, rec.teacherCode, rec.date, rec.time, rec.sessionName, rec.status, rec.mode, rec.note);
+          });
           await dbPool.query(
-            "INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
-            [JSON.stringify(mainData)]
+            `INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ${values.join(', ')} ON CONFLICT (record_id) DO NOTHING`,
+            params
           );
         }
 
         // Simpan Data Siswa ke kedisiplinan_absensi
         if (newStudentRecords.length > 0) {
+          const values = [];
+          const params = [];
+          newStudentRecords.forEach((rec, i) => {
+            const offset = i * 6;
+            values.push(`($${offset+1}, $${offset+2}, $${offset+3}, $${offset+4}, $${offset+5}, $${offset+6})`);
+            params.push(rec.siswa_nis, rec.tanggal, rec.status, rec.keterangan, rec.pelapor_nama, rec.approval_status);
+          });
           const insertQuery = `
             INSERT INTO kedisiplinan_absensi 
             (siswa_nis, tanggal, status, keterangan, pelapor_nama, approval_status) 
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ${values.join(', ')}
           `;
-          for (const rec of newStudentRecords) {
-            await dbPool.query(insertQuery, [rec.siswa_nis, rec.tanggal, rec.status, rec.keterangan, rec.pelapor_nama, rec.approval_status]);
-          }
+          await dbPool.query(insertQuery, params);
         }
 
         send(req, res, 200, {
@@ -603,35 +606,15 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           return;
         }
 
-        // 1. Ambil main_store
-        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-        const mainData = mainRes.rowCount > 0 ? JSON.parse(mainRes.rows[0].data) : {};
-        const existingRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
+        // 1. Hapus record lama pada tanggal tersebut jika ada (agar tidak double/tumpang tindih)
+        await dbPool.query("DELETE FROM guru_attendance_records WHERE teacher_code = $1 AND tanggal = $2", [teacherCode, date]);
 
-        // Buat record ID unik: hik-manual-{teacherCode}-{date}
+        // Buat record ID unik
         const recordId = `hik-manual-${teacherCode}-${date}`;
         
-        // Hapus record lama pada tanggal tersebut jika ada (agar tidak double/tumpang tindih)
-        let filteredRecords = existingRecords.filter(r => r.id !== recordId && !(r.teacherCode === teacherCode && r.date === date));
-
-        const record = {
-          id: recordId,
-          teacherCode,
-          date,
-          time: new Date().toTimeString().substring(0, 5),
-          sessionName: "Manual",
-          status,
-          mode: "manual",
-          note: note || `Diinput manual oleh admin`
-        };
-
-        filteredRecords.push(record);
-        mainData.attendanceRecords = filteredRecords;
-
-        // Simpan kembali
         await dbPool.query(
-          "INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
-          [JSON.stringify(mainData)]
+          "INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+          [recordId, teacherCode, date, new Date().toTimeString().substring(0, 5), 'Manual', status, 'manual', note || `Diinput manual oleh admin`]
         );
 
         // 2. WHATSAPP NOTIFIKASI
@@ -717,32 +700,152 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         
         let rows;
         if (personType === "siswa") {
-          // Siswa: ambil dari hikvision_students yang NOT IN (guru, karyawan, staff)
+          // Siswa: Gabungan data dari Mesin Hikvision & Master Data Siswa
           const result = await dbPool.query(`
-            SELECT s.*, g.group_name, d.ip_address as device_ip,
-              'siswa' as person_type,
-              EXISTS(
-                SELECT 1 FROM mst_students 
-                WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(payload->>'nama') = LOWER(s.name) OR LOWER(payload->>'name') = LOWER(s.name)
-              ) as is_connected
-            FROM hikvision_students s
-            LEFT JOIN hikvision_groups g ON s.device_group_id = g.id
-            LEFT JOIN hikvision_devices d ON g.device_id = d.id
-            WHERE LOWER(COALESCE(s.class_name, '')) NOT IN ('guru', 'karyawan', 'staff', 'employee')
-            ORDER BY s.class_name NULLS LAST, s.name ASC
+            WITH hk_siswa AS (
+              SELECT s.id::text as id, s.nis::text as nis, s.name as device_name,
+                COALESCE(
+                  (SELECT COALESCE(payload->>'nama', payload->>'name') FROM mst_students 
+                   WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) LIMIT 1),
+                  s.name
+                ) as name,
+                s.device_group_id::text as device_group_id, s.created_at::text as created_at,
+                COALESCE(
+                  NULLIF(NULLIF(s.class_name, 'siswa'), ''),
+                  (SELECT COALESCE(payload->>'class_name', payload->>'kelas') FROM mst_students 
+                   WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) LIMIT 1)
+                ) as class_name,
+                (SELECT COALESCE(payload->>'class_name', payload->>'kelas') FROM mst_students 
+                 WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) LIMIT 1) as master_class_name,
+                g.group_name, d.ip_address as device_ip,
+                'siswa'::text as person_type,
+                true as is_on_device,
+                EXISTS(
+                  SELECT 1 FROM mst_students 
+                  WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name))
+                ) as is_connected
+              FROM hikvision_students s
+              LEFT JOIN hikvision_groups g ON s.device_group_id = g.id
+              LEFT JOIN hikvision_devices d ON g.device_id = d.id
+              WHERE LOWER(COALESCE(s.class_name, '')) NOT IN ('guru', 'karyawan', 'staff', 'employee')
+                AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)))
+                AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)))
+            ),
+            master_siswa_missing AS (
+              SELECT 
+                null::text as id,
+                COALESCE(st.payload->>'nis', st.payload->>'code', st.id)::text as nis,
+                null as device_name,
+                COALESCE(st.payload->>'nama', st.payload->>'name')::text as name,
+                null::text as device_group_id,
+                null::text as created_at,
+                COALESCE(st.payload->>'class_name', st.payload->>'kelas')::text as class_name,
+                COALESCE(st.payload->>'class_name', st.payload->>'kelas')::text as master_class_name,
+                null as group_name,
+                null as device_ip,
+                'siswa'::text as person_type,
+                false as is_on_device,
+                false as is_connected
+              FROM mst_students st
+              WHERE NOT EXISTS(
+                SELECT 1 FROM hk_siswa hs 
+                WHERE hs.nis = st.id OR hs.nis = st.payload->>'nis' OR hs.nis = st.payload->>'code' OR hs.nis = st.payload->>'nisn' OR LOWER(TRIM(hs.name)) = LOWER(TRIM(COALESCE(st.payload->>'nama', st.payload->>'name')))
+              )
+            )
+            SELECT * FROM hk_siswa
+            UNION ALL
+            SELECT * FROM master_siswa_missing
+            ORDER BY class_name NULLS LAST, name ASC
           `);
           rows = result.rows;
-        } else {
-          // Guru / karyawan / staff: ambil dari hikvision_students
-          const lowerType = String(personType).toLowerCase();
-          let typeClause;
-          if (lowerType === "guru") {
-            typeClause = `LOWER(COALESCE(s.class_name, '')) IN ('guru') OR EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))`;
-          } else if (lowerType === "karyawan") {
-            typeClause = `LOWER(COALESCE(s.class_name, '')) IN ('karyawan', 'staff', 'employee') OR EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))`;
-          } else {
-            typeClause = `LOWER(COALESCE(s.class_name, '')) IN ('guru', 'karyawan', 'staff', 'employee') OR EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis) OR EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis)`;
-          }
+        } else if (personType === "guru") {
+          // Guru: Gabungan data dari Mesin Hikvision & Master Data Guru
+          const result = await dbPool.query(`
+            WITH hk_guru AS (
+              SELECT s.nis, s.name as device_name,
+                COALESCE(
+                  (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1),
+                  s.name
+                ) as name,
+                (SELECT payload->>'mapel' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as mapel,
+                (SELECT payload->>'nip' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as nip,
+                (SELECT payload->>'code' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as code,
+                'guru' as person_type,
+                true as is_on_device,
+                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))) as is_connected
+              FROM hikvision_students s
+              WHERE (LOWER(COALESCE(s.class_name, '')) = 'guru' OR EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))))
+            ),
+            master_guru_missing AS (
+              SELECT 
+                COALESCE(t.payload->>'code', t.id) as nis,
+                null as device_name,
+                COALESCE(t.payload->>'name', t.payload->>'nama') as name,
+                t.payload->>'mapel' as mapel,
+                t.payload->>'nip' as nip,
+                t.payload->>'code' as code,
+                'guru' as person_type,
+                false as is_on_device,
+                false as is_connected
+              FROM mst_teachers t
+              WHERE NOT EXISTS(
+                SELECT 1 FROM hk_guru h WHERE h.nis = t.id OR h.nis = t.payload->>'code' OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(t.payload->>'name', t.payload->>'nama')))
+              )
+            )
+            SELECT * FROM hk_guru
+            UNION ALL
+            SELECT * FROM master_guru_missing
+            ORDER BY name ASC
+          `);
+          rows = result.rows;
+        } else if (personType === "karyawan") {
+          // Karyawan: Gabungan data dari Mesin Hikvision & Master Data Staf (eksklusif non-guru)
+          const result = await dbPool.query(`
+            WITH hk_karyawan AS (
+              SELECT s.nis, s.name as device_name,
+                COALESCE(
+                  (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1),
+                  NULLIF(s.name, ''),
+                  'ID Mesin ' || s.nis || ' (Tanpa Nama)'
+                ) as name,
+                (SELECT COALESCE(payload->>'division', payload->>'divisi', payload->>'role') FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as mapel,
+                (SELECT payload->>'nip' FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as nip,
+                (SELECT payload->>'code' FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as code,
+                'karyawan' as person_type,
+                true as is_on_device,
+                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))) as is_connected
+              FROM hikvision_students s
+              WHERE (
+                LOWER(COALESCE(s.class_name, '')) IN ('karyawan', 'employee')
+                OR EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)))
+                OR (LOWER(COALESCE(s.class_name, '')) = 'staff' AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))))
+              )
+              AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)))
+            ),
+            master_karyawan_missing AS (
+              SELECT 
+                COALESCE(s.payload->>'staff_code', s.payload->>'code', s.id) as nis,
+                null as device_name,
+                COALESCE(s.payload->>'name', s.payload->>'nama') as name,
+                COALESCE(s.payload->>'division', s.payload->>'divisi', s.payload->>'role') as mapel,
+                s.payload->>'nip' as nip,
+                s.payload->>'code' as code,
+                'karyawan' as person_type,
+                false as is_on_device,
+                false as is_connected
+              FROM mst_staffs s
+              WHERE NOT EXISTS(
+                SELECT 1 FROM hk_karyawan h WHERE h.nis = s.id OR h.nis = s.payload->>'staff_code' OR h.nis = s.payload->>'code' OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(s.payload->>'name', s.payload->>'nama')))
+              )
+            )
+            SELECT * FROM hk_karyawan
+            UNION ALL
+            SELECT * FROM master_karyawan_missing
+            ORDER BY name ASC
+          `);
+          rows = result.rows;
+        } else if (personType === "staff") {
+          // Staff: Gabungan Guru + Karyawan
           const result = await dbPool.query(`
             SELECT s.nis, s.name as device_name,
               COALESCE(
@@ -754,24 +857,50 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               (SELECT payload->>'nip' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name) LIMIT 1) as nip,
               (SELECT payload->>'code' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name) LIMIT 1) as code,
               CASE 
-                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis) THEN 'guru'
-                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis) THEN 'karyawan'
-                ELSE s.class_name
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name)) THEN 'guru'
+                ELSE 'karyawan'
               END as person_type,
+              true as is_on_device,
               (
                 EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name)) OR
                 EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))
               ) as is_connected
             FROM hikvision_students s
-            WHERE ${typeClause}
+            WHERE LOWER(COALESCE(s.class_name, '')) IN ('guru', 'karyawan', 'staff', 'employee')
+               OR EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))
+               OR EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))
             ORDER BY s.class_name NULLS LAST, s.name ASC
           `);
           rows = result.rows;
+        } else {
+          rows = [];
         }
         send(req, res, 200, { ok: true, data: rows });
       } catch (err) { sendDatabaseError(req, res, err); }
       return;
     }
+
+    if (req.method === "POST" && url.pathname === "/api/hikvision/sync-classes-from-master") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      try {
+        const updateResult = await dbPool.query(`
+          UPDATE hikvision_students s
+          SET class_name = sub.master_class
+          FROM (
+            SELECT s2.id, COALESCE(payload->>'class_name', payload->>'kelas') as master_class
+            FROM hikvision_students s2
+            JOIN mst_students m ON (m.payload->>'nis' = s2.nis OR m.payload->>'code' = s2.nis OR m.payload->>'nisn' = s2.nis OR m.id = s2.nis OR LOWER(m.payload->>'nama') = LOWER(s2.name) OR LOWER(m.payload->>'name') = LOWER(s2.name))
+            WHERE LOWER(COALESCE(s2.class_name, '')) NOT IN ('guru', 'karyawan', 'staff', 'employee')
+          ) sub
+          WHERE s.id = sub.id AND sub.master_class IS NOT NULL;
+        `);
+        send(req, res, 200, { ok: true, message: `Berhasil menyinkronkan ${updateResult.rowCount} kelas siswa dari Master Data!`, count: updateResult.rowCount });
+      } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+
     if (req.method === "PUT" && url.pathname === "/api/hikvision/students/bulk") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
@@ -1001,10 +1130,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
         });
 
-        // Ambil manual attendance records (e.g. Izin, Sakit, Alpa)
-        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-        const mainData = mainRes.rowCount > 0 ? JSON.parse(mainRes.rows[0].data) : {};
-        const attendanceRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
+        // Ambil guru_attendance_records (manual & hikvision sync)
+        const attendanceRes = await dbPool.query(`
+          SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note 
+          FROM guru_attendance_records 
+          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
+        `, [month, year]);
+        const attendanceRecords = attendanceRes.rows;
 
         // Build teacher code/nip mapping
         const teachersRes = await dbPool.query("SELECT id, payload FROM mst_teachers");
@@ -1100,6 +1232,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         }
 
         // Get academic calendar lists from mainData
+        const msR = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+        const mainData = msR.rows.length > 0 ? JSON.parse(msR.rows[0].data || '{}') : {};
         const academicCalendar = mainData.academicCalendar || [];
         const calendarCategories = mainData.calendarCategories || [];
 

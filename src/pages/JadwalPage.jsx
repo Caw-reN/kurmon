@@ -134,11 +134,11 @@ export default function JadwalPage() {
 
 
         {/* Tab Switcher */}
-        <div className="flex bg-white/60 backdrop-blur-xl border border-white/50 p-1.5 rounded-[var(--ui-radius-control)] self-start z-30 print-hidden shadow-sm">
+        <div className="flex bg-white/60 backdrop-blur-xl border border-white/50 p-1.5 rounded-[var(--ui-radius-card)] self-start z-30 print-hidden shadow-sm">
           <Button variant="outline" 
             type="button"
             onClick={() =>setActiveSubTab("pelajaran")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-bold transition-all ${activeSubTab === "pelajaran" ? "text-white" : "text-slate-600 hover:bg-slate-100"}`}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${activeSubTab === "pelajaran" ? "text-white shadow-2xs" : "text-slate-600 hover:bg-slate-100"}`}
             style={activeSubTab ==="pelajaran" ? { backgroundColor: primaryColor } : {}}
           >
             <Calendar size={14} />
@@ -146,7 +146,7 @@ export default function JadwalPage() {
           <Button variant="outline" 
             type="button"
             onClick={() =>setActiveSubTab("piket")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-bold transition-all ${activeSubTab === "piket" ? "text-white" : "text-slate-600 hover:bg-slate-100"}`}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${activeSubTab === "piket" ? "text-white shadow-2xs" : "text-slate-600 hover:bg-slate-100"}`}
             style={activeSubTab ==="piket" ? { backgroundColor: primaryColor } : {}}
           >
             <Users size={14} />

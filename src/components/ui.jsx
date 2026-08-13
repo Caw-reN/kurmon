@@ -416,15 +416,15 @@ export const TablePagination = ({
         <span className="text-xs text-slate-500 font-medium">
           Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems} data
         </span>
-        <select 
+        <UISelect 
           value={itemsPerPage} 
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="text-xs border border-slate-200 rounded p-1 text-slate-600 bg-white cursor-pointer font-bold outline-none focus:ring-1 focus:ring-primary"
+          className="text-xs border border-slate-200 rounded p-1 text-slate-600 bg-white cursor-pointer font-bold outline-none focus:ring-1 focus:ring-primary min-w-[100px]"
         >
           <option value={20}>20 baris</option>
           <option value={50}>50 baris</option>
           <option value={100}>100 baris</option>
-        </select>
+        </UISelect>
       </div>
       {totalPages > 1 && (
         <div className="flex items-center gap-2">

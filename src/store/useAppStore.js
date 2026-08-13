@@ -32,99 +32,146 @@ const DEFAULT_ATTENDANCE_SETTINGS = {
 
 
 export const DEFAULT_ROLE_PERMISSIONS = {
+  // ─── PENGAJAR ───────────────────────────────────────────────────────────────
   guru: {
-    dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis", akademik: "otomatis", absensiguru: "otomatis",
-    silabusguru: "otomatis", walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis", absensi: "otomatis", catatan_walikelas: "otomatis"
+    dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
+    akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
+    walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
+    jurnal_harian: "otomatis", absensi: "otomatis", catatan_walikelas: "otomatis",
+    modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
+    kedisiplinan_piket: "otomatis"
   },
   walikelas: {
-    dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis", akademik: "otomatis",
-    walas_report: "otomatis", catatan_walikelas: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis", ketersediaan: "otomatis", absensi: "otomatis"
+    dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
+    akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
+    kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
+    ketersediaan: "otomatis", absensi: "otomatis", modul_ajar: "otomatis",
+    beban: "otomatis", pesan: "otomatis", kedisiplinan_piket: "otomatis",
+    hikvision_report_siswa: "otomatis"
   },
+
+  // ─── KARYAWAN & TU ──────────────────────────────────────────────────────────
   karyawan: {
-    dashboard: "otomatis", absensiguru: "otomatis"
+    dashboard: "otomatis", absensiguru: "otomatis", akademik: "view", pesan: "view"
   },
   tu: {
-    dashboard: "otomatis", generate: "otomatis", absensi: "otomatis", esurat: "otomatis",
+    dashboard: "otomatis", generate: "view", absensi: "otomatis", esurat: "otomatis",
     kartu_pelajar: "otomatis", kedisiplinan_absensi: "otomatis", siswa: "otomatis",
-    guru: "otomatis", karyawan: "otomatis"
+    guru: "view", karyawan: "view", laporan_absensi: "otomatis",
+    hikvision_report_guru: "view", hikvision_report_karyawan: "view",
+    hikvision_report_siswa: "view", riwayat_prestasi: "view",
+    siswa_keluar: "view", akademik: "view", pesan: "view"
   },
+  sekretaris_tu: {
+    dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
+    esurat: "otomatis", kartu_pelajar: "view", laporan_absensi: "view",
+    kedisiplinan_absensi: "view", akademik: "view", absensiguru: "otomatis", pesan: "view"
+  },
+  bendahara: {
+    dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
+    absensiguru: "otomatis", akademik: "view", pesan: "view"
+  },
+
+  // ─── KEPALA SEKOLAH ─────────────────────────────────────────────────────────
   kepsek: {
-    dashboard: "otomatis", generate: "otomatis", absensi: "otomatis", pesan: "otomatis",
-    pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis", pkl_data_perusahaan: "otomatis",
-    pkl_penugasan: "otomatis", pkl_administrasi: "otomatis", pkl_jurnal: "otomatis",
-    pkl_laporan: "otomatis", pkl_absensi_setting: "otomatis",
-    kedisiplinan_absensi: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_piket: "otomatis",
-    walas_report: "otomatis", catatan_walikelas: "otomatis", riwayat_prestasi: "otomatis"
+    dashboard: "otomatis", generate: "view", absensi: "otomatis", pesan: "otomatis",
+    akademik: "view",
+    pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
+    pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
+    pkl_laporan: "view",
+    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "view",
+    walas_report: "view", catatan_walikelas: "view", riwayat_prestasi: "view",
+    laporan_absensi: "view", hikvision_report_guru: "view",
+    hikvision_report_karyawan: "view", hikvision_report_siswa: "view"
   },
+
+  // ─── WAKA ───────────────────────────────────────────────────────────────────
   waka_kurikulum: {
-    dashboard: "otomatis", generate: "otomatis", ketersediaan: "otomatis", beban: "otomatis",
-    silabus: "otomatis", akademik: "otomatis", kelas: "otomatis", siswa: "otomatis",
-    guru: "otomatis", mapel: "otomatis", jurnal_harian: "otomatis", modul_ajar: "otomatis",
-    walas_report: "otomatis", catatan_walikelas: "otomatis", karyawan: "otomatis",
-    pengaturan: "otomatis", advanced_rules: "otomatis"
+    dashboard: "otomatis", generate: "otomatis", ketersediaan: "otomatis",
+    beban: "otomatis", silabus: "otomatis", akademik: "otomatis", kelas: "otomatis",
+    siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
+    modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
+    pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis"
   },
   waka_kesiswaan: {
-    dashboard: "otomatis", absensi: "otomatis", akademik: "otomatis", pesan: "otomatis",
+    dashboard: "otomatis", absensi: "otomatis", akademik: "view", pesan: "otomatis",
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
-    siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis", siswa: "otomatis"
+    siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
+    siswa: "otomatis", laporan_absensi: "view", hikvision_report_siswa: "view"
   },
   waka_sarpras: {
-    dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", kelas: "otomatis",
-    siswa: "otomatis", generate: "otomatis"
+    dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", kelas: "view",
+    siswa: "view", generate: "view", akademik: "view", pesan: "view",
+    walas_report: "view", catatan_walikelas: "view"
   },
   waka_hubin: {
     dashboard: "otomatis", pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis",
-    pkl_data_perusahaan: "otomatis", pkl_penugasan: "otomatis", pkl_administrasi: "otomatis",
-    pkl_jurnal: "otomatis", pkl_laporan: "otomatis", pkl_absensi_setting: "otomatis"
+    pkl_data_perusahaan: "otomatis", pkl_penugasan: "otomatis",
+    pkl_administrasi: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "otomatis",
+    pkl_absensi_setting: "otomatis", pesan: "otomatis",
+    walas_report: "view", catatan_walikelas: "view", akademik: "view", hikvision_report_siswa: "otomatis"
   },
-  // Staf Kesiswaan
+
+  // ─── TIM KESISWAAN ──────────────────────────────────────────────────────────
   bpbk: {
     dashboard: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_absensi: "view",
-    riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis"
+    riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
+    catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis"
   },
   pembina_osis: {
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", riwayat_prestasi: "otomatis",
-    akademik: "view", siswa: "view", absensiguru: "otomatis"
+    akademik: "view", siswa: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", pesan: "view"
   },
   sekretaris_osis: {
-    dashboard: "otomatis", riwayat_prestasi: "view", akademik: "view", absensiguru: "otomatis"
-  },
-  // Staf Divisi (anggota & sekretaris Waka)
-  sekretaris_kurikulum: {
-    dashboard: "otomatis", generate: "view", ketersediaan: "otomatis", beban: "view",
-    silabus: "otomatis", akademik: "otomatis", kelas: "view", jurnal_harian: "view",
-    modul_ajar: "otomatis", absensiguru: "otomatis"
-  },
-  anggota_kurikulum: {
-    dashboard: "otomatis", generate: "view", akademik: "view", silabus: "view",
-    jurnal_harian: "view", absensiguru: "otomatis"
+    dashboard: "otomatis", riwayat_prestasi: "view", akademik: "view",
+    absensiguru: "otomatis", jurnal_harian: "otomatis", pesan: "view"
   },
   sekretaris_kesiswaan: {
     dashboard: "otomatis", absensi: "otomatis", kedisiplinan_piket: "otomatis",
-    kedisiplinan_absensi: "otomatis", catatan_walikelas: "view", riwayat_prestasi: "otomatis",
-    siswa: "view", absensiguru: "otomatis"
+    kedisiplinan_absensi: "otomatis", catatan_walikelas: "view",
+    riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
   anggota_kesiswaan: {
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "view",
-    riwayat_prestasi: "view", absensiguru: "otomatis"
+    riwayat_prestasi: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
+
+  // ─── TIM KURIKULUM ──────────────────────────────────────────────────────────
+  sekretaris_kurikulum: {
+    dashboard: "otomatis", generate: "view", ketersediaan: "otomatis", beban: "view",
+    silabus: "otomatis", akademik: "otomatis", kelas: "view", jurnal_harian: "view",
+    modul_ajar: "otomatis", absensiguru: "otomatis", pesan: "view"
+  },
+  anggota_kurikulum: {
+    dashboard: "otomatis", generate: "view", akademik: "view", silabus: "view",
+    jurnal_harian: "view", absensiguru: "otomatis", modul_ajar: "view", pesan: "view"
+  },
+
+  // ─── TIM HUBIN & SARPRAS ────────────────────────────────────────────────────
   sekretaris_hubin: {
     dashboard: "otomatis", pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis",
     pkl_data_perusahaan: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "view",
-    pkl_administrasi: "otomatis", absensiguru: "otomatis"
+    pkl_administrasi: "otomatis", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
   anggota_hubin: {
     dashboard: "otomatis", pkl_dashboard: "view", pkl_data_siswa: "view",
-    pkl_jurnal: "view", absensiguru: "otomatis"
+    pkl_jurnal: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
   sekretaris_sarpras: {
-    dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", absensiguru: "otomatis"
+    dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis",
+    absensiguru: "otomatis", jurnal_harian: "otomatis", modul_ajar: "otomatis",
+    akademik: "view", pesan: "view"
   },
   anggota_sarpras: {
-    dashboard: "otomatis", ruangan: "view", denah: "view", absensiguru: "otomatis"
+    dashboard: "otomatis", ruangan: "view", denah: "view", absensiguru: "otomatis",
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
 };
 

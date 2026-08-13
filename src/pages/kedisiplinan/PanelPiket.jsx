@@ -5,17 +5,12 @@ import { CheckCircle2, Check, User, Search, X, History, ChevronRight, Trash2 } f
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { Button } from '../../components/ui.jsx';
 import useFiturStore from'../../store/monitoring/fiturStore.js';
-import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 
 const getViolationStyle = (poin) => {
-  if (poin >= 20) return { icon: ShieldAlert, color:'text-rose-600', bg:'bg-red-100' };
-  if (poin >= 10) return { icon: AlertTriangle, color:'text-orange-500', bg:'bg-orange-50' };
-  if (poin >= 5) return { icon: Clock, color:'text-amber-500', bg:'bg-amber-50' };
-  if (poin >= 20) return { icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-red-100' };
-  if (poin >= 10) return { icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50' };
-  if (poin >= 5) return { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' };
-  return { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-50' };
+  if (poin >= 30) return { icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-200' };
+  if (poin >= 15) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' };
+  return { icon: Clock, color: 'text-teal-600', bg: 'bg-teal-50 border-teal-200' };
 };
 
 export default function PanelPiket({ students = [], classes = [] }) {
@@ -39,12 +34,6 @@ export default function PanelPiket({ students = [], classes = [] }) {
 
   const [violations, setViolations] = useState([]);
 
-  const todayName = useMemo(() => {
-    const dayIdx = new Date().getDay();
-    const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-    return days[dayIdx];
-  }, []);
-
   const totalPoin = useMemo(() => {
     return selectedViolations.reduce((sum, v) => sum + (v.nilai_poin || 0), 0);
   }, [selectedViolations]);
@@ -53,130 +42,122 @@ export default function PanelPiket({ students = [], classes = [] }) {
   const fetchHistory = useCallback(async () => {
     try {
       const res = await fetch("/api/kedisiplinan/riwayat", {
-        headers: {"Authorization": `Bearer ${authToken}` }
+        headers: { "Authorization": `Bearer ${authToken}` }
       });
       const data = await res.json();
       if (data.ok) {
         const today = new Date().toISOString().split('T')[0];
-        const piketHistory = (data.data || []).filter(r => r.tanggal_kejadian.startsWith(today) && r.catatan ==='Input Cepat Panel Piket');
-        setHistory(piketHistory);
+        setHistory(data.data.filter(h => h.tanggal_kejadian && h.tanggal_kejadian.startsWith(today)));
       }
     } catch (e) {
-      console.error("Failed to fetch history", e);
+      console.error(e);
     }
   }, [authToken]);
 
-  const fetchMasterPoin = useCallback(async () => {
+  // Fetch master violations
+  const fetchViolations = useCallback(async () => {
     try {
-      const res = await fetch("/api/kedisiplinan/master", { headers: {"Authorization": `Bearer ${authToken}` } });
+      const res = await fetch("/api/kedisiplinan/tindakan", {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
       const data = await res.json();
-      if (data.ok && data.data) {
-        setViolations(data.data.filter(v => String(v.jenis || '').toLowerCase() ==='pelanggaran'));
+      if (data.ok) {
+        setViolations(data.data);
       }
     } catch (e) {
-      console.error("Failed to fetch master poin", e);
+      console.error(e);
     }
   }, [authToken]);
 
   useEffect(() => {
-    fetchHistory();
-    fetchMasterPoin();
-  }, [fetchHistory, fetchMasterPoin]);
+    if (authToken) {
+      fetchHistory();
+      fetchViolations();
+    }
+  }, [authToken, fetchHistory, fetchViolations]);
 
-  const showToast = (message, type ="success") => {
+  const showToast = (message, type = "success") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const toggleStudent = (student) => {
-    setSelectedStudents(prev => {
-      const exists = prev.some(s => s.nis === student.nis);
-      if (exists) {
-        return prev.filter(s => s.nis !== student.nis);
-      }
-      return [...prev, student];
-    });
-  };
-
-  const toggleViolation = (violation) => {
-    setSelectedViolations(prev => {
-      const exists = prev.some(v => v.id === violation.id);
-      if (exists) {
-        return prev.filter(v => v.id !== violation.id);
-      }
-      return [...prev, violation];
-    });
+    setTimeout(() => setToast(null), 4000);
   };
 
   const filteredStudents = useMemo(() => {
-    return (students || []).filter(student => {
-      const matchSearch = !search || 
-        (student.namaSiswa || student.name || "").toLowerCase().includes(search.toLowerCase()) ||
-        (student.nis || "").toLowerCase().includes(search.toLowerCase());
-      const matchClass = filterClass === "all" || student.class_name === filterClass;
+    return students.filter(s => {
+      const name = (s.namaSiswa || s.name || s.nama || s.nama_siswa || "").toLowerCase();
+      const nis = (s.nis || "").toLowerCase();
+      const matchSearch = name.includes(search.toLowerCase()) || nis.includes(search.toLowerCase());
+      const matchClass = filterClass === "all" || s.class_name === filterClass || s.kelas === filterClass;
       return matchSearch && matchClass;
     });
   }, [students, search, filterClass]);
+
+  const toggleStudent = (student) => {
+    if (selectedStudents.some(s => s.nis === student.nis)) {
+      setSelectedStudents(selectedStudents.filter(s => s.nis !== student.nis));
+    } else {
+      setSelectedStudents([...selectedStudents, student]);
+    }
+  };
+
+  const toggleViolation = (violation) => {
+    if (selectedViolations.some(v => v.id === violation.id)) {
+      setSelectedViolations(selectedViolations.filter(v => v.id !== violation.id));
+    } else {
+      setSelectedViolations([...selectedViolations, violation]);
+    }
+  };
 
   const submitViolation = async () => {
     if (selectedStudents.length === 0 || selectedViolations.length === 0) return;
     setIsSubmitting(true);
     setErrorMsg("");
-
     try {
-      const promises = [];
-      selectedStudents.forEach(student => {
-         selectedViolations.forEach(violation => {
-            const payload = {
-               siswa_nis: student.nis,
-               master_poin_id: violation.id,
-               tanggal_kejadian: new Date().toISOString().split('T')[0],
-               catatan: "Input Cepat Panel Piket"
-            };
-            promises.push(
-               fetch("/api/kedisiplinan/input", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-                  body: JSON.stringify(payload)
-               })
-            );
-         });
-      });
-      
-      const results = await Promise.all(promises);
-      const allOk = results.every(res => res.ok);
-      
-      if (allOk) {
-         showToast("Berhasil menyimpan pelanggaran & mengirim notifikasi!", "success");
-         
-         const violationsStr = selectedViolations.map(v => v.nama_tindakan).join(', ');
+       const payload = {
+          student_nises: selectedStudents.map(s => s.nis),
+          tindakan_ids: selectedViolations.map(v => v.id)
+       };
 
-         if (isWaAutoPelanggaran) {
-           selectedStudents.forEach(student => {
-              const phone = student.phone || student.wa_ortu;
-              if (phone) {
-                 fetch("/api/whatsapp/send", {
-                   method: "POST",
-                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-                   body: JSON.stringify({
-                     phone: phone,
-                     message: `[INFO KEDISIPLINAN]\nNama: ${student.namaSiswa || student.name}\nPelanggaran: ${violationsStr}\nPoin Tambahan: +${totalPoin}\n\nMohon kerjasamanya untuk membimbing putra/putri Bapak/Ibu. Terima kasih.`,
-                     jurusan: student.jurusan || student.department,
-                     trigger_type: 'kedisiplinan_cepat'
-                   })
-                 }).catch(e => console.error("WA Trigger error", e));
-              }
-           });
-         }
+       const res = await fetch("/api/kedisiplinan/input_pos", {
+          method: "POST",
+          headers: { 
+             "Content-Type": "application/json", 
+             "Authorization": `Bearer ${authToken}` 
+          },
+          body: JSON.stringify(payload)
+       });
 
-         setSelectedStudents([]);
-         setSelectedViolations([]);
-         fetchHistory();
-         setConfirmViolation(false);
-         setMobileTab('riwayat');
-      } else {
-         setErrorMsg("Ada kesalahan saat menyimpan beberapa data.");
-      }
+       const data = await res.json();
+       if (res.ok && data.ok) {
+          showToast("Berhasil menyimpan pelanggaran & mengirim notifikasi!", "success");
+          
+          const violationsStr = selectedViolations.map(v => v.nama_tindakan).join(', ');
+
+          if (isWaAutoPelanggaran) {
+            selectedStudents.forEach(student => {
+               const phone = student.phone || student.wa_ortu;
+               if (phone) {
+                  fetch("/api/whatsapp/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                    body: JSON.stringify({
+                      phone: phone,
+                      message: `[INFO KEDISIPLINAN]\nNama: ${student.namaSiswa || student.name}\nPelanggaran: ${violationsStr}\nPoin Tambahan: +${totalPoin}\n\nMohon kerjasamanya untuk membimbing putra/putri Bapak/Ibu. Terima kasih.`,
+                      jurusan: student.jurusan || student.department,
+                      trigger_type: 'kedisiplinan_cepat'
+                    })
+                  }).catch(e => console.error("WA Trigger error", e));
+               }
+            });
+          }
+
+          setSelectedStudents([]);
+          setSelectedViolations([]);
+          fetchHistory();
+          setConfirmViolation(false);
+          setMobileTab('riwayat');
+       } else {
+          setErrorMsg("Ada kesalahan saat menyimpan beberapa data.");
+       }
     } catch (e) {
       console.error(e);
       setErrorMsg("Gagal terhubung ke server.");
@@ -186,7 +167,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
   };
 
   const deleteHistory = async (id) => {
-    if (!await window.confirmAsync("Hapus riwayat pelanggaran ini? Data poin siswa akan dikurangi kembali.")) return;
+    if (!window.confirm("Hapus riwayat pelanggaran ini? Data poin siswa akan dikurangi kembali.")) return;
     try {
       const res = await fetch("/api/kedisiplinan/riwayat", {
         method: "POST",
@@ -205,12 +186,6 @@ export default function PanelPiket({ students = [], classes = [] }) {
 
   return (
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10 pb-24 lg:pb-0">
-      <PageHeader 
-        title="Panel Piket Kedisiplinan"
-        description="Input cepat pelanggaran kedisiplinan dan notifikasi WhatsApp."
-        icon={ShieldAlert}
-      />
-
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-xs border flex items-center gap-3 transition-all ${
@@ -234,16 +209,6 @@ export default function PanelPiket({ students = [], classes = [] }) {
                      Menyimpan <strong className="text-slate-700">{selectedViolations.length} jenis pelanggaran</strong> untuk <strong className="text-slate-700">{selectedStudents.length} siswa</strong>. Total Tambahan: <span className="font-black text-rose-600">+{totalPoin} Poin</span>.
                   </p>
                   
-                  <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-600 mb-3 border border-slate-100 max-h-[90px] overflow-y-auto">
-                     <span className="font-extrabold text-slate-700 block mb-1">Daftar Pelanggaran (+{totalPoin} Poin):</span>
-                     {selectedViolations.map(v => v.nama_tindakan).join(", ")}
-                  </div>
-                  
-                  <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-600 mb-6 border border-slate-100 max-h-[90px] overflow-y-auto">
-                     <span className="font-extrabold text-slate-700 block mb-1">Daftar Siswa Terpilih:</span>
-                     {selectedStudents.map(s => s.namaSiswa || s.name).join(", ")}
-                  </div>
-
                   {errorMsg && (
                     <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold mb-4">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5" />
@@ -268,7 +233,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                         {isSubmitting ? (
                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                         ) : (
-                           <><Check size={16}/> Simpan & Kirim</>
+                           <><Check size={16}/> Simpan &amp; Kirim</>
                         )}
                      </Button>
                   </div>
@@ -318,23 +283,28 @@ export default function PanelPiket({ students = [], classes = [] }) {
       </div>
 
       {/* MAIN CONTENT RESPONSIVE GRID */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-5">
         
         {/* LEFT PANEL: Student Selector */}
-        <div className={`w-full lg:w-1/3 ui-card flex flex-col overflow-hidden border border-slate-100 ${mobileTab === 'siswa' ? 'block' : 'hidden lg:flex'}`}>
-           <div className="p-4 border-b border-slate-100 bg-slate-50">
-              <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                 <User size={18} className="text-[var(--ui-primary)]"/> Pilih Siswa
-              </h2>
-              <div className="space-y-3">
+        <div className={`w-full lg:w-1/3 ui-card flex flex-col overflow-hidden border border-slate-200/80 shadow-xs bg-white ${mobileTab === 'siswa' ? 'block' : 'hidden lg:flex'}`}>
+           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
+              <div className="flex items-center justify-between mb-3">
+                 <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
+                    <User size={16} className="text-[var(--ui-primary)]"/> Pilih Siswa
+                 </h2>
+                 <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    {selectedStudents.length} Terpilih
+                 </span>
+              </div>
+              <div className="space-y-2.5">
                  <div className="relative">
-                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                    <input 
                      type="text"
                      placeholder="Cari nama atau NIS..."
                      value={search}
                      onChange={(e) => setSearch(e.target.value)}
-                     className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)]"
+                     className="w-full pl-9 pr-4 py-1.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-4 focus:ring-[var(--ui-primary)]/10 transition-all"
                    />
                  </div>
                  <div className="w-full">
@@ -347,92 +317,121 @@ export default function PanelPiket({ students = [], classes = [] }) {
               </div>
            </div>
 
-           <div className="max-h-[380px] lg:max-h-[550px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
+           <div className="max-h-[380px] lg:max-h-[520px] overflow-y-auto p-2.5 space-y-1.5 custom-scrollbar">
               {filteredStudents.map(student => {
                  const isSelected = selectedStudents.some(s => s.nis === student.nis);
+                 const name = student.namaSiswa || student.name || student.nama || student.nama_siswa || '-';
                  return (
                     <button
                        key={student.nis}
                        type="button"
                        onClick={() => toggleStudent(student)}
-                       className={`w-full text-left flex items-center justify-between p-3 rounded-[var(--ui-radius-small)] border transition-all text-slate-800 cursor-pointer ${
+                       className={`w-full text-left flex items-center justify-between p-2.5 px-3 rounded-[var(--ui-radius-small)] border transition-all text-slate-800 cursor-pointer active:scale-[0.99] ${
                          isSelected
-                           ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 font-bold shadow-xs'
-                           : 'border-slate-100 bg-white hover:bg-slate-50'
+                           ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 font-bold shadow-2xs'
+                           : 'border-slate-200/60 bg-white hover:bg-slate-50'
                        }`}
                     >
-                       <div className="min-w-0 flex-1 pr-2">
-                          <div className="text-xs sm:text-sm font-extrabold truncate">{student.namaSiswa || student.name || student.nama || student.nama_siswa ||'-'}</div>
-                          <div className="text-[10px] text-slate-400 font-bold mt-0.5">{student.nis} • {student.class_name}</div>
+                       <div className="min-w-0 flex-1 flex items-center gap-2.5 pr-2">
+                          <div className={`w-7 h-7 rounded-full text-[11px] font-black flex items-center justify-center shrink-0 border ${
+                            isSelected 
+                              ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}>
+                             {name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                             <div className="text-xs font-extrabold truncate text-slate-800" title={name}>{name}</div>
+                             <div className="text-[10px] text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5">
+                                <span>{student.nis}</span>
+                                {student.class_name && <span className="text-slate-500">• {student.class_name}</span>}
+                             </div>
+                          </div>
                        </div>
                        {isSelected ? (
-                         <div className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white flex items-center justify-center shrink-0 shadow-xs">
+                         <div className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white flex items-center justify-center shrink-0 shadow-2xs">
                            <Check size={12} className="stroke-[3]" />
                          </div>
                        ) : (
-                         <div className="w-5 h-5 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0" />
+                         <div className="w-5 h-5 rounded-full border border-slate-300 bg-slate-50 flex items-center justify-center shrink-0" />
                        )}
                     </button>
                  );
               })}
               {filteredStudents.length === 0 && (
-                 <div className="text-center py-8 text-slate-400 text-xs">Siswa tidak ditemukan</div>
+                 <div className="text-center py-10 text-slate-400 text-xs font-bold flex flex-col items-center justify-center gap-2">
+                    <User size={24} className="text-slate-300" />
+                    <span>Siswa tidak ditemukan</span>
+                 </div>
               )}
            </div>
         </div>
   
         {/* RIGHT PANEL: Quick Action POS & Selected Tray */}
-        <div className={`w-full lg:w-2/3 flex flex-col gap-6 ${mobileTab === 'pelanggaran' ? 'block' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-2/3 flex flex-col gap-5 ${mobileTab === 'pelanggaran' ? 'block' : 'hidden lg:flex'}`}>
            {/* Selected Tray */}
-           <div className="ui-card p-4 border border-slate-100">
+           <div className="ui-card p-4 border border-slate-200/80 shadow-xs bg-white">
               <div className="flex items-center justify-between mb-3">
-                 <h2 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
-                    <CheckCircle2 size={18} className="text-emerald-600"/> Siswa Terpilih ({selectedStudents.length})
+                 <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
+                    <CheckCircle2 size={16} className="text-emerald-600"/> Siswa Terpilih ({selectedStudents.length})
                  </h2>
                  {selectedStudents.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedStudents([])} className="text-xs text-rose-600 hover:bg-rose-50">Kosongkan</Button>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedStudents([])} 
+                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] transition-colors cursor-pointer border-none bg-transparent"
+                    >
+                      Kosongkan Semua
+                    </button>
                  )}
               </div>
               
-              <div className="min-h-[60px] p-3 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] flex flex-wrap gap-1.5">
+              <div className="min-h-[56px] p-2.5 bg-slate-50/70 border border-slate-200/80 rounded-[var(--ui-radius-small)] flex flex-wrap gap-2 items-center">
                  {selectedStudents.length === 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs italic py-2">
-                       Belum ada siswa yang dipilih. Cari & klik siswa di langkah ke-1.
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold py-2 gap-2">
+                       <User size={15} className="text-slate-400" />
+                       <span>Belum ada siswa yang dipilih. Cari &amp; klik siswa di panel sebelah kiri.</span>
                     </div>
                  ) : (
-                    selectedStudents.map(student => (
-                       <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-700 shadow-xs">
-                          {student.namaSiswa || student.name}
-                          <button 
-                            type="button" 
-                            onClick={() => toggleStudent(student)}
-                            className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors flex items-center justify-center cursor-pointer border-none shrink-0"
-                          >
-                            <X size={10} className="stroke-[3]" />
-                          </button>
-                       </span>
-                    ))
+                    selectedStudents.map(student => {
+                       const name = student.namaSiswa || student.name || student.nama || '-';
+                       return (
+                          <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-extrabold text-slate-800 shadow-2xs">
+                             <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black flex items-center justify-center shrink-0">
+                               {name.charAt(0).toUpperCase()}
+                             </div>
+                             <span className="truncate max-w-[140px]">{name}</span>
+                             <button 
+                               type="button" 
+                               onClick={() => toggleStudent(student)}
+                               className="w-4 h-4 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors flex items-center justify-center cursor-pointer border-none shrink-0"
+                             >
+                               <X size={10} className="stroke-[3]" />
+                             </button>
+                          </span>
+                       );
+                    })
                  )}
               </div>
            </div>
   
            {/* POS Action Grid */}
-           <div className="ui-card p-4 sm:p-6 border border-slate-100">
+           <div className="ui-card p-4 sm:p-5 border border-slate-200/80 shadow-xs bg-white">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
-                  <h2 className="font-black text-slate-800 text-sm sm:text-base flex items-center gap-2">
-                     <ShieldAlert size={18} className="text-amber-500"/> Input Pelanggaran Cepat
+                  <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
+                     <ShieldAlert size={16} className="text-amber-500"/> Input Pelanggaran Cepat
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">Pilih jenis pelanggaran di bawah ini (bisa lebih dari 1).</p>
                 </div>
                 {selectedViolations.length > 0 && (
-                  <span className="text-xs font-black px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-700 self-start sm:self-auto">
+                  <span className="text-xs font-black px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-700 border border-rose-200 self-start sm:self-auto shadow-2xs">
                     +{totalPoin} Poin Terpilih
                   </span>
                 )}
               </div>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
                  {violations.length === 0 ? (
                     <div className="col-span-full py-8 text-center text-slate-400 text-xs italic border border-dashed border-slate-200 rounded-[var(--ui-radius-small)]">
                        Belum ada master poin pelanggaran.
@@ -449,32 +448,52 @@ export default function PanelPiket({ students = [], classes = [] }) {
                              type="button"
                              disabled={isDisabled}
                              onClick={() => toggleViolation(v)}
-                             className={`flex flex-col items-center justify-center text-center p-3 sm:p-4 rounded-[var(--ui-radius-small)] border transition-all select-none focus:outline-none w-full ${
+                             className={`group relative flex flex-col items-center justify-center text-center p-3.5 sm:p-4 rounded-[var(--ui-radius-small)] border transition-all duration-200 select-none focus:outline-none w-full ${
                                isDisabled
-                                 ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-100'
+                                 ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200/60'
                                  : isSelected
-                                   ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 shadow-xs text-[var(--ui-primary)] cursor-pointer'
-                                   : 'border-slate-200 bg-white hover:bg-slate-50 shadow-xs text-slate-700 cursor-pointer'
+                                   ? 'border-emerald-600 bg-emerald-50/60 shadow-xs ring-2 ring-emerald-500/20 text-emerald-900 cursor-pointer scale-[1.01]'
+                                   : 'border-slate-200/80 bg-white hover:bg-slate-50/80 hover:border-slate-300 shadow-2xs text-slate-800 cursor-pointer'
                              }`}
                           >
-                             <div className={`p-2.5 rounded-[var(--ui-radius-small)] mb-2 ${style.bg} ${isSelected ? 'ring-2 ring-[var(--ui-primary)]/30' : ''}`}>
-                                <Icon size={18} className={style.color} />
+                             {isSelected && (
+                               <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                                 <Check size={12} className="stroke-[3]" />
+                               </div>
+                             )}
+
+                             <div className={`p-2.5 rounded-[var(--ui-radius-small)] mb-2.5 transition-transform group-hover:scale-110 ${style.bg}`}>
+                                <Icon size={20} className={style.color} />
                              </div>
-                             <h3 className={`text-xs font-extrabold leading-tight mb-1.5 ${isSelected ? 'text-[var(--ui-primary)]' : 'text-slate-800'}`}>{v.nama_tindakan}</h3>
-                             <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider ${isSelected ? 'text-white bg-rose-500 shadow-xs' : 'text-rose-600 bg-rose-50 border border-rose-100'}`}>+{v.nilai_poin} POIN</span>
+                             <h3 className={`text-xs font-extrabold leading-tight mb-2 px-1 ${isSelected ? 'text-emerald-950 font-black' : 'text-slate-800'}`}>
+                               {v.nama_tindakan}
+                             </h3>
+                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider shadow-2xs ${
+                               isSelected ? 'text-white bg-emerald-700' : 'text-rose-700 bg-rose-50 border border-rose-200/80'
+                             }`}>
+                               +{v.nilai_poin} POIN
+                             </span>
                           </button>
                        );
                     })
                  )}
               </div>
   
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 gap-3">
+                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
+                    <span className="text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">Ringkasan:</span>
+                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-800 font-black border border-slate-200/60">{selectedStudents.length} Siswa</span>
+                    <span className="text-slate-400 font-black">×</span>
+                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-800 font-black border border-slate-200/60">{selectedViolations.length} Pelanggaran</span>
+                    <span className="text-slate-400 font-black">=</span>
+                    <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 font-black border border-rose-200">+{totalPoin} Poin</span>
+                 </div>
                  <Button
                     onClick={() => setConfirmViolation(true)}
                     disabled={selectedStudents.length === 0 || selectedViolations.length === 0 || isSubmitting}
-                    className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 font-black text-xs cursor-pointer shadow-sm"
+                    className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 font-black text-xs cursor-pointer shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
                  >
-                    <CheckCircle2 size={16} /> Simpan & Kirim Notifikasi
+                    <CheckCircle2 size={16} /> Simpan &amp; Kirim Notifikasi
                  </Button>
               </div>
            </div>

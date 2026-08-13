@@ -1,4 +1,4 @@
-import { Button, TablePagination } from '../../../components/ui.jsx';
+import { Button, TablePagination, UISelect, Modal } from '../../../components/ui.jsx';
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import ExcelJS from 'exceljs';
@@ -73,7 +73,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         method:'POST',
         headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
         },
-        body: JSON.stringify(filter)
+        body: JSON.stringify({ ...filter, type: 'karyawan' })
       });
       const json = await res.json();
       if (json.ok) {
@@ -1347,7 +1347,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                {printPeriod === 'harian' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
-                   <select
+                   <UISelect
                      value={printDate}
                      onChange={e => setPrintDate(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -1355,14 +1355,14 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                        <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
                      ))}
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'mingguan' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
-                   <select
+                   <UISelect
                      value={printWeek}
                      onChange={e => setPrintWeek(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -1372,21 +1372,21 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                      <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
                      <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
                      <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'semester' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
-                   <select
+                   <UISelect
                      value={printSemester}
                      onChange={e => setPrintSemester(e.target.value)}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
                      <option value="genap">Semester Genap (Januari - Juni)</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 

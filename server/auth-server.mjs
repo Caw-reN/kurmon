@@ -137,6 +137,8 @@ async function syncAllUsersToModules() {
 }
 
 // Helper: konversi "HH:MM" ke menit (numerik) untuk perbandingan waktu yang aman
+import { isRateLimited } from './middlewares/rateLimiter.mjs';
+
 function toMinutes(hhmm) {
   const [h, m] = String(hhmm || '00:00').split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
@@ -233,12 +235,7 @@ async function pullHikvisionLogs(force = false) {
           const logHhmm = logTime.substring(11, 16);
           const logMin  = toMinutes(logHhmm);
 
-          // Skip duplicate logs
-          const existing = await dbPool.query(
-            "SELECT 1 FROM hikvision_logs WHERE device_id = $1 AND employee_id = $2 AND timestamp = $3 AND event_type = $4",
-            [device.id, employeeNo, logTime, eventType]
-          );
-          if (existing.rowCount > 0) continue;
+          // OPT-04 FIX: Pengecekan `SELECT 1` (N+1 Query) dihapus karena INSERT sudah menggunakan ON CONFLICT DO NOTHING.
 
           // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
           const empKey = String(employeeNo).toLowerCase();
@@ -334,17 +331,8 @@ async function autoSyncGuruAttendanceToAppData() {
     `);
     if (logs.length === 0) return;
 
-    const client = await dbPool.connect();
-    try {
-      await client.query('BEGIN');
-      const mainRes = await client.query("SELECT data FROM app_data WHERE store_key = 'main_store' FOR UPDATE");
-      const mainData = mainRes.rowCount > 0 ? (typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data) : {};
-      const existingRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
-      const existingIds = new Set(existingRecords.map(r => r.id));
-
       const conf = await getHikvisionConfig();
       let added = 0;
-      const newRecords = [];
 
       const getRoleTimeConfigLocal = (conf, role) => {
         const defaults = {
@@ -367,10 +355,10 @@ async function autoSyncGuruAttendanceToAppData() {
         };
       };
 
-      logs.forEach(log => {
+      for (const log of logs) {
         const empId = String(log.employee_id || '').trim();
         const teacherCode = nipToCode[empId.toLowerCase()] || null;
-        if (!teacherCode) return;
+        if (!teacherCode) continue;
 
         const date = log.time_str.substring(0, 10);
         const time = log.time_str.substring(11, 16);
@@ -387,42 +375,25 @@ async function autoSyncGuruAttendanceToAppData() {
           sessionName = 'Pulang Sore';
           status = 'Hadir';
         } else {
-          return;
+          continue;
         }
 
         const recordId = `hik-${teacherCode}-${date}-${sessionName}`;
-        if (existingIds.has(recordId)) return;
-
-        const record = {
-          id: recordId,
-          teacherCode,
-          date,
-          time,
-          sessionName,
-          status,
-          mode: 'hikvision',
-          note: `Dari mesin Hikvision: ${log.location || log.ip_address}`,
-        };
-        newRecords.push(record);
-        existingIds.add(recordId);
-        added++;
-      });
+        
+        try {
+          const res = await dbPool.query(
+            "INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (record_id) DO NOTHING",
+            [recordId, teacherCode, date, time, sessionName, status, 'hikvision', `Dari mesin Hikvision: ${log.location || log.ip_address}`]
+          );
+          if (res.rowCount > 0) added++;
+        } catch (e) {
+          console.error("Gagal insert ke guru_attendance_records:", e.message);
+        }
+      }
 
       if (added > 0) {
-        mainData.attendanceRecords = [...existingRecords, ...newRecords];
-        await client.query(
-          "INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
-          [JSON.stringify(mainData)]
-        );
-        console.log(`[CRON] Berhasil otomatis sinkronisasi ${added} data absensi guru/karyawan dari mesin.`);
+        console.log(`[CRON] Berhasil otomatis sinkronisasi ${added} data absensi guru/karyawan dari mesin ke tabel relasional.`);
       }
-      await client.query('COMMIT');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      console.error('Error in autoSyncGuruAttendanceToAppData transaction:', err);
-    } finally {
-      client.release();
-    }
   } catch (err) {
     console.error('Error in autoSyncGuruAttendanceToAppData:', err);
   }
@@ -809,9 +780,16 @@ const initDb = async () => {
         nama_tindakan VARCHAR(255) NOT NULL,
         jenis VARCHAR(50) NOT NULL,
         nilai_poin INT NOT NULL,
+        is_deleted BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    try {
+      await dbPool.query("ALTER TABLE kedisiplinan_master_poin ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false");
+    } catch (e) {
+      console.warn("Alter table for kedisiplinan_master_poin failed:", e.message);
+    }
 
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS kedisiplinan_jadwal_mingguan (
@@ -1094,6 +1072,21 @@ const initDb = async () => {
       )
     `);
 
+    // Data Absensi Guru/Karyawan (Migrasi dari main_store)
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS guru_attendance_records (
+        record_id VARCHAR(100) PRIMARY KEY,
+        teacher_code VARCHAR(50) NOT NULL,
+        tanggal DATE NOT NULL,
+        waktu TIME NOT NULL,
+        session_name VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL,
+        mode VARCHAR(20) DEFAULT 'hikvision',
+        note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Auto-align sequences to prevent duplicate key violations (hikvision_logs_pkey, etc.)
     try {
       const seqRows = await dbPool.query(`
@@ -1178,64 +1171,123 @@ await initDb();
 const FRONTEND_PORT = Number.parseInt(process.env.VITE_PORT || "6677", 10);
 const AUTH_BIND_HOST = process.env.AUTH_BIND_HOST || "0.0.0.0";
 const ALLOWED_ORIGINS = buildAllowedOrigins({ env: process.env, frontendPort: FRONTEND_PORT });
-import { existsSync, writeFileSync } from "node:fs";
-
-const sessionsFile = resolve(storeDir, "sessions.json");
+// BUG-03 FIX: Session disimpan di PostgreSQL, bukan file plaintext.
+// In-memory Map digunakan sebagai cache cepat (L1), DB sebagai sumber kebenaran (L2).
 let sessions = new Map();
-try {
-  if (existsSync(sessionsFile)) {
-    const data = readFileSync(sessionsFile, "utf8");
-    sessions = new Map(Object.entries(JSON.parse(data)));
+
+const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
+
+// Pastikan tabel app_sessions ada (dipanggil setelah initDb)
+async function ensureSessionTable() {
+  if (!dbPool) return;
+  try {
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS app_sessions (
+        token VARCHAR(36) PRIMARY KEY,
+        role VARCHAR(50) NOT NULL,
+        user_id VARCHAR(100),
+        username VARCHAR(100),
+        name VARCHAR(255),
+        extra_data JSONB DEFAULT '{}',
+        created_at BIGINT NOT NULL,
+        expires_at BIGINT NOT NULL
+      )
+    `);
+    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_app_sessions_expires ON app_sessions (expires_at)`);
+    console.info("[Sessions] Tabel app_sessions siap.");
+  } catch (e) {
+    console.warn("[Sessions] Gagal membuat tabel app_sessions:", e.message);
   }
-} catch (e) {
-  sessions = new Map();
 }
 
-const saveSessions = () => {
+// Simpan session ke DB
+async function saveSessionToDb(token, sessionData) {
+  if (!dbPool) return;
   try {
-    writeFileSync(sessionsFile, JSON.stringify(Object.fromEntries(sessions)));
+    const { role, createdAt, id, username, name, ...extra } = sessionData;
+    const expiresAt = (createdAt || Date.now()) + SESSION_EXPIRY_MS;
+    await dbPool.query(
+      `INSERT INTO app_sessions (token, role, user_id, username, name, extra_data, created_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (token) DO UPDATE SET role=$2, user_id=$3, username=$4, name=$5, extra_data=$6, expires_at=$8`,
+      [token, role || 'unknown', id || username || null, username || null, name || null, JSON.stringify(extra), createdAt || Date.now(), expiresAt]
+    );
   } catch (e) {
-    console.error("[saveSessions] Gagal menyimpan sesi ke file:", e.message);
+    console.warn("[Sessions] Gagal menyimpan session ke DB:", e.message);
   }
-};
+}
 
-const pruneOldSessions = () => {
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+// Hapus session dari DB
+async function deleteSessionFromDb(token) {
+  if (!dbPool) return;
+  try {
+    await dbPool.query("DELETE FROM app_sessions WHERE token = $1", [token]);
+  } catch (e) {
+    console.warn("[Sessions] Gagal menghapus session dari DB:", e.message);
+  }
+}
+
+// Load semua session aktif dari DB ke cache saat startup
+async function loadSessionsFromDb() {
+  if (!dbPool) return;
+  try {
+    const now = Date.now();
+    const { rows } = await dbPool.query(
+      "SELECT token, role, user_id, username, name, extra_data, created_at FROM app_sessions WHERE expires_at > $1",
+      [now]
+    );
+    sessions = new Map();
+    for (const row of rows) {
+      const extra = (typeof row.extra_data === 'string' ? JSON.parse(row.extra_data) : row.extra_data) || {};
+      sessions.set(row.token, {
+        role: row.role,
+        id: row.user_id,
+        username: row.username,
+        name: row.name,
+        createdAt: Number(row.created_at),
+        ...extra
+      });
+    }
+    console.info(`[Sessions] Memuat ${sessions.size} sesi aktif dari database.`);
+  } catch (e) {
+    console.warn("[Sessions] Gagal memuat sesi dari DB:", e.message);
+    sessions = new Map();
+  }
+}
+
+// Bersihkan session kadaluarsa dari DB dan cache
+const pruneOldSessions = async () => {
   const now = Date.now();
-  let changed = false;
+  // Bersihkan cache lokal
   for (const [token, session] of sessions.entries()) {
-    if (session && typeof session === "object") {
-      const createdAt = session.createdAt || session.created_at;
-      if (!createdAt || (now - createdAt > SEVEN_DAYS_MS)) {
-        sessions.delete(token);
-        changed = true;
-      }
-    } else {
+    if (!session || typeof session !== 'object') { sessions.delete(token); continue; }
+    const createdAt = session.createdAt || 0;
+    if (!createdAt || (now - createdAt > SESSION_EXPIRY_MS)) {
       sessions.delete(token);
-      changed = true;
     }
   }
-  if (changed) {
-    saveSessions();
-    console.info(`[Sessions] Cleared expired/legacy sessions from data/sessions.json`);
+  // Bersihkan DB
+  if (dbPool) {
+    try {
+      const result = await dbPool.query("DELETE FROM app_sessions WHERE expires_at < $1", [now]);
+      if (result.rowCount > 0) {
+        console.info(`[Sessions] Menghapus ${result.rowCount} sesi kadaluarsa dari database.`);
+      }
+    } catch (e) {
+      console.warn("[Sessions] Gagal membersihkan sesi kadaluarsa:", e.message);
+    }
   }
 };
-pruneOldSessions();
 
-// FIX BUG-02: Periodic cleanup untuk mencegah memory leak pada in-memory Maps
-// Sessions + loginAttempts dibersihkan setiap 1 jam
-const pruneLoginAttempts = () => {
-  const now = Date.now();
-  for (const [key, val] of loginAttempts.entries()) {
-    if (!val || !val.lockUntil || val.lockUntil < now) loginAttempts.delete(key);
-  }
-  for (const [key, val] of loginAttemptsByIp.entries()) {
-    if (!val || !val.lockUntil || val.lockUntil < now) loginAttemptsByIp.delete(key);
-  }
-};
+// Stub saveSessions agar tidak ada error di referensi lama
+const saveSessions = () => {};
+
+// Inisialisasi session dari DB setelah initDb
+await ensureSessionTable();
+await loadSessionsFromDb();
+
 setInterval(() => {
   pruneOldSessions();
-  pruneLoginAttempts();
 }, 60 * 60 * 1000); // Setiap 1 jam
 
 const getHeaders = (req) => {
@@ -1306,8 +1358,10 @@ const requireAuthenticated = (req, res) => {
 
 const createSession = (role, extra = {}) => {
   const token = randomUUID();
-  sessions.set(token, { role: normalizeServerRole(role), createdAt: Date.now(), ...extra });
-  saveSessions();
+  const sessionData = { role: normalizeServerRole(role), createdAt: Date.now(), ...extra };
+  sessions.set(token, sessionData);
+  // Simpan ke DB secara async (tidak memblokir respons login)
+  saveSessionToDb(token, sessionData).catch(e => console.warn('[Sessions] async save error:', e.message));
   return token;
 };
 
@@ -1508,6 +1562,13 @@ const server = createServer(async (req, res) => {
 
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
+  // FIX: Global Rate Limiter Protection
+  if (isRateLimited(req)) {
+    res.writeHead(429, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ ok: false, error: "Terlalu banyak permintaan. Silakan coba lagi nanti." }));
+    return;
+  }
+
   try {
       if (req.method === "GET" && url.pathname === "/api/student/verify") {
         try {
@@ -1601,6 +1662,207 @@ const server = createServer(async (req, res) => {
       }
       return;
     }
+
+    // ── BUG-01 FIX: GET Absensi Kalender Siswa ─────────────────────
+    if (req.method === "GET" && url.pathname === "/api/monitoring/absensi/siswa") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!dbPool) { send(req, res, 503, { ok: false, error: dbStatus.message }); return; }
+      try {
+        const nis = url.searchParams.get("nis") || session.id || session.username;
+        const month = parseInt(url.searchParams.get("month") || new Date().getMonth() + 1);
+        const year = parseInt(url.searchParams.get("year") || new Date().getFullYear());
+
+        if (!nis) return send(req, res, 400, { ok: false, error: "Parameter NIS diperlukan." });
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        // Ambil data absensi dari kedisiplinan_absensi (izin/sakit/alpa)
+        const { rows: manualRows } = await dbPool.query(
+          `SELECT TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal, status, keterangan
+           FROM kedisiplinan_absensi
+           WHERE siswa_nis = $1 AND EXTRACT(MONTH FROM tanggal) = $2 AND EXTRACT(YEAR FROM tanggal) = $3
+             AND approval_status = 'approved'`,
+          [String(nis), month, year]
+        );
+
+        // Ambil data hadir dari hikvision_logs (siswa tap mesin)
+        const { rows: hikRows } = await dbPool.query(
+          `SELECT TO_CHAR(timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') as tanggal,
+                  TO_CHAR(MIN(timestamp AT TIME ZONE 'Asia/Jakarta'), 'HH24:MI') as time_in,
+                  TO_CHAR(MAX(timestamp AT TIME ZONE 'Asia/Jakarta'), 'HH24:MI') as time_out
+           FROM hikvision_logs hl
+           JOIN hikvision_devices hd ON hl.device_id = hd.id
+           WHERE hl.employee_id = $1
+             AND EXTRACT(MONTH FROM timestamp AT TIME ZONE 'Asia/Jakarta') = $2
+             AND EXTRACT(YEAR FROM timestamp AT TIME ZONE 'Asia/Jakarta') = $3
+             AND hd.device_type = 'siswa'
+           GROUP BY TO_CHAR(timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')`,
+          [String(nis), month, year]
+        );
+
+        // Ambil absensi manual PKL (dari tabel pkl_logbooks)
+        const { rows: logbookRows } = await dbPool.query(
+          `SELECT TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal, jam_masuk, jam_keluar, status
+           FROM pkl_logbooks
+           WHERE student_nis = $1 AND EXTRACT(MONTH FROM tanggal) = $2 AND EXTRACT(YEAR FROM tanggal) = $3`,
+          [String(nis), month, year]
+        ).catch(() => ({ rows: [] }));
+
+        // Ambil config batas waktu
+        let masukLate = "07:15";
+        try {
+          const confRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+          if (confRes.rowCount > 0 && confRes.rows[0].data) {
+            const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+            masukLate = conf?.siswa?.masuk_late || conf?.masuk_late || "07:15";
+          }
+        } catch (e) {}
+
+        const manualMap = {};
+        for (const r of manualRows) manualMap[r.tanggal] = r;
+        const hikMap = {};
+        for (const r of hikRows) hikMap[r.tanggal] = r;
+        const logbookMap = {};
+        for (const r of logbookRows) logbookMap[r.tanggal] = r;
+
+        const records = {};
+        let hadir = 0, terlambat = 0, izinSakit = 0, alpa = 0;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dow = new Date(year, month - 1, day).getDay();
+
+          if (dow === 0 || dow === 6) {
+            records[dateStr] = { status: 'Libur Akhir Pekan', isLibur: true };
+            continue;
+          }
+
+          const manual = manualMap[dateStr];
+          const hik = hikMap[dateStr];
+          const logbook = logbookMap[dateStr];
+
+          if (manual) {
+            const st = String(manual.status || '').toUpperCase();
+            if (st.includes('IZIN') || st.includes('SAKIT')) {
+              records[dateStr] = { status: 'Izin/Sakit', isIzin: true };
+              izinSakit++;
+            } else if (st.includes('ALPA')) {
+              records[dateStr] = { status: 'Alpa', isAlpa: true };
+              alpa++;
+            }
+          } else if (hik) {
+            const timeIn = hik.time_in || '';
+            const isLate = timeIn > masukLate;
+            if (isLate) {
+              records[dateStr] = { status: 'Terlambat', isLate: true, timeIn, timeOut: hik.time_out };
+              terlambat++;
+            } else {
+              records[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn, timeOut: hik.time_out };
+              hadir++;
+            }
+          } else if (logbook) {
+            const st = String(logbook.status || 'HADIR').toUpperCase();
+            if (st.includes('SAKIT') || st.includes('IZIN')) {
+              records[dateStr] = { status: 'Izin/Sakit', isIzin: true, timeIn: logbook.jam_masuk };
+              izinSakit++;
+            } else {
+              records[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: logbook.jam_masuk, timeOut: logbook.jam_keluar };
+              hadir++;
+            }
+          }
+        }
+
+        send(req, res, 200, {
+          ok: true,
+          data: { records, summary: { hadir, terlambat, izinSakit, alpa } },
+          daysInMonth
+        });
+      } catch (err) {
+        console.error("[Absensi Siswa] Error:", err);
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
+    // ── BUG-01 FIX: POST Check-in Absensi PKL Siswa ────────────────
+    if (req.method === "POST" && url.pathname === "/api/monitoring/absensi/checkin") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (session.role !== "siswa") return send(req, res, 403, { ok: false, error: "Hanya siswa yang dapat melakukan absensi." });
+      if (!dbPool) { send(req, res, 503, { ok: false, error: dbStatus.message }); return; }
+      try {
+        const body = await readJsonBody(req);
+        const nis = session.id || session.username;
+        const type = body.type === 'pulang' ? 'pulang' : 'masuk';
+        const method = body.method || 'GPS';
+        const lat = body.lat || null;
+        const lng = body.lng || null;
+        const nowJkt = new Date(Date.now() + 7 * 60 * 60 * 1000);
+        const todayStr = nowJkt.toISOString().slice(0, 10);
+        const timeStr = nowJkt.toISOString().slice(11, 16);
+
+        // Validasi: pastikan siswa terdaftar PKL
+        const { rows: pklRows } = await dbPool.query(
+          "SELECT nis, status FROM pkl_students WHERE nis = $1 AND status = 'aktif'",
+          [String(nis)]
+        );
+        if (pklRows.length === 0) {
+          return send(req, res, 400, { ok: false, error: "Anda belum terdaftar sebagai peserta PKL aktif." });
+        }
+
+        // Cek duplikat absensi hari ini (mencegah double checkin)
+        const { rows: existing } = await dbPool.query(
+          `SELECT id FROM kedisiplinan_absensi
+           WHERE siswa_nis = $1 AND tanggal = $2 AND keterangan LIKE $3`,
+          [String(nis), todayStr, `%${type}%`]
+        );
+
+        if (existing.length > 0) {
+          return send(req, res, 409, { ok: false, error: `Anda sudah melakukan absen ${type} hari ini.` });
+        }
+
+        // Tentukan status berdasarkan waktu
+        let status = 'Hadir';
+        let masukLate = "07:15";
+        try {
+          const confRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+          if (confRes.rowCount > 0 && confRes.rows[0].data) {
+            const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+            masukLate = conf?.siswa?.masuk_late || conf?.masuk_late || "07:15";
+          }
+        } catch (e) {}
+
+        if (type === 'masuk' && timeStr > masukLate) status = 'Terlambat';
+
+        const keterangan = `Absen ${type} via ${method} pukul ${timeStr}${lat ? ` | GPS: ${lat},${lng}` : ''}`;
+
+        await dbPool.query(
+          `INSERT INTO kedisiplinan_absensi (siswa_nis, tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status)
+           VALUES ($1, $2, $3, $4, $5, $6, 'approved')`,
+          [String(nis), todayStr, status, keterangan, String(nis), 'Siswa (Self-checkin)']
+        );
+
+        // Log selfie jika ada (hanya referensi)
+        if (body.selfiePhoto && body.selfiePhoto.length > 50) {
+          // Simpan referensi saja (bukan gambar penuh) untuk efisiensi
+          await dbPool.query(
+            "UPDATE kedisiplinan_absensi SET keterangan = keterangan || ' | Selfie: ✓' WHERE siswa_nis = $1 AND tanggal = $2 ORDER BY created_at DESC LIMIT 1",
+            [String(nis), todayStr]
+          );
+        }
+
+        await logAudit(dbPool, session, req, "CHECKIN_ABSENSI", "kedisiplinan_absensi",
+          `Siswa ${nis} absen ${type} via ${method} pada ${todayStr} ${timeStr} | Status: ${status}`);
+
+        send(req, res, 200, { ok: true, status, time: timeStr, type, message: `Absen ${type} berhasil dicatat.` });
+      } catch (err) {
+        console.error("[Absensi Checkin] Error:", err);
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
     // ── PKL Dashboard Stats ─────────────────────────────────────────
 
     // ── Dashboard Logs (Login, Absen Guru, Siswa Terlambat, Siswa Bermasalah) ───
@@ -1633,7 +1895,15 @@ const server = createServer(async (req, res) => {
              const dbT = await dbPool.query('SELECT payload FROM mst_teachers');
              if (dbT.rows.length > 0) teachers = dbT.rows.map(r => r.payload);
           } catch(e) {}
-          rawTeacherAbsenceLogs = mainData.attendanceRecords || [];
+          try {
+             const guruAbsenceRes = await dbPool.query(`
+                SELECT record_id as id, teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as date, waktu::text as time, session_name as "sessionName", status, mode, note 
+                FROM guru_attendance_records 
+                ORDER BY tanggal DESC, waktu DESC 
+                LIMIT 50
+             `);
+             rawTeacherAbsenceLogs = guruAbsenceRes.rows;
+          } catch(e) {}
         } catch (e) {
           console.error("Failed to read main store for dashboard logs:", e);
         }
@@ -2378,6 +2648,7 @@ const server = createServer(async (req, res) => {
 
 
     // ── Monitoring public: Data Tempat PKL ──────────────────────────
+
     if (req.method === "GET" && url.pathname === "/api/monitoring/lokasi-pkl/public") {
       if (!dbPool) { send(req, res, 503, { ok: false, error: dbStatus.message }); return; }
       try {
@@ -2429,7 +2700,7 @@ const server = createServer(async (req, res) => {
 
 
 
-    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit };
+    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit, deleteSessionFromDb };
     
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);

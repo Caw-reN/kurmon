@@ -68,19 +68,21 @@ export async function handlePklRoutes(req, res, url, ctx) {
         return sendDatabaseError(req, res, err);
       }
     }
-    if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/locations/") && url.pathname.endsWith("/verify")) {
+    const verifyMatch = url.pathname.match(/^\/api\/pkl\/locations\/(\d+)\/verify$/);
+    if (req.method === "PUT" && verifyMatch) {
       const session = requireAuthenticated(req, res);
       if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
-      const id = url.pathname.split("/")[4];
+      const id = parseInt(verifyMatch[1], 10);
       try {
         await dbPool.query("UPDATE pkl_locations SET verified = true WHERE id = $1", [id]);
         return send(req, res, 200, { ok: true, message: "Lokasi berhasil diverifikasi" });
       } catch (err) { return sendDatabaseError(req, res, err); }
     }
-    if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/locations/")) {
+    const locationIdMatch = url.pathname.match(/^\/api\/pkl\/locations\/(\d+)$/);
+    if (req.method === "PUT" && locationIdMatch) {
       const session = requireAuthenticated(req, res);
       if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
-      const id = url.pathname.split("/").pop();
+      const id = parseInt(locationIdMatch[1], 10);
       try {
         const body = await readJsonBody(req);
         const { nama_perusahaan, alamat, jurusan, lat, lng, kuota, status, bidang, kota, telepon, kompetensi } = body;
@@ -98,10 +100,10 @@ export async function handlePklRoutes(req, res, url, ctx) {
         return sendDatabaseError(req, res, err);
       }
     }
-    if (req.method === "DELETE" && url.pathname.startsWith("/api/pkl/locations/")) {
+    if (req.method === "DELETE" && locationIdMatch) {
       const session = requireAuthenticated(req, res);
       if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
-      const id = url.pathname.split("/").pop();
+      const id = parseInt(locationIdMatch[1], 10);
       try {
         await dbPool.query("DELETE FROM pkl_locations WHERE id = $1", [id]);
         return send(req, res, 200, { ok: true });

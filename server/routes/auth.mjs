@@ -35,10 +35,11 @@ export async function handleAuthRoutes(req, res, url, ctx) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/auth/logout") {
-    const { getBearerToken, sessions, saveSessions } = ctx;
-    const token = getBearerToken ? getBearerToken(req) : (String(req.headers.authorization || "").startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : "");
+    const token = typeof getBearerToken !== 'undefined' ? getBearerToken(req) : (String(req.headers.authorization || "").startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : "");
     if (token && ctx.sessions) {
       ctx.sessions.delete(token);
+      // BUG-03 FIX: Hapus dari PostgreSQL juga agar session tidak tersisa di DB
+      if (ctx.deleteSessionFromDb) ctx.deleteSessionFromDb(token).catch(() => {});
       if (ctx.saveSessions) ctx.saveSessions();
     }
     send(req, res, 200, { ok: true });
@@ -84,6 +85,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const body = await readJsonBody(req);
       const nextAdmin = body.adminUser;
       const nextTeachers = Array.isArray(body.teachers) ? body.teachers : null;
+      const nextStaffs = Array.isArray(body.staffs) ? body.staffs : null;
 
       const existingPayload = await readMainPayload();
       if (!existingPayload) throw new Error("Payload not found in database.");
@@ -113,6 +115,27 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           return {
             ...t,
             password: t.password || dbPassword || old?.password
+          };
+        });
+      }
+      
+      if (nextStaffs) {
+        const dbStaffs = await dbPool.query("SELECT payload FROM mst_staffs").catch(() => ({ rows: [] }));
+        const dbStaffMap = new Map();
+        for (const r of dbStaffs.rows) {
+          const pl = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+          if (pl && pl.password) {
+            dbStaffMap.set(String(pl.id).toLowerCase().trim(), pl.password);
+          }
+        }
+
+        mergedPayload.staffs = nextStaffs.map((s) => {
+          const idKey = String(s.id || "").toLowerCase().trim();
+          const dbPassword = dbStaffMap.get(idKey);
+          const old = (existingPayload.staffs || []).find((os) => os.id === s.id);
+          return {
+            ...s,
+            password: s.password || dbPassword || old?.password
           };
         });
       }
@@ -286,6 +309,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             code: userCode,
             name: teacher.name,
             division: teacher.division || "",
+            subrole: teacher.subrole || "",
             isWalas,
             walasClass,
             isDefaultPassword,

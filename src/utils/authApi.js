@@ -51,8 +51,8 @@ export const loginViaServer = async ({ username, password }) => requestJson("/lo
   body: JSON.stringify({ username, password }),
 }, 2);
 
-export const syncAuthSnapshot = async ({ adminUser, teachers, authToken }) => requestJson("/sync", {
+export const syncAuthSnapshot = async ({ adminUser, teachers, staffs, authToken }) => requestJson("/sync", {
   method: "POST",
   headers: authHeaders(authToken),
-  body: JSON.stringify({ adminUser, teachers }),
+  body: JSON.stringify({ adminUser, teachers, staffs }),
 }, 1);

@@ -335,64 +335,63 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
         </div>
       )}
 
-      {/* ── Page Header ────────────────────────────────────────── */}
-      <PageHeader 
-        title="Bimbingan & Konseling" 
-        subtitle="Sistem Peringatan Dini, Manajemen Konseling & Dossier 360°"
-        icon={ShieldAlert}
-      />
-
       {/* ── Sub Navigation Tabs ────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/70">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
+            type="button"
             onClick={() => setSubTab('ews')}
             className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'ews'
-                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
             <ShieldAlert size={15} />
-            <span>Dashboard & EWS</span>
+            <span>Dashboard &amp; EWS</span>
           </button>
           <button
+            type="button"
             onClick={() => setSubTab('konseling')}
             className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'konseling'
-                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
             <HeartHandshake size={15} />
             <span>Sesi Konseling</span>
             {bkSessions.length > 0 && (
-              <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] bg-white/20 text-white font-mono">
+              <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-mono ${
+                subTab === 'konseling' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+              }`}>
                 {bkSessions.length}
               </span>
             )}
           </button>
           <button
+            type="button"
             onClick={() => setSubTab('surat')}
             className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'surat'
-                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
             <FileText size={15} />
-            <span>Surat & Home Visit</span>
+            <span>Surat &amp; Home Visit</span>
           </button>
           <button
+            type="button"
             onClick={() => setSubTab('dossier')}
             className={`px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center gap-2 cursor-pointer border-none ${
               subTab === 'dossier'
-                ? 'bg-[var(--ui-primary)] text-white shadow-xs'
-                : 'bg-transparent text-slate-600 hover:bg-slate-100'
+                ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
+                : 'bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
             }`}
           >
             <Users size={15} />
-            <span>Rekap & Berkas 360°</span>
+            <span>Rekap &amp; Berkas 360°</span>
           </button>
         </div>
 
@@ -413,7 +412,7 @@ export default function DashboardBPBK({ students = [], classes = [] }) {
               });
               setShowSessionModal(true);
             }}
-            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)]"
+            className="px-4 py-2.5 text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
           >
             <Plus size={15} strokeWidth={2.5} />
             <span>Catat Konseling</span>

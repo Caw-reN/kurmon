@@ -238,6 +238,16 @@ export default function AdminSidebar({
             })}
             <SidebarSection label="Pembelajaran" />
             {renderNavItem({
+              id:"silabus",
+              icon: FileText,
+              label:"Silabus Akademik"
+            })}
+            {renderNavItem({
+              id:"rpp_guru",
+              icon: FileSpreadsheet,
+              label:"Silabus & Perangkat Guru"
+            })}
+            {renderNavItem({
               id:"modul_ajar",
               icon: FileText,
               label:"Modul Ajar"
@@ -246,6 +256,11 @@ export default function AdminSidebar({
               id:"jurnal_harian",
               icon: BookOpen,
               label:"Jurnal Harian KBM"
+            })}
+            {renderNavItem({
+              id:"beban",
+              icon: FileSpreadsheet,
+              label:"Beban Mengajar"
             })}
 
             <SidebarSection label="Kehadiran" />
@@ -259,7 +274,7 @@ export default function AdminSidebar({
               <>
                 <SidebarSection label="Wali Kelas" />
                 {renderNavItem({
-                  id:"walas_report",
+                  id:"hikvision_report_siswa",
                   icon: FileText,
                   label: `Laporan ${currentUser.walasClass}`
                 })}
@@ -272,9 +287,46 @@ export default function AdminSidebar({
             )}
             <SidebarSection label="Kesiswaan & Piket" />
             {renderNavItem({
+              id:"siswa",
+              icon: GraduationCap,
+              label:"Data Siswa"
+            })}
+            {renderNavItem({
+              id:"riwayat_prestasi",
+              icon: History,
+              label:"Riwayat Prestasi"
+            })}
+            {renderNavItem({
+              id:"siswa_keluar",
+              icon: UserMinus,
+              label:"Mutasi & Alumni Siswa"
+            })}
+            {renderNavItem({
+              id:"kedisiplinan_bpbk",
+              icon: BookOpen,
+              label:"Bimbingan Konseling"
+            })}
+            {renderNavItem({
               id:"kedisiplinan_piket",
               icon: ClipboardList,
               label:"Piket & Pelanggaran"
+            })}
+            {renderNavItem({
+              id:"tatib_skor",
+              icon: BookOpen,
+              label:"Skor Kredit & Tatib"
+            })}
+            {renderNavItem({
+              id:"walas_report",
+              icon: FileText,
+              label:"Laporan Rekap Wali Kelas"
+            })}
+            <SidebarSection label="Komunikasi" />
+            {renderNavItem({
+              id:"pesan",
+              icon: MessageSquare,
+              label:"Pesan Dashboard",
+              featureKey:"dashboardMessages"
             })}
           </>
         ) : activeUserRole ==="kepsek" ? (
@@ -287,9 +339,33 @@ export default function AdminSidebar({
             })}
             <SidebarSection label="Monitoring Sekolah" />
             {renderNavItem({
+              id:"siswa",
+              icon: GraduationCap,
+              label:"Data Siswa",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"guru",
+              icon: Users,
+              label:"Data Guru",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"kelas",
+              icon: Users,
+              label:"Data Kelas",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
               id:"generate",
               icon: Calendar,
               label:"Jadwal Pelajaran",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"modul_ajar",
+              icon: FileText,
+              label:"Modul Ajar Guru",
               roles: ["kepsek"]
             })}
             {renderNavItem({
@@ -344,6 +420,44 @@ export default function AdminSidebar({
               featureKey:"pkl_jurnal"
             })}
 
+            <SidebarSection label="Monitoring Kesiswaan" />
+            {renderNavItem({
+              id:"kedisiplinan_absensi",
+              icon: ClipboardList,
+              label:"Kehadiran Siswa",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"kedisiplinan_bpbk",
+              icon: ShieldAlert,
+              label:"Rekap BK",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"kedisiplinan_piket",
+              icon: ClipboardList,
+              label:"Piket & Pelanggaran",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"riwayat_prestasi",
+              icon: History,
+              label:"Riwayat Prestasi",
+              roles: ["kepsek"]
+            })}
+            <SidebarSection label="Laporan Kelas" />
+            {renderNavItem({
+              id:"catatan_walikelas",
+              icon: MessageSquare,
+              label:"Catatan Wali Kelas",
+              roles: ["kepsek"]
+            })}
+            {renderNavItem({
+              id:"walas_report",
+              icon: FileText,
+              label:"Laporan Rekap Walas",
+              roles: ["kepsek"]
+            })}
             <SidebarSection label="Komunikasi" />
             {renderNavItem({
               id:"pesan",
@@ -362,6 +476,18 @@ export default function AdminSidebar({
               roles: ["tu"]
             })}
             <SidebarSection label="Data Master" />
+            {renderNavItem({
+              id:"jurusan",
+              icon: SlidersHorizontal,
+              label:"Data Jurusan",
+              roles: ["tu"]
+            })}
+            {renderNavItem({
+              id:"kelas",
+              icon: Users,
+              label:"Data Kelas",
+              roles: ["tu"]
+            })}
             {renderNavItem({
               id:"siswa",
               icon: GraduationCap,
@@ -388,6 +514,19 @@ export default function AdminSidebar({
               roles: ["tu"]
             })}
             {renderNavItem({
+              id:"absensi",
+              icon: CheckCircle2,
+              label:"Absensi Mesin",
+              roles: ["tu"],
+              featureKey:"attendance"
+            })}
+            {renderNavItem({
+              id:"kedisiplinan_absensi",
+              icon: ClipboardList,
+              label:"Kehadiran Siswa",
+              roles: ["tu"]
+            })}
+            {renderNavItem({
               id:"esurat",
               icon: FileText,
               label:"E-Surat",
@@ -397,6 +536,18 @@ export default function AdminSidebar({
               id:"kartu_pelajar",
               icon: Users,
               label:"Kartu Pelajar",
+              roles: ["tu"]
+            })}
+            {renderNavItem({
+              id:"siswa_keluar",
+              icon: UserMinus,
+              label:"Mutasi & Alumni Siswa",
+              roles: ["tu"]
+            })}
+            {renderNavItem({
+              id:"riwayat_prestasi",
+              icon: History,
+              label:"Riwayat Prestasi",
               roles: ["tu"]
             })}
           </>
@@ -432,7 +583,7 @@ export default function AdminSidebar({
               <>
                 <SidebarSection label={`Wali Kelas (${currentUser.walasClass || 'Kelas Ampuan'})`} />
                 {renderNavItem({
-                  id: "walas_report",
+                  id: "hikvision_report_siswa",
                   icon: ClipboardList,
                   label: `Laporan ${currentUser.walasClass || 'Kelas Saya'}`,
                   roles: ["waka"]
@@ -455,9 +606,9 @@ export default function AdminSidebar({
                   roles: ["waka"]
                 })}
                 {renderNavItem({
-                  id:"kedisiplinan_absensi",
+                  id:"hikvision_report_siswa",
                   icon: CheckCircle2,
-                  label:"Rekap Absensi Siswa",
+                  label:"Kehadiran Siswa",
                   roles: ["waka"],
                   featureKey:"attendance"
                 })}
@@ -545,6 +696,32 @@ export default function AdminSidebar({
                   icon: Calendar,
                   label:"Jadwal Pelajaran",
                   roles: ["waka"]
+                })}
+                <SidebarSection label="Laporan & Komunikasi" />
+                {renderNavItem({
+                  id:"walas_report",
+                  icon: FileText,
+                  label:"Laporan Rekap Walas",
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id:"catatan_walikelas",
+                  icon: MessageSquare,
+                  label:"Catatan Wali Kelas",
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id:"akademik",
+                  icon: CalendarDays,
+                  label:"Kalender Akademik",
+                  roles: ["waka"]
+                })}
+                {renderNavItem({
+                  id:"pesan",
+                  icon: MessageSquare,
+                  label:"Pesan Dashboard",
+                  roles: ["waka"],
+                  featureKey:"dashboardMessages"
                 })}
               </>
             ) : activeUserDivision ==="humas" ? (
@@ -635,6 +812,14 @@ export default function AdminSidebar({
                   label:"Absensi GPS",
                   roles: ["waka"],
                   featureKey:"pkl_absensi_setting"
+                })}
+                <SidebarSection label="Komunikasi" />
+                {renderNavItem({
+                  id:"pesan",
+                  icon: MessageSquare,
+                  label:"Pesan Dashboard",
+                  roles: ["waka"],
+                  featureKey:"dashboardMessages"
                 })}
               </>
             ) : (
@@ -954,11 +1139,6 @@ export default function AdminSidebar({
                     icon: BookOpen,
                     label:"Mata Pelajaran"
                   })}
-                  {renderNavItem({
-                    id:"fasilitas",
-                    icon: DoorOpen,
-                    label:"Fasilitas & Ruangan"
-                  })}
 
                   {renderNavItem({
                     id:"kenaikan_kelas",
@@ -979,22 +1159,11 @@ export default function AdminSidebar({
                   onToggle={() => toggleGroup("tataUsaha")}
                 >
                   {renderNavItem({
-                    id:"hikvision_report_guru",
-                    icon: Users,
-                    label:"Absensi Guru",
-                    roles: ["admin","superadmin","tata_usaha","waka"]
-                  })}
-                  {renderNavItem({
-                    id:"hikvision_report_karyawan",
-                    icon: Users,
-                    label:"Absensi Karyawan",
-                    roles: ["admin","superadmin","tata_usaha"]
-                  })}
-                  {renderNavItem({
                     id:"laporan_absensi",
                     icon: ClipboardList,
-                    label:"Semua Laporan Absensi",
-                    roles: ["admin","superadmin","tata_usaha"]
+                    label:"Laporan Presensi & Absensi",
+                    activeIds: ["laporan_absensi", "hikvision_report_guru", "hikvision_report_karyawan"],
+                    roles: ["admin","superadmin","tata_usaha","waka"]
                   })}
                   {renderNavItem({ id:"struktur", icon: Briefcase, label:"Struktur Organisasi" })}
                   {renderNavItem({ id:"esurat", icon: FileText, label:"Administrasi E-Surat" })}
@@ -1038,21 +1207,15 @@ export default function AdminSidebar({
                     label:"Aturan Penjadwalan"
                   })}
 
-                    {renderNavItem({
-                      id:"modul_ajar",
-                      icon: FileText,
-                      label:"Modul Ajar"
-                    })}
-                    {renderNavItem({
-                      id:"jurnal_harian",
-                      icon: BookOpen,
-                      label:"Jurnal Harian Guru"
-                    })}
                   {renderNavItem({
-                    id:"absensi",
-                    icon: CheckCircle2,
-                    label:"Kehadiran Guru",
-                    featureKey:"attendance_manual"
+                    id:"modul_ajar",
+                    icon: FileText,
+                    label:"Modul Ajar"
+                  })}
+                  {renderNavItem({
+                    id:"jurnal_harian",
+                    icon: BookOpen,
+                    label:"Jurnal Harian Guru"
                   })}
                 </SidebarGroup>
 
@@ -1072,7 +1235,7 @@ export default function AdminSidebar({
                     id:"kedisiplinan_piket",
                     icon: ShieldAlert,
                     label:"Piket & Pelanggaran",
-                    roles: ["admin","superadmin","waka"]
+                    roles: ["admin","superadmin","waka","guru"]
                   })}
                   {renderNavItem({
                     id:"kedisiplinan_bpbk",
@@ -1166,9 +1329,11 @@ export default function AdminSidebar({
                   isOpen={expandedGroups.sarpras}
                   onToggle={() => toggleGroup("sarpras")}
                 >
-                  <div className="px-4 py-2 text-[10px] text-slate-400 font-medium italic">
-                    Belum ada menu
-                  </div>
+                  {renderNavItem({
+                    id:"fasilitas",
+                    icon: DoorOpen,
+                    label:"Fasilitas & Ruangan"
+                  })}
                 </SidebarGroup>
 
 
@@ -1221,16 +1386,16 @@ export default function AdminSidebar({
                   onToggle={() => toggleGroup("sistem")}
                 >
                   {renderNavItem({
-                    id: "hak_akses",
-                    icon: UserCog,
-                    label: "Keamanan & Pengguna",
-                    activeIds: ["hak_akses", "pengaturanuser", "audit_log"],
+                    id: "manajemen_role",
+                    icon: Shield,
+                    label: "Struktur & Jabatan Staf",
                     roles: ["admin"]
                   })}
                   {renderNavItem({
-                    id: "manajemen_role",
-                    icon: Shield,
-                    label: "Manajemen Role Staf",
+                    id: "hak_akses",
+                    icon: UserCog,
+                    label: "Hak Akses & Matriks Izin",
+                    activeIds: ["hak_akses", "pengaturanuser", "audit_log"],
                     roles: ["admin"]
                   })}
                   {renderNavItem({

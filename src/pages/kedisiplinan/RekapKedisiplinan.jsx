@@ -4,7 +4,7 @@ import { useAppStore } from '../../store/useAppStore.js';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { FileSpreadsheet, Download, Search, Users, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
+import { FileSpreadsheet, Download, Search, Users, User, Award, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../utils/dataSource.js';
@@ -64,10 +64,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     if (!authToken) return;
     setIsLoading(true);
     try {
-      // Gunakan endpoint BK sessions yang sudah ada (menggantikan /konseling yang tidak ada)
       const [resRiwayat, resAbsensi, resCatatan, resKonseling] = await Promise.all([
         fetch("/api/kedisiplinan/riwayat", { headers: { "Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/kedisiplinan/absensi", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/absensi?limit=5000", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kesiswaan/catatan-walikelas", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
@@ -92,18 +91,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
   const filteredRiwayat = useMemo(() => {
     return riwayat.filter(r => {
-      const student = students.find(s => s.nis === r.siswa_nis);
-      const mBulan = filterBulan ==="" || r.tanggal_kejadian.startsWith(filterBulan);
-      const mKelas = filterKelas ==="all" || (student && student.class_name === filterKelas);
+      const student = students.find(s => String(s.nis) === String(r.siswa_nis));
+      const mBulan = !filterBulan || (r.tanggal_kejadian && r.tanggal_kejadian.startsWith(filterBulan));
+      const className = student ? (student.class_name || student.kelas) : null;
+      const mKelas = filterKelas === "all" || className === filterKelas;
       return mBulan && mKelas;
     });
   }, [riwayat, filterBulan, filterKelas, students]);
 
   const filteredAbsensi = useMemo(() => {
     return absensi.filter(a => {
-      const student = students.find(s => s.nis === a.siswa_nis);
-      const mBulan = filterBulan ==="" || a.tanggal.startsWith(filterBulan);
-      const mKelas = filterKelas ==="all" || (student && student.class_name === filterKelas);
+      const student = students.find(s => String(s.nis) === String(a.siswa_nis));
+      const mBulan = !filterBulan || (a.tanggal && a.tanggal.startsWith(filterBulan));
+      const className = student ? (student.class_name || student.kelas) : null;
+      const mKelas = filterKelas === "all" || className === filterKelas;
       return mBulan && mKelas;
     });
   }, [absensi, filterBulan, filterKelas, students]);
@@ -112,11 +113,12 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const studentScores = useMemo(() => {
     const map = {};
     riwayat.forEach(r => {
-      if (!map[r.siswa_nis]) {
-        map[r.siswa_nis] = 0;
+      const nisStr = String(r.siswa_nis);
+      if (!map[nisStr]) {
+        map[nisStr] = 0;
       }
-      const isPrestasi = r.jenis?.toLowerCase() ==='prestasi';
-      map[r.siswa_nis] += r.poin * (isPrestasi ? -1 : 1);
+      const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+      map[nisStr] += (r.poin || 0) * (isPrestasi ? -1 : 1);
     });
     return map;
   }, [riwayat]);
@@ -125,13 +127,15 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const studentAttendance = useMemo(() => {
     const map = {};
     absensi.forEach(a => {
-      if (!map[a.siswa_nis]) {
-        map[a.siswa_nis] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+      const nisStr = String(a.siswa_nis);
+      if (!map[nisStr]) {
+        map[nisStr] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
       }
-      if (a.status ==='Sakit') map[a.siswa_nis].sakit += 1;
-      else if (a.status ==='Izin') map[a.siswa_nis].izin += 1;
-      else if (a.status ==='Alpa' || a.status ==='Belum Scan') map[a.siswa_nis].alpa += 1;
-      else map[a.siswa_nis].hadir += 1;
+      const st = String(a.status || '').toLowerCase();
+      if (st === 'sakit') map[nisStr].sakit += 1;
+      else if (st === 'izin') map[nisStr].izin += 1;
+      else if (st === 'alpa' || st === 'belum scan') map[nisStr].alpa += 1;
+      else map[nisStr].hadir += 1;
     });
     return map;
   }, [absensi]);
@@ -139,8 +143,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   // Filtered Students List
   const filteredStudentsList = useMemo(() => {
     const list = students.filter(s => {
-      const mKelas = filterKelas ==="all" || s.class_name === filterKelas;
-      const nameVal = s.name || s.nama || s.namaSiswa ||"";
+      const className = s.class_name || s.kelas;
+      const mKelas = filterKelas === "all" || className === filterKelas;
+      const nameVal = s.name || s.nama || s.namaSiswa || "";
       const mSearch = !searchSiswa.trim() || 
         nameVal.toLowerCase().includes(searchSiswa.toLowerCase()) || 
         String(s.nis).includes(searchSiswa);
@@ -149,8 +154,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     
     // Sort alphabetically by name
     return list.sort((a, b) => {
-      const nameA = a.name || a.nama || a.namaSiswa ||"";
-      const nameB = b.name || b.nama || b.namaSiswa ||"";
+      const nameA = a.name || a.nama || a.namaSiswa || "";
+      const nameB = b.name || b.nama || b.namaSiswa || "";
       return nameA.localeCompare(nameB);
     });
   }, [students, filterKelas, searchSiswa]);
@@ -159,19 +164,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const leaderboard = useMemo(() => {
     const map = {};
     filteredRiwayat.forEach(r => {
-      if (!map[r.siswa_nis]) {
-        const student = students.find(s => s.nis === r.siswa_nis);
-        map[r.siswa_nis] = {
-          nis: r.siswa_nis,
-          name: student ? (student.name || student.nama || student.namaSiswa) : r.siswa_nis,
-          class_name: student ? student.class_name :'Unknown',
+      const nisStr = String(r.siswa_nis);
+      if (!map[nisStr]) {
+        const student = students.find(s => String(s.nis) === nisStr);
+        map[nisStr] = {
+          nis: nisStr,
+          name: student ? (student.name || student.nama || student.namaSiswa) : nisStr,
+          class_name: student ? (student.class_name || student.kelas) : 'Unknown',
           total_poin: 0,
           kasus_count: 0
         };
       }
-      const isPrestasi = r.jenis?.toLowerCase() ==='prestasi';
-      map[r.siswa_nis].total_poin += r.poin * (isPrestasi ? -1 : 1);
-      map[r.siswa_nis].kasus_count += 1;
+      const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+      map[nisStr].total_poin += (r.poin || 0) * (isPrestasi ? -1 : 1);
+      map[nisStr].kasus_count += 1;
     });
     Object.keys(map).forEach(nis => {
       map[nis].total_poin = Math.max(0, map[nis].total_poin);
@@ -187,21 +193,24 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const classStats = useMemo(() => {
     const map = {};
     classes.forEach(c => {
-      map[c.name] = { class_name: c.name, poin: 0, alpa: 0, sakit: 0, izin: 0, total_students: 0, avg_score: 100 };
+      const cName = c.name || c.kelas || c.class_name;
+      map[cName] = { class_name: cName, poin: 0, alpa: 0, sakit: 0, izin: 0, total_students: 0, avg_score: 100 };
     });
 
     // Count students per class
     students.forEach(s => {
-      if (s.class_name && map[s.class_name]) {
-        map[s.class_name].total_students += 1;
+      const className = s.class_name || s.kelas;
+      if (className && map[className]) {
+        map[className].total_students += 1;
       }
     });
 
     filteredRiwayat.forEach(r => {
-      const student = students.find(s => s.nis === r.siswa_nis);
-      if (student && map[student.class_name]) {
-        const isPrestasi = r.jenis?.toLowerCase() ==='prestasi';
-        map[student.class_name].poin += r.poin * (isPrestasi ? -1 : 1);
+      const student = students.find(s => String(s.nis) === String(r.siswa_nis));
+      const className = student ? (student.class_name || student.kelas) : null;
+      if (className && map[className]) {
+        const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+        map[className].poin += (r.poin || 0) * (isPrestasi ? -1 : 1);
       }
     });
 
@@ -210,11 +219,13 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     });
 
     filteredAbsensi.forEach(a => {
-      const student = students.find(s => s.nis === a.siswa_nis);
-      if (student && map[student.class_name]) {
-        if (a.status ==='Alpa') map[student.class_name].alpa += 1;
-        if (a.status ==='Sakit') map[student.class_name].sakit += 1;
-        if (a.status ==='Izin') map[student.class_name].izin += 1;
+      const student = students.find(s => String(s.nis) === String(a.siswa_nis));
+      const className = student ? (student.class_name || student.kelas) : null;
+      if (className && map[className]) {
+        const st = String(a.status || '').toLowerCase();
+        if (st === 'alpa' || st === 'belum scan') map[className].alpa += 1;
+        else if (st === 'sakit') map[className].sakit += 1;
+        else if (st === 'izin') map[className].izin += 1;
       }
     });
 
@@ -223,16 +234,16 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       const cls = map[clsName];
       if (cls.total_students > 0) {
         let totalScoreSum = 0;
-        const clsStudents = students.filter(s => s.class_name === clsName);
+        const clsStudents = students.filter(s => (s.class_name || s.kelas) === clsName);
         clsStudents.forEach(stud => {
-          const deductions = studentScores[stud.nis] || 0;
+          const deductions = studentScores[String(stud.nis)] || 0;
           totalScoreSum += Math.max(0, 100 - deductions);
         });
         cls.avg_score = Math.round(totalScoreSum / cls.total_students);
       }
     });
 
-    return Object.values(map).sort((a, b) => b.poin - a.poin);
+    return Object.values(map).sort((a, b) => b.poin - a.poin || a.class_name.localeCompare(b.class_name));
   }, [filteredRiwayat, filteredAbsensi, classes, students, studentScores]);
 
   const exportExcel = () => {
@@ -486,165 +497,176 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   };
 
   return (
-    <div className="space-y-4 relative animate-in fade-in duration-300">
-      {/* ── Page Header ────────────────────────────────────────── */}
-      <PageHeader 
-        title="Rekap Kedisiplinan" 
-        subtitle="Analisis Komprehensif Kinerja Kedisiplinan & Kehadiran Siswa"
-        icon={FileSpreadsheet}
-      />
+    <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
+      
+      {/* 🚀 Unified Header Toolbar (Pills + Controls in 1 Container) */}
+      <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
+        {/* Row 1: Quick Filter Sub-Tab Pills + Student Counter */}
+        <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex bg-slate-100/80 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/80 gap-1 overflow-x-auto">
+            {[
+              { id: 'siswa', label: 'Data Per Siswa', icon: User },
+              { id: 'kelas', label: 'Data Per Kelas', icon: Users },
+              { id: 'leaderboard', label: 'Peringkat Pelanggaran', icon: Trophy }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveSection(tab.id)}
+                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 flex items-center gap-1.5 ${
+                  activeSection === tab.id
+                    ? 'bg-white text-[var(--ui-primary)] shadow-2xs font-black'
+                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                }`}
+              >
+                <tab.icon size={14} className={activeSection === tab.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Navigation Tabs & Export Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-        <div className="flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveSection('siswa')}
-            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
-              activeSection === 'siswa' 
-                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
-                : 'text-slate-600 hover:text-slate-900 bg-transparent'
-            }`}
-          >
-            Data Per Siswa
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('kelas')}
-            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
-              activeSection === 'kelas' 
-                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
-                : 'text-slate-600 hover:text-slate-900 bg-transparent'
-            }`}
-          >
-            Data Per Kelas
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('leaderboard')}
-            className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 ${
-              activeSection === 'leaderboard' 
-                ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' 
-                : 'text-slate-600 hover:text-slate-900 bg-transparent'
-            }`}
-          >
-            Peringkat Pelanggaran
-          </button>
-        </div>
-
-        <Button onClick={exportExcel} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 flex items-center justify-center gap-1.5 cursor-pointer shrink-0 rounded-[var(--ui-radius-small)] shadow-2xs">
-          <Download size={14} />
-          <span>Ekspor Excel</span>
-        </Button>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="ui-card p-3.5 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center border border-slate-100 shadow-xs">
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-          <input
-            value={searchSiswa}
-            onChange={e => setSearchSiswa(e.target.value)}
-            placeholder="Cari nama / NIS siswa..."
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)]"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="month"
-            value={filterBulan}
-            onChange={e => setFilterBulan(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-bold text-slate-700 focus:outline-none shrink-0"
-          />
-          <div className="w-36 sm:w-44 shrink-0">
-            <CustomSelect
-              options={[{ value:'all', label:'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
-              value={filterKelas}
-              onChange={setFilterKelas}
-            />
+          <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500">
+            <span>Total Siswa:</span>
+            <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 font-black border border-emerald-200/80">
+              {filteredStudentsList.length} Siswa
+            </span>
           </div>
         </div>
-        {isLoading && <span className="text-xs text-slate-400 font-medium animate-pulse">Memuat...</span>}
+
+        {/* Row 2: Search, Date Filter, Class Filter & Export Excel Button */}
+        <div className="p-3.5 sm:p-4 bg-white flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto flex-1">
+            <div className="relative flex-1 min-w-[200px] w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+              <input
+                type="text"
+                placeholder="Cari nama / NIS siswa..."
+                value={searchSiswa}
+                onChange={e => setSearchSiswa(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--ui-primary)]/10 transition-all"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="month"
+                value={filterBulan}
+                onChange={e => setFilterBulan(e.target.value)}
+                className="px-3.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
+              />
+              {filterBulan !== "" && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setFilterBulan("")} 
+                  className="shrink-0 text-xs rounded-[var(--ui-radius-small)] text-rose-600 hover:bg-rose-50 px-2 py-1"
+                >
+                  Clear
+                </Button>
+              )}
+              <div className="w-36 sm:w-44 shrink-0">
+                <CustomSelect
+                  options={[{ value:'all', label:'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
+                  value={filterKelas}
+                  onChange={setFilterKelas}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+            <button 
+              type="button"
+              onClick={exportExcel} 
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer border-none"
+            >
+              <Download size={14} /> <span>Ekspor Excel</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── TAB 1: DATA PER SISWA ── */}
-      {activeSection ==='siswa' && (
-        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
-          <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-[var(--ui-primary)]" />
-              <h2 className="font-bold text-xs sm:text-sm text-slate-800">Data Kinerja & Skor Kredit Per Siswa</h2>
-            </div>
-            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)]">{filteredStudentsList.length} siswa</span>
-          </div>
-
-          {/* Desktop Table */}
+      {activeSection === 'siswa' && (
+        <div className="flex flex-col w-full">
+          {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[11px] text-slate-500 uppercase bg-white border-b border-slate-150">
-                <tr>
-                  <th className="px-4 py-3 font-bold text-center w-12">No</th>
-                  <th className="px-4 py-3 font-bold">Siswa</th>
-                  <th className="px-4 py-3 font-bold text-center">Hadir</th>
-                  <th className="px-4 py-3 font-bold text-center">Izin</th>
-                  <th className="px-4 py-3 font-bold text-center">Sakit</th>
-                  <th className="px-4 py-3 font-bold text-center">Alpa</th>
-                  <th className="px-4 py-3 font-bold text-center">Skor Kredit</th>
-                  <th className="px-4 py-3 font-bold text-center w-28">Rapor</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  <th className="px-4 py-3.5 text-center w-12">No</th>
+                  <th className="px-5 py-3.5">Siswa &amp; Kelas</th>
+                  <th className="px-4 py-3.5 text-center text-emerald-700">Hadir</th>
+                  <th className="px-4 py-3.5 text-center text-blue-700">Izin</th>
+                  <th className="px-4 py-3.5 text-center text-amber-700">Sakit</th>
+                  <th className="px-4 py-3.5 text-center text-rose-700">Alpa</th>
+                  <th className="px-4 py-3.5 text-center">Skor Kredit</th>
+                  <th className="px-4 py-3.5 text-right w-28">Rapor</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredStudentsList.length === 0 ? (
+              <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
+                {isLoading ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-8 text-slate-400">
-                      Siswa tidak ditemukan atau belum ada data.
+                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-bold">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                        <span>Memuat rekap data siswa...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredStudentsList.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-semibold">
+                      Siswa tidak ditemukan atau belum ada data rekap.
                     </td>
                   </tr>
                 ) : (
                   filteredStudentsList
                     .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
                     .map((s, idx) => {
-                    const name = s.name || s.nama || s.namaSiswa ||"";
-                    const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
-                    const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
-                    const globalIdx = (siswaPage - 1) * siswaPerPage + idx;
-                    return (
-                      <tr key={s.nis} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3 text-center text-slate-400 font-bold">{globalIdx + 1}</td>
-                        <td className="px-4 py-3">
-                          <p className="font-bold text-slate-800">{name}</p>
-                          <p className="text-[10px] text-slate-450 font-bold">{s.nis} • {s.class_name ||"-"}</p>
-                        </td>
-                        <td className="px-4 py-3 text-center font-bold text-emerald-600">{att.hadir}</td>
-                        <td className="px-4 py-3 text-center font-bold text-blue-600">{att.izin}</td>
-                        <td className="px-4 py-3 text-center font-bold text-amber-600">{att.sakit}</td>
-                        <td className="px-4 py-3 text-center font-bold text-rose-500">{att.alpa}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] font-black text-xs ${
-                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-red-50/60 text-rose-600'
-                          }`}>
-                            {score} Poin
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex gap-2 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]">
+                      const name = s.name || s.nama || s.namaSiswa || "";
+                      const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+                      const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
+                      const globalIdx = (siswaPage - 1) * siswaPerPage + idx;
+                      return (
+                        <tr key={s.nis} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-4 py-3 text-center text-slate-400 font-bold">{globalIdx + 1}</td>
+                          <td className="px-5 py-3">
+                            <p className="font-extrabold text-slate-800">{name}</p>
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{s.nis} • {s.class_name || "-"}</p>
+                          </td>
+                          <td className="px-4 py-3 text-center font-black text-emerald-600">{att.hadir}</td>
+                          <td className="px-4 py-3 text-center font-black text-blue-600">{att.izin}</td>
+                          <td className="px-4 py-3 text-center font-black text-amber-600">{att.sakit}</td>
+                          <td className="px-4 py-3 text-center font-black text-rose-500">{att.alpa}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] font-black text-xs border ${
+                              score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                            }`}>
+                              {score} Poin
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setSelectedStudentForRapor(s)} 
+                              className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)] border-slate-200 text-slate-700 hover:bg-slate-50"
+                            >
                               <FileText size={13} className="mr-1"/> Rapor PDF
                             </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                          </td>
+                        </tr>
+                      );
+                    })
                 )}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Cards View */}
-          <div className="md:hidden flex flex-col divide-y divide-slate-100">
+          <div className="md:hidden flex flex-col p-3 divide-y divide-slate-100 gap-3">
             {filteredStudentsList.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">Siswa tidak ditemukan atau belum ada data.</div>
+              <div className="p-8 text-center text-slate-400 text-xs font-semibold">Siswa tidak ditemukan atau belum ada data.</div>
             ) : (
               filteredStudentsList
                 .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
@@ -653,14 +675,14 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
                   const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
                   return (
-                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-100 rounded-[var(--ui-radius-card)] shadow-xs mb-3">
+                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="font-extrabold text-xs text-slate-800">{name}</div>
                           <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black shrink-0 ${
-                          score >= 85 ? 'bg-emerald-100 text-emerald-700' : score >= 70 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black shrink-0 border ${
+                          score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
                         }`}>
                           Skor: {score} Poin
                         </span>
@@ -684,51 +706,49 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
             )}
           </div>
 
-          <PaginationControls 
-            currentPage={siswaPage}
-            totalItems={filteredStudentsList.length}
-            itemsPerPage={siswaPerPage}
-            onPageChange={setSiswaPage}
-            onItemsPerPageChange={(v) => { setSiswaPerPage(v); setSiswaPage(1); }}
-          />
+          <div className="p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80">
+            <PaginationControls 
+              currentPage={siswaPage}
+              totalItems={filteredStudentsList.length}
+              itemsPerPage={siswaPerPage}
+              onPageChange={setSiswaPage}
+              onItemsPerPageChange={(v) => { setSiswaPerPage(v); setSiswaPage(1); }}
+            />
+          </div>
         </div>
       )}
 
       {/* ── TAB 2: DATA PER KELAS ── */}
-      {activeSection ==='kelas' && (
-        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
-          <div className="p-3.5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <TrendingUp size={16} className="text-[var(--ui-primary)]" />
-            <h2 className="font-bold text-xs sm:text-sm text-slate-800">Statistik Pelanggaran &amp; Absensi Per Kelas</h2>
-          </div>
+      {activeSection === 'kelas' && (
+        <div className="flex flex-col w-full">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[10px] text-slate-500 uppercase bg-white border-b border-slate-150">
-                <tr>
-                  <th className="px-4 py-3 font-bold">Kelas</th>
-                  <th className="px-4 py-3 font-bold text-center text-rose-600">Total Poin Pelanggaran</th>
-                  <th className="px-4 py-3 font-bold text-center text-[var(--ui-primary)]">Rata-rata Skor Kredit</th>
-                  <th className="px-4 py-3 font-bold text-center text-amber-600">Total Alpa</th>
-                  <th className="px-4 py-3 font-bold text-center text-blue-600">Total Sakit</th>
-                  <th className="px-4 py-3 font-bold text-center text-emerald-600">Total Izin</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  <th className="px-4 py-3.5 font-bold">Kelas</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-rose-600">Total Poin Pelanggaran</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-[var(--ui-primary)]">Rata-rata Skor Kredit</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-amber-600">Total Alpa</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-blue-600">Total Sakit</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-emerald-600">Total Izin</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
                 {classStats.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-400">
+                    <td colSpan="6" className="text-center py-8 text-slate-400 font-semibold">
                       Tidak ada data kelas.
                     </td>
                   </tr>
                 ) : (
                   classStats.map(cs => (
-                    <tr key={cs.class_name} className="border-b border-slate-50 hover:bg-slate-50/50">
-                      <td className="px-4 py-3 font-bold text-slate-800">{cs.class_name}</td>
-                      <td className="px-4 py-3 text-center font-bold text-rose-600 bg-red-50/20">{cs.poin}</td>
-                      <td className="px-4 py-3 text-center font-black text-[var(--ui-primary)] bg-blue-50/20">{cs.avg_score} / 100</td>
-                      <td className="px-4 py-3 text-center font-bold text-slate-600">{cs.alpa}</td>
-                      <td className="px-4 py-3 text-center font-bold text-slate-600">{cs.sakit}</td>
-                      <td className="px-4 py-3 text-center font-bold text-slate-600">{cs.izin}</td>
+                    <tr key={cs.class_name} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-4 py-3.5 font-extrabold text-slate-800">{cs.class_name}</td>
+                      <td className="px-4 py-3.5 text-center font-black text-rose-600 bg-rose-50/30">{cs.poin}</td>
+                      <td className="px-4 py-3.5 text-center font-black text-[var(--ui-primary)] bg-blue-50/30">{cs.avg_score} / 100</td>
+                      <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.alpa}</td>
+                      <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.sakit}</td>
+                      <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.izin}</td>
                     </tr>
                   ))
                 )}
@@ -739,27 +759,23 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       )}
 
       {/* ── TAB 3: LEADERBOARD ── */}
-      {activeSection ==='leaderboard' && (
-        <div className="ui-card flex flex-col overflow-hidden border border-slate-100 shadow-xs">
-          <div className="p-3.5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-            <AlertOctagon size={16} className="text-rose-500" />
-            <h2 className="font-bold text-xs sm:text-sm text-slate-800 flex-1">Top Siswa Pelanggaran Tertinggi</h2>
-          </div>
+      {activeSection === 'leaderboard' && (
+        <div className="flex flex-col w-full">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[11px] text-slate-500 uppercase bg-white border-b border-slate-150">
-                <tr>
-                  <th className="px-4 py-3 font-bold text-center w-12">No</th>
-                  <th className="px-4 py-3 font-bold">Siswa</th>
-                  <th className="px-4 py-3 font-bold text-center">Total Poin</th>
-                  <th className="px-4 py-3 font-bold text-center">Kasus</th>
-                  <th className="px-4 py-3 font-bold text-center w-28">Rapor</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  <th className="px-4 py-3.5 font-bold text-center w-12">No</th>
+                  <th className="px-4 py-3.5 font-bold">Siswa &amp; Kelas</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-rose-600">Total Poin</th>
+                  <th className="px-4 py-3.5 font-bold text-center">Jumlah Kasus</th>
+                  <th className="px-4 py-3.5 text-right w-28">Rapor</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
                 {leaderboard.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="text-center py-8 text-slate-400">
+                    <td colSpan="5" className="text-center py-8 text-slate-400 font-semibold">
                       Tidak ada data pelanggaran untuk filter ini.
                     </td>
                   </tr>
@@ -767,44 +783,44 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   leaderboard
                     .slice((lbPage - 1) * lbPerPage, lbPage * lbPerPage)
                     .map((lb, idx) => {
-                    const globalIdx = (lbPage - 1) * lbPerPage + idx;
-                    return (
-                    <tr key={lb.nis} className="border-b border-slate-50 hover:bg-slate-50/50">
-                      <td className="px-4 py-3 text-center">
-                        {!searchSiswa && globalIdx === 0 ? <Trophy size={16} className="text-amber-500 mx-auto" /> : <span className="text-slate-400 font-bold">{globalIdx + 1}</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="font-bold text-slate-800">{lb.name}</p>
-                        <p className="text-[10px] text-slate-500 font-semibold">{lb.class_name}</p>
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold text-rose-600">{lb.total_poin}</td>
-                      <td className="px-4 py-3 text-center font-bold text-slate-600">{lb.kasus_count}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedStudentForRapor(lb)}
-                            className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]"
-                          >
-                            <Printer size={12} className="mr-1.5" /> Cetak
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                    );
-                  })
+                      const globalIdx = (lbPage - 1) * lbPerPage + idx;
+                      return (
+                        <tr key={lb.nis} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-4 py-3 text-center">
+                            {!searchSiswa && globalIdx === 0 ? <Trophy size={16} className="text-amber-500 mx-auto" /> : <span className="text-slate-400 font-bold">{globalIdx + 1}</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="font-extrabold text-slate-800">{lb.name}</p>
+                            <p className="text-[10px] text-slate-400 font-semibold">{lb.class_name}</p>
+                          </td>
+                          <td className="px-4 py-3 text-center font-black text-rose-600">{lb.total_poin}</td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-600">{lb.kasus_count}</td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedStudentForRapor(lb)}
+                              className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)] border-slate-200 text-slate-700 hover:bg-slate-50"
+                            >
+                              <Printer size={12} className="mr-1.5" /> Cetak
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })
                 )}
               </tbody>
             </table>
           </div>
-          <PaginationControls
-            currentPage={lbPage}
-            totalItems={leaderboard.length}
-            itemsPerPage={lbPerPage}
-            onPageChange={setLbPage}
-            onItemsPerPageChange={(v) => { setLbPerPage(v); setLbPage(1); }}
-          />
+          <div className="p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80">
+            <PaginationControls
+              currentPage={lbPage}
+              totalItems={leaderboard.length}
+              itemsPerPage={lbPerPage}
+              onPageChange={setLbPage}
+              onItemsPerPageChange={(v) => { setLbPerPage(v); setLbPage(1); }}
+            />
+          </div>
         </div>
       )}
 
@@ -817,49 +833,49 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           icon={<FileText size={20} className="text-rose-500" />}
           width="md"
         >
-            <div className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
-                <p className="text-slate-500 font-semibold">Nama Siswa:</p>
-                <p className="font-bold text-slate-800 text-sm">{selectedStudentForRapor.name || selectedStudentForRapor.nama || selectedStudentForRapor.namaSiswa}</p>
-                <p className="text-slate-600">Kelas: {selectedStudentForRapor.class_name || selectedStudentForRapor.kelas ||"-"}</p>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Pilih Ukuran Kertas</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('A4')}
-                    className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'A4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-                    A4 (Standar)</Button>
-                  <Button variant="outline" type="button" onClick={() =>setRaporPaperSize('F4')}
-                    className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'F4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-                    F4 (Folio/HVS)</Button>
-                </div>
-              </div>
-              <div className="pt-2 flex flex-col justify-end gap-2">
-                <div className="flex gap-2 w-full">
-                  <Button 
-                    variant="outline"
-                    onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize,'download')}
-                    className="flex-1"
-                  >
-                    <Download size={14} className="mr-1.5"/> Unduh PDF
-                  </Button>
-                  <Button 
-                    onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize,'print')}
-                    className="flex-1"
-                  >
-                    <Printer size={14} className="mr-1.5"/> Cetak
-                  </Button>
-                </div>
-                <Button variant="ghost" onClick={() => setSelectedStudentForRapor(null)} className="w-full mt-1">
-                  Batal
-                </Button>
+          <div className="space-y-4">
+            <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
+              <p className="text-slate-500 font-semibold">Nama Siswa:</p>
+              <p className="font-bold text-slate-800 text-sm">{selectedStudentForRapor.name || selectedStudentForRapor.nama || selectedStudentForRapor.namaSiswa}</p>
+              <p className="text-slate-600">Kelas: {selectedStudentForRapor.class_name || selectedStudentForRapor.kelas || "-"}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Pilih Ukuran Kertas</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" type="button" onClick={() => setRaporPaperSize('A4')}
+                  className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'A4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                  A4 (Standar)</Button>
+                <Button variant="outline" type="button" onClick={() => setRaporPaperSize('F4')}
+                  className={`text-center py-2 rounded-[var(--ui-radius-small)] border-2 font-bold transition-all ${raporPaperSize === 'F4' ? 'border-[var(--ui-primary)] text-[var(--ui-primary)] bg-[var(--ui-primary)]/5' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                  F4 (Folio/HVS)</Button>
               </div>
             </div>
+            <div className="pt-2 flex flex-col justify-end gap-2">
+              <div className="flex gap-2 w-full">
+                <Button 
+                  variant="outline"
+                  onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize, 'download')}
+                  className="flex-1"
+                >
+                  <Download size={14} className="mr-1.5"/> Unduh PDF
+                </Button>
+                <Button 
+                  onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize, 'print')}
+                  className="flex-1"
+                >
+                  <Printer size={14} className="mr-1.5"/> Cetak
+                </Button>
+              </div>
+              <Button variant="ghost" onClick={() => setSelectedStudentForRapor(null)} className="w-full mt-1">
+                Batal
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'} z-[9999]`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} z-[9999]`}>
           {toast.message}
         </div>
       )}

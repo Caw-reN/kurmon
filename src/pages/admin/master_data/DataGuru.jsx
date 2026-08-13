@@ -1,12 +1,11 @@
 import { Button } from '../../../components/ui.jsx';
-import { useState } from'react';
-import { Users } from'lucide-react';
+import { useState, useMemo } from'react';
+import { Users, Upload, Download, Check, Edit3, Search } from'lucide-react';
 import * as XLSX from'xlsx';
 import usePenugasanStore from'../../../store/monitoring/penugasanStore';
-import { Upload, Download, Badge, Check, Edit3 } from'lucide-react';
-import { PageHeader, Avatar } from'../../../components/monitoring/ui/index.js';
+import { PageHeader, Avatar, Badge } from'../../../components/monitoring/ui/index.js';
 import ImportModal from'../../../components/monitoring/ui/ImportModal.jsx';
-
+import { usePagination } from '../../../components/ui/PaginationControls.jsx';
 
 /**
  * admin/DataGuru.jsx
@@ -28,6 +27,7 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
   const [kapasitasInput, setKapasitasInput] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
   const [toast, setToast] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -36,6 +36,20 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
 
   const load = getLoadPerGuru(teachers);
 
+  // Filter teachers based on search query
+  const filteredTeachers = useMemo(() => {
+    if (!searchQuery.trim()) return teachers;
+    const lowerQ = searchQuery.toLowerCase();
+    return teachers.filter(t => 
+      (t.nama || t.name || '').toLowerCase().includes(lowerQ) ||
+      (t.mapel || t.subject || '').toLowerCase().includes(lowerQ) ||
+      (t.jurusan || t.major || '').toLowerCase().includes(lowerQ)
+    );
+  }, [teachers, searchQuery]);
+
+  // Use Pagination Hook
+  const { paginatedData: currentTeachers, PaginationBar } = usePagination(filteredTeachers, 20);
+
   const handleEditKapasitas = (guruId, current) => {
     setEditingKapasitas(guruId);
     setKapasitasInput(String(current));
@@ -43,10 +57,12 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
 
   const handleSaveKapasitas = (guruId) => {
     const val = parseInt(kapasitasInput);
-    if (!isNaN(val) && val >= 1 && val <= 20) {
+    if (!isNaN(val) && val >= 1 && val <= 50) {
       setKapasitasGuru(guruId, val);
+      setEditingKapasitas(null);
+    } else {
+      showToast('Kapasitas harus berupa angka antara 1 hingga 50.', 'error');
     }
-    setEditingKapasitas(null);
   };
 
   const handleExport = () => {
@@ -73,50 +89,88 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
     XLSX.writeFile(wb,"Template_Master_Guru.xlsx");
   };
 
+  // BUG-04 FIX: handleProcessImport sekarang menyimpan data ke database via API.
+  // Sebelumnya hanya setTeachers() (state lokal) yang dijalankan — data hilang saat refresh.
   const handleProcessImport = async (jsonData) => {
-    return new Promise((resolve) => {
-      if (!setTeachers) {
-        showToast("Simulasi Import: Karena data guru saat ini menggunakan dummy data (atau fungsi setTeachers tidak diteruskan), import berhasil secara lokal tetapi tidak tersimpan permanen.","warning");
-        
-        // Update local store capacity just for simulation
-        jsonData.forEach(row => {
-          const code = String(row['Kode Guru'] || row['kode'] || row['id'] ||'').trim();
-          const kapasitas = parseInt(row['Kapasitas'] || row['kapasitas'] || 5);
-          if (code && !isNaN(kapasitas)) {
-            setKapasitasGuru(code, kapasitas);
-          }
-        });
-        
-        resolve();
+    if (!Array.isArray(jsonData) || jsonData.length === 0) {
+      showToast('Data import kosong atau tidak valid.', 'error');
+      return;
+    }
+
+    const existingMap = new Map((teachers || []).map(g => [
+      String(g.code || g.id || '').trim().toLowerCase(),
+      g
+    ]));
+
+    let importedCount = 0;
+    const invalidRows = [];
+
+    jsonData.forEach((row, idx) => {
+      const code = String(row['Kode Guru'] || row['kode'] || row['id'] || '').trim();
+      const name = String(row['Nama Guru'] || row['nama'] || '').trim();
+
+      if (!code) {
+        invalidRows.push(`Baris ${idx + 1}: Kode Guru kosong`);
         return;
       }
 
-      const existingMap = new Map((teachers || []).map(g => [g.code, g]));
-      let importedCount = 0;
+      const kapasitas = parseInt(row['Kapasitas'] || row['kapasitas'] || 5);
+      if (!isNaN(kapasitas) && kapasitas >= 1 && kapasitas <= 50) {
+        setKapasitasGuru(code, kapasitas);
+      }
 
-      jsonData.forEach(row => {
-        const code = String(row['Kode Guru'] || row['kode'] || row['id'] ||'').trim();
-        if (!code) return;
-        
-        const newGuru = {
-          code,
-          name: String(row['Nama Guru'] || row['nama'] ||'').trim(),
-          major: String(row['Jurusan'] || row['jurusan'] ||'').trim()
-        };
-        
-        const kapasitas = parseInt(row['Kapasitas'] || row['kapasitas'] || 5);
-        if (!isNaN(kapasitas)) setKapasitasGuru(code, kapasitas);
+      const newGuru = {
+        ...(existingMap.get(code.toLowerCase()) || {}),
+        code,
+        name: name || existingMap.get(code.toLowerCase())?.name || code,
+        major: String(row['Jurusan'] || row['jurusan'] || existingMap.get(code.toLowerCase())?.major || '').trim(),
+      };
 
-        existingMap.set(code, { ...(existingMap.get(code) || {}), ...newGuru });
-        importedCount++;
+      existingMap.set(code.toLowerCase(), newGuru);
+      importedCount++;
+    });
+
+    if (importedCount === 0) {
+      showToast(`Tidak ada data valid yang bisa diimport. ${invalidRows.length} baris bermasalah.`, 'error');
+      return;
+    }
+
+    const mergedTeachers = Array.from(existingMap.values());
+
+    // Update state lokal terlebih dahulu (optimistic update)
+    if (setTeachers) setTeachers(mergedTeachers);
+
+    // Simpan ke database via API /api/data/save
+    try {
+      const token = (() => {
+        try { return JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken; }
+        catch { return null; }
+      })();
+
+      const res = await fetch('/api/data/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ payload: { teachers: mergedTeachers } }),
       });
 
-      const next = Array.from(existingMap.values());
-      setTeachers(next);
-      showToast(`Berhasil import ${importedCount} guru.`);
-      resolve();
-    });
+      const resData = await res.json();
+
+      if (!resData.ok && !resData.noChanges) {
+        throw new Error(resData.error || 'Server menolak penyimpanan data.');
+      }
+
+      const successMsg = `✅ Berhasil import ${importedCount} guru dan tersimpan ke database.${invalidRows.length > 0 ? ` (${invalidRows.length} baris dilewati)` : ''}`;
+      showToast(successMsg, 'success');
+
+    } catch (err) {
+      console.error('[DataGuru Import] Gagal menyimpan ke database:', err);
+      showToast(`⚠️ Data diimport ke halaman ini, tapi gagal tersimpan ke database: ${err.message}. Data mungkin hilang saat refresh.`, 'warning');
+    }
   };
+
 
   return (
     <div className="space-y-4">
@@ -125,17 +179,34 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
         title="Data Guru Pembimbing"
         description={`${teachers.length} guru aktif terdaftar`}
       >
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() =>setShowImportModal(true)} className="flex items-center gap-1.5 cursor-pointer">
-            <Upload size={16} /> Impor</Button>
-          <button onClick={handleExport} className="flex items-center gap-1.5 cursor-pointer">
-            <Download size={16} /> Ekspor
-          </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Cari guru..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)]"
+            />
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <Button variant="outline" onClick={() =>setShowImportModal(true)} className="flex items-center gap-1.5 cursor-pointer">
+              <Upload size={16} /> Impor</Button>
+            <button onClick={handleExport} className="flex items-center gap-1.5 cursor-pointer">
+              <Download size={16} /> Ekspor
+            </button>
+          </div>
         </div>
       </PageHeader>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {teachers.map(guru => {
+        {currentTeachers.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-slate-400">
+            {searchQuery ? 'Tidak ada guru yang sesuai pencarian.' : 'Tidak ada data guru.'}
+          </div>
+        ) : (
+        currentTeachers.map(guru => {
           const siswaGuru = students.filter(s => s.guruPembimbingId === guru.id);
           const kapasitas = kapasitasGuru[guru.id] || 5;
           const terpakai  = load[guru.id] || 0;
@@ -227,9 +298,16 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
               )}
             </div>
           );
-        })}
+        }))}
       </div>
       
+      {/* Pagination Controls */}
+      {filteredTeachers.length > 0 && (
+        <div className="ui-card mt-2 rounded-[var(--ui-radius-card)] border border-slate-100 overflow-hidden">
+          <PaginationBar />
+        </div>
+      )}
+
       {showImportModal && (
         <ImportModal
           isOpen={showImportModal}

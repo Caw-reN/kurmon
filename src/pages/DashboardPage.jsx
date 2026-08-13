@@ -313,16 +313,60 @@ export default function DashboardPage({
       return String(s.class_id) === String(currentUser?.walasClass) || String(s.className) === String(currentUser?.walasClass);
     }).length || 75; // Fallback to 75 as in screenshot if database is empty
 
-    const teacherShortcuts = [
-      { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
-      { label: "Jurnal", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
-      { label: "Laporan", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "walas_report" },
-      { label: "Catatan", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
-      { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_piket" },
-      { label: "Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "walas_report" },
-      { label: "Modul", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
-      { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
-    ];
+    const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
+    const teacherShortcuts = (() => {
+      // BP/BK: prioritaskan menu konseling & kesiswaan
+      if (teacherSubrole === 'bpbk') return [
+        { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
+        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "riwayat_prestasi" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "kedisiplinan_absensi" },
+        { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "siswa" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-sky-50 text-sky-600", tab: "akademik" },
+        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+      ];
+      // Wali Kelas: prioritaskan menu kelas
+      if (teacherSubrole === 'walikelas') return [
+        { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
+        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "walas_report" },
+        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
+        { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
+        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+      ];
+      // Tim Kesiswaan (pembina OSIS, sekretaris kesiswaan, anggota kesiswaan)
+      if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) return [
+        { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
+        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "riwayat_prestasi" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
+        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+      ];
+      // Tim Kurikulum
+      if (['sekretaris_kurikulum', 'anggota_kurikulum'].includes(teacherSubrole)) return [
+        { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Silabus Akademik", icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600", tab: "silabus" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
+        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+      ];
+      // Guru default (biasa/pengajar)
+      return [
+        { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
+        { label: "Jurnal", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
+        { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
+        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "walas_report" },
+        { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-indigo-50 text-indigo-600", tab: "akademik" },
+      ];
+    })();
 
     const teacherStatCards = [
       { label: "Siswa Saya", value: myStudentsCount, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600" },
@@ -1187,7 +1231,7 @@ export default function DashboardPage({
                     dynamicShortcuts = [
                       { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
                       { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
-                      { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
+                      { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "modul_ajar" },
                       { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
                       { label: "Mapel", icon: "/icons/092-file.svg", tab: "mapel" },
                       { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
@@ -1196,13 +1240,13 @@ export default function DashboardPage({
                     ];
                   } else if (activeDivision === 'kesiswaan') {
                     dynamicShortcuts = [
-                      { label: "Absensi KBM", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                      { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
                       { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
                       { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
                       { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
                       { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
                       { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Siswa Keluar", icon: "/icons/045-account.svg", tab: "siswa_keluar" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                     ];
                   } else if (activeDivision === 'hubin') {
@@ -1222,21 +1266,18 @@ export default function DashboardPage({
                       { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
                       { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
                       { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
-                      { label: "Fasilitas", icon: "/icons/011-schedule.svg", tab: "fasilitas" },
-                      { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
-                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
-                      { label: "Struktur Org", icon: "/icons/013-shield.svg", tab: "struktur" },
+                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                      { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" }
                     ];
                   } else if (activeDivision === 'humas') {
                     dynamicShortcuts = [
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                       { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
                       { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                      { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
+                      { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
                       { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                      { label: "Data Guru", icon: "/icons/066-education.svg", tab: "guru" },
-                      { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
-                      { label: "Profil", icon: "/icons/008-warehouse.svg", tab: "profil_sekolah" },
+                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" }
                     ];
                   }
                 } else if (activeRole === 'karyawan') {
@@ -1244,11 +1285,9 @@ export default function DashboardPage({
                     { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
                     { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
                     { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
-                    { label: "Profil Sekolah", icon: "/icons/008-warehouse.svg", tab: "profil_sekolah" },
-                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
-                    { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
                     { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                    { label: "Jadwal KBM", icon: "/icons/011-schedule.svg", tab: "generate" }
                   ];
                 } else {
                   dynamicShortcuts = [
@@ -1485,45 +1524,66 @@ export default function DashboardPage({
           <div className="grid grid-cols-2 min-[380px]:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
             {/* Quick Shortcuts */}
             {(() => {
-              if (isTU) return [
-                { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
-                { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
-                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-                { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
-                { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"guru" },
-                { label:"Data Pegawai", icon:"/icons/035-graph bar.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
-                { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
-                { label:"Siswa Keluar", icon:"/icons/045-account.svg", color:"bg-rose-50 text-rose-600", tab:"siswa_keluar" },
-              ];
+              const activeSubrole = (currentUser?.subrole || '').toLowerCase().trim();
+              if (isTU) {
+                if (activeSubrole === 'sekretaris_tu') return [
+                  { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
+                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
+                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
+                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-sky-50 text-sky-600", tab:"kedisiplinan_absensi" },
+                  { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
+                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-blue-50 text-blue-600", tab:"absensi" },
+                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
+                  { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"guru" },
+                ];
+                if (activeSubrole === 'bendahara') return [
+                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
+                  { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"guru" },
+                  { label:"Data Karyawan", icon:"/icons/035-graph bar.svg", color:"bg-teal-50 text-teal-600", tab:"karyawan" },
+                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-amber-50 text-amber-600", tab:"laporan_absensi" },
+                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
+                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
+                ];
+                return [
+                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
+                  { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
+                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
+                  { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
+                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
+                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-blue-50 text-blue-600", tab:"kedisiplinan_absensi" },
+                  { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"guru" },
+                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-rose-50 text-rose-600", tab:"siswa_keluar" },
+                ];
+              }
               if (isKepsek) return [
-                { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
                 { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
-                { label:"Data Siswa PKL", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_data_siswa" },
-                { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_jurnal" },
-                { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"guru" },
-                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa" },
-                { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"silabus" },
-                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
+                { label:"Dashboard PKL", icon:"/icons/035-graph bar.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_dashboard" },
+                { label:"Catatan Kelas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
+                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-blue-50 text-blue-600", tab:"walas_report" },
+                { label:"Absensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
+                { label:"Rekap BK", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_bpbk" },
+                { label:"Prestasi Siswa", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"riwayat_prestasi" },
+                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
               ];
               if (isWaka) {
                 if (activeDivision === 'kurikulum') return [
                   { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
                   { label:"Beban Mengajar", icon:"/icons/035-graph bar.svg", color:"bg-amber-50 text-amber-600", tab:"beban" },
-                  { label:"Silabus Akademik", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"silabus" },
+                  { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"modul_ajar" },
                   { label:"Ketersediaan", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"ketersediaan" },
                   { label:"Kelola Mapel", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"mapel" },
                   { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
-                  { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"guru" },
                   { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
+                  { label:"Data Guru", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"guru" },
                 ];
                 if (activeDivision === 'kesiswaan') return [
-                  { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
+                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
                   { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
                   { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
                   { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
                   { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-blue-50 text-blue-600", tab:"riwayat_prestasi" },
                   { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
-                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"walas_report" },
+                  { label:"Siswa Keluar", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa_keluar" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'hubin') return [
@@ -1540,15 +1600,24 @@ export default function DashboardPage({
                   { label:"Data Ruangan", icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-600", tab:"ruangan" },
                   { label:"Denah Sekolah", icon:"/icons/008-warehouse.svg", color:"bg-emerald-50 text-emerald-600", tab:"denah" },
                   { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
+                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
                   { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"generate" },
+                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"walas_report" },
+                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
+                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'humas') return [
                   { label:"Pesan Dashboard", icon:"/icons/087-chat.svg", color:"bg-amber-50 text-amber-600", tab:"pesan" },
                   { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-emerald-50 text-emerald-600", tab:"tampilan" },
                   { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"akademik" },
-                  { label:"Silabus", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"silabus" },
+                  { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"modul_ajar" },
                 ];
               }
+              if (activeRole === 'karyawan') return [
+                { label:"Absen Pegawai", icon:"/icons/045-account.svg", color:"bg-blue-50 text-blue-600", tab:"absensiguru" },
+                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
+              ];
+              
               return [
                 { label:"Jadwal Baru", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
                 { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-600", tab:"guru" },
@@ -2362,7 +2431,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {/* ── Panel Guru ── */}
         {canSeeTeacherAttendance && (
           <button
-            onClick={() => setActiveTab('absensi')}
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
             className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
@@ -2424,7 +2493,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           const totalSiswaDenominator = Math.max(dashLogs?.totalStudents || siswaStats.total || 1, 1);
           return (
             <button
-              onClick={() => setActiveTab(isTU || isKaryawan ? 'laporan_absensi' : 'absensi')}
+              onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
               className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">

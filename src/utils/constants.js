@@ -331,6 +331,7 @@ export const SUBROLE_ALL_OPTIONS = [
 
 // Label tampilan untuk tiap role key di halaman hak akses
 export const ROLE_KEY_LABELS = {
+  admin: { label: "Super Admin", color: "bg-purple-100 text-purple-800", short: "Admin" },
   guru: { label: "Guru", color: "bg-emerald-100 text-emerald-800", short: "Guru" },
   walikelas: { label: "Wali Kelas", color: "bg-teal-100 text-teal-800", short: "Walikelas" },
   karyawan: { label: "Karyawan", color: "bg-slate-100 text-slate-700", short: "Karyawan" },

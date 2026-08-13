@@ -187,7 +187,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/master") {
-          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_master_poin ORDER BY nama_tindakan ASC");
+          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_master_poin WHERE is_deleted = false ORDER BY nama_tindakan ASC");
           send(req, res, 200, { ok: true, data: rows });
           return;
         }
@@ -197,7 +197,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
 
           if (body.action === 'delete') {
             if (!body.id) return send(req, res, 400, { ok: false, error: "ID diperlukan." });
-            await dbPool.query("DELETE FROM kedisiplinan_master_poin WHERE id = $1", [body.id]);
+            await dbPool.query("UPDATE kedisiplinan_master_poin SET is_deleted = true WHERE id = $1", [body.id]);
           } else if (body.action === 'import' && Array.isArray(body.items)) {
             for (const item of body.items) {
               if (item.nama_tindakan && VALID_JENIS.includes(item.jenis) && item.nilai_poin !== undefined) {

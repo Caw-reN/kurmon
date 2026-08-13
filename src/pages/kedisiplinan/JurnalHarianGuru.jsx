@@ -66,7 +66,6 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   const [liveStudents, setLiveStudents] = useState([]);
   const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
 
-  // Initial form state
   const [form, setForm] = useState({
     id: jurnal?.id || null,
     kelas: jurnal?.kelas || '',
@@ -81,6 +80,39 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
     status: 'submitted',
   });
+  
+  // DRAFT LOGIC - Muat Draf Saat Inisialisasi
+  useEffect(() => {
+    if (!jurnal?.id) { // Hanya muat draf untuk entri jurnal baru
+      try {
+        const draftKey = `draft_jurnal_${user?.code || 'guest'}`;
+        const savedDraft = localStorage.getItem(draftKey);
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          // Gabungkan draf dengan nilai awal agar id/kelas bawaan dari props tidak hilang
+          setForm(prev => ({ ...prev, ...parsed, id: prev.id, kelas: prev.kelas || parsed.kelas }));
+        }
+      } catch (e) {
+        console.error("Gagal membaca draf jurnal:", e);
+      }
+    }
+  }, [jurnal?.id, user?.code]);
+
+  // DRAFT LOGIC - Simpan Draf Otomatis Saat Ketik
+  useEffect(() => {
+    if (!jurnal?.id) {
+      const draftKey = `draft_jurnal_${user?.code || 'guest'}`;
+      const draftData = {
+        mapel: form.mapel,
+        materi_pokok: form.materi_pokok,
+        kegiatan_pembelajaran: form.kegiatan_pembelajaran,
+        metode_pembelajaran: form.metode_pembelajaran,
+        catatan: form.catatan,
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+    }
+  }, [form, jurnal?.id, user?.code]);
+
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -213,6 +245,11 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     const result = await onSave(form);
     if (result?.error) {
       setErrorMsg(result.error);
+    } else {
+      // Hapus draf setelah berhasil simpan (jika ini entri baru)
+      if (!jurnal?.id) {
+        localStorage.removeItem(`draft_jurnal_${user?.code || 'guest'}`);
+      }
     }
     setSaving(false);
   };
@@ -948,8 +985,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         icon={BookOpen}
         description="Pencatatan kegiatan KBM harian yang tersinkron dengan jadwal Anda."
         tabs={isKurikulum ? [
-          { id: 'harian', label: 'Jurnal Harian' },
-          { id: 'rekap', label: 'Rekap Per Guru' }
+          { id: 'harian', label: 'Jurnal Harian', icon: BookOpen },
+          { id: 'rekap', label: 'Rekap Per Guru', icon: Users }
         ] : []}
         activeTab={activeView}
         onTabChange={setActiveView}

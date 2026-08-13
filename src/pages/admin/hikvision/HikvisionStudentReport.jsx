@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -1136,45 +1136,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             description={activeTab ==='matriks' 
               ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
               :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
+            tabs={[
+              { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
+              { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
         </div>
       )}
-
-      {/* Top Ergonomic Mode Switcher Bar */}
-      <div className="hidden sm:flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 w-full md:w-auto">
-          {[
-            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
-            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
-                activeTab === tab.id
-                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
-              }`}
-            >
-              <tab.icon size={15} className="shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Unified Search Input */}
-        <div className="relative w-full md:w-72">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama atau NIS siswa..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
-          />
-        </div>
-      </div>
 
       {/* Mobile Hero Header Card (Reference Layout matching media__1785568140000.png) */}
       <div 
@@ -1229,152 +1199,200 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       </div>
 
       {activeTab ==='surat' ? (
-        <AbsensiSiswa students={students} classes={classes} hideTabs={true} />
+        <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />
       ) : (
         <>
           {/* Wali Kelas Daily Monitoring Widgets */}
       {isCurrentMonthYear && !isHolidayOrWeekendToday && data.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Present Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-4 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
-              <h3 className="text-xs font-black text-emerald-800 flex items-center gap-1.5 uppercase tracking-wider">
-                <UserCheck size={16} />
-                Siswa Masuk Hari Ini
-              </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-[var(--ui-radius-pill)]">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
+            <div className="p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50/60 border-b border-emerald-100/80 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <UserCheck size={15} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                    Siswa Masuk Hari Ini
+                  </h3>
+                </div>
+              </div>
+              <span className="text-[11px] font-black px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-[var(--ui-radius-pill)] border border-emerald-200/60">
                 {presentStudentsToday.length} Siswa
               </span>
             </div>
-            <div className="flex-1 min-h-[120px] max-h-52 overflow-y-auto custom-scrollbar">
+
+            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
               {presentStudentsToday.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={20} className="text-slate-300" />
+                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
                   <span>Belum ada siswa masuk hari ini.</span>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
-                  {presentStudentsToday.map(s => {
-                    const dayData = s.days[todayNum];
-                    const isLate = dayData.isLate || dayData.status === "Terlambat";
-                    return (
-                      <div key={s.nis} className="p-3 flex items-center justify-between gap-3 text-xs">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold">{s.nis}</div>
+                presentStudentsToday.map(s => {
+                  const dayData = s.days[todayNum];
+                  const isLate = dayData.isLate || dayData.status === "Terlambat";
+                  return (
+                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/80 transition-colors">
+                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-emerald-200/60">
+                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`px-2 py-0.5 font-bold border rounded text-[10px] ${
-                            isLate 
-                              ? 'bg-amber-50 text-amber-700 border-amber-100' 
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          }`}>
-                            {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
-                          </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
+                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5">
+                            <span>{s.nis}</span>
+                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border ${
+                          isLate 
+                            ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                          {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
 
           {/* Late Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-4 bg-amber-50 border-b border-amber-100 flex items-center justify-between">
-              <h3 className="text-xs font-black text-amber-800 flex items-center gap-1.5 uppercase tracking-wider">
-                <ShieldAlert size={16} />
-                Siswa Terlambat Hari Ini
-              </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-amber-100 text-amber-800 rounded-[var(--ui-radius-pill)]">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
+            <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/60 border-b border-amber-100/80 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <ShieldAlert size={15} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                    Siswa Terlambat Hari Ini
+                  </h3>
+                </div>
+              </div>
+              <span className="text-[11px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-[var(--ui-radius-pill)] border border-amber-200/60">
                 {lateStudentsToday.length} Siswa
               </span>
             </div>
-            <div className="flex-1 min-h-[120px] max-h-52 overflow-y-auto custom-scrollbar">
+
+            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
               {lateStudentsToday.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={20} className="text-slate-300" />
+                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
                   <span>Tidak ada siswa terlambat hari ini.</span>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
-                  {lateStudentsToday.map(s => {
-                    const dayData = s.days[todayNum];
-                    return (
-                      <div key={s.nis} className="p-3 flex items-center justify-between gap-3 text-xs">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold">{s.nis}</div>
+                lateStudentsToday.map(s => {
+                  const dayData = s.days[todayNum];
+                  return (
+                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-2.5 text-xs hover:bg-slate-50/80 transition-colors">
+                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-amber-200/60">
+                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold rounded text-[10px] border border-amber-200">
-                            {dayData.in?.substring(0, 5) ||"Terlambat"}
-                          </span>
-                          <Button variant="outline"
-                            onClick={() =>handleCellClick(s, todayNum)}
-                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-[var(--ui-radius-small)] flex items-center justify-center font-bold shadow-sm"
-                          >
-                            Ubah</Button>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
+                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5">
+                            <span>{s.nis}</span>
+                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border border-amber-200">
+                          {dayData.in?.substring(0, 5) || "Terlambat"}
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={() => handleCellClick(s, todayNum)}
+                          className="px-2.5 py-1 text-[11px] font-extrabold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
+                          title="Ubah Status"
+                        >
+                          <Edit2 size={12} />
+                          <span>Ubah</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
 
           {/* Absent Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between">
-              <h3 className="text-xs font-black text-rose-800 flex items-center gap-1.5 uppercase tracking-wider">
-                <UserX size={16} />
-                Siswa Tidak Masuk Hari Ini
-              </h3>
-              <span className="text-[10px] font-black px-2 py-0.5 bg-rose-100 text-rose-800 rounded-[var(--ui-radius-pill)]">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
+            <div className="p-3.5 bg-gradient-to-r from-rose-50 to-pink-50/60 border-b border-rose-100/80 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <UserX size={15} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                    Siswa Tidak Masuk Hari Ini
+                  </h3>
+                </div>
+              </div>
+              <span className="text-[11px] font-black px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-[var(--ui-radius-pill)] border border-rose-200/60">
                 {absentStudentsToday.length} Siswa
               </span>
             </div>
-            <div className="flex-1 min-h-[120px] max-h-52 overflow-y-auto custom-scrollbar">
+
+            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
               {absentStudentsToday.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={20} className="text-slate-300" />
+                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
                   <span>Semua siswa telah fingerprint hari ini.</span>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
-                  {absentStudentsToday.map(s => {
-                    const dayData = s.days[todayNum];
-                    const status = dayData?.status || dayData?.in ||"Alpa";
-                    
-                    let badgeClass ="bg-red-50 text-red-700 border-red-100";
-                    if (status ==="Sakit") badgeClass ="bg-amber-50 text-amber-700 border-amber-100";
-                    if (status ==="Izin") badgeClass ="bg-blue-50 text-blue-700 border-blue-100";
+                absentStudentsToday.map(s => {
+                  const dayData = s.days[todayNum];
+                  const status = dayData?.status || dayData?.in || "Alpa";
+                  
+                  let badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+                  if (status === "Sakit") badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                  if (status === "Izin") badgeClass = "bg-blue-50 text-blue-700 border-blue-200";
 
-                    return (
-                      <div key={s.nis} className="p-3 flex items-center justify-between gap-3 text-xs">
+                  // Clean title note so technical strings like "(Alpa Otomatis..." don't ruin UI
+                  const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+
+                  return (
+                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-2.5 text-xs hover:bg-slate-50/80 transition-colors">
+                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-rose-200/60">
+                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
+                        </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5">
+                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
+                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 truncate">
                             <span>{s.nis}</span>
-                            {dayData?.note && <span className="truncate text-slate-500 max-w-[120px]">({dayData.note})</span>}
+                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
+                            {displayNote && <span className="text-slate-500 font-normal truncate" title={displayNote}>({displayNote})</span>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`px-2 py-0.5 font-bold border rounded text-[10px] ${badgeClass}`}>
-                            {status ==="Alpa" ?"Belum Scan" : status}
-                          </span>
-                          <Button variant="outline"
-                            onClick={() =>handleCellClick(s, todayNum)}
-                            className="cursor-pointer text-xs min-h-[38px] px-3.5 rounded-[var(--ui-radius-small)] flex items-center justify-center font-bold shadow-sm"
-                          >
-                            Input Surat</Button>
-                        </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border ${badgeClass}`}>
+                          {status === "Alpa" ? "Belum Scan" : status}
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={() => handleCellClick(s, todayNum)}
+                          className="px-2.5 py-1 text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95 whitespace-nowrap"
+                          title="Input Surat Izin/Sakit"
+                        >
+                          <FileText size={12} />
+                          <span>Input Surat</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
@@ -2084,7 +2102,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                {printPeriod === 'harian' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
-                   <select
+                   <UISelect
                      value={printDate}
                      onChange={e => setPrintDate(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -2092,14 +2110,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                      {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
                        <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
                      ))}
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'mingguan' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
-                   <select
+                   <UISelect
                      value={printWeek}
                      onChange={e => setPrintWeek(parseInt(e.target.value))}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
@@ -2109,21 +2127,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                      <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
                      <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
                      <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 
                {printPeriod === 'semester' && (
                  <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
-                   <select
+                   <UISelect
                      value={printSemester}
                      onChange={e => setPrintSemester(e.target.value)}
                      className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
                    >
                      <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
                      <option value="genap">Semester Genap (Januari - Juni)</option>
-                   </select>
+                   </UISelect>
                  </div>
                )}
 

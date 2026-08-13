@@ -439,11 +439,11 @@ export default function ModulAjar(props) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          {item.mapel && <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-black uppercase">{item.mapel}</span>}
-          {item.kelas_target && <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-semibold">{item.kelas_target}</span>}
-          {item.semester && <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-semibold">Sem. {item.semester}</span>}
+          {item.mapel && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-black uppercase">{item.mapel}</span>}
+          {item.kelas_target && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 text-[10px] font-semibold">{item.kelas_target}</span>}
+          {item.semester && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 text-[10px] font-semibold">Sem. {item.semester}</span>}
           <span className="text-[10px] text-slate-400">oleh {item.teacher_name}</span>
-          {item.tipe === 'link' && <span className="inline-flex px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black">Link</span>}
+          {item.tipe === 'link' && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 text-[10px] font-black">Link</span>}
         </div>
       </div>
     </div>

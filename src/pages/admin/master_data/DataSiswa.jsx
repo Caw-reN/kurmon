@@ -341,7 +341,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                     key={lvl}
                     type="button"
                     onClick={() => { setEligibleClass(lvl); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-md text-xs font-black transition-all cursor-pointer border-none ${
+                    className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
                       eligibleClass === lvl 
                         ? 'bg-white text-[var(--ui-primary)] shadow-sm scale-105' 
                         : 'bg-transparent text-white/80 hover:text-white hover:bg-white/10'
@@ -658,7 +658,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                       <p className="text-xs font-semibold text-slate-400 mt-0.5">NIS: {s.nis} • <span className="text-slate-700 font-bold">{s.kelas}</span></p>
                     </div>
                   </div>
-                  <span className={`inline-block px-2 py-0.5 text-[9.5px] font-black rounded-md border shrink-0 ${
+                  <span className={`inline-block px-2 py-0.5 text-[9.5px] font-black rounded-[var(--ui-radius-small)] border shrink-0 ${
                     s.statusPKL === 'Sudah PKL' 
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                       : 'bg-red-50 text-red-700 border-red-200'

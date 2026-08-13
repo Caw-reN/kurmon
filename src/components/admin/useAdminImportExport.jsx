@@ -441,6 +441,41 @@ export function useAdminImportExport(props) {
     showNotification("Data berhasil diekspor ke Excel.","success");
   }
 
+  async function exportAbsensiGuruToExcel(recordsToExport = attendanceRecords) {
+    let XLSX;
+    try {
+      XLSX = await import("xlsx");
+    } catch {
+      showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.", "error");
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    const absensiData = [
+      ["Tanggal", "Waktu", "Kode Guru", "Nama Guru", "Sesi", "Status", "Mode", "Catatan", "Lokasi (Lat, Lng)"],
+      ...(recordsToExport || []).map(record => [
+        record.date || "",
+        record.time || "",
+        record.teacherCode || "",
+        getTeacherName(record.teacherCode) || "",
+        record.sessionName || "",
+        record.status || "",
+        record.mode || "",
+        record.note || "",
+        record.location ? `${record.location.lat}, ${record.location.lng}` : ""
+      ])
+    ];
+    const wsAbsensi = XLSX.utils.aoa_to_sheet(absensiData);
+    wsAbsensi["!cols"] = [
+      { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 34 },
+      { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 24 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsAbsensi, "Laporan_Absensi_Guru");
+
+    const tgl = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Laporan_Absensi_Guru_${tgl}.xlsx`);
+    showNotification("Laporan Absensi berhasil diekspor ke Excel.", "success");
+  }
+
   const handleFileUpload = e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1533,6 +1568,7 @@ export function useAdminImportExport(props) {
 return {
     downloadMasterTemplate,
     exportAllDataToExcel,
+    exportAbsensiGuruToExcel,
     handleFileUpload,
     handlePreviewImport,
     handleProcessImport

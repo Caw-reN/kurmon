@@ -13,6 +13,7 @@ import { Button } from '../../../components/ui.jsx';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import ImportModal from "../../../components/monitoring/ui/ImportModal.jsx";
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
+import { usePagination } from '../../../components/ui/PaginationControls.jsx';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -182,8 +183,9 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
       return 0;
     });
 
-    return res;
   }, [locations, search, filterJurusan, filterVerified, sortBy]);
+
+  const { paginatedData: currentLocations, PaginationBar } = usePagination(filtered, 20);
 
   const handleExport = () => {
     const exportData = filtered.map(p => ({
@@ -512,11 +514,11 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-black text-slate-800 text-sm tracking-tight">{p.nama_perusahaan}</h4>
                         {p.verified ? (
-                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-emerald-100 text-emerald-700 font-extrabold px-2 py-0.5 rounded-md border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-emerald-100 text-emerald-700 font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
                             <CheckCircle2 size={10} /> Terverifikasi
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-md border border-amber-200">
+                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200">
                             <Clock size={10} /> Diajukan Siswa – Belum Diverifikasi
                           </span>
                         )}
@@ -537,7 +539,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                       {Array.isArray(kompetensi) && kompetensi.length > 0 && (
                         <div className="flex flex-wrap gap-1 pt-1">
                           {kompetensi.map(k => (
-                            <span key={k} className="text-[9.5px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">
+                            <span key={k} className="text-[9.5px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-[var(--ui-radius-small)] font-bold">
                               {k}
                             </span>
                           ))}
@@ -550,7 +552,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                   <div className="flex flex-col sm:items-end justify-between shrink-0 space-y-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto">
                       {p.jurusan && (
-                        <span className="inline-block px-2.5 py-0.5 text-[10px] font-black rounded-md bg-purple-50 text-purple-700 border border-purple-200 uppercase">
+                        <span className="inline-block px-2.5 py-0.5 text-[10px] font-black rounded-[var(--ui-radius-small)] bg-purple-50 text-purple-700 border border-purple-200 uppercase">
                           Jurusan {p.jurusan}
                         </span>
                       )}
@@ -607,6 +609,13 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                 </div>
               );
             })}
+            
+            {/* Pagination Box */}
+            {filtered.length > 0 && (
+              <div className="ui-card mt-2 rounded-[var(--ui-radius-card)] border border-slate-100 overflow-hidden">
+                <PaginationBar />
+              </div>
+            )}
           </div>
         </div>
       ) : (

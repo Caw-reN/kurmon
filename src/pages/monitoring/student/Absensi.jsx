@@ -85,9 +85,12 @@ const StudentAbsensi = () => {
     label: (new Date().getFullYear() - 2 + i).toString()
   }));
 
-  const showToast = (msg) => {
+  const [toastType, setToastType] = useState('success'); // 'success' | 'error'
+
+  const showToast = (msg, type = 'success') => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    setToastType(type);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
   const allowedRadius = gpsConfig?.radiusMeter || 100;
@@ -158,12 +161,16 @@ const StudentAbsensi = () => {
     reader.readAsDataURL(file);
   };
 
+  // BUG-01 + BUG-05 FIX: handleDoAbsen sekarang menyimpan absensi ke database melalui API.
+  // Catch block tidak lagi menampilkan "berhasil" saat terjadi error.
   const handleDoAbsen = async (type = 'masuk') => {
+    // Validasi GPS radius jika dikonfigurasi
     if (metode?.gps && gpsConfig?.restrictRadius && distanceMeters !== null && !withinRadius) {
       alert(`Posisi Anda (${distanceMeters}m) melebihi batas radius absensi (${allowedRadius}m) dari tempat PKL.`);
       return;
     }
 
+    // Validasi selfie jika diperlukan
     if (metode?.selfie && !selfiePhoto) {
       alert('Metode Selfie aktif. Silakan upload / ambil foto selfie terlebih dahulu.');
       return;
@@ -171,22 +178,56 @@ const StudentAbsensi = () => {
 
     setCheckingIn(true);
     try {
-      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      const token = user?.authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+
+      const payload = {
+        type,
+        nis: user?.username || user?.nis,
+        lat: userCoords?.lat || null,
+        lng: userCoords?.lng || null,
+        selfiePhoto: metode?.selfie ? selfiePhoto : null,
+        method: metode?.gps ? 'GPS' : (metode?.selfie ? 'Selfie' : 'Manual'),
+      };
+
+      const res = await fetch('/api/monitoring/absensi/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const resData = await res.json();
+
+      if (!resData.ok) {
+        // BUG-05 FIX: Tampilkan pesan error yang akurat dari server
+        throw new Error(resData.error || 'Gagal melakukan absensi. Coba lagi.');
+      }
+
+      // Sukses — perbarui status hari ini dan tampilkan toast sukses
+      const serverTime = resData.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       setTodayStatus({
         mode: type,
-        time: nowStr,
-        method: metode?.gps ? 'GPS Radius' : (metode?.selfie ? 'Selfie' : 'Sharelok')
+        time: serverTime,
+        status: resData.status,
+        method: payload.method,
       });
-      showToast(`Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${nowStr}!`);
+      showToast(`✅ Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${serverTime} — Status: ${resData.status}`, 'success');
       setShowFormModal(false);
+      setSelfiePhoto(null);
+      // Refresh kalender absensi
       fetchAbsensiData();
-    } catch {
-      showToast(`Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat!`);
-      setShowFormModal(false);
+    } catch (err) {
+      // BUG-05 FIX: Catch block menampilkan error yang sebenarnya, bukan "berhasil"
+      const errMsg = err.message || 'Terjadi kesalahan saat melakukan absensi.';
+      showToast(`❌ ${errMsg}`, 'error');
+      console.error('[handleDoAbsen] Error:', err);
     } finally {
       setCheckingIn(false);
     }
   };
+
 
   const buildDatabaseAttendanceData = useCallback(() => {
     const totalDays = new Date(filter.year, filter.month, 0).getDate();
@@ -300,11 +341,12 @@ const StudentAbsensi = () => {
       
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-emerald-600 text-white font-bold text-xs flex items-center justify-between shadow-sm fixed top-5 right-5 z-[110] animate-in fade-in slide-in-from-top-3">
+        <div className={`p-4 rounded-[var(--ui-radius-card)] text-white font-bold text-xs flex items-center justify-between shadow-sm fixed top-5 right-5 z-[110] animate-in fade-in slide-in-from-top-3 max-w-xs sm:max-w-sm ${toastType === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={18} /> {toastMsg}
+            {toastType === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+            <span>{toastMsg}</span>
           </div>
-          <button type="button" onClick={() => setToastMsg(null)} className="text-white/80 hover:text-white border-none bg-transparent cursor-pointer">
+          <button type="button" onClick={() => setToastMsg(null)} className="text-white/80 hover:text-white border-none bg-transparent cursor-pointer ml-2 shrink-0">
             <X size={16} />
           </button>
         </div>

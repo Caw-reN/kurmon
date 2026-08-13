@@ -363,7 +363,7 @@ export default function TatibSkorKredit() {
               </div>
               {isAdmin && (
                 <div className="mt-1">
-                  <label className="text-[10px] font-black px-2 py-0.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md cursor-pointer inline-block transition-all shadow-xs">
+                  <label className="text-[10px] font-black px-2 py-0.5 bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] cursor-pointer inline-block transition-all shadow-xs">
                     {isUploading ? 'Mengunggah...' : hasPdf ? 'Ganti PDF' : 'Unggah PDF'}
                     <input
                       type="file"
@@ -541,7 +541,7 @@ export default function TatibSkorKredit() {
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] ${
                       isPelanggaran ? 'bg-red-50 text-rose-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                     }`}>
                       {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}

@@ -41,38 +41,83 @@ export default function AdminMobileNav({
   const getRoleTabs = () => {
     const role = (activeUserRole || currentUser?.role || '').toLowerCase();
     const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
+    const subrole = (currentUser?.subrole || '').toLowerCase().trim();
 
     if (role === 'guru') {
+      // BP/BK: tampilkan menu kesiswaan
+      if (subrole === 'bpbk') {
+        return [
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'kedisiplinan_bpbk', icon: ClipboardList, label: 'BK' },
+          { id: 'riwayat_prestasi', icon: FileText, label: 'Prestasi' },
+          { id: 'modul_ajar', icon: FileText, label: 'Modul' },
+        ];
+      }
+      // Wali Kelas: tambahkan menu kelas
+      if (subrole === 'walikelas' || currentUser?.isWalas) {
+        return [
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
+          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+          { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
+        ];
+      }
+      // Guru Kurikulum subroles
+      if (subrole === 'sekretaris_kurikulum' || subrole === 'anggota_kurikulum') {
+        return [
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'silabus', icon: FileText, label: 'Silabus' },
+          { id: 'modul_ajar', icon: FileText, label: 'Modul' },
+          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        ];
+      }
+      // Guru umum default
       return [
-        { id: 'generate', icon: Calendar, label: 'Jadwal' },
         { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'modul_ajar', icon: FileText, label: 'Modul' },
+        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
       ];
     }
 
     if (role === 'tu' || role === 'tata_usaha') {
+      if (subrole === 'sekretaris_tu') {
+        return [
+          { id: 'esurat', icon: FileText, label: 'E-Surat' },
+          { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
+          { id: 'laporan_absensi', icon: ClipboardList, label: 'Absensi' },
+          { id: 'kartu_pelajar', icon: Users, label: 'Kartu' },
+        ];
+      }
+      if (subrole === 'bendahara') {
+        return [
+          { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
+          { id: 'guru', icon: Users, label: 'Guru' },
+          { id: 'karyawan', icon: Briefcase, label: 'Karyawan' },
+          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        ];
+      }
       return [
         { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
-        { id: 'guru', icon: Users, label: 'Guru' },
-        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'laporan_absensi', icon: ClipboardList, label: 'Absensi' },
         { id: 'esurat', icon: FileText, label: 'E-Surat' },
+        { id: 'kartu_pelajar', icon: Users, label: 'Kartu' },
       ];
     }
 
     if (role === 'karyawan') {
       return [
-        { id: 'absensi', icon: CheckCircle2, label: 'Absen' },
-        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'laporan_absensi', icon: ClipboardList, label: 'Laporan' },
+        { id: 'akademik', icon: Calendar, label: 'Kalender' },
         { id: 'pesan', icon: FileText, label: 'Pesan' },
       ];
     }
 
     if (role === 'kepsek') {
       return [
-        { id: 'generate', icon: Calendar, label: 'Jadwal' },
         { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
         { id: 'walas_report', icon: PieChart, label: 'Laporan' },
         { id: 'pesan', icon: FileText, label: 'Pesan' },
       ];
@@ -83,8 +128,8 @@ export default function AdminMobileNav({
         return [
           { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
           { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
-          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-          { id: 'walas_report', icon: FileText, label: 'Laporan' },
+          { id: 'pkl_jurnal', icon: BookOpen, label: 'Jurnal' },
+          { id: 'pesan', icon: FileText, label: 'Pesan' },
         ];
       }
       if (div === 'kesiswaan') {
@@ -92,31 +137,31 @@ export default function AdminMobileNav({
           { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
           { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
           { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
-          { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
+          { id: 'tatib_skor', icon: FileText, label: 'Tatib' },
         ];
       }
       if (div === 'sarpras') {
         return [
-          { id: 'fasilitas', icon: Briefcase, label: 'Fasilitas' },
           { id: 'ruangan', icon: Home, label: 'Ruangan' },
+          { id: 'denah', icon: FileText, label: 'Denah' },
           { id: 'generate', icon: Calendar, label: 'Jadwal' },
-          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
         ];
       }
       if (div === 'humas') {
         return [
           { id: 'pesan', icon: FileText, label: 'Pesan' },
           { id: 'akademik', icon: Calendar, label: 'Kalender' },
-          { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+          { id: 'tampilan', icon: FileText, label: 'Tampilan' },
+          { id: 'modul_ajar', icon: BookOpen, label: 'Modul' },
         ];
       }
       // Waka Kurikulum (default)
       return [
         { id: 'generate', icon: Calendar, label: 'Jadwal' },
-        { id: 'modul_ajar', icon: BookOpen, label: 'Modul' },
-        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        { id: 'silabus', icon: BookOpen, label: 'Silabus' },
+        { id: 'beban', icon: FileText, label: 'Beban' },
+        { id: 'jurnal_harian', icon: ClipboardList, label: 'Jurnal' },
       ];
     }
 
@@ -125,23 +170,14 @@ export default function AdminMobileNav({
         { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
         { id: 'generate', icon: Calendar, label: 'Jadwal' },
         { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'pengaturan', icon: FileText, label: 'Setelan' },
-      ];
-    }
-
-    if (role === 'siswa') {
-      return [
-        { id: 'generate', icon: Calendar, label: 'Jadwal' },
-        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'akademik', icon: BookOpen, label: 'Kalender' },
-        { id: 'pesan', icon: FileText, label: 'Pesan' },
+        { id: 'hak_akses', icon: FileText, label: 'Akses' },
       ];
     }
 
     return [
       { id: 'generate', icon: Calendar, label: 'Jadwal' },
       { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-      { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+      { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
       { id: 'walas_report', icon: PieChart, label: 'Laporan' },
     ];
   };
