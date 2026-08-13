@@ -1596,8 +1596,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [activeView, setActiveView] = useState('harian'); // harian | rekap
   const [toast, setToast] = useState(null);
 
-  const appSettings = useDataStore(state => state.appSettings || {});
-  const schoolProfile = useDataStore(state => state.schoolProfile || {});
+  const appSettings = useDataStore(state => state.appSettings) || {};
+  const schoolProfile = useDataStore(state => state.schoolProfile) || {};
 
   const showToast = (msg, type ='success') => {
     setToast({ msg, type });
@@ -1614,8 +1614,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [slotsCurrentPage, setSlotsCurrentPage] = useState(1);
   const [slotsPerPage, setSlotsPerPage] = useState(20);
 
-  const timeSlots = useDataStore(state => state.timeSlots);
-  const students = useDataStore(state => state.students || []);
+  const timeSlots = useDataStore(state => state.timeSlots) || {};
+  const students = useDataStore(state => state.students) || [];
   const [studentAttendance, setStudentAttendance] = useState([]);
   
   const fetchStudentAttendance = useCallback(async () => {
