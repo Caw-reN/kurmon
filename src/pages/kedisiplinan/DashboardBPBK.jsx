@@ -110,7 +110,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterClass, filterCategory, filterStatus, subTab]);
+  }, [search, filterClass, filterCategory, filterStatus, currentSubTab]);
 
   // Aggregate student points & BK status
   const studentPointsMap = useMemo(() => {
