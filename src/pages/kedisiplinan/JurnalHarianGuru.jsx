@@ -164,7 +164,7 @@ export async function generateRekapJurnalPDF({
   const pageHeight = doc.internal.pageSize.getHeight();
   const [r, g, b] = getPrimaryColorRgb();
 
-  // 1. Draw Kop Surat
+  // 1. Draw Kop Surat (Proportional, centered)
   let yPos = drawKopSurat(doc, true);
 
   // 2. Title Header
@@ -180,40 +180,9 @@ export async function generateRekapJurnalPDF({
   const semTitle = `SEMESTER ${semester.toUpperCase()} TAHUN AJARAN ${tahunAjaran}`;
   doc.text(semTitle, pageWidth / 2, yPos, { align: "center" });
 
-  yPos += 6;
+  yPos += 5.5;
 
-  // 3. Teacher and Subject Information Block (2 columns)
-  doc.setFontSize(8.5);
-  doc.setFont("Helvetica", "normal");
-  doc.setTextColor(30, 30, 30);
-
-  const leftX = 14;
-  const rightX = pageWidth / 2 + 10;
-
-  doc.setFont("Helvetica", "bold");
-  doc.text("Nama Guru", leftX, yPos);
-  doc.setFont("Helvetica", "normal");
-  doc.text(`: ${teacherInfo.name || teacherInfo.code || '-'}`, leftX + 26, yPos);
-
-  doc.setFont("Helvetica", "bold");
-  doc.text("Kelas / Rombel", rightX, yPos);
-  doc.setFont("Helvetica", "normal");
-  doc.text(`: ${kelasFilter}`, rightX + 26, yPos);
-
-  yPos += 4;
-
-  doc.setFont("Helvetica", "bold");
-  doc.text("NIP / Kode", leftX, yPos);
-  doc.setFont("Helvetica", "normal");
-  doc.text(`: ${teacherInfo.nip || teacherInfo.code || '-'}`, leftX + 26, yPos);
-
-  doc.setFont("Helvetica", "bold");
-  doc.text("Mata Pelajaran", rightX, yPos);
-  doc.setFont("Helvetica", "normal");
-  doc.text(`: ${mapelFilter}`, rightX + 26, yPos);
-
-  yPos += 4;
-
+  // Calculate tepat vs terlambat
   const tepatCount = jurnalRecords.filter(j => {
     const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
     return !st.isLate && !!j.submitted_at;
@@ -223,31 +192,89 @@ export async function generateRekapJurnalPDF({
     return st.isLate;
   }).length;
 
-  doc.setFont("Helvetica", "bold");
-  doc.text("Total Jurnal", leftX, yPos);
-  doc.setFont("Helvetica", "normal");
-  doc.text(`: ${jurnalRecords.length} Pertemuan (${tepatCount} Tepat Waktu, ${telatCount} Terlambat)`, leftX + 26, yPos);
+  // 3. Teacher and Subject Information Block (Styled modern box)
+  const boxX = 14;
+  const boxWidth = pageWidth - 28;
+  const boxHeight = 16;
+  
+  doc.setFillColor(248, 250, 252); // slate-50
+  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.setLineWidth(0.3);
+  doc.roundedRect(boxX, yPos, boxWidth, boxHeight, 2, 2, 'FD');
+
+  doc.setFontSize(8);
+  doc.setTextColor(50, 50, 50);
+
+  const leftX = boxX + 4;
+  const rightX = boxX + (boxWidth / 2) + 4;
+  const rowY1 = yPos + 4.5;
+  const rowY2 = yPos + 9;
+  const rowY3 = yPos + 13.5;
 
   doc.setFont("Helvetica", "bold");
-  doc.text("Semester", rightX, yPos);
+  doc.text("Nama Guru", leftX, rowY1);
   doc.setFont("Helvetica", "normal");
-  doc.text(`: ${semester} (${tahunAjaran})`, rightX + 26, yPos);
+  doc.text(`: ${teacherInfo.name || teacherInfo.code || '-'}`, leftX + 24, rowY1);
 
-  yPos += 5.5;
+  doc.setFont("Helvetica", "bold");
+  doc.text("Kelas / Rombel", rightX, rowY1);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${kelasFilter}`, rightX + 24, rowY1);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("NIP / Kode", leftX, rowY2);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${teacherInfo.nip || teacherInfo.code || '-'}`, leftX + 24, rowY2);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Mata Pelajaran", rightX, rowY2);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${mapelFilter}`, rightX + 24, rowY2);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Total Jurnal", leftX, rowY3);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${jurnalRecords.length} Pertemuan (${tepatCount} Tepat Waktu, ${telatCount} Terlambat)`, leftX + 24, rowY3);
+
+  doc.setFont("Helvetica", "bold");
+  doc.text("Semester", rightX, rowY3);
+  doc.setFont("Helvetica", "normal");
+  doc.text(`: ${semester} (${tahunAjaran})`, rightX + 24, rowY3);
+
+  yPos += boxHeight + 4.5;
 
   // 4. Build Table Rows
   const tableRows = jurnalRecords.map((j, idx) => {
     const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
-    const dateFormatted = j.tanggal 
-      ? new Date(j.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-      : '-';
 
-    let rincianHadirStr = `${j.jumlah_hadir || 0} Siswa`;
+    // Safe Date Parsing
+    let dateFormatted = '-';
+    if (j.tanggal) {
+      try {
+        const rawStr = String(j.tanggal).split('T')[0].trim();
+        const [y, m, d] = rawStr.split('-');
+        if (y && m && d) {
+          const dObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+          if (!isNaN(dObj.getTime())) {
+            dateFormatted = dObj.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          }
+        }
+      } catch (_) {
+        dateFormatted = String(j.tanggal);
+      }
+    }
+
+    // Attendance formatting
+    let rincianHadirStr = '0 Siswa';
     if (j.rincian_absensi && Array.isArray(j.rincian_absensi) && j.rincian_absensi.length > 0) {
+      const hCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'hadir').length;
+      const tCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'terlambat').length;
       const sCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'sakit').length;
       const iCount = j.rincian_absensi.filter(s => ['izin', 'dispen', 'dispensasi'].includes((s.status || '').toLowerCase())).length;
       const aCount = j.rincian_absensi.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length;
-      const tCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'terlambat').length;
+      
+      const totalHadir = hCount + tCount;
+      rincianHadirStr = `${totalHadir} Siswa`;
       
       const parts = [];
       if (tCount > 0) parts.push(`${tCount} Telat`);
@@ -258,11 +285,22 @@ export async function generateRekapJurnalPDF({
       if (parts.length > 0) {
         rincianHadirStr += `\n(${parts.join(', ')})`;
       }
+    } else if (j.jumlah_hadir !== undefined && j.jumlah_hadir !== null) {
+      rincianHadirStr = `${parseInt(j.jumlah_hadir, 10) || 0} Siswa`;
     }
 
     let statusSubmitStr = st.label;
     if (st.timeStr) {
       statusSubmitStr += `\n(${st.timeStr})`;
+    }
+
+    // Kegiatan KBM Formatting
+    let kegiatanStr = (j.kegiatan_pembelajaran || '-').trim();
+    if (j.metode_pembelajaran) {
+      kegiatanStr += `\n[Metode: ${j.metode_pembelajaran}]`;
+    }
+    if (j.catatan) {
+      kegiatanStr += `\nCatatan: ${j.catatan}`;
     }
 
     return [
@@ -272,7 +310,7 @@ export async function generateRekapJurnalPDF({
       j.kelas || '-',
       j.mapel || '-',
       j.materi_pokok || '-',
-      `${j.kegiatan_pembelajaran || '-'}\n[Metode: ${j.metode_pembelajaran || 'Ceramah'}]${j.catatan ? `\nCatatan: ${j.catatan}` : ''}`,
+      kegiatanStr,
       rincianHadirStr,
       statusSubmitStr,
       ''
@@ -300,10 +338,11 @@ export async function generateRekapJurnalPDF({
     theme: 'grid',
     styles: {
       fontSize: 7,
-      cellPadding: 1.8,
+      cellPadding: 2,
       valign: 'middle',
-      lineColor: [200, 200, 200],
-      lineWidth: 0.1
+      lineColor: [210, 215, 225],
+      lineWidth: 0.1,
+      textColor: [30, 41, 59]
     },
     headStyles: {
       fillColor: [r, g, b],
@@ -312,17 +351,20 @@ export async function generateRekapJurnalPDF({
       halign: 'center',
       fontSize: 7.5
     },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252]
+    },
     columnStyles: {
       0: { halign: 'center', cellWidth: 8 },
-      1: { halign: 'center', cellWidth: 26 },
-      2: { halign: 'center', cellWidth: 15 },
+      1: { halign: 'center', cellWidth: 27 },
+      2: { halign: 'center', cellWidth: 14 },
       3: { halign: 'center', cellWidth: 18 },
-      4: { cellWidth: 28 },
+      4: { cellWidth: 30, fontStyle: 'bold' },
       5: { cellWidth: 42 },
       6: { cellWidth: 'auto' },
-      7: { halign: 'center', cellWidth: 25 },
+      7: { halign: 'center', cellWidth: 26 },
       8: { halign: 'center', cellWidth: 25 },
-      9: { halign: 'center', cellWidth: 14 }
+      9: { halign: 'center', cellWidth: 13 }
     },
     didDrawPage: () => {
       const str = `Halaman ${doc.internal.getNumberOfPages()}`;
@@ -334,13 +376,20 @@ export async function generateRekapJurnalPDF({
   });
 
   // 6. Signatures Section on Final Page
-  let finalY = doc.lastAutoTable.finalY + 7;
+  let finalY = doc.lastAutoTable.finalY + 8;
   if (finalY + 36 > pageHeight) {
     doc.addPage();
     finalY = 18;
   }
 
-  const kota = schoolProfile.kabupaten || schoolProfile.kota || appSettings.kopSuratKota || 'Kota';
+  const profileObj = schoolProfile?.nama_sekolah ? schoolProfile : (appSettings?.schoolProfile || {});
+  let kota = profileObj.kabupaten || profileObj.kota || appSettings.kopSuratKota || '';
+  if (!kota) {
+    if (appSettings.kopSuratAlamat && appSettings.kopSuratAlamat.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+    else if (appSettings.kopSuratBaris2 && appSettings.kopSuratBaris2.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+    else kota = 'Bekasi';
+  }
+
   const tglCetakStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
   doc.setFontSize(8);
@@ -356,8 +405,13 @@ export async function generateRekapJurnalPDF({
   doc.text(`${kota}, ${tglCetakStr}`, sigRightX, finalY, { align: "center" });
   doc.text("Guru Mata Pelajaran,", sigRightX, finalY + 4, { align: "center" });
 
-  const namaKepsek = kepsekInfo.nama || schoolProfile.kepala_sekolah || appSettings.namaKepalaSekolah || 'Kepala Sekolah';
-  const nipKepsek = kepsekInfo.nip || schoolProfile.nip_kepala_sekolah || appSettings.nipKepalaSekolah || '-';
+  const namaKepsek = (kepsekInfo.nama && kepsekInfo.nama !== 'Kepala Sekolah')
+    ? kepsekInfo.nama
+    : (profileObj.kepala_sekolah || profileObj.nama_kepala_sekolah || appSettings.namaKepalaSekolah || appSettings.kepalaSekolah || 'Kepala Sekolah');
+    
+  const nipKepsek = (kepsekInfo.nip && kepsekInfo.nip !== '-')
+    ? kepsekInfo.nip
+    : (profileObj.nip_kepala_sekolah || profileObj.nip || appSettings.nipKepalaSekolah || '-');
 
   const namaGuru = teacherInfo.name || teacherInfo.code || 'Guru Pengampu';
   const nipGuru = teacherInfo.nip || teacherInfo.nip_guru || '-';
