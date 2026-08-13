@@ -695,7 +695,6 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     </Modal>
   );
 }
-}
 
 export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [], onBack }) {
   const user = useAuthStore(state => state.user);
