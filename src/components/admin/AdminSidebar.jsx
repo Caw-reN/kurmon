@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
@@ -121,8 +121,6 @@ export default function AdminSidebar({
       if (item.adminOnly) continue;
       // Skip walas-only items if user is not walas (handled separately below)
       if (item.specialCondition === 'walas_only') continue;
-      // Skip hikvision_report_siswa from normal sections if user is walas (moved to Walas section)
-      if (item.id === 'hikvision_report_siswa' && (currentUser?.isWalas || currentUser?.walasClass)) continue;
 
       const section = item.section || '_root';
       if (!sectionMap[section]) sectionMap[section] = [];
@@ -155,15 +153,12 @@ export default function AdminSidebar({
 
     // Special: Wali Kelas section (only if user is walas)
     if (currentUser?.isWalas || currentUser?.walasClass) {
-      const walasItems = [
-        MENU_REGISTRY.find(i => i.id === 'hikvision_report_siswa'),
-        ...MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only')
-      ].filter(Boolean);
+      const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
       const renderedWalas = walasItems.map(item =>
         renderNavItem({
           id: item.id,
           icon: item.icon,
-          label: item.id === 'hikvision_report_siswa' ? `Laporan ${currentUser.walasClass || 'Kelas Saya'}` : item.label,
+          label: item.label,
           featureKey: item.featureKey,
           activeIds: item.activeIds,
         })

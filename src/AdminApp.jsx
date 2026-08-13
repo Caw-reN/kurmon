@@ -1565,7 +1565,7 @@ export default function App() {
 
     let allowed = false;
     const isWalasUser = currentUser?.isWalas || !!currentUser?.walasClass;
-    const walasTabs = ["hikvision_report_siswa", "catatan_walikelas", "walas_report", "laporan_rekap_walas"];
+    const walasTabs = ["catatan_walikelas", "walas_report", "laporan_rekap_walas"];
 
     if (activeTab === "dashboard" || activeTab === "pesan") allowed = true;
     else if (isWalasUser && walasTabs.includes(activeTab)) allowed = true;
@@ -2712,7 +2712,7 @@ export default function App() {
     let isAllowed = false;
     const isWalasUser = currentUser?.isWalas || currentUser?.walasClass;
 
-    if (isWalasUser && ["hikvision_report_siswa", "catatan_walikelas", "walas_report"].includes(id)) {
+    if (isWalasUser && ["catatan_walikelas", "walas_report"].includes(id)) {
       // Wali Kelas override: always allow walas-specific tabs
       isAllowed = true;
     } else if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
