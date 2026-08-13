@@ -389,7 +389,6 @@ function ExportSemesterModal({
   appSettings = {},
   schoolProfile = {}
 }) {
-  if (!isOpen) return null;
   const authToken = user?.authToken;
   const role = user?.role || '';
   const isKurikulum = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || '').toLowerCase() === 'kurikulum');
@@ -1807,15 +1806,12 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
   const totalItems = sortedJurnalList.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(1);
-  }, [totalPages, currentPage]);
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
 
   const paginatedJurnalList = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
+    const startIdx = (safeCurrentPage - 1) * itemsPerPage;
     return sortedJurnalList.slice(startIdx, startIdx + itemsPerPage);
-  }, [sortedJurnalList, currentPage, itemsPerPage]);
+  }, [sortedJurnalList, safeCurrentPage, itemsPerPage]);
 
   const fetchJurnal = useCallback(async () => {
     if (!authToken) return;
@@ -2450,16 +2446,18 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       )}
 
       {/* Modal Export Rekap Semester PDF */}
-      <ExportSemesterModal
-        isOpen={isExportSemesterOpen}
-        onClose={() => setIsExportSemesterOpen(false)}
-        user={user}
-        teachers={teachers}
-        classes={classes}
-        schedule={schedule}
-        appSettings={appSettings}
-        schoolProfile={schoolProfile}
-      />
+      {isExportSemesterOpen && (
+        <ExportSemesterModal
+          isOpen={isExportSemesterOpen}
+          onClose={() => setIsExportSemesterOpen(false)}
+          user={user}
+          teachers={teachers}
+          classes={classes}
+          schedule={schedule}
+          appSettings={appSettings}
+          schoolProfile={schoolProfile}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
