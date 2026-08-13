@@ -1,8 +1,8 @@
-const requestCounts = new Map();
+﻿const requestCounts = new Map();
 const BLOCKED_IPS = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 150; // max 150 requests per minute per IP
-const BLOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutes block
+const MAX_REQUESTS_PER_WINDOW = 2000; // max 150 requests per minute per IP
+const BLOCK_DURATION_MS = 60 * 1000; // 5 minutes block
 
 // Bersihkan memory setiap menit
 setInterval(() => {
