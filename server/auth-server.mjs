@@ -153,23 +153,15 @@ async function pullHikvisionLogs(force = false) {
     const nowLocal = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
     const nowMinutes = toMinutes(nowLocal);
 
-    const isRoleActive = (role) => {
-      const roleConf = config[role] || {};
-      const masukOpen  = toMinutes((roleConf.masuk_open  || roleConf.masuk_start || config.masuk_open  || "05:00").substring(0, 5));
-      const masukClose = toMinutes((roleConf.masuk_close || roleConf.masuk_end   || config.masuk_close || "12:00").substring(0, 5));
-      const pulangOpen  = toMinutes((roleConf.pulang_open  || roleConf.pulang_start || config.pulang_open  || "14:00").substring(0, 5));
-      const pulangClose = toMinutes((roleConf.pulang_close || roleConf.pulang_end   || config.pulang_close || "18:00").substring(0, 5));
-      return (nowMinutes >= masukOpen && nowMinutes <= masukClose) || (nowMinutes >= pulangOpen && nowMinutes <= pulangClose);
-    };
+    // Active attendance sync window: 05:00 to 21:00 (covers all morning, midday, afternoon, and evening staff taps)
+    const isWithinDailyWindow = nowMinutes >= toMinutes("05:00") && nowMinutes <= toMinutes("21:00");
 
-    const isActiveAny = ['siswa', 'guru', 'karyawan'].some(r => isRoleActive(r));
-
-    if (!isActiveAny && !force) {
-      console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active attendance windows.`);
+    if (!isWithinDailyWindow && !force) {
+      console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active daily attendance window (05:00 - 21:00).`);
       return { logs_found: 0, logs_saved: 0 };
     }
 
-    // ── FIX BUG-04: Pre-load identity lookup tables ONCE before device loop ──
+    // ── Pre-load identity lookup tables ONCE before device loop ──
     const [hikStudentsRes, teachersRes, staffsRes, featureStoreRes] = await Promise.all([
       dbPool.query("SELECT nis, name, class_name FROM hikvision_students"),
       dbPool.query("SELECT id, payload FROM mst_teachers"),
@@ -191,9 +183,14 @@ async function pullHikvisionLogs(force = false) {
     for (const r of staffsRes.rows) {
       const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
       const name = p.name || p.nama || r.id;
-      if (r.id)            staffMap.set(String(r.id).toLowerCase(), { name });
-      if (p.staff_code)    staffMap.set(String(p.staff_code).toLowerCase(), { name });
-      if (p.code)          staffMap.set(String(p.code).toLowerCase(), { name });
+      const sId = String(r.id || '').toLowerCase();
+      const sCode = String(p.staff_code || p.code || '').toLowerCase();
+      if (sId) staffMap.set(sId, { name });
+      if (sCode) staffMap.set(sCode, { name });
+      // Map numeric equivalent if staff code is K1..K30 (e.g. '5' -> 'K5')
+      if (/^k\d+$/i.test(sCode)) {
+        staffMap.set(sCode.replace(/^k/i, ''), { name });
+      }
     }
     // Feature settings (loaded once)
     let featureSettings = {};
@@ -205,20 +202,15 @@ async function pullHikvisionLogs(force = false) {
     const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
     for (const device of devices) {
       const dtype = device.device_type || 'siswa';
-      const roleCheck = (dtype === 'staff') ? (isRoleActive('guru') || isRoleActive('karyawan')) : isRoleActive(dtype);
-      if (!roleCheck && !force) {
-        console.log(`[Hikvision] Skipping device ${device.location || device.ip_address} (${dtype}) at ${nowLocal} (outside time window).`);
-        continue;
-      }
       try {
         const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
         const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
 
         const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
         let startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-        if (lastLogRes.rows[0].last_ts) {
-          startTime = new Date(lastLogRes.rows[0].last_ts);
+        if (lastLogRes.rows[0]?.last_ts) {
+          // Lookback 6 hours to prevent any gaps from network lag or clock adjustments
+          startTime = new Date(new Date(lastLogRes.rows[0].last_ts).getTime() - 6 * 60 * 60 * 1000);
         } else {
           startTime.setDate(startTime.getDate() - 3);
         }
@@ -230,59 +222,52 @@ async function pullHikvisionLogs(force = false) {
         for (const log of logs) {
           const employeeNo = log.employeeNoString;
           if (!employeeNo) continue;
+          
+          // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
+          if (log.minor !== 75 && log.minor !== 38 && log.minor !== 1 && log.minor !== 104) {
+            continue;
+          }
+
           const eventType = `${log.major}-${log.minor}`;
-          const logTime = new Date(log.time).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' });
+          const logTime = (log.time || '').replace('T', ' ').substring(0, 19);
           const logHhmm = logTime.substring(11, 16);
           const logMin  = toMinutes(logHhmm);
 
-          // OPT-04 FIX: Pengecekan `SELECT 1` (N+1 Query) dihapus karena INSERT sudah menggunakan ON CONFLICT DO NOTHING.
-
           // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
           const empKey = String(employeeNo).toLowerCase();
-          let personType = 'unknown';
-          let userName   = 'Unknown';
+          let personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
+          let userName   = log.name || 'Unknown';
 
           const hikStu = hikStudentMap.get(empKey);
           if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
             personType = 'siswa';
-            userName   = hikStu.name;
+            userName   = hikStu.name || userName;
           } else if (hikStu && (hikStu.class_name === 'guru' || hikStu.class_name === 'karyawan')) {
             personType = hikStu.class_name;
-            userName   = hikStu.name;
+            userName   = hikStu.name || userName;
           } else if (teacherMap.has(empKey)) {
             personType = 'guru';
-            userName   = teacherMap.get(empKey).name;
+            userName   = teacherMap.get(empKey).name || userName;
           } else if (staffMap.has(empKey)) {
             personType = 'karyawan';
-            userName   = staffMap.get(empKey).name;
+            userName   = staffMap.get(empKey).name || userName;
           }
 
-          // ── Time-window filter (numeric minutes comparison) ──
-          if (personType !== 'unknown') {
-            const pConf   = config[personType] || {};
-            const mOpen   = toMinutes((pConf.masuk_open  || "05:00").substring(0, 5));
-            const mClose  = toMinutes((pConf.masuk_close || "12:00").substring(0, 5));
-            const pOpen   = toMinutes((pConf.pulang_open  || "14:00").substring(0, 5));
-            const pClose  = toMinutes((pConf.pulang_close || "18:00").substring(0, 5));
-            const isMasuk  = logMin >= mOpen  && logMin <= mClose;
-            const isPulang = logMin >= pOpen  && logMin <= pClose;
-            if (!isMasuk && !isPulang) continue; // outside window, skip
-          }
-
-          await dbPool.query(
+          // Insert raw attendance tap without dropping - all taps must be retained for report aggregation
+          const insRes = await dbPool.query(
             "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
             [device.id, employeeNo, logTime, eventType, personType]
           );
-          totalSaved++;
+          if (insRes.rowCount > 0) totalSaved++;
 
-          // ── Late notification (feature flag already pre-loaded) ──
+          // ── Late notification (only for morning check-in taps) ──
           let lateLimit  = null;
           let roleTarget = null;
           if (personType === 'siswa')     { lateLimit = config.siswa?.masuk_late;     roleTarget = 'parent';    }
           else if (personType === 'guru')     { lateLimit = config.guru?.masuk_late;      roleTarget = 'kurikulum'; }
           else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late;  roleTarget = 'tu';        }
 
-          if (lateLimit && eventType === '5-75') {
+          if (lateLimit && (log.minor === 75 || log.minor === 38)) {
             const closeLimit = toMinutes(
               (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
             );

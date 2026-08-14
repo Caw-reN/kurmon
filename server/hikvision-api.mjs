@@ -112,27 +112,24 @@ export class HikvisionAPI {
     let position = 0;
 
     const formatDate = (date) => {
-      if (date instanceof Date) {
-        // Adjust for UTC+7 (WIB)
-        const local = new Date(date.getTime() + (7 * 60 * 60 * 1000));
-        return local.toISOString().replace(/\.\d{3}Z$/, '+07:00');
-      }
       if (typeof date === 'string') return date;
-      const local = new Date(Date.now() + (7 * 60 * 60 * 1000));
-      return local.toISOString().replace(/\.\d{3}Z$/, '+07:00');
+      const d = date instanceof Date ? date : new Date();
+      // Format as ISO in Asia/Jakarta (+07:00)
+      const tzOffset = 7 * 60 * 60 * 1000;
+      const localTime = new Date(d.getTime() + tzOffset);
+      return localTime.toISOString().replace(/\.\d{3}Z$/, '+07:00');
     };
 
-    const startStr = startTime ? formatDate(startTime) : new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, '+07:00');
-    const endStr = endTime ? formatDate(endTime) : new Date().toISOString().replace(/\.\d{3}Z$/, '+07:00');
+    const startStr = startTime ? formatDate(startTime) : formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000));
+    const endStr = endTime ? formatDate(endTime) : formatDate(new Date());
 
     while(true) {
       const payload = {
         AcsEventCond: {
           searchID: "1",
           searchResultPosition: position,
-          maxResults: 30, // keep it small per request
+          maxResults: 100,
           major: 5,
-          minor: 0,
           startTime: startStr,
           endTime: endStr
         }
@@ -151,7 +148,7 @@ export class HikvisionAPI {
           if (logs.length === 0) break;
           allLogs = allLogs.concat(logs);
           position += logs.length;
-          if (logs.length < 30) break;
+          if (logs.length < 100) break;
       } catch(e) {
           break;
       }

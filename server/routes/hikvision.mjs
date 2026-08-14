@@ -78,9 +78,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
   const getRoleTimeConfig = (conf, role) => {
     const roleConf = conf[role] || {};
     const defaults = {
-      siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "08:00", pulang_open: "14:00", pulang_close: "18:00" },
-      guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "08:00", pulang_open: "14:00", pulang_close: "18:00" },
-      karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "08:00", pulang_open: "15:00", pulang_close: "18:00" }
+      siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "19:00" },
+      guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "19:00" },
+      karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "19:00" }
     };
     const roleDefault = defaults[role] || defaults.siswa;
 
@@ -401,22 +401,21 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             // Sync Log
             const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
             let startTime = new Date();
-            startTime.setHours(0, 0, 0, 0); // Default hari ini
-            if (lastLogRes.rows[0].last_ts) {
-               startTime = new Date(lastLogRes.rows[0].last_ts);
+            if (lastLogRes.rows[0]?.last_ts) {
+               startTime = new Date(new Date(lastLogRes.rows[0].last_ts).getTime() - 24 * 60 * 60 * 1000); // 24 hours lookback buffer
             } else {
-               startTime.setDate(startTime.getDate() - 3); // Selalu tarik 3 hari terakhir untuk amannya
+               startTime.setDate(startTime.getDate() - 7); // Tarik 7 hari terakhir jika belum ada log
             }
             const endTime = new Date();
             const logs = await api.searchEvents(startTime, endTime);
             
             if (logs && logs.length > 0) {
-              const validLogs = logs.filter(l => l.employeeNoString);
-              const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
+              const validLogs = logs.filter(l => l.employeeNoString && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
+              const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
-                // Determine person_type from device type as fallback, or query it if needed. For now, use device_type.
-                const personType = dtype === 'siswa' ? 'siswa' : (dtype === 'guru' ? 'guru' : 'karyawan');
-                await dbPool.query(query, [device.id, l.employeeNoString, new Date(l.time), `${l.major}-${l.minor}`, personType]);
+                const personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
+                const tsStr = (l.time || '').replace('T', ' ').substring(0, 19);
+                await dbPool.query(query, [device.id, l.employeeNoString, tsStr, `${l.major}-${l.minor}`, personType]);
                 logsSynced++;
               }
             }
@@ -1062,25 +1061,23 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             }
         });
 
-        if (reportType === 'siswa') {
-          try {
-            const hikStudentsRes = await dbPool.query("SELECT nis, name FROM hikvision_students");
-            hikStudentsRes.rows.forEach(h => {
-              const hNis = String(h.nis || '').trim().toLowerCase();
-              const hName = String(h.name || '').trim().toLowerCase();
-              const matchedNis = Object.keys(matrix).find(mNis => {
-                const mStud = matrix[mNis];
-                const mName = String(mStud.name || '').trim().toLowerCase();
-                const mNisStr = String(mNis).toLowerCase();
-                return (mName && hName && mName === hName) || mNisStr === hNis || (hNis.length >= 5 && mNisStr.length >= 5 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
-              });
-              if (matchedNis) {
-                employeeToNisMap[hNis] = matchedNis;
-              }
+        try {
+          const hikStudentsRes = await dbPool.query("SELECT nis, name FROM hikvision_students");
+          hikStudentsRes.rows.forEach(h => {
+            const hNis = String(h.nis || '').trim().toLowerCase();
+            const hName = String(h.name || '').trim().toLowerCase();
+            const matchedNis = Object.keys(matrix).find(mNis => {
+              const mStud = matrix[mNis];
+              const mName = String(mStud.name || '').trim().toLowerCase();
+              const mNisStr = String(mNis).toLowerCase();
+              return (mName && hName && mName === hName) || mNisStr === hNis || (hNis.length >= 4 && mNisStr.length >= 4 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
             });
-          } catch (e) {
-            console.warn("Failed to build hikvision_students mapping:", e.message);
-          }
+            if (matchedNis) {
+              employeeToNisMap[hNis] = matchedNis;
+            }
+          });
+        } catch (e) {
+          console.warn("Failed to build hikvision_students mapping:", e.message);
         }
 
         const conf = await getHikvisionConfig();
@@ -1367,7 +1364,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 logRole = "karyawan";
               }
               const roleConf = getRoleTimeConfig(conf, logRole);
-              const limit = (roleConf.masuk_close || "08:00") + ":00";
+              const limit = (roleConf.masuk_close || "11:00") + ":00";
               if (currentTime <= limit) continue; // Still within check-in window
             }
 
