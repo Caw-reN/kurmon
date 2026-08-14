@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { 
   BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink,
   Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
@@ -49,6 +49,11 @@ export default function ModulAjar(props) {
   const [isMateriModalOpen, setIsMateriModalOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [toast, setToast] = useState(null);
+  const [isDraggingModul, setIsDraggingModul] = useState(false);
+  const [isDraggingMateri, setIsDraggingMateri] = useState(false);
+
+  const modulFileInputRef = useRef(null);
+  const materiFileInputRef = useRef(null);
 
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user || {});
@@ -1057,6 +1062,17 @@ export default function ModulAjar(props) {
                 </span>
               </div>
 
+              {/* Hidden file input controlled via ref */}
+              <input 
+                ref={modulFileInputRef}
+                type="file" 
+                accept=".pdf" 
+                className="hidden"
+                disabled={isUploadingModul || isOptimizingModul}
+                onClick={e => { e.target.value = ''; }}
+                onChange={e => e.target.files?.[0] && handleModulFile(e.target.files[0])}
+              />
+
               {/* State 1: Optimizing Animation */}
               {isOptimizingModul ? (
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 flex flex-col items-center justify-center text-center space-y-3 animate-in zoom-in-95 duration-200 shadow-sm">
@@ -1100,17 +1116,15 @@ export default function ModulAjar(props) {
                         </h5>
                       </div>
                     </div>
-                    <label className="px-3 py-1.5 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={isUploadingModul}
+                      onClick={() => modulFileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1"
+                    >
                       <RefreshCw size={12} />
                       <span>Ganti</span>
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        disabled={isUploadingModul}
-                        onChange={e => e.target.files?.[0] && handleModulFile(e.target.files[0])}
-                        className="sr-only"
-                      />
-                    </label>
+                    </button>
                   </div>
                   {modulForm.is_compressed && modulForm.saved_percent > 0 && (
                     <div className="mt-2.5 pt-2 border-t border-emerald-200/70 flex items-center justify-between text-[10px] font-bold text-emerald-700">
@@ -1126,15 +1140,22 @@ export default function ModulAjar(props) {
                 </div>
               ) : (
                 /* State 3: Interactive Animated Dropzone */
-                <label className="group relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50/70 hover:bg-emerald-50/40 rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs">
-                  <input 
-                    type="file" 
-                    accept=".pdf" 
-                    required={!modulForm.file_url}
-                    disabled={isUploadingModul || isOptimizingModul}
-                    onChange={e => e.target.files?.[0] && handleModulFile(e.target.files[0])}
-                    className="sr-only"
-                  />
+                <div 
+                  onClick={() => !isUploadingModul && !isOptimizingModul && modulFileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsDraggingModul(true); }}
+                  onDragLeave={() => setIsDraggingModul(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingModul(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleModulFile(file);
+                  }}
+                  className={`group relative flex flex-col items-center justify-center p-5 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs ${
+                    isDraggingModul 
+                      ? 'border-emerald-500 bg-emerald-100/60 scale-[1.02]' 
+                      : 'border-slate-300 hover:border-emerald-500 bg-slate-50/70 hover:bg-emerald-50/40'
+                  }`}
+                >
                   <div className="w-12 h-12 rounded-2xl bg-emerald-100/90 group-hover:bg-emerald-600 group-hover:scale-110 group-hover:shadow-md text-emerald-700 group-hover:text-white flex items-center justify-center transition-all duration-200 mb-2">
                     <UploadCloud size={24} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
                   </div>
@@ -1144,11 +1165,14 @@ export default function ModulAjar(props) {
                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">
                     Hanya berkas format .pdf (Maksimal 5 MB)
                   </p>
-                  <div className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-emerald-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-emerald-700 shadow-2xs transition-all flex items-center gap-1.5">
+                  <button 
+                    type="button" 
+                    className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-emerald-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-emerald-700 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer pointer-events-none"
+                  >
                     <FileText size={12} className="text-emerald-600" />
                     <span>Pilih Berkas PDF</span>
-                  </div>
-                </label>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1329,6 +1353,17 @@ export default function ModulAjar(props) {
                   </span>
                 </div>
 
+                {/* Hidden file input controlled via ref */}
+                <input 
+                  ref={materiFileInputRef}
+                  type="file" 
+                  accept=".pdf" 
+                  className="hidden"
+                  disabled={isUploadingMateri || isOptimizingMateri}
+                  onClick={e => { e.target.value = ''; }}
+                  onChange={e => e.target.files?.[0] && handleMateriFile(e.target.files[0])}
+                />
+
                 {/* State 1: Optimizing Animation */}
                 {isOptimizingMateri ? (
                   <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-50 border-2 border-indigo-300 flex flex-col items-center justify-center text-center space-y-3 animate-in zoom-in-95 duration-200 shadow-sm">
@@ -1372,17 +1407,15 @@ export default function ModulAjar(props) {
                           </h5>
                         </div>
                       </div>
-                      <label className="px-3 py-1.5 rounded-xl border border-indigo-300 bg-white hover:bg-indigo-50 text-indigo-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={isUploadingMateri}
+                        onClick={() => materiFileInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl border border-indigo-300 bg-white hover:bg-indigo-50 text-indigo-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1"
+                      >
                         <RefreshCw size={12} />
                         <span>Ganti</span>
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          disabled={isUploadingMateri}
-                          onChange={e => e.target.files?.[0] && handleMateriFile(e.target.files[0])}
-                          className="sr-only"
-                        />
-                      </label>
+                      </button>
                     </div>
                     {materiForm.is_compressed && materiForm.saved_percent > 0 && (
                       <div className="mt-2.5 pt-2 border-t border-indigo-200/70 flex items-center justify-between text-[10px] font-bold text-indigo-700">
@@ -1398,15 +1431,22 @@ export default function ModulAjar(props) {
                   </div>
                 ) : (
                   /* State 3: Interactive Animated Dropzone */
-                  <label className="group relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs">
-                    <input 
-                      type="file" 
-                      accept=".pdf" 
-                      required={!materiForm.file_url}
-                      disabled={isUploadingMateri || isOptimizingMateri}
-                      onChange={e => e.target.files?.[0] && handleMateriFile(e.target.files[0])}
-                      className="sr-only"
-                    />
+                  <div 
+                    onClick={() => !isUploadingMateri && !isOptimizingMateri && materiFileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingMateri(true); }}
+                    onDragLeave={() => setIsDraggingMateri(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingMateri(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handleMateriFile(file);
+                    }}
+                    className={`group relative flex flex-col items-center justify-center p-5 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs ${
+                      isDraggingMateri 
+                        ? 'border-indigo-500 bg-indigo-100/60 scale-[1.02]' 
+                        : 'border-slate-300 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40'
+                    }`}
+                  >
                     <div className="w-12 h-12 rounded-2xl bg-indigo-100/90 group-hover:bg-indigo-600 group-hover:scale-110 group-hover:shadow-md text-indigo-700 group-hover:text-white flex items-center justify-center transition-all duration-200 mb-2">
                       <UploadCloud size={24} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
                     </div>
@@ -1416,11 +1456,14 @@ export default function ModulAjar(props) {
                     <p className="text-[10px] text-slate-400 font-medium mt-0.5">
                       Hanya berkas format .pdf (Maksimal 5 MB)
                     </p>
-                    <div className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-indigo-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-indigo-700 shadow-2xs transition-all flex items-center gap-1.5">
+                    <button 
+                      type="button"
+                      className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-indigo-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-indigo-700 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer pointer-events-none"
+                    >
                       <FileText size={12} className="text-indigo-600" />
                       <span>Pilih Berkas PDF</span>
-                    </div>
-                  </label>
+                    </button>
+                  </div>
                 )}
               </div>
             ) : (
