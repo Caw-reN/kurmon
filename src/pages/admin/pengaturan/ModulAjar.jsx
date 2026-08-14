@@ -116,9 +116,37 @@ export default function ModulAjar(props) {
   };
 
   const handlePreviewPdf = (doc) => {
+    if (!doc || !doc.file_url) {
+      showToast('Berkas tidak ditemukan untuk dipratinjau', 'error');
+      return;
+    }
     const blobUrl = base64ToBlobUrl(doc.file_url);
-    setPreviewDoc({ url: blobUrl, title: doc.nama_dokumen || doc.judul });
+    setPreviewDoc({ url: blobUrl, title: doc.nama_dokumen || doc.judul || 'Pratinjau Dokumen' });
   };
+
+  const closePreviewDoc = () => {
+    if (previewDoc?.url && typeof previewDoc.url === 'string' && previewDoc.url.startsWith('blob:')) {
+      try {
+        URL.revokeObjectURL(previewDoc.url);
+      } catch (err) {
+        console.warn('Revoke blob URL:', err);
+      }
+    }
+    setPreviewDoc(null);
+  };
+
+  // Keyboard shortcut (ESC) to close modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (previewDoc) closePreviewDoc();
+        if (isModulModalOpen) setIsModulModalOpen(false);
+        if (isMateriModalOpen) setIsMateriModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewDoc, isModulModalOpen, isMateriModalOpen]);
 
   // ── Fetch Data ──────────────────────────────────────────────
   const fetchModulData = async () => {
@@ -1184,32 +1212,52 @@ export default function ModulAjar(props) {
 
       {/* PDF Modal Viewer */}
       {previewDoc && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div 
+          onClick={closePreviewDoc}
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-150 cursor-default"
+          >
+            <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <FileText className="text-rose-600 w-5 h-5 shrink-0" />
-                <h4 className="font-black text-slate-800 text-xs sm:text-sm truncate max-w-md" title={previewDoc.title}>
-                  {previewDoc.title}
+                <h4 className="font-black text-slate-800 text-xs sm:text-sm truncate max-w-md" title={previewDoc?.title || 'Pratinjau Berkas'}>
+                  {previewDoc?.title || 'Pratinjau Berkas'}
                 </h4>
               </div>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  if (previewDoc.url.startsWith('blob:')) URL.revokeObjectURL(previewDoc.url);
-                  setPreviewDoc(null);
-                }}
-                className="p-1.5 rounded-lg border-slate-200 hover:bg-slate-200 cursor-pointer"
-              >
-                <X size={16} />
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                {previewDoc?.url && (
+                  <button
+                    type="button"
+                    onClick={() => downloadFile(previewDoc.url, previewDoc.title || 'dokumen.pdf')}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                    title="Unduh Berkas"
+                  >
+                    <Download size={15} />
+                  </button>
+                )}
+                <button 
+                  type="button"
+                  onClick={closePreviewDoc}
+                  className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-600 transition-colors cursor-pointer"
+                  title="Tutup Pratinjau (ESC)"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
             <div className="flex-1 bg-slate-800 p-2 relative flex items-center justify-center">
-              <iframe 
-                src={previewDoc.url} 
-                title="Pratinjau Berkas" 
-                className="w-full h-full border-none rounded-xl bg-white" 
-              />
+              {previewDoc?.url ? (
+                <iframe 
+                  src={previewDoc.url} 
+                  title="Pratinjau Berkas" 
+                  className="w-full h-full border-none rounded-xl bg-white" 
+                />
+              ) : (
+                <div className="text-white text-xs font-bold">Berkas tidak dapat dimuat.</div>
+              )}
             </div>
           </div>
         </div>
