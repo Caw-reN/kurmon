@@ -41,8 +41,15 @@ export default function TabSilabusGuru(props) {
     handleRemoveSyllabusSafe 
   } = props;
 
+  const userCode = String(currentUser?.code || currentUser?.username || currentUser?.id || '').trim().toLowerCase();
+  const userName = String(currentUser?.name || '').trim().toLowerCase();
+
   const mySyllabuses = syllabuses
-    .filter((s) => s.teacherCode === currentUser.code)
+    .filter((s) => {
+      const sCode = String(s.teacherCode || '').trim().toLowerCase();
+      const sName = String(s.teacherName || '').trim().toLowerCase();
+      return (userCode && sCode === userCode) || (userName && sName === userName);
+    })
     .sort((a, b) =>
       `${a.subjectName || "" } ${a.title || ""}`.localeCompare(
         `${b.subjectName || "" } ${b.title || ""}`, "id",
@@ -50,7 +57,76 @@ export default function TabSilabusGuru(props) {
       ),
     );
 
-  const uniqueSubjects = Array.from(new Set(subjects.map((s) => s.name || s.subjectName).filter(Boolean))).sort();
+  const uniqueSubjects = React.useMemo(() => {
+    // 1. If explicit availableSubjects passed from parent
+    if (Array.isArray(props.availableSubjects) && props.availableSubjects.length > 0) {
+      return props.availableSubjects;
+    }
+
+    const set = new Set();
+
+    // 2. From teachingLoads
+    (props.teachingLoads || []).forEach((l) => {
+      const codes = String(l.teacherCode || '').split(',').map((c) => c.trim().toLowerCase());
+      const loadName = String(l.teacherName || '').trim().toLowerCase();
+      if (
+        (userCode && codes.includes(userCode)) ||
+        (userName && loadName === userName)
+      ) {
+        if (l.subject) set.add(l.subject);
+        if (l.subjectName) set.add(l.subjectName);
+      }
+    });
+
+    // 3. From schedule (jadwal KBM)
+    (props.schedule || []).forEach((s) => {
+      const sCode = String(s.teacher || s.teacherCode || '').trim().toLowerCase();
+      const sName = String(s.teacherName || '').trim().toLowerCase();
+      if ((userCode && sCode === userCode) || (userName && sName === userName)) {
+        if (s.subject) set.add(s.subject);
+        if (s.mapel) set.add(s.mapel);
+      }
+    });
+
+    // 4. From teachers master data
+    const currentTeacher = (props.teachers || []).find((t) => {
+      const tCode = String(t.code || t.id || '').trim().toLowerCase();
+      const tName = String(t.name || '').trim().toLowerCase();
+      return (userCode && tCode === userCode) || (userName && tName === userName);
+    });
+    if (currentTeacher) {
+      if (currentTeacher.mapel) {
+        String(currentTeacher.mapel).split(',').forEach((m) => m.trim() && set.add(m.trim()));
+      }
+      if (currentTeacher.subject) {
+        String(currentTeacher.subject).split(',').forEach((m) => m.trim() && set.add(m.trim()));
+      }
+      if (Array.isArray(currentTeacher.subjects)) {
+        currentTeacher.subjects.forEach((m) => m && set.add(m));
+      }
+    }
+
+    // 5. From existing syllabuses
+    (syllabuses || []).forEach((s) => {
+      const sCode = String(s.teacherCode || '').trim().toLowerCase();
+      if (userCode && sCode === userCode) {
+        if (s.subjectName) set.add(s.subjectName);
+      }
+    });
+
+    const list = Array.from(set).filter(Boolean).sort();
+    if (list.length > 0) return list;
+
+    // Fallback: If no specific teaching loads found, show all subjects
+    return Array.from(new Set((subjects || []).map((s) => s.name || s.subjectName).filter(Boolean))).sort();
+  }, [props.availableSubjects, props.teachingLoads, props.schedule, props.teachers, syllabuses, subjects, userCode, userName]);
+
+  // Automatically select the first assigned subject if not set or invalid
+  React.useEffect(() => {
+    if (uniqueSubjects.length > 0 && (!newSyllabusSubject || !uniqueSubjects.includes(newSyllabusSubject))) {
+      setNewSyllabusSubject(uniqueSubjects[0]);
+    }
+  }, [uniqueSubjects, newSyllabusSubject, setNewSyllabusSubject]);
   
   const myGroupedSyllabuses = mySyllabuses.reduce((acc, item) => {
     const key = item.subjectName || "Tanpa Mata Pelajaran";
@@ -143,6 +219,11 @@ export default function TabSilabusGuru(props) {
                   </option>
                 ))}
               </UISelect>
+              {uniqueSubjects.length > 0 && (
+                <p className="text-[10px] text-emerald-700 font-semibold mt-1">
+                  ✓ {uniqueSubjects.length} mata pelajaran sesuai penugasan mengajar Anda.
+                </p>
+              )}
             </div>
 
             {/* 2. Judul Pertemuan / BAB */}

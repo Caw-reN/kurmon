@@ -89,24 +89,77 @@ export default function ModulAjar(props) {
   const [materiError, setMateriError] = useState('');
 
   // ── Teacher Teaching Loads ──────────────────────────────────
+  const userCode = String(teacherCode || user?.username || user?.id || '').trim().toLowerCase();
+  const userName = String(teacherName || user?.name || '').trim().toLowerCase();
+
   const mySubjects = useMemo(() => {
-    if (!teacherCode || !teachingLoads) return [];
-    const loads = teachingLoads.filter(l =>
-      String(l.teacherCode || '').split(',').map(c => c.trim().toLowerCase()).includes(teacherCode.toLowerCase())
-    );
-    return [...new Set(loads.map(l => l.subject).filter(Boolean))].sort();
-  }, [teachingLoads, teacherCode]);
+    const set = new Set();
+
+    // 1. From teachingLoads
+    (teachingLoads || []).forEach(l => {
+      const codes = String(l.teacherCode || '').split(',').map(c => c.trim().toLowerCase());
+      const loadName = String(l.teacherName || '').trim().toLowerCase();
+      if (
+        (userCode && codes.includes(userCode)) ||
+        (userName && loadName === userName)
+      ) {
+        if (l.subject) set.add(l.subject);
+        if (l.subjectName) set.add(l.subjectName);
+      }
+    });
+
+    // 2. From schedule
+    (props.schedule || []).forEach(s => {
+      const sCode = String(s.teacher || s.teacherCode || '').trim().toLowerCase();
+      const sName = String(s.teacherName || '').trim().toLowerCase();
+      if ((userCode && sCode === userCode) || (userName && sName === userName)) {
+        if (s.subject) set.add(s.subject);
+        if (s.mapel) set.add(s.mapel);
+      }
+    });
+
+    // 3. From teachers master data
+    const teacherList = teachers.length > 0 ? teachers : (props.teachers || []);
+    const currentTeacher = teacherList.find(t => {
+      const tCode = String(t.code || t.id || '').trim().toLowerCase();
+      const tName = String(t.name || '').trim().toLowerCase();
+      return (userCode && tCode === userCode) || (userName && tName === userName);
+    });
+    if (currentTeacher) {
+      if (currentTeacher.mapel) {
+        String(currentTeacher.mapel).split(',').forEach(m => m.trim() && set.add(m.trim()));
+      }
+      if (currentTeacher.subject) {
+        String(currentTeacher.subject).split(',').forEach(m => m.trim() && set.add(m.trim()));
+      }
+      if (Array.isArray(currentTeacher.subjects)) {
+        currentTeacher.subjects.forEach(m => m && set.add(m));
+      }
+    }
+
+    // 4. From existing documents / materi
+    (documents || []).forEach(d => {
+      const dCode = String(d.teacher_code || '').trim().toLowerCase();
+      const dName = String(d.teacher_name || '').trim().toLowerCase();
+      if ((userCode && dCode === userCode) || (userName && dName === userName)) {
+        if (d.mapel) set.add(d.mapel);
+      }
+    });
+
+    return Array.from(set).filter(Boolean).sort();
+  }, [teachingLoads, props.schedule, teachers, props.teachers, documents, userCode, userName]);
 
   const availableSubjects = useMemo(() => {
     if (userRole === 'guru' && mySubjects.length > 0) return mySubjects;
+    if (mySubjects.length > 0 && !isCurriculum) return mySubjects;
     return [...new Set((subjects || []).map(s => s.name || s.subjectName).filter(Boolean))].sort();
-  }, [userRole, mySubjects, subjects]);
+  }, [userRole, isCurriculum, mySubjects, subjects]);
 
   // Set initial form defaults
   useEffect(() => {
     if (availableSubjects.length > 0) {
-      setModulForm(prev => prev.mapel ? prev : { ...prev, mapel: availableSubjects[0] });
-      setMateriForm(prev => prev.mapel ? prev : { ...prev, mapel: availableSubjects[0] });
+      setModulForm(prev => prev.mapel && availableSubjects.includes(prev.mapel) ? prev : { ...prev, mapel: availableSubjects[0] });
+      setMateriForm(prev => prev.mapel && availableSubjects.includes(prev.mapel) ? prev : { ...prev, mapel: availableSubjects[0] });
     }
   }, [availableSubjects]);
 
