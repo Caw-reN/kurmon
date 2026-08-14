@@ -68,7 +68,7 @@ export default function ModulAjar(props) {
   const [modulForm, setModulForm] = useState({
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
-    mapel: '', kelas: '', semester: 'Ganjil',
+    mapel: '', semester: 'Ganjil',
     file_size: null
   });
   const [isUploadingModul, setIsUploadingModul] = useState(false);
@@ -78,13 +78,13 @@ export default function ModulAjar(props) {
   const [materiForm, setMateriForm] = useState({
     judul: '', deskripsi: '', tipe: 'file',
     file_url: '', nama_dokumen: '', link_url: '',
-    mapel: '', kelas_target: '', semester: 'Ganjil', tahun_ajaran: activeYear || '',
+    mapel: '', semester: 'Ganjil', tahun_ajaran: activeYear || '',
     file_size: null
   });
   const [isUploadingMateri, setIsUploadingMateri] = useState(false);
   const [materiError, setMateriError] = useState('');
 
-  // ── Teacher Teaching Loads & Assigned Classes ────────────────
+  // ── Teacher Teaching Loads ──────────────────────────────────
   const mySubjects = useMemo(() => {
     if (!teacherCode || !teachingLoads) return [];
     const loads = teachingLoads.filter(l =>
@@ -93,33 +93,10 @@ export default function ModulAjar(props) {
     return [...new Set(loads.map(l => l.subject).filter(Boolean))].sort();
   }, [teachingLoads, teacherCode]);
 
-  const myClasses = useMemo(() => {
-    if (!teacherCode || !teachingLoads || !classes) return [];
-    const loads = teachingLoads.filter(l =>
-      String(l.teacherCode || '').split(',').map(c => c.trim().toLowerCase()).includes(teacherCode.toLowerCase())
-    );
-    const matchesGrade = (targetGrade, className) => {
-      if (!targetGrade || targetGrade === 'All') return true;
-      return String(targetGrade).split(',').map(g => g.trim()).filter(Boolean).some(g => String(className || '').startsWith(`${g} `));
-    };
-    return classes.filter(cls => {
-      return loads.some(load => {
-        const loadMajor = String(load.targetMajor || 'All').trim().toLowerCase();
-        return matchesGrade(load.targetGrade, cls.name) &&
-          (loadMajor === 'all' || String(cls.major || '').trim().toLowerCase() === loadMajor);
-      });
-    }).map(c => c.name);
-  }, [teachingLoads, classes, teacherCode]);
-
   const availableSubjects = useMemo(() => {
     if (userRole === 'guru' && mySubjects.length > 0) return mySubjects;
     return [...new Set((subjects || []).map(s => s.name || s.subjectName).filter(Boolean))].sort();
   }, [userRole, mySubjects, subjects]);
-
-  const availableClasses = useMemo(() => {
-    if (userRole === 'guru' && myClasses.length > 0) return myClasses;
-    return (classes || []).map(c => c.name).sort();
-  }, [userRole, myClasses, classes]);
 
   // Set initial form defaults
   useEffect(() => {
@@ -128,13 +105,6 @@ export default function ModulAjar(props) {
       setMateriForm(prev => prev.mapel ? prev : { ...prev, mapel: availableSubjects[0] });
     }
   }, [availableSubjects]);
-
-  useEffect(() => {
-    if (availableClasses.length > 0) {
-      setModulForm(prev => prev.kelas ? prev : { ...prev, kelas: availableClasses[0] });
-      setMateriForm(prev => prev.kelas_target ? prev : { ...prev, kelas_target: availableClasses[0] });
-    }
-  }, [availableClasses]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -253,7 +223,6 @@ export default function ModulAjar(props) {
     setModulError('');
     if (!modulForm.file_url) return setModulError('Pilih file Modul Ajar (PDF) terlebih dahulu.');
     if (!modulForm.mapel) return setModulError('Pilih Mata Pelajaran.');
-    if (!modulForm.kelas) return setModulError('Pilih Kelas.');
 
     setIsUploadingModul(true);
     try {
@@ -265,7 +234,7 @@ export default function ModulAjar(props) {
           teacher_name: teacherName || 'Administrator',
           nama_dokumen: modulForm.nama_dokumen, file_url: modulForm.file_url,
           tahun_ajaran: modulForm.tahun_ajaran || activeYear, 
-          mapel: modulForm.mapel, kelas: modulForm.kelas, semester: modulForm.semester
+          mapel: modulForm.mapel, kelas: '-', semester: modulForm.semester
         })
       });
       const data = await res.json();
@@ -276,7 +245,6 @@ export default function ModulAjar(props) {
           nama_dokumen: '', file_url: '',
           tahun_ajaran: activeYear,
           mapel: availableSubjects[0] || '',
-          kelas: availableClasses[0] || '',
           semester: 'Ganjil',
           file_size: null
         });
@@ -314,7 +282,7 @@ export default function ModulAjar(props) {
           file_url: materiForm.tipe === 'file' ? materiForm.file_url : null,
           nama_dokumen: materiForm.tipe === 'file' ? materiForm.nama_dokumen : null,
           link_url: materiForm.tipe === 'link' ? materiForm.link_url : null,
-          mapel: materiForm.mapel, kelas_target: materiForm.kelas_target,
+          mapel: materiForm.mapel, kelas_target: 'Semua',
           semester: materiForm.semester, tahun_ajaran: materiForm.tahun_ajaran || activeYear
         })
       });
@@ -326,7 +294,6 @@ export default function ModulAjar(props) {
           judul: '', deskripsi: '', tipe: 'file',
           file_url: '', nama_dokumen: '', link_url: '',
           mapel: availableSubjects[0] || '',
-          kelas_target: availableClasses[0] || '',
           semester: 'Ganjil', tahun_ajaran: activeYear,
           file_size: null
         });
@@ -400,7 +367,7 @@ export default function ModulAjar(props) {
           itemType: 'modul',
           title: d.nama_dokumen || 'Modul Ajar (RPP)',
           mapel: d.mapel || 'Umum',
-          kelas: d.kelas || '-',
+          kelas: d.kelas && d.kelas !== '-' ? d.kelas : null,
           semester: d.semester || 'Ganjil',
           tahun_ajaran: d.tahun_ajaran || activeYear,
           teacher_name: d.teacher_name,
@@ -422,7 +389,7 @@ export default function ModulAjar(props) {
           title: m.judul || 'Materi Pembelajaran',
           deskripsi: m.deskripsi,
           mapel: m.mapel || 'Umum',
-          kelas: m.kelas_target || 'Semua Kelas',
+          kelas: m.kelas_target && m.kelas_target !== 'Semua' && m.kelas_target !== '-' ? m.kelas_target : null,
           semester: m.semester || 'Ganjil',
           tahun_ajaran: m.tahun_ajaran || activeYear,
           teacher_name: m.teacher_name,
@@ -440,7 +407,6 @@ export default function ModulAjar(props) {
       const matchSearch = !searchTerm ||
         item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.mapel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.kelas?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchMapel = filterMapel === 'all' || item.mapel === filterMapel;
@@ -600,7 +566,6 @@ export default function ModulAjar(props) {
           <TabSilabusGuru
             {...props}
             availableSubjects={availableSubjects}
-            availableClasses={availableClasses}
             myDocuments={myDocs}
             fetchData={fetchModulData}
             activeYear={activeYear}
@@ -698,7 +663,7 @@ export default function ModulAjar(props) {
                   <input 
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)} 
-                    placeholder="Cari judul / mapel / kelas..."
+                    placeholder="Cari judul / mapel..."
                     className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)]" 
                   />
                 </div>
@@ -776,7 +741,7 @@ export default function ModulAjar(props) {
                         </span>
 
                         <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                          Kelas {item.kelas} ({item.semester})
+                          {item.kelas ? `Kelas ${item.kelas} &bull; ` : ''}Sem. {item.semester}
                         </span>
                       </div>
 
@@ -868,48 +833,31 @@ export default function ModulAjar(props) {
           isOpen={true} 
           onClose={() => setIsModulModalOpen(false)} 
           title="Unggah Modul Ajar (RPP)"
-          maxWidth="max-w-lg"
+          maxWidth="max-w-md"
         >
           <form onSubmit={handleModulSubmit} className="space-y-4">
             <p className="text-xs text-slate-500 font-medium">
-              Pilih mata pelajaran, kelas, dan berkas PDF RPP Anda. Berkas ini akan masuk ke arsip monitoring kurikulum.
+              Pilih mata pelajaran dan berkas PDF RPP Anda. Berkas ini akan otomatis tersimpan ke arsip monitoring kurikulum.
             </p>
 
-            {/* Mapel & Kelas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Mata Pelajaran <span className="text-rose-500">*</span>
-                </label>
-                <UISelect 
-                  value={modulForm.mapel} 
-                  required 
-                  onChange={e => setModulForm({ ...modulForm, mapel: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
-                >
-                  <option value="">-- Pilih Mata Pelajaran --</option>
-                  {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-                </UISelect>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Kelas <span className="text-rose-500">*</span>
-                </label>
-                <UISelect 
-                  value={modulForm.kelas} 
-                  required 
-                  onChange={e => setModulForm({ ...modulForm, kelas: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
-                >
-                  <option value="">-- Pilih Kelas --</option>
-                  {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                </UISelect>
-              </div>
+            {/* Mata Pelajaran */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Mata Pelajaran <span className="text-rose-500">*</span>
+              </label>
+              <UISelect 
+                value={modulForm.mapel} 
+                required 
+                onChange={e => setModulForm({ ...modulForm, mapel: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+              >
+                <option value="">-- Pilih Mata Pelajaran --</option>
+                {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+              </UISelect>
             </div>
 
             {/* Semester & TA */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Semester <span className="text-rose-500">*</span>
@@ -990,7 +938,7 @@ export default function ModulAjar(props) {
           isOpen={true} 
           onClose={() => setIsMateriModalOpen(false)} 
           title="Tambah Materi Pembelajaran Siswa"
-          maxWidth="max-w-lg"
+          maxWidth="max-w-md"
         >
           <form onSubmit={handleMateriSubmit} className="space-y-4">
             <p className="text-xs text-slate-500 font-medium">
@@ -1036,8 +984,8 @@ export default function ModulAjar(props) {
               />
             </div>
 
-            {/* Mapel & Kelas Target */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Mata Pelajaran & Semester */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Mata Pelajaran <span className="text-rose-500">*</span>
@@ -1048,22 +996,23 @@ export default function ModulAjar(props) {
                   onChange={e => setMateriForm(f => ({ ...f, mapel: e.target.value }))}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
-                  <option value="">-- Pilih Mata Pelajaran --</option>
+                  <option value="">-- Pilih Mapel --</option>
                   {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
                 </UISelect>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Kelas Sasaran
+                  Semester <span className="text-rose-500">*</span>
                 </label>
                 <UISelect 
-                  value={materiForm.kelas_target} 
-                  onChange={e => setMateriForm(f => ({ ...f, kelas_target: e.target.value }))}
+                  value={materiForm.semester} 
+                  required 
+                  onChange={e => setMateriForm(f => ({ ...f, semester: e.target.value }))}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
-                  <option value="">Semua Kelas</option>
-                  {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="Ganjil">Semester Ganjil</option>
+                  <option value="Genap">Semester Genap</option>
                 </UISelect>
               </div>
             </div>
