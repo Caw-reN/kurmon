@@ -73,6 +73,7 @@ export default function ModulAjar(props) {
     saved_percent: 0, is_compressed: false
   });
   const [isOptimizingModul, setIsOptimizingModul] = useState(false);
+  const [modulProgress, setModulProgress] = useState({ percent: 0, text: '', fileName: '' });
   const [isUploadingModul, setIsUploadingModul] = useState(false);
   const [modulError, setModulError] = useState('');
 
@@ -85,6 +86,7 @@ export default function ModulAjar(props) {
     saved_percent: 0, is_compressed: false
   });
   const [isOptimizingMateri, setIsOptimizingMateri] = useState(false);
+  const [materiProgress, setMateriProgress] = useState({ percent: 0, text: '', fileName: '' });
   const [isUploadingMateri, setIsUploadingMateri] = useState(false);
   const [materiError, setMateriError] = useState('');
 
@@ -268,8 +270,17 @@ export default function ModulAjar(props) {
     }
     setModulError('');
     setIsOptimizingModul(true);
+    setModulProgress({ percent: 20, text: 'Membaca berkas PDF...', fileName: file.name });
+    
+    // Yield to browser event loop to instantly paint the loading UI animation
+    await new Promise(r => setTimeout(r, 150));
+    setModulProgress({ percent: 50, text: 'Menganalisis & merampingkan berkas...', fileName: file.name });
+
     try {
       const optResult = await optimizePdfFile(file);
+      setModulProgress({ percent: 85, text: 'Menyiapkan pratinjau dokumen...', fileName: file.name });
+      await new Promise(r => setTimeout(r, 250));
+
       setModulForm(prev => ({
         ...prev,
         file_url: optResult.dataUrl,
@@ -279,6 +290,8 @@ export default function ModulAjar(props) {
         saved_percent: optResult.savedPercent,
         is_compressed: optResult.isCompressed
       }));
+      setModulProgress({ percent: 100, text: 'Berkas siap diunggah!', fileName: file.name });
+      await new Promise(r => setTimeout(r, 200));
     } catch (err) {
       console.error(err);
       setModulError('Gagal memproses berkas PDF.');
@@ -300,8 +313,16 @@ export default function ModulAjar(props) {
     }
     setMateriError('');
     setIsOptimizingMateri(true);
+    setMateriProgress({ percent: 20, text: 'Membaca berkas PDF materi...', fileName: file.name });
+
+    await new Promise(r => setTimeout(r, 150));
+    setMateriProgress({ percent: 50, text: 'Mengompresi dokumen agar cepat diunduh...', fileName: file.name });
+
     try {
       const optResult = await optimizePdfFile(file);
+      setMateriProgress({ percent: 85, text: 'Menyiapkan berkas materi...', fileName: file.name });
+      await new Promise(r => setTimeout(r, 250));
+
       setMateriForm(prev => ({
         ...prev,
         file_url: optResult.dataUrl,
@@ -311,6 +332,8 @@ export default function ModulAjar(props) {
         saved_percent: optResult.savedPercent,
         is_compressed: optResult.isCompressed
       }));
+      setMateriProgress({ percent: 100, text: 'Berkas siap dipublikasikan!', fileName: file.name });
+      await new Promise(r => setTimeout(r, 200));
     } catch (err) {
       console.error(err);
       setMateriError('Gagal memproses berkas PDF materi.');
@@ -1036,19 +1059,27 @@ export default function ModulAjar(props) {
 
               {/* State 1: Optimizing Animation */}
               {isOptimizingModul ? (
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 flex flex-col items-center justify-center text-center space-y-2.5 animate-in zoom-in-95 duration-200 shadow-xs">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 flex flex-col items-center justify-center text-center space-y-3 animate-in zoom-in-95 duration-200 shadow-sm">
                   <div className="relative flex items-center justify-center">
-                    <div className="absolute w-12 h-12 rounded-full bg-emerald-400/25 animate-ping" />
-                    <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md relative z-10">
-                      <RefreshCw size={20} className="animate-spin" />
+                    <div className="absolute w-14 h-14 rounded-full bg-emerald-400/30 animate-ping" />
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md relative z-10 animate-bounce">
+                      <RefreshCw size={22} className="animate-spin" />
                     </div>
                   </div>
-                  <div>
-                    <h5 className="text-xs font-black text-emerald-950">Menganalisis &amp; Mengompresi PDF...</h5>
-                    <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Sedang merampingkan stream berkas agar hemat ruang server &amp; ringan dibuka.</p>
+                  <div className="space-y-0.5">
+                    <h5 className="text-xs font-black text-emerald-950 flex items-center justify-center gap-1.5">
+                      <span>{modulProgress.text || 'Menganalisis & Mengompresi PDF...'}</span>
+                      <span className="text-[10px] bg-emerald-200/80 text-emerald-900 font-black px-1.5 py-0.2 rounded-full">{modulProgress.percent}%</span>
+                    </h5>
+                    <p className="text-[11px] text-emerald-700 font-medium truncate max-w-[240px]" title={modulProgress.fileName}>
+                      {modulProgress.fileName || 'Memproses dokumen'}
+                    </p>
                   </div>
-                  <div className="w-44 bg-emerald-200/60 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-emerald-600 h-full w-full animate-pulse" />
+                  <div className="w-52 bg-emerald-200/70 h-2 rounded-full overflow-hidden shadow-inner">
+                    <div 
+                      className="bg-emerald-600 h-full transition-all duration-300 ease-out rounded-full shadow-sm" 
+                      style={{ width: `${modulProgress.percent}%` }}
+                    />
                   </div>
                 </div>
               ) : modulForm.nama_dokumen ? (
@@ -1300,19 +1331,27 @@ export default function ModulAjar(props) {
 
                 {/* State 1: Optimizing Animation */}
                 {isOptimizingMateri ? (
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-50 border-2 border-indigo-300 flex flex-col items-center justify-center text-center space-y-2.5 animate-in zoom-in-95 duration-200 shadow-xs">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-50 border-2 border-indigo-300 flex flex-col items-center justify-center text-center space-y-3 animate-in zoom-in-95 duration-200 shadow-sm">
                     <div className="relative flex items-center justify-center">
-                      <div className="absolute w-12 h-12 rounded-full bg-indigo-400/25 animate-ping" />
-                      <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md relative z-10">
-                        <RefreshCw size={20} className="animate-spin" />
+                      <div className="absolute w-14 h-14 rounded-full bg-indigo-400/30 animate-ping" />
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md relative z-10 animate-bounce">
+                        <RefreshCw size={22} className="animate-spin" />
                       </div>
                     </div>
-                    <div>
-                      <h5 className="text-xs font-black text-indigo-950">Menganalisis &amp; Mengompresi PDF Materi...</h5>
-                      <p className="text-[11px] text-indigo-700 font-medium mt-0.5">Sedang merampingkan stream berkas agar cepat diakses dan diunduh siswa.</p>
+                    <div className="space-y-0.5">
+                      <h5 className="text-xs font-black text-indigo-950 flex items-center justify-center gap-1.5">
+                        <span>{materiProgress.text || 'Menganalisis & Mengompresi PDF...'}</span>
+                        <span className="text-[10px] bg-indigo-200/80 text-indigo-900 font-black px-1.5 py-0.2 rounded-full">{materiProgress.percent}%</span>
+                      </h5>
+                      <p className="text-[11px] text-indigo-700 font-medium truncate max-w-[240px]" title={materiProgress.fileName}>
+                        {materiProgress.fileName || 'Memproses dokumen'}
+                      </p>
                     </div>
-                    <div className="w-44 bg-indigo-200/60 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-600 h-full w-full animate-pulse" />
+                    <div className="w-52 bg-indigo-200/70 h-2 rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className="bg-indigo-600 h-full transition-all duration-300 ease-out rounded-full shadow-sm" 
+                        style={{ width: `${materiProgress.percent}%` }}
+                      />
                     </div>
                   </div>
                 ) : materiForm.nama_dokumen ? (
