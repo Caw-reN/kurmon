@@ -1,6 +1,6 @@
 import { Button } from '../components/ui.jsx';
 /*  */import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback } from"react";
-import {  Users, HelpCircle, X as CloseIcon, FileText,
+import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   BookOpen,
   Calendar,
   School,
