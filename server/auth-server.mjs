@@ -187,10 +187,6 @@ async function pullHikvisionLogs(force = false) {
       const sCode = String(p.staff_code || p.code || '').toLowerCase();
       if (sId) staffMap.set(sId, { name });
       if (sCode) staffMap.set(sCode, { name });
-      // Map numeric equivalent if staff code is K1..K30 (e.g. '5' -> 'K5')
-      if (/^k\d+$/i.test(sCode)) {
-        staffMap.set(sCode.replace(/^k/i, ''), { name });
-      }
     }
     // Feature settings (loaded once)
     let featureSettings = {};

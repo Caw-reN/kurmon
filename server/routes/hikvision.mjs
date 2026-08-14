@@ -1053,12 +1053,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             };
             employeeToNisMap[String(s.nis).toLowerCase()] = s.nis;
             if (s.name) employeeToNisMap[String(s.name).trim().toLowerCase()] = s.nis;
-            
-            // Map numeric IDs for Karyawan (e.g. 'K5' -> '5') which are commonly used in fingerprint machines
-            if (s.class_name === 'karyawan' && /^k\d+$/i.test(String(s.nis))) {
-                const numPart = String(s.nis).replace(/^k/i, '');
-                employeeToNisMap[numPart] = s.nis;
-            }
         });
 
         try {
@@ -1070,7 +1064,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const mStud = matrix[mNis];
               const mName = String(mStud.name || '').trim().toLowerCase();
               const mNisStr = String(mNis).toLowerCase();
-              return (mName && hName && mName === hName) || mNisStr === hNis || (hNis.length >= 4 && mNisStr.length >= 4 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
+              return (mName && hName && mName === hName) || mNisStr === hNis;
             });
             if (matchedNis) {
               employeeToNisMap[hNis] = matchedNis;
