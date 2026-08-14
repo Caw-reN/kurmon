@@ -1,13 +1,9 @@
-import { Button, Modal, TablePagination } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from'react';
 import { MessageSquare, CheckCircle2, AlertCircle, Clock, Settings, LayoutDashboard, KeyRound, DatabaseBackup } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
 import useFiturStore from'../../../store/monitoring/fiturStore';
 import { INITIAL_CLASSES } from'../../../data.js';
-import { Send, Calendar, History, UserCog, Phone, Users, FileText, RefreshCw } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const TRIGGER_TEMPLATES = [

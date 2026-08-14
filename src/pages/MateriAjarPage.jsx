@@ -1,11 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAppStore } from '../store/useAppStore';
 import { loadInitialState } from '../utils/state.js';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from '../utils/dataSource.js';
 import { base64ToBlobUrl, downloadFile } from '../utils/fileHelper.js';
-import { BookOpenText, Search, BookOpen, Eye, Download, X, Video, Globe, Link2, ExternalLink } from 'lucide-react';
-import { UISelect, Button, Modal } from '../components/ui.jsx';
 
 export default function MateriAjarPage() {
   const [searchParams] = useSearchParams();

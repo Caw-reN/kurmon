@@ -12,11 +12,10 @@
 
 import {
   LayoutDashboard, Calendar, CalendarDays, Clock, FileSpreadsheet,
-  FileText, BookOpen, CheckCircle2, ClipboardList, MessageSquare,
-  History, Users, GraduationCap, UserMinus, Trophy, ShieldAlert,
+  FileText, BookOpen, CheckCircle2, ClipboardList, MessageSquare, Users, GraduationCap, UserMinus, Trophy,
   Briefcase, PieChart, Settings, SlidersHorizontal, AppWindow,
-  DoorOpen, Phone, HardDrive, DatabaseBackup, Activity, UserCog,
-  Shield, MonitorSmartphone, User, Wand2, Building2, FolderOpen, UserCheck
+  DoorOpen, HardDrive, UserCog,
+  Shield, MonitorSmartphone, Wand2, Building2, FolderOpen, UserCheck
 } from 'lucide-react';
 
 /**

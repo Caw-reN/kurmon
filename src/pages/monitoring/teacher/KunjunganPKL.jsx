@@ -1,8 +1,6 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
 import { compressImage } from'../../../utils/imageUtils.js';
-import { MapPin, CheckCircle2, Crosshair, Camera } from'lucide-react';
 
 
 // Calculate distance in meters using Haversine formula

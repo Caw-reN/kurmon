@@ -1,10 +1,6 @@
-import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate } from'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles } from'lucide-react';
-import { X, Search, ArrowRight, LogIn, ChevronLeft, Check, Info, Mail } from'lucide-react';
-import HeaderNavbar from'../components/layout/HeaderNavbar.jsx';
-import TeacherStudentIllustration from'../components/TeacherStudentIllustration.jsx';
 
 
 const hexToRgba = (hexColor, alpha = 1) => {

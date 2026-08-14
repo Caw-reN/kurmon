@@ -1,8 +1,6 @@
 import { useState, useEffect } from'react';
 import { Users, Clock, CheckCircle2, AlertTriangle } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
-import { Badge, Loader2 } from'lucide-react';
-import { StatCard, Avatar, PageHeader, SharedDashboardLogs } from'../../../components/monitoring/ui/index.js';
 
 
 /**

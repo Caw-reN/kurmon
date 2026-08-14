@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, GraduationCap, Shield, CheckCircle2, Building, Building2, MapPin, Fingerprint, Phone, BookOpen, Loader2, Lock } from 'lucide-react';
+import { User, GraduationCap, Shield, CheckCircle2, MapPin, Fingerprint, Phone, BookOpen } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAppStore } from '../../../store/useAppStore.js';
 

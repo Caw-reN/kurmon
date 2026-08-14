@@ -1,6 +1,4 @@
 import { useState, useEffect } from'react';
-import { ChevronUp, ChevronDown, Badge, BookOpen, Loader2 } from'lucide-react';
-import { Avatar } from'../../../components/monitoring/ui/index.js';
 
 
 /**

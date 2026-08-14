@@ -1,7 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
 import React from 'react';
-import { Clock, CheckCircle2, MapPin, Send } from 'lucide-react';
-import { UISelect } from '../../../components/ui.jsx';
 import { ATTENDANCE_STATUS_OPTIONS } from '../../../utils/constants.js';
 import { getAttendanceStatusTone } from '../../../utils/adminHelpers.js';
 

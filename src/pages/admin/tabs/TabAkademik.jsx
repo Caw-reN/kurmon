@@ -1,11 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
-  CalendarDays, Search, BookOpen, FileDown, Upload, List, Plus, Calendar, 
-  Edit2, Trash2, ChevronLeft, ChevronRight, X, 
-  Tag, RotateCcw, CalendarCheck
+  CalendarDays
 } from 'lucide-react';
-import { UISelect } from '../../../components/ui.jsx';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 
 export default function TabAkademik(props) {

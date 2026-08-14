@@ -1,9 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from'react';
-import { ShieldAlert, AlertTriangle, Clock, FileText } from'lucide-react';
+import { ShieldAlert, AlertTriangle, Clock } from'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
-import { CheckCircle2, Check, User, Search, X, History, ChevronRight, Trash2 } from'lucide-react';
-import { CustomSelect } from'../../components/CustomSelect.jsx';
-import { Button } from '../../components/ui.jsx';
 import useFiturStore from'../../store/monitoring/fiturStore.js';
 
 

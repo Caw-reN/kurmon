@@ -1,9 +1,6 @@
 import { memo, useState, useEffect, useMemo } from'react';
 import { GraduationCap } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Trash2, X, RefreshCw, AlertTriangle, Users } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Modal, Button } from '../../../components/ui.jsx';
 
 
 const MasterDataSiswa = memo(function MasterDataSiswa({

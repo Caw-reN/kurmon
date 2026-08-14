@@ -5,9 +5,6 @@ import { cn } from'@/lib/utils';
 import useAuthStore from'../../../store/monitoring/authStore';
 import useFiturStore from'../../../store/monitoring/fiturStore';
 import { useAppStore } from'../../../store/useAppStore.js';
-import { NavLink, Outlet } from'react-router-dom';
-import { LogOut, Menu, Bell, ChevronDown } from'lucide-react';
-import { Avatar, Button } from'../ui/index.js';
 
 
 /**

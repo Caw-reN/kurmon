@@ -17,21 +17,6 @@ import { useAdminImportExport } from './components/admin/useAdminImportExport.js
 import { useAdminScheduleGenerator } from './components/admin/useAdminScheduleGenerator.jsx';
 import { useAdminCRUD } from './components/admin/useAdminCRUD.jsx';
 import { useAdminDatabaseSync } from './hooks/useAdminDatabaseSync.js';
-import { Suspense } from 'react';
-import { ChevronDown } from 'lucide-react';
-import Login from './pages/Login.jsx';
-import AdminSidebar from "./components/admin/AdminSidebar.jsx";
-import { AdminHeader } from "./components/admin/AdminHeader.jsx";
-import AdminContentRouter from "./components/admin/AdminContentRouter.jsx";
-import { WorkspaceGuidePanel } from "./components/WorkspaceGuidePanel.jsx";
-
-import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
-import SystemModals from './components/admin/SystemModals.jsx';
-import CrudModals from './components/admin/CrudModals.jsx';
-import BulkEditModal from './components/admin/BulkEditModal.jsx';
-import DefaultPasswordModal from './components/admin/DefaultPasswordModal.jsx';
-import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
-import { SidebarNavItem, Modal } from './components/ui.jsx';
 
 
 /* eslint-disable react-hooks/exhaustive-deps */

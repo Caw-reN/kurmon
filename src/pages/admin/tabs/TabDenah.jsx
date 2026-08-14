@@ -1,6 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
 
-import { X, Wand2, Copy, RefreshCw, Search } from'lucide-react';
 
 
 export default function TabDenah(props) {

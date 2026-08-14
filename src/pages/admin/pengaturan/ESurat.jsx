@@ -2,37 +2,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   FileText, 
   Printer, 
-  FileSignature, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  X, 
-  AlertCircle, 
-  CheckCircle2, 
-  Search, 
-  Download, 
-  Sparkles, 
-  Building2, 
-  User, 
-  Calendar, 
-  Copy, 
-  Check, 
-  Eye, 
-  Layers, 
-  Bookmark, 
-  HelpCircle,
-  FileCheck,
-  RefreshCw,
-  Send,
-  Sliders,
-  ChevronRight
+  FileSignature
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 
 const JENIS_SURAT = [
   { key: 'sp1', label: 'Surat Panggilan 1 (SP1)', desc: 'Peringatan pertama untuk siswa bermasalah kedisiplinan', category: 'Kedisiplinan' },

@@ -1,9 +1,6 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import { MapPin, Camera, QrCode, PenLine, Save, Settings } from'lucide-react';
 import useAbsensiStore from'../../../store/monitoring/absensiStore';
-import { ShieldCheck, Info, RotateCcw } from'lucide-react';
-import { PageHeader, Toggle } from '../../../components/monitoring/ui/index.js';
 ;
 
 

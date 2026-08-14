@@ -1,13 +1,9 @@
-﻿import { Button, TablePagination } from "../../../components/ui.jsx";
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import {
   Activity, Trash2, User, Database, CheckCircle2, Edit2, LogOut, Send,
-  ShieldCheck, Key, History, Monitor, Smartphone, X, Clock, MapPin, Info
+  ShieldCheck, Key, History
 } from "lucide-react";
 import useAuthStore from "../../../store/monitoring/authStore.js";
-import { Search, RefreshCw, AlertCircle } from "lucide-react";
-import { PageHeader } from "../../../components/monitoring/ui/index.js";
-import { UISelect } from "../../../components/ui.jsx";
 
 const ACTION_COLORS = {
   UPDATE:         { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },

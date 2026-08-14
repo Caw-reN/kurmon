@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
 import { 
   Key, Wifi, MessageSquare, HardDrive, Send, Cloud, Settings, 
-  LayoutDashboard, KeyRound, DatabaseBackup, CheckCircle2, EyeOff, 
-  Eye, RefreshCw, Edit2, Trash2, X, ShieldCheck, AlertCircle, 
-  Plus, AlertTriangle
+  LayoutDashboard, KeyRound, DatabaseBackup
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Modal } from '../../../components/ui.jsx';
-import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 const SERVICE_PRESETS = [
   { service_name_prefix: 'whatsapp_fonnte', service_label: 'WhatsApp (Fonnte)', icon: MessageSquare, color: 'emerald', description: 'API Gateway WhatsApp untuk notifikasi. Daftar di fonnte.com.', placeholder_key: 'TOKEN_FONNTE_ANDA' },

@@ -1,7 +1,5 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import { Lock } from'lucide-react';
-import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { verifyPassword, hashPassword } from '../../../utils/auth.js';
 
 

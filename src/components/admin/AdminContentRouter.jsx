@@ -2,12 +2,6 @@ import { lazy } from'react';
 import { AlertCircle } from'lucide-react';
 import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parseTeacherCodes, parsePositiveInt, getLoadKey } from'../../utils/adminHelpers.js';
 import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
-import { Suspense } from'react';
-import AbsensiSiswa from'../../pages/kedisiplinan/AbsensiSiswa.jsx';
-import ManajemenPiket from'../../pages/kedisiplinan/ManajemenPiket.jsx';
-import BKDashboard from'../../pages/kedisiplinan/BKDashboard.jsx';
-import JurnalHarianGuru from'../../pages/kedisiplinan/JurnalHarianGuru.jsx';
-import CatatanWaliKelas from'../../pages/kedisiplinan/CatatanWaliKelas.jsx';
 
 
 const TabSilabus = lazy(() => import("../../pages/admin/tabs/TabSilabus.jsx"));

@@ -1,7 +1,5 @@
 import { useState, useRef, useCallback } from'react';
 import * as XLSX from'xlsx';
-import { X, FileSpreadsheet, Upload, CheckCircle2, AlertCircle, BookOpen, Loader2 } from'lucide-react';
-import { Button } from'./index.js';
 
 
 const getColumnDetail = (col) => {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  CheckCircle2, XCircle, Clock, AlertTriangle, Calendar, CalendarDays, Loader2, 
-  Search, Filter, MapPin, Fingerprint, RefreshCw, UserCheck, ShieldCheck, ArrowUpRight, ShieldAlert, Sparkles
+  CheckCircle2, XCircle, Clock, Calendar
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAppStore } from '../../../store/useAppStore.js';

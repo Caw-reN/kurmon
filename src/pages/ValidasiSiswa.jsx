@@ -1,7 +1,5 @@
 import { useEffect, useState } from'react';
 import { useSearchParams } from'react-router-dom';
-import { Link } from'react-router-dom';
-import { Loader2, ShieldCheck, AlertTriangle, User, CheckCircle2, XCircle } from'lucide-react';
 
 
 export default function ValidasiSiswa() {

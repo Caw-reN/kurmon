@@ -1,9 +1,6 @@
 import { memo } from'react';
 import { SlidersHorizontal } from'lucide-react';
 import { getMajorFullName } from'../../../utils/constants.js';
-import { Edit2, Lock, Trash2 } from'lucide-react';
-import { PageHeader } from'../../../components/monitoring/ui/index.js';
-import { Button } from'../../../components/ui.jsx';
 
 const MasterDataJurusan = memo(function MasterDataJurusan({
   majors,

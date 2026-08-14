@@ -1,8 +1,5 @@
-import { Button, Modal, UISelect } from '../../../components/ui.jsx';
-import { Trash2, Settings, Info, AlertCircle, Printer, Search, ChevronLeft, Calendar, Wand2, Edit3, Plus, Sparkles, CheckCircle2 } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
-import { CustomSelect } from '../../../components/CustomSelect.jsx';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { Calendar } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 
 
 export default function TabGenerate(props) {

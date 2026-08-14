@@ -1,34 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   CreditCard, 
   Printer, 
-  Download, 
-  Search, 
-  Plus, 
-  Eye, 
-  Edit2, 
-  X, 
-  AlertCircle, 
-  CheckCircle2, 
-  User, 
-  QrCode, 
-  Sparkles, 
   Palette, 
-  FileText, 
-  Check, 
-  RefreshCw, 
-  Filter, 
-  Clock, 
-  RotateCcw,
-  Sliders,
-  Layers,
-  Upload,
-  Trash2,
-  Calendar,
-  Save,
-  CheckSquare,
-  FileSpreadsheet,
-  UploadCloud
+  Clock
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -37,8 +12,6 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { useDataStore } from '../../../store/useDataStore.js';
 import { compressImage } from '../../../utils/imageUtils.js';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 
 const DEFAULT_CARD_CONFIG = {
   bg_color: '#064e3b',

@@ -2,9 +2,6 @@ import { memo, useState, useEffect, useMemo } from'react';
 import { Users } from'lucide-react';
 import { GRADES } from'../../../utils/constants';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { HardDrive, Link2, CheckCircle2, XCircle, Edit2, Lock, Trash2, BookOpen } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { UISelect, Modal, Button } from '../../../components/ui.jsx';
 
 
 const MasterDataGuru = memo(function MasterDataGuru({

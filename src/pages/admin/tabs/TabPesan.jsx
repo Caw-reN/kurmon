@@ -1,7 +1,4 @@
-import { Button } from '../../../components/ui.jsx';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2 } from'lucide-react';
-import { UISelect } from'../../../components/ui.jsx';
+import { MessageSquare } from'lucide-react';
 
 
 export default function TabPesan(props) {

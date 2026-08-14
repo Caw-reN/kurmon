@@ -1,16 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import { 
-  Users, ShieldCheck, Key, History, Shield, Edit2, Search, 
-  Plus, Activity, Trash2, Lock, Sparkles, CheckCircle2, 
-  AlertCircle, RefreshCw, Smartphone, UserPlus, Building2, 
-  BookOpen, Briefcase, GraduationCap, Copy, Check
+  Users, ShieldCheck, Key, History
 } from 'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { hashPassword } from '../../../utils/auth.js';
-import { getRoleKeyLabel, normalizeUserRole, getRoleOption, getWakaDivisionOption, WAKA_DIVISION_OPTIONS } from '../../../utils/constants.js';
+import { getRoleKeyLabel, normalizeUserRole } from '../../../utils/constants.js';
 
 export default function TabPengaturanUser(props) {
   const normalizeText = (value) => String(value ?? "").trim().replace(/\s+/g, "").toLowerCase();

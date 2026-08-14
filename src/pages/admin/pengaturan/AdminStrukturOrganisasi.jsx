@@ -1,11 +1,7 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
 import { Users } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
-import { Search, Plus, Save, GripVertical, ImageIcon, Trash2 } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const TeacherCombobox = ({ teachers, onSelect }) => {

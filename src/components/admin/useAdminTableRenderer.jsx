@@ -2,11 +2,6 @@ import React from'react';
 import { cn } from'@/lib/utils';
 import { normalizeText } from'../../utils/adminHelpers.js';
 import { DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
-import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, ChevronRight, Edit3 } from'lucide-react';
-import { Badge } from'../ui/badge.jsx';
-import { UISelect, Button } from'../ui.jsx';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from'../ui/table.jsx';
-import { PageHeader } from '../monitoring/ui/index.js';
 
 
 const TAB_FILTER_KEYS = {

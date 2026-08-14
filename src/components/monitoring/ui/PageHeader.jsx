@@ -1,6 +1,4 @@
 import { cn } from '@/lib/utils';
-import { HelpCircle, ChevronLeft } from 'lucide-react';
-import { Button } from './index.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 
 export default function PageHeader({

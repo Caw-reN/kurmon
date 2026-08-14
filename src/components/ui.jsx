@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
-import { ChevronDown, Check, X, ChevronRight, Clock } from 'lucide-react';
 
 
 export const UISelect = ({ value, onChange, children, className = "", required, disabled, placeholder = "Pilih...", prefix = "" }) => {

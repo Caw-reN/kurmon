@@ -1,11 +1,7 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { Plus, HardDrive, Edit2, Trash2, Save } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
-import { Modal } from'../../../components/ui.jsx';
 
 
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });

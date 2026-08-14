@@ -1,11 +1,7 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useRef } from'react';
 import { School, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, MapPin, Users, Sparkles } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
-import { Star, Upload, Globe, Save, Plus, Edit2, Trash2, Printer, ImageIcon, X, AlertCircle, CheckCircle2 } from'lucide-react';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const SCHOOL_FIELDS = [

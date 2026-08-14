@@ -1,7 +1,5 @@
-import { Button } from '../../../components/ui.jsx';
-import { Info, AlertCircle, CheckCircle2, X } from'lucide-react';
+import { Info, AlertCircle, CheckCircle2 } from'lucide-react';
 import { cn } from'@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from'../../ui/dialog.jsx';
 ;
 
 

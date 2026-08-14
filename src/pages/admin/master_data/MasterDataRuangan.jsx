@@ -1,6 +1,4 @@
 import { memo } from'react';
-import { Edit2, Lock, Trash2 } from'lucide-react';
-import { Button } from'../../../components/ui.jsx';
 
 const MasterDataRuangan = memo(function MasterDataRuangan({
   rooms,

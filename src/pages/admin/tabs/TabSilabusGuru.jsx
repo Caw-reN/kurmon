@@ -1,10 +1,5 @@
 import React from 'react';
-import { UISelect, Button } from '../../../components/ui.jsx';
-import { 
-  FileText, Download, RefreshCw, Upload, BookOpen, BookOpenText, 
-  ChevronRight, Edit2, Trash2, CheckCircle2, Sparkles, Plus,
-  Layers, Target, ListChecks, HelpCircle, FileCheck
-} from 'lucide-react';
+
 
 export default function TabSilabusGuru(props) {
   const { 

@@ -1,8 +1,5 @@
 import { useState } from'react';
 import { Users, Briefcase } from'lucide-react';
-import MasterDataGuru from'./MasterDataGuru.jsx';
-import MasterDataKaryawan from'./MasterDataKaryawan.jsx';
-import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function DataPegawai(props) {

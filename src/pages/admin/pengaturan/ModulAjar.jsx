@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy } from 'react';
 import { 
-  BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink,
-  Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
-  Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, 
-  UploadCloud, Plus, Calendar, GraduationCap, ChevronRight, FileCheck,
-  Check, Filter, Layers, PlayCircle, Clock, Zap, Sparkles, ShieldCheck
+  BookOpen, BookOpenText, PenTool, LayoutList, BarChart3
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { base64ToBlobUrl, downloadFile, optimizePdfFile } from '../../../utils/fileHelper.js';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 
 const TabSilabus = lazy(() => import('../tabs/TabSilabus.jsx'));
 const TabSilabusGuru = lazy(() => import('../tabs/TabSilabusGuru.jsx'));

@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from'react';
 import useAuthStore from'../../store/monitoring/authStore.js';
-import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2, Search, X } from'lucide-react';
-import { Modal, Button } from '../../components/ui.jsx';
-import { CustomSelect } from'../../components/CustomSelect.jsx';
 
 
 const DAYS = ["Senin","Selasa","Rabu","Kamis","Jumat"];

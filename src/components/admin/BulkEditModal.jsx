@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from '../ui.jsx';
-import { Button } from '../ui.jsx';
-import { Edit3, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 /**
  * BulkEditModal.jsx

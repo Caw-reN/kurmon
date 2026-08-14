@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../../store/monitoring/authStore';
 import useFiturStore from '../../../store/monitoring/fiturStore';
 import { useAppStore } from '../../../store/useAppStore.js';
-import { 
-  GraduationCap, LogOut, Home, Fingerprint, BookCheck, 
-  MapPin, FolderOpen, User, ChevronRight, ChevronLeft, Settings, 
-  Lock, Bell, X, SlidersHorizontal, Sparkles, Layers, CheckCircle2, PieChart, CreditCard
+import { Home, Fingerprint, BookCheck, 
+  MapPin, FolderOpen, User, CreditCard
 } from 'lucide-react';
 
 /**
