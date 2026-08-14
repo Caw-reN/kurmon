@@ -1023,53 +1023,101 @@ export default function ModulAjar(props) {
               </div>
             </div>
 
-            {/* File PDF Picker */}
+            {/* File PDF Picker & Showcase */}
             <div>
-              <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
                 <label className="text-xs font-bold text-slate-700">
                   Pilih Berkas PDF Modul Ajar <span className="text-rose-500">*</span>
                 </label>
-                <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 5MB)</span>
+                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  Hanya .pdf (Maks. 5MB)
+                </span>
               </div>
-              <input 
-                type="file" 
-                accept=".pdf" 
-                required
-                disabled={isUploadingModul || isOptimizingModul}
-                onChange={e => handleModulFile(e.target.files[0])}
-                className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer disabled:opacity-50"
-              />
 
-              {/* Optimizing State */}
-              {isOptimizingModul && (
-                <div className="mt-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-xs font-bold text-emerald-800 animate-pulse shadow-xs">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                    <RefreshCw size={14} className="animate-spin" />
+              {/* State 1: Optimizing Animation */}
+              {isOptimizingModul ? (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 flex flex-col items-center justify-center text-center space-y-2.5 animate-in zoom-in-95 duration-200 shadow-xs">
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute w-12 h-12 rounded-full bg-emerald-400/25 animate-ping" />
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md relative z-10">
+                      <RefreshCw size={20} className="animate-spin" />
+                    </div>
                   </div>
                   <div>
-                    <span className="block font-black text-emerald-950">Mengoptimasi Berkas PDF...</span>
-                    <span className="text-[10px] font-medium text-emerald-700">Merampingkan ukuran dokumen tanpa mengurangi ketajaman teks/diagram.</span>
+                    <h5 className="text-xs font-black text-emerald-950">Menganalisis &amp; Mengompresi PDF...</h5>
+                    <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Sedang merampingkan stream berkas agar hemat ruang server &amp; ringan dibuka.</p>
+                  </div>
+                  <div className="w-44 bg-emerald-200/60 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-emerald-600 h-full w-full animate-pulse" />
                   </div>
                 </div>
-              )}
-
-              {/* Success / Compressed info */}
-              {modulForm.nama_dokumen && !isOptimizingModul && (
-                <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                      <span className="font-bold text-emerald-900 truncate">{modulForm.nama_dokumen}</span>
+              ) : modulForm.nama_dokumen ? (
+                /* State 2: Selected File Showcase Card */
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50/95 via-teal-50/95 to-slate-50 border-2 border-emerald-300 shadow-xs animate-in zoom-in-95 fade-in duration-200">
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                        <FileCheck size={20} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded">PDF Siap Diunggah</span>
+                          <span className="text-[10px] font-black text-slate-600">{modulForm.file_size}</span>
+                        </div>
+                        <h5 className="text-xs font-black text-slate-800 truncate max-w-[190px] sm:max-w-[230px] mt-0.5" title={modulForm.nama_dokumen}>
+                          {modulForm.nama_dokumen}
+                        </h5>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-black text-emerald-700 shrink-0">{modulForm.file_size}</span>
+                    <label className="px-3 py-1.5 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1">
+                      <RefreshCw size={12} />
+                      <span>Ganti</span>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        disabled={isUploadingModul}
+                        onChange={e => e.target.files?.[0] && handleModulFile(e.target.files[0])}
+                        className="sr-only"
+                      />
+                    </label>
                   </div>
                   {modulForm.is_compressed && modulForm.saved_percent > 0 && (
-                    <p className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                      <Zap size={11} className="fill-emerald-600 text-emerald-600" />
-                      <span>Ukuran dioptimalkan dari {modulForm.original_size} &bull; Lebih hemat {modulForm.saved_percent}% tanpa kurangi kualitas</span>
-                    </p>
+                    <div className="mt-2.5 pt-2 border-t border-emerald-200/70 flex items-center justify-between text-[10px] font-bold text-emerald-700">
+                      <span className="flex items-center gap-1">
+                        <Zap size={12} className="fill-emerald-600 text-emerald-600" />
+                        <span>Optimasi: {modulForm.original_size} &rarr; {modulForm.file_size}</span>
+                      </span>
+                      <span className="bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black text-[9px] shadow-2xs">
+                        Hemat {modulForm.saved_percent}%
+                      </span>
+                    </div>
                   )}
                 </div>
+              ) : (
+                /* State 3: Interactive Animated Dropzone */
+                <label className="group relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50/70 hover:bg-emerald-50/40 rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs">
+                  <input 
+                    type="file" 
+                    accept=".pdf" 
+                    required={!modulForm.file_url}
+                    disabled={isUploadingModul || isOptimizingModul}
+                    onChange={e => e.target.files?.[0] && handleModulFile(e.target.files[0])}
+                    className="sr-only"
+                  />
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100/90 group-hover:bg-emerald-600 group-hover:scale-110 group-hover:shadow-md text-emerald-700 group-hover:text-white flex items-center justify-center transition-all duration-200 mb-2">
+                    <UploadCloud size={24} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
+                  </div>
+                  <p className="text-xs font-black text-slate-700 group-hover:text-emerald-800 transition-colors">
+                    Klik atau Tarik Berkas PDF ke Sini
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                    Hanya berkas format .pdf (Maksimal 5 MB)
+                  </p>
+                  <div className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-emerald-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-emerald-700 shadow-2xs transition-all flex items-center gap-1.5">
+                    <FileText size={12} className="text-emerald-600" />
+                    <span>Pilih Berkas PDF</span>
+                  </div>
+                </label>
               )}
             </div>
 
@@ -1241,51 +1289,99 @@ export default function ModulAjar(props) {
             {/* File PDF or Link URL */}
             {materiForm.tipe === 'file' ? (
               <div>
-                <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
                   <label className="text-xs font-bold text-slate-700">
                     Pilih Berkas PDF Materi <span className="text-rose-500">*</span>
                   </label>
-                  <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 5MB)</span>
+                  <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                    Hanya .pdf (Maks. 5MB)
+                  </span>
                 </div>
-                <input 
-                  type="file" 
-                  accept=".pdf" 
-                  required
-                  disabled={isUploadingMateri || isOptimizingMateri}
-                  onChange={e => handleMateriFile(e.target.files[0])}
-                  className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer disabled:opacity-50"
-                />
 
-                {/* Optimizing State */}
-                {isOptimizingMateri && (
-                  <div className="mt-2.5 p-3 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center gap-3 text-xs font-bold text-indigo-800 animate-pulse shadow-xs">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
-                      <RefreshCw size={14} className="animate-spin" />
+                {/* State 1: Optimizing Animation */}
+                {isOptimizingMateri ? (
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-50 border-2 border-indigo-300 flex flex-col items-center justify-center text-center space-y-2.5 animate-in zoom-in-95 duration-200 shadow-xs">
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute w-12 h-12 rounded-full bg-indigo-400/25 animate-ping" />
+                      <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md relative z-10">
+                        <RefreshCw size={20} className="animate-spin" />
+                      </div>
                     </div>
                     <div>
-                      <span className="block font-black text-indigo-950">Mengoptimasi Berkas PDF...</span>
-                      <span className="text-[10px] font-medium text-indigo-700">Merampingkan ukuran dokumen tanpa mengurangi kualitas teks/gambar.</span>
+                      <h5 className="text-xs font-black text-indigo-950">Menganalisis &amp; Mengompresi PDF Materi...</h5>
+                      <p className="text-[11px] text-indigo-700 font-medium mt-0.5">Sedang merampingkan stream berkas agar cepat diakses dan diunduh siswa.</p>
+                    </div>
+                    <div className="w-44 bg-indigo-200/60 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-indigo-600 h-full w-full animate-pulse" />
                     </div>
                   </div>
-                )}
-
-                {/* Success / Compressed info */}
-                {materiForm.nama_dokumen && !isOptimizingMateri && (
-                  <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                        <span className="font-bold text-emerald-900 truncate">{materiForm.nama_dokumen}</span>
+                ) : materiForm.nama_dokumen ? (
+                  /* State 2: Selected File Showcase Card */
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50/95 via-purple-50/95 to-slate-50 border-2 border-indigo-300 shadow-xs animate-in zoom-in-95 fade-in duration-200">
+                    <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                          <FileCheck size={20} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-indigo-800 bg-indigo-100/90 px-1.5 py-0.5 rounded">PDF Materi Terpilih</span>
+                            <span className="text-[10px] font-black text-slate-600">{materiForm.file_size}</span>
+                          </div>
+                          <h5 className="text-xs font-black text-slate-800 truncate max-w-[190px] sm:max-w-[230px] mt-0.5" title={materiForm.nama_dokumen}>
+                            {materiForm.nama_dokumen}
+                          </h5>
+                        </div>
                       </div>
-                      <span className="text-[10px] font-black text-emerald-700 shrink-0">{materiForm.file_size}</span>
+                      <label className="px-3 py-1.5 rounded-xl border border-indigo-300 bg-white hover:bg-indigo-50 text-indigo-700 text-[11px] font-black cursor-pointer transition-all shadow-2xs hover:scale-102 active:scale-95 shrink-0 flex items-center gap-1">
+                        <RefreshCw size={12} />
+                        <span>Ganti</span>
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          disabled={isUploadingMateri}
+                          onChange={e => e.target.files?.[0] && handleMateriFile(e.target.files[0])}
+                          className="sr-only"
+                        />
+                      </label>
                     </div>
                     {materiForm.is_compressed && materiForm.saved_percent > 0 && (
-                      <p className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                        <Zap size={11} className="fill-emerald-600 text-emerald-600" />
-                        <span>Dioptimalkan dari {materiForm.original_size} &bull; Lebih hemat {materiForm.saved_percent}%</span>
-                      </p>
+                      <div className="mt-2.5 pt-2 border-t border-indigo-200/70 flex items-center justify-between text-[10px] font-bold text-indigo-700">
+                        <span className="flex items-center gap-1">
+                          <Zap size={12} className="fill-indigo-600 text-indigo-600" />
+                          <span>Optimasi: {materiForm.original_size} &rarr; {materiForm.file_size}</span>
+                        </span>
+                        <span className="bg-indigo-600 text-white px-2 py-0.5 rounded-full font-black text-[9px] shadow-2xs">
+                          Hemat {materiForm.saved_percent}%
+                        </span>
+                      </div>
                     )}
                   </div>
+                ) : (
+                  /* State 3: Interactive Animated Dropzone */
+                  <label className="group relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-slate-50/70 hover:bg-indigo-50/40 rounded-2xl cursor-pointer transition-all duration-200 text-center shadow-2xs hover:shadow-xs">
+                    <input 
+                      type="file" 
+                      accept=".pdf" 
+                      required={!materiForm.file_url}
+                      disabled={isUploadingMateri || isOptimizingMateri}
+                      onChange={e => e.target.files?.[0] && handleMateriFile(e.target.files[0])}
+                      className="sr-only"
+                    />
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-100/90 group-hover:bg-indigo-600 group-hover:scale-110 group-hover:shadow-md text-indigo-700 group-hover:text-white flex items-center justify-center transition-all duration-200 mb-2">
+                      <UploadCloud size={24} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
+                    </div>
+                    <p className="text-xs font-black text-slate-700 group-hover:text-indigo-800 transition-colors">
+                      Klik atau Tarik Berkas PDF Materi ke Sini
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                      Hanya berkas format .pdf (Maksimal 5 MB)
+                    </p>
+                    <div className="mt-2.5 px-3 py-1 bg-white border border-slate-200 group-hover:border-indigo-400 rounded-lg text-[10px] font-black text-slate-600 group-hover:text-indigo-700 shadow-2xs transition-all flex items-center gap-1.5">
+                      <FileText size={12} className="text-indigo-600" />
+                      <span>Pilih Berkas PDF</span>
+                    </div>
+                  </label>
                 )}
               </div>
             ) : (
