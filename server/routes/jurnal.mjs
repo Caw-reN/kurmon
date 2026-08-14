@@ -29,44 +29,52 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const filterSemester = (url.searchParams.get('semester') || '').toLowerCase(); // 'ganjil' | 'genap' | '1' | '2'
         const filterYear = parseInt(url.searchParams.get('tahun') || new Date().getFullYear(), 10);
 
-        let query = 'SELECT * FROM jurnal_harian_guru WHERE 1=1';
+        let query = `
+          SELECT 
+            j.*,
+            TO_CHAR(j.tanggal, 'YYYY-MM-DD') as tanggal,
+            CASE WHEN j.submitted_at IS NOT NULL THEN TO_CHAR(j.submitted_at, 'YYYY-MM-DD"T"HH24:MI:SS') ELSE NULL END as submitted_at,
+            CASE WHEN j.created_at IS NOT NULL THEN TO_CHAR(j.created_at, 'YYYY-MM-DD"T"HH24:MI:SS') ELSE NULL END as created_at
+          FROM jurnal_harian_guru j 
+          WHERE 1=1
+        `;
         const params = [];
 
         if (!isKurikulum) {
           // Guru hanya lihat milik sendiri
           params.push(session?.code || session?.id || '');
-          query += ` AND teacher_code = $${params.length}`;
+          query += ` AND j.teacher_code = $${params.length}`;
         } else if (filterTeacher) {
           params.push(filterTeacher);
-          query += ` AND teacher_code = $${params.length}`;
+          query += ` AND j.teacher_code = $${params.length}`;
         }
 
         if (filterDate) {
           params.push(filterDate);
-          query += ` AND tanggal = $${params.length}`;
+          query += ` AND j.tanggal = $${params.length}`;
         } else if (startDate && endDate) {
           params.push(startDate, endDate);
-          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
+          query += ` AND j.tanggal >= $${params.length - 1} AND j.tanggal <= $${params.length}`;
         } else if (filterSemester === 'ganjil' || filterSemester === '1') {
           params.push(`${filterYear}-07-01`, `${filterYear}-12-31`);
-          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
+          query += ` AND j.tanggal >= $${params.length - 1} AND j.tanggal <= $${params.length}`;
         } else if (filterSemester === 'genap' || filterSemester === '2') {
           params.push(`${filterYear}-01-01`, `${filterYear}-06-30`);
-          query += ` AND tanggal >= $${params.length - 1} AND tanggal <= $${params.length}`;
+          query += ` AND j.tanggal >= $${params.length - 1} AND j.tanggal <= $${params.length}`;
         }
 
         if (filterMonth) {
           // format: YYYY-MM
           params.push(filterMonth + '%');
-          query += ` AND tanggal::text LIKE $${params.length}`;
+          query += ` AND j.tanggal::text LIKE $${params.length}`;
         }
         if (filterKelas) {
           params.push(filterKelas);
-          query += ` AND kelas = $${params.length}`;
+          query += ` AND j.kelas = $${params.length}`;
         }
 
         const sortDir = (url.searchParams.get('sort') || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-        query += ` ORDER BY tanggal ${sortDir}, jam_ke ASC`;
+        query += ` ORDER BY j.tanggal ${sortDir}, j.jam_ke ASC`;
 
         const rawLimit = url.searchParams.get('limit');
         if (rawLimit === 'all' || rawLimit === '1000' || rawLimit === '2000') {
@@ -121,6 +129,10 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         } catch (_) {}
 
         const rincianJson = body.rincian_absensi ? JSON.stringify(body.rincian_absensi) : '[]';
+        
+        // Accurate Jakarta timestamp (WIB, UTC+7)
+        const jakartaNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+        const currentJakartaTs = jakartaNow.toISOString().slice(0, 19).replace('T', ' ');
 
         if (body.action === 'delete') {
           // Guru hanya bisa hapus milik sendiri, admin bisa semua
@@ -131,7 +143,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           }
         } else if (body.id) {
           // Update jurnal
-          const submittedAt = body.status === 'submitted' ? new Date().toISOString() : null;
+          const submittedAt = body.status === 'submitted' ? currentJakartaTs : null;
           const updateQuery = isAdmin 
             ? `UPDATE jurnal_harian_guru 
                SET kelas = $1, mapel = $2, jam_ke = $3, slot_label = $4,
@@ -166,7 +178,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           await dbPool.query(updateQuery, params);
         } else {
           // Insert jurnal baru
-          const submittedAt = body.status === 'submitted' ? new Date().toISOString() : null;
+          const submittedAt = body.status === 'submitted' ? currentJakartaTs : null;
           await dbPool.query(`
             INSERT INTO jurnal_harian_guru 
             (teacher_code, teacher_name, tanggal, kelas, mapel, jam_ke, slot_label,

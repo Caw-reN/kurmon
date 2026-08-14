@@ -52,17 +52,33 @@ export function getJurnalSubmissionStatus(tanggalKBM, submittedAt) {
     };
   }
 
-  const submitObj = new Date(submittedAt);
-  const kbmObj = tanggalKBM ? new Date(tanggalKBM) : submitObj;
+  let submitObj = new Date(submittedAt);
+  if (isNaN(submitObj.getTime())) {
+    submitObj = new Date();
+  }
 
-  const dSubmit = new Date(submitObj.getFullYear(), submitObj.getMonth(), submitObj.getDate());
-  const dKbm = new Date(kbmObj.getFullYear(), kbmObj.getMonth(), kbmObj.getDate());
+  // Format date & time consistently in Asia/Jakarta (WIB)
+  const submitDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(submitObj);
+  const kbmDateStr = typeof tanggalKBM === 'string' ? tanggalKBM.split('T')[0] : submitDateStr;
+
+  const dSubmit = new Date(submitDateStr);
+  const dKbm = new Date(kbmDateStr);
 
   const diffMs = dSubmit - dKbm;
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
-  const timeStr = submitObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
-  const dateStr = submitObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeStr = new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta'
+  }).format(submitObj).replace('.', ':');
+
+  const dateStr = new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta'
+  }).format(submitObj);
 
   if (diffDays > 0) {
     return {
@@ -95,7 +111,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_late') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
           <Clock size={10} className="stroke-[3] text-rose-600 shrink-0" />
           <span>{statusInfo.label}</span>
         </span>
@@ -111,7 +127,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_on_time') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
           <CheckCircle2 size={10} className="stroke-[3] text-emerald-600 shrink-0" />
           <span>Tepat Waktu</span>
         </span>
@@ -126,7 +142,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
 
   if (statusInfo.status === 'unsubmitted_past') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
         <AlertCircle size={10} className="stroke-[3] text-amber-600 shrink-0" />
         <span>Terlewat (H-{statusInfo.diffDays})</span>
       </span>
@@ -134,7 +150,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
       <AlertCircle size={10} className="stroke-[3] shrink-0" />
       <span>Belum Diisi</span>
     </span>
@@ -1142,20 +1158,23 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             {/* Status Pengisian / Keterlambatan */}
             {jurnal?.submitted_at ? (
               existingStatusInfo.isLate ? (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
-                  ⚠️ Terlambat H+{existingStatusInfo.diffDays} ({existingStatusInfo.timeStr})
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                  <Clock size={11} className="text-rose-600 shrink-0" />
+                  <span>Terlambat H+{existingStatusInfo.diffDays} ({existingStatusInfo.timeStr})</span>
                 </span>
               ) : (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                  ✓ Tepat Waktu ({existingStatusInfo.timeStr})
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
+                  <span>Tepat Waktu ({existingStatusInfo.timeStr})</span>
                 </span>
               )
             ) : isFillingPastDate ? (
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                ⚠️ Terlambat H+{diffDaysFromToday}
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                <Clock size={11} className="text-amber-700 shrink-0" />
+                <span>Terlambat H+{diffDaysFromToday}</span>
               </span>
             ) : (
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
                 Belum Disimpan
               </span>
             )}
@@ -2237,12 +2256,13 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                             {j.submitted_at && (
                               <div className="pt-1 flex items-center gap-2 flex-wrap text-[11px]">
                                 <span className="text-slate-500 font-medium flex items-center gap-1">
-                                  <Clock size={11} className="text-slate-400" />
+                                  <Clock size={11} className="text-slate-400 shrink-0" />
                                   Diisi: <strong className="text-slate-700">{statusInfo.fullSubmitStr}</strong>
                                 </span>
                                 {statusInfo.isLate && (
-                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 flex items-center gap-1">
-                                    ⚠️ Terlambat (Diisi H+{statusInfo.diffDays})
+                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 flex items-center gap-1">
+                                    <Clock size={11} className="text-rose-600 shrink-0" />
+                                    <span>Terlambat (Diisi H+{statusInfo.diffDays})</span>
                                   </span>
                                 )}
                               </div>
