@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { 
   BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink,
   Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
