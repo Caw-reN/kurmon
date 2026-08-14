@@ -261,9 +261,9 @@ export default function ModulAjar(props) {
       setModulError(`Ekstensi berkas "${ext}" tidak diizinkan. Harap pilih berkas dengan format .pdf`);
       return;
     }
-    // Limit: 15 MB max
-    if (file.size > 15 * 1024 * 1024) {
-      setModulError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 15 MB.');
+    // Limit: 5 MB max
+    if (file.size > 5 * 1024 * 1024) {
+      setModulError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 5 MB.');
       return;
     }
     setModulError('');
@@ -294,8 +294,8 @@ export default function ModulAjar(props) {
       setMateriError(`Ekstensi berkas "${ext}" tidak diizinkan. Harap pilih berkas dengan format .pdf`);
       return;
     }
-    if (file.size > 15 * 1024 * 1024) {
-      setMateriError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 15 MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setMateriError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 5 MB.');
       return;
     }
     setMateriError('');
@@ -944,7 +944,7 @@ export default function ModulAjar(props) {
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
               <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
               <div className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                Format yang diizinkan: <strong className="text-slate-800 font-black">PDF (.pdf)</strong> &bull; Ukuran Maks: <strong className="text-slate-800 font-black">15 MB</strong>
+                Format yang diizinkan: <strong className="text-slate-800 font-black">PDF (.pdf)</strong> &bull; Ukuran Maks: <strong className="text-slate-800 font-black">5 MB</strong>
                 <p className="text-[10px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
                   <Zap size={11} className="fill-emerald-600 text-emerald-600" />
                   <span>Kompresi cerdas otomatis aktif &bull; Kualitas dokumen tetap 100% tajam.</span>
@@ -1004,7 +1004,7 @@ export default function ModulAjar(props) {
                 <label className="text-xs font-bold text-slate-700">
                   Pilih Berkas PDF Modul Ajar <span className="text-rose-500">*</span>
                 </label>
-                <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 15MB)</span>
+                <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 5MB)</span>
               </div>
               <input 
                 type="file" 
@@ -1078,7 +1078,7 @@ export default function ModulAjar(props) {
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
               <ShieldCheck size={16} className="text-indigo-600 shrink-0 mt-0.5" />
               <div className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                Materi dapat berupa <strong className="text-slate-800 font-black">Berkas PDF (.pdf maks. 15MB)</strong> atau <strong className="text-slate-800 font-black">Tautan Link Video/Drive</strong>.
+                Materi dapat berupa <strong className="text-slate-800 font-black">Berkas PDF (.pdf maks. 5MB)</strong> atau <strong className="text-slate-800 font-black">Tautan Link Video/Drive</strong>.
                 <p className="text-[10px] text-indigo-700 font-bold mt-0.5 flex items-center gap-1">
                   <Zap size={11} className="fill-indigo-600 text-indigo-600" />
                   <span>Kompresi otomatis PDF aktif &bull; Cepat diunduh siswa.</span>
@@ -1165,7 +1165,7 @@ export default function ModulAjar(props) {
                   <label className="text-xs font-bold text-slate-700">
                     Pilih Berkas PDF Materi <span className="text-rose-500">*</span>
                   </label>
-                  <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 15MB)</span>
+                  <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 5MB)</span>
                 </div>
                 <input 
                   type="file" 

@@ -3698,10 +3698,10 @@ const server = createServer(async (req, res) => {
               return send(req, res, 400, { ok: false, error: `Tipe konten berkas (${mimeType}) tidak didukung. Hanya berkas PDF yang diperbolehkan.` });
             }
 
-            // 3. File size limit check (approx 15MB base64 content limit)
+            // 3. File size limit check (approx 5MB base64 content limit)
             const approxBytes = Math.round((file_url.length * 3) / 4);
-            if (approxBytes > 15 * 1024 * 1024) {
-              return send(req, res, 400, { ok: false, error: "Ukuran berkas melebihi batas maksimal 15MB." });
+            if (approxBytes > 5 * 1024 * 1024) {
+              return send(req, res, 400, { ok: false, error: "Ukuran berkas melebihi batas maksimal 5MB." });
             }
 
             await dbPool.query(
@@ -3810,10 +3810,10 @@ const server = createServer(async (req, res) => {
               if (!mimeMatch || mimeMatch[1].toLowerCase() !== 'application/pdf') {
                 return send(req, res, 400, { ok: false, error: "Format file tidak valid (harus PDF)." });
               }
-              // Size check (15MB)
+              // Size check (5MB)
               const approxBytes = Math.round((file_url.length * 3) / 4);
-              if (approxBytes > 15 * 1024 * 1024) {
-                return send(req, res, 400, { ok: false, error: "Ukuran file melebihi batas 15MB." });
+              if (approxBytes > 5 * 1024 * 1024) {
+                return send(req, res, 400, { ok: false, error: "Ukuran file melebihi batas 5MB." });
               }
               await dbPool.query(
                 "INSERT INTO materi_ajar (teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, tipe, mapel, kelas_target, semester, tahun_ajaran) VALUES ($1,$2,$3,$4,$5,$6,'file',$7,$8,$9,$10)",
