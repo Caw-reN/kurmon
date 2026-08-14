@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { 
   UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
@@ -43,10 +43,10 @@ const ALL_TABS_METADATA = {
   jurnal_harian: { label: 'Jurnal Harian KBM', desc: 'Pengisian absensi kelas dan materi ajar per jam tatap muka' },
 
   // Kehadiran & Absensi
-  absensi: { label: 'Rekap Fingerprint Mesin', desc: 'Monitoring log mesin absensi kehadiran sekolah' },
-  absensiguru: { label: 'Kehadiran & Absensi Guru', desc: 'Rekap absensi mengajar dan piket guru' },
-  kedisiplinan_absensi: { label: 'Rekap Kehadiran Siswa', desc: 'Rekap absensi siswa (Sakit, Izin, Alpa)' },
-  hikvision_report_siswa: { label: 'Absensi & Kehadiran Siswa', desc: 'Rekap absensi per kelas harian' },
+  absensi: { label: 'Jadwal & Sesi Absensi', desc: 'Pengaturan sesi jadwal absensi' },
+  absensiguru: { label: 'Absen Mandiri Guru (KBM)', desc: 'Absensi mandiri guru di lokasi sekolah' },
+  kedisiplinan_absensi: { label: 'Izin & Sakit Siswa', desc: 'Pengajuan & persetujuan surat izin, sakit, dan dispensasi siswa' },
+  hikvision_report_siswa: { label: 'Presensi Siswa', desc: 'Rekap matriks presensi harian per kelas' },
 
   // Sarpras & Administrasi
   ruangan: { label: 'Data Ruangan & Lab', desc: 'Manajemen ruang teori, bengkel praktikum, dan lab' },
