@@ -935,11 +935,34 @@ export default function ModulAjar(props) {
       {isModulModalOpen && (
         <Modal 
           isOpen={true} 
-          onClose={() => setIsModulModalOpen(false)} 
+          onClose={() => !isUploadingModul && setIsModulModalOpen(false)} 
           title="Unggah Modul Ajar (RPP)"
           maxWidth="max-w-md"
         >
-          <form onSubmit={handleModulSubmit} className="space-y-4">
+          <form onSubmit={handleModulSubmit} className="space-y-4 relative">
+            {/* Top Loading Progress Bar */}
+            {(isUploadingModul || isOptimizingModul) && (
+              <div className="w-full bg-slate-100 h-1.5 overflow-hidden rounded-full relative -mt-2 mb-2">
+                <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 w-full animate-pulse" />
+              </div>
+            )}
+
+            {/* Uploading Status Banner */}
+            {isUploadingModul && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 flex items-center gap-3 animate-pulse shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <RefreshCw size={18} className="animate-spin" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-black text-emerald-950">Sedang Mengunggah Dokumen...</h5>
+                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Mohon Tunggu</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Mentransfer berkas &amp; menyimpan data ke database server...</p>
+                </div>
+              </div>
+            )}
+
             {/* Format & Specification Info Alert */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
               <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
@@ -960,6 +983,7 @@ export default function ModulAjar(props) {
               <UISelect 
                 value={modulForm.mapel} 
                 required 
+                disabled={isUploadingModul}
                 onChange={e => setModulForm({ ...modulForm, mapel: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
               >
@@ -977,6 +1001,7 @@ export default function ModulAjar(props) {
                 <UISelect 
                   value={modulForm.semester} 
                   required 
+                  disabled={isUploadingModul}
                   onChange={e => setModulForm({ ...modulForm, semester: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
@@ -1010,15 +1035,21 @@ export default function ModulAjar(props) {
                 type="file" 
                 accept=".pdf" 
                 required
+                disabled={isUploadingModul || isOptimizingModul}
                 onChange={e => handleModulFile(e.target.files[0])}
-                className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer"
+                className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer disabled:opacity-50"
               />
 
               {/* Optimizing State */}
               {isOptimizingModul && (
-                <div className="mt-2 p-2 rounded-xl bg-slate-100 border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-600 animate-pulse">
-                  <RefreshCw size={14} className="animate-spin text-[var(--ui-primary)]" />
-                  <span>Mengoptimasi &amp; mengompresi berkas PDF...</span>
+                <div className="mt-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-xs font-bold text-emerald-800 animate-pulse shadow-xs">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <RefreshCw size={14} className="animate-spin" />
+                  </div>
+                  <div>
+                    <span className="block font-black text-emerald-950">Mengoptimasi Berkas PDF...</span>
+                    <span className="text-[10px] font-medium text-emerald-700">Merampingkan ukuran dokumen tanpa mengurangi ketajaman teks/diagram.</span>
+                  </div>
                 </div>
               )}
 
@@ -1050,15 +1081,36 @@ export default function ModulAjar(props) {
             )}
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={() => setIsModulModalOpen(false)} className="rounded-xl text-xs font-bold">
+              <Button 
+                variant="outline" 
+                type="button" 
+                disabled={isUploadingModul}
+                onClick={() => setIsModulModalOpen(false)} 
+                className="rounded-xl text-xs font-bold"
+              >
                 Batal
               </Button>
               <button 
                 type="submit" 
                 disabled={isUploadingModul || isOptimizingModul || !modulForm.file_url}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isUploadingModul ? 'Mengunggah...' : 'Simpan & Unggah Modul'}
+                {isUploadingModul ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin shrink-0" />
+                    <span>Mengunggah Berkas...</span>
+                  </>
+                ) : isOptimizingModul ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin shrink-0" />
+                    <span>Mengoptimasi PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} className="shrink-0" />
+                    <span>Simpan &amp; Unggah Modul</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -1069,11 +1121,34 @@ export default function ModulAjar(props) {
       {isMateriModalOpen && (
         <Modal 
           isOpen={true} 
-          onClose={() => setIsMateriModalOpen(false)} 
+          onClose={() => !isUploadingMateri && setIsMateriModalOpen(false)} 
           title="Tambah Materi Pembelajaran Siswa"
           maxWidth="max-w-md"
         >
-          <form onSubmit={handleMateriSubmit} className="space-y-4">
+          <form onSubmit={handleMateriSubmit} className="space-y-4 relative">
+            {/* Top Loading Progress Bar */}
+            {(isUploadingMateri || isOptimizingMateri) && (
+              <div className="w-full bg-slate-100 h-1.5 overflow-hidden rounded-full relative -mt-2 mb-2">
+                <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-600 w-full animate-pulse" />
+              </div>
+            )}
+
+            {/* Uploading Status Banner */}
+            {isUploadingMateri && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border border-indigo-300 flex items-center gap-3 animate-pulse shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <RefreshCw size={18} className="animate-spin" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-black text-indigo-950">Sedang Mempublikasikan Materi...</h5>
+                    <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">Mohon Tunggu</span>
+                  </div>
+                  <p className="text-[11px] text-indigo-700 font-medium mt-0.5">Mentransfer berkas &amp; mempublikasikan untuk siswa...</p>
+                </div>
+              </div>
+            )}
+
             {/* Format & Specification Info Alert */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
               <ShieldCheck size={16} className="text-indigo-600 shrink-0 mt-0.5" />
@@ -1090,6 +1165,7 @@ export default function ModulAjar(props) {
             <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
               <button
                 type="button"
+                disabled={isUploadingMateri}
                 onClick={() => setMateriForm(f => ({ ...f, tipe: 'file' }))}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   materiForm.tipe === 'file' ? 'bg-white text-[var(--ui-primary)] shadow-xs' : 'text-slate-600'
@@ -1101,6 +1177,7 @@ export default function ModulAjar(props) {
 
               <button
                 type="button"
+                disabled={isUploadingMateri}
                 onClick={() => setMateriForm(f => ({ ...f, tipe: 'link' }))}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   materiForm.tipe === 'link' ? 'bg-white text-[var(--ui-primary)] shadow-xs' : 'text-slate-600'
@@ -1119,6 +1196,7 @@ export default function ModulAjar(props) {
               <input 
                 value={materiForm.judul} 
                 required 
+                disabled={isUploadingMateri}
                 onChange={e => setMateriForm(f => ({ ...f, judul: e.target.value }))}
                 placeholder="Contoh: Bab 1: Dasar Pemrograman Web"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]" 
@@ -1134,6 +1212,7 @@ export default function ModulAjar(props) {
                 <UISelect 
                   value={materiForm.mapel} 
                   required 
+                  disabled={isUploadingMateri}
                   onChange={e => setMateriForm(f => ({ ...f, mapel: e.target.value }))}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
@@ -1149,6 +1228,7 @@ export default function ModulAjar(props) {
                 <UISelect 
                   value={materiForm.semester} 
                   required 
+                  disabled={isUploadingMateri}
                   onChange={e => setMateriForm(f => ({ ...f, semester: e.target.value }))}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
                 >
@@ -1171,15 +1251,21 @@ export default function ModulAjar(props) {
                   type="file" 
                   accept=".pdf" 
                   required
+                  disabled={isUploadingMateri || isOptimizingMateri}
                   onChange={e => handleMateriFile(e.target.files[0])}
-                  className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer"
+                  className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer disabled:opacity-50"
                 />
 
                 {/* Optimizing State */}
                 {isOptimizingMateri && (
-                  <div className="mt-2 p-2 rounded-xl bg-slate-100 border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-600 animate-pulse">
-                    <RefreshCw size={14} className="animate-spin text-[var(--ui-primary)]" />
-                    <span>Mengoptimasi berkas PDF materi...</span>
+                  <div className="mt-2.5 p-3 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center gap-3 text-xs font-bold text-indigo-800 animate-pulse shadow-xs">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                      <RefreshCw size={14} className="animate-spin" />
+                    </div>
+                    <div>
+                      <span className="block font-black text-indigo-950">Mengoptimasi Berkas PDF...</span>
+                      <span className="text-[10px] font-medium text-indigo-700">Merampingkan ukuran dokumen tanpa mengurangi kualitas teks/gambar.</span>
+                    </div>
                   </div>
                 )}
 
@@ -1210,6 +1296,7 @@ export default function ModulAjar(props) {
                 <input 
                   value={materiForm.link_url} 
                   required 
+                  disabled={isUploadingMateri}
                   onChange={e => setMateriForm(f => ({ ...f, link_url: e.target.value }))}
                   placeholder="https://youtube.com/... atau https://drive.google.com/..."
                   type="url"
@@ -1225,6 +1312,7 @@ export default function ModulAjar(props) {
               </label>
               <textarea 
                 value={materiForm.deskripsi} 
+                disabled={isUploadingMateri}
                 onChange={e => setMateriForm(f => ({ ...f, deskripsi: e.target.value }))}
                 placeholder="Tuliskan petunjuk belajar singkat untuk siswa..."
                 rows={2}
@@ -1240,15 +1328,36 @@ export default function ModulAjar(props) {
             )}
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={() => setIsMateriModalOpen(false)} className="rounded-xl text-xs font-bold">
+              <Button 
+                variant="outline" 
+                type="button" 
+                disabled={isUploadingMateri}
+                onClick={() => setIsMateriModalOpen(false)} 
+                className="rounded-xl text-xs font-bold"
+              >
                 Batal
               </Button>
               <button 
                 type="submit" 
                 disabled={isUploadingMateri || isOptimizingMateri}
-                className="px-4 py-2 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 active:scale-98 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isUploadingMateri ? 'Mempublikasikan...' : 'Simpan & Publikasikan'}
+                {isUploadingMateri ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin shrink-0" />
+                    <span>Mempublikasikan Materi...</span>
+                  </>
+                ) : isOptimizingMateri ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin shrink-0" />
+                    <span>Mengoptimasi PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} className="shrink-0" />
+                    <span>Simpan &amp; Publikasikan</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
