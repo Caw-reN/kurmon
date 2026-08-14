@@ -275,16 +275,17 @@ export default function ModulAjar(props) {
     }
     setModulError('');
     setIsOptimizingModul(true);
-    setModulProgress({ percent: 20, text: 'Membaca berkas PDF...', fileName: file.name });
+    setModulProgress({ percent: 10, text: 'Membaca berkas PDF...', fileName: file.name });
     
-    // Yield to browser event loop to instantly paint the loading UI animation
-    await new Promise(r => setTimeout(r, 150));
-    setModulProgress({ percent: 50, text: 'Menganalisis & merampingkan berkas...', fileName: file.name });
+    // Force immediate paint of loading frame before heavy task
+    await new Promise(resolve => {
+      requestAnimationFrame(() => setTimeout(resolve, 50));
+    });
 
     try {
-      const optResult = await optimizePdfFile(file);
-      setModulProgress({ percent: 85, text: 'Menyiapkan pratinjau dokumen...', fileName: file.name });
-      await new Promise(r => setTimeout(r, 250));
+      const optResult = await optimizePdfFile(file, (percent, text) => {
+        setModulProgress({ percent, text, fileName: file.name });
+      });
 
       setModulForm(prev => ({
         ...prev,
@@ -295,7 +296,6 @@ export default function ModulAjar(props) {
         saved_percent: optResult.savedPercent,
         is_compressed: optResult.isCompressed
       }));
-      setModulProgress({ percent: 100, text: 'Berkas siap diunggah!', fileName: file.name });
       await new Promise(r => setTimeout(r, 200));
     } catch (err) {
       console.error(err);
@@ -318,15 +318,17 @@ export default function ModulAjar(props) {
     }
     setMateriError('');
     setIsOptimizingMateri(true);
-    setMateriProgress({ percent: 20, text: 'Membaca berkas PDF materi...', fileName: file.name });
+    setMateriProgress({ percent: 10, text: 'Membaca berkas PDF materi...', fileName: file.name });
 
-    await new Promise(r => setTimeout(r, 150));
-    setMateriProgress({ percent: 50, text: 'Mengompresi dokumen agar cepat diunduh...', fileName: file.name });
+    // Force immediate paint of loading frame before heavy task
+    await new Promise(resolve => {
+      requestAnimationFrame(() => setTimeout(resolve, 50));
+    });
 
     try {
-      const optResult = await optimizePdfFile(file);
-      setMateriProgress({ percent: 85, text: 'Menyiapkan berkas materi...', fileName: file.name });
-      await new Promise(r => setTimeout(r, 250));
+      const optResult = await optimizePdfFile(file, (percent, text) => {
+        setMateriProgress({ percent, text, fileName: file.name });
+      });
 
       setMateriForm(prev => ({
         ...prev,
@@ -337,7 +339,6 @@ export default function ModulAjar(props) {
         saved_percent: optResult.savedPercent,
         is_compressed: optResult.isCompressed
       }));
-      setMateriProgress({ percent: 100, text: 'Berkas siap dipublikasikan!', fileName: file.name });
       await new Promise(r => setTimeout(r, 200));
     } catch (err) {
       console.error(err);
