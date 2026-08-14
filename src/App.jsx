@@ -2,10 +2,7 @@ import { lazy, useState, useEffect } from 'react';
 import { applyDocumentBranding, resetDocumentBranding } from './utils/branding.js';
 import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subscribeDatabaseSnapshot } from './utils/dataSource.js';
 import { Suspense } from 'react';
-import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
-import { BarChart2 } from 'lucide-react';
-import ErrorBoundary from './components/ErrorBoundary.jsx';
-import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
+import { Navigate, BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
 // ── Core schedule app (lazy)

@@ -1,8 +1,6 @@
-import { Button } from '../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
 import { Info, AlertTriangle } from'lucide-react';
-import { Modal } from'./ui.jsx';
-;
+import { Modal, Button } from'./ui.jsx';
 
 
 export default function GlobalDialogProvider({ children }) {

@@ -24,7 +24,7 @@ import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import { AdminHeader } from "./components/admin/AdminHeader.jsx";
 import AdminContentRouter from "./components/admin/AdminContentRouter.jsx";
 import { WorkspaceGuidePanel } from "./components/WorkspaceGuidePanel.jsx";
-import CustomRolesModal from "./components/admin/CustomRolesModal.jsx";
+
 import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
 import SystemModals from './components/admin/SystemModals.jsx';
 import CrudModals from './components/admin/CrudModals.jsx';
