@@ -586,12 +586,16 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Button variant="outline" 
-              onClick={() =>setIsLoginModalOpen(true)}
-              className="relative cursor-pointer"
+            <button
+              type="button"
+              onClick={() => setIsLoginModalOpen(true)}
+              className="h-8.5 px-3 rounded-[var(--ui-radius-small)] bg-white/20 hover:bg-white/30 active:scale-95 text-white border border-white/40 shadow-xs flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer select-none"
               aria-label="Masuk Aplikasi"
+              title="Masuk ke Aplikasi"
             >
-              <User size={20} strokeWidth={2} /></Button>
+              <LogIn size={15} strokeWidth={2.5} className="text-white shrink-0" />
+              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none">Masuk</span>
+            </button>
           </div>
         </div>
 
