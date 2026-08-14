@@ -670,11 +670,6 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const oldPassword = String(body.oldPassword || "").trim();
       const newPassword = String(body.newPassword || "").trim();
       
-      if (!oldPassword) {
-        send(req, res, 200, { ok: false, message: "Kata sandi lama wajib diisi!" });
-        return true;
-      }
-      
       if (!newPassword) {
         send(req, res, 200, { ok: false, message: "Kata sandi baru tidak boleh kosong!" });
         return true;
@@ -743,14 +738,18 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         }
       }
 
-      // 3. Same as previous password check
+      // 3. Same as previous password check & Old password verification (if provided)
       let isSameAsPrevious = false;
-      let isOldValid = false;
+      let isOldValid = true;
       if (currentPasswordHash) {
-        isOldValid = await verifyPassword(oldPassword, currentPasswordHash);
+        if (oldPassword) {
+          isOldValid = await verifyPassword(oldPassword, currentPasswordHash);
+        }
         isSameAsPrevious = await verifyPassword(newPassword, currentPasswordHash);
       } else {
-        isOldValid = (oldPassword.toLowerCase() === session.username.toLowerCase());
+        if (oldPassword) {
+          isOldValid = (oldPassword.toLowerCase() === session.username.toLowerCase());
+        }
         isSameAsPrevious = (newPassword === session.username);
       }
 
