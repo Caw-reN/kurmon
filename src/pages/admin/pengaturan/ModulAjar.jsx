@@ -1,27 +1,33 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink } from 'lucide-react';
+import { 
+  BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink,
+  Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
+  Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, 
+  UploadCloud, Sparkles, Layers, ArrowRight, Check, AlertTriangle,
+  FolderPlus, Filter, Calendar, GraduationCap, ChevronRight, FileCheck,
+  FilePlus, Info, PlayCircle, Clock
+} from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { base64ToBlobUrl, downloadFile } from '../../../utils/fileHelper.js';
-import { Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, UploadCloud } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { UISelect } from '../../../components/ui.jsx';
+import { Button, UISelect } from '../../../components/ui.jsx';
 
 const TabSilabus = lazy(() => import('../tabs/TabSilabus.jsx'));
 const TabSilabusGuru = lazy(() => import('../tabs/TabSilabusGuru.jsx'));
 
 // ── Helpers ──────────────────────────────────────────────────────
 const getLinkIcon = (url) => {
-  if (!url) return <Link2 size={14} />;
-  if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-rose-500" />;
-  if (url.includes('drive.google.com')) return <Globe size={14} className="text-blue-500" />;
-  return <ExternalLink size={14} className="text-indigo-500" />;
+  if (!url) return <Link2 size={15} className="shrink-0" />;
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={15} className="text-rose-500 shrink-0" />;
+  if (url.includes('drive.google.com')) return <Globe size={15} className="text-blue-500 shrink-0" />;
+  return <ExternalLink size={15} className="text-indigo-500 shrink-0" />;
 };
+
 const getLinkLabel = (url) => {
-  if (!url) return 'Buka Link';
-  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'Tonton Video';
+  if (!url) return 'Buka Tautan';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'Video Pembelajaran';
   if (url.includes('drive.google.com')) return 'Google Drive';
-  return 'Buka Link';
+  return 'Tautan Materi';
 };
 
 export default function ModulAjar(props) {
@@ -33,21 +39,25 @@ export default function ModulAjar(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [monitoringSearch, setMonitoringSearch] = useState('');
+  const [filterMapel, setFilterMapel] = useState('all');
 
   // ── Materi Ajar (Public) state ───────────────────────────────
   const [materiList, setMateriList] = useState([]);
   const [materiSearch, setMateriSearch] = useState('');
+  const [materiFilterMapel, setMateriFilterMapel] = useState('all');
+  const [materiFilterTipe, setMateriFilterTipe] = useState('all');
   const [isMateriLoading, setIsMateriLoading] = useState(false);
   const [materiForm, setMateriForm] = useState({
     judul: '', deskripsi: '', tipe: 'file',
     file_url: '', nama_dokumen: '', link_url: '',
-    mapel: '', kelas_target: '', semester: 'Ganjil', tahun_ajaran: ''
+    mapel: '', kelas_target: '', semester: 'Ganjil', tahun_ajaran: '',
+    file_size: null
   });
   const [isUploadingMateri, setIsUploadingMateri] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [materiUploadError, setMateriUploadError] = useState('');
 
-  const [activeTab, setActiveTab] = useState('rekap');
+  const [activeTab, setActiveTab] = useState('daftar');
   const [toast, setToast] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(null);
 
@@ -67,13 +77,16 @@ export default function ModulAjar(props) {
   const academicYears = appSettings?.academicYears || [];
   const activeYear = useMemo(() => academicYears.find(y => y.is_active)?.nama || '', [academicYears]);
 
-  // Upload form state (Modul Ajar)
+  // Upload form state (Modul Ajar RPP)
   const [form, setForm] = useState({
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
-    mapel: '', kelas: '', semester: 'Ganjil'
+    mapel: '', kelas: '', semester: 'Ganjil',
+    file_size: null
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMateriDragging, setIsMateriDragging] = useState(false);
 
   const mySubjects = useMemo(() => {
     if (!teacherCode || !teachingLoads) return [];
@@ -102,7 +115,7 @@ export default function ModulAjar(props) {
   }, [teachingLoads, classes, teacherCode]);
 
   const availableSubjects = useMemo(() => {
-    if (userRole === 'guru') return mySubjects;
+    if (userRole === 'guru' && mySubjects.length > 0) return mySubjects;
     return [...new Set((subjects || []).map(s => s.name || s.subjectName).filter(Boolean))].sort();
   }, [userRole, mySubjects, subjects]);
 
@@ -215,51 +228,72 @@ export default function ModulAjar(props) {
   }, [tabs]);
 
   // ── File Input Handlers ─────────────────────────────────────
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const processModulFile = (file) => {
     if (!file) return;
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (ext !== '.pdf') {
-      setUploadError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
-      e.target.value = ''; return;
+      setUploadError(`Ekstensi berkas ${ext} tidak diizinkan. Mohon pilih berkas berformat .pdf`);
+      return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File terlalu besar. Maksimal 5MB.');
-      e.target.value = ''; return;
+      setUploadError('Ukuran berkas terlalu besar. Maksimal ukuran 5MB.');
+      return;
     }
     setUploadError('');
     const reader = new FileReader();
-    reader.onloadend = () => setForm(prev => ({ ...prev, file_url: reader.result, nama_dokumen: file.name }));
+    reader.onloadend = () => {
+      setForm(prev => ({ 
+        ...prev, 
+        file_url: reader.result, 
+        nama_dokumen: file.name,
+        file_size: (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e) => {
+    processModulFile(e.target.files[0]);
+  };
+
+  const processMateriFile = (file) => {
+    if (!file) return;
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (ext !== '.pdf') {
+      setMateriUploadError(`Ekstensi berkas ${ext} tidak diizinkan. Mohon pilih berkas berformat .pdf`);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMateriUploadError('Ukuran berkas terlalu besar. Maksimal ukuran 5MB.');
+      return;
+    }
+    setMateriUploadError('');
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMateriForm(prev => ({ 
+        ...prev, 
+        file_url: reader.result, 
+        nama_dokumen: file.name,
+        file_size: (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+      }));
+    };
     reader.readAsDataURL(file);
   };
 
   const handleMateriFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    if (ext !== '.pdf') {
-      setMateriUploadError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
-      e.target.value = ''; return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setMateriUploadError('File terlalu besar. Maksimal 5MB.');
-      e.target.value = ''; return;
-    }
-    setMateriUploadError('');
-    const reader = new FileReader();
-    reader.onloadend = () => setMateriForm(prev => ({ ...prev, file_url: reader.result, nama_dokumen: file.name }));
-    reader.readAsDataURL(file);
+    processMateriFile(e.target.files[0]);
   };
 
   // ── Upload Modul Ajar (RPP) ─────────────────────────────────
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     setUploadError('');
-    if (!form.file_url) return setUploadError('Pilih file Modul Ajar terlebih dahulu.');
-    if (!form.tahun_ajaran) return setUploadError('Pilih Tahun Ajaran.');
+    if (!form.file_url) return setUploadError('Pilih atau unggah berkas Modul Ajar (PDF) terlebih dahulu.');
+    if (!form.tahun_ajaran) return setUploadError('Pilih Tahun Ajaran yang berlaku.');
     if (!form.mapel) return setUploadError('Pilih Mata Pelajaran.');
     if (!form.kelas) return setUploadError('Pilih Kelas.');
     if (!form.semester) return setUploadError('Pilih Semester.');
+    
     setIsUploading(true);
     try {
       const res = await fetch('/api/modul-ajar-guru', {
@@ -275,24 +309,38 @@ export default function ModulAjar(props) {
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('Modul Ajar berhasil diunggah!');
-        setForm({ nama_dokumen: '', file_url: '', tahun_ajaran: activeYear, mapel: availableSubjects[0] || '', kelas: availableClasses[0] || '', semester: 'Ganjil' });
+        showToast('Modul Ajar (RPP) berhasil diunggah!');
+        setForm({ 
+          nama_dokumen: '', file_url: '', 
+          tahun_ajaran: activeYear, 
+          mapel: availableSubjects[0] || '', 
+          kelas: availableClasses[0] || '', 
+          semester: 'Ganjil',
+          file_size: null
+        });
         const fi = document.getElementById('file-input');
         if (fi) fi.value = '';
         fetchModulData();
-        setActiveTab(userRole === 'guru' ? 'silabusguru' : 'daftar');
-      } else setUploadError(data.error || 'Gagal mengunggah');
-    } catch (e) { console.error(e); setUploadError('Terjadi kesalahan saat mengunggah'); }
-    finally { setIsUploading(false); }
+        setActiveTab('daftar');
+      } else {
+        setUploadError(data.error || 'Gagal mengunggah Modul Ajar.');
+      }
+    } catch (e) { 
+      console.error(e); 
+      setUploadError('Terjadi kesalahan koneksi saat mengunggah berkas.'); 
+    } finally { 
+      setIsUploading(false); 
+    }
   };
 
   // ── Upload Materi Ajar (Public) ─────────────────────────────
   const handleMateriUploadSubmit = async (e) => {
     e.preventDefault();
     setMateriUploadError('');
-    if (!materiForm.judul.trim()) return setMateriUploadError('Judul materi wajib diisi.');
-    if (materiForm.tipe === 'file' && !materiForm.file_url) return setMateriUploadError('Pilih file PDF terlebih dahulu.');
-    if (materiForm.tipe === 'link' && !materiForm.link_url.trim()) return setMateriUploadError('Masukkan URL link terlebih dahulu.');
+    if (!materiForm.judul.trim()) return setMateriUploadError('Judul materi pembelajaran wajib diisi.');
+    if (materiForm.tipe === 'file' && !materiForm.file_url) return setMateriUploadError('Pilih berkas PDF materi terlebih dahulu.');
+    if (materiForm.tipe === 'link' && !materiForm.link_url.trim()) return setMateriUploadError('Masukkan tautan/URL materi pembelajaran.');
+    
     setIsUploadingMateri(true);
     try {
       const res = await fetch('/api/materi-ajar', {
@@ -312,20 +360,34 @@ export default function ModulAjar(props) {
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('Materi Ajar berhasil dipublikasikan!');
-        setMateriForm({ judul: '', deskripsi: '', tipe: 'file', file_url: '', nama_dokumen: '', link_url: '', mapel: availableSubjects[0] || '', kelas_target: availableClasses[0] || '', semester: 'Ganjil', tahun_ajaran: activeYear });
+        showToast('Materi Ajar berhasil dipublikasikan untuk siswa!');
+        setMateriForm({ 
+          judul: '', deskripsi: '', tipe: 'file', 
+          file_url: '', nama_dokumen: '', link_url: '', 
+          mapel: availableSubjects[0] || '', 
+          kelas_target: availableClasses[0] || '', 
+          semester: 'Ganjil', 
+          tahun_ajaran: activeYear,
+          file_size: null
+        });
         const fi2 = document.getElementById('materi-file-input');
         if (fi2) fi2.value = '';
         fetchMateriData();
         setActiveTab('materi-saya');
-      } else setMateriUploadError(data.error || 'Gagal mengunggah materi');
-    } catch (e) { console.error(e); setMateriUploadError('Terjadi kesalahan'); }
-    finally { setIsUploadingMateri(false); }
+      } else {
+        setMateriUploadError(data.error || 'Gagal mempublikasikan materi ajar.');
+      }
+    } catch (e) { 
+      console.error(e); 
+      setMateriUploadError('Terjadi gangguan jaringan saat mempublikasikan materi.'); 
+    } finally { 
+      setIsUploadingMateri(false); 
+    }
   };
 
   // ── Delete Handlers ─────────────────────────────────────────
   const handleDelete = async (id, code) => {
-    if (!await window.confirmAsync('Hapus dokumen Modul Ajar ini?')) return;
+    if (!await window.confirmAsync('Hapus dokumen Modul Ajar ini dari arsip?')) return;
     try {
       const res = await fetch('/api/modul-ajar-guru', {
         method: 'POST',
@@ -333,13 +395,20 @@ export default function ModulAjar(props) {
         body: JSON.stringify({ action: 'delete', id, teacher_code: code })
       });
       const data = await res.json();
-      if (data.ok) { showToast('Dokumen berhasil dihapus!'); fetchModulData(); }
-      else showToast(data.error || 'Gagal menghapus', 'error');
-    } catch (e) { console.error(e); showToast('Gagal menghapus dokumen', 'error'); }
+      if (data.ok) { 
+        showToast('Dokumen Modul Ajar berhasil dihapus!'); 
+        fetchModulData(); 
+      } else {
+        showToast(data.error || 'Gagal menghapus dokumen', 'error');
+      }
+    } catch (e) { 
+      console.error(e); 
+      showToast('Gagal menghapus dokumen modul', 'error'); 
+    }
   };
 
   const handleDeleteMateri = async (id, code) => {
-    if (!await window.confirmAsync('Hapus materi ajar ini? Materi tidak akan lagi terlihat oleh siswa.')) return;
+    if (!await window.confirmAsync('Hapus materi ajar ini? Materi ini tidak akan dapat diakses lagi oleh siswa.')) return;
     try {
       const res = await fetch('/api/materi-ajar', {
         method: 'POST',
@@ -347,9 +416,16 @@ export default function ModulAjar(props) {
         body: JSON.stringify({ action: 'delete', id, teacher_code: code })
       });
       const data = await res.json();
-      if (data.ok) { showToast('Materi berhasil dihapus!'); fetchMateriData(); }
-      else showToast(data.error || 'Gagal menghapus', 'error');
-    } catch (e) { console.error(e); showToast('Gagal menghapus materi', 'error'); }
+      if (data.ok) { 
+        showToast('Materi ajar berhasil dihapus!'); 
+        fetchMateriData(); 
+      } else {
+        showToast(data.error || 'Gagal menghapus materi', 'error');
+      }
+    } catch (e) { 
+      console.error(e); 
+      showToast('Gagal menghapus materi ajar', 'error'); 
+    }
   };
 
   // ── Derived Data ────────────────────────────────────────────
@@ -360,15 +436,15 @@ export default function ModulAjar(props) {
         doc.teacher_code === t.code && doc.tahun_ajaran === (activeYear || form.tahun_ajaran)
       );
       
-      const teacherCode = String(t.code || '').toLowerCase();
+      const tCode = String(t.code || '').toLowerCase();
       
       const walasClasses = (classes || []).filter(c => 
-        String(c.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(teacherCode)
+        String(c.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(tCode)
       );
       const walasStr = walasClasses.length > 0 ? `Walas: ${walasClasses.map(c => c.name).join(', ')}` : '';
       
       const loads = (teachingLoads || []).filter(l => 
-        String(l.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(teacherCode)
+        String(l.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(tCode)
       );
       const uniqueSubjects = [...new Set(loads.map(l => l.subject).filter(Boolean))];
       const subjectStr = uniqueSubjects.length > 0 ? `Mapel: ${uniqueSubjects.join(', ')}` : '';
@@ -392,89 +468,212 @@ export default function ModulAjar(props) {
     return { total, submitted, pending, percentage };
   }, [monitoringData]);
 
-  const filteredDocuments = useMemo(() => {
-    return documents.filter(doc =>
-      doc.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.tahun_ajaran?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [documents, searchTerm]);
-
   const myDocuments = useMemo(() => documents.filter(doc => doc.teacher_code === teacherCode), [documents, teacherCode]);
-
   const myMateri = useMemo(() => materiList.filter(m => m.teacher_code === teacherCode), [materiList, teacherCode]);
 
-  const filteredMateri = useMemo(() => {
-    return materiList.filter(m =>
-      m.judul?.toLowerCase().includes(materiSearch.toLowerCase()) ||
-      m.teacher_name?.toLowerCase().includes(materiSearch.toLowerCase()) ||
-      m.mapel?.toLowerCase().includes(materiSearch.toLowerCase())
-    );
-  }, [materiList, materiSearch]);
+  const filteredDocuments = useMemo(() => {
+    const source = isCurriculum ? documents : myDocuments;
+    return source.filter(doc => {
+      const matchSearch = !searchTerm ||
+        doc.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.mapel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.kelas?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchMapel = filterMapel === 'all' || doc.mapel === filterMapel;
+      return matchSearch && matchMapel;
+    });
+  }, [documents, myDocuments, isCurriculum, searchTerm, filterMapel]);
 
-  // ── JSX: Shared Card ───────────────────────────────────────
-  const renderMateriCard = (item, showDelete = false) => (
-    <div key={item.id} className="group flex items-start gap-4 p-4 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/60 hover:bg-white hover:shadow-sm hover:border-slate-200 transition-all duration-200">
-      <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
-        {item.tipe === 'link'
-          ? <span className="text-[var(--ui-primary)]">{getLinkIcon(item.link_url)}</span>
-          : <FileText size={16} className="text-[var(--ui-primary)]" />
-        }
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-black text-slate-800 text-sm leading-snug">{item.judul}</h3>
-            {item.deskripsi && <p className="text-xs text-slate-500 mt-0.5 font-medium line-clamp-2">{item.deskripsi}</p>}
+  const filteredMateri = useMemo(() => {
+    const source = (userRole === 'guru' && activeTab === 'materi-saya') ? myMateri : materiList;
+    return source.filter(m => {
+      const matchSearch = !materiSearch ||
+        m.judul?.toLowerCase().includes(materiSearch.toLowerCase()) ||
+        m.teacher_name?.toLowerCase().includes(materiSearch.toLowerCase()) ||
+        m.mapel?.toLowerCase().includes(materiSearch.toLowerCase()) ||
+        m.deskripsi?.toLowerCase().includes(materiSearch.toLowerCase());
+      
+      const matchMapel = materiFilterMapel === 'all' || m.mapel === materiFilterMapel;
+      const matchTipe = materiFilterTipe === 'all' || m.tipe === materiFilterTipe;
+      return matchSearch && matchMapel && matchTipe;
+    });
+  }, [materiList, myMateri, userRole, activeTab, materiSearch, materiFilterMapel, materiFilterTipe]);
+
+  // ── JSX: Shared Materi Card ─────────────────────────────────
+  const renderMateriCard = (item, showDelete = false) => {
+    const isLink = item.tipe === 'link';
+    return (
+      <div 
+        key={item.id} 
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-[var(--ui-primary)]/40 hover:shadow-md transition-all duration-200"
+      >
+        <div>
+          {/* Top Badges */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-xs">
+                {item.mapel || 'Umum'}
+              </span>
+              <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px]">
+                {item.kelas_target ? `Kelas ${item.kelas_target}` : 'Semua Kelas'}
+              </span>
+              {item.semester && (
+                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold text-[11px]">
+                  Sem. {item.semester}
+                </span>
+              )}
+            </div>
+
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+              isLink ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/60' : 'bg-rose-50 text-rose-700 border border-rose-200/60'
+            }`}>
+              {isLink ? getLinkIcon(item.link_url) : <FileText size={12} className="text-rose-600 shrink-0" />}
+              <span>{isLink ? 'Tautan Media' : 'Berkas PDF'}</span>
+            </span>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {item.tipe === 'file' ? (
-              <>
-                <Button variant="outline" onClick={() => handlePreviewPdf(item)} className="flex items-center gap-1 cursor-pointer text-xs" title="Pratinjau">
-                  <Eye size={12} /> Lihat
-                </Button>
-                <Button onClick={() => downloadFile(item.file_url, item.nama_dokumen)}
-                  className="px-2.5 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] no-underline transition-colors text-white bg-[var(--ui-primary)] flex items-center gap-1 cursor-pointer"
-                  title="Unduh">
-                  <Download size={12} /> Unduh
-                </Button>
-              </>
-            ) : (
-              <a href={item.link_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline"
+
+          {/* Title & Description */}
+          <h4 className="text-sm sm:text-base font-black text-slate-800 leading-snug group-hover:text-[var(--ui-primary)] transition-colors">
+            {item.judul}
+          </h4>
+          {item.deskripsi && (
+            <p className="text-xs text-slate-500 font-medium mt-1.5 line-clamp-2 leading-relaxed">
+              {item.deskripsi}
+            </p>
+          )}
+
+          {/* Teacher & File Info */}
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] text-slate-400 font-semibold">
+            <span className="truncate">Oleh: <strong className="text-slate-700">{item.teacher_name}</strong></span>
+            {item.nama_dokumen && (
+              <span className="truncate max-w-[140px] text-slate-500 font-mono text-[10px]" title={item.nama_dokumen}>
+                {item.nama_dokumen}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+          {isLink ? (
+            <a 
+              href={item.link_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 transition-all no-underline shadow-xs cursor-pointer"
+            >
+              {getLinkIcon(item.link_url)}
+              <span>{getLinkLabel(item.link_url)}</span>
+            </a>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => handlePreviewPdf(item)} 
+                className="flex-1 py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border-slate-200 hover:bg-slate-50 cursor-pointer"
+                title="Pratinjau Berkas"
               >
-                {getLinkIcon(item.link_url)} {getLinkLabel(item.link_url)}
-              </a>
-            )}
-            {showDelete && (
-              <Button variant="outline" onClick={() => handleDeleteMateri(item.id, item.teacher_code)}
-                className="cursor-pointer" title="Hapus">
-                <Trash2 size={13} />
+                <Eye size={14} className="text-slate-600" />
+                <span>Pratinjau</span>
               </Button>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          {item.mapel && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-black uppercase">{item.mapel}</span>}
-          {item.kelas_target && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 text-[10px] font-semibold">{item.kelas_target}</span>}
-          {item.semester && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 text-[10px] font-semibold">Sem. {item.semester}</span>}
-          <span className="text-[10px] text-slate-400">oleh {item.teacher_name}</span>
-          {item.tipe === 'link' && <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 text-[10px] font-black">Link</span>}
+              <Button 
+                onClick={() => downloadFile(item.file_url, item.nama_dokumen)}
+                className="flex-1 py-2 px-3 rounded-xl text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                title="Unduh Berkas"
+              >
+                <Download size={14} />
+                <span>Unduh</span>
+              </Button>
+            </>
+          )}
+
+          {showDelete && (
+            <Button 
+              variant="outline" 
+              onClick={() => handleDeleteMateri(item.id, item.teacher_code)}
+              className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 border-rose-200 cursor-pointer shrink-0" 
+              title="Hapus Materi"
+            >
+              <Trash2 size={15} />
+            </Button>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
+    <div className="space-y-5 relative animate-in fade-in duration-300 z-10 pb-16">
+      {/* Page Header */}
       <PageHeader
         title="Modul & Materi Ajar"
-        description="Modul Ajar untuk RPP guru (diperiksa kurikulum) · Materi Ajar untuk siswa (publik)"
+        description="Pusat kelengkapan administrasi Modul Ajar (RPP) guru & media materi belajar interaktif siswa."
         icon={BookOpen}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
+
+      {/* TOP UNIFIED KPI SUMMARY STRIP (1x Lihat Langsung Paham) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div 
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
+            style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+          >
+            <FileText size={20} className="stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider truncate">
+              {isCurriculum ? 'Total Modul RPP' : 'Modul RPP Saya'}
+            </p>
+            <p className="text-xl font-black text-slate-800 leading-tight">
+              {isCurriculum ? documents.length : myDocuments.length} <span className="text-xs font-bold text-slate-400">Berkas</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100">
+            <BookOpenText size={20} className="stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider truncate">
+              {isCurriculum ? 'Materi Publik' : 'Materi Siswa Saya'}
+            </p>
+            <p className="text-xl font-black text-slate-800 leading-tight">
+              {isCurriculum ? materiList.length : myMateri.length} <span className="text-xs font-bold text-slate-400">Materi</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+            <Calendar size={20} className="stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider truncate">Tahun Ajaran</p>
+            <p className="text-sm font-black text-indigo-900 truncate" title={activeYear || 'Belum diatur'}>
+              {activeYear || 'Belum diatur'}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+            <GraduationCap size={20} className="stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider truncate">
+              {userRole === 'guru' ? 'Mapel Diampu' : 'Status Pengumpulan'}
+            </p>
+            <p className="text-sm font-black text-slate-800 truncate" title={userRole === 'guru' ? (mySubjects.join(', ') || 'Umum') : `${stats.percentage}% Selesai`}>
+              {userRole === 'guru' ? (mySubjects.join(', ') || 'Guru Pengampu') : `${stats.submitted}/${stats.total} Guru`}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* ── TAB: Penyusunan RPP (Silabus Kurikulum) ── */}
       {activeTab === 'silabus' && isCurriculum && (
@@ -499,85 +698,82 @@ export default function ModulAjar(props) {
         </Suspense>
       )}
 
-      {/* ── TAB: Monitoring Pengumpulan RPP ── */}
+      {/* ── TAB: Monitoring Pengumpulan RPP (Kurikulum) ── */}
       {activeTab === 'rekap' && isCurriculum && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Total Guru', value: stats.total, icon: Users, color: 'bg-blue-50 text-blue-500' },
-              { label: 'Sudah Kumpul', value: stats.submitted, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-500', textColor: 'text-emerald-700' },
-              { label: 'Belum Kumpul', value: stats.pending, icon: AlertCircle, color: 'bg-rose-50 text-rose-500', textColor: 'text-rose-700' },
-              { label: 'Persentase', value: `${stats.percentage}%`, icon: RefreshCw, color: 'bg-indigo-50 text-indigo-500', textColor: 'text-indigo-700' },
-            ].map(({ label, value, icon: Icon, color, textColor }) => (
-              <div key={label} className="ui-card p-5 flex items-center gap-4 bg-white">
-                <div className={`w-12 h-12 rounded-[var(--ui-radius-small)] ${color} flex items-center justify-center shrink-0`}>
-                  <Icon size={22} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-                  <p className={`text-3xl font-black ${textColor || 'text-slate-800'}`}>{value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Table */}
-          <div className="ui-card p-6 space-y-4">
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="font-bold text-slate-800 text-sm">Status Pengumpulan TA: <span className="text-[var(--ui-primary)] font-extrabold">{activeYear || 'Belum diaktifkan'}</span></h3>
-                <p className="text-xs text-slate-400 mt-1">{stats.submitted}/{stats.total} guru sudah mengumpulkan &bull; {stats.percentage}% selesai</p>
+                <h3 className="font-black text-slate-800 text-base">Monitoring Dokumen Modul Ajar (RPP)</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tahun Ajaran Aktif: <span className="font-extrabold text-[var(--ui-primary)]">{activeYear || 'Semua TA'}</span> &bull; {stats.submitted} dari {stats.total} Guru sudah mengumpulkan ({stats.percentage}%)
+                </p>
               </div>
               <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                <input value={monitoringSearch} onChange={e => setMonitoringSearch(e.target.value)} placeholder="Cari nama guru..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                <input 
+                  value={monitoringSearch} 
+                  onChange={e => setMonitoringSearch(e.target.value)} 
+                  placeholder="Cari nama / kode guru..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)]" 
+                />
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
-              <table className="w-full text-sm">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 font-bold text-left">Nama Guru</th>
-                    <th className="px-6 py-4 font-bold text-left">Kode</th>
-                    <th className="px-6 py-4 font-bold text-left">Mengajar / Walas</th>
-                    <th className="px-6 py-4 font-bold text-center w-48">Status</th>
-                    <th className="px-6 py-4 font-bold text-left">Dokumen Modul Ajar</th>
+                    <th className="px-4 py-3 font-bold">Nama Guru</th>
+                    <th className="px-4 py-3 font-bold">Kode</th>
+                    <th className="px-4 py-3 font-bold">Tugas Mengajar / Walas</th>
+                    <th className="px-4 py-3 text-center font-bold">Status</th>
+                    <th className="px-4 py-3 font-bold">Dokumen Modul Ajar</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {isLoading ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400 animate-pulse">Memuat data guru...</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-400 animate-pulse font-bold">Memuat data guru...</td></tr>
                   ) : monitoringData.filter(t => !monitoringSearch || t.name.toLowerCase().includes(monitoringSearch.toLowerCase()) || t.code.toLowerCase().includes(monitoringSearch.toLowerCase())).length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">Tidak ada data guru {monitoringSearch ? 'yang cocok' : 'aktif'}.</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-400 font-medium">Tidak ada data guru yang cocok.</td></tr>
                   ) : (
                     monitoringData.filter(t => !monitoringSearch || t.name.toLowerCase().includes(monitoringSearch.toLowerCase()) || t.code.toLowerCase().includes(monitoringSearch.toLowerCase())).map(teacher => (
-                      <tr key={teacher.code} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{teacher.name}</td>
-                        <td className="px-6 py-4 font-mono text-xs text-slate-500">{teacher.code}</td>
-                        <td className="px-6 py-4 text-slate-600">{teacher.class_name}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold ${teacher.hasSubmitted ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                            {teacher.hasSubmitted ? <><CheckCircle2 size={13} className="text-emerald-600" /><span>Sudah Mengumpulkan</span></> : <><AlertCircle size={13} className="text-rose-600" /><span>Belum Mengumpulkan</span></>}
+                      <tr key={teacher.code} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-4 py-3 font-bold text-slate-800">{teacher.name}</td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-slate-500">{teacher.code}</td>
+                        <td className="px-4 py-3 text-slate-600 font-medium">{teacher.class_name}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                            teacher.hasSubmitted ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                          }`}>
+                            {teacher.hasSubmitted ? <CheckCircle2 size={12} className="text-emerald-600 shrink-0" /> : <AlertCircle size={12} className="text-rose-600 shrink-0" />}
+                            <span>{teacher.hasSubmitted ? 'Sudah Kumpul' : 'Belum Kumpul'}</span>
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           {teacher.hasSubmitted ? (
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                               {teacher.documents.map(d => (
-                                <div key={d.id} className="flex flex-col gap-0.5 border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
-                                  <span className="text-[11px] font-black text-slate-800">{d.mapel || 'Umum'} ({d.kelas || '-'} - {d.semester || '-'})</span>
-                                  <div className="flex items-center gap-1.5">
-                                    <FileText size={12} className="text-slate-400 shrink-0" />
-                                    <span onClick={() => downloadFile(d.file_url, d.nama_dokumen)} className="text-blue-600 hover:underline text-[11px] truncate max-w-[140px] cursor-pointer" title={d.nama_dokumen}>{d.nama_dokumen}</span>
-                                    <Button variant="outline" onClick={() => handlePreviewPdf(d)} className="cursor-pointer flex items-center" title="Pratinjau"><Eye size={12} /></Button>
+                                <div key={d.id} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-200/70">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <FileText size={13} className="text-rose-500 shrink-0" />
+                                    <span className="font-bold text-slate-800 truncate max-w-[150px]" title={d.nama_dokumen}>{d.nama_dokumen}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold">({d.mapel || 'Umum'} - {d.kelas || '-'})</span>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button variant="outline" onClick={() => handlePreviewPdf(d)} className="p-1 text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer" title="Pratinjau">
+                                      <Eye size={12} />
+                                    </Button>
+                                    <Button onClick={() => downloadFile(d.file_url, d.nama_dokumen)} className="p-1 bg-[var(--ui-primary)] text-white rounded-md cursor-pointer" title="Unduh">
+                                      <Download size={12} />
+                                    </Button>
                                   </div>
                                 </div>
                               ))}
                             </div>
-                          ) : <span className="text-slate-400 text-xs italic">-</span>}
+                          ) : (
+                            <span className="text-slate-400 italic text-[11px]">- Belum ada berkas -</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -589,444 +785,874 @@ export default function ModulAjar(props) {
         </div>
       )}
 
-      {/* ── TAB: Arsip Semua Modul Ajar ── */}
+      {/* ── TAB 1: Modul Saya (Arsip Modul RPP) ── */}
       {activeTab === 'daftar' && (
-        <div className="ui-card p-6 space-y-4 animate-in fade-in duration-200">
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">
-                {isCurriculum ? 'Arsip Modul Ajar (RPP)' : 'Modul Ajar Saya'}
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                {isCurriculum ? 'Seluruh file RPP yang telah diunggah guru.' : 'Daftar Modul Ajar (RPP) yang telah Anda unggah.'}
-              </p>
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* Header Action & Filter Bar */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h3 className="text-base font-black text-slate-800">
+                  {isCurriculum ? 'Arsip Seluruh Modul Ajar (RPP)' : 'Daftar Modul Ajar (RPP) Saya'}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {isCurriculum ? 'Seluruh berkas RPP yang telah diunggah oleh guru pengampu.' : 'Dokumen RPP yang telah Anda serahkan untuk evaluasi kurikulum.'}
+                </p>
+              </div>
+
+              {userRole === 'guru' && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('unggah')}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--ui-primary)] hover:opacity-90 text-white font-black text-xs shadow-xs transition-all cursor-pointer border-none"
+                >
+                  <UploadCloud size={15} />
+                  <span>Unggah Modul Baru</span>
+                </button>
+              )}
             </div>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Cari modul..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none" />
+
+            {/* Filter Tools */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                  placeholder="Cari berdasarkan judul, mapel, kelas..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)]" 
+                />
+              </div>
+
+              {availableSubjects.length > 0 && (
+                <UISelect 
+                  value={filterMapel} 
+                  onChange={e => setFilterMapel(e.target.value)}
+                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                >
+                  <option value="all">Semua Mata Pelajaran</option>
+                  {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                </UISelect>
+              )}
             </div>
           </div>
 
-          {/* Mobile Card List View (< sm) */}
-          <div className="sm:hidden flex flex-col gap-3">
-            {(isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 ? (
-              <div className="p-6 text-center text-slate-400 font-bold bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
-                Tidak ada Modul Ajar yang diunggah.
+          {/* Document Content List */}
+          {filteredDocuments.length === 0 ? (
+            <div className="p-8 sm:p-12 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-center flex flex-col items-center justify-center gap-3">
+              <div 
+                className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner"
+                style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+              >
+                <FileText size={32} className="stroke-[2.2]" />
               </div>
-            ) : (
-              (isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).map(doc => {
+              <h4 className="text-base font-black text-slate-800">Belum Ada Modul Ajar (RPP)</h4>
+              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+                {userRole === 'guru' 
+                  ? 'Anda belum mengunggah dokumen Modul Ajar (RPP). Klik tombol di bawah untuk mengunggah berkas PDF Modul Ajar Anda.' 
+                  : 'Belum ada guru yang mengunggah dokumen Modul Ajar untuk filter yang dipilih.'}
+              </p>
+              {userRole === 'guru' && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('unggah')}
+                  className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--ui-primary)] hover:opacity-90 text-white font-black text-xs shadow-xs transition-all cursor-pointer border-none"
+                >
+                  <UploadCloud size={16} />
+                  <span>Unggah Modul Ajar Sekarang</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDocuments.map(doc => {
                 const isMyOwn = doc.teacher_code === teacherCode;
                 const canDelete = isCurriculum || isMyOwn;
                 return (
-                  <div key={doc.id} className="bg-white rounded-[var(--ui-radius-small)] p-3.5 border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                      <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100">
-                        {doc.mapel || 'Umum'}
-                      </span>
-                      <span className="text-[10.5px] font-bold text-slate-500">
-                        Kelas {doc.kelas || '-'} ({doc.semester || '-'})
-                      </span>
-                    </div>
-
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <FileText size={16} className="text-rose-600" />
+                  <div 
+                    key={doc.id} 
+                    className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-[var(--ui-primary)]/40 hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="px-2.5 py-1 rounded-lg bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-xs">
+                          {doc.mapel || 'Umum'}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px]">
+                          Kelas {doc.kelas || '-'} ({doc.semester || '-'})
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-black text-slate-800 leading-snug truncate" title={doc.nama_dokumen}>
-                          {doc.nama_dokumen}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1 text-[10.5px] text-slate-500 font-medium">
-                          <span>Guru: <b className="text-slate-700">{doc.teacher_name}</b></span>
-                          <span>•</span>
-                          <span>TA: <b className="text-slate-700">{doc.tahun_ajaran}</b></span>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                          <FileText size={20} className="text-rose-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-sm font-black text-slate-800 leading-snug truncate" title={doc.nama_dokumen}>
+                            {doc.nama_dokumen}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 font-medium">
+                            <span>Guru: <strong className="text-slate-700">{doc.teacher_name}</strong></span>
+                            <span>&bull;</span>
+                            <span>TA: <strong className="text-slate-700">{doc.tahun_ajaran}</strong></span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                      <Button variant="outline" onClick={() => handlePreviewPdf(doc)} className="flex-1 py-1.5 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer">
-                        <Eye size={13} /> Pratinjau
+                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handlePreviewPdf(doc)} 
+                        className="flex-1 py-2 text-xs font-black flex items-center justify-center gap-1.5 rounded-xl border-slate-200 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <Eye size={14} className="text-slate-600" />
+                        <span>Pratinjau</span>
                       </Button>
-                      <Button onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)} className="flex-1 py-1.5 text-xs font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 flex items-center justify-center gap-1 cursor-pointer">
-                        <Download size={13} /> Unduh
+                      <Button 
+                        onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)}
+                        className="flex-1 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                      >
+                        <Download size={14} />
+                        <span>Unduh</span>
                       </Button>
                       {canDelete && (
-                        <Button variant="outline" onClick={() => handleDelete(doc.id, doc.teacher_code)} className="p-1.5 text-rose-600 hover:bg-rose-50 border-rose-200 cursor-pointer" title="Hapus Modul">
-                          <Trash2 size={13} />
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleDelete(doc.id, doc.teacher_code)} 
+                          className="p-2 text-rose-600 hover:bg-rose-50 border-rose-200 rounded-xl cursor-pointer" 
+                          title="Hapus Modul"
+                        >
+                          <Trash2 size={15} />
                         </Button>
                       )}
                     </div>
                   </div>
                 );
-              })
-            )}
-          </div>
-
-          {/* Desktop Table View (>= sm) */}
-          <div className="hidden sm:block overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
-            <table className="w-full text-sm">
-              <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 font-bold text-left">Mata Pelajaran</th>
-                  <th className="px-6 py-4 font-bold text-left">Kelas &amp; Sem.</th>
-                  <th className="px-6 py-4 font-bold text-left">Guru Pengunggah</th>
-                  <th className="px-6 py-4 font-bold text-left w-48">Tahun Ajaran</th>
-                  <th className="px-6 py-4 font-bold text-left">Berkas</th>
-                  <th className="px-6 py-4 font-bold text-right w-36">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 ? (
-                  <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-400">Tidak ada Modul Ajar yang diunggah.</td></tr>
-                ) : (
-                  (isCurriculum ? filteredDocuments : myDocuments.filter(d => d.nama_dokumen?.toLowerCase().includes(searchTerm.toLowerCase()))).map(doc => {
-                    const isMyOwn = doc.teacher_code === teacherCode;
-                    const canDelete = isCurriculum || isMyOwn;
-                    return (
-                      <tr key={doc.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{doc.mapel || 'Umum'}</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{doc.kelas || '-'} ({doc.semester || '-'})</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{doc.teacher_name}</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{doc.tahun_ajaran}</td>
-                        <td className="px-6 py-4 text-slate-500 text-xs">
-                          <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-rose-500 shrink-0" />
-                            <span className="truncate max-w-[150px]" title={doc.nama_dokumen}>{doc.nama_dokumen}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                          <Button variant="outline" onClick={() => handlePreviewPdf(doc)} className="flex items-center gap-1 cursor-pointer" title="Pratinjau berkas">
-                            <Eye size={14} /> Pratinjau</Button>
-                          <Button onClick={() => downloadFile(doc.file_url, doc.nama_dokumen)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
-                            title="Unduh berkas"><Download size={14} /> Unduh</Button>
-                          {canDelete && (
-                            <Button variant="outline" onClick={() => handleDelete(doc.id, doc.teacher_code)}
-                              className="cursor-pointer" title="Hapus Modul"><Trash2 size={14} /></Button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── TAB: Upload Modul Ajar (RPP) ── */}
+      {/* ── TAB 2: Upload Modul Ajar (1x Lihat Langsung Paham) ── */}
       {activeTab === 'unggah' && userRole === 'guru' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-6 animate-in fade-in duration-200">
-          <div className="ui-card p-5 space-y-4 h-fit">
-            <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Upload size={16} className="text-[var(--ui-primary)]" /> Unggah Modul Ajar (RPP) Baru
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-in fade-in duration-200">
+          {/* Main Interactive Upload Form (7 cols) */}
+          <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[var(--ui-primary)]">
+                Formulir Administrasi Guru
+              </span>
+              <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 mt-0.5">
+                <UploadCloud size={20} className="text-[var(--ui-primary)]" />
+                Unggah Modul Ajar (RPP)
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Lengkapi identitas KBM dan pilih berkas PDF RPP Anda. Berkas ini akan langsung tersimpan di arsip sekolah.
+              </p>
+            </div>
+
             <form onSubmit={handleUploadSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Mata Pelajaran</label>
-                <UISelect value={form.mapel} required onChange={e => setForm({ ...form, mapel: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                  <option value="">-- Pilih Mata Pelajaran --</option>
-                  {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-                </UISelect>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Kelas</label>
-                <UISelect value={form.kelas} required onChange={e => setForm({ ...form, kelas: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                  <option value="">-- Pilih Kelas --</option>
-                  {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                </UISelect>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Semester</label>
-                <UISelect value={form.semester} required onChange={e => setForm({ ...form, semester: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                  <option value="Ganjil">Semester Ganjil</option>
-                  <option value="Genap">Semester Genap</option>
-                </UISelect>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">File Berkas (PDF)</label>
-                <input id="file-input" type="file" required accept=".pdf" onChange={handleFileChange}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-[var(--ui-radius-small)] file:border-0 file:text-sm file:font-semibold file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90" />
-              </div>
-              {form.nama_dokumen && (
-                <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] text-xs space-y-1">
-                  <p className="text-slate-500">File terpilih:</p>
-                  <p className="font-bold text-slate-800 truncate">{form.nama_dokumen}</p>
+              {/* STEP 1: IDENTITAS PEMBELAJARAN */}
+              <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[11px] font-black flex items-center justify-center shrink-0">
+                    1
+                  </span>
+                  <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                    Identitas Mata Pelajaran &amp; Kelas
+                  </h4>
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                      Mata Pelajaran <span className="text-rose-500">*</span>
+                    </label>
+                    <UISelect 
+                      value={form.mapel} 
+                      required 
+                      onChange={e => setForm({ ...form, mapel: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
+                    >
+                      <option value="">-- Pilih Mata Pelajaran --</option>
+                      {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                    </UISelect>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                      Kelas Sasaran <span className="text-rose-500">*</span>
+                    </label>
+                    <UISelect 
+                      value={form.kelas} 
+                      required 
+                      onChange={e => setForm({ ...form, kelas: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
+                    >
+                      <option value="">-- Pilih Kelas --</option>
+                      {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                    </UISelect>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                      Semester <span className="text-rose-500">*</span>
+                    </label>
+                    <UISelect 
+                      value={form.semester} 
+                      required 
+                      onChange={e => setForm({ ...form, semester: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
+                    >
+                      <option value="Ganjil">Semester Ganjil</option>
+                      <option value="Genap">Semester Genap</option>
+                    </UISelect>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                      Tahun Ajaran <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={form.tahun_ajaran || activeYear || '2026/2027'}
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 2: BERKAS DOKUMEN (PDF DRAG & DROP ZONE) */}
+              <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[11px] font-black flex items-center justify-center shrink-0">
+                      2
+                    </span>
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                      Pilih Berkas Modul Ajar (PDF) <span className="text-rose-500">*</span>
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">Maks. 5 MB (.pdf)</span>
+                </div>
+
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      processModulFile(e.dataTransfer.files[0]);
+                    }
+                  }}
+                  onClick={() => document.getElementById('file-input')?.click()}
+                  className={`p-6 rounded-2xl border-2 border-dashed text-center flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
+                    form.file_url 
+                      ? 'bg-emerald-50/60 border-emerald-300' 
+                      : isDragging 
+                        ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)]' 
+                        : 'bg-white border-slate-300 hover:bg-slate-50/80 hover:border-[var(--ui-primary)]/50'
+                  }`}
+                >
+                  <input 
+                    id="file-input" 
+                    type="file" 
+                    accept=".pdf" 
+                    onChange={handleFileChange}
+                    className="hidden" 
+                  />
+
+                  {form.file_url ? (
+                    <div className="space-y-1.5 animate-in zoom-in-95 duration-150">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
+                        <CheckCircle2 size={24} className="stroke-[2.5]" />
+                      </div>
+                      <p className="text-xs font-black text-slate-800 truncate max-w-xs">{form.nama_dokumen}</p>
+                      <p className="text-[11px] font-bold text-emerald-700">{form.file_size} &bull; Siap diunggah</p>
+                      <span className="inline-block text-[10px] font-bold text-slate-400 hover:text-rose-600 underline mt-1">
+                        Klik untuk mengganti berkas
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner"
+                        style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+                      >
+                        <UploadCloud size={24} className="stroke-[2.2]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800">
+                          Tarik berkas PDF ke sini atau <span className="text-[var(--ui-primary)] underline">Cari Berkas</span>
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-400 mt-0.5">
+                          Hanya format PDF dengan ukuran maksimal 5MB
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Error Message */}
               {uploadError && (
-                <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{uploadError}</span>
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold animate-in zoom-in-95 duration-200">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                  <span>{uploadError}</span>
                 </div>
               )}
-              <button type="submit" disabled={isUploading || !form.file_url}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white text-sm font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed">
-                <Upload size={14} /> {isUploading ? 'Mengunggah...' : 'Unggah Modul Ajar'}
+
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                disabled={isUploading || !form.file_url}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-xl transition-all cursor-pointer border-none shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading ? (
+                  <>
+                    <RefreshCw size={15} className="animate-spin" />
+                    <span>Sedang Mengunggah Modul...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={16} />
+                    <span>Simpan &amp; Unggah Modul Ajar</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
 
-          <div className="ui-card p-6 space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3">Riwayat Unggahan Modul Saya</h3>
-            <div className="overflow-x-auto border border-slate-150 rounded-[var(--ui-radius-small)]">
-              <table className="w-full text-sm">
-                <thead className="text-xs text-slate-500 bg-slate-50 border-b border-slate-200 uppercase">
-                  <tr>
-                    <th className="px-6 py-4 font-bold text-left">Mata Pelajaran</th>
-                    <th className="px-6 py-4 font-bold text-left">Kelas &amp; Sem.</th>
-                    <th className="px-6 py-4 font-bold text-left w-36">Tahun Ajaran</th>
-                    <th className="px-6 py-4 font-bold text-left">Berkas</th>
-                    <th className="px-6 py-4 font-bold text-right w-24">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myDocuments.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">Anda belum mengunggah Modul Ajar.</td></tr>
-                  ) : (
-                    myDocuments.map(doc => (
-                      <tr key={doc.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{doc.mapel || 'Umum'}</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{doc.kelas || '-'} ({doc.semester || '-'})</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{doc.tahun_ajaran}</td>
-                        <td className="px-6 py-4 text-slate-500 text-xs">
-                          <div className="flex items-center gap-2">
-                            <FileText size={14} className="text-rose-500 shrink-0" />
-                            <span className="truncate max-w-[150px]" title={doc.nama_dokumen}>{doc.nama_dokumen}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right flex items-center justify-end gap-1.5">
-                          <Button variant="outline" onClick={() => handlePreviewPdf(doc)} className="flex items-center gap-1 cursor-pointer" title="Pratinjau"><Eye size={12} /> Lihat</Button>
-                          <Button variant="outline" onClick={() => handleDelete(doc.id, doc.teacher_code)} className="cursor-pointer" title="Hapus"><Trash2 size={14} /></Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {/* Right Side: Quick History & Tips (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            {/* Quick Upload History */}
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <FileCheck size={16} className="text-[var(--ui-primary)]" />
+                  Modul Yang Sudah Diunggah
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black">
+                  {myDocuments.length} Dokumen
+                </span>
+              </div>
+
+              {myDocuments.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 space-y-1">
+                  <FileText size={28} className="mx-auto opacity-30" />
+                  <p className="text-xs font-bold">Belum ada modul yang diunggah.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                  {myDocuments.map(doc => (
+                    <div key={doc.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] text-[9px] font-black">
+                            {doc.mapel}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500">
+                            Kelas {doc.kelas} ({doc.semester})
+                          </span>
+                        </div>
+                        <p className="text-xs font-black text-slate-800 truncate mt-1" title={doc.nama_dokumen}>
+                          {doc.nama_dokumen}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handlePreviewPdf(doc)} 
+                          className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-lg cursor-pointer" 
+                          title="Pratinjau"
+                        >
+                          <Eye size={13} />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleDelete(doc.id, doc.teacher_code)} 
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 border-rose-200 rounded-lg cursor-pointer" 
+                          title="Hapus"
+                        >
+                          <Trash2 size={13} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Instruction Tip Card */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-800 font-black text-xs">
+                <Sparkles size={16} className="text-emerald-600 shrink-0" />
+                <span>Petunjuk Format Modul Ajar</span>
+              </div>
+              <ul className="text-[11px] text-slate-600 space-y-1 pl-4 list-disc font-medium">
+                <li>Format file wajib dalam bentuk <strong>.PDF</strong> (Maks. 5MB).</li>
+                <li>Pastikan dokumen mencakup: <em>Tujuan Pembelajaran, Langkah KBM, dan Asesmen/Rubrik Penilaian</em>.</li>
+                <li>Modul yang diunggah akan otomatis terverifikasi pada monitoring kurikulum.</li>
+              </ul>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── TAB: Materi Ajar (Semua — Kurikulum) ── */}
-      {activeTab === 'materi-daftar' && isCurriculum && (
-        <div className="ui-card p-6 space-y-4 animate-in fade-in duration-200">
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Materi Ajar Publik</h3>
-              <p className="text-xs text-slate-500 mt-1">Seluruh materi belajar yang tersedia untuk siswa di halaman publik <span className="font-bold text-[var(--ui-primary)]">/materi-ajar</span>.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <a href="/materi-ajar" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline">
-                <ExternalLink size={12} /> Buka Halaman Publik
-              </a>
-              <div className="relative w-full md:w-52">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                <input value={materiSearch} onChange={e => setMateriSearch(e.target.value)} placeholder="Cari materi..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none" />
+      {/* ── TAB 3: Materi Saya (Media Belajar Siswa) ── */}
+      {activeTab === 'materi-saya' && userRole === 'guru' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h3 className="text-base font-black text-slate-800">Materi Pembelajaran Publik Saya</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Materi yang Anda publikasikan dapat diakses langsung oleh siswa melalui halaman materi publik.
+                </p>
               </div>
+
+              <div className="flex items-center gap-2">
+                <a 
+                  href="/materi-ajar" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all no-underline shrink-0"
+                >
+                  <ExternalLink size={13} />
+                  <span>Lihat Layar Siswa</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('materi-unggah')}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--ui-primary)] hover:opacity-90 text-white font-black text-xs shadow-xs transition-all cursor-pointer border-none"
+                >
+                  <Upload size={14} />
+                  <span>Upload Materi Baru</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Tools */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  value={materiSearch} 
+                  onChange={e => setMateriSearch(e.target.value)} 
+                  placeholder="Cari materi pembelajaran..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)]" 
+                />
+              </div>
+
+              <UISelect 
+                value={materiFilterTipe} 
+                onChange={e => setMateriFilterTipe(e.target.value)}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+              >
+                <option value="all">Semua Format</option>
+                <option value="file">Berkas PDF</option>
+                <option value="link">Tautan Media</option>
+              </UISelect>
             </div>
           </div>
 
+          {/* List Content */}
           {isMateriLoading ? (
-            <div className="py-12 text-center text-slate-400 animate-pulse">Memuat materi ajar...</div>
+            <div className="p-12 text-center text-slate-400 font-bold animate-pulse">Memuat materi ajar...</div>
           ) : filteredMateri.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">
-              <BookOpenText size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-bold">Belum ada materi ajar yang dipublikasikan.</p>
+            <div className="p-8 sm:p-12 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-center flex flex-col items-center justify-center gap-3">
+              <div 
+                className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner"
+                style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+              >
+                <BookOpenText size={32} className="stroke-[2.2]" />
+              </div>
+              <h4 className="text-base font-black text-slate-800">Belum Ada Materi Pembelajaran</h4>
+              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+                Anda belum mempublikasikan materi pembelajaran untuk siswa. Bagikan modul atau video agar siswa dapat belajar mandiri.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('materi-unggah')}
+                className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--ui-primary)] hover:opacity-90 text-white font-black text-xs shadow-xs transition-all cursor-pointer border-none"
+              >
+                <Upload size={16} />
+                <span>Publikasikan Materi Sekarang</span>
+              </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredMateri.map(item => renderMateriCard(item, true))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 4: Upload Materi Ajar (Publik) ── */}
+      {activeTab === 'materi-unggah' && userRole === 'guru' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-in fade-in duration-200">
+          {/* Main Upload Form (7 cols) */}
+          <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[var(--ui-primary)]">
+                Publikasi Siswa
+              </span>
+              <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 mt-0.5">
+                <BookOpenText size={20} className="text-[var(--ui-primary)]" />
+                Publikasikan Materi Ajar Siswa
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Materi yang dipublikasikan akan langsung muncul di beranda materi belajar siswa.
+              </p>
+            </div>
+
+            <form onSubmit={handleMateriUploadSubmit} className="space-y-4">
+              {/* Jenis Materi Switcher (PDF vs Link) */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
+                  Pilih Format Materi <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setMateriForm(f => ({ ...f, tipe: 'file' }))}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      materiForm.tipe === 'file' 
+                        ? 'bg-white text-[var(--ui-primary)] shadow-xs' 
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText size={16} />
+                    <span>Berkas Dokumen (PDF)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMateriForm(f => ({ ...f, tipe: 'link' }))}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      materiForm.tipe === 'link' 
+                        ? 'bg-white text-[var(--ui-primary)] shadow-xs' 
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Link2 size={16} />
+                    <span>Tautan Video / Drive</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Judul Materi */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Judul Materi Pembelajaran <span className="text-rose-500">*</span>
+                </label>
+                <input 
+                  value={materiForm.judul} 
+                  required 
+                  onChange={e => setMateriForm(f => ({ ...f, judul: e.target.value }))}
+                  placeholder="Contoh: Bab 1: Pengenalan Algoritma &amp; Pemrograman"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all" 
+                />
+              </div>
+
+              {/* Mapel & Kelas Target */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Mata Pelajaran <span className="text-rose-500">*</span>
+                  </label>
+                  <UISelect 
+                    value={materiForm.mapel} 
+                    required 
+                    onChange={e => setMateriForm(f => ({ ...f, mapel: e.target.value }))}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                  >
+                    <option value="">-- Pilih Mata Pelajaran --</option>
+                    {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                  </UISelect>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Kelas Sasaran
+                  </label>
+                  <UISelect 
+                    value={materiForm.kelas_target} 
+                    onChange={e => setMateriForm(f => ({ ...f, kelas_target: e.target.value }))}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                  >
+                    <option value="">Semua Kelas</option>
+                    {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </UISelect>
+                </div>
+              </div>
+
+              {/* File Upload Zone OR Link Input */}
+              {materiForm.tipe === 'file' ? (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Unggah Berkas PDF Materi <span className="text-rose-500">*</span>
+                  </label>
+                  <div 
+                    onDragOver={(e) => { e.preventDefault(); setIsMateriDragging(true); }}
+                    onDragLeave={() => setIsMateriDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsMateriDragging(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        processMateriFile(e.dataTransfer.files[0]);
+                      }
+                    }}
+                    onClick={() => document.getElementById('materi-file-input')?.click()}
+                    className={`p-6 rounded-2xl border-2 border-dashed text-center flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
+                      materiForm.file_url 
+                        ? 'bg-emerald-50/60 border-emerald-300' 
+                        : isMateriDragging 
+                          ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)]' 
+                          : 'bg-slate-50 border-slate-300 hover:bg-white hover:border-[var(--ui-primary)]/50'
+                    }`}
+                  >
+                    <input 
+                      id="materi-file-input" 
+                      type="file" 
+                      accept=".pdf" 
+                      onChange={handleMateriFileChange}
+                      className="hidden" 
+                    />
+
+                    {materiForm.file_url ? (
+                      <div className="space-y-1.5 animate-in zoom-in-95 duration-150">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
+                          <CheckCircle2 size={22} className="stroke-[2.5]" />
+                        </div>
+                        <p className="text-xs font-black text-slate-800 truncate max-w-xs">{materiForm.nama_dokumen}</p>
+                        <p className="text-[11px] font-bold text-emerald-700">{materiForm.file_size} &bull; Berkas terpilih</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={24} className="text-slate-400" />
+                        <p className="text-xs font-black text-slate-800">
+                          Tarik berkas PDF materi ke sini atau <span className="text-[var(--ui-primary)] underline">Cari File</span>
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-400">
+                          Maksimal ukuran 5MB (.pdf)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Tautan / URL Materi <span className="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    value={materiForm.link_url} 
+                    required 
+                    onChange={e => setMateriForm(f => ({ ...f, link_url: e.target.value }))}
+                    placeholder="Contoh: https://youtube.com/watch?v=... atau https://drive.google.com/..."
+                    type="url"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all" 
+                  />
+                  <p className="text-[11px] text-slate-400 font-medium mt-1">
+                    Mendukung tautan Google Drive, video YouTube, atau artikel website pembelajaran.
+                  </p>
+                </div>
+              )}
+
+              {/* Deskripsi */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Deskripsi / Ringkasan Materi (Opsional)
+                </label>
+                <textarea 
+                  value={materiForm.deskripsi} 
+                  onChange={e => setMateriForm(f => ({ ...f, deskripsi: e.target.value }))}
+                  placeholder="Tuliskan petunjuk belajar atau ringkasan materi untuk siswa..."
+                  rows={2}
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white resize-none" 
+                />
+              </div>
+
+              {/* Error Message */}
+              {materiUploadError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold animate-in zoom-in-95 duration-200">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                  <span>{materiUploadError}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                disabled={isUploadingMateri}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-xl transition-all cursor-pointer border-none shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploadingMateri ? (
+                  <>
+                    <RefreshCw size={15} className="animate-spin" />
+                    <span>Sedang Mempublikasikan...</span>
+                  </>
+                ) : (
+                  <>
+                    <BookOpenText size={16} />
+                    <span>Publikasikan Materi Sekarang</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Side: Live Card Preview for Students (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Eye size={15} className="text-[var(--ui-primary)]" />
+                  Simulasi Tampilan di Siswa
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                  Pratinjau Nyata
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl border-2 border-slate-200/80 bg-slate-50/50 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-[var(--ui-primary)] text-white text-[10px] font-black uppercase">
+                    {materiForm.mapel || 'Mata Pelajaran'}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    {materiForm.kelas_target ? `Kelas ${materiForm.kelas_target}` : 'Semua Kelas'}
+                  </span>
+                </div>
+
+                <div>
+                  <h5 className="text-sm font-black text-slate-800 leading-snug">
+                    {materiForm.judul || 'Judul Materi Belajar Siswa...'}
+                  </h5>
+                  <p className="text-xs text-slate-500 font-medium mt-1 line-clamp-2">
+                    {materiForm.deskripsi || 'Ringkasan materi pembelajaran akan muncul di bagian ini.'}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200/70 flex items-center justify-between text-[10px] text-slate-400 font-bold">
+                  <span>Guru: {teacherName || 'Bapak/Ibu Guru'}</span>
+                  <span>{materiForm.tipe === 'link' ? 'Tautan Media' : 'Dokumen PDF'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: Materi Publik (Kurikulum View) ── */}
+      {activeTab === 'materi-daftar' && isCurriculum && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h3 className="text-base font-black text-slate-800">Semua Materi Pembelajaran Publik</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Seluruh materi belajar yang telah diunggah oleh guru dan dapat diakses siswa.
+                </p>
+              </div>
+
+              <a 
+                href="/materi-ajar" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-[var(--ui-primary)] hover:opacity-90 transition-all no-underline shadow-xs shrink-0"
+              >
+                <ExternalLink size={13} />
+                <span>Buka Halaman Siswa</span>
+              </a>
+            </div>
+
+            {/* Filter Tools */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  value={materiSearch} 
+                  onChange={e => setMateriSearch(e.target.value)} 
+                  placeholder="Cari materi pembelajaran..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)]" 
+                />
+              </div>
+
+              <UISelect 
+                value={materiFilterTipe} 
+                onChange={e => setMateriFilterTipe(e.target.value)}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+              >
+                <option value="all">Semua Format</option>
+                <option value="file">Berkas PDF</option>
+                <option value="link">Tautan Media</option>
+              </UISelect>
+            </div>
+          </div>
+
+          {/* Grid Content */}
+          {isMateriLoading ? (
+            <div className="p-12 text-center text-slate-400 font-bold animate-pulse">Memuat materi...</div>
+          ) : filteredMateri.length === 0 ? (
+            <div className="p-8 sm:p-12 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-center flex flex-col items-center justify-center gap-3">
+              <BookOpenText size={36} className="text-slate-300" />
+              <h4 className="text-base font-black text-slate-800">Belum Ada Materi Terpublikasi</h4>
+              <p className="text-xs text-slate-500">Belum ada materi ajar yang cocok dengan filter.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMateri.map(item => renderMateriCard(item, isCurriculum))}
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB: Materi Saya (Guru) ── */}
-      {activeTab === 'materi-saya' && userRole === 'guru' && (
-        <div className="ui-card p-6 space-y-4 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Materi Ajar Saya</h3>
-              <p className="text-xs text-slate-500 mt-1">Materi yang Anda publikasikan — dapat dilihat semua siswa.</p>
-            </div>
-            <a href="/materi-ajar" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] text-white bg-[var(--ui-primary)] no-underline shrink-0">
-              <ExternalLink size={12} /> Lihat Tampilan Siswa
-            </a>
-          </div>
-          {isMateriLoading ? (
-            <div className="py-12 text-center text-slate-400 animate-pulse">Memuat materi...</div>
-          ) : myMateri.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">
-              <BookOpenText size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-bold">Anda belum mempublikasikan materi ajar.</p>
-              <p className="text-xs mt-1">Klik tab <strong>Upload Materi</strong> untuk mulai.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {myMateri.map(item => renderMateriCard(item, true))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB: Upload Materi Ajar (Guru) ── */}
-      {activeTab === 'materi-unggah' && userRole === 'guru' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[400px,1fr] gap-6 animate-in fade-in duration-200">
-          <div className="ui-card p-5 space-y-4 h-fit">
-            <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
-              <BookOpenText size={16} className="text-[var(--ui-primary)]" /> Publikasikan Materi Ajar Baru
-            </h3>
-            <p className="text-xs text-slate-500 bg-emerald-50 border border-emerald-100 rounded-[var(--ui-radius-small)] p-3 leading-relaxed">
-              Materi yang Anda upload akan <strong className="text-emerald-700">langsung terlihat oleh semua siswa</strong> di halaman publik. Pastikan materi sudah siap sebelum dipublikasikan.
-            </p>
-            <form onSubmit={handleMateriUploadSubmit} className="space-y-4">
-              {/* Tipe */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Jenis Materi</label>
-                <div className="flex gap-2">
-                  {[{ value: 'file', label: 'File PDF', icon: <FileText size={14} /> }, { value: 'link', label: 'Link/URL', icon: <Link2 size={14} /> }].map(opt => (
-                    <button type="button" key={opt.value}
-                      onClick={() => setMateriForm(f => ({ ...f, tipe: opt.value }))}
-                      className={`flex items-center gap-2 flex-1 py-2.5 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold border transition-all cursor-pointer ${materiForm.tipe === opt.value ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}>
-                      {opt.icon} {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Judul */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Judul Materi *</label>
-                <input value={materiForm.judul} required onChange={e => setMateriForm(f => ({ ...f, judul: e.target.value }))}
-                  placeholder="Contoh: Materi Matematika — Fungsi Trigonometri"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)]" />
-              </div>
-
-              {/* Deskripsi */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Deskripsi (opsional)</label>
-                <textarea value={materiForm.deskripsi} onChange={e => setMateriForm(f => ({ ...f, deskripsi: e.target.value }))}
-                  placeholder="Ringkasan singkat isi materi..."
-                  rows={2}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)] resize-none" />
-              </div>
-
-              {/* File or Link */}
-              {materiForm.tipe === 'file' ? (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2">File PDF *</label>
-                  <input id="materi-file-input" type="file" accept=".pdf" onChange={handleMateriFileChange}
-                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-[var(--ui-radius-small)] file:border-0 file:text-sm file:font-semibold file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90" />
-                  {materiForm.nama_dokumen && (
-                    <p className="mt-1.5 text-xs text-slate-500 font-medium truncate">{materiForm.nama_dokumen}</p>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2">URL Link * <span className="text-slate-400 font-normal">(Google Drive, YouTube, dll)</span></label>
-                  <input value={materiForm.link_url} onChange={e => setMateriForm(f => ({ ...f, link_url: e.target.value }))}
-                    placeholder="https://drive.google.com/... atau https://youtu.be/..."
-                    type="url"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:border-[var(--ui-primary)]" />
-                </div>
-              )}
-
-              {/* Mapel, Kelas, Semester */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2">Mata Pelajaran</label>
-                  <UISelect value={materiForm.mapel} onChange={e => setMateriForm(f => ({ ...f, mapel: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                    <option value="">-- Pilih --</option>
-                    {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-                  </UISelect>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-2">Kelas Target</label>
-                  <UISelect value={materiForm.kelas_target} onChange={e => setMateriForm(f => ({ ...f, kelas_target: e.target.value }))}
-                    className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                    <option value="">Semua Kelas</option>
-                    {availableClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                  </UISelect>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">Semester</label>
-                <UISelect value={materiForm.semester} onChange={e => setMateriForm(f => ({ ...f, semester: e.target.value }))}
-                  className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none">
-                  <option value="Ganjil">Semester Ganjil</option>
-                  <option value="Genap">Semester Genap</option>
-                </UISelect>
-              </div>
-
-              {materiUploadError && (
-                <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{materiUploadError}</span>
-                </div>
-              )}
-              <button type="submit" disabled={isUploadingMateri}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white text-sm font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed">
-                <BookOpenText size={14} /> {isUploadingMateri ? 'Mempublikasikan...' : 'Publikasikan Materi Ajar'}
-              </button>
-            </form>
-          </div>
-
-          {/* Right: Preview already published */}
-          <div className="ui-card p-6 space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3">Materi yang Sudah Dipublikasikan</h3>
-            {myMateri.length === 0 ? (
-              <div className="py-12 text-center text-slate-400">
-                <BookOpenText size={32} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Belum ada materi yang dipublikasikan.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {myMateri.map(item => renderMateriCard(item, true))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Toast */}
+      {/* Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} z-50`}>
-          {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'} z-50`}>
+          {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 
+          <span>{toast.message}</span>
         </div>
       )}
 
-      {/* PDF Preview Modal */}
+      {/* PDF Modal Viewer */}
       {previewDoc && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[var(--ui-radius-card)] w-full max-w-4xl shadow-xs overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <BookOpen className="text-slate-500 w-5 h-5" />
-                <h3 className="font-black text-slate-800 text-sm truncate max-w-lg" title={previewDoc.title}>{previewDoc.title}</h3>
+          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="text-rose-600 w-5 h-5 shrink-0" />
+                <h4 className="font-black text-slate-800 text-xs sm:text-sm truncate max-w-md" title={previewDoc.title}>
+                  {previewDoc.title}
+                </h4>
               </div>
-              <Button variant="outline"
+              <Button 
+                variant="outline"
                 onClick={() => {
                   if (previewDoc.url.startsWith('blob:')) URL.revokeObjectURL(previewDoc.url);
                   setPreviewDoc(null);
                 }}
-                className="flex items-center justify-center cursor-pointer">
-                <X size={18} />
+                className="p-1.5 rounded-lg border-slate-200 hover:bg-slate-200 cursor-pointer"
+              >
+                <X size={16} />
               </Button>
             </div>
             <div className="flex-1 bg-slate-800 p-2 relative flex items-center justify-center">
-              <iframe src={previewDoc.url} title="Pratinjau" className="w-full h-full border-none rounded-[var(--ui-radius-small)] bg-white" />
+              <iframe 
+                src={previewDoc.url} 
+                title="Pratinjau Berkas" 
+                className="w-full h-full border-none rounded-xl bg-white" 
+              />
             </div>
           </div>
         </div>
