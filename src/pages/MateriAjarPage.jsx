@@ -74,16 +74,16 @@ export default function MateriAjarPage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [materiList, dataVersion]);
 
-  const activeSubject = selectedSubject || subjectsList[0] || '';
+  const activeSubject = selectedSubject || '';
 
   const filteredMateri = useMemo(() => {
-    if (!activeSubject) return [];
     return materiList.filter(m => {
-      const matchSubject = m.mapel === activeSubject;
+      const matchSubject = !activeSubject || m.mapel?.toLowerCase() === activeSubject.toLowerCase();
       const matchSearch = !searchQuery ||
         m.judul?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.deskripsi?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.teacher_name?.toLowerCase().includes(searchQuery.toLowerCase());
+        m.teacher_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.mapel?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchSemester = selectedSemester === 'Semua' ||
         m.semester?.toLowerCase() === selectedSemester.toLowerCase();
       return matchSubject && matchSearch && matchSemester;
@@ -117,7 +117,7 @@ export default function MateriAjarPage() {
               <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Materi Ajar</span>
               <div className="flex flex-wrap items-center gap-3 mt-1">
                 <h2 className="text-[20px] font-black text-slate-800 tracking-tight">
-                  {activeSubject || "Mata Pelajaran"}
+                  {activeSubject ? activeSubject : "Semua Mata Pelajaran"}
                 </h2>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function MateriAjarPage() {
                   }}
                   className="w-full"
                 >
-                  <option value="">-- Pilih Mata Pelajaran --</option>
+                  <option value="">Semua Mata Pelajaran</option>
                   {subjectsList.map(subj => (
                     <option key={subj} value={subj}>{subj}</option>
                   ))}
@@ -178,12 +178,6 @@ export default function MateriAjarPage() {
               <div className="w-8 h-8 border-4 border-slate-200 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderTopColor: primaryColor }} />
               <p className="text-xs text-slate-500 font-bold animate-pulse">Memuat materi belajar...</p>
             </div>
-          ) : !activeSubject ? (
-            <div className="text-center py-16 text-slate-400 flex flex-col items-center justify-center gap-2">
-              <BookOpen size={48} className="stroke-1 mb-2 text-slate-300" />
-              <h4 className="font-bold text-slate-700">Belum Ada Mata Pelajaran Terpilih</h4>
-              <p className="text-xs text-slate-500 max-w-xs">Silakan pilih salah satu mata pelajaran di filter atas untuk memuat data.</p>
-            </div>
           ) : (
             <div className="space-y-4 print-block">
               <h3 className="text-[15px] font-black text-slate-800 border-b border-slate-200/60 pb-2.5 flex items-center gap-2">
@@ -195,7 +189,19 @@ export default function MateriAjarPage() {
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <BookOpen size={44} className="text-slate-300 mb-3 stroke-1" />
                   <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
-                  <p className="text-slate-500 text-[13px] max-w-sm">Materi ajar untuk mata pelajaran ini belum dipublikasikan oleh guru.</p>
+                  <p className="text-slate-500 text-[13px] max-w-sm mb-4">
+                    {activeSubject ? `Materi ajar untuk mata pelajaran "${activeSubject}" belum dipublikasikan oleh guru.` : "Belum ada materi ajar yang dipublikasikan."}
+                  </p>
+                  {activeSubject && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedSubject('')}
+                      className="text-xs font-bold"
+                    >
+                      Lihat Semua Mata Pelajaran
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,16 +211,23 @@ export default function MateriAjarPage() {
                       className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-xs"
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          {item.kelas_target ? (
-                            <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
-                              Kelas {item.kelas_target}
-                            </span>
-                          ) : (
-                            <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider">
-                              Semua Kelas
-                            </span>
-                          )}
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {item.mapel && (
+                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+                                {item.mapel}
+                              </span>
+                            )}
+                            {item.kelas_target ? (
+                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+                                Kelas {item.kelas_target}
+                              </span>
+                            ) : (
+                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider">
+                                Semua Kelas
+                              </span>
+                            )}
+                          </div>
                           {item.semester && (
                             <span className="text-[11px] font-bold text-slate-400">
                               Semester {item.semester}

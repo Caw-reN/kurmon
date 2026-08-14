@@ -84,7 +84,7 @@ export default function SilabusPage() {
     return Array.from(list).sort((a, b) => a.localeCompare(b));
   }, [syllabuses, uploadedDocs, dataVersion]);
 
-  const activeSubject = selectedSubject || subjectsList[0] ||"";
+  const activeSubject = selectedSubject || "";
 
   const filteredSubjects = useMemo(() => {
     if (!subjectSearchQuery) return subjectsList;
@@ -97,7 +97,7 @@ export default function SilabusPage() {
   const filteredSessions = useMemo(() => {
     if (!activeSubject) return [];
     return syllabuses.filter(s => {
-      const isSubj = s.subjectName === activeSubject;
+      const isSubj = s.subjectName?.toLowerCase() === activeSubject.toLowerCase();
       const matchesQuery = !searchQuery || 
         (s.title && s.title.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesSemester = selectedSemester ==="Semua" || 
@@ -115,12 +115,12 @@ export default function SilabusPage() {
     : -1;
 
   const filteredDocs = useMemo(() => {
-    if (!activeSubject) return [];
     return uploadedDocs.filter(d => {
-      const isSubj = d.mapel === activeSubject;
+      const isSubj = !activeSubject || d.mapel?.toLowerCase() === activeSubject.toLowerCase();
       const matchesQuery = !searchQuery || 
         (d.nama_dokumen && d.nama_dokumen.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (d.teacher_name && d.teacher_name.toLowerCase().includes(searchQuery.toLowerCase()));
+        (d.teacher_name && d.teacher_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (d.mapel && d.mapel.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesSemester = selectedSemester ==="Semua" || 
         (d.semester && d.semester.toLowerCase().includes(selectedSemester.toLowerCase()));
       return isSubj && matchesQuery && matchesSemester;
@@ -132,45 +132,46 @@ export default function SilabusPage() {
       <div className={`${shellCard} w-full p-5 md:p-6 flex flex-col gap-5 min-h-[550px]`}>
 
         {/* ACTIVE SUBJECT DETAILS PANEL */}
-        {activeSubject ? (
-          <div className="flex flex-col gap-5 animate-in fade-in duration-300">
+        <div className="flex flex-col gap-5 animate-in fade-in duration-300">
 
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-100 print-hidden">
-              <div className="flex-grow">
-                <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Modul Ajar</span>
-                <div className="flex flex-wrap items-center gap-3 mt-1">
-                  <h2 className="text-[20px] font-black text-slate-800 tracking-tight">{activeSubject}</h2>
-                  <Button
-                    onClick={() => window.print()}
-                    data-slot="button"
-                    data-variant="primary"
-                    className="btn-primary-theme"
-                    style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))', color: '#fff' }}
-                  >
-                    Cetak Modul
-                  </Button>
-                </div>
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-100 print-hidden">
+            <div className="flex-grow">
+              <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Modul Ajar</span>
+              <div className="flex flex-wrap items-center gap-3 mt-1">
+                <h2 className="text-[20px] font-black text-slate-800 tracking-tight">
+                  {activeSubject ? activeSubject : "Semua Mata Pelajaran"}
+                </h2>
+                <Button
+                  onClick={() => window.print()}
+                  data-slot="button"
+                  data-variant="primary"
+                  className="btn-primary-theme"
+                  style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))', color: '#fff' }}
+                >
+                  Cetak Modul
+                </Button>
               </div>
+            </div>
 
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3 shrink-0 items-end">
-                {/* Mata Pelajaran Select */}
-                <div className="flex flex-col gap-1 w-full sm:w-[220px]">
-                  <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Mata Pelajaran</span>
-                  <UISelect
-                    value={selectedSubject}
-                    onChange={e => {
-                      setSelectedSubject(e.target.value);
-                      setSearchQuery("");
-                      setSelectedSessionId("");
-                    }}
-                    className="w-full"
-                  >
-                    <option value="">-- Pilih Mata Pelajaran --</option>
-                    {subjectsList.map(subj => (
-                      <option key={subj} value={subj}>{subj}</option>
-                    ))}
-                  </UISelect>
-                </div>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 shrink-0 items-end">
+              {/* Mata Pelajaran Select */}
+              <div className="flex flex-col gap-1 w-full sm:w-[220px]">
+                <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Mata Pelajaran</span>
+                <UISelect
+                  value={selectedSubject}
+                  onChange={e => {
+                    setSelectedSubject(e.target.value);
+                    setSearchQuery("");
+                    setSelectedSessionId("");
+                  }}
+                  className="w-full"
+                >
+                  <option value="">Semua Mata Pelajaran</option>
+                  {subjectsList.map(subj => (
+                    <option key={subj} value={subj}>{subj}</option>
+                  ))}
+                </UISelect>
+              </div>
 
                 {/* Semester Select */}
                 <div className="flex flex-col gap-1 w-full sm:w-[130px]">
@@ -242,7 +243,7 @@ export default function SilabusPage() {
                 </div>
               )}
 
-              {activeSession ? (
+              {activeSession && (
                 <div className="flex flex-col gap-0 mt-2">
                   <div key={activeSession.id || activeSessionIndex} className="bg-transparent border-none p-0 flex flex-col">
                     <div>
@@ -278,17 +279,10 @@ export default function SilabusPage() {
                     </div>
                   </div>
                 </div>
-              ) : filteredDocs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <BookOpen size={44} className="text-slate-300 mb-3 stroke-1" />
-                  <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
-                  <p className="text-slate-500 text-[13px] max-w-sm">Materi modul ajar untuk pencarian ini belum dipublikasikan.</p>
-                </div>
-              ) : null}
-
+              )}
               {/* List of Uploaded PDF Modul Ajar files */}
               {filteredDocs.length > 0 && (
-                <div className="space-y-4 print-block">
+                <div className="space-y-4 print-block mt-4">
                   <h3 className="text-[15px] font-black text-slate-800 border-b border-slate-200/60 pb-2.5 flex items-center gap-2">
                     <BookOpenText size={18} className="text-slate-500" />
                     Berkas Modul Ajar (PDF)
@@ -300,20 +294,29 @@ export default function SilabusPage() {
                         className="p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-slate-100 hover:bg-slate-50 transition-all flex flex-col justify-between gap-3 shadow-sm hover:shadow-xs"
                       >
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
-                              Kelas {doc.kelas}
-                            </span>
-                            <span className="text-[11px] font-bold text-slate-400">
-                              Semester {doc.semester}
-                            </span>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {doc.mapel && (
+                                <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+                                  {doc.mapel}
+                                </span>
+                              )}
+                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+                                Kelas {doc.kelas || doc.kelas_target || 'Semua'}
+                              </span>
+                            </div>
+                            {doc.semester && (
+                              <span className="text-[11px] font-bold text-slate-400">
+                                Semester {doc.semester}
+                              </span>
+                            )}
                           </div>
-                          <h4 className="text-[14px] font-black text-slate-800 leading-snug line-clamp-2" title={doc.nama_dokumen}>
-                            {doc.nama_dokumen}
+                          <h4 className="text-[14px] font-black text-slate-800 leading-snug line-clamp-2" title={doc.nama_dokumen || doc.judul_modul}>
+                            {doc.nama_dokumen || doc.judul_modul}
                           </h4>
                           <div className="flex flex-col gap-0.5 text-xs text-slate-500 font-semibold">
                             <div>Pengunggah: <span className="text-slate-800 font-bold">{doc.teacher_name}</span></div>
-                            <div>Tahun Ajaran: <span className="text-slate-800 font-bold">{doc.tahun_ajaran}</span></div>
+                            {doc.tahun_ajaran && <div>Tahun Ajaran: <span className="text-slate-800 font-bold">{doc.tahun_ajaran}</span></div>}
                           </div>
                         </div>
                         <div className="pt-2 flex gap-2">
@@ -341,14 +344,17 @@ export default function SilabusPage() {
                   </div>
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="text-center py-16 text-slate-400 flex flex-col items-center justify-center gap-2">
-              <BookOpen size={48} className="stroke-1 mb-2 text-slate-300" />
-              <h4 className="font-bold text-slate-700">Belum Ada Mata Pelajaran Terpilih</h4>
-              <p className="text-xs text-slate-500 max-w-xs">Silakan pilih salah satu mata pelajaran di sebelah kiri untuk memuat data.</p>
-            </div>
-          )}
+
+              {filteredSessions.length === 0 && filteredDocs.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <BookOpen size={44} className="text-slate-300 mb-3 stroke-1" />
+                  <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
+                  <p className="text-slate-500 text-[13px] max-w-sm">
+                    {activeSubject ? `Materi modul ajar untuk mata pelajaran "${activeSubject}" belum dipublikasikan.` : "Belum ada modul ajar yang dipublikasikan."}
+                  </p>
+                </div>
+              )}
+          </div>
         </div>
 
       {/* PDF PREVIEW MODAL */}
