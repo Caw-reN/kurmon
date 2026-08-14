@@ -300,7 +300,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
     return;
   }
 
-  // === ABSENSI KELAS KBM (Preview Read-only untuk guru saat mengajar) ===
+  // === ABSENSI KELAS KBM (Sinkronisasi Otomatis Mesin Absensi Hikvision & Izin/Sakit/Alpa) ===
   if (req.method === 'GET' && url.pathname === '/api/kedisiplinan/absensi-kelas') {
     if (!requireAuthenticated(req, res)) return;
     try {
@@ -323,7 +323,36 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       );
       const siswaList = siswaPaged.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
 
-      // 2. Ambil data absensi manual hari ini (sakit/izin/alpa/terlambat/dispen)
+      // 2. Petakan mapping employee_id / NIS dengan mst_students dan hikvision_students
+      const employeeToNisMap = {};
+      siswaList.forEach(s => {
+        const nis = String(s.nis || s.code || s.id || '').trim();
+        employeeToNisMap[nis.toLowerCase()] = nis;
+        if (s.name || s.nama) {
+          employeeToNisMap[String(s.name || s.nama).trim().toLowerCase()] = nis;
+        }
+      });
+
+      try {
+        const { rows: hikStudents } = await dbPool.query("SELECT nis, name FROM hikvision_students");
+        hikStudents.forEach(h => {
+          const hNis = String(h.nis || '').trim().toLowerCase();
+          const hName = String(h.name || '').trim().toLowerCase();
+          const matchedSiswa = siswaList.find(s => {
+            const sNis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
+            const sName = String(s.name || s.nama || '').trim().toLowerCase();
+            return (sName && hName && sName === hName) || sNis === hNis || (hNis.length >= 5 && sNis.length >= 5 && (sNis.endsWith(hNis) || hNis.endsWith(sNis)));
+          });
+          if (matchedSiswa) {
+            const canonNis = String(matchedSiswa.nis || matchedSiswa.code || matchedSiswa.id || '').trim();
+            employeeToNisMap[hNis] = canonNis;
+          }
+        });
+      } catch (e) {
+        console.warn("Hikvision students mapping warning:", e.message);
+      }
+
+      // 3. Ambil data absensi manual (sakit/izin/alpa/terlambat/dispen)
       const { rows: absensiManual } = await dbPool.query(
         `SELECT siswa_nis, status, keterangan FROM kedisiplinan_absensi 
          WHERE tanggal::date = $1::date AND COALESCE(approval_status, 'approved') != 'rejected'`,
@@ -331,45 +360,62 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       );
       const absensiMap = {};
       absensiManual.forEach(a => { 
-        absensiMap[String(a.siswa_nis).trim()] = { status: a.status, keterangan: a.keterangan }; 
+        absensiMap[String(a.siswa_nis).trim().toLowerCase()] = { status: a.status, keterangan: a.keterangan }; 
       });
 
-      // 3. Ambil log Hikvision hari ini (deteksi hadir dan terlambat)
-      const { rows: hikLogs } = await dbPool.query(
-        `SELECT employee_id, status, MIN(timestamp) as first_time FROM hikvision_logs 
-         WHERE timestamp::date = $1::date AND person_type = 'siswa'
-         GROUP BY employee_id, status`,
+      // 4. Ambil log Hikvision hari tersebut
+      const { rows: logsOnDate } = await dbPool.query(
+        `SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str
+         FROM hikvision_logs l
+         WHERE l.timestamp::date = $1::date
+         ORDER BY l.timestamp ASC`,
         [filterDate]
       );
-      const hikMap = {};
-      hikLogs.forEach(l => {
-        const nis = String(l.employee_id).trim();
-        const st = (l.status || '').toLowerCase();
-        const isLate = st.includes('terlambat') || st.includes('late');
-        const timeStr = l.first_time ? new Date(l.first_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':') : '';
-        hikMap[nis] = {
-          hadir: true,
-          isLate,
-          timeStr
-        };
+
+      const studentLogs = {};
+      logsOnDate.forEach(l => {
+        const rawEmp = String(l.employee_id || '').trim().toLowerCase();
+        const nis = employeeToNisMap[rawEmp];
+        if (nis) {
+          const timePart = l.time_str.substring(11, 19); // "HH:MM:SS"
+          if (!studentLogs[nis]) studentLogs[nis] = [];
+          studentLogs[nis].push(timePart);
+        }
       });
 
-      // 4. Bangun status per siswa
+      // 5. Ambil aturan waktu batas keterlambatan
+      let masukLate = "07:15:00";
+      try {
+        const confRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config'");
+        if (confRes.rowCount > 0 && confRes.rows[0].data) {
+          const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+          const sLate = conf.siswa?.masuk_late || conf.masuk_late || "07:15";
+          masukLate = (sLate.length === 5 ? sLate + ":00" : sLate);
+        }
+      } catch (_) {}
+
+      // 6. Bangun status per siswa
       const result = siswaList.map(siswa => {
         const nis = String(siswa.nis || siswa.code || siswa.id || '').trim();
-        const manual = absensiMap[nis];
-        const hik = hikMap[nis];
-        let statusKehadiran = 'Hadir';
-        let keterangan = '';
+        const manual = absensiMap[nis.toLowerCase()];
+        const logs = studentLogs[nis] || [];
+        
+        let statusKehadiran = 'Alpa';
+        let keterangan = 'Tidak ada rekaman absensi';
+        let isLate = false;
+        let scanTime = '';
 
         if (manual) {
           statusKehadiran = manual.status; // Sakit / Izin / Alpa / Dispen / Terlambat
           keterangan = manual.keterangan || '';
-        } else if (hik?.isLate) {
-          statusKehadiran = 'Terlambat';
-          keterangan = `Scan masuk ${hik.timeStr}`;
-        } else if (hik?.timeStr) {
-          keterangan = `Scan masuk ${hik.timeStr}`;
+          if (statusKehadiran.toLowerCase() === 'terlambat') isLate = true;
+        } else if (logs.length > 0) {
+          const morningTaps = logs.filter(t => t < "12:00:00");
+          const firstTap = morningTaps.length > 0 ? morningTaps[0] : logs[0];
+          scanTime = firstTap.substring(0, 5);
+          isLate = firstTap > masukLate;
+          statusKehadiran = isLate ? 'Terlambat' : 'Hadir';
+          keterangan = `Scan masuk ${scanTime}${isLate ? ' (Terlambat)' : ''}`;
         }
 
         return {
@@ -378,8 +424,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           class_name: siswa.class_name || siswa.kelas || filterKelas,
           status: statusKehadiran,
           keterangan,
-          hadir_scan: !!hik,
-          scan_time: hik?.timeStr || ''
+          hadir_scan: logs.length > 0,
+          scan_time: scanTime,
+          is_late: isLate
         };
       });
 

@@ -908,9 +908,9 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   const existingStatusInfo = useMemo(() => getJurnalSubmissionStatus(form.tanggal, jurnal?.submitted_at), [form.tanggal, jurnal?.submitted_at]);
 
   // Fetch Live Attendance from /api/kedisiplinan/absensi-kelas
-  const fetchLiveAttendance = useCallback(async () => {
+  const fetchLiveAttendance = useCallback(async (forceRefresh = false) => {
     if (!className) return;
-    if (jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
+    if (!forceRefresh && jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
       setIsLoadingAttendance(false);
       return;
     }
@@ -925,7 +925,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         if (json.ok && Array.isArray(json.data) && json.data.length > 0) {
           setLiveStudents(json.data);
           const hCount = json.data.filter(s => ['hadir', 'terlambat'].includes((s.status || 'Hadir').toLowerCase())).length;
-          setForm(f => ({ ...f, jumlah_hadir: f.jumlah_hadir > 0 ? f.jumlah_hadir : hCount, rincian_absensi: json.data }));
+          setForm(f => ({ ...f, jumlah_hadir: hCount, rincian_absensi: json.data }));
           setIsLoadingAttendance(false);
           return;
         }
@@ -952,7 +952,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
       });
       setLiveStudents(mapped);
       const hCount = mapped.filter(s => ['hadir', 'terlambat'].includes((s.status || 'Hadir').toLowerCase())).length;
-      setForm(f => ({ ...f, jumlah_hadir: f.jumlah_hadir > 0 ? f.jumlah_hadir : hCount, rincian_absensi: mapped }));
+      setForm(f => ({ ...f, jumlah_hadir: hCount, rincian_absensi: mapped }));
     }
     setIsLoadingAttendance(false);
   }, [className, form.tanggal, authToken, localClassStudents, studentAttendance, jurnal?.rincian_absensi]);
@@ -1039,7 +1039,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   };
 
   const handleSetSinkronAbsensi = () => {
-    fetchLiveAttendance();
+    fetchLiveAttendance(true);
   };
 
   const handleStepHadir = (delta) => {
