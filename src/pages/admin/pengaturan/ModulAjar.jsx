@@ -4,10 +4,10 @@ import {
   Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
   Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, 
   UploadCloud, Plus, Calendar, GraduationCap, ChevronRight, FileCheck,
-  Check, Filter, Layers, PlayCircle, Clock
+  Check, Filter, Layers, PlayCircle, Clock, Zap, Sparkles, ShieldCheck
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { base64ToBlobUrl, downloadFile } from '../../../utils/fileHelper.js';
+import { base64ToBlobUrl, downloadFile, optimizePdfFile } from '../../../utils/fileHelper.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 
@@ -69,8 +69,10 @@ export default function ModulAjar(props) {
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
     mapel: '', semester: 'Ganjil',
-    file_size: null
+    file_size: null, original_size: null,
+    saved_percent: 0, is_compressed: false
   });
+  const [isOptimizingModul, setIsOptimizingModul] = useState(false);
   const [isUploadingModul, setIsUploadingModul] = useState(false);
   const [modulError, setModulError] = useState('');
 
@@ -79,8 +81,10 @@ export default function ModulAjar(props) {
     judul: '', deskripsi: '', tipe: 'file',
     file_url: '', nama_dokumen: '', link_url: '',
     mapel: '', semester: 'Ganjil', tahun_ajaran: activeYear || '',
-    file_size: null
+    file_size: null, original_size: null,
+    saved_percent: 0, is_compressed: false
   });
+  const [isOptimizingMateri, setIsOptimizingMateri] = useState(false);
   const [isUploadingMateri, setIsUploadingMateri] = useState(false);
   const [materiError, setMateriError] = useState('');
 
@@ -168,60 +172,77 @@ export default function ModulAjar(props) {
     }
   }, [tabs]);
 
-  // ── File Handlers ───────────────────────────────────────────
-  const handleModulFile = (file) => {
+  // ── Smart File Processors with Automatic PDF Compression ────
+  const handleModulFile = async (file) => {
     if (!file) return;
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (ext !== '.pdf') {
-      setModulError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
+      setModulError(`Ekstensi berkas "${ext}" tidak diizinkan. Harap pilih berkas dengan format .pdf`);
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setModulError('Ukuran file terlalu besar. Maksimal 5MB.');
+    // Limit: 15 MB max
+    if (file.size > 15 * 1024 * 1024) {
+      setModulError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 15 MB.');
       return;
     }
     setModulError('');
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setModulForm(prev => ({ 
-        ...prev, 
-        file_url: reader.result, 
+    setIsOptimizingModul(true);
+    try {
+      const optResult = await optimizePdfFile(file);
+      setModulForm(prev => ({
+        ...prev,
+        file_url: optResult.dataUrl,
         nama_dokumen: file.name,
-        file_size: (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+        file_size: optResult.compressedSizeStr,
+        original_size: optResult.originalSizeStr,
+        saved_percent: optResult.savedPercent,
+        is_compressed: optResult.isCompressed
       }));
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      setModulError('Gagal memproses berkas PDF.');
+    } finally {
+      setIsOptimizingModul(false);
+    }
   };
 
-  const handleMateriFile = (file) => {
+  const handleMateriFile = async (file) => {
     if (!file) return;
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (ext !== '.pdf') {
-      setMateriError(`Ekstensi file ${ext} tidak diizinkan. Hanya file .pdf.`);
+      setMateriError(`Ekstensi berkas "${ext}" tidak diizinkan. Harap pilih berkas dengan format .pdf`);
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setMateriError('Ukuran file terlalu besar. Maksimal 5MB.');
+    if (file.size > 15 * 1024 * 1024) {
+      setMateriError('Ukuran file terlalu besar! Maksimal ukuran berkas yang diperbolehkan adalah 15 MB.');
       return;
     }
     setMateriError('');
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setMateriForm(prev => ({ 
-        ...prev, 
-        file_url: reader.result, 
+    setIsOptimizingMateri(true);
+    try {
+      const optResult = await optimizePdfFile(file);
+      setMateriForm(prev => ({
+        ...prev,
+        file_url: optResult.dataUrl,
         nama_dokumen: file.name,
-        file_size: (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+        file_size: optResult.compressedSizeStr,
+        original_size: optResult.originalSizeStr,
+        saved_percent: optResult.savedPercent,
+        is_compressed: optResult.isCompressed
       }));
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      setMateriError('Gagal memproses berkas PDF materi.');
+    } finally {
+      setIsOptimizingMateri(false);
+    }
   };
 
   // ── Submit: Upload Modul Ajar (RPP) ─────────────────────────
   const handleModulSubmit = async (e) => {
     e.preventDefault();
     setModulError('');
-    if (!modulForm.file_url) return setModulError('Pilih file Modul Ajar (PDF) terlebih dahulu.');
+    if (!modulForm.file_url) return setModulError('Pilih berkas Modul Ajar (PDF) terlebih dahulu.');
     if (!modulForm.mapel) return setModulError('Pilih Mata Pelajaran.');
 
     setIsUploadingModul(true);
@@ -246,7 +267,8 @@ export default function ModulAjar(props) {
           tahun_ajaran: activeYear,
           mapel: availableSubjects[0] || '',
           semester: 'Ganjil',
-          file_size: null
+          file_size: null, original_size: null,
+          saved_percent: 0, is_compressed: false
         });
         fetchModulData();
       } else {
@@ -295,7 +317,8 @@ export default function ModulAjar(props) {
           file_url: '', nama_dokumen: '', link_url: '',
           mapel: availableSubjects[0] || '',
           semester: 'Ganjil', tahun_ajaran: activeYear,
-          file_size: null
+          file_size: null, original_size: null,
+          saved_percent: 0, is_compressed: false
         });
         fetchModulData();
       } else {
@@ -836,9 +859,17 @@ export default function ModulAjar(props) {
           maxWidth="max-w-md"
         >
           <form onSubmit={handleModulSubmit} className="space-y-4">
-            <p className="text-xs text-slate-500 font-medium">
-              Pilih mata pelajaran dan berkas PDF RPP Anda. Berkas ini akan otomatis tersimpan ke arsip monitoring kurikulum.
-            </p>
+            {/* Format & Specification Info Alert */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+              <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                Format yang diizinkan: <strong className="text-slate-800 font-black">PDF (.pdf)</strong> &bull; Ukuran Maks: <strong className="text-slate-800 font-black">15 MB</strong>
+                <p className="text-[10px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
+                  <Zap size={11} className="fill-emerald-600 text-emerald-600" />
+                  <span>Kompresi cerdas otomatis aktif &bull; Kualitas dokumen tetap 100% tajam.</span>
+                </p>
+              </div>
+            </div>
 
             {/* Mata Pelajaran */}
             <div>
@@ -888,9 +919,12 @@ export default function ModulAjar(props) {
 
             {/* File PDF Picker */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Pilih Berkas PDF Modul Ajar <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <label className="text-xs font-bold text-slate-700">
+                  Pilih Berkas PDF Modul Ajar <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 15MB)</span>
+              </div>
               <input 
                 type="file" 
                 accept=".pdf" 
@@ -898,13 +932,31 @@ export default function ModulAjar(props) {
                 onChange={e => handleModulFile(e.target.files[0])}
                 className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer"
               />
-              {modulForm.nama_dokumen && (
-                <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                    <span className="font-bold text-emerald-900 truncate">{modulForm.nama_dokumen}</span>
+
+              {/* Optimizing State */}
+              {isOptimizingModul && (
+                <div className="mt-2 p-2 rounded-xl bg-slate-100 border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-600 animate-pulse">
+                  <RefreshCw size={14} className="animate-spin text-[var(--ui-primary)]" />
+                  <span>Mengoptimasi &amp; mengompresi berkas PDF...</span>
+                </div>
+              )}
+
+              {/* Success / Compressed info */}
+              {modulForm.nama_dokumen && !isOptimizingModul && (
+                <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                      <span className="font-bold text-emerald-900 truncate">{modulForm.nama_dokumen}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-emerald-700 shrink-0">{modulForm.file_size}</span>
                   </div>
-                  <span className="text-[10px] font-black text-emerald-700 shrink-0">{modulForm.file_size}</span>
+                  {modulForm.is_compressed && modulForm.saved_percent > 0 && (
+                    <p className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                      <Zap size={11} className="fill-emerald-600 text-emerald-600" />
+                      <span>Ukuran dioptimalkan dari {modulForm.original_size} &bull; Lebih hemat {modulForm.saved_percent}% tanpa kurangi kualitas</span>
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -922,7 +974,7 @@ export default function ModulAjar(props) {
               </Button>
               <button 
                 type="submit" 
-                disabled={isUploadingModul || !modulForm.file_url}
+                disabled={isUploadingModul || isOptimizingModul || !modulForm.file_url}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50"
               >
                 {isUploadingModul ? 'Mengunggah...' : 'Simpan & Unggah Modul'}
@@ -941,9 +993,17 @@ export default function ModulAjar(props) {
           maxWidth="max-w-md"
         >
           <form onSubmit={handleMateriSubmit} className="space-y-4">
-            <p className="text-xs text-slate-500 font-medium">
-              Materi yang dipublikasikan akan langsung dapat dibuka dan dipelajari oleh siswa.
-            </p>
+            {/* Format & Specification Info Alert */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+              <ShieldCheck size={16} className="text-indigo-600 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                Materi dapat berupa <strong className="text-slate-800 font-black">Berkas PDF (.pdf maks. 15MB)</strong> atau <strong className="text-slate-800 font-black">Tautan Link Video/Drive</strong>.
+                <p className="text-[10px] text-indigo-700 font-bold mt-0.5 flex items-center gap-1">
+                  <Zap size={11} className="fill-indigo-600 text-indigo-600" />
+                  <span>Kompresi otomatis PDF aktif &bull; Cepat diunduh siswa.</span>
+                </p>
+              </div>
+            </div>
 
             {/* Format Switcher */}
             <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
@@ -1020,9 +1080,12 @@ export default function ModulAjar(props) {
             {/* File PDF or Link URL */}
             {materiForm.tipe === 'file' ? (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Pilih Berkas PDF Materi <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <label className="text-xs font-bold text-slate-700">
+                    Pilih Berkas PDF Materi <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-black text-slate-400">Hanya .pdf (Maks. 15MB)</span>
+                </div>
                 <input 
                   type="file" 
                   accept=".pdf" 
@@ -1030,8 +1093,32 @@ export default function ModulAjar(props) {
                   onChange={e => handleMateriFile(e.target.files[0])}
                   className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 cursor-pointer"
                 />
-                {materiForm.nama_dokumen && (
-                  <p className="mt-1 text-xs font-bold text-emerald-700 truncate">{materiForm.nama_dokumen} ({materiForm.file_size})</p>
+
+                {/* Optimizing State */}
+                {isOptimizingMateri && (
+                  <div className="mt-2 p-2 rounded-xl bg-slate-100 border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-600 animate-pulse">
+                    <RefreshCw size={14} className="animate-spin text-[var(--ui-primary)]" />
+                    <span>Mengoptimasi berkas PDF materi...</span>
+                  </div>
+                )}
+
+                {/* Success / Compressed info */}
+                {materiForm.nama_dokumen && !isOptimizingMateri && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                        <span className="font-bold text-emerald-900 truncate">{materiForm.nama_dokumen}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-emerald-700 shrink-0">{materiForm.file_size}</span>
+                    </div>
+                    {materiForm.is_compressed && materiForm.saved_percent > 0 && (
+                      <p className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                        <Zap size={11} className="fill-emerald-600 text-emerald-600" />
+                        <span>Dioptimalkan dari {materiForm.original_size} &bull; Lebih hemat {materiForm.saved_percent}%</span>
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
@@ -1077,7 +1164,7 @@ export default function ModulAjar(props) {
               </Button>
               <button 
                 type="submit" 
-                disabled={isUploadingMateri}
+                disabled={isUploadingMateri || isOptimizingMateri}
                 className="px-4 py-2 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none disabled:opacity-50"
               >
                 {isUploadingMateri ? 'Mempublikasikan...' : 'Simpan & Publikasikan'}
