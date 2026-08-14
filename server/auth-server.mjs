@@ -3710,10 +3710,23 @@ const server = createServer(async (req, res) => {
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "delete") {
-            // Check if they are admin, or if it is their own document
-            const isAuthorized = session?.role === "admin" || session?.role === "superadmin" || session?.code === body.teacher_code;
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM modul_ajar_guru WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Dokumen modul ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
             if (!isAuthorized) {
-              return send(req, res, 403, { ok: false, error: "Akses ditolak." });
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin menghapus dokumen ini." });
             }
             await dbPool.query("DELETE FROM modul_ajar_guru WHERE id = $1", [body.id]);
             send(req, res, 200, { ok: true });
@@ -3797,10 +3810,10 @@ const server = createServer(async (req, res) => {
               if (!mimeMatch || mimeMatch[1].toLowerCase() !== 'application/pdf') {
                 return send(req, res, 400, { ok: false, error: "Format file tidak valid (harus PDF)." });
               }
-              // Size check (5MB)
+              // Size check (15MB)
               const approxBytes = Math.round((file_url.length * 3) / 4);
-              if (approxBytes > 5 * 1024 * 1024) {
-                return send(req, res, 400, { ok: false, error: "Ukuran file melebihi batas 5MB." });
+              if (approxBytes > 15 * 1024 * 1024) {
+                return send(req, res, 400, { ok: false, error: "Ukuran file melebihi batas 15MB." });
               }
               await dbPool.query(
                 "INSERT INTO materi_ajar (teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, tipe, mapel, kelas_target, semester, tahun_ajaran) VALUES ($1,$2,$3,$4,$5,$6,'file',$7,$8,$9,$10)",
@@ -3819,12 +3832,42 @@ const server = createServer(async (req, res) => {
             }
             send(req, res, 200, { ok: true });
           } else if (body.action === "delete") {
-            const isAuthorized = session?.role === "admin" || session?.role === "superadmin" || session?.role === "waka_kurikulum" || session?.code === body.teacher_code;
-            if (!isAuthorized) return send(req, res, 403, { ok: false, error: "Akses ditolak." });
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM materi_ajar WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Materi ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin menghapus materi ini." });
+            }
             await dbPool.query("DELETE FROM materi_ajar WHERE id = $1", [body.id]);
             send(req, res, 200, { ok: true });
           } else if (body.action === "update") {
-            const isAuthorized = session?.role === "admin" || session?.role === "superadmin" || session?.role === "waka_kurikulum" || session?.code === body.teacher_code;
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM materi_ajar WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Materi ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
             if (!isAuthorized) return send(req, res, 403, { ok: false, error: "Akses ditolak." });
             await dbPool.query(
               "UPDATE materi_ajar SET judul=$1, deskripsi=$2, mapel=$3, kelas_target=$4, semester=$5, tahun_ajaran=$6 WHERE id=$7",
