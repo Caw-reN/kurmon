@@ -110,13 +110,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         `);
         const hConfig = await getHikvisionConfig();
         const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
-        const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+        const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
         const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
-        const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+        const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
         const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
-        const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+        const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
         const recentLogsRes = await dbPool.query(`
           SELECT l.*, d.ip_address, d.device_type,
@@ -146,9 +146,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           FROM hikvision_logs l 
           JOIN hikvision_devices d ON l.device_id = d.id 
           LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
-          LEFT JOIN mst_teachers mst ON mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id
+          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id) AND l.employee_id !~* '^k'
           LEFT JOIN mst_staffs msf ON msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id
-          ORDER BY l.timestamp DESC LIMIT 50
+          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
+          ORDER BY l.timestamp DESC LIMIT 500
         `);
 
         const processedRecentLogs = recentLogsRes.rows.map(r => {
@@ -166,9 +167,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
 
           let status = 'hadir';
-          if (closeLimit && scanTime > closeLimit) {
-            status = 'alpa';
-          } else if (lateLimit && scanTime > lateLimit) {
+          if (lateLimit && scanTime > lateLimit && scanTime <= closeLimit) {
             status = 'terlambat';
           }
 

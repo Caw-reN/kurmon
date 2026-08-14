@@ -112,7 +112,7 @@ export const SharedDashboardLogs = () => {
   }, []);
 
   const dedupeFront = (arr) => {
-    const seenNis = new Set();
+    const seen = new Set();
     const seenName = new Set();
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
@@ -120,15 +120,14 @@ export const SharedDashboardLogs = () => {
     for (const item of sorted) {
       const rawName = String(item.student_name || item.name || '').trim().toLowerCase();
       const rawNis = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
-      
-      const nisDigits = rawNis.replace(/\D/g, '');
-      const shortNis = nisDigits.length >= 6 ? nisDigits.slice(-6) : nisDigits;
+      const role = String(item.role_type || item.true_person_type || '').toLowerCase();
+      const idKey = `${role}_${rawNis || rawName}`;
 
       if (rawName && seenName.has(rawName)) continue;
-      if (shortNis && seenNis.has(shortNis)) continue;
+      if (idKey && seen.has(idKey)) continue;
 
       if (rawName) seenName.add(rawName);
-      if (shortNis) seenNis.add(shortNis);
+      if (idKey) seen.add(idKey);
       result.push(item);
     }
     return result;
