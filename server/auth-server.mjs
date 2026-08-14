@@ -2722,6 +2722,10 @@ const server = createServer(async (req, res) => {
         const handled = await handleHikvisionRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
+    if (url.pathname.startsWith("/api/jurnal") || url.pathname === "/api/kedisiplinan/absensi-kelas" || url.pathname === "/api/kesiswaan/catatan-walikelas") {
+        const handled = await handleJurnalRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
     if (url.pathname.startsWith("/api/kedisiplinan/bk")) {
         const handled = await handleBkRoutes(req, res, url, ctx);
         if (handled !== false) return;
