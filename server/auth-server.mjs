@@ -1851,6 +1851,10 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       try {
+        global._dashLogsCache = global._dashLogsCache || { time: 0, data: null };
+        if (Date.now() - global._dashLogsCache.time < 30000 && global._dashLogsCache.data) {
+          return send(req, res, 200, global._dashLogsCache.data);
+        }
         let loginLogs = [];
         let teacherAbsenceLogs = [];
         let latestStudentLogs = [];
@@ -2493,7 +2497,7 @@ const server = createServer(async (req, res) => {
           console.error("Error fetching today hikvision logs for dashboard:", e);
         }
 
-        return send(req, res, 200, {
+        const responseData = {
           ok: true,
           data: { 
             loginLogs, 
@@ -2511,7 +2515,10 @@ const server = createServer(async (req, res) => {
             totalStudents: students.length,
             totalTeachers: teachers.length
           }
-        });
+        };
+        global._dashLogsCache.time = Date.now();
+        global._dashLogsCache.data = responseData;
+        return send(req, res, 200, responseData);
       } catch (err) {
         return sendDatabaseError(req, res, err);
       }

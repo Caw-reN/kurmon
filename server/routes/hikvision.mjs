@@ -103,6 +103,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "GET" && url.pathname === "/api/hikvision/dashboard") {
       if (!requireAuthenticated(req, res)) return;
       try {
+        global._hikvDashCache = global._hikvDashCache || { time: 0, data: null };
+        if (Date.now() - global._hikvDashCache.time < 30000 && global._hikvDashCache.data) {
+          return send(req, res, 200, global._hikvDashCache.data);
+        }
         const devices = await dbPool.query(`
           SELECT d.*
           FROM hikvision_devices d
@@ -178,7 +182,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           };
         });
 
-        send(req, res, 200, { ok: true, devices: devices.rows, recentLogs: processedRecentLogs });
+        const responseData = { ok: true, devices: devices.rows, recentLogs: processedRecentLogs };
+        global._hikvDashCache.time = Date.now();
+        global._hikvDashCache.data = responseData;
+        send(req, res, 200, responseData);
       } catch (err) {
         sendDatabaseError(req, res, err);
       }

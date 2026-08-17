@@ -259,7 +259,7 @@ export default function DashboardPage({
     };
 
     fetchRealtimeLogs();
-    const interval = setInterval(fetchRealtimeLogs, 5000); // ⚡ Realtime 5s polling!
+    const interval = setInterval(fetchRealtimeLogs, 60000); // ⚡ Realtime 60s polling (diturunkan dari 5s untuk hemat CPU/RAM server)
     return () => clearInterval(interval);
   }, []);
 
