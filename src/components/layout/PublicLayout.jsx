@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from'react-router-dom';
 import { Home, CalendarDays, Map, BookOpen, Calendar, Building2 } from'lucide-react';
 import { subscribeDatabaseSnapshot } from'../../utils/dataSource.js';
 import { loadInitialState } from'../../utils/state.js';
+import { Link, Outlet } from'react-router-dom';
+import { ChevronLeft, MessageSquare } from'lucide-react';
+import HeaderNavbar from'./HeaderNavbar.jsx';
 
 
 export default function PublicLayout() {

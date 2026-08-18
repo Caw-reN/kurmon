@@ -1,5 +1,7 @@
 import { useState, useEffect } from'react';
 import { useLocation } from'react-router-dom';
+import { Link } from'react-router-dom';
+import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen } from'lucide-react';
 
 
 export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolProfile, onPanduanClick }) {

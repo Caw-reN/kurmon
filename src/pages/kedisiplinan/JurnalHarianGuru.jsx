@@ -5,8 +5,12 @@ import { useDataStore } from'../../store/useDataStore.js';
 import * as XLSX from'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawKopSurat, getPrimaryColorRgb } from '../../utils/pdfHelpers.js';
-import { Users } from'lucide-react';
+import { drawKopSurat, getPrimaryColorRgb, getPrimaryColorLight } from '../../utils/pdfHelpers.js';
+import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench, Printer } from'lucide-react';
+import { CustomSelect } from'../../components/CustomSelect.jsx';
+import { PageHeader } from'../../components/monitoring/ui/index.js';
+import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
+import { Modal, Button } from '../../components/ui.jsx';
 
 
 const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];

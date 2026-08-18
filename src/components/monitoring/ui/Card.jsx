@@ -1,3 +1,5 @@
+import React from'react';
+import { Card as ShadcnCard, CardContent } from'../../ui/card';
 
 const variantClasses = {
   default:'',

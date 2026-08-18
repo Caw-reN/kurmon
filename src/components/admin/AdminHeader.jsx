@@ -6,7 +6,6 @@ import { Clock, MessageSquare,
   MonitorSmartphone, UserCog, User, HardDrive
 } from'lucide-react';
 import { useAppStore } from'../../store/useAppStore.js';
-;
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification } from'../../utils/pushUtils.js';
 
 

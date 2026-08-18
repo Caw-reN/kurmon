@@ -1,15 +1,33 @@
-/*  */import React, { lazy, useMemo, useState } from"react";
-import {  Users, FileText,
+import { Button } from '../components/ui.jsx';
+/*  */import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback } from"react";
+import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   BookOpen,
   Calendar,
   School,
   DoorOpen,
   TrendingUp,
+  TrendingDown,
   Activity,
+  Printer,
+  RefreshCw,
   CheckCircle2,
-  AlertTriangle } from'lucide-react';
+  Trash2,
+  ArrowRight,
+  MoreHorizontal,
+  GraduationCap,
+  LayoutGrid,
+  Building2,
+  AlertTriangle,
+  Settings,
+  LogIn,
+  UserX,
+  Clock3,
+  ShieldAlert,
+  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
+import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
+import { getAttendanceStatusTone } from "../utils/adminHelpers.js";
 
 const DashboardCharts = lazy(() => import("./DashboardCharts.jsx"));
 const ACTIVITY_PAGE_SIZE = 6;

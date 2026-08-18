@@ -1,5 +1,9 @@
 import { useState } from'react';
 import { ClipboardList, Users, GraduationCap, Briefcase } from'lucide-react';
+import HikvisionTeacherReport from'./HikvisionTeacherReport.jsx';
+import HikvisionStaffReport from'./HikvisionStaffReport.jsx';
+import HikvisionStudentReport from'./HikvisionStudentReport.jsx';
+import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function LaporanAbsensi({ classes = [], students = [] }) {

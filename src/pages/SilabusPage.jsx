@@ -4,6 +4,8 @@ import { useAppStore } from'../store/useAppStore';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from'../utils/dataSource.js';
 import { loadInitialState } from'../utils/state.js';
 import { base64ToBlobUrl, downloadFile } from'../utils/fileHelper.js';
+import { BookOpenText, Search, BookOpen, Eye, Download, X } from'lucide-react';
+import { UISelect, Button, Modal } from'../components/ui.jsx';
 
 
 export default function SilabusPage() {

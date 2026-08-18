@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-
+import { 
+  UserMinus, Search, RotateCcw, AlertCircle, CheckCircle2, 
+  User, Calendar, FileText, ArrowRight, X, ShieldAlert,
+  LogOut, Filter, Info, Sparkles, Download, AlertTriangle,
+  GraduationCap, RefreshCw, Layers
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 

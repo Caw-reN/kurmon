@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
-
+import { 
+  CheckCircle, AlertCircle, XCircle, Clock, Plus, FileText, Download, 
+  Trash2, Send, Building, Building2, RefreshCw, FolderOpen, ArrowLeftRight, 
+  Contact, Calendar, MapPin, Users, CheckCircle2, ShieldAlert, Sparkles, UserCheck, Search, ChevronRight, X
+} from 'lucide-react';
+import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 
 /**
  * AdministrasiSiswa.jsx — Dedicated PKL Administration Portal.

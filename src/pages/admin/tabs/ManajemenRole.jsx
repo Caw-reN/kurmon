@@ -1,7 +1,13 @@
 import { useState, useMemo } from 'react';
 import { 
-  Shield, UserCog, Building2
+  Shield, Users, UserCog, Search, ChevronDown, ChevronRight, Edit2, 
+  Save, X, Building2, AlertCircle, Briefcase, Sparkles, UserPlus, 
+  CheckCircle2, RotateCcw, Info, UserCheck, BookOpen, GraduationCap, 
+  HeartHandshake, Landmark, ArrowRight, ShieldCheck, Trash2
 } from 'lucide-react';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { Button, UISelect, Modal } from '../../../components/ui.jsx';
+import { getRoleKeyLabel } from '../../../utils/constants.js';
 
 // ─── DEFINISI ORGANOGRAM STRUKTUR SEKOLAH ──────────────────────────────────────
 const ORGANOGRAM = [

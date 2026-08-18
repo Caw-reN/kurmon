@@ -1,5 +1,8 @@
 import { useState } from'react';
 import { DoorOpen, Map } from'lucide-react';
+import MasterDataRuangan from'./MasterDataRuangan.jsx';
+import TabDenah from'../tabs/TabDenah.jsx';
+import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function FasilitasRuangan(props) {

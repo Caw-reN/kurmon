@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ShieldAlert, KeyRound, Eye, EyeOff, Lock, Clock, X } from 'lucide-react';
 import { writeSessionUser } from '../../utils/adminHelpers.js';
 
 export default function DefaultPasswordModal({ currentUser, setCurrentUser, showNotification }) {

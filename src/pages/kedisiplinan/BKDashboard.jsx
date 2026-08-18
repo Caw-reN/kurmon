@@ -1,5 +1,8 @@
 import { useState } from'react';
 import { Activity, BarChart3, ShieldHalf } from'lucide-react';
+import DashboardBPBK from'./DashboardBPBK.jsx';
+import RekapKedisiplinan from'./RekapKedisiplinan.jsx';
+import { PageHeader } from'../../components/monitoring/ui/index.js';
 
 
 export default function BKDashboard({ teachers, students, classes }) {

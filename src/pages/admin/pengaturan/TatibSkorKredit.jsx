@@ -1,7 +1,10 @@
+import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, ShieldAlert, Award, HelpCircle, Search, Plus, Edit2, Trash2, X, Save, AlertCircle, CheckCircle2, Upload, Download, Calendar, Settings2, ChevronDown, ChevronUp, FileText, Filter } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { UISelect, Modal } from '../../../components/ui.jsx';
 
 export default function TatibSkorKredit() {
   const [items, setItems] = useState([]);

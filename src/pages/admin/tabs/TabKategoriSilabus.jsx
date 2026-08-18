@@ -1,4 +1,6 @@
+import { Button } from '../../../components/ui.jsx';
 
+import { Plus, Edit2, Trash2 } from'lucide-react';
 
 
 export default function TabKategoriSilabus(props) {

@@ -1,6 +1,7 @@
 import { useState } from'react';
 import { useAppStore } from'../store/useAppStore';
 
+import React from"react";
 
 export function LegacyScheduleTable({ 
   displayClasses, 

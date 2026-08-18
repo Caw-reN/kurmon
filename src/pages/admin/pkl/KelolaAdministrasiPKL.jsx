@@ -1,8 +1,13 @@
+import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect } from'react';
 import { CheckCircle, XCircle, FileText, RefreshCw, AlertCircle, FileInput, GitMerge, MapPin } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore.js';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from'../../../utils/dataSource.js';
+import { Trash2, Camera } from'lucide-react';
+import { PageHeader, StatCard } from '../../../components/monitoring/ui/index.js';
 ;
+import { Modal } from'../../../components/ui.jsx';
+import { UISelect } from'../../../components/ui.jsx';
 
 
 const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, setAppSettings, onSave }) => {

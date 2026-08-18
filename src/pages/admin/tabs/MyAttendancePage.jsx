@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
+import { ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, Download, Send, X, FileText, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';

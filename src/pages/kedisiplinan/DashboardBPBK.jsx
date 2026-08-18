@@ -1,8 +1,13 @@
-import { useState, useMemo, useEffect } from 'react';
-import { ShieldAlert, 
-  FileText, Home, Clock
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
+  Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
+  FileText, Home, Calendar, Clock, AlertTriangle, ShieldCheck, HeartHandshake, Eye, Send, AlertCircle, Edit2, User
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
+import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import { useAppStore } from "../../store/useAppStore.js";
 import * as XLSX from 'xlsx';

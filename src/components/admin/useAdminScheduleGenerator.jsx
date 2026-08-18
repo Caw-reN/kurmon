@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, MapPin, Users, Sparkles } from 'lucide-react';
 import { useAppStore } from'../../store/useAppStore.js';
 import { normalizeText, isAllLike, getLoadKey, parsePositiveInt, parseCsvList } from'../../utils/adminHelpers.js';

@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import useAbsensiStore from '../../../store/monitoring/absensiStore';
 import { useAppStore } from '../../../store/useAppStore.js';
-
-
+import { 
+  CheckCircle2, Clock, Calendar, AlertCircle, Fingerprint, MapPin, Camera, 
+  Navigation, Crosshair, ArrowRight, Check, X, Building2, User, RefreshCw
+} from 'lucide-react';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 /**
  * student/Absensi.jsx

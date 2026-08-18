@@ -4,8 +4,12 @@ import { useAppStore } from '../../store/useAppStore.js';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Users, User, Trophy } from 'lucide-react';
+import { FileSpreadsheet, Download, Search, Users, User, Award, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../utils/dataSource.js';
+import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
+import { Button, Modal } from '../../components/ui.jsx';
 
 const JENIS_CATATAN = [
   { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60' },

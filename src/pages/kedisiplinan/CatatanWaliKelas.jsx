@@ -1,9 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, X, AlertCircle, Plus, Users, Search, ChevronRight, ChevronLeft, Download, Calendar, Edit2, Trash2, CheckCircle2, Link as LinkIcon, Printer } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
+import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
+import { UISelect, Modal, Button } from '../../components/ui.jsx';
+import { drawKopSurat } from '../../utils/pdfHelpers.js';
 import { useAppStore } from '../../store/useAppStore.js';
 
 const JENIS_CATATAN = [

@@ -1,11 +1,15 @@
+import { Button, TablePagination } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Users
+  Users, CheckCircle2, XCircle, Search, Settings, Save, Upload, Download, 
+  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource';
+import { PageHeader, StatCard, Avatar } from '../../../components/monitoring/ui/index.js';
 
 /**
  * ClickPicker component for dropdown select with search

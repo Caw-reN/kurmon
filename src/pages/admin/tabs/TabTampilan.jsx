@@ -1,8 +1,12 @@
+import { Button } from '../../../components/ui.jsx';
 import React from'react';
 import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
+import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2 } from'lucide-react';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
+import { UISelect } from'../../../components/ui.jsx';
 
 
 const Instagram = ({ size = 16, className ="", style = {} }) => (

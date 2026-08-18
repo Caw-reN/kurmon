@@ -1,7 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
-
+import { 
+  CreditCard, Printer, Download, RefreshCw, CheckCircle2, 
+  Clock, AlertCircle, FileText, UserCheck, ShieldCheck, Sparkles, 
+  ChevronRight, ArrowLeftRight, Search, CheckCircle, Info, QrCode, Calendar, Building, X, User
+} from 'lucide-react';
+import { StudentCard } from '../../admin/pengaturan/KartuPelajar.jsx';
 
 /**
  * KartuPelajar.jsx — Halaman Khusus Kartu Pelajar Siswa.

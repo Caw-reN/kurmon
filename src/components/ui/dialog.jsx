@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from'react';
 import { cn } from'@/lib/utils';
+import { XIcon } from'lucide-react';
 
 
 function Dialog({ open, onOpenChange, children }) {

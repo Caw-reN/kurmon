@@ -1,7 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { 
-  UserCog, ShieldCheck, Key, History
+  UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
+  Search, Sparkles, AlertCircle, Plus, Trash2, CheckCircle2, 
+  Eye, Edit3, XCircle, Info, Layers, Lock, Unlock, Check
 } from 'lucide-react';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { getRoleKeyLabel } from '../../../utils/constants.js';
 
 // ─── METADATA MODUL & MENU APLIKASI ──────────────────────────────────────────

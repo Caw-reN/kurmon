@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   AlertTriangle, CheckCircle2, Info, UserCheck, Briefcase, GraduationCap, 
-  Fingerprint
+  Fingerprint, X, Users, Link as LinkIcon, Link2Off, RefreshCw, Wifi, 
+  Sparkles, Upload, CheckSquare, Search, AlertCircle, Database
 } from 'lucide-react';
+import { Button, Modal, UISelect } from '../../../components/ui.jsx';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 import useAuthStore from '../../../store/monitoring/authStore';
 import * as XLSX from 'xlsx';
 

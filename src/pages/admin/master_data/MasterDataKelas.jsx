@@ -1,5 +1,8 @@
 import { memo } from'react';
 import { Users } from'lucide-react';
+import { Edit2, Lock, Trash2 } from'lucide-react';
+import { PageHeader } from'../../../components/monitoring/ui/index.js';
+import { Button } from'../../../components/ui.jsx';
 
 const MasterDataKelas = memo(function MasterDataKelas({
   classes,

@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAppStore } from '../../../store/useAppStore.js';
-
+import { 
+  CheckCircle2, Clock, Calendar, MapPin, Building2, UserCheck, 
+  Sparkles, Fingerprint, BookCheck, FolderOpen, ArrowRight, ShieldCheck, User, Info, Building, Bell, LogOut
+} from 'lucide-react';
+import { SharedDashboardLogs } from '../../../components/monitoring/ui/SharedDashboardLogs.jsx';
 
 /**
  * student/Dashboard.jsx

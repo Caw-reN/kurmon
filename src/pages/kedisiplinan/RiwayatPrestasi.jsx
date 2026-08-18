@@ -2,8 +2,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import * as XLSX from 'xlsx';
 import { 
-  Trophy
+  Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin, 
+  Building, Calendar, Edit2, Trash2, AlertCircle, CheckCircle2, 
+  ChevronRight, Filter, User, AlertTriangle
 } from 'lucide-react';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
+import { Modal, Button, TablePagination } from '../../components/ui.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const [prestasiList, setPrestasiList] = useState([]);
