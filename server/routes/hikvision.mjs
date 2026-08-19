@@ -432,7 +432,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             } else {
                startTime.setDate(startTime.getDate() - 7); // Tarik 7 hari terakhir jika belum ada log
             }
-            const endTime = new Date();
+            // Tambahkan 24 jam ke endTime untuk mengantisipasi jika jam mesin lebih cepat (fast clock skew)
+            const endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
             const logs = await api.searchEvents(startTime, endTime);
             
             if (logs && logs.length > 0) {

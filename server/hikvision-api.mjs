@@ -135,8 +135,9 @@ export class HikvisionAPI {
         AcsEventCond: {
           searchID: "1",
           searchResultPosition: position,
-          maxResults: 100,
+          maxResults: 30,
           major: 5,
+          minor: 0,
           startTime: startStr,
           endTime: endStr
         }
@@ -155,7 +156,7 @@ export class HikvisionAPI {
           if (logs.length === 0) break;
           allLogs = allLogs.concat(logs);
           position += logs.length;
-          if (logs.length < 100) break;
+          if (logs.length < 30) break;
       } catch(e) {
           break;
       }
