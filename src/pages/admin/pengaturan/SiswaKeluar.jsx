@@ -235,7 +235,7 @@ export default function SiswaKeluar() {
   };
 
   return (
-    <div className="space-y-6 relative animate-in fade-in duration-300 z-10 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 relative animate-in fade-in duration-300 z-10 w-full pb-12">
       
       {/* 🟢 Hero Header Banner */}
       <div className="relative overflow-hidden rounded-[var(--ui-radius-card)] bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-8 shadow-sm shadow-emerald-950/10 border border-emerald-500/30">
