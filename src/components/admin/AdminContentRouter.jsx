@@ -188,7 +188,7 @@ export default function AdminContentRouter({ context }) {
         if (!perms) {
           if (roleKey.startsWith("waka_")) {
             const wakaTabsByDivision = {
-              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules"],
+              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","hikvision_report_guru"],
               kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa"],
               sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
               humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],

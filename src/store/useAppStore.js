@@ -91,7 +91,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     beban: "otomatis", silabus: "otomatis", akademik: "otomatis", kelas: "otomatis",
     siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
     modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
-    pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis"
+    pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis",
+    hikvision_report_guru: "view"
   },
   waka_kesiswaan: {
     dashboard: "otomatis", absensi: "otomatis", akademik: "view", pesan: "otomatis",

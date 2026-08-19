@@ -163,6 +163,15 @@ export const MENU_REGISTRY = [
     activeIds: ['laporan_absensi', 'hikvision_report_guru', 'hikvision_report_karyawan'],
   },
   {
+    id: 'hikvision_report_guru',
+    icon: FileText,
+    label: 'Kehadiran Guru',
+    section: 'Kehadiran',
+    adminGroup: 'Kurikulum',
+    adminGroupIcon: BookOpen,
+    adminGroupKey: 'kurikulum',
+  },
+  {
     id: 'kedisiplinan_absensi',
     icon: ClipboardList,
     label: 'Izin & Sakit Siswa',
