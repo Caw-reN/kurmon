@@ -1089,7 +1089,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         
         logsQuery.rows.forEach(log => {
             const rawEmpId = String(log.employee_id || '').trim().toLowerCase();
-            const nis = employeeToNisMap[rawEmpId] || log.employee_id;
+            let nis = employeeToNisMap[rawEmpId] || log.employee_id;
+            
+            // Dynamic fuzzy matching if exact map fails
+            if (!matrix[nis]) {
+               const fuzzyMatch = Object.keys(matrix).find(mNis => {
+                  const mNisStr = String(mNis).trim().toLowerCase();
+                  return mNisStr === rawEmpId || (mNisStr.length >= 5 && rawEmpId.length >= 5 && (mNisStr.endsWith(rawEmpId) || rawEmpId.endsWith(mNisStr)));
+               });
+               if (fuzzyMatch) {
+                   nis = fuzzyMatch;
+                   employeeToNisMap[rawEmpId] = fuzzyMatch; // Cache for next logs
+               }
+            }
+
             // Skip processing for logs that do not belong to the queried group
             if (!matrix[nis]) return;
             
