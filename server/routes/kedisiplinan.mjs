@@ -254,6 +254,49 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
+        // POST /input_pos — Submit bulk pelanggaran dari Panel Piket
+        // Payload: { student_nises: string[], tindakan_ids: number[] }
+        if (req.method === "POST" && url.pathname === "/api/kedisiplinan/input_pos") {
+          const body = await readJsonBody(req);
+          const session = getSession(req);
+          const { student_nises, tindakan_ids } = body;
+
+          if (!Array.isArray(student_nises) || student_nises.length === 0) {
+            return send(req, res, 400, { ok: false, error: "student_nises wajib diisi." });
+          }
+          if (!Array.isArray(tindakan_ids) || tindakan_ids.length === 0) {
+            return send(req, res, 400, { ok: false, error: "tindakan_ids wajib diisi." });
+          }
+
+          // Ambil data master tindakan yang dipilih
+          const placeholders = tindakan_ids.map((_, i) => `$${i + 1}`).join(',');
+          const { rows: tindakanList } = await dbPool.query(
+            `SELECT id, nama_tindakan, nilai_poin, jenis FROM kedisiplinan_master_poin WHERE id IN (${placeholders}) AND is_deleted = false`,
+            tindakan_ids
+          );
+
+          if (tindakanList.length === 0) {
+            return send(req, res, 400, { ok: false, error: "Tindakan tidak ditemukan." });
+          }
+
+          // Insert satu baris per kombinasi siswa × tindakan
+          for (const nis of student_nises) {
+            for (const tindakan of tindakanList) {
+              await dbPool.query(
+                `INSERT INTO kedisiplinan_riwayat_poin (siswa_nis, tindakan_id, tindakan_nama, poin, jenis, pelapor_id, pelapor_nama)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [nis, tindakan.id, tindakan.nama_tindakan, tindakan.nilai_poin, tindakan.jenis,
+                 session?.id || null, session?.name || 'Guru Piket']
+              );
+            }
+            // Trigger auto SP / poin check setelah insert
+            checkAndApplyAutoSpAndPoints(dbPool, nis).catch(e => console.error("Auto SP error:", e));
+          }
+
+          send(req, res, 200, { ok: true, message: `Berhasil menyimpan ${student_nises.length * tindakanList.length} pelanggaran.` });
+          return;
+        }
+
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/riwayat") {
           const limit = Math.min(parseInt(url.searchParams.get('limit') || '5000', 10), 10000);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);
@@ -273,6 +316,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         
+
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/konseling") {
           const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);
