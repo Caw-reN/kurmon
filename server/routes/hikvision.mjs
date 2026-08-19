@@ -374,7 +374,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         });
 
         const studentsRes = await dbPool.query("SELECT payload FROM mst_students");
-        const nisSet = new Set(studentsRes.rows.map(r => String(r.payload.nis || "").trim().toLowerCase()));
+        const allNisList = studentsRes.rows.map(r => String(r.payload.nis || "").trim().toLowerCase());
+        const nisSet = new Set(allNisList);
+        
+        const resolveNis = (machineId) => {
+           const mid = machineId.trim().toLowerCase();
+           if (nisSet.has(mid)) return mid;
+           return allNisList.find(dbNis => dbNis.length >= 5 && mid.length >= 5 && (dbNis.endsWith(mid) || mid.endsWith(dbNis)));
+        };
 
         // 2. Loop Semua Perangkat (Sync Wajah & Sync Log Mentah)
         for (const device of devices) {
@@ -417,7 +424,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                     unmatchedIds.push({ device: device.location, type: dtype, id: empNo, name });
                   }
                 } else if (dtype === 'siswa') {
-                  if (empNo && !nisSet.has(empNo.toLowerCase())) {
+                  if (empNo && !resolveNis(empNo)) {
                     unmatchedIds.push({ device: device.location, type: dtype, id: empNo, name });
                   }
                 }
@@ -513,12 +520,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             existingTeacherIds.add(recordId);
             attendanceProcessed++;
           } else if (dtype === 'siswa') {
-            if (!nisSet.has(empId.toLowerCase())) return;
-            const recordKey = `${empId}_${date}`;
+            const actualNis = resolveNis(empId);
+            if (!actualNis) return;
+            const recordKey = `${actualNis}_${date}`;
             if (existingStudentAbsensi.has(recordKey)) return;
 
             newStudentRecords.push({
-              siswa_nis: empId, 
+              siswa_nis: actualNis, 
               tanggal: date, 
               status, 
               keterangan: `Mesin: ${log.location} (${time})`,
