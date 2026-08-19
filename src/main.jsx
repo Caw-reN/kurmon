@@ -1,7 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import { StrictMode } from 'react';
 import App from './App.jsx';
 
 // Otomatis refresh browser saat ada pembaruan versi (chunk hash lama sudah berganti)
@@ -45,7 +44,7 @@ class ErrorBoundary extends React.Component {
 }
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <React.StrictMode>
     <ErrorBoundary><App /></ErrorBoundary>
-  </StrictMode>,
+  </React.StrictMode>,
 );
