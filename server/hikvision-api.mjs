@@ -75,10 +75,14 @@ export class HikvisionAPI {
     const url = `${this.baseUrl}${path}`;
     const method = options.method || 'GET';
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
     
-    let res = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(timeout);
+    let res;
+    try {
+      res = await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (res.status === 401 && res.headers.has('www-authenticate')) {
       const authHeader = res.headers.get('www-authenticate');
@@ -108,7 +112,13 @@ export class HikvisionAPI {
         const newHeaders = new Headers(options.headers || {});
         newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
         
-        res = await fetch(url, { ...options, headers: newHeaders });
+        const controller2 = new AbortController();
+        const timeout2 = setTimeout(() => controller2.abort(), 8000);
+        try {
+          res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal });
+        } finally {
+          clearTimeout(timeout2);
+        }
       }
     }
     return res;

@@ -60,7 +60,9 @@ export default function HikvisionDashboard() {
     setLoading(true);
     try {
       const res = await fetch("/api/hikvision/dashboard", { headers: authHeaders(authToken) });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { ok: false }; }
       if (data.ok) {
         setDevices(data.devices || []);
         setRecentLogs(data.recentLogs || []);
@@ -74,7 +76,9 @@ export default function HikvisionDashboard() {
   const fetchConfig = useCallback(async () => {
     try {
       const res = await fetch("/api/hikvision/config", { headers: authHeaders(authToken) });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { ok: false }; }
       if (data.ok && data.config) {
         setConfig(data.config);
       }
@@ -93,7 +97,13 @@ export default function HikvisionDashboard() {
     setSyncMessage(null);
     try {
       const res = await fetch("/api/hikvision/sync-all", { method:"POST", headers: authHeaders(authToken) });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(res.status >= 500 ? `Koneksi ke backend gateway timeout (HTTP ${res.status}). Pastikan backend dan mesin absensi terhubung.` : 'Respon server tidak valid.');
+      }
       if (data.ok) {
         setSyncMessage({ 
           type:'success', 
@@ -105,7 +115,7 @@ export default function HikvisionDashboard() {
         });
         fetchData();
       } else {
-        setSyncMessage({ type:'error', text: data.error ||'Gagal sinkronisasi.' });
+        setSyncMessage({ type:'error', text: data.error || 'Gagal sinkronisasi.' });
       }
     } catch (err) {
       setSyncMessage({ type:'error', text: err.message });
@@ -121,11 +131,13 @@ export default function HikvisionDashboard() {
         headers: { ...authHeaders(authToken),'Content-Type':'application/json' },
         body: JSON.stringify(config)
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { ok: false, error: 'Respon server tidak valid' }; }
       if (data.ok) {
         setSyncMessage({ type:'success', text: data.message });
       } else {
-        showToast(data.error ||"Gagal menyimpan pengaturan.","error");
+        showToast(data.error || "Gagal menyimpan pengaturan.","error");
       }
     } catch (err) {
       showToast("Kesalahan jaringan:" + err.message,"error");
