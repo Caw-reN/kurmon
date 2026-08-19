@@ -747,7 +747,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 true as is_on_device,
                 EXISTS(
                   SELECT 1 FROM mst_students 
-                  WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name))
+                  WHERE payload->>'nis' = s.nis OR payload->>'code' = s.nis OR payload->>'nisn' = s.nis OR id = s.nis 
+                     OR (LENGTH(s.nis) >= 5 AND (payload->>'nis' LIKE '%' || s.nis OR payload->>'code' LIKE '%' || s.nis))
+                     OR (LENGTH(payload->>'nis') >= 5 AND s.nis LIKE '%' || (payload->>'nis'))
+                     OR (LENGTH(payload->>'code') >= 5 AND s.nis LIKE '%' || (payload->>'code'))
+                     OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name))
                 ) as is_connected
               FROM hikvision_students s
               LEFT JOIN hikvision_groups g ON s.device_group_id = g.id
@@ -774,7 +778,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               FROM mst_students st
               WHERE NOT EXISTS(
                 SELECT 1 FROM hk_siswa hs 
-                WHERE hs.nis = st.id OR hs.nis = st.payload->>'nis' OR hs.nis = st.payload->>'code' OR hs.nis = st.payload->>'nisn' OR LOWER(TRIM(hs.name)) = LOWER(TRIM(COALESCE(st.payload->>'nama', st.payload->>'name')))
+                WHERE hs.nis = st.id OR hs.nis = st.payload->>'nis' OR hs.nis = st.payload->>'code' OR hs.nis = st.payload->>'nisn' 
+                   OR (LENGTH(hs.nis) >= 5 AND (st.payload->>'nis' LIKE '%' || hs.nis OR st.payload->>'code' LIKE '%' || hs.nis))
+                   OR (LENGTH(st.payload->>'nis') >= 5 AND hs.nis LIKE '%' || (st.payload->>'nis'))
+                   OR (LENGTH(st.payload->>'code') >= 5 AND hs.nis LIKE '%' || (st.payload->>'code'))
+                   OR LOWER(TRIM(hs.name)) = LOWER(TRIM(COALESCE(st.payload->>'nama', st.payload->>'name')))
               )
             )
             SELECT * FROM hk_siswa
@@ -797,7 +805,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 (SELECT payload->>'code' FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as code,
                 'guru' as person_type,
                 true as is_on_device,
-                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))) as is_connected
+                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis 
+                   OR (LENGTH(s.nis) >= 5 AND payload->>'code' LIKE '%' || s.nis)
+                   OR (LENGTH(payload->>'code') >= 5 AND s.nis LIKE '%' || (payload->>'code'))
+                   OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))
+                ) as is_connected
               FROM hikvision_students s
               WHERE (LOWER(COALESCE(s.class_name, '')) = 'guru' OR EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))))
             ),
@@ -814,7 +826,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 false as is_connected
               FROM mst_teachers t
               WHERE NOT EXISTS(
-                SELECT 1 FROM hk_guru h WHERE h.nis = t.id OR h.nis = t.payload->>'code' OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(t.payload->>'name', t.payload->>'nama')))
+                SELECT 1 FROM hk_guru h WHERE h.nis = t.id OR h.nis = t.payload->>'code' 
+                   OR (LENGTH(h.nis) >= 5 AND t.payload->>'code' LIKE '%' || h.nis)
+                   OR (LENGTH(t.payload->>'code') >= 5 AND h.nis LIKE '%' || (t.payload->>'code'))
+                   OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(t.payload->>'name', t.payload->>'nama')))
               )
             )
             SELECT * FROM hk_guru
@@ -838,7 +853,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 (SELECT payload->>'code' FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name)) LIMIT 1) as code,
                 'karyawan' as person_type,
                 true as is_on_device,
-                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))) as is_connected
+                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis 
+                   OR (LENGTH(s.nis) >= 5 AND (payload->>'staff_code' LIKE '%' || s.nis OR payload->>'code' LIKE '%' || s.nis))
+                   OR (LENGTH(payload->>'staff_code') >= 5 AND s.nis LIKE '%' || (payload->>'staff_code'))
+                   OR (LENGTH(payload->>'code') >= 5 AND s.nis LIKE '%' || (payload->>'code'))
+                   OR LOWER(TRIM(payload->>'name')) = LOWER(TRIM(s.name)) OR LOWER(TRIM(payload->>'nama')) = LOWER(TRIM(s.name))
+                ) as is_connected
               FROM hikvision_students s
               WHERE (
                 LOWER(COALESCE(s.class_name, '')) IN ('karyawan', 'employee')
@@ -860,7 +880,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 false as is_connected
               FROM mst_staffs s
               WHERE NOT EXISTS(
-                SELECT 1 FROM hk_karyawan h WHERE h.nis = s.id OR h.nis = s.payload->>'staff_code' OR h.nis = s.payload->>'code' OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(s.payload->>'name', s.payload->>'nama')))
+                SELECT 1 FROM hk_karyawan h WHERE h.nis = s.id OR h.nis = s.payload->>'staff_code' OR h.nis = s.payload->>'code' 
+                   OR (LENGTH(h.nis) >= 5 AND (s.payload->>'staff_code' LIKE '%' || h.nis OR s.payload->>'code' LIKE '%' || h.nis))
+                   OR (LENGTH(s.payload->>'staff_code') >= 5 AND h.nis LIKE '%' || (s.payload->>'staff_code'))
+                   OR (LENGTH(s.payload->>'code') >= 5 AND h.nis LIKE '%' || (s.payload->>'code'))
+                   OR LOWER(TRIM(h.name)) = LOWER(TRIM(COALESCE(s.payload->>'name', s.payload->>'nama')))
               )
             )
             SELECT * FROM hk_karyawan
@@ -887,8 +911,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               END as person_type,
               true as is_on_device,
               (
-                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name)) OR
-                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name))
+                EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = s.nis OR id = s.nis OR payload->>'nip' = s.nis 
+                   OR (LENGTH(s.nis) >= 5 AND payload->>'code' LIKE '%' || s.nis)
+                   OR (LENGTH(payload->>'code') >= 5 AND s.nis LIKE '%' || (payload->>'code'))
+                   OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name)
+                ) OR
+                EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = s.nis OR payload->>'code' = s.nis OR id = s.nis 
+                   OR (LENGTH(s.nis) >= 5 AND (payload->>'staff_code' LIKE '%' || s.nis OR payload->>'code' LIKE '%' || s.nis))
+                   OR (LENGTH(payload->>'staff_code') >= 5 AND s.nis LIKE '%' || (payload->>'staff_code'))
+                   OR (LENGTH(payload->>'code') >= 5 AND s.nis LIKE '%' || (payload->>'code'))
+                   OR LOWER(payload->>'name') = LOWER(s.name) OR LOWER(payload->>'nama') = LOWER(s.name)
+                )
               ) as is_connected
             FROM hikvision_students s
             WHERE LOWER(COALESCE(s.class_name, '')) IN ('guru', 'karyawan', 'staff', 'employee')
