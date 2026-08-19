@@ -226,12 +226,22 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
+        // Alias: GET /tindakan → sama dengan /master (hanya pelanggaran)
+        // Diperlukan untuk kompatibilitas PanelPiket dan komponen lain
+        if (req.method === "GET" && url.pathname === "/api/kedisiplinan/tindakan") {
+          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_master_poin WHERE is_deleted = false AND jenis = 'pelanggaran' ORDER BY nama_tindakan ASC");
+          send(req, res, 200, { ok: true, data: rows });
+          return;
+        }
+
+
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/jadwal") {
           const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_jadwal_mingguan ORDER BY id ASC");
           send(req, res, 200, { ok: true, data: rows });
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/jadwal") {
+
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_jadwal_mingguan WHERE id = $1", [body.id]);

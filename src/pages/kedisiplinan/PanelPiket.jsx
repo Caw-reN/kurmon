@@ -54,15 +54,16 @@ export default function PanelPiket({ students = [], classes = [] }) {
     }
   }, [authToken]);
 
-  // Fetch master violations
+  // Fetch master violations (hanya jenis pelanggaran)
   const fetchViolations = useCallback(async () => {
     try {
-      const res = await fetch("/api/kedisiplinan/tindakan", {
+      const res = await fetch("/api/kedisiplinan/master", {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
       const data = await res.json();
       if (data.ok) {
-        setViolations(data.data);
+        // Hanya tampilkan pelanggaran (bukan penghargaan/prestasi)
+        setViolations((data.data || []).filter(v => String(v.jenis || '').toLowerCase() === 'pelanggaran'));
       }
     } catch (e) {
       console.error(e);
