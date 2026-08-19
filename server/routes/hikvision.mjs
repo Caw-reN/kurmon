@@ -998,23 +998,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 COALESCE(payload->>'nis', payload->>'code', id) as canon_nis,
                 COALESCE(payload->>'kelas', payload->>'class_name') as class_name
               FROM mst_students
-              UNION ALL
-              SELECT 
-                h.nis,
-                h.name,
-                h.nis as canon_nis,
-                h.class_name
-              FROM hikvision_students h
-              WHERE h.class_name NOT IN ('guru', 'karyawan', 'staff')
-                AND NOT EXISTS (
-                  SELECT 1 FROM mst_students m 
-                  WHERE m.payload->>'nis' = h.nis 
-                     OR m.payload->>'code' = h.nis 
-                     OR m.id = h.nis
-                     OR LOWER(TRIM(COALESCE(m.payload->>'name', m.payload->>'nama'))) = LOWER(TRIM(h.name))
-                )
-                AND NOT EXISTS (SELECT 1 FROM mst_teachers t WHERE t.payload->>'code' = h.nis OR t.payload->>'nip' = h.nis OR t.id = h.nis OR LOWER(t.payload->>'nama') = LOWER(h.name) OR LOWER(t.payload->>'name') = LOWER(h.name))
-                AND NOT EXISTS (SELECT 1 FROM mst_staffs st WHERE st.payload->>'staff_code' = h.nis OR st.payload->>'code' = h.nis OR st.id = h.nis OR LOWER(st.payload->>'nama') = LOWER(h.name) OR LOWER(st.payload->>'name') = LOWER(h.name))
             )
             SELECT * FROM all_students
           `;
@@ -1025,19 +1008,21 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           // Guru / Karyawan / Staff
           if (reportType === 'guru') {
             studentsQueryStr = `
-              SELECT 
-                COALESCE(payload->>'code', payload->>'nip', id) as nis, 
-                'guru' as class_name, 
-                COALESCE(payload->>'name', payload->>'nama', id) as name 
-              FROM mst_teachers
+              WITH all_guru AS (
+                SELECT COALESCE(payload->>'code', payload->>'nip', id) as nis, 'guru' as class_name, COALESCE(payload->>'name', payload->>'nama', id) as name FROM mst_teachers
+              )
+              SELECT * FROM all_guru
             `;
           } else if (reportType === 'karyawan') {
             studentsQueryStr = `
-              SELECT 
-                COALESCE(payload->>'staff_code', payload->>'code', payload->>'nip', id) as nis, 
-                'karyawan' as class_name, 
-                COALESCE(payload->>'name', payload->>'nama', id) as name 
-              FROM mst_staffs
+              WITH all_karyawan AS (
+                SELECT 
+                  COALESCE(payload->>'staff_code', payload->>'code', payload->>'nip', id) as nis, 
+                  'karyawan' as class_name, 
+                  COALESCE(payload->>'name', payload->>'nama', id) as name 
+                FROM mst_staffs
+              )
+              SELECT * FROM all_karyawan
             `;
           } else {
             studentsQueryStr = `
