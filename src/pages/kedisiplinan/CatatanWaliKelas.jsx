@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { MessageSquare, X, AlertCircle, Plus, Users, Search, ChevronRight, ChevronLeft, Download, Calendar, Edit2, Trash2, CheckCircle2, Link as LinkIcon, Printer } from 'lucide-react';
+import { 
+  MessageSquare, X, AlertCircle, Plus, Users, Search, ChevronRight, ChevronLeft, 
+  Download, Calendar, Edit2, Trash2, CheckCircle2, Link as LinkIcon, Printer, 
+  Filter, Award, ShieldAlert, BookOpen, HeartPulse, UserCheck, UserX, Clock, 
+  ArrowUpDown, Check, RotateCcw, Sparkles
+} from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -9,19 +14,22 @@ import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
-import { drawKopSurat } from '../../utils/pdfHelpers.js';
 import { useAppStore } from '../../store/useAppStore.js';
 
 const JENIS_CATATAN = [
-  { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60' },
-  { value: 'akademik', label: 'Akademik', color: 'bg-blue-55 text-blue-700 border-blue-200/50' },
-  { value: 'perilaku', label: 'Perilaku', color: 'bg-amber-55 text-amber-700 border-amber-200/50' },
-  { value: 'prestasi', label: 'Prestasi', color: 'bg-emerald-55 text-emerald-700 border-emerald-200/50' },
-  { value: 'kesehatan', label: 'Kesehatan', color: 'bg-rose-55 text-rose-700 border-rose-200/50' },
-  { value: 'konseling', label: 'Konsultasi', color: 'bg-purple-55 text-purple-700 border-purple-200/50' },
+  { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60', icon: MessageSquare },
+  { value: 'akademik', label: 'Akademik', color: 'bg-blue-50 text-blue-700 border-blue-200/60', icon: BookOpen },
+  { value: 'perilaku', label: 'Perilaku', color: 'bg-amber-50 text-amber-700 border-amber-200/60', icon: ShieldAlert },
+  { value: 'prestasi', label: 'Prestasi', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', icon: Award },
+  { value: 'kesehatan', label: 'Kesehatan', color: 'bg-rose-50 text-rose-700 border-rose-200/60', icon: HeartPulse },
+  { value: 'konseling', label: 'Konsultasi', color: 'bg-purple-50 text-purple-700 border-purple-200/60', icon: MessageSquare },
 ];
 
 const getJenisInfo = (val) => JENIS_CATATAN.find(j => j.value === val) || JENIS_CATATAN[0];
+
+const getStudentName = (s) => s?.namaSiswa || s?.name || s?.nama || s?.nama_siswa || s?.nama_lengkap || '-';
+const getStudentNis = (s) => s?.nis || s?.NIS || s?.code || s?.id || '';
+const getStudentClass = (s) => s?.class_name || s?.kelas || s?.className || '';
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -35,10 +43,11 @@ const getInitials = (name) => {
 };
 
 // Modal Form Catatan Walikelas
-function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, onSave, onClose }) {
+function CatatanModal({ catatan, students = [], classes = [], riwayatPoin = [], walasClass, onSave, onClose }) {
+  const [modalFilterClass, setModalFilterClass] = useState(catatan?.kelas || walasClass || 'all');
   const [form, setForm] = useState({
     id: catatan?.id || null,
-    siswa_nis: catatan?.siswa_nis || '',
+    siswa_nis: catatan?.siswa_nis ? String(catatan.siswa_nis) : '',
     siswa_name: catatan?.siswa_name || '',
     tanggal: catatan?.tanggal || new Date().toISOString().split('T')[0],
     jenis_catatan: catatan?.jenis_catatan || 'umum',
@@ -49,6 +58,13 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
   });
   const [saving, setSaving] = useState(false);
   const [showPoinPicker, setShowPoinPicker] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Filter siswa sesuai kelas di dalam modal
+  const filteredModalStudents = useMemo(() => {
+    if (modalFilterClass === 'all') return students;
+    return students.filter(s => getStudentClass(s) === modalFilterClass);
+  }, [students, modalFilterClass]);
 
   // Filter poin milik siswa yang dipilih
   const siswaRiwayatPoin = useMemo(() => {
@@ -57,15 +73,14 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
   }, [riwayatPoin, form.siswa_nis]);
 
   const handleSelectSiswa = (nis) => {
-    const siswa = students.find(s => s.nis === nis || String(s.nis) === String(nis));
-    setForm({
-      ...form,
+    const siswa = students.find(s => String(getStudentNis(s)) === String(nis));
+    setForm(prev => ({
+      ...prev,
       siswa_nis: nis,
-      siswa_name: siswa ? (siswa.namaSiswa || siswa.name || '') : ''
-    });
+      siswa_name: siswa ? getStudentName(siswa) : '',
+      kelas: siswa ? getStudentClass(siswa) : prev.kelas
+    }));
   };
-
-  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,46 +98,84 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
   };
 
   const studentOptions = useMemo(() => {
-    return students.map(s => ({
-      value: String(s.nis),
-      label: `${s.namaSiswa || s.name} (${s.nis})`
-    }));
-  }, [students]);
+    return [
+      { value: '', label: '-- Pilih Siswa --' },
+      ...filteredModalStudents.map(s => ({
+        value: String(getStudentNis(s)),
+        label: `${getStudentName(s)} (${getStudentClass(s) || getStudentNis(s)})`
+      }))
+    ];
+  }, [filteredModalStudents]);
+
+  const classModalOptions = useMemo(() => {
+    return [
+      { value: 'all', label: 'Semua Kelas' },
+      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan (${walasClass})` }] : []),
+      ...classes.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
+    ];
+  }, [classes, walasClass]);
 
   const selectedPoin = form.poin_pelanggaran_id
     ? siswaRiwayatPoin.find(p => p.id === form.poin_pelanggaran_id)
     : null;
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={form.id ? "Edit Catatan" : "Tambah Catatan Wali Kelas"} maxWidth="max-w-xl">
-      <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-              Siswa <span className="text-rose-500">*</span>
+    <Modal isOpen={true} onClose={onClose} title={form.id ? "Edit Catatan Wali Kelas" : "Tambah Catatan Wali Kelas"} maxWidth="max-w-xl">
+      <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+        {/* Filter Kelas Siswa Cepat di Modal */}
+        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Filter size={12} className="text-[var(--ui-primary)]" />
+              <span>Pilih Berdasarkan Kelas</span>
+            </span>
+            <div className="w-full sm:w-56">
+              <CustomSelect
+                options={classModalOptions}
+                value={modalFilterClass}
+                onChange={val => {
+                  setModalFilterClass(val);
+                  if (val !== 'all' && form.siswa_nis) {
+                    const currentSiswa = students.find(s => String(getStudentNis(s)) === String(form.siswa_nis));
+                    if (currentSiswa && getStudentClass(currentSiswa) !== val) {
+                      setForm(prev => ({ ...prev, siswa_nis: '', siswa_name: '' }));
+                    }
+                  }
+                }}
+                placeholder="Pilih Kelas"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+              Nama Siswa Binaan <span className="text-rose-500">*</span>
             </label>
             <CustomSelect
               options={studentOptions}
               value={form.siswa_nis ? String(form.siswa_nis) : ''}
               onChange={handleSelectSiswa}
-              placeholder="Pilih atau cari siswa..."
+              placeholder="Cari atau pilih nama siswa..."
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tanggal</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tanggal Catatan</label>
             <input
               type="date"
               value={form.tanggal}
               onChange={e => setForm({ ...form, tanggal: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all"
             />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Jenis Catatan</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kategori Catatan</label>
             <UISelect
               value={form.jenis_catatan}
               onChange={e => setForm({ ...form, jenis_catatan: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all"
             >
               {JENIS_CATATAN.map(j => <option key={j.value} value={j.value}>{j.label}</option>)}
             </UISelect>
@@ -131,44 +184,45 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
 
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Isi Catatan / Hasil Diskusi <span className="text-rose-500">*</span>
+            Isi Catatan / Hasil Bimbingan &amp; Konsultasi <span className="text-rose-500">*</span>
           </label>
           <textarea
             rows={3}
-            placeholder="Contoh: Memanggil siswa untuk mendiskusikan penurunan nilai pada mapel Matematika..."
+            placeholder="Contoh: Memanggil siswa untuk mendiskusikan penurunan keaktifan belajar atau apresiasi atas prestasi yang diraih..."
             value={form.isi_catatan}
             onChange={e => setForm({ ...form, isi_catatan: e.target.value })}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
+            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all resize-none"
             required
           />
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tindak Lanjut (Opsional)</label>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tindak Lanjut &amp; Solusi (Opsional)</label>
           <textarea
             rows={2}
-            placeholder="Rencana atau langkah tindak lanjut yang akan dilakukan..."
+            placeholder="Rencana tindak lanjut, komitmen siswa, atau koordinasi dengan orang tua..."
             value={form.tindak_lanjut}
             onChange={e => setForm({ ...form, tindak_lanjut: e.target.value })}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-violet-500 focus:bg-white transition-all resize-none"
+            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all resize-none"
           />
         </div>
 
         {/* Koneksi ke Riwayat Poin */}
         {form.siswa_nis && siswaRiwayatPoin.length > 0 && (
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+          <div className="p-3 bg-amber-50/50 border border-amber-200/80 rounded-[var(--ui-radius-small)]">
+            <label className="block text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
               <LinkIcon size={12} />
-              <span>Kaitkan dengan Riwayat Pelanggaran (Opsional)</span>
+              <span>Kaitkan dengan Riwayat Pelanggaran Siswa</span>
             </label>
             {selectedPoin ? (
-              <div className="flex items-center gap-2.5 p-3 bg-amber-50/50 border border-amber-200 rounded-[var(--ui-radius-small)]">
+              <div className="flex items-center gap-2.5 p-2 bg-white border border-amber-200 rounded-[var(--ui-radius-small)]">
                 <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                <span className="text-xs font-bold text-amber-850 flex-1">{selectedPoin.tindakan_nama} — {selectedPoin.poin} poin</span>
+                <span className="text-xs font-bold text-amber-900 flex-1 truncate">{selectedPoin.tindakan_nama} — {selectedPoin.poin} poin</span>
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, poin_pelanggaran_id: null })}
-                  className="p-1 hover:bg-amber-100 rounded-[var(--ui-radius-small)] text-slate-500 border-none bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-amber-100 rounded text-slate-500 border-none bg-transparent cursor-pointer"
+                  title="Batalkan Tautan"
                 >
                   <X size={14} />
                 </button>
@@ -178,28 +232,28 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
                 variant="outline"
                 type="button"
                 onClick={() => setShowPoinPicker(!showPoinPicker)}
-                className="w-full text-left flex items-center justify-between px-3.5 py-2 rounded-[var(--ui-radius-small)] bg-amber-50/30 hover:bg-amber-50/80 border border-amber-200/50 text-amber-800 text-xs font-bold transition-colors cursor-pointer"
+                className="w-full text-left flex items-center justify-between px-3 py-1.5 rounded-[var(--ui-radius-small)] bg-white hover:bg-amber-100/50 border border-amber-200 text-amber-800 text-xs font-bold transition-colors cursor-pointer"
               >
-                <span>+ Hubungkan dengan riwayat pelanggaran</span>
+                <span>+ Hubungkan dengan salah satu riwayat kasus ({siswaRiwayatPoin.length})</span>
               </Button>
             )}
 
             {showPoinPicker && !selectedPoin && (
-              <div className="mt-2 border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden max-h-40 overflow-y-auto bg-white shadow-inner divide-y divide-slate-50">
+              <div className="mt-2 border border-amber-100 rounded-[var(--ui-radius-small)] overflow-hidden max-h-36 overflow-y-auto bg-white divide-y divide-slate-50">
                 {siswaRiwayatPoin.map(p => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => { setForm({ ...form, poin_pelanggaran_id: p.id }); setShowPoinPicker(false); }}
-                    className="w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer flex items-center justify-between text-xs"
+                    className="w-full px-3 py-2 text-left hover:bg-amber-50/50 transition-colors border-none bg-transparent cursor-pointer flex items-center justify-between text-xs"
                   >
-                    <div>
-                      <p className="font-extrabold text-slate-700">{p.tindakan_nama}</p>
+                    <div className="min-w-0 pr-2">
+                      <p className="font-extrabold text-slate-700 truncate">{p.tindakan_nama}</p>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                         {p.tanggal_kejadian ? new Date(p.tanggal_kejadian).toLocaleDateString('id-ID') : ''}
                       </p>
                     </div>
-                    <span className="font-black text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
+                    <span className="font-black text-rose-700 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shrink-0">
                       +{p.poin}p
                     </span>
                   </button>
@@ -210,15 +264,15 @@ function CatatanModal({ catatan, students = [], riwayatPoin = [], walasClass, on
         )}
 
         {errorMsg && (
-          <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200 mt-2">
+          <div className="p-3 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] flex items-start gap-2 text-rose-600 text-xs font-semibold animate-in zoom-in-95 duration-200">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             <span className="leading-relaxed">{errorMsg}</span>
           </div>
         )}
 
-        <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 shrink-0">
-          <Button variant="outline" type="button" onClick={onClose}>Batal</Button>
-          <Button type="submit" disabled={saving}>
+        <div className="pt-3 flex justify-end gap-2.5 border-t border-slate-100 shrink-0">
+          <Button variant="outline" type="button" onClick={onClose} className="px-4 text-xs font-bold">Batal</Button>
+          <Button type="submit" disabled={saving} className="px-5 text-xs font-black shadow-xs">
             {saving ? 'Menyimpan...' : (form.id ? 'Update Catatan' : 'Simpan Catatan')}
           </Button>
         </div>
@@ -233,7 +287,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   const role = user?.role || '';
   const isWalas = user?.isWalas;
   const walasClass = user?.walasClass || '';
-  const isKesiswaan = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan');
+  const isKesiswaan = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan') || role === 'kepsek';
   const canAdd = isWalas || isKesiswaan;
 
   const [catatanList, setCatatanList] = useState([]);
@@ -243,13 +297,27 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   const [isLoading, setIsLoading] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [selectedSiswa, setSelectedSiswa] = useState(null);
-  const [search, setSearch] = useState('');
-  const [filterKelas, setFilterKelas] = useState(() => (isKesiswaan ? 'all' : (walasClass || 'all')));
-  const [filterJenis, setFilterJenis] = useState('all');
   const [mobileTab, setMobileTab] = useState('siswa'); // 'siswa' | 'catatan'
   const [toast, setToast] = useState(null);
+
+  // === FILTERING & PEMETAAN STATES ===
+  // Filter Sisi Kiri (Siswa Binaan)
+  const [searchSiswa, setSearchSiswa] = useState('');
+  const [filterTingkat, setFilterTingkat] = useState('all'); // 'all' | 'X' | 'XI' | 'XII'
+  const [filterJurusan, setFilterJurusan] = useState('all'); // 'all' | 'TKR' | 'TKJ' | ...
+  const [filterKelas, setFilterKelas] = useState(() => (isWalas && walasClass ? walasClass : 'all'));
+  const [filterStatusSiswa, setFilterStatusSiswa] = useState('all'); // 'all' | 'with_notes' | 'no_notes' | 'with_violations'
+
+  // Filter Sisi Kanan (Catatan)
+  const [searchCatatan, setSearchCatatan] = useState('');
+  const [filterCatatanKelas, setFilterCatatanKelas] = useState('all');
+  const [filterCatatanJenis, setFilterCatatanJenis] = useState('all');
+  const [filterCatatanWaktu, setFilterCatatanWaktu] = useState('all'); // 'all' | 'this_month' | 'last_7_days'
+  const [sortCatatan, setSortCatatan] = useState('terbaru'); // 'terbaru' | 'terlama' | 'nama_asc'
+
+  // Pagination States
   const [catatanPage, setCatatanPage] = useState(1);
-  const [catatanPerPage, setCatatanPerPage] = useState(20);
+  const [catatanPerPage, setCatatanPerPage] = useState(15);
   const [siswaPage, setSiswaPage] = useState(1);
   const [siswaPerPage, setSiswaPerPage] = useState(20);
 
@@ -277,57 +345,21 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     try {
       const params = new URLSearchParams();
       if (!isKesiswaan && walasClass) params.set('kelas', walasClass);
-      if (filterJenis !== 'all') params.set('jenis', filterJenis);
       const res = await fetch(`/api/kesiswaan/catatan-walikelas?${params}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await res.json();
       if (data.ok) {
-        if (Array.isArray(data.data) && data.data.length > 0) {
-          setCatatanList(data.data);
-        } else {
-          setCatatanList([
-            {
-              id: 101,
-              siswa_nis: "1001",
-              siswa_name: "Ahmad Rizky Pratama",
-              kelas: "XII RPL 1",
-              tanggal: new Date().toISOString().slice(0, 10),
-              jenis_catatan: "prestasi",
-              isi_catatan: "Siswa meraih Juara 1 LKS Web Tech tingkat Provinsi. Sangat aktif dalam kegiatan belajar dan membimbing rekan sebaya.",
-              tindak_lanjut: "Diberikan sertifikat penghargaan sekolah dan rekomendasi beasiswa."
-            },
-            {
-              id: 102,
-              siswa_nis: "1002",
-              siswa_name: "Budi Santoso",
-              kelas: "XII TKJ 2",
-              tanggal: new Date().toISOString().slice(0, 10),
-              jenis_catatan: "akademik",
-              isi_catatan: "Peningkatan nilai rata-rata ujian produktif kejuruan. Ketertarikan tinggi pada administrasi jaringan.",
-              tindak_lanjut: "Diberikan pendampingan persiapan sertifikasi industri."
-            },
-            {
-              id: 103,
-              siswa_nis: "1003",
-              siswa_name: "Citra Dewi",
-              kelas: "XI AKL 1",
-              tanggal: new Date().toISOString().slice(0, 10),
-              jenis_catatan: "perilaku",
-              isi_catatan: "Menunjukkan sikap kepemimpinan dan kedisiplinan yang sangat baik sebagai pengurus OSIS.",
-              tindak_lanjut: "Diikutsertakan pada pelatihan kepemimpinan siswa tingkat daerah."
-            }
-          ]);
-        }
+        setCatatanList(Array.isArray(data.data) ? data.data : []);
       }
     } catch (e) { console.error(e); }
     setIsLoading(false);
-  }, [authToken, isKesiswaan, walasClass, filterJenis]);
+  }, [authToken, isKesiswaan, walasClass]);
 
   const fetchRiwayatPoin = useCallback(async () => {
     if (!authToken) return;
     try {
-      const res = await fetch('/api/kedisiplinan/riwayat', {
+      const res = await fetch('/api/kedisiplinan/riwayat?limit=5000', {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await res.json();
@@ -366,7 +398,11 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
   useEffect(() => {
     setCatatanPage(1);
-  }, [selectedSiswa, filterJenis, filterKelas, search]);
+  }, [selectedSiswa, filterCatatanJenis, filterCatatanKelas, filterCatatanWaktu, searchCatatan, sortCatatan]);
+
+  useEffect(() => {
+    setSiswaPage(1);
+  }, [searchSiswa, filterTingkat, filterJurusan, filterKelas, filterStatusSiswa]);
 
   const handleSave = async (form) => {
     try {
@@ -390,7 +426,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   };
 
   const handleDelete = async (id) => {
-    if (!await window.confirmAsync('Hapus catatan ini?')) return;
+    if (!window.confirm('Hapus catatan wali kelas ini?')) return;
     try {
       await fetch('/api/kesiswaan/catatan-walikelas', {
         method: 'POST',
@@ -402,33 +438,179 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     } catch (e) { showToast('Gagal menghapus', 'error'); }
   };
 
-  // Daftar siswa kelas walikelas
-  const siswaKelas = useMemo(() => {
-    const targetKelas = isWalas ? walasClass : (filterKelas !== 'all' ? filterKelas : null);
-    let result = students;
-    if (targetKelas) result = result.filter(s => s.class_name === targetKelas);
-    if (search) result = result.filter(s => (s.namaSiswa || s.name || '').toLowerCase().includes(search.toLowerCase()) || String(s.nis).includes(search));
-    return result;
-  }, [students, walasClass, isWalas, filterKelas, search]);
-
-  const filteredCatatan = useMemo(() => {
-    return catatanList.filter(c => {
-      const student = students.find(s => String(s.nis) === String(c.siswa_nis));
-      if (!student) return false; // Abaikan catatan milik siswa yang sudah dihapus
-      
-      const matchSiswa = !selectedSiswa || String(c.siswa_nis) === String(selectedSiswa.nis);
-      const matchSearch = !search || (c.siswa_name || '').toLowerCase().includes(search.toLowerCase()) || String(c.siswa_nis).includes(search);
-      const matchKelas = filterKelas === 'all' || !filterKelas || c.kelas === filterKelas;
-      const matchJenis = filterJenis === 'all' || c.jenis_catatan === filterJenis;
-      return matchSiswa && matchSearch && matchKelas && matchJenis;
+  // === EXTRACT TINGKAT & JURUSAN LIST ===
+  const jurusanList = useMemo(() => {
+    const list = new Set();
+    classes.forEach(c => {
+      if (c.major) list.add(c.major);
+      else if (c.name) {
+        const parts = c.name.split(' ');
+        if (parts.length >= 2) list.add(parts[1]);
+      }
     });
-  }, [catatanList, selectedSiswa, search, filterKelas, filterJenis]);
+    students.forEach(s => {
+      const cls = getStudentClass(s);
+      if (cls) {
+        const parts = cls.split(' ');
+        if (parts.length >= 2) list.add(parts[1]);
+      }
+    });
+    return Array.from(list).filter(Boolean).sort();
+  }, [classes, students]);
 
-  const classOptions = useMemo(() => [
-    { value: 'all', label: 'Semua Kelas' },
-    ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan Saya (${walasClass})` }] : []),
-    ...classes.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
-  ], [classes, walasClass]);
+  // Dropdown Opsi Kelas yang tersaring sesuai Tingkat & Jurusan
+  const classOptions = useMemo(() => {
+    let filtered = classes;
+    if (filterTingkat !== 'all') {
+      filtered = filtered.filter(c => c.name.startsWith(filterTingkat + ' ') || (c.grade && String(c.grade) === filterTingkat));
+    }
+    if (filterJurusan !== 'all') {
+      filtered = filtered.filter(c => c.major === filterJurusan || c.name.includes(` ${filterJurusan} `) || c.name.endsWith(` ${filterJurusan}`));
+    }
+    return [
+      { value: 'all', label: 'Semua Kelas' },
+      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan Saya (${walasClass})` }] : []),
+      ...filtered.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
+    ];
+  }, [classes, filterTingkat, filterJurusan, walasClass]);
+
+  // Dropdown Opsi Kelas untuk Panel Catatan
+  const catatanClassOptions = useMemo(() => {
+    return [
+      { value: 'all', label: 'Semua Kelas' },
+      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan Saya (${walasClass})` }] : []),
+      ...classes.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
+    ];
+  }, [classes, walasClass]);
+
+  // === FILTER DAFTAR SISWA (PANEL KIRI) ===
+  const filteredStudents = useMemo(() => {
+    return students.filter(s => {
+      const cls = getStudentClass(s);
+      const name = getStudentName(s).toLowerCase();
+      const nis = String(getStudentNis(s));
+
+      // 1. Filter Tingkat
+      if (filterTingkat !== 'all') {
+        if (!cls.startsWith(filterTingkat + ' ') && !cls.startsWith(filterTingkat + '-')) return false;
+      }
+
+      // 2. Filter Jurusan
+      if (filterJurusan !== 'all') {
+        if (!cls.includes(` ${filterJurusan} `) && !cls.includes(` ${filterJurusan}`) && !cls.endsWith(` ${filterJurusan}`)) return false;
+      }
+
+      // 3. Filter Kelas Spesifik
+      if (filterKelas !== 'all') {
+        if (cls !== filterKelas) return false;
+      }
+
+      // 4. Filter Status Pemetaan
+      if (filterStatusSiswa !== 'all') {
+        const hasNotes = catatanList.some(c => String(c.siswa_nis) === nis);
+        const hasViolations = riwayatPoin.some(p => String(p.siswa_nis) === nis);
+
+        if (filterStatusSiswa === 'with_notes' && !hasNotes) return false;
+        if (filterStatusSiswa === 'no_notes' && hasNotes) return false;
+        if (filterStatusSiswa === 'with_violations' && !hasViolations) return false;
+      }
+
+      // 5. Search Siswa
+      if (searchSiswa) {
+        const q = searchSiswa.toLowerCase();
+        if (!name.includes(q) && !nis.includes(q) && !cls.toLowerCase().includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [students, filterTingkat, filterJurusan, filterKelas, filterStatusSiswa, searchSiswa, catatanList, riwayatPoin]);
+
+  // === FILTER CATATAN WALI KELAS (PANEL KANAN) ===
+  const filteredCatatan = useMemo(() => {
+    let list = catatanList.filter(c => {
+      const student = students.find(s => String(getStudentNis(s)) === String(c.siswa_nis));
+      if (!student) return false; // Abaikan catatan siswa yang sudah tidak ada
+      
+      // Filter siswa jika sedang memilih siswa spesifik
+      if (selectedSiswa && String(c.siswa_nis) !== String(getStudentNis(selectedSiswa))) {
+        return false;
+      }
+
+      // Filter Kelas Catatan
+      if (filterCatatanKelas !== 'all' && c.kelas !== filterCatatanKelas) {
+        return false;
+      }
+
+      // Filter Kategori
+      if (filterCatatanJenis !== 'all' && c.jenis_catatan !== filterCatatanJenis) {
+        return false;
+      }
+
+      // Filter Rentang Waktu
+      if (filterCatatanWaktu !== 'all') {
+        const noteDate = new Date(c.tanggal);
+        const now = new Date();
+        if (filterCatatanWaktu === 'this_month') {
+          if (noteDate.getMonth() !== now.getMonth() || noteDate.getFullYear() !== now.getFullYear()) return false;
+        } else if (filterCatatanWaktu === 'last_7_days') {
+          const diffDays = (now - noteDate) / (1000 * 60 * 60 * 24);
+          if (diffDays > 7 || diffDays < 0) return false;
+        }
+      }
+
+      // Search Catatan
+      if (searchCatatan) {
+        const q = searchCatatan.toLowerCase();
+        const sName = (c.siswa_name || '').toLowerCase();
+        const sNis = String(c.siswa_nis || '');
+        const isi = (c.isi_catatan || '').toLowerCase();
+        const tindak = (c.tindak_lanjut || '').toLowerCase();
+        const guru = (c.teacher_name || '').toLowerCase();
+        if (!sName.includes(q) && !sNis.includes(q) && !isi.includes(q) && !tindak.includes(q) && !guru.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Sorting
+    list = [...list].sort((a, b) => {
+      if (sortCatatan === 'terbaru') return new Date(b.tanggal) - new Date(a.tanggal);
+      if (sortCatatan === 'terlama') return new Date(a.tanggal) - new Date(b.tanggal);
+      if (sortCatatan === 'nama_asc') return (a.siswa_name || '').localeCompare(b.siswa_name || '', undefined, { numeric: true, sensitivity: 'base' });
+      return 0;
+    });
+
+    return list;
+  }, [catatanList, selectedSiswa, filterCatatanKelas, filterCatatanJenis, filterCatatanWaktu, searchCatatan, sortCatatan, students]);
+
+  // === PEMETAAN STATS & KPI ===
+  const kpiStats = useMemo(() => {
+    const totalSiswa = filteredStudents.length;
+    const siswaWithNotes = filteredStudents.filter(s => catatanList.some(c => String(c.siswa_nis) === String(getStudentNis(s)))).length;
+    const siswaNoNotes = totalSiswa - siswaWithNotes;
+    const siswaWithViolations = filteredStudents.filter(s => riwayatPoin.some(p => String(p.siswa_nis) === String(getStudentNis(s)))).length;
+    const totalCatatan = filteredCatatan.length;
+
+    return {
+      totalSiswa,
+      siswaWithNotes,
+      siswaNoNotes,
+      siswaWithViolations,
+      totalCatatan
+    };
+  }, [filteredStudents, catatanList, riwayatPoin, filteredCatatan]);
+
+  const resetLeftFilters = () => {
+    setSearchSiswa('');
+    setFilterTingkat('all');
+    setFilterJurusan('all');
+    setFilterKelas('all');
+    setFilterStatusSiswa('all');
+  };
+
+  const isLeftFiltered = searchSiswa || filterTingkat !== 'all' || filterJurusan !== 'all' || filterKelas !== 'all' || filterStatusSiswa !== 'all';
 
   const exportExcel = () => {
     const data = filteredCatatan.map(c => ({
@@ -454,22 +636,26 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   };
 
   const exportClassRecapExcel = () => {
-    if (siswaKelas.length === 0) return showToast("Tidak ada data siswa untuk diekspor", "warning");
+    if (filteredStudents.length === 0) return showToast("Tidak ada data siswa untuk diekspor", "warning");
 
-    const data = siswaKelas.map((student, idx) => {
-      const notes = catatanList.filter(c => String(c.siswa_nis) === String(student.nis));
-      const points = riwayatPoin.filter(p => String(p.siswa_nis) === String(student.nis));
+    const data = filteredStudents.map((student, idx) => {
+      const nis = getStudentNis(student);
+      const name = getStudentName(student);
+      const cls = getStudentClass(student);
+
+      const notes = catatanList.filter(c => String(c.siswa_nis) === String(nis));
+      const points = riwayatPoin.filter(p => String(p.siswa_nis) === String(nis));
       const totalPoin = points.reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
       
-      const sakit = absensiList.filter(a => String(a.siswa_nis) === String(student.nis) && a.status === 'Sakit' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-      const izin = absensiList.filter(a => String(a.siswa_nis) === String(student.nis) && a.status === 'Izin' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-      const alpa = absensiList.filter(a => String(a.siswa_nis) === String(student.nis) && a.status === 'Alpa' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+      const sakit = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Sakit' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+      const izin = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Izin' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+      const alpa = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Alpa' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
 
       return {
         "No": idx + 1,
-        "NIS": student.nis,
-        "Nama Siswa": student.namaSiswa || student.name,
-        "Kelas": student.class_name,
+        "NIS": nis,
+        "Nama Siswa": name,
+        "Kelas": cls,
         "Total Catatan Wali Kelas": notes.length,
         "Total Poin Pelanggaran": totalPoin,
         "Sakit (Hari)": sakit,
@@ -480,14 +666,14 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     });
 
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Rekap Kedisiplinan Kelas');
+    const ws = wb.addWorksheet('Rekap Kedisiplinan Siswa');
     if (data.length > 0) {
       const keys = Object.keys(data[0]);
       ws.addRow(keys);
       data.forEach(item => ws.addRow(keys.map(k => item[k])));
     }
     wb.xlsx.writeBuffer().then(buf => {
-      saveAs(new Blob([buf]), `Rekap_Kedisiplinan_Kelas_${walasClass || filterKelas || 'Semua'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+      saveAs(new Blob([buf]), `Rekap_WaliKelas_${filterKelas !== 'all' ? filterKelas : 'Filtered'}_${new Date().toISOString().split('T')[0]}.xlsx`);
     });
   };
 
@@ -500,9 +686,9 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     });
 
     const pageWidth = 210;
-    const name = selectedSiswa.namaSiswa || selectedSiswa.name || '';
-    const nis = selectedSiswa.nis || '';
-    const kelas = selectedSiswa.class_name || '';
+    const name = getStudentName(selectedSiswa);
+    const nis = getStudentNis(selectedSiswa);
+    const kelas = getStudentClass(selectedSiswa);
 
     let yPos = 20;
 
@@ -712,174 +898,349 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     doc.save(`Rapor_Kedisiplinan_${name.replace(/\s+/g, '_')}_${nis}.pdf`);
   };
 
-  // Stats
-  const statsByJenis = useMemo(() => {
-    const stats = {};
-    JENIS_CATATAN.forEach(j => { stats[j.value] = 0; });
-    catatanList.forEach(c => { if (stats[c.jenis_catatan] !== undefined) stats[c.jenis_catatan]++; });
-    return stats;
-  }, [catatanList]);
-
   return (
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 pb-20 sm:pb-6">
       <PageHeader
         title="Catatan Wali Kelas"
         icon={MessageSquare}
-        description="Pencatatan kegiatan monitoring dan konsultasi walikelas dengan siswa binaannya."
+        description="Pencatatan kegiatan monitoring, bimbingan, dan konsultasi wali kelas dengan siswa binaan."
         onBack={onBack}
       />
 
-      {/* Mobile Tab Switcher */}
-      {(isWalas || isKesiswaan) && (
-        <div className="lg:hidden flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => setMobileTab('siswa')}
-            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
-              mobileTab === 'siswa' 
-                ? 'bg-white text-violet-700 shadow-xs font-black' 
-                : 'text-slate-600 hover:text-slate-900 bg-transparent'
-            }`}
-          >
-            <Users size={14} />
-            <span>Siswa Binaan ({siswaKelas.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileTab('catatan')}
-            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
-              mobileTab === 'catatan' 
-                ? 'bg-white text-violet-700 shadow-xs font-black' 
-                : 'text-slate-600 hover:text-slate-900 bg-transparent'
-            }`}
-          >
-            <MessageSquare size={14} />
-            <span>Catatan ({filteredCatatan.length})</span>
-          </button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">
-        {/* Kiri: Daftar Siswa (untuk walikelas/kesiswaan) */}
-        {(isWalas || isKesiswaan) && (
-          <div className={`bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px] col-span-12 lg:col-span-4 ${
-            mobileTab === 'siswa' ? 'block' : 'hidden lg:flex'
-          }`}>
-            <div className="p-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
-              <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-2">
-                <Users size={15} className="text-violet-600" />
-                <span>Siswa Binaan {walasClass && `— ${walasClass}`}</span>
-              </h3>
-              <span className="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
-                {siswaKelas.length}
-              </span>
-            </div>
-            <div className="p-3 border-b border-slate-100 bg-white shrink-0 flex flex-col gap-2">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Cari nama siswa..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
-                />
-              </div>
-              {(!isWalas || isKesiswaan) && (
-                <div className="w-full">
-                  <CustomSelect
-                    options={classOptions}
-                    value={filterKelas}
-                    onChange={v => setFilterKelas(v)}
-                    placeholder="Filter Kelas"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100/60 custom-scrollbar">
-              {siswaKelas.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-8">Tidak ada siswa ditemukan</p>
-              ) : siswaKelas
-                .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
-                .map(siswa => {
-                const siswaCatatan = catatanList.filter(c => String(c.siswa_nis) === String(siswa.nis));
-                const siswaPoin = riwayatPoin.filter(p => String(p.siswa_nis) === String(siswa.nis));
-                const totalPoin = siswaPoin.reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
-                const isSelected = selectedSiswa?.nis === siswa.nis;
-
-                return (
-                  <button
-                    key={siswa.nis}
-                    onClick={() => {
-                      setSelectedSiswa(isSelected ? null : siswa);
-                      setMobileTab('catatan');
-                    }}
-                    className={`w-full flex items-center justify-between text-left p-3.5 transition-all duration-200 cursor-pointer border-none bg-transparent hover:bg-slate-50/80 ${
-                      isSelected 
-                        ? 'bg-violet-50/60 font-semibold border-l-4 border-l-violet-500' 
-                        : 'border-l-4 border-l-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-xs font-black shrink-0 ${
-                        isSelected ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-650'
-                      }`}>
-                        {getInitials(siswa.namaSiswa || siswa.name)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-slate-800 text-xs truncate leading-snug">{siswa.namaSiswa || siswa.name}</p>
-                        <p className="text-[10px] text-slate-400 font-semibold">{siswa.nis}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                      {siswaCatatan.length > 0 && (
-                        <span className="text-[9px] font-black bg-violet-100 text-violet-700 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
-                          {siswaCatatan.length}
-                        </span>
-                      )}
-                      {totalPoin > 0 && (
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] ${
-                          totalPoin >= 100 
-                            ? 'bg-rose-100 text-rose-700' 
-                            : totalPoin >= 50 
-                              ? 'bg-amber-100 text-amber-700' 
-                              : 'bg-slate-100 text-slate-650'
-                        }`}>
-                          {totalPoin}p
-                        </span>
-                      )}
-                      <ChevronRight size={12} className={`transition-transform ${isSelected ? 'translate-x-0.5 text-violet-500' : 'text-slate-350'}`} />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="shrink-0 border-t border-slate-100 bg-slate-50/50">
-              <PaginationControls
-                currentPage={siswaPage}
-                totalItems={siswaKelas.length}
-                itemsPerPage={siswaPerPage}
-                onPageChange={setSiswaPage}
-                onItemsPerPageChange={(v) => { setSiswaPerPage(v); setSiswaPage(1); }}
-              />
+      {/* === TOP KPI & PEMETAAN OVERVIEW CARDS === */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* Card 1: Total Siswa Binaan */}
+        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-violet-50 border border-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+            <Users size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Siswa Binaan</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-slate-800">{kpiStats.totalSiswa}</span>
+              <span className="text-[10px] text-slate-400 font-bold">anak</span>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Kanan: Panel Catatan */}
-        <div className={`${isWalas || isKesiswaan ? 'col-span-12 lg:col-span-8' : 'col-span-12'} flex flex-col gap-4 ${
-          mobileTab === 'catatan' ? 'block' : 'hidden lg:block'
+        {/* Card 2: Siswa Terbina (Ada Catatan) */}
+        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+            <UserCheck size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Sudah Dicatat</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-emerald-700">{kpiStats.siswaWithNotes}</span>
+              <span className="text-[10px] text-slate-400 font-bold">siswa</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Siswa Belum Ada Catatan */}
+        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+            <UserX size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Belum Dicatat</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-amber-700">{kpiStats.siswaNoNotes}</span>
+              <span className="text-[10px] text-slate-400 font-bold">siswa</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Siswa Berpoin / Perlu Perhatian */}
+        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+            <ShieldAlert size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Ada Pelanggaran</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-rose-700">{kpiStats.siswaWithViolations}</span>
+              <span className="text-[10px] text-slate-400 font-bold">siswa</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 5: Total Catatan Terbit */}
+        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+            <MessageSquare size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Entri Catatan</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-indigo-700">{kpiStats.totalCatatan}</span>
+              <span className="text-[10px] text-slate-400 font-bold">entri</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Tab Switcher */}
+      <div className="lg:hidden flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
+        <button
+          type="button"
+          onClick={() => setMobileTab('siswa')}
+          className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
+            mobileTab === 'siswa' 
+              ? 'bg-white text-violet-700 shadow-xs font-black' 
+              : 'text-slate-600 hover:text-slate-900 bg-transparent'
+          }`}
+        >
+          <Users size={14} />
+          <span>1. Siswa Binaan ({filteredStudents.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('catatan')}
+          className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
+            mobileTab === 'catatan' 
+              ? 'bg-white text-violet-700 shadow-xs font-black' 
+              : 'text-slate-600 hover:text-slate-900 bg-transparent'
+          }`}
+        >
+          <MessageSquare size={14} />
+          <span>2. Catatan ({filteredCatatan.length})</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">
+        {/* ================= SISI KIRI: PANEL SISWA BINAAN & PEMETAAN KELAS ================= */}
+        <div className={`bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px] col-span-12 lg:col-span-4 ${
+          mobileTab === 'siswa' ? 'flex' : 'hidden lg:flex'
         }`}>
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-270px)] min-h-[380px] lg:h-[650px]">
-            {/* Morphing Header Card */}
+          {/* Header Panel Kiri */}
+          <div className="p-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-xs">
+                <Users size={13} />
+              </div>
+              <h3 className="font-extrabold text-slate-800 text-xs tracking-tight">
+                Siswa Binaan {walasClass ? `(${walasClass})` : ''}
+              </h3>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {isLeftFiltered && (
+                <button
+                  type="button"
+                  onClick={resetLeftFilters}
+                  className="text-[10px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200 transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Reset semua filter siswa"
+                >
+                  <RotateCcw size={10} /> Reset
+                </button>
+              )}
+              <span className="text-[10px] font-black text-slate-600 bg-slate-100 border border-slate-200/80 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
+                {filteredStudents.length} / {students.length}
+              </span>
+            </div>
+          </div>
+
+          {/* Filter Bar Panel Kiri: Tingkat, Jurusan, Kelas, Status, Search */}
+          <div className="p-3 border-b border-slate-100 bg-white shrink-0 flex flex-col gap-2.5">
+            {/* Quick Pill Filter: Tingkat */}
+            <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-[var(--ui-radius-small)]">
+              {[
+                { id: 'all', label: 'Semua' },
+                { id: 'X', label: 'Kelas X' },
+                { id: 'XI', label: 'Kelas XI' },
+                { id: 'XII', label: 'Kelas XII' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => { setFilterTingkat(tab.id); setFilterKelas('all'); }}
+                  className={`flex-1 py-1 text-[11px] font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer text-center ${
+                    filterTingkat === tab.id
+                      ? 'bg-white text-slate-800 shadow-2xs font-black'
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Row Filter: Jurusan & Kelas Binaan */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="w-full">
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: 'Semua Jurusan' },
+                    ...jurusanList.map(j => ({ value: j, label: `Jurusan ${j}` }))
+                  ]}
+                  value={filterJurusan}
+                  onChange={v => { setFilterJurusan(v); setFilterKelas('all'); }}
+                  placeholder="Filter Jurusan"
+                />
+              </div>
+
+              <div className="w-full">
+                <CustomSelect
+                  options={classOptions}
+                  value={filterKelas}
+                  onChange={v => setFilterKelas(v)}
+                  placeholder="Filter Kelas"
+                />
+              </div>
+            </div>
+
+            {/* Filter Status Pemetaan Siswa */}
+            <div className="w-full">
+              <CustomSelect
+                options={[
+                  { value: 'all', label: 'Semua Status Siswa' },
+                  { value: 'with_notes', label: '✅ Sudah Ada Catatan' },
+                  { value: 'no_notes', label: '⏳ Belum Ada Catatan' },
+                  { value: 'with_violations', label: '⚠️ Memiliki Pelanggaran/Poin' },
+                ]}
+                value={filterStatusSiswa}
+                onChange={v => setFilterStatusSiswa(v)}
+                placeholder="Status Binaan"
+              />
+            </div>
+
+            {/* Search Box */}
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari nama atau NIS siswa..."
+                value={searchSiswa}
+                onChange={e => setSearchSiswa(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/10 transition-all bg-slate-50/50 focus:bg-white"
+              />
+              {searchSiswa && (
+                <button 
+                  onClick={() => setSearchSiswa('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* List Siswa */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100/80 custom-scrollbar">
+            {filteredStudents.length === 0 ? (
+              <div className="p-8 flex flex-col items-center justify-center text-center gap-2 text-slate-400">
+                <Users size={28} className="text-slate-300" />
+                <p className="text-xs font-bold">Tidak ada siswa ditemukan</p>
+                <p className="text-[10px] text-slate-400">Coba ubah filter tingkat, jurusan, atau kata kunci pencarian.</p>
+                {isLeftFiltered && (
+                  <Button variant="outline" size="sm" onClick={resetLeftFilters} className="mt-1 text-xs">
+                    Reset Filter
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredStudents
+                .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
+                .map(siswa => {
+                  const nis = getStudentNis(siswa);
+                  const name = getStudentName(siswa);
+                  const cls = getStudentClass(siswa);
+
+                  const siswaCatatan = catatanList.filter(c => String(c.siswa_nis) === String(nis));
+                  const siswaPoin = riwayatPoin.filter(p => String(p.siswa_nis) === String(nis));
+                  const totalPoin = siswaPoin.reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
+                  const isSelected = selectedSiswa && String(getStudentNis(selectedSiswa)) === String(nis);
+
+                  return (
+                    <button
+                      key={nis}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSiswa(isSelected ? null : siswa);
+                        setMobileTab('catatan');
+                      }}
+                      className={`w-full flex items-center justify-between text-left p-3 transition-all duration-200 cursor-pointer border-none bg-transparent hover:bg-slate-50 ${
+                        isSelected 
+                          ? 'bg-violet-50/70 font-semibold border-l-4 border-l-violet-600 shadow-2xs' 
+                          : 'border-l-4 border-l-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-xs font-black shrink-0 border ${
+                          isSelected 
+                            ? 'bg-violet-600 text-white border-violet-700 shadow-2xs' 
+                            : siswaCatatan.length > 0
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                        }`}>
+                          {getInitials(name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-slate-800 text-xs truncate leading-snug" title={name}>{name}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5">
+                            <span>{nis}</span>
+                            {cls && <span className="text-slate-500">• {cls}</span>}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                        {siswaCatatan.length > 0 ? (
+                          <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
+                            {siswaCatatan.length} Catatan
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)]">
+                            Belum Ada
+                          </span>
+                        )}
+
+                        {totalPoin > 0 && (
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] ${
+                            totalPoin >= 100 
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200' 
+                              : totalPoin >= 50 
+                                ? 'bg-amber-100 text-amber-700 border border-amber-200' 
+                                : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}>
+                            +{totalPoin}p
+                          </span>
+                        )}
+
+                        <ChevronRight size={13} className={`transition-transform shrink-0 ${isSelected ? 'translate-x-0.5 text-violet-600' : 'text-slate-300'}`} />
+                      </div>
+                    </button>
+                  );
+                })
+            )}
+          </div>
+
+          {/* Pagination Siswa */}
+          <div className="shrink-0 border-t border-slate-100 bg-slate-50/50">
+            <PaginationControls
+              currentPage={siswaPage}
+              totalItems={filteredStudents.length}
+              itemsPerPage={siswaPerPage}
+              onPageChange={setSiswaPage}
+              onItemsPerPageChange={(v) => { setSiswaPerPage(v); setSiswaPage(1); }}
+            />
+          </div>
+        </div>
+
+        {/* ================= SISI KANAN: PANEL CATATAN WALI KELAS ================= */}
+        <div className={`col-span-12 lg:col-span-8 flex flex-col gap-4 ${
+          mobileTab === 'catatan' ? 'flex' : 'hidden lg:flex'
+        }`}>
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px]">
+            {/* Header: Siswa Terpilih (Morphing Banner) atau Toolbar Normal */}
             {selectedSiswa ? (
-              <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-3.5 sm:p-5 relative overflow-hidden shrink-0 shadow-sm">
+              <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full border-8 border-white -mr-8 -mt-8" />
-                  <div className="absolute bottom-0 left-1/3 w-16 h-16 rounded-full border-4 border-white -mb-4" />
+                  <div className="absolute top-0 right-0 w-36 h-36 rounded-full border-8 border-white -mr-8 -mt-8" />
+                  <div className="absolute bottom-0 left-1/3 w-20 h-20 rounded-full border-4 border-white -mb-4" />
                 </div>
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => { setSelectedSiswa(null); setMobileTab('siswa'); }}
@@ -888,29 +1249,31 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small)] bg-white/20 text-white border border-white/30 flex items-center justify-center text-xs sm:text-sm font-black shrink-0 shadow-sm">
-                      {getInitials(selectedSiswa.namaSiswa || selectedSiswa.name)}
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small)] bg-white/20 text-white border border-white/30 flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
+                      {getInitials(getStudentName(selectedSiswa))}
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-violet-200">Siswa Terpilih</span>
-                      <h3 className="font-extrabold text-xs sm:text-base leading-tight mt-0.5 truncate">{selectedSiswa.namaSiswa || selectedSiswa.name}</h3>
-                      <p className="text-[10px] sm:text-xs text-violet-100 font-semibold mt-0.5">NIS: {selectedSiswa.nis} · Kelas: {selectedSiswa.class_name}</p>
+                      <span className="text-[9.5px] font-black uppercase tracking-widest text-violet-200">Siswa Terpilih</span>
+                      <h3 className="font-extrabold text-sm sm:text-base leading-tight mt-0.5 truncate">{getStudentName(selectedSiswa)}</h3>
+                      <p className="text-[11px] text-violet-100 font-semibold mt-0.5">
+                        NIS: {getStudentNis(selectedSiswa)} · Kelas: {getStudentClass(selectedSiswa) || '-'}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     {/* Violations Count / Poin Badge */}
                     {(() => {
                       const totalPoin = riwayatPoin
-                        .filter(p => String(p.siswa_nis) === String(selectedSiswa.nis))
+                        .filter(p => String(p.siswa_nis) === String(getStudentNis(selectedSiswa)))
                         .reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
                       return totalPoin > 0 ? (
-                        <div className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[11px] font-black flex items-center gap-1 border shadow-xs ${
+                        <div className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black flex items-center gap-1 border shadow-2xs ${
                           totalPoin >= 100 
-                            ? 'bg-rose-500/20 text-rose-100 border-rose-400/30' 
-                            : 'bg-amber-500/20 text-amber-100 border-amber-400/30'
+                            ? 'bg-rose-500/30 text-rose-100 border-rose-300/40' 
+                            : 'bg-amber-500/30 text-amber-100 border-amber-300/40'
                         }`}>
-                          <AlertCircle size={12} />
+                          <ShieldAlert size={12} />
                           <span>{totalPoin} Poin</span>
                         </div>
                       ) : null;
@@ -921,216 +1284,263 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       className="bg-white/15 hover:bg-white/25 border border-white/20 text-white font-bold text-xs px-2.5 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0"
                     >
                       <Printer size={13} />
-                      <span className="hidden sm:inline">Cetak Rapot</span>
+                      <span className="hidden sm:inline">Rapor PDF</span>
                     </Button>
 
                     {canAdd && (
                       <Button
                         onClick={() => setActiveModal({
-                          siswa_nis: String(selectedSiswa.nis),
-                          siswa_name: selectedSiswa.namaSiswa || selectedSiswa.name,
-                          kelas: walasClass || selectedSiswa.class_name
+                          siswa_nis: String(getStudentNis(selectedSiswa)),
+                          siswa_name: getStudentName(selectedSiswa),
+                          kelas: getStudentClass(selectedSiswa) || walasClass
                         })}
-                        className="bg-white text-violet-700 hover:bg-violet-50 border-none font-bold text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0"
+                        className="bg-white text-violet-800 hover:bg-violet-50 border-none font-black text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0 shadow-2xs"
                       >
-                        <Plus size={13} />
-                        <span>Catat</span>
+                        <Plus size={13} strokeWidth={2.5} />
+                        <span>+ Catat</span>
                       </Button>
                     )}
 
                     <button
                       onClick={() => setSelectedSiswa(null)}
                       className="p-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center h-8 w-8"
-                      title="Tutup Detail"
+                      title="Tutup Filter Siswa"
                     >
                       <X size={15} />
                     </button>
                   </div>
                 </div>
-
-                {/* Inline Riwayat Pelanggaran jika ada */}
-                {(() => {
-                  const studentPoin = riwayatPoin.filter(p => String(p.siswa_nis) === String(selectedSiswa.nis));
-                  return studentPoin.length > 0 ? (
-                    <div className="mt-3 pt-2.5 border-t border-white/15">
-                      <p className="text-[9px] font-black text-violet-200 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                        <AlertCircle size={10} />
-                        <span>Riwayat Pelanggaran Terakhir</span>
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-0.5 hide-scrollbar">
-                        {studentPoin.map(p => (
-                          <div key={p.id} className="text-[10px] bg-white/10 border border-white/15 px-2 py-0.5 rounded-[var(--ui-radius-small)] shrink-0 flex items-center gap-1">
-                            <span className="font-semibold text-white/90">{p.tindakan_nama}</span>
-                            <span className="font-black text-rose-300">+{p.poin}p</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null;
-                })()}
               </div>
             ) : (
-              <div className="p-3 sm:p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-                <div className="flex items-center justify-between sm:justify-start gap-2.5 w-full sm:w-auto">
+              /* Toolbar Normal Catatan */
+              <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70 flex flex-col gap-3 shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2.5">
                     <div 
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-xs"
+                      className="w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-2xs"
                       style={{ background: "var(--ui-primary)" }}
                     >
                       <MessageSquare size={16} strokeWidth={2.2} />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm tracking-tight">Catatan Wali Kelas</h3>
-                      <p className="text-[10px] sm:text-[10.5px] font-semibold text-slate-400">
-                        {filteredCatatan.length} entri catatan
+                      <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm tracking-tight">Riwayat Catatan Wali Kelas</h3>
+                      <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400">
+                        {filteredCatatan.length} entri catatan ditemukan
                       </p>
                     </div>
                   </div>
 
-                  {/* Filter Kategori Dropdown */}
-                  <div className="w-36 sm:w-44 shrink-0">
-                    <CustomSelect
-                      options={[
-                        { value: 'all', label: 'Semua Kategori' },
-                        ...JENIS_CATATAN.map(j => ({ value: j.value, label: `${j.label} (${statsByJenis[j.value] || 0})` }))
-                      ]}
-                      value={filterJenis}
-                      onChange={setFilterJenis}
-                    />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {canAdd && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveModal({ kelas: walasClass })}
+                        className="py-1.5 px-3 rounded-[var(--ui-radius-small)] font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                        style={{ background: "var(--ui-primary)" }}
+                      >
+                        <Plus size={14} strokeWidth={2.5} />
+                        <span>Tambah Catatan</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={exportExcel}
+                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                      title="Export data catatan ke Excel"
+                    >
+                      <Download size={13} className="text-slate-500" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exportClassRecapExcel}
+                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                      title="Export Rekapitulasi Kelas ke Excel"
+                    >
+                      <Download size={13} className="text-emerald-600" />
+                      <span>Rekap</span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  {canAdd && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal({ kelas: walasClass })}
-                      className="flex-1 sm:flex-none py-2 px-3 rounded-[var(--ui-radius-small)] font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                      style={{ background: "var(--ui-primary)" }}
-                    >
-                      <Plus size={14} strokeWidth={2.5} />
-                      <span>Tambah Catatan</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={exportExcel}
-                    className="py-2 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
-                    title="Export semua riwayat catatan ke Excel"
-                  >
-                    <Download size={13} className="text-slate-500" />
-                    <span>Excel</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportClassRecapExcel}
-                    className="py-2 px-3 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
-                    title="Export Rekapitulasi Kelas ke Excel"
-                  >
-                    <Download size={13} className="text-emerald-600" />
-                    <span>Rekap</span>
-                  </button>
+                {/* Filter Controls Row: Search, Kelas, Kategori, Periode, Sort */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
+                  {/* Search in Notes */}
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Cari isi catatan, siswa..."
+                      value={searchCatatan}
+                      onChange={e => setSearchCatatan(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white bg-white transition-all"
+                    />
+                    {searchCatatan && (
+                      <button 
+                        onClick={() => setSearchCatatan('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter Kelas Catatan */}
+                  <div className="w-full">
+                    <CustomSelect
+                      options={catatanClassOptions}
+                      value={filterCatatanKelas}
+                      onChange={setFilterCatatanKelas}
+                      placeholder="Semua Kelas"
+                    />
+                  </div>
+
+                  {/* Filter Kategori */}
+                  <div className="w-full">
+                    <CustomSelect
+                      options={[
+                        { value: 'all', label: 'Semua Kategori' },
+                        ...JENIS_CATATAN.map(j => ({ 
+                          value: j.value, 
+                          label: `${j.label} (${catatanList.filter(c => c.jenis_catatan === j.value).length})` 
+                        }))
+                      ]}
+                      value={filterCatatanJenis}
+                      onChange={setFilterCatatanJenis}
+                      placeholder="Semua Kategori"
+                    />
+                  </div>
+
+                  {/* Filter Waktu & Sort */}
+                  <div className="w-full">
+                    <CustomSelect
+                      options={[
+                        { value: 'all', label: 'Semua Waktu' },
+                        { value: 'this_month', label: '📅 Bulan Ini' },
+                        { value: 'last_7_days', label: '⏱️ 7 Hari Terakhir' },
+                      ]}
+                      value={filterCatatanWaktu}
+                      onChange={setFilterCatatanWaktu}
+                      placeholder="Periode Waktu"
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
+            {/* List Catatan */}
             {isLoading ? (
               <div className="p-10 flex-1 flex items-center justify-center text-slate-400 text-xs font-bold">
-                Memuat catatan...
+                Memuat data catatan wali kelas...
               </div>
             ) : filteredCatatan.length === 0 ? (
               <div className="p-10 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-violet-50 text-violet-500 border border-violet-100 flex items-center justify-center mb-4">
-                  <MessageSquare size={28} />
+                <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-violet-50 text-violet-500 border border-violet-100 flex items-center justify-center mb-3">
+                  <MessageSquare size={26} />
                 </div>
-                <h3 className="font-extrabold text-slate-800 text-sm">Belum Ada Catatan</h3>
+                <h3 className="font-extrabold text-slate-800 text-sm">Belum Ada Catatan Wali Kelas</h3>
                 <p className="text-xs text-slate-400 max-w-xs mt-1 leading-relaxed">
-                  {canAdd ? 'Klik tombol "+ Catat" untuk mulai mencatat kegiatan bimbingan siswa.' : 'Tidak ada catatan wali kelas yang tersedia saat ini.'}
+                  {canAdd ? 'Klik tombol "+ Tambah Catatan" untuk mulai mencatat kegiatan bimbingan dan konsultasi siswa.' : 'Tidak ada catatan wali kelas yang cocok dengan filter saat ini.'}
                 </p>
               </div>
             ) : (
               <>
-                <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
+                <div className="divide-y divide-slate-100 flex-1 overflow-y-auto custom-scrollbar">
                   {filteredCatatan
                     .slice((catatanPage - 1) * catatanPerPage, catatanPage * catatanPerPage)
                     .map(c => {
                       const jenis = getJenisInfo(c.jenis_catatan);
+                      const Icon = jenis.icon;
+
                       return (
-                        <div key={c.id} className="p-5 hover:bg-slate-50/20 transition-colors flex gap-4 items-start">
+                        <div key={c.id} className="p-4 sm:p-5 hover:bg-slate-50/60 transition-colors flex gap-3 sm:gap-4 items-start">
                           {/* Left icon denoting category */}
                           <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-solid ${
-                            c.jenis_catatan === 'akademik' ? 'bg-blue-50 text-blue-600 border-blue-100/70' :
-                            c.jenis_catatan === 'perilaku' ? 'bg-amber-50 text-amber-600 border-amber-100/70' :
-                            c.jenis_catatan === 'prestasi' ? 'bg-emerald-50 text-emerald-600 border-emerald-100/70' :
-                            c.jenis_catatan === 'kesehatan' ? 'bg-rose-50 text-rose-600 border-rose-100/70' :
-                            c.jenis_catatan === 'konseling' ? 'bg-purple-50 text-purple-600 border-purple-100/70' :
-                            'bg-slate-55 text-slate-600 border-slate-200/50'
+                            c.jenis_catatan === 'akademik' ? 'bg-blue-50 text-blue-600 border-blue-200/70' :
+                            c.jenis_catatan === 'perilaku' ? 'bg-amber-50 text-amber-600 border-amber-200/70' :
+                            c.jenis_catatan === 'prestasi' ? 'bg-emerald-50 text-emerald-600 border-emerald-200/70' :
+                            c.jenis_catatan === 'kesehatan' ? 'bg-rose-50 text-rose-600 border-rose-200/70' :
+                            c.jenis_catatan === 'konseling' ? 'bg-purple-50 text-purple-600 border-purple-200/70' :
+                            'bg-slate-50 text-slate-600 border-slate-200/70'
                           }`}>
-                            <MessageSquare size={16} />
+                            <Icon size={16} />
                           </div>
 
                           {/* Post Card Layout */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-3 mb-1.5 flex-wrap">
+                            <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                               <div className="flex items-center gap-2 flex-wrap">
                                 {!selectedSiswa && (
-                                  <span className="font-extrabold text-slate-800 text-xs">{c.siswa_name || c.siswa_nis}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const st = students.find(s => String(getStudentNis(s)) === String(c.siswa_nis));
+                                      if (st) setSelectedSiswa(st);
+                                    }}
+                                    className="font-extrabold text-slate-800 text-xs hover:text-violet-700 hover:underline cursor-pointer border-none bg-transparent p-0 text-left"
+                                  >
+                                    {c.siswa_name || c.siswa_nis}
+                                  </button>
                                 )}
                                 {!selectedSiswa && <span className="text-slate-300 text-xs">·</span>}
-                                <span className="text-[10px] font-bold text-slate-400">{c.kelas}</span>
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)]">
+                                  {c.kelas || 'Tanpa Kelas'}
+                                </span>
                                 <span className="text-slate-300 text-xs">·</span>
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-solid ${jenis.color}`}>{jenis.label}</span>
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-solid ${jenis.color}`}>
+                                  {jenis.label}
+                                </span>
                                 {c.poin_pelanggaran_id && (
-                                  <span className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] flex items-center gap-0.5">
-                                    <LinkIcon size={8} /> Terkait Poin
+                                  <span className="text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] flex items-center gap-1">
+                                    <LinkIcon size={9} /> Terkait Pelanggaran
                                   </span>
                                 )}
                               </div>
 
-                              {/* Action buttons (compact) */}
-                              <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+                              {/* Action buttons */}
+                              <div className="flex items-center gap-1">
                                 <button 
                                   onClick={() => setActiveModal(c)} 
-                                  className="p-2.5 md:p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-650 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Edit Catatan"
                                 >
-                                  <Edit2 size={12} />
+                                  <Edit2 size={13} />
                                 </button>
                                 <button 
                                   onClick={() => handleDelete(c.id)} 
-                                  className="p-2.5 md:p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Hapus Catatan"
                                 >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={13} />
                                 </button>
                               </div>
                             </div>
 
-                            <p className="text-xs text-slate-750 font-medium leading-relaxed mt-1 break-words">{c.isi_catatan}</p>
+                            <p className="text-xs text-slate-700 font-medium leading-relaxed mt-1 break-words">{c.isi_catatan}</p>
 
                             {c.tindak_lanjut && (
-                              <div className="mt-2.5 bg-slate-50 border border-slate-100 p-2.5 rounded-[var(--ui-radius-small)] flex items-start gap-2">
-                                <CheckCircle2 size={12} className="text-violet-500 shrink-0 mt-0.5" />
+                              <div className="mt-2.5 bg-slate-50 border border-slate-200/80 p-2.5 rounded-[var(--ui-radius-small)] flex items-start gap-2">
+                                <CheckCircle2 size={13} className="text-violet-600 shrink-0 mt-0.5" />
                                 <p className="text-[11px] text-slate-600 leading-normal font-medium">
-                                  <span className="font-extrabold text-slate-700">Tindak Lanjut:</span> {c.tindak_lanjut}
+                                  <span className="font-extrabold text-slate-800">Tindak Lanjut:</span> {c.tindak_lanjut}
                                 </p>
                               </div>
                             )}
 
-                            <div className="flex items-center gap-3 mt-3.5 text-[10px] text-slate-400 font-semibold">
-                              <span className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2.5 mt-3 text-[10px] text-slate-400 font-semibold">
+                              <span className="flex items-center gap-1">
                                 <Calendar size={11} /> 
-                                {new Date(c.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(c.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
                               </span>
                               <span>•</span>
-                              <span>oleh {c.teacher_name || c.teacher_code || "Wali Kelas"}</span>
+                              <span>Oleh: <strong className="text-slate-600">{c.teacher_name || c.teacher_code || "Wali Kelas"}</strong></span>
                             </div>
                           </div>
                         </div>
                       );
                     })}
                 </div>
-                <div className="shrink-0 border-t border-slate-100">
+                <div className="shrink-0 border-t border-slate-100 bg-slate-50/50">
                   <PaginationControls
                     currentPage={catatanPage}
                     totalItems={filteredCatatan.length}
@@ -1149,7 +1559,8 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       {activeModal && (
         <CatatanModal
           catatan={activeModal}
-          students={siswaKelas.length > 0 ? siswaKelas : students.filter(s => !walasClass || s.class_name === walasClass)}
+          students={students}
+          classes={classes}
           riwayatPoin={riwayatPoin}
           walasClass={walasClass}
           onSave={handleSave}
@@ -1159,7 +1570,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
           <CheckCircle2 size={14} /> {toast.msg}
         </div>
       )}

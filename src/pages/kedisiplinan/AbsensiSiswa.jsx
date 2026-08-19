@@ -29,9 +29,13 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   });
   const [filterTanggal, setFilterTanggal] = useState("");
 
+  const userSubrole = (user?.subrole || "").toLowerCase();
   const hasApprovalPermission = 
-    ["admin", "superadmin", "tu", "tata_usaha", "kesiswaan"].includes(userRole) ||
-    (userRole === "waka" && userDivision === "kesiswaan");
+    ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userRole) ||
+    ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userSubrole) ||
+    (userRole === "waka" && userDivision === "kesiswaan") ||
+    (user?.division && ["bk", "bpbk", "kesiswaan"].includes(user.division.toLowerCase())) ||
+    user?.isBK || user?.isBPBK;
 
   const [isLoading, setIsLoading] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);

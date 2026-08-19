@@ -129,8 +129,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const { rows } = await dbPool.query(`
           SELECT b.*, 
-                 s.payload->>'name' as student_name,
-                 COALESCE(s.payload->>'kelas', s.payload->>'class_name') as class_name
+                 COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
+                 COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') as class_name
           FROM bk_sessions b
           LEFT JOIN mst_students s ON b.student_nis = s.id OR b.student_nis = s.payload->>'nis' OR b.student_nis = s.payload->>'code'
           ORDER BY b.session_date DESC, b.id DESC
@@ -225,8 +225,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const { rows } = await dbPool.query(`
           SELECT h.*, 
-                 s.payload->>'name' as student_name,
-                 COALESCE(s.payload->>'kelas', s.payload->>'class_name') as class_name
+                 COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
+                 COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') as class_name
           FROM bk_home_visits h
           LEFT JOIN mst_students s ON h.student_nis = s.id OR h.student_nis = s.payload->>'nis' OR h.student_nis = s.payload->>'code'
           ORDER BY h.visit_date DESC, h.id DESC
@@ -289,8 +289,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const { rows } = await dbPool.query(`
           SELECT l.*, 
-                 s.payload->>'name' as student_name,
-                 COALESCE(s.payload->>'kelas', s.payload->>'class_name') as class_name,
+                 COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
+                 COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') as class_name,
                  s.payload->>'nisn' as student_nisn
           FROM bk_letters l
           LEFT JOIN mst_students s ON l.student_nis = s.id OR l.student_nis = s.payload->>'nis' OR l.student_nis = s.payload->>'code'
@@ -340,11 +340,53 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
   }
 
-  // 5b. DELETE /api/kedisiplinan/bk/letters/:id
+  // 5b. PUT & DELETE /api/kedisiplinan/bk/letters/:id
   if (url.pathname.startsWith("/api/kedisiplinan/bk/letters/")) {
     const session = requireBkAccess(req, res);
     if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
+
+    if (req.method === "PUT") {
+      try {
+        const body = await readJsonBody(req);
+        const { 
+          student_nis, letter_type, letter_no, issue_date, reason, 
+          appointment_date, appointment_time, appointment_place, appointed_person 
+        } = body;
+
+        const resQuery = await dbPool.query(`
+          UPDATE bk_letters 
+          SET student_nis = COALESCE($1, student_nis),
+              letter_type = $2,
+              letter_no = $3,
+              issue_date = $4,
+              reason = $5,
+              appointment_date = $6,
+              appointment_time = $7,
+              appointment_place = $8,
+              appointed_person = $9
+          WHERE id = $10
+          RETURNING *
+        `, [
+          student_nis,
+          letter_type || 'Panggilan Orang Tua',
+          letter_no,
+          issue_date && String(issue_date).trim() ? String(issue_date).trim() : new Date().toISOString().slice(0, 10),
+          reason || '',
+          appointment_date && String(appointment_date).trim() ? String(appointment_date).trim() : null,
+          appointment_time || '09.00 WIB s/d Selesai',
+          appointment_place || 'Ruang Bimbingan & Konseling (BK)',
+          appointed_person || 'Guru BK / Koordinator BK',
+          id
+        ]);
+
+        send(req, res, 200, { ok: true, data: resQuery.rows[0] });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return true;
+    }
+
     if (req.method === "DELETE") {
       try {
         await dbPool.query("DELETE FROM bk_letters WHERE id = $1", [id]);

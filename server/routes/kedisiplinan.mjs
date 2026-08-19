@@ -367,30 +367,36 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/absensi") {
           const body = await readJsonBody(req);
           const session = getSession(req);
+          const userRole = (session?.role || "").toLowerCase();
+          const userSubrole = (session?.subrole || "").toLowerCase();
+          const userDivision = (session?.division || "").toLowerCase();
           const hasApprovalPermission = 
-            ["admin", "superadmin", "tu", "tata_usaha", "kesiswaan"].includes(session?.role) ||
-            (session?.role === "waka" && (session?.division || "").toLowerCase() === "kesiswaan");
+            ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userRole) ||
+            ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userSubrole) ||
+            (userRole === "waka" && userDivision === "kesiswaan") ||
+            (userDivision && ["bk", "bpbk", "kesiswaan"].includes(userDivision)) ||
+            session?.isBK || session?.isBPBK;
 
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = $1", [body.id]);
           } else if (body.action === 'approve') {
              if (!hasApprovalPermission) {
-               return send(req, res, 403, { ok: false, error: "Hanya Tata Usaha atau Kesiswaan yang dapat menyetujui" });
+               return send(req, res, 403, { ok: false, error: "Hanya Bagian Kesiswaan atau Guru BP/BK yang berwenang menyetujui perizinan siswa." });
              }
              await dbPool.query(`
                UPDATE kedisiplinan_absensi 
                SET approval_status = 'approved', approved_by_id = $1, approved_by_name = $2 
                WHERE id = $3
-             `, [session?.id, session?.name || 'Sistem', body.id]);
+             `, [session?.id, session?.name || 'BP/BK', body.id]);
           } else if (body.action === 'reject') {
              if (!hasApprovalPermission) {
-               return send(req, res, 403, { ok: false, error: "Hanya Tata Usaha atau Kesiswaan yang dapat menolak" });
+               return send(req, res, 403, { ok: false, error: "Hanya Bagian Kesiswaan atau Guru BP/BK yang berwenang menolak perizinan siswa." });
              }
              await dbPool.query(`
                UPDATE kedisiplinan_absensi 
                SET approval_status = 'rejected', approved_by_id = $1, approved_by_name = $2 
                WHERE id = $3
-             `, [session?.id, session?.name || 'Sistem', body.id]);
+             `, [session?.id, session?.name || 'BP/BK', body.id]);
           } else {
              // Handle insert & update with potential Google Drive file uploads
              let gdriveUrl = body.gdrive_url || null;
@@ -557,6 +563,18 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     const pklSettings = pklRes.rows.length > 0 ? JSON.parse(pklRes.rows[0].data) : { eligibleClass: "XII" };
     const eligibleClass = String(pklSettings.eligibleClass || "XII").toUpperCase();
 
+    // Fetch kedisiplinan settings from main_payload
+    const payloadRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_payload'").catch(() => ({ rows: [] }));
+    let kSettings = { batasAlpa: 5, poinAlpa: 15, batasTerlambat: 3, poinTerlambat: 10 };
+    if (payloadRes.rows.length > 0) {
+      try {
+        const payload = JSON.parse(payloadRes.rows[0].data);
+        if (payload.kedisiplinanSettings) {
+          kSettings = { ...kSettings, ...payload.kedisiplinanSettings };
+        }
+      } catch (e) {}
+    }
+
     // If student belongs to PKL class (e.g. Class XII), fingerprint attendance auto-sanksi does NOT apply!
     if (className && className.startsWith(eligibleClass)) {
       return;
@@ -572,12 +590,12 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     
     const alpaCount = parseInt(countRes.rows[0]?.total_alpa || 0, 10);
 
-    if (alpaCount > 5) {
+    if (alpaCount > (kSettings.batasAlpa || 5)) {
       // 1. Check if point violation already recorded
       const checkPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
         WHERE siswa_nis = $1
-          AND tindakan_nama LIKE '%Alpa > 5%'
+          AND tindakan_nama LIKE '%Akumulasi Alpa >%'
         LIMIT 1
       `, [cleanNis]);
 
@@ -588,11 +606,11 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
-          'Pelanggaran Absensi: Akumulasi Alpa > 5 Hari', 
-          15, 
+          `Pelanggaran Absensi: Akumulasi Alpa > ${kSettings.batasAlpa || 5} Hari`, 
+          kSettings.poinAlpa || 15, 
           'pelanggaran', 
           'Sistem Kedisiplinan', 
-          `Otomatis oleh sistem: Siswa mencapai ${alpaCount} hari Alpa (melebihi batas 5 hari)`
+          `Otomatis oleh sistem: Siswa mencapai ${alpaCount} hari Alpa (melebihi batas ${kSettings.batasAlpa || 5} hari)`
         ]);
       }
 
@@ -600,7 +618,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       const checkKonseling = await dbPool.query(`
         SELECT id FROM kedisiplinan_buku_konseling 
         WHERE siswa_nis = $1
-          AND (jenis_kasus LIKE '%Alpa > 5%' OR status LIKE '%SP%')
+          AND (jenis_kasus LIKE '%Alpa >%' OR status LIKE '%SP%')
         LIMIT 1
       `, [cleanNis]);
 
@@ -612,7 +630,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
         `, [
           cleanNis, 
           'Sistem Kesiswaan', 
-          'Pelanggaran Absensi (Alpa > 5 Hari)', 
+          `Pelanggaran Absensi (Alpa > ${kSettings.batasAlpa || 5} Hari)`, 
           'Penerbitan Surat Peringatan 1 (SP-1) & Pemanggilan Orang Tua', 
           `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari.`, 
           'SP-1 Diterbitkan'
@@ -630,12 +648,12 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     
     const terlambatCount = parseInt(tltRes.rows[0]?.total_terlambat || 0, 10);
 
-    if (terlambatCount > 3) {
-      // 1. Check if point violation for Terlambat > 3 already recorded
+    if (terlambatCount > (kSettings.batasTerlambat || 3)) {
+      // 1. Check if point violation for Terlambat already recorded
       const checkTltPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
         WHERE siswa_nis = $1
-          AND tindakan_nama LIKE '%Terlambat > 3%'
+          AND tindakan_nama LIKE '%Akumulasi Terlambat >%'
         LIMIT 1
       `, [cleanNis]);
 
@@ -646,11 +664,11 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
-          'Akumulasi Terlambat > 3 Kali (Teguran Lisan)', 
-          10, 
+          `Akumulasi Terlambat > ${kSettings.batasTerlambat || 3} Kali (Teguran Lisan)`, 
+          kSettings.poinTerlambat || 10, 
           'pelanggaran', 
           'Sistem Kedisiplinan', 
-          `Otomatis oleh sistem: Siswa mencapai ${terlambatCount} kali Terlambat (melebihi batas 3 kali)`
+          `Otomatis oleh sistem: Siswa mencapai ${terlambatCount} kali Terlambat (melebihi batas ${kSettings.batasTerlambat || 3} kali)`
         ]);
       }
 
@@ -658,7 +676,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       const checkTltKonseling = await dbPool.query(`
         SELECT id FROM kedisiplinan_buku_konseling 
         WHERE siswa_nis = $1
-          AND (jenis_kasus LIKE '%Terlambat > 3%' OR status LIKE '%Teguran%')
+          AND (jenis_kasus LIKE '%Terlambat >%' OR status LIKE '%Teguran%')
         LIMIT 1
       `, [cleanNis]);
 
@@ -670,7 +688,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
         `, [
           cleanNis, 
           'Sistem Kesiswaan', 
-          'Kedisiplinan: Terlambat Datang > 3 Kali', 
+          `Kedisiplinan: Terlambat Datang > ${kSettings.batasTerlambat || 3} Kali`, 
           'Teguran Lisan & Pembinaan Wali Kelas', 
           `Otomatis diterbitkan oleh sistem karena akumulasi Terlambat siswa mencapai ${terlambatCount} kali.`, 
           'Teguran Diterbitkan'

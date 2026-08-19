@@ -300,6 +300,10 @@ export const useAppStore = create((set) => ({
 
   kedisiplinanSettings: {
     batasPoinSiswaBermasalah: 100,
+    batasAlpa: 5,
+    poinAlpa: 15,
+    batasTerlambat: 3,
+    poinTerlambat: 10,
     ...(initialState.kedisiplinanSettings || {}),
   },
   updateKedisiplinanSettings: (newSettings) =>

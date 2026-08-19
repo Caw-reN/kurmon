@@ -33,6 +33,8 @@ export default function PanelPiket({ students = [], classes = [] }) {
   const [history, setHistory] = useState([]);
 
   const [violations, setViolations] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const totalPoin = useMemo(() => {
     return selectedViolations.reduce((sum, v) => sum + (v.nilai_poin || 0), 0);
@@ -287,7 +289,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
       <div className="flex flex-col lg:flex-row gap-5">
         
         {/* LEFT PANEL: Student Selector */}
-        <div className={`w-full lg:w-1/3 ui-card flex flex-col overflow-hidden border border-slate-200/80 shadow-xs bg-white ${mobileTab === 'siswa' ? 'block' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-1/3 ui-card flex-col overflow-hidden border border-slate-200/80 shadow-xs bg-white ${mobileTab === 'siswa' ? 'flex' : 'hidden lg:flex'}`}>
            <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
               <div className="flex items-center justify-between mb-3">
                  <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
@@ -369,7 +371,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
         </div>
   
         {/* RIGHT PANEL: Quick Action POS & Selected Tray */}
-        <div className={`w-full lg:w-2/3 flex flex-col gap-5 ${mobileTab === 'pelanggaran' ? 'block' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-2/3 flex-col gap-5 ${mobileTab === 'pelanggaran' ? 'flex' : 'hidden lg:flex'}`}>
            {/* Selected Tray */}
            <div className="ui-card p-4 border border-slate-200/80 shadow-xs bg-white">
               <div className="flex items-center justify-between mb-3">
@@ -438,7 +440,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                        Belum ada master poin pelanggaran.
                     </div>
                  ) : (
-                    violations.map(v => {
+                    violations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(v => {
                        const style = getViolationStyle(v.nilai_poin);
                        const Icon = style.icon;
                        const isSelected = selectedViolations.some(sv => sv.id === v.id);
@@ -466,9 +468,14 @@ export default function PanelPiket({ students = [], classes = [] }) {
                              <div className={`p-2.5 rounded-[var(--ui-radius-small)] mb-2.5 transition-transform group-hover:scale-110 ${style.bg}`}>
                                 <Icon size={20} className={style.color} />
                              </div>
-                             <h3 className={`text-xs font-extrabold leading-tight mb-2 px-1 ${isSelected ? 'text-emerald-950 font-black' : 'text-slate-800'}`}>
-                               {v.nama_tindakan}
+                             <h3 className={`text-xs font-extrabold leading-tight mb-1 px-1 ${isSelected ? 'text-emerald-950 font-black' : 'text-slate-800'}`}>
+                               {String(v.nama_tindakan || '').split(' - ')[0]}
                              </h3>
+                             {String(v.nama_tindakan || '').includes(' - ') && (
+                               <p className={`text-[9px] font-medium leading-tight mb-2 px-2 line-clamp-2 ${isSelected ? 'text-emerald-800' : 'text-slate-500'}`}>
+                                 {String(v.nama_tindakan || '').split(' - ').slice(1).join(' - ')}
+                               </p>
+                             )}
                              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider shadow-2xs ${
                                isSelected ? 'text-white bg-emerald-700' : 'text-rose-700 bg-rose-50 border border-rose-200/80'
                              }`}>
@@ -479,6 +486,32 @@ export default function PanelPiket({ students = [], classes = [] }) {
                     })
                  )}
               </div>
+              
+              {violations.length > itemsPerPage && (
+                <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-1">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => p - 1)}
+                    className="text-xs px-3 py-1.5 h-auto rounded-[var(--ui-radius-small)]"
+                  >
+                    Sebelumnya
+                  </Button>
+                  <span className="text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-[var(--ui-radius-pill)]">
+                    Halaman {currentPage} / {Math.ceil(violations.length / itemsPerPage)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    disabled={currentPage === Math.ceil(violations.length / itemsPerPage)}
+                    onClick={() => setCurrentPage(p => p + 1)}
+                    className="text-xs px-3 py-1.5 h-auto rounded-[var(--ui-radius-small)]"
+                  >
+                    Selanjutnya
+                  </Button>
+                </div>
+              )}
   
               <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-100 gap-3">
                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
@@ -519,9 +552,9 @@ export default function PanelPiket({ students = [], classes = [] }) {
                           <div key={item.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded-[var(--ui-radius-small)] gap-2">
                              <div className="min-w-0 flex-1">
                                 <div className="font-extrabold text-slate-800 text-xs truncate flex items-center gap-1.5">
-                                   <span className="truncate">{studentName}</span>
+                                   <span className="truncate max-w-[120px] sm:max-w-[160px]">{studentName}</span>
                                    <ChevronRight size={12} className="text-slate-400 shrink-0"/> 
-                                   <span className="text-rose-600 truncate">{item.tindakan_nama}</span>
+                                   <span className="text-rose-600 truncate">{String(item.tindakan_nama || '').split(' - ')[0]}</span>
                                 </div>
                                 <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
                                    {new Date(item.tanggal_kejadian).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB • {item.pelapor_nama}
