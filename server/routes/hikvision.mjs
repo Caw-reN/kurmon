@@ -1074,8 +1074,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const matchedNis = Object.keys(matrix).find(mNis => {
               const mStud = matrix[mNis];
               const mName = String(mStud.name || '').trim().toLowerCase();
-              const mNisStr = String(mNis).toLowerCase();
-              return (mName && hName && mName === hName) || mNisStr === hNis;
+              const mNisStr = String(mNis).trim().toLowerCase();
+              return (mName && hName && mName === hName) || mNisStr === hNis || (mNisStr.length >= 5 && hNis.length >= 5 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
             });
             if (matchedNis) {
               employeeToNisMap[hNis] = matchedNis;
