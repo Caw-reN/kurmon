@@ -350,33 +350,34 @@ export default function AdminContentRouter({ context }) {
         </div>}>
           <MasterDataJurusan majors={majors} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
         </Suspense>;
-      case"data_pegawai":
+      case "data_pegawai":
+      case "guru":
+      case "karyawan":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Pegawai...
         </div>}>
-          <DataPegawai teachers={teachers} staffs={staffs} classes={classes} teacherTargetJpMap={teacherTargetJpMap} teacherScheduleCountMap={teacherScheduleCountMap} quickEditGuruCode={quickEditGuruCode} quickGuruForm={quickGuruForm} setQuickGuruForm={setQuickGuruForm} setQuickEditGuruCode={setQuickEditGuruCode} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} saveQuickEditGuru={saveQuickEditGuru} startQuickEditGuru={startQuickEditGuru} renderTable={renderTable} />
-        </Suspense>;
-      case "guru":
-        return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
-          Memuat Data Guru...
-        </div>}>
-          <MasterDataGuru teachers={teachers} classes={classes} teacherTargetJpMap={teacherTargetJpMap} teacherScheduleCountMap={teacherScheduleCountMap} quickEditGuruCode={quickEditGuruCode} quickGuruForm={quickGuruForm} setQuickGuruForm={setQuickGuruForm} setQuickEditGuruCode={setQuickEditGuruCode} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} saveQuickEditGuru={saveQuickEditGuru} startQuickEditGuru={startQuickEditGuru} renderTable={renderTable} setTeachers={setTeachers} saveDatabaseNow={saveDatabaseNow} isViewOnly={getTabPermissionLevel("guru") !== "edit"} />
-        </Suspense>;
-      case "karyawan":
-        return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
-          Memuat Data Karyawan...
-        </div>}>
-          <MasterDataKaryawan 
+          <DataPegawai 
+            initialTab={activeTab === "karyawan" ? "karyawan" : "guru"}
+            teachers={teachers} 
             staffs={staffs} 
-            classes={classes}
+            classes={classes} 
+            teacherTargetJpMap={teacherTargetJpMap} 
+            teacherScheduleCountMap={teacherScheduleCountMap} 
+            quickEditGuruCode={quickEditGuruCode} 
+            quickGuruForm={quickGuruForm} 
+            setQuickGuruForm={setQuickGuruForm} 
+            setQuickEditGuruCode={setQuickEditGuruCode} 
             updateSelectionForTab={updateSelectionForTab} 
             openModal={openModal} 
             checkDependencies={checkDependencies} 
             handleDelete={handleDelete} 
+            saveQuickEditGuru={saveQuickEditGuru} 
+            startQuickEditGuru={startQuickEditGuru} 
             renderTable={renderTable} 
-            setStaffs={setStaffs} 
-            saveDatabaseNow={saveDatabaseNow} 
-            isViewOnly={getTabPermissionLevel("karyawan") !== "edit"}
+            setTeachers={setTeachers}
+            setStaffs={setStaffs}
+            saveDatabaseNow={saveDatabaseNow}
+            isViewOnly={getTabPermissionLevel("data_pegawai") !== "edit" && getTabPermissionLevel("guru") !== "edit"}
           />
         </Suspense>;
       case"mapel":

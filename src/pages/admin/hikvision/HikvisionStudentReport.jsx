@@ -32,12 +32,31 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   
-  const isKesiswaanOrAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'tu' || user?.role === 'tata_usaha' || user?.role === 'kepsek' || (user?.role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan');
+  const roleStr = String(user?.role || '').toLowerCase();
+  const subroleStr = String(user?.subrole || '').toLowerCase();
+  const divisionStr = String(user?.division || '').toLowerCase();
+
+  const isKesiswaanOrAdmin = 
+    ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
+    roleStr.startsWith('waka') ||
+    roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
+    subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') ||
+    divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
+    Boolean(user?.isBK || user?.isBPBK || user?.isKesiswaan);
+
+  const defaultClassName = 
+    (routeTab === "walas_report" && user?.walasClass) 
+      ? user.walasClass 
+      : (user?.isWalas && user.walasClass) 
+        ? user.walasClass 
+        : isKesiswaanOrAdmin 
+          ? "all" 
+          : "none";
 
   const [filter, setFilter] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
-    class_name: (routeTab === "walas_report" && user?.walasClass) ? user.walasClass : ((user?.isWalas && !isKesiswaanOrAdmin && user.walasClass) ? user.walasClass : "all")
+    class_name: defaultClassName
   });
 
   React.useEffect(() => {
@@ -1514,7 +1533,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
-        {(!user?.isWalas || isKesiswaanOrAdmin) && (
+        {isKesiswaanOrAdmin ? (
           <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
             <CustomSelect 
@@ -1526,6 +1545,20 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas })).filter(c => c.value !== user?.walasClass)
               ]}
             />
+          </div>
+        ) : user?.isWalas && user?.walasClass ? (
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Kelas Binaan</label>
+            <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800">
+              {user.walasClass}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status Akses</label>
+            <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-500">
+              Akses khusus Wali Kelas / Kesiswaan
+            </div>
           </div>
         )}
 

@@ -1027,6 +1027,28 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const className = body.class_name || 'all';
         const reportType = body.type || 'siswa'; // siswa | guru | karyawan | staff
 
+        const session = getSession(req);
+        const roleStr = String(session?.role || '').toLowerCase();
+        const subroleStr = String(session?.subrole || '').toLowerCase();
+        const divisionStr = String(session?.division || '').toLowerCase();
+
+        const isFullAccess = 
+          ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
+          roleStr.startsWith('waka') ||
+          roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
+          subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') ||
+          divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
+          Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
+
+        let targetClassName = className;
+        if (reportType === 'siswa' && !isFullAccess) {
+          if (session?.isWalas && session?.walasClass) {
+            targetClassName = session.walasClass;
+          } else {
+            return send(req, res, 200, { ok: true, data: [], daysInMonth: 31 });
+          }
+        }
+
         let studentsQueryStr = "";
         let queryParams = [month, year];
         let classFilter = "";
@@ -1043,7 +1065,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             )
             SELECT * FROM all_students
           `;
-          if (className !== 'all') {
+          if (targetClassName !== 'all') {
             studentsQueryStr += " WHERE class_name = $1";
           }
         } else {
@@ -1075,7 +1097,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
         }
 
-        const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && className !== 'all') ? [className] : []);
+        const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
         
         let logsQueryStr = `
           SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type

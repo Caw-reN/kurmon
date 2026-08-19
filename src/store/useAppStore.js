@@ -37,7 +37,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
     akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis", absensi: "otomatis", catatan_walikelas: "otomatis",
+    jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
     kedisiplinan_piket: "otomatis"
   },
@@ -45,7 +45,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
-    ketersediaan: "otomatis", absensi: "otomatis", modul_ajar: "otomatis",
+    ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
     beban: "otomatis", pesan: "otomatis", kedisiplinan_piket: "otomatis",
     hikvision_report_siswa: "otomatis"
   },
@@ -116,7 +116,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   // ─── TIM KESISWAAN ──────────────────────────────────────────────────────────
   bpbk: {
-    dashboard: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_absensi: "view",
+    dashboard: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
     catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis"
@@ -137,7 +137,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
   anggota_kesiswaan: {
-    dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "view",
+    dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
@@ -547,9 +547,17 @@ const syncPersistedSlicesFromDatabase = () => {
       };
     }
     if (latest.rolePermissions && typeof latest.rolePermissions === "object") {
+      const sanitized = { ...latest.rolePermissions };
+      // Pastikan role guru dan walikelas tidak mewarisi absensi otomatis jika belum diubah khusus
+      if (sanitized.guru && sanitized.guru.absensi === "otomatis") {
+        sanitized.guru = { ...sanitized.guru, absensi: "nonaktif" };
+      }
+      if (sanitized.walikelas && sanitized.walikelas.absensi === "otomatis") {
+        sanitized.walikelas = { ...sanitized.walikelas, absensi: "nonaktif" };
+      }
       nextState.rolePermissions = {
         ...DEFAULT_ROLE_PERMISSIONS,
-        ...latest.rolePermissions,
+        ...sanitized,
       };
     }
     if (latest.kedisiplinanSettings && typeof latest.kedisiplinanSettings === "object") {

@@ -367,15 +367,26 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/absensi") {
           const body = await readJsonBody(req);
           const session = getSession(req);
-          const userRole = (session?.role || "").toLowerCase();
-          const userSubrole = (session?.subrole || "").toLowerCase();
-          const userDivision = (session?.division || "").toLowerCase();
+          const roleStr = String(session?.role || '').toLowerCase();
+          const subroleStr = String(session?.subrole || '').toLowerCase();
+          const divisionStr = String(session?.division || '').toLowerCase();
+          const jabatanStr = String(session?.jabatan || '').toLowerCase();
+
           const hasApprovalPermission = 
-            ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userRole) ||
-            ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userSubrole) ||
-            (userRole === "waka" && userDivision === "kesiswaan") ||
-            (userDivision && ["bk", "bpbk", "kesiswaan"].includes(userDivision)) ||
-            session?.isBK || session?.isBPBK;
+            roleStr.includes('kesiswaan') || 
+            roleStr.includes('bk') || 
+            roleStr.includes('bpbk') ||
+            subroleStr.includes('kesiswaan') || 
+            subroleStr.includes('bk') || 
+            subroleStr.includes('bpbk') ||
+            divisionStr.includes('kesiswaan') || 
+            divisionStr.includes('bk') || 
+            divisionStr.includes('bpbk') ||
+            jabatanStr.includes('kesiswaan') || 
+            jabatanStr.includes('bk') || 
+            jabatanStr.includes('bpbk') ||
+            ['admin', 'superadmin'].includes(roleStr) ||
+            Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
 
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = $1", [body.id]);

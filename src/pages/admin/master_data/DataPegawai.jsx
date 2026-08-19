@@ -6,26 +6,29 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function DataPegawai(props) {
-  const [activeTab, setActiveTab] = useState("guru");
+  const [activeTab, setActiveTab] = useState(props.initialTab || "guru");
+
+  const teacherCount = props.teachers?.length || 0;
+  const staffCount = props.staffs?.length || 0;
 
   const tabs = [
-    { id:"guru", label:"Data Guru", icon: Users, onClick: () => setActiveTab("guru"), isActive: activeTab ==="guru" },
-    { id:"karyawan", label:"Data Karyawan", icon: Briefcase, onClick: () => setActiveTab("karyawan"), isActive: activeTab ==="karyawan" },
+    { id: "guru", label: `Data Guru (${teacherCount})`, icon: Users, onClick: () => setActiveTab("guru"), isActive: activeTab === "guru" },
+    { id: "karyawan", label: `Data Karyawan / Staf (${staffCount})`, icon: Briefcase, onClick: () => setActiveTab("karyawan"), isActive: activeTab === "karyawan" },
   ];
 
   return (
     <div className="flex flex-col gap-4 w-full h-full animate-in fade-in duration-300 relative z-10">
       
       <PageHeader 
-        title="Data Guru & Karyawan"
+        title="Data Pegawai"
         icon={Users}
         tabs={tabs}
-        description="Kelola data induk guru dan karyawan di sekolah."
+        description="Kelola data induk seluruh tenaga pendidik (guru) dan tenaga kependidikan (karyawan/staf) sekolah."
       />
 
       {/* Content Area */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {activeTab ==="guru" && (
+        {activeTab === "guru" && (
           <MasterDataGuru
             {...props}
             teachers={props.teachers}
@@ -43,13 +46,24 @@ export default function DataPegawai(props) {
             saveQuickEditGuru={props.saveQuickEditGuru}
             startQuickEditGuru={props.startQuickEditGuru}
             renderTable={props.renderTable}
+            setTeachers={props.setTeachers}
+            saveDatabaseNow={props.saveDatabaseNow}
+            isViewOnly={props.isViewOnly}
           />
         )}
-        {activeTab ==="karyawan" && (
+        {activeTab === "karyawan" && (
           <MasterDataKaryawan
             {...props}
             staffs={props.staffs}
+            classes={props.classes}
+            updateSelectionForTab={props.updateSelectionForTab}
+            openModal={props.openModal}
+            checkDependencies={props.checkDependencies}
+            handleDelete={props.handleDelete}
             renderTable={props.renderTable}
+            setStaffs={props.setStaffs}
+            saveDatabaseNow={props.saveDatabaseNow}
+            isViewOnly={props.isViewOnly}
           />
         )}
       </div>

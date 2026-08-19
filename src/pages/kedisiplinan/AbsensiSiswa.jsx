@@ -29,13 +29,28 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   });
   const [filterTanggal, setFilterTanggal] = useState("");
 
-  const userSubrole = (user?.subrole || "").toLowerCase();
-  const hasApprovalPermission = 
-    ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userRole) ||
-    ["admin", "superadmin", "kesiswaan", "bk", "bpbk", "guru_bk"].includes(userSubrole) ||
-    (userRole === "waka" && userDivision === "kesiswaan") ||
-    (user?.division && ["bk", "bpbk", "kesiswaan"].includes(user.division.toLowerCase())) ||
-    user?.isBK || user?.isBPBK;
+  const roleStr = String(user?.role || '').toLowerCase();
+  const subroleStr = String(user?.subrole || '').toLowerCase();
+  const divisionStr = String(user?.division || '').toLowerCase();
+  const jabatanStr = String(user?.jabatan || '').toLowerCase();
+
+  const isKesiswaanOrBK = 
+    roleStr.includes('kesiswaan') || 
+    roleStr.includes('bk') || 
+    roleStr.includes('bpbk') ||
+    subroleStr.includes('kesiswaan') || 
+    subroleStr.includes('bk') || 
+    subroleStr.includes('bpbk') ||
+    divisionStr.includes('kesiswaan') || 
+    divisionStr.includes('bk') || 
+    divisionStr.includes('bpbk') ||
+    jabatanStr.includes('kesiswaan') || 
+    jabatanStr.includes('bk') || 
+    jabatanStr.includes('bpbk') ||
+    ['admin', 'superadmin'].includes(roleStr) ||
+    Boolean(user?.isBK || user?.isBPBK || user?.isKesiswaan);
+
+  const hasApprovalPermission = isKesiswaanOrBK;
 
   const [isLoading, setIsLoading] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
@@ -147,6 +162,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const [filterStatus, setFilterStatus] = useState("all");
 
+  const isWalas = Boolean(user?.isWalas || user?.walasClass);
+  const walasClass = user?.walasClass;
+
+  const isFullAccess = 
+    isKesiswaanOrBK || 
+    ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) ||
+    roleStr.startsWith('waka');
+
   const baseSuratItems = useMemo(() => {
     return items.filter(item => {
       // Exclude automatic machine attendance logs (Mesin Hikvision) from Surat Izin/Sakit management
@@ -172,6 +195,19 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
       const studentName = student.namaSiswa || student.name || item.siswa_nis;
       const studentClass = student.class_name || student.kelas || "";
+
+      // Pembatasan akses guru biasa non-walas
+      if (!isFullAccess) {
+        if (isWalas && walasClass) {
+          if (studentClass !== walasClass) return false;
+        } else {
+          // Guru biasa (bukan walas, bukan BK/Kesiswaan):
+          // Hanya melihat data izin/sakit yang diinput sendiri
+          const isOwnReport = String(item.pelapor_id) === String(user?.id) || 
+                              (item.pelapor_nama && user?.name && item.pelapor_nama.toLowerCase() === user.name.toLowerCase());
+          if (!isOwnReport) return false;
+        }
+      }
       
       const itemDateStr = getItemDateStr(item.tanggal);
       const mSearch = activeSearch === "" || studentName.toLowerCase().includes(activeSearch.toLowerCase()) || String(item.siswa_nis).includes(activeSearch);
@@ -180,7 +216,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
       return mSearch && mKelas && mTanggal;
     });
-  }, [items, activeSearch, filterKelas, filterTanggal, students, getItemDateStr]);
+  }, [items, activeSearch, filterKelas, filterTanggal, students, getItemDateStr, isFullAccess, isWalas, walasClass, user]);
 
   const filteredItems = useMemo(() => {
     if (filterStatus === "all") return baseSuratItems;
@@ -226,11 +262,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   }, [matrixMonth, filterKelas]);
 
   const studentsToSelect = useMemo(() => {
-    if (user?.role ==="guru" && user?.isWalas && user?.walasClass) {
-      return students.filter(s => (s.class_name || s.kelas) === user.walasClass);
+    if (!isFullAccess) {
+      if (isWalas && walasClass) {
+        return students.filter(s => (s.class_name || s.kelas) === walasClass);
+      }
+      return [];
     }
     return students;
-  }, [students, user]);
+  }, [students, isFullAccess, isWalas, walasClass]);
 
   const daysInMonth = useMemo(() => {
     if (!matrixMonth) return 31;
@@ -400,11 +439,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const classOptions = useMemo(() => classes.map(c => ({value: c.name, label: c.name})), [classes]);
 
   const classOptionsToShow = useMemo(() => {
-    if (user?.role ==="guru" && user?.isWalas && user?.walasClass) {
-      return [{ value: user.walasClass, label: user.walasClass }];
+    if (!isFullAccess) {
+      if (isWalas && walasClass) {
+        return [{ value: walasClass, label: `Kelas Saya (${walasClass})` }];
+      }
+      return [{ value: 'all', label: 'Pengajuan Saya' }];
     }
-    return [{ value:'all', label:'Semua Kelas' }, ...classOptions];
-  }, [user, classOptions]);
+    return [{ value: 'all', label: 'Semua Kelas' }, ...classOptions];
+  }, [isFullAccess, isWalas, walasClass, classOptions]);
 
   // Jika dipanggil sebagai halaman utama (bukan nested), alihkan seluruh UI ke HikvisionStudentReport 
   // yang sudah memiliki tab matriks dan surat yang lebih bagus.

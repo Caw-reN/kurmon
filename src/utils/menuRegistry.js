@@ -257,20 +257,11 @@ export const MENU_REGISTRY = [
     specialCondition: 'walas_only',
   },
 
-  // ─── DATA MASTER (Guru/Karyawan/Kelas, hanya admin/waka) ──────────────────────
+  // ─── DATA MASTER (Data Pegawai/Kelas/Jurusan/Mapel, hanya admin/waka) ─────────
   {
-    id: 'guru',
+    id: 'data_pegawai',
     icon: Users,
-    label: 'Data Guru',
-    section: 'Data Master',
-    adminGroup: 'Data Sekolah',
-    adminGroupIcon: FolderOpen,
-    adminGroupKey: 'dataMaster',
-  },
-  {
-    id: 'karyawan',
-    icon: Briefcase,
-    label: 'Data Karyawan',
+    label: 'Data Pegawai',
     section: 'Data Master',
     adminGroup: 'Data Sekolah',
     adminGroupIcon: FolderOpen,
@@ -298,15 +289,6 @@ export const MENU_REGISTRY = [
     id: 'mapel',
     icon: BookOpen,
     label: 'Mata Pelajaran',
-    section: 'Data Master',
-    adminGroup: 'Data Sekolah',
-    adminGroupIcon: FolderOpen,
-    adminGroupKey: 'dataMaster',
-  },
-  {
-    id: 'data_pegawai',
-    icon: Users,
-    label: 'Data Pegawai',
     section: 'Data Master',
     adminGroup: 'Data Sekolah',
     adminGroupIcon: FolderOpen,
