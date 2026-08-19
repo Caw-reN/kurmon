@@ -2,10 +2,24 @@
 <html lang="id">
   <head>
 <script id='catch-error'>
+  window.addEventListener('vite:preloadError', function(e) {
+    console.warn("Vite preload error, reloading to fetch latest version...");
+    window.location.reload();
+  });
   window.addEventListener('error', function(e) {
+    var msg = (e && e.message) || "";
+    if (msg.indexOf('Failed to fetch dynamically imported module') !== -1 || msg.indexOf('Importing a module script failed') !== -1) {
+      window.location.reload();
+      return;
+    }
     console.error("BROWSER_ERROR:", e.message, e.error && e.error.stack);
   });
   window.addEventListener('unhandledrejection', function(e) {
+    var reason = (e && e.reason && e.reason.message) || String(e && e.reason || "");
+    if (reason.indexOf('Failed to fetch dynamically imported module') !== -1 || reason.indexOf('Importing a module script failed') !== -1) {
+      window.location.reload();
+      return;
+    }
     console.error("BROWSER_PROMISE_ERROR:", e.reason);
   });
 </script>
