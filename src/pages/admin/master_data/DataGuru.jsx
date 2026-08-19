@@ -1,7 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useMemo } from'react';
 import { Users, Upload, Download, Check, Edit3, Search } from'lucide-react';
-import * as XLSX from'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import usePenugasanStore from'../../../store/monitoring/penugasanStore';
 import { PageHeader, Avatar, Badge } from'../../../components/monitoring/ui/index.js';
 import ImportModal from'../../../components/monitoring/ui/ImportModal.jsx';
@@ -72,10 +73,16 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
       Mapel: g.mapel,
       Jurusan: g.jurusan || g.major,"Kapasitas Bimbingan": kapasitasGuru[g.id] || 5
     }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Data_Guru");
-    XLSX.writeFile(wb,"Data_Guru_PKL.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Data_Guru");
+    if (exportData.length > 0) {
+      const keys = Object.keys(exportData[0]);
+      ws.addRow(keys);
+      exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Data_Guru_PKL.xlsx");
+    });
   };
 
   const handleDownloadTemplate = () => {
@@ -83,10 +90,14 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
       {'Kode Guru':'G01','Nama Guru':'Budi Santoso, S.Pd','Jurusan':'RPL','Kapasitas': 5
       }
     ];
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Template Guru");
-    XLSX.writeFile(wb,"Template_Master_Guru.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template Guru");
+    const keys = Object.keys(templateData[0]);
+    ws.addRow(keys);
+    templateData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Template_Master_Guru.xlsx");
+    });
   };
 
   // BUG-04 FIX: handleProcessImport sekarang menyimpan data ke database via API.

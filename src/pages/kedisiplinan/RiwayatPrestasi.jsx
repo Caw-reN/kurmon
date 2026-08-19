@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { 
   Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin, 
   Building, Calendar, Edit2, Trash2, AlertCircle, CheckCircle2, 
@@ -208,10 +209,16 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         "Keterangan": item.keterangan
       };
     });
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Prestasi_Siswa");
-    XLSX.writeFile(wb, `Riwayat_Prestasi_Siswa_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Prestasi_Siswa");
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Riwayat_Prestasi_Siswa_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    });
   };
 
   const getTingkatBadgeClass = (tingkat) => {

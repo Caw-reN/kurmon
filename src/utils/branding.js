@@ -92,13 +92,12 @@ export const applyDocumentBranding = (settings = {}) => {
   root.style.setProperty('--card-foreground', cardText);
   root.style.setProperty('--card-muted', cardMuted);
   if (settings.uiRadius) {
-    // Map radius settings from Tampilan WEB (sm, md, lg, full) to px sizes
-    let radiusControl = '16px';
+    let radiusControl = '12px';
     let radiusSmall = '12px';
     let radiusCard = '24px';
-    let radiusVal = "0.45rem";
-    if (settings.uiRadius === 'sm') { radiusControl = '8px'; radiusSmall = '6px'; radiusCard = '12px'; radiusVal = "0.25rem"; }
-    if (settings.uiRadius === 'lg') { radiusControl = '24px'; radiusSmall = '16px'; radiusCard = '32px'; radiusVal = "0.85rem"; }
+    let radiusVal = "0.75rem";
+    if (settings.uiRadius === 'sm') { radiusControl = '8px'; radiusSmall = '8px'; radiusCard = '16px'; radiusVal = "0.5rem"; }
+    if (settings.uiRadius === 'lg') { radiusControl = '16px'; radiusSmall = '16px'; radiusCard = '32px'; radiusVal = "1rem"; }
     if (settings.uiRadius === 'full') { radiusControl = '999px'; radiusSmall = '999px'; radiusCard = '32px'; radiusVal = "9999px"; }
     root.style.setProperty('--ui-radius-control', radiusControl);
     root.style.setProperty('--ui-radius-small', radiusSmall);

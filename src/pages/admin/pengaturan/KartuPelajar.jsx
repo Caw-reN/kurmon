@@ -32,7 +32,8 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { useDataStore } from '../../../store/useDataStore.js';
@@ -753,10 +754,14 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       }
     ];
 
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template_Data_Siswa");
-    XLSX.writeFile(wb, "Template_Mass_Upload_TTL_Kartu_Pelajar.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template_Data_Siswa");
+    const keys = Object.keys(templateData[0]);
+    ws.addRow(keys);
+    templateData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Template_Mass_Upload_TTL_Kartu_Pelajar.xlsx");
+    });
   };
 
   // ─── Handle Excel / CSV File Upload & Parsing ───
@@ -767,13 +772,56 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     setExcelFileName(file.name);
     const reader = new FileReader();
 
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsName = wb.SheetNames[0];
-        const ws = wb.Sheets[wsName];
-        const rawJson = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        const buffer = evt.target.result;
+        const wb = new ExcelJS.Workbook();
+        
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        let rawJson = [];
+        if (fileExt === 'csv') {
+           const text = new TextDecoder().decode(buffer);
+           let row = [], currentVal = '', inQuotes = false;
+           for (let i = 0; i < text.length; i++) {
+             const char = text[i];
+             if (char === '"') {
+               if (inQuotes && text[i+1] === '"') { currentVal += '"'; i++; }
+               else { inQuotes = !inQuotes; }
+             } else if (char === ',' && !inQuotes) {
+               row.push(currentVal); currentVal = '';
+             } else if ((char === '\n' || char === '\r') && !inQuotes) {
+               if (char === '\r' && text[i+1] === '\n') i++;
+               row.push(currentVal);
+               if (row.length > 0 || currentVal !== '') rawJson.push(row);
+               row = []; currentVal = '';
+             } else { currentVal += char; }
+           }
+           if (currentVal !== '' || row.length > 0) { row.push(currentVal); rawJson.push(row); }
+           
+           if (rawJson.length > 1) {
+             const headers = rawJson[0];
+             rawJson = rawJson.slice(1).map(r => {
+               const obj = {};
+               headers.forEach((h, i) => obj[h] = r[i] || '');
+               return obj;
+             });
+           } else rawJson = [];
+        } else {
+           await wb.xlsx.load(buffer);
+           const ws = wb.worksheets[0];
+           let headers = [];
+           ws.eachRow((row, rowNumber) => {
+             if (rowNumber === 1) {
+               headers = row.values;
+               return;
+             }
+             const rowData = {};
+             row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+               rowData[headers[colNumber]] = cell.value ?? '';
+             });
+             rawJson.push(rowData);
+           });
+        }
 
         if (!rawJson || rawJson.length === 0) {
           showToast('File Excel / CSV kosong atau format tidak sesuai!', 'error');
@@ -822,7 +870,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       }
     };
 
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   // ─── Save Excel Import to DB ───

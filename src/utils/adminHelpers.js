@@ -114,6 +114,7 @@ export const getTableRowKey = (tab, item) => {
   if (tab === "mapel") return String(item.name || "");
   if (tab === "ruangan") return String(item.id || "");
   if (tab === "beban") return String(item.id || "");
+  if (tab === "siswa") return String(item.id || item.code || item.nis || "");
   return String(item.id || item.name || "");
 };
 export const getTableSearchText = (tab, item) => {

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from'react';
-import * as XLSX from'xlsx';
+import ExcelJS from 'exceljs';
 import { X, FileSpreadsheet, Upload, CheckCircle2, AlertCircle, BookOpen, Loader2 } from'lucide-react';
 import { Button } from'./index.js';
 
@@ -66,21 +66,53 @@ const ImportModal = ({
   const parseExcel = useCallback((file) => {
     const ext = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         let jsonData = [];
-        if (ext ==='csv' || ext ==='txt') {
-          const text = e.target.result;
-          const workbook = XLSX.read(text, { type:'string' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          jsonData = XLSX.utils.sheet_to_json(worksheet, { defval:"" });
+        if (ext === 'csv' || ext === 'txt') {
+          const text = new TextDecoder().decode(e.target.result);
+          let row = [], currentVal = '', inQuotes = false, rawRows = [];
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '"') {
+              if (inQuotes && text[i+1] === '"') { currentVal += '"'; i++; }
+              else { inQuotes = !inQuotes; }
+            } else if (char === ',' && !inQuotes) {
+              row.push(currentVal); currentVal = '';
+            } else if ((char === '\n' || char === '\r') && !inQuotes) {
+              if (char === '\r' && text[i+1] === '\n') i++;
+              row.push(currentVal);
+              if (row.length > 0 || currentVal !== '') rawRows.push(row);
+              row = []; currentVal = '';
+            } else { currentVal += char; }
+          }
+          if (currentVal !== '' || row.length > 0) { row.push(currentVal); rawRows.push(row); }
+          
+          if (rawRows.length > 1) {
+            const headers = rawRows[0];
+            jsonData = rawRows.slice(1).map(r => {
+              const obj = {};
+              headers.forEach((h, idx) => obj[h] = r[idx] || '');
+              return obj;
+            });
+          }
         } else {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type:'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          jsonData = XLSX.utils.sheet_to_json(worksheet, { defval:"" });
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(data);
+          const worksheet = workbook.worksheets[0];
+          let headers = [];
+          worksheet.eachRow((row, rowNumber) => {
+             if (rowNumber === 1) {
+               headers = row.values;
+               return;
+             }
+             const rowData = {};
+             row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+               rowData[headers[colNumber]] = cell.value ?? '';
+             });
+             jsonData.push(rowData);
+          });
         }
         
         if (jsonData.length === 0) {
@@ -102,11 +134,7 @@ const ImportModal = ({
       setError('Gagal membaca file.');
     };
 
-    if (ext ==='csv' || ext ==='txt') {
-      reader.readAsText(file);
-    } else {
-      reader.readAsArrayBuffer(file);
-    }
+    reader.readAsArrayBuffer(file);
   }, []);
 
   const onDragOver = (e) => {

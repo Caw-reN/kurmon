@@ -73,7 +73,7 @@ export default function ModulAjar(props) {
   const [modulForm, setModulForm] = useState({
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
-    mapel: '', semester: 'Ganjil',
+    mapel: '', semester: 'Ganjil', kelas: '-',
     file_size: null, original_size: null,
     saved_percent: 0, is_compressed: false
   });
@@ -86,7 +86,7 @@ export default function ModulAjar(props) {
   const [materiForm, setMateriForm] = useState({
     judul: '', deskripsi: '', tipe: 'file',
     file_url: '', nama_dokumen: '', link_url: '',
-    mapel: '', semester: 'Ganjil', tahun_ajaran: activeYear || '',
+    mapel: '', semester: 'Ganjil', tahun_ajaran: activeYear || '', kelas: 'Semua',
     file_size: null, original_size: null,
     saved_percent: 0, is_compressed: false
   });
@@ -365,7 +365,7 @@ export default function ModulAjar(props) {
           teacher_name: teacherName || 'Administrator',
           nama_dokumen: modulForm.nama_dokumen, file_url: modulForm.file_url,
           tahun_ajaran: modulForm.tahun_ajaran || activeYear, 
-          mapel: modulForm.mapel, kelas: '-', semester: modulForm.semester
+          mapel: modulForm.mapel, kelas: modulForm.kelas || '-', semester: modulForm.semester
         })
       });
       const data = await res.json();
@@ -374,7 +374,7 @@ export default function ModulAjar(props) {
         setIsModulModalOpen(false);
         setModulForm({
           nama_dokumen: '', file_url: '',
-          tahun_ajaran: activeYear,
+          tahun_ajaran: activeYear, kelas: '-',
           mapel: availableSubjects[0] || '',
           semester: 'Ganjil',
           file_size: null, original_size: null,
@@ -414,7 +414,7 @@ export default function ModulAjar(props) {
           file_url: materiForm.tipe === 'file' ? materiForm.file_url : null,
           nama_dokumen: materiForm.tipe === 'file' ? materiForm.nama_dokumen : null,
           link_url: materiForm.tipe === 'link' ? materiForm.link_url : null,
-          mapel: materiForm.mapel, kelas_target: 'Semua',
+          mapel: materiForm.mapel, kelas_target: materiForm.kelas || 'Semua',
           semester: materiForm.semester, tahun_ajaran: materiForm.tahun_ajaran || activeYear
         })
       });
@@ -426,7 +426,7 @@ export default function ModulAjar(props) {
           judul: '', deskripsi: '', tipe: 'file',
           file_url: '', nama_dokumen: '', link_url: '',
           mapel: availableSubjects[0] || '',
-          semester: 'Ganjil', tahun_ajaran: activeYear,
+          semester: 'Ganjil', tahun_ajaran: activeYear, kelas: 'Semua',
           file_size: null, original_size: null,
           saved_percent: 0, is_compressed: false
         });
@@ -874,7 +874,7 @@ export default function ModulAjar(props) {
                         </span>
 
                         <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                          {item.kelas ? `Kelas ${item.kelas} &bull; ` : ''}Sem. {item.semester}
+                          {item.kelas ? `Kelas ${item.kelas} • ` : ''}Sem. {item.semester}
                         </span>
                       </div>
 
@@ -1021,8 +1021,25 @@ export default function ModulAjar(props) {
               </UISelect>
             </div>
 
-            {/* Semester & TA */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Semester, TA & Kelas */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Tingkat / Kelas
+                </label>
+                <UISelect 
+                  value={modulForm.kelas} 
+                  required 
+                  disabled={isUploadingModul}
+                  onChange={e => setModulForm({ ...modulForm, kelas: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                >
+                  <option value="-">Umum / Semua Tingkat</option>
+                  <option value="X">Tingkat X</option>
+                  <option value="XI">Tingkat XI</option>
+                  <option value="XII">Tingkat XII</option>
+                </UISelect>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Semester <span className="text-rose-500">*</span>
@@ -1308,7 +1325,24 @@ export default function ModulAjar(props) {
             </div>
 
             {/* Mata Pelajaran & Semester */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Tingkat / Kelas
+                </label>
+                <UISelect 
+                  value={materiForm.kelas} 
+                  required 
+                  disabled={isUploadingMateri}
+                  onChange={e => setMateriForm(f => ({ ...f, kelas: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                >
+                  <option value="Semua">Umum / Semua Tingkat</option>
+                  <option value="X">Tingkat X</option>
+                  <option value="XI">Tingkat XI</option>
+                  <option value="XII">Tingkat XII</option>
+                </UISelect>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Mata Pelajaran <span className="text-rose-500">*</span>

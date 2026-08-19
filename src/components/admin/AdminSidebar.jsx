@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Settings } from 'lucide-react';
+import { ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 
 export default function AdminSidebar({

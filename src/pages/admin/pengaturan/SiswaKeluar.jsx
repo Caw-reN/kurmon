@@ -5,7 +5,8 @@ import {
   LogOut, Filter, Info, Sparkles, Download, AlertTriangle,
   GraduationCap, RefreshCw, Layers
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 
 export default function SiswaKeluar() {
@@ -147,10 +148,16 @@ export default function SiswaKeluar() {
       'Tanggal Keluar': s.tanggal_keluar || '-'
     }));
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Siswa Keluar');
-    XLSX.writeFile(wb, `Riwayat_Siswa_Keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Siswa Keluar');
+    if (exportData.length > 0) {
+      const keys = Object.keys(exportData[0]);
+      ws.addRow(keys);
+      exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Riwayat_Siswa_Keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
+    });
     showToast('Berhasil mengunduh dokumen Excel riwayat siswa keluar');
   };
 

@@ -1,5 +1,8 @@
 import crypto from 'node:crypto';
 
+// Bypass SSL certificate expiration (Sering terjadi pada mesin absensi IoT)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 function md5(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
@@ -71,7 +74,11 @@ export class HikvisionAPI {
   async request(path, options = {}) {
     const url = `${this.baseUrl}${path}`;
     const method = options.method || 'GET';
-    let res = await fetch(url, options);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    
+    let res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeout);
 
     if (res.status === 401 && res.headers.has('www-authenticate')) {
       const authHeader = res.headers.get('www-authenticate');

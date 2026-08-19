@@ -8,7 +8,7 @@ import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 import useAuthStore from '../../../store/monitoring/authStore';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // ── TOAST NOTIFICATION ────────────────────────────────────────────────────────
 const Toast = ({ message, type, onClose }) => {
@@ -198,8 +198,12 @@ function TabSiswa({ classes, authToken, showToast }) {
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
-        const wb = XLSX.read(evt.target.result, { type: 'binary' });
-        const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+        const wb = new ExcelJS.Workbook();
+        await wb.xlsx.load(evt.target.result);
+        const data = [];
+        wb.worksheets[0].eachRow({ includeEmpty: true }, (row) => {
+          data.push(row.values.slice(1));
+        });
         if (data.length === 0) {
           showToast("File Excel kosong.", "error");
           return;
@@ -229,7 +233,7 @@ function TabSiswa({ classes, authToken, showToast }) {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const executeBulkImport = async () => {

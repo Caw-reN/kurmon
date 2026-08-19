@@ -1142,7 +1142,7 @@ export function useAdminCRUD(props) {
     }
   };
   const handleDelete = (type, idOrCode) => {
-    if (["kelas","jurusan","guru","karyawan","Karyawan","mapel","ruangan","beban"].includes(type)) {
+    if (["kelas","jurusan","guru","karyawan","Karyawan","staff","siswa","mapel","ruangan","beban"].includes(type)) {
       handleBulkDelete(type, [idOrCode]);
       return;
     }

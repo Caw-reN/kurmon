@@ -46,14 +46,9 @@ export function useAdminImportExport(props) {
   } = props || {};
 
   const downloadMasterTemplate = async () => {
-    let XLSX;
-    try {
-      XLSX = await import("xlsx");
-    } catch {
-      showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.","error");
-      return;
-    }
-    const wb = XLSX.utils.book_new();
+    const ExcelJS = (await import("exceljs")).default;
+    const { saveAs } = await import("file-saver");
+    const wb = new ExcelJS.Workbook();
 
     // 0_Panduan_Singkat
     const panduanData = [
@@ -73,9 +68,10 @@ export function useAdminImportExport(props) {
       ["- Siswa           : Pastikan NIS/NISN unik. Kelas harus merujuk ke data di sheet Kelas."],
       ["- Beban & Silabus : Digunakan untuk menjadwalkan guru dan materi di Kurikulum."]
     ];
-    const wsPanduan = XLSX.utils.aoa_to_sheet(panduanData);
-    wsPanduan["!cols"] = [{ wch: 120 }];
-    XLSX.utils.book_append_sheet(wb, wsPanduan,"0_Panduan_Singkat");
+    const wsPanduan = wb.addWorksheet("0_Panduan_Singkat");
+    panduanData.forEach(row => wsPanduan.addRow(row));
+    var cols = [{ wch: 120 }];
+    cols.forEach((col, idx) => { if(col.wch) wsPanduan.getColumn(idx + 1).width = col.wch; });
 
     // 1_Jurusan
     const jurusanData = [
@@ -83,9 +79,10 @@ export function useAdminImportExport(props) {
       ["Rekayasa Perangkat Lunak"],
       ["Teknik Komputer dan Jaringan"]
     ];
-    const wsJurusan = XLSX.utils.aoa_to_sheet(jurusanData);
-    wsJurusan["!cols"] = [{ wch: 45 }];
-    XLSX.utils.book_append_sheet(wb, wsJurusan,"1_Jurusan");
+    const wsJurusan = wb.addWorksheet("1_Jurusan");
+    jurusanData.forEach(row => wsJurusan.addRow(row));
+    var cols = [{ wch: 45 }];
+    cols.forEach((col, idx) => { if(col.wch) wsJurusan.getColumn(idx + 1).width = col.wch; });
 
     // 2_Kelas
     const kelasData = [
@@ -93,9 +90,10 @@ export function useAdminImportExport(props) {
       ["X RPL 1","Rekayasa Perangkat Lunak","Budi Santoso, S.Pd"],
       ["XI TKJ 2","Teknik Komputer dan Jaringan","Diana Lestari, M.Pd"]
     ];
-    const wsKelas = XLSX.utils.aoa_to_sheet(kelasData);
-    wsKelas["!cols"] = [{ wch: 30 }, { wch: 40 }, { wch: 35 }];
-    XLSX.utils.book_append_sheet(wb, wsKelas,"2_Kelas");
+    const wsKelas = wb.addWorksheet("2_Kelas");
+    kelasData.forEach(row => wsKelas.addRow(row));
+    var cols = [{ wch: 30 }, { wch: 40 }, { wch: 35 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKelas.getColumn(idx + 1).width = col.wch; });
 
     // 3_Guru
     const guruData = [
@@ -103,9 +101,10 @@ export function useAdminImportExport(props) {
       ["G01","Ahmad Fauzi, M.T","123456","Jurusan","RPL","XII", 24],
       ["G02","Siti Aminah, S.Pd","123456","Umum","Semua","Semua", 18]
     ];
-    const wsGuru = XLSX.utils.aoa_to_sheet(guruData);
-    wsGuru["!cols"] = [{ wch: 20 }, { wch: 40 }, { wch: 25 }, { wch: 35 }, { wch: 25 }, { wch: 25 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsGuru,"3_Guru");
+    const wsGuru = wb.addWorksheet("3_Guru");
+    guruData.forEach(row => wsGuru.addRow(row));
+    var cols = [{ wch: 20 }, { wch: 40 }, { wch: 25 }, { wch: 35 }, { wch: 25 }, { wch: 25 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsGuru.getColumn(idx + 1).width = col.wch; });
 
     // 4_Mapel
     const mapelData = [
@@ -113,9 +112,10 @@ export function useAdminImportExport(props) {
       ["Dasar Pemrograman","X","Rekayasa Perangkat Lunak","Ya","LAB_RPL", 2],
       ["Pendidikan Pancasila","Semua","Semua","Tidak","", 2]
     ];
-    const wsMapel = XLSX.utils.aoa_to_sheet(mapelData);
-    wsMapel["!cols"] = [{ wch: 40 }, { wch: 25 }, { wch: 40 }, { wch: 20 }, { wch: 35 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(wb, wsMapel,"4_Mapel");
+    const wsMapel = wb.addWorksheet("4_Mapel");
+    mapelData.forEach(row => wsMapel.addRow(row));
+    var cols = [{ wch: 40 }, { wch: 25 }, { wch: 40 }, { wch: 20 }, { wch: 35 }, { wch: 15 }];
+    cols.forEach((col, idx) => { if(col.wch) wsMapel.getColumn(idx + 1).width = col.wch; });
 
     // 5_Ruangan
     const ruanganData = [
@@ -123,9 +123,10 @@ export function useAdminImportExport(props) {
       ["R01","Ruang Kelas X RPL 1","Teori","Rekayasa Perangkat Lunak","X","Tidak"],
       ["LAB_RPL","Laboratorium Komputer","Praktik","Rekayasa Perangkat Lunak","Semua","Ya"]
     ];
-    const wsRuangan = XLSX.utils.aoa_to_sheet(ruanganData);
-    wsRuangan["!cols"] = [{ wch: 20 }, { wch: 40 }, { wch: 25 }, { wch: 40 }, { wch: 35 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, wsRuangan,"5_Ruangan");
+    const wsRuangan = wb.addWorksheet("5_Ruangan");
+    ruanganData.forEach(row => wsRuangan.addRow(row));
+    var cols = [{ wch: 20 }, { wch: 40 }, { wch: 25 }, { wch: 40 }, { wch: 35 }, { wch: 20 }];
+    cols.forEach((col, idx) => { if(col.wch) wsRuangan.getColumn(idx + 1).width = col.wch; });
 
     // 6_Beban
     const bebanData = [
@@ -133,18 +134,20 @@ export function useAdminImportExport(props) {
       ["G01","Dasar Pemrograman","X","Rekayasa Perangkat Lunak", 2,"3"],
       ["G02","Pendidikan Pancasila","Semua","Semua", 2,""]
     ];
-    const wsBeban = XLSX.utils.aoa_to_sheet(bebanData);
-    wsBeban["!cols"] = [{ wch: 20 }, { wch: 40 }, { wch: 35 }, { wch: 40 }, { wch: 15 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsBeban,"6_Beban");
+    const wsBeban = wb.addWorksheet("6_Beban");
+    bebanData.forEach(row => wsBeban.addRow(row));
+    var cols = [{ wch: 20 }, { wch: 40 }, { wch: 35 }, { wch: 40 }, { wch: 15 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsBeban.getColumn(idx + 1).width = col.wch; });
 
     // 7_Modul
     const silabusData = [
       ["MATA PELAJARAN (Wajib)","GURU PENGAJAR (Wajib)","JUDUL PERTEMUAN (Wajib)","KELAS / SEMESTER","TUJUAN PEMBELAJARAN","MATERI PEMBELAJARAN","CATATAN / KETERANGAN"],
       ["Dasar Pemrograman","G01","Pertemuan 1: Pengenalan Vektor","X / Ganjil","Siswa memahami dasar vektor","Konsep vektor dan bitmap","Membawa laptop"]
     ];
-    const wsSilabus = XLSX.utils.aoa_to_sheet(silabusData);
-    wsSilabus["!cols"] = [{ wch: 30 }, { wch: 25 }, { wch: 45 }, { wch: 25 }, { wch: 50 }, { wch: 50 }, { wch: 30 }];
-    XLSX.utils.book_append_sheet(wb, wsSilabus,"7_Modul");
+    const wsSilabus = wb.addWorksheet("7_Modul");
+    silabusData.forEach(row => wsSilabus.addRow(row));
+    var cols = [{ wch: 30 }, { wch: 25 }, { wch: 45 }, { wch: 25 }, { wch: 50 }, { wch: 50 }, { wch: 30 }];
+    cols.forEach((col, idx) => { if(col.wch) wsSilabus.getColumn(idx + 1).width = col.wch; });
 
     // 8_Waktu
     const waktuData = [
@@ -152,9 +155,10 @@ export function useAdminImportExport(props) {
       ["Senin","07:00 - 07:45","Tidak","Jam Pelajaran 1", 1],
       ["Senin","09:15 - 09:45","Ya","Istirahat Pagi", 0]
     ];
-    const wsWaktu = XLSX.utils.aoa_to_sheet(waktuData);
-    wsWaktu["!cols"] = [{ wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 30 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, wsWaktu,"8_Waktu");
+    const wsWaktu = wb.addWorksheet("8_Waktu");
+    waktuData.forEach(row => wsWaktu.addRow(row));
+    var cols = [{ wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 30 }, { wch: 20 }];
+    cols.forEach((col, idx) => { if(col.wch) wsWaktu.getColumn(idx + 1).width = col.wch; });
 
     // 9_Ketersediaan
     const ketersediaanData = [
@@ -162,18 +166,20 @@ export function useAdminImportExport(props) {
       ["G01","Dasar Pemrograman","Senin, Selasa, Rabu, Kamis, Jumat"],
       ["G02","Pendidikan Pancasila","Senin, Kamis, Jumat"]
     ];
-    const wsKetersediaan = XLSX.utils.aoa_to_sheet(ketersediaanData);
-    wsKetersediaan["!cols"] = [{ wch: 20 }, { wch: 40 }, { wch: 45 }];
-    XLSX.utils.book_append_sheet(wb, wsKetersediaan,"9_Ketersediaan");
+    const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
+    ketersediaanData.forEach(row => wsKetersediaan.addRow(row));
+    var cols = [{ wch: 20 }, { wch: 40 }, { wch: 45 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKetersediaan.getColumn(idx + 1).width = col.wch; });
 
     // 10_Kalender_Akademik
     const akademikData = [
       ["JUDUL KEGIATAN (Wajib)","MULAI (YYYY-MM-DD)","SELESAI (YYYY-MM-DD)","KATEGORI (Wajib)","DESKRIPSI / KETERANGAN"],
       ["Libur Semester Ganjil","2024-12-15","2024-12-31","Libur","Liburan akhir semester"]
     ];
-    const wsAkademik = XLSX.utils.aoa_to_sheet(akademikData);
-    wsAkademik["!cols"] = [{ wch: 35 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 45 }];
-    XLSX.utils.book_append_sheet(wb, wsAkademik,"10_Kalender_Akademik");
+    const wsAkademik = wb.addWorksheet("10_Kalender_Akademik");
+    akademikData.forEach(row => wsAkademik.addRow(row));
+    var cols = [{ wch: 35 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 45 }];
+    cols.forEach((col, idx) => { if(col.wch) wsAkademik.getColumn(idx + 1).width = col.wch; });
 
     // 11_Kategori_Kalender
     const katKalenderData = [
@@ -181,9 +187,10 @@ export function useAdminImportExport(props) {
       ["Libur","#ef4444"],
       ["Ujian","#3b82f6"]
     ];
-    const wsKatKalender = XLSX.utils.aoa_to_sheet(katKalenderData);
-    wsKatKalender["!cols"] = [{ wch: 30 }, { wch: 30 }];
-    XLSX.utils.book_append_sheet(wb, wsKatKalender,"11_Kategori_Kalender");
+    const wsKatKalender = wb.addWorksheet("11_Kategori_Kalender");
+    katKalenderData.forEach(row => wsKatKalender.addRow(row));
+    var cols = [{ wch: 30 }, { wch: 30 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKatKalender.getColumn(idx + 1).width = col.wch; });
 
     // 12_Kategori_Modul
     const katSilabusData = [
@@ -191,9 +198,10 @@ export function useAdminImportExport(props) {
       ["Pertemuan Biasa","#3b82f6"],
       ["Praktikum","#10b981"]
     ];
-    const wsKatSilabus = XLSX.utils.aoa_to_sheet(katSilabusData);
-    wsKatSilabus["!cols"] = [{ wch: 30 }, { wch: 30 }];
-    XLSX.utils.book_append_sheet(wb, wsKatSilabus,"12_Kategori_Modul");
+    const wsKatSilabus = wb.addWorksheet("12_Kategori_Modul");
+    katSilabusData.forEach(row => wsKatSilabus.addRow(row));
+    var cols = [{ wch: 30 }, { wch: 30 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKatSilabus.getColumn(idx + 1).width = col.wch; });
 
     // 13_Absensi_Guru
     const absensiData = [
@@ -201,9 +209,10 @@ export function useAdminImportExport(props) {
       ["Sheet 13_Absensi_Guru ini HANYA UNTUK KEPERLUAN EXPORT DATA."],
       ["Anda tidak dapat melakukan import absen masa lalu melalui file Excel ini."]
     ];
-    const wsAbsensi = XLSX.utils.aoa_to_sheet(absensiData);
-    wsAbsensi["!cols"] = [{ wch: 80 }];
-    XLSX.utils.book_append_sheet(wb, wsAbsensi,"13_Absensi_Guru");
+    const wsAbsensi = wb.addWorksheet("13_Absensi_Guru");
+    absensiData.forEach(row => wsAbsensi.addRow(row));
+    var cols = [{ wch: 80 }];
+    cols.forEach((col, idx) => { if(col.wch) wsAbsensi.getColumn(idx + 1).width = col.wch; });
 
     // 14_Karyawan
     const karyawanData = [
@@ -211,9 +220,10 @@ export function useAdminImportExport(props) {
       ["K01","Budi Santoso","Kebersihan","'081234567890"],
       ["K02","Siti Aminah","Tata Usaha","'081298765432"]
     ];
-    const wsKaryawan = XLSX.utils.aoa_to_sheet(karyawanData);
-    wsKaryawan["!cols"] = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsKaryawan,"14_Karyawan");
+    const wsKaryawan = wb.addWorksheet("14_Karyawan");
+    karyawanData.forEach(row => wsKaryawan.addRow(row));
+    var cols = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKaryawan.getColumn(idx + 1).width = col.wch; });
 
     // 15_Siswa
     const siswaData = [
@@ -221,42 +231,42 @@ export function useAdminImportExport(props) {
       ["1001","Ahmad Yusuf","X RPL 1","L","'081234567890"],
       ["1002","Bunga Lestari","X RPL 1","P","'081298765432"]
     ];
-    const wsSiswa = XLSX.utils.aoa_to_sheet(siswaData);
-    wsSiswa["!cols"] = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsSiswa,"15_Siswa");
+    const wsSiswa = wb.addWorksheet("15_Siswa");
+    siswaData.forEach(row => wsSiswa.addRow(row));
+    var cols = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsSiswa.getColumn(idx + 1).width = col.wch; });
 
-    XLSX.writeFile(wb, `Template Master Data ${appSettings.appName ||"TimeSchedule"}.xlsx`);
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `Template Master Data ${appSettings.appName ||"TimeSchedule"}.xlsx`);
     showNotification("Template Master Data berhasil diunduh.","success");
   };
 
   async function exportAllDataToExcel() {
-    let XLSX;
-    try {
-      XLSX = await import("xlsx");
-    } catch {
-      showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.","error");
-      return;
-    }
-    const wb = XLSX.utils.book_new();
+    const ExcelJS = (await import("exceljs")).default;
+    const { saveAs } = await import("file-saver");
+    const wb = new ExcelJS.Workbook();
     const jurusanData = [["Nama Jurusan (wajib)"], ...majors.map(m => [m])];
-    const wsJurusan = XLSX.utils.aoa_to_sheet(jurusanData);
-    wsJurusan["!cols"] = [{
+    const wsJurusan = wb.addWorksheet("1_Jurusan");
+    jurusanData.forEach(row => wsJurusan.addRow(row));
+    var cols = [{
       wch: 36
     }];
-    XLSX.utils.book_append_sheet(wb, wsJurusan,"1_Jurusan");
+    cols.forEach((col, idx) => { if(col.wch) wsJurusan.getColumn(idx + 1).width = col.wch; });
     const kelasData = [["Nama Kelas (wajib)","Jurusan (pilih dari Data Jurusan)","Wali Kelas"], ...classes.map(c => [c.name, c.major, c.homeroom ||""])];
-    const wsKelas = XLSX.utils.aoa_to_sheet(kelasData);
-    wsKelas["!cols"] = [{
+    const wsKelas = wb.addWorksheet("2_Kelas");
+    kelasData.forEach(row => wsKelas.addRow(row));
+    var cols = [{
       wch: 34
     }, {
       wch: 36
     }, {
       wch: 34
     }];
-    XLSX.utils.book_append_sheet(wb, wsKelas,"2_Kelas");
+    cols.forEach((col, idx) => { if(col.wch) wsKelas.getColumn(idx + 1).width = col.wch; });
     const guruData = [["Kode Guru (wajib)","Nama Guru (wajib)","Password","Kategori (Umum/Jurusan/Campuran)","Prioritas Jurusan","Prioritas Tingkat","Target JP/Minggu"], ...teachers.map(t => [t.code, t.name,"", t.type, t.preferredMajor, t.preferredGrade, t.targetWeeklyJp ||""])];
-    const wsGuru = XLSX.utils.aoa_to_sheet(guruData);
-    wsGuru["!cols"] = [{
+    const wsGuru = wb.addWorksheet("3_Guru");
+    guruData.forEach(row => wsGuru.addRow(row));
+    var cols = [{
       wch: 20
     }, {
       wch: 40
@@ -271,10 +281,11 @@ export function useAdminImportExport(props) {
     }, {
       wch: 18
     }];
-    XLSX.utils.book_append_sheet(wb, wsGuru,"3_Guru");
+    cols.forEach((col, idx) => { if(col.wch) wsGuru.getColumn(idx + 1).width = col.wch; });
     const mapelData = [["Nama Mapel (wajib)","Grade (X/XI/XII/Semua)","Jurusan (Umum/TKR/TKJ/RPL/Akuntansi)","Praktik? (Ya/Tidak)","Ruangan Praktik (ID dipisah koma)","Durasi"], ...subjects.map(s => [s.name, s.grade, s.major, s.isBlock ?"Ya" :"Tidak", s.practiceRoomIds ||"", s.defaultDuration])];
-    const wsMapel = XLSX.utils.aoa_to_sheet(mapelData);
-    wsMapel["!cols"] = [{
+    const wsMapel = wb.addWorksheet("4_Mapel");
+    mapelData.forEach(row => wsMapel.addRow(row));
+    var cols = [{
       wch: 36
     }, {
       wch: 26
@@ -287,10 +298,11 @@ export function useAdminImportExport(props) {
     }, {
       wch: 10
     }];
-    XLSX.utils.book_append_sheet(wb, wsMapel,"4_Mapel");
+    cols.forEach((col, idx) => { if(col.wch) wsMapel.getColumn(idx + 1).width = col.wch; });
     const ruanganData = [["ID Ruang (wajib)","Nama Ruangan (wajib)","Tipe (Teori/Praktik)","Jurusan (All/TKR/TKJ/RPL/Akuntansi)","Target Tingkat (Semua/X/XI/XII)","Prioritas (Ya/Tidak)"], ...rooms.map(r => [r.id, r.name, r.type, r.major, r.targetGrade ||"Semua", r.isPriority ?"Ya" :"Tidak"])];
-    const wsRuangan = XLSX.utils.aoa_to_sheet(ruanganData);
-    wsRuangan["!cols"] = [{
+    const wsRuangan = wb.addWorksheet("5_Ruangan");
+    ruanganData.forEach(row => wsRuangan.addRow(row));
+    var cols = [{
       wch: 20
     }, {
       wch: 34
@@ -303,10 +315,11 @@ export function useAdminImportExport(props) {
     }, {
       wch: 20
     }];
-    XLSX.utils.book_append_sheet(wb, wsRuangan,"5_Ruangan");
+    cols.forEach((col, idx) => { if(col.wch) wsRuangan.getColumn(idx + 1).width = col.wch; });
     const bebanData = [["Kode Guru","Nama Mapel","Target Grade (All/X/XI/XII atau X,XI)","Target Jurusan (All/TKR/TKJ/RPL/Akuntansi)","Durasi","Maks Kelas (opsional)"], ...teachingLoads.map(b => [b.teacherCode, b.subject, b.targetGrade, b.targetMajor, b.duration, b.maxClasses ||""])];
-    const wsBeban = XLSX.utils.aoa_to_sheet(bebanData);
-    wsBeban["!cols"] = [{
+    const wsBeban = wb.addWorksheet("6_Beban");
+    bebanData.forEach(row => wsBeban.addRow(row));
+    var cols = [{
       wch: 18
     }, {
       wch: 34
@@ -319,10 +332,11 @@ export function useAdminImportExport(props) {
     }, {
       wch: 22
     }];
-    XLSX.utils.book_append_sheet(wb, wsBeban,"6_Beban");
+    cols.forEach((col, idx) => { if(col.wch) wsBeban.getColumn(idx + 1).width = col.wch; });
     const silabusData = [["Mata Pelajaran (wajib)","Guru Pengajar (wajib)","Judul Pertemuan / BAB (wajib)","Kelas / Semester","Tujuan Pembelajaran","Materi Pembelajaran (pisah enter)","Catatan (opsional)"], ...syllabuses.map(s => [s.subjectName, s.teacherCode, s.title, s.gradeSemester ||"", s.objectives ||"", s.materials ||"", s.notes ||""])];
-    const wsSilabus = XLSX.utils.aoa_to_sheet(silabusData);
-    wsSilabus["!cols"] = [{
+    const wsSilabus = wb.addWorksheet("7_Modul");
+    silabusData.forEach(row => wsSilabus.addRow(row));
+    var cols = [{
       wch: 25
     }, {
       wch: 20
@@ -337,10 +351,11 @@ export function useAdminImportExport(props) {
     }, {
       wch: 24
     }];
-    XLSX.utils.book_append_sheet(wb, wsSilabus,"7_Modul");
+    cols.forEach((col, idx) => { if(col.wch) wsSilabus.getColumn(idx + 1).width = col.wch; });
     const waktuData = [["Hari","Waktu","Apakah Istirahat?","Nama Kegiatan / Istirahat","Jumlah JP","Menit per JP"], ...Object.entries(timeSlots || {}).flatMap(([dayName, slots]) => (slots || []).map(slot => [dayName, slot.label ||"", slot.isBreak ?"Ya" :"Tidak", slot.isBreak ? slot.labelBreak || slot.label ||"" :"", slot.isBreak ?"" : slot.jpCount || 1, slot.minsPerJp || 45]))];
-    const wsWaktu = XLSX.utils.aoa_to_sheet(waktuData);
-    wsWaktu["!cols"] = [{
+    const wsWaktu = wb.addWorksheet("8_Waktu");
+    waktuData.forEach(row => wsWaktu.addRow(row));
+    var cols = [{
       wch: 16
     }, {
       wch: 20
@@ -353,7 +368,7 @@ export function useAdminImportExport(props) {
     }, {
       wch: 14
     }];
-    XLSX.utils.book_append_sheet(wb, wsWaktu,"8_Waktu");
+    cols.forEach((col, idx) => { if(col.wch) wsWaktu.getColumn(idx + 1).width = col.wch; });
     const ketersediaanData = [["Kode Guru (wajib)","Mapel Kompetensi (pisahkan dengan koma)","Hari Tersedia (pisahkan dengan koma)"], ...teachers.map(t => {
       const avail = teacherAvailability[t.code] || {
         days: [],
@@ -361,19 +376,21 @@ export function useAdminImportExport(props) {
       };
       return [t.code, avail.subjects.join(","), avail.days.join(",")];
     })];
-    const wsKetersediaan = XLSX.utils.aoa_to_sheet(ketersediaanData);
-    wsKetersediaan["!cols"] = [{
+    const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
+    ketersediaanData.forEach(row => wsKetersediaan.addRow(row));
+    var cols = [{
       wch: 20
     }, {
       wch: 50
     }, {
       wch: 40
     }];
-    XLSX.utils.book_append_sheet(wb, wsKetersediaan,"9_Ketersediaan");
+    cols.forEach((col, idx) => { if(col.wch) wsKetersediaan.getColumn(idx + 1).width = col.wch; });
     const calendarCategoryById = new Map((calendarCategories || []).map(cat => [cat.id, cat.name]));
     const akademikData = [["Judul Kegiatan","Mulai","Selesai","Kategori","Keterangan"], ...(academicCalendar || []).map(evt => [evt.title ||"", normalizeCalendarDateInput(evt.dateStart) ||"", normalizeCalendarDateInput(evt.dateEnd || evt.dateStart) ||"", calendarCategoryById.get(evt.categoryId) || evt.categoryId ||"", evt.description ||""])];
-    const wsAkademik = XLSX.utils.aoa_to_sheet(akademikData);
-    wsAkademik["!cols"] = [{
+    const wsAkademik = wb.addWorksheet("10_Kalender_Akademik");
+    akademikData.forEach(row => wsAkademik.addRow(row));
+    var cols = [{
       wch: 34
     }, {
       wch: 16
@@ -384,26 +401,29 @@ export function useAdminImportExport(props) {
     }, {
       wch: 48
     }];
-    XLSX.utils.book_append_sheet(wb, wsAkademik,"10_Kalender_Akademik");
+    cols.forEach((col, idx) => { if(col.wch) wsAkademik.getColumn(idx + 1).width = col.wch; });
     const kategoriKalenderData = [["Nama Kategori","Warna"], ...(calendarCategories || []).map(cat => [cat.name ||"", cat.color ||"blue"])];
-    const wsKategoriKalender = XLSX.utils.aoa_to_sheet(kategoriKalenderData);
-    wsKategoriKalender["!cols"] = [{
+    const wsKategoriKalender = wb.addWorksheet("11_Kategori_Kalender");
+    kategoriKalenderData.forEach(row => wsKategoriKalender.addRow(row));
+    var cols = [{
       wch: 30
     }, {
       wch: 16
     }];
-    XLSX.utils.book_append_sheet(wb, wsKategoriKalender,"11_Kategori_Kalender");
+    cols.forEach((col, idx) => { if(col.wch) wsKategoriKalender.getColumn(idx + 1).width = col.wch; });
     const kategoriSilabusData = [["Nama Kategori","Warna"], ...(syllabusCategories || []).map(cat => [cat.name ||"", cat.color ||"blue"])];
-    const wsKategoriSilabus = XLSX.utils.aoa_to_sheet(kategoriSilabusData);
-    wsKategoriSilabus["!cols"] = [{
+    const wsKategoriSilabus = wb.addWorksheet("12_Kategori_Modul");
+    kategoriSilabusData.forEach(row => wsKategoriSilabus.addRow(row));
+    var cols = [{
       wch: 30
     }, {
       wch: 16
     }];
-    XLSX.utils.book_append_sheet(wb, wsKategoriSilabus,"12_Kategori_Modul");
+    cols.forEach((col, idx) => { if(col.wch) wsKategoriSilabus.getColumn(idx + 1).width = col.wch; });
     const absensiData = [["Tanggal","Waktu","Kode Guru","Nama Guru","Sesi","Status","Mode","Catatan","Lokasi (Lat, Lng)"], ...(attendanceRecords || []).map(record => [record.date ||"", record.time ||"", record.teacherCode ||"", getTeacherName(record.teacherCode) ||"", record.sessionName ||"", record.status ||"", record.mode ||"", record.note ||"", record.location ? `${record.location.lat}, ${record.location.lng}` :""])];
-    const wsAbsensi = XLSX.utils.aoa_to_sheet(absensiData);
-    wsAbsensi["!cols"] = [{
+    const wsAbsensi = wb.addWorksheet("13_Absensi_Guru");
+    absensiData.forEach(row => wsAbsensi.addRow(row));
+    var cols = [{
       wch: 14
     }, {
       wch: 12
@@ -422,34 +442,32 @@ export function useAdminImportExport(props) {
     }, {
       wch: 24
     }];
-    XLSX.utils.book_append_sheet(wb, wsAbsensi,"13_Absensi_Guru");
+    cols.forEach((col, idx) => { if(col.wch) wsAbsensi.getColumn(idx + 1).width = col.wch; });
 
     const karyawanData = [["KODE KARYAWAN (Wajib)","NAMA KARYAWAN (Wajib)","DIVISI / BAGIAN","NO WHATSAPP"], ...(staffs || []).map(k => [k.code ||"", k.name ||"", k.division ||"", k.phone ? `'${k.phone}` :""])];
-    const wsKaryawan = XLSX.utils.aoa_to_sheet(karyawanData);
-    wsKaryawan["!cols"] = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsKaryawan,"14_Karyawan");
+    const wsKaryawan = wb.addWorksheet("14_Karyawan");
+    karyawanData.forEach(row => wsKaryawan.addRow(row));
+    var cols = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsKaryawan.getColumn(idx + 1).width = col.wch; });
 
     const siswaData = [["NIS / NISN (Wajib)","NAMA SISWA (Wajib)","KELAS (Sesuai Data Kelas)","JENIS KELAMIN (L/P)","NO WHATSAPP ORTU"], ...(students || []).map(s => {
       const hp = s.wa_ortu || s.phone ||"";
       return [s.nis || s.code ||"", s.name || s.nama ||"", s.class_name || s.kelas ||"", s.gender ||"", hp ? `'${hp}` :""];
     })];
-    const wsSiswa = XLSX.utils.aoa_to_sheet(siswaData);
-    wsSiswa["!cols"] = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, wsSiswa,"15_Siswa");
+    const wsSiswa = wb.addWorksheet("15_Siswa");
+    siswaData.forEach(row => wsSiswa.addRow(row));
+    var cols = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
+    cols.forEach((col, idx) => { if(col.wch) wsSiswa.getColumn(idx + 1).width = col.wch; });
 
-    XLSX.writeFile(wb, `Export Data ${appSettings.appName ||"TimeSchedule"}.xlsx`);
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `Export Data ${appSettings.appName ||"TimeSchedule"}.xlsx`);
     showNotification("Data berhasil diekspor ke Excel.","success");
   }
 
   async function exportAbsensiGuruToExcel(recordsToExport = attendanceRecords) {
-    let XLSX;
-    try {
-      XLSX = await import("xlsx");
-    } catch {
-      showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.", "error");
-      return;
-    }
-    const wb = XLSX.utils.book_new();
+    const ExcelJS = (await import("exceljs")).default;
+    const { saveAs } = await import("file-saver");
+    const wb = new ExcelJS.Workbook();
     const absensiData = [
       ["Tanggal", "Waktu", "Kode Guru", "Nama Guru", "Sesi", "Status", "Mode", "Catatan", "Lokasi (Lat, Lng)"],
       ...(recordsToExport || []).map(record => [
@@ -464,15 +482,17 @@ export function useAdminImportExport(props) {
         record.location ? `${record.location.lat}, ${record.location.lng}` : ""
       ])
     ];
-    const wsAbsensi = XLSX.utils.aoa_to_sheet(absensiData);
-    wsAbsensi["!cols"] = [
+    const wsAbsensi = wb.addWorksheet("Laporan_Absensi_Guru");
+    absensiData.forEach(row => wsAbsensi.addRow(row));
+    var cols = [
       { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 34 },
       { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 24 }
     ];
-    XLSX.utils.book_append_sheet(wb, wsAbsensi, "Laporan_Absensi_Guru");
+    cols.forEach((col, idx) => { if(col.wch) wsAbsensi.getColumn(idx + 1).width = col.wch; });
 
     const tgl = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `Laporan_Absensi_Guru_${tgl}.xlsx`);
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `Laporan_Absensi_Guru_${tgl}.xlsx`);
     showNotification("Laporan Absensi berhasil diekspor ke Excel.", "success");
   }
 
@@ -484,11 +504,17 @@ export function useAdminImportExport(props) {
       const reader = new FileReader();
       reader.onload = async evt => {
         try {
-          const XLSX = await import("xlsx");
-          const workbook = XLSX.read(evt.target.result, {
-            type:"array"
+          const ExcelJS = (await import("exceljs")).default;
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(new Uint8Array(evt.target.result));
+          const ws = workbook.worksheets[0];
+          const rawData = [];
+          ws.eachRow({ includeEmpty: true }, (row) => {
+             const r = [];
+             row.eachCell({ includeEmpty: true }, (cell) => r.push(cell.value ?? ''));
+             rawData.push(r);
           });
-          const text = workbookSheetToDelimitedText(workbook, activeTab, XLSX.utils.sheet_to_json);
+          const text = rawData.map(r => r.join('\t')).join('\n');
           setBulkText(text);
           analyzeBulkData(text);
         } catch (err) {

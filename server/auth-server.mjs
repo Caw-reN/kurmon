@@ -15,7 +15,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import pg from "pg";
-import XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import cron from "node-cron";
 import { google } from "googleapis";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
@@ -2278,11 +2278,13 @@ const server = createServer(async (req, res) => {
 
           const mergedProblems = new Map();
           pointsList.forEach(r => {
-            const sName = getStudentName(r.nis);
+            const sInfo = getStudentInfo(r.nis);
+            const sName = sInfo.name;
             if (sName && String(sName).trim() !== String(r.nis).trim()) {
               mergedProblems.set(r.nis, {
                 nis: r.nis,
                 name: sName,
+                class_name: sInfo.class_name,
                 total_alpha: `${r.total_poin} poin`,
                 last_seen: r.last_seen
               });
@@ -2290,7 +2292,8 @@ const server = createServer(async (req, res) => {
           });
 
           alphaList.forEach(r => {
-            const sName = getStudentName(r.nis);
+            const sInfo = getStudentInfo(r.nis);
+            const sName = sInfo.name;
             if (sName && String(sName).trim() !== String(r.nis).trim()) {
               const existing = mergedProblems.get(r.nis);
               if (existing) {
@@ -2302,6 +2305,7 @@ const server = createServer(async (req, res) => {
                 mergedProblems.set(r.nis, {
                   nis: r.nis,
                   name: sName,
+                  class_name: sInfo.class_name,
                   total_alpha: `${r.total_alpha}x alpha`,
                   last_seen: r.last_seen
                 });
@@ -2312,6 +2316,33 @@ const server = createServer(async (req, res) => {
           problematicStudentLogs = Array.from(mergedProblems.values())
             .sort((a, b) => new Date(b.last_seen) - new Date(a.last_seen))
             .slice(0, 20);
+            
+          // --- ROW-LEVEL FILTERING: Kesiswaan/Kepsek/Admin sees all, Guru sees only their class ---
+          const role = normalizeServerRole(session.role);
+          const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(role) || 
+                                     (role === 'waka' && (session.division || "").toLowerCase() === 'kesiswaan') || 
+                                     (role || "").includes('kesiswaan');
+                                     
+          if (!isKesiswaanOrAdmin) {
+            if (role === 'guru') {
+              try {
+                // Find out which class this guru is the homeroom teacher of
+                const wRes = await dbPool.query(`SELECT payload->>'name' as class_name FROM mst_classes WHERE payload->>'homeroom' = $1 OR payload->>'homeroom' = $2`, [session.username, String(session.username)]);
+                const waliClasses = wRes.rows.map(r => r.class_name);
+                if (waliClasses.length > 0) {
+                  problematicStudentLogs = problematicStudentLogs.filter(log => waliClasses.includes(log.class_name));
+                } else {
+                  problematicStudentLogs = [];
+                }
+              } catch (e) {
+                console.error("Wali kelas filtering error:", e);
+                problematicStudentLogs = [];
+              }
+            } else {
+              // Other roles like TU, Staff, Siswa shouldn't see it at all
+              problematicStudentLogs = [];
+            }
+          }
         } catch (e) {
           console.error("Failed to construct problematicStudentLogs:", e);
           problematicStudentLogs = [];
@@ -2914,7 +2945,7 @@ const server = createServer(async (req, res) => {
         return;
       }
       try {
-        const wb = XLSX.utils.book_new();
+        const wb = new ExcelJS.Workbook();
 
         const addMasterSheet = async (tableName, sheetName, defaultColumns, payloadToRow) => {
           const { rows } = await dbPool.query(`SELECT payload FROM ${tableName}`);
@@ -2923,8 +2954,8 @@ const server = createServer(async (req, res) => {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
             if (p) sheetData.push(payloadToRow(p));
           });
-          const ws = XLSX.utils.aoa_to_sheet(sheetData);
-          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+          const ws = wb.addWorksheet(sheetName);
+            ws.addRows(sheetData);
         };
 
         // 1_Jurusan
@@ -2938,8 +2969,8 @@ const server = createServer(async (req, res) => {
             jurusanData.push([p]);
           }
         });
-        const wsJurusan = XLSX.utils.aoa_to_sheet(jurusanData);
-        XLSX.utils.book_append_sheet(wb, wsJurusan, "1_Jurusan");
+        const wsJurusan = wb.addWorksheet("1_Jurusan");
+        wsJurusan.addRows(jurusanData);
 
         // 2_Kelas
         await addMasterSheet('mst_classes', '2_Kelas', 
@@ -2975,8 +3006,8 @@ const server = createServer(async (req, res) => {
         loads.forEach(l => {
           bebanData.push([l.teacherCode || "", l.subjectName || "", l.targetGrade || "All", l.targetMajor || "All", l.duration || 2, l.maxClasses || ""]);
         });
-        const wsBeban = XLSX.utils.aoa_to_sheet(bebanData);
-        XLSX.utils.book_append_sheet(wb, wsBeban, "6_Beban");
+        const wsBeban = wb.addWorksheet("6_Beban");
+        wsBeban.addRows(bebanData);
 
         // 7_Silabus
         const { rows: syllabusRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teacher_syllabus' LIMIT 1`);
@@ -2988,8 +3019,8 @@ const server = createServer(async (req, res) => {
         syllabi.forEach(s => {
           silabusData.push([s.subjectName || "", s.teacherCode || "", s.title || "", s.classSemester || "", s.objective || "", Array.isArray(s.materials) ? s.materials.join("\n") : (s.materials || ""), s.notes || ""]);
         });
-        const wsSilabus = XLSX.utils.aoa_to_sheet(silabusData);
-        XLSX.utils.book_append_sheet(wb, wsSilabus, "7_Silabus");
+        const wsSilabus = wb.addWorksheet("7_Silabus");
+        wsSilabus.addRows(silabusData);
 
         // 8_Waktu
         const { rows: settingsRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'time_slots' LIMIT 1`);
@@ -3001,8 +3032,8 @@ const server = createServer(async (req, res) => {
         timeSlots.forEach(slot => {
           waktuData.push([slot.day || "", slot.timeStr || "", slot.isBreak ? "Ya" : "Tidak", slot.breakName || "", slot.jpCount !== undefined ? slot.jpCount : 1]);
         });
-        const wsWaktu = XLSX.utils.aoa_to_sheet(waktuData);
-        XLSX.utils.book_append_sheet(wb, wsWaktu, "8_Waktu");
+        const wsWaktu = wb.addWorksheet("8_Waktu");
+        wsWaktu.addRows(waktuData);
 
         // 9_Ketersediaan
         const { rows: availRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teacher_availability' LIMIT 1`);
@@ -3013,10 +3044,10 @@ const server = createServer(async (req, res) => {
         Object.entries(availPayload).forEach(([tCode, data]) => {
           ketersediaanData.push([tCode, Array.isArray(data.subjects) ? data.subjects.join(", ") : "", Array.isArray(data.days) ? data.days.join(", ") : ""]);
         });
-        const wsKetersediaan = XLSX.utils.aoa_to_sheet(ketersediaanData);
-        XLSX.utils.book_append_sheet(wb, wsKetersediaan, "9_Ketersediaan");
+        const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
+        wsKetersediaan.addRows(ketersediaanData);
 
-        const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        const excelBuffer = await wb.xlsx.writeBuffer();
         
         res.writeHead(200, {
           "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -4429,15 +4460,17 @@ const server = createServer(async (req, res) => {
         }
 
         if (type === 'excel') {
-          const wb = XLSX.utils.book_new();
+          const wb = new ExcelJS.Workbook();
           for (const [tableName, rows] of Object.entries(backupData)) {
             if (Array.isArray(rows) && rows.length > 0) {
               const sheetName = tableName.substring(0, 31);
-              const ws = XLSX.utils.json_to_sheet(rows);
-              XLSX.utils.book_append_sheet(wb, ws, sheetName);
+              const ws = wb.addWorksheet(sheetName);
+              const keys = Object.keys(rows[0]);
+              ws.addRow(keys);
+              rows.forEach(r => ws.addRow(keys.map(k => r[k])));
             }
           }
-          const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+          const buf = await wb.xlsx.writeBuffer();
           res.writeHead(200, {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "Content-Disposition": `attachment; filename="kurmon_excel_export_${dateStr}.xlsx"`,

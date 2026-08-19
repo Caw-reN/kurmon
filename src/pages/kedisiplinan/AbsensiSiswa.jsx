@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
 import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -365,21 +366,28 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   };
   
   const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredItems.map(item => {
+    const data = filteredItems.map(item => {
       const student = students.find(s => s.nis === item.siswa_nis);
       return {
         Tanggal: new Date(item.tanggal).toLocaleDateString('id-ID'),
         NIS: item.siswa_nis,
-        Nama: student ? (student.namaSiswa || student.name) :'-',
-        Kelas: student ? (student.class_name || student.kelas ||'-') :'-',
+        Nama: student ? student.name : 'Unknown',
+        Kelas: student ? student.class_name : '-',
         Status: item.status,
-        Keterangan: item.keterangan ||'-',
+        Keterangan: item.keterangan || '-',
         Petugas: item.pelapor_nama
       }
-    }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Rekap_Absensi");
-    XLSX.writeFile(wb, `Rekap_Absensi_${filterTanggal ||'Semua'}.xlsx`);
+    });
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Rekap_Absensi");
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(rowItem => ws.addRow(keys.map(k => rowItem[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Rekap_Absensi_${filterTanggal ||'Semua'}.xlsx`);
+    });
   };
 
   const classOptions = useMemo(() => classes.map(c => ({value: c.name, label: c.name})), [classes]);

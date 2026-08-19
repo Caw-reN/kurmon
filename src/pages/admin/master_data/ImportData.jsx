@@ -1,7 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useRef, useCallback } from'react';
 import { Upload, ChevronRight } from'lucide-react';
-import * as XLSX from'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { Info, Download, FileSpreadsheet, CheckCircle2, AlertCircle, Badge } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
@@ -51,24 +52,42 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
 
     const ext = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        let jsonData = [];
-        let worksheet;
-        if (ext ==='csv' || ext ==='txt') {
+        let rawRows = [];
+        if (ext === 'csv' || ext === 'txt') {
           const text = e.target.result;
-          const workbook = XLSX.read(text, { type:'string' });
-          const sheetName = workbook.SheetNames[0];
-          worksheet = workbook.Sheets[sheetName];
+          let row = [], currentVal = '', inQuotes = false;
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '"') {
+              if (inQuotes && text[i+1] === '"') { currentVal += '"'; i++; }
+              else { inQuotes = !inQuotes; }
+            } else if (char === ',' && !inQuotes) {
+              row.push(currentVal); currentVal = '';
+            } else if ((char === '\n' || char === '\r') && !inQuotes) {
+              if (char === '\r' && text[i+1] === '\n') i++;
+              row.push(currentVal);
+              if (row.length > 0 || currentVal !== '') rawRows.push(row);
+              row = []; currentVal = '';
+            } else { currentVal += char; }
+          }
+          if (currentVal !== '' || row.length > 0) { row.push(currentVal); rawRows.push(row); }
         } else {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type:'array' });
-          const sheetName = workbook.SheetNames[0];
-          worksheet = workbook.Sheets[sheetName];
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(data);
+          const worksheet = workbook.worksheets[0];
+          worksheet.eachRow((row, rowNumber) => {
+             // In ExcelJS, row.values is typically 1-indexed, so we slice(1) or iterate.
+             const r = [];
+             row.eachCell({ includeEmpty: true }, (cell) => {
+                 r.push(cell.value);
+             });
+             rawRows.push(r);
+          });
         }
 
-        // Convert ke array of objects
-        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         if (rawRows.length < 2) {
           setError('File kosong atau hanya berisi header.');
           return;
@@ -147,10 +166,14 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
   const handleDownloadTemplate = () => {
     const templateData = [{'No': 1,'NIS':'242510001','Nama Siswa':'Ahmad Dahlan','Kelas':'XI RPL 1','Kode Guru':'G001','Nama Guru':'Budi Santoso','Nama Perusahaan':'PT Teknologi Maju','Tanggal Mulai':'2026-07-01','Tanggal Selesai':'2026-12-31'
     }];
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Template Import PKL");
-    XLSX.writeFile(wb,"Template_Import_Data_PKL.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template Import PKL");
+    const keys = Object.keys(templateData[0]);
+    ws.addRow(keys);
+    templateData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Template_Import_Data_PKL.xlsx");
+    });
   };
 
   const handleExportCurrent = async () => {
@@ -178,10 +201,16 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
         };
       });
 
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws,"Siswa PKL Saat Ini");
-      XLSX.writeFile(wb,"Data_Siswa_PKL_Saat_Ini.xlsx");
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Siswa PKL Saat Ini");
+      if (exportData.length > 0) {
+        const keys = Object.keys(exportData[0]);
+        ws.addRow(keys);
+        exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+      }
+      wb.xlsx.writeBuffer().then(buf => {
+        saveAs(new Blob([buf]), "Data_Siswa_PKL_Saat_Ini.xlsx");
+      });
     } catch (err) {
       console.error("Gagal mengekspor data saat ini:", err);
       setError("Gagal mengekspor data saat ini.");
@@ -453,14 +482,13 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
           <Button
             variant="ghost"
             onClick={() => {
-              // Buat file template sederhana dengan SheetJS
-              const ws = XLSX.utils.aoa_to_sheet([
-                ['No','NIS','Nama Siswa','Kelas','Kode Guru','Nama Perusahaan','Tanggal Mulai','Tanggal Selesai'],
-                [1,'2324001','Contoh Nama Siswa','XII TJKT 1','G01','PT Contoh Perusahaan','2026-07-01','2026-12-31'],
-              ]);
-              const wb = XLSX.utils.book_new();
-              XLSX.utils.book_append_sheet(wb, ws,'Data PKL');
-              XLSX.writeFile(wb,'template_import_pkl.xlsx');
+              const wb = new ExcelJS.Workbook();
+              const ws = wb.addWorksheet('Data PKL');
+              ws.addRow(['No','NIS','Nama Siswa','Kelas','Kode Guru','Nama Perusahaan','Tanggal Mulai','Tanggal Selesai']);
+              ws.addRow([1,'2324001','Contoh Nama Siswa','XII TJKT 1','G01','PT Contoh Perusahaan','2026-07-01','2026-12-31']);
+              wb.xlsx.writeBuffer().then(buf => {
+                saveAs(new Blob([buf]), 'template_import_pkl.xlsx');
+              });
             }}
             className="text-xs font-semibold text-[var(--ui-primary)] flex items-center gap-1 mx-auto"
           >

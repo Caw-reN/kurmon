@@ -1,7 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import React, { useState, useMemo, useEffect } from'react';
 import { BookOpen, CheckCircle2, XCircle, Clock } from'lucide-react';
-import * as XLSX from'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { Download, Search, ChevronUp, ChevronDown } from'lucide-react';
 import { PageHeader, StatCard, EmptyState, Avatar } from'../../../components/monitoring/ui/index.js';
 
@@ -81,10 +82,16 @@ const JurnalAdmin = ({ readOnly }) => {
       Status: STATUS_MAP[j.status]?.label || j.status,
       Komentar: j.komentar ||''
     }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,"Jurnal_Siswa");
-    XLSX.writeFile(wb,"Data_Jurnal_Siswa.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Jurnal_Siswa");
+    if (exportData.length > 0) {
+      const keys = Object.keys(exportData[0]);
+      ws.addRow(keys);
+      exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Data_Jurnal_Siswa.xlsx");
+    });
   };
 
   const stats = [

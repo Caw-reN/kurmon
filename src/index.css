@@ -25,7 +25,7 @@
 
   :root {
     --ui-radius-card: 24px;
-    --ui-radius-control: 16px;
+    --ui-radius-control: 12px; /* Disinkronkan dengan --ui-radius-small agar form sejajar dengan button */
     --ui-radius-small: 12px;
     --ui-radius-pill: 999px;
 
@@ -244,20 +244,20 @@
 }
 
 /* 8. Card Styles (Bordered vs Elevated Shadow vs Flat) */
-.card-flat .bg-white,
-.card-flat .bg-card {
+.card-flat .bg-white:not(.border-none):not(.border-0),
+.card-flat .bg-card:not(.border-none):not(.border-0) {
   background-color: var(--ui-surface-muted, #f1f5f9) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
-.card-elevated .bg-white,
-.card-elevated .bg-card {
+.card-elevated .bg-white:not(.border-none):not(.border-0),
+.card-elevated .bg-card:not(.border-none):not(.border-0) {
   background-color: var(--ui-surface, #ffffff) !important;
   box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04) !important;
   border-color: transparent !important;
 }
-.card-bordered .bg-white,
-.card-bordered .bg-card {
+.card-bordered .bg-white:not(.border-none):not(.border-0),
+.card-bordered .bg-card:not(.border-none):not(.border-0) {
   border: 1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08)) !important;
 }
 
@@ -293,11 +293,89 @@
     cursor: pointer;
   }
 
+  button:not([class*="rounded"]):not(.sr-only),
+  .btn:not([class*="rounded"]):not(.sr-only) {
+    border-radius: var(--ui-radius-small);
+  }
+
+  /* Force generic Tailwind rounded classes on buttons to strictly match the UI radius system */
+  button[class*="rounded-sm"]:not(.sr-only),
+  button[class*="rounded-md"]:not(.sr-only),
+  button[class*="rounded-lg"]:not(.sr-only),
+  button[class*="rounded-xl"]:not(.sr-only),
+  button[class~="rounded"]:not(.sr-only),
+  .btn[class*="rounded-sm"]:not(.sr-only),
+  .btn[class*="rounded-md"]:not(.sr-only),
+  .btn[class*="rounded-lg"]:not(.sr-only),
+  .btn[class*="rounded-xl"]:not(.sr-only),
+  .btn[class~="rounded"]:not(.sr-only),
+  [role="button"][class*="rounded-sm"]:not(.sr-only),
+  [role="button"][class*="rounded-md"]:not(.sr-only),
+  [role="button"][class*="rounded-lg"]:not(.sr-only),
+  [role="button"][class*="rounded-xl"]:not(.sr-only),
+  [role="button"][class~="rounded"]:not(.sr-only) {
+    border-radius: var(--ui-radius-small) !important;
+  }
+
   input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only),
   textarea,
   select {
     border-radius: var(--ui-radius-control);
     transition: border-color var(--ui-motion), background-color var(--ui-motion), box-shadow var(--ui-motion), transform var(--ui-motion);
+  }
+
+  /* Premium styling for Checkbox & Radio */
+  input[type="checkbox"],
+  input[type="radio"] {
+    appearance: none;
+    background-color: #fff;
+    margin: 0;
+    font: inherit;
+    width: 1.15em;
+    height: 1.15em;
+    border: 1.5px solid var(--ui-border-soft);
+    display: grid;
+    place-content: center;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    box-shadow: var(--ui-shadow-control);
+  }
+  
+  input[type="checkbox"] {
+    border-radius: 4px; /* Small soft radius for checkboxes */
+  }
+
+  input[type="radio"] {
+    border-radius: 50%; /* Perfect circle for radio */
+  }
+
+  input[type="checkbox"]::before,
+  input[type="radio"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    background-color: #fff;
+  }
+
+  input[type="checkbox"]::before {
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  input[type="radio"]::before {
+    border-radius: 50%;
+  }
+
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    background-color: var(--ui-primary);
+    border-color: var(--ui-primary);
+  }
+
+  input[type="checkbox"]:checked::before,
+  input[type="radio"]:checked::before {
+    transform: scale(1);
   }
 
   input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only):focus,

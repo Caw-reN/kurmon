@@ -272,13 +272,13 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
 
 export const Button = ({ children, variant = "primary", size = "default", className = "", ...props }) => {
   const variantStyles = {
-    primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
-    default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
-    outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50',
-    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200',
-    accent: 'bg-[var(--ui-accent)] text-white hover:brightness-105 active:scale-95 btn-primary-theme',
-    danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95',
-    destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95',
+    primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
+    default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
+    outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 shadow-2xs',
+    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60 shadow-2xs',
+    accent: 'bg-[var(--ui-accent)] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
+    danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
+    destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
     ghost: 'bg-transparent hover:bg-slate-100/80 text-slate-650',
   };
 

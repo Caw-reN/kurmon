@@ -107,11 +107,31 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         if (Date.now() - global._hikvDashCache.time < 30000 && global._hikvDashCache.data) {
           return send(req, res, 200, global._hikvDashCache.data);
         }
-        const devices = await dbPool.query(`
+        const devicesResult = await dbPool.query(`
           SELECT d.*
           FROM hikvision_devices d
           ORDER BY d.device_type, d.location
         `);
+        const devicesRows = devicesResult.rows;
+
+        // Cek status online secara paralel dengan timeout 2.5 detik
+        await Promise.all(devicesRows.map(async (dev) => {
+          try {
+            // Cukup pancing fetch ke HTTP port 80. 
+            // 401/403 berarti device merespon (hidup).
+            const res = await fetch(`http://${dev.ip_address}`, { signal: AbortSignal.timeout(2500) });
+            dev.is_online = res.status < 500 || res.status === 401 || res.status === 403;
+          } catch (e) {
+            const errCode = e.cause?.code || e.code || '';
+            // Jika error berkaitan dengan sertifikat SSL, berarti mesin merespon redirect HTTPS (Mesin Hidup)
+            if (errCode.includes('CERT') || errCode === 'ECONNRESET' || errCode === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+              dev.is_online = true;
+            } else {
+              dev.is_online = false;
+            }
+          }
+        }));
+
         const hConfig = await getHikvisionConfig();
         const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
         const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
@@ -182,7 +202,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           };
         });
 
-        const responseData = { ok: true, devices: devices.rows, recentLogs: processedRecentLogs };
+        const responseData = { ok: true, devices: devicesRows, recentLogs: processedRecentLogs };
         global._hikvDashCache.time = Date.now();
         global._hikvDashCache.data = responseData;
         send(req, res, 200, responseData);

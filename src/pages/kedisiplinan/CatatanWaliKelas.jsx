@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { MessageSquare, X, AlertCircle, Plus, Users, Search, ChevronRight, ChevronLeft, Download, Calendar, Edit2, Trash2, CheckCircle2, Link as LinkIcon, Printer } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -437,10 +438,16 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       'Tindak Lanjut': c.tindak_lanjut || '',
       'Walikelas': c.teacher_name || c.teacher_code || 'Wali Kelas',
     }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Catatan Walikelas');
-    XLSX.writeFile(wb, `Catatan_Walikelas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Catatan Walikelas');
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Catatan_Walikelas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    });
   };
 
   const exportClassRecapExcel = () => {
@@ -469,10 +476,16 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       };
     });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Rekap Kedisiplinan Kelas');
-    XLSX.writeFile(wb, `Rekap_Kedisiplinan_Kelas_${walasClass || filterKelas || 'Semua'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Rekap Kedisiplinan Kelas');
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Rekap_Kedisiplinan_Kelas_${walasClass || filterKelas || 'Semua'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    });
   };
 
   const downloadRapotSiswa = () => {

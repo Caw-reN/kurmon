@@ -4,7 +4,8 @@ import {
   MapPin, Users, Edit3, Trash2, Loader2, Filter, X, ArrowUpDown, 
   Map, List, Sparkles, AlertCircle, Phone, Tag
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getMajorFullName } from '../../../utils/constants.js';
@@ -198,10 +199,16 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
       Jurusan: p.jurusan,
       Kuota: p.kuota
     }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Perusahaan PKL");
-    XLSX.writeFile(wb, "Data_Perusahaan_PKL.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Perusahaan PKL");
+    if (exportData.length > 0) {
+      const keys = Object.keys(exportData[0]);
+      ws.addRow(keys);
+      exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Data_Perusahaan_PKL.xlsx");
+    });
   };
 
   const handleDownloadTemplate = () => {
@@ -216,10 +223,14 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         'Kuota': 5
       }
     ];
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template Perusahaan");
-    XLSX.writeFile(wb, "Template_Master_Perusahaan.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template Perusahaan");
+    const keys = Object.keys(templateData[0]);
+    ws.addRow(keys);
+    templateData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), "Template_Master_Perusahaan.xlsx");
+    });
   };
 
   const handleProcessImport = async (jsonData) => {

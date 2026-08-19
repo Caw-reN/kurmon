@@ -138,7 +138,7 @@ export default function Login({
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <form onSubmit={handleForgotSubmit} action="javascript:void(0);" className="space-y-4">
                 {forgotError && (
                   <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-rose-600">
                     <AlertCircle size={14} className="mt-0.5 shrink-0 text-rose-500" />
@@ -239,7 +239,7 @@ export default function Login({
                 </div>
               )}
 
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} action="javascript:void(0);" className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-[11px] font-black text-slate-600 uppercase tracking-wider">
                     Username / Kode Guru <span className="text-rose-500 normal-case">*</span>

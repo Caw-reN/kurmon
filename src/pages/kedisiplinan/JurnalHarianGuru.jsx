@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from'react';
 import { BookOpen } from'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
-import * as XLSX from'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { drawKopSurat, getPrimaryColorRgb, getPrimaryColorLight } from '../../utils/pdfHelpers.js';
@@ -641,10 +642,16 @@ function ExportSemesterModal({
         };
       });
 
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, `Jurnal_Sem_${selectedSemester}`);
-      XLSX.writeFile(wb, `Rekap_Jurnal_Semester_${selectedSemester}_${selectedTahunAjaran.replace('/', '_')}.xlsx`);
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet(`Jurnal_Sem_${selectedSemester}`);
+      if (data.length > 0) {
+        const keys = Object.keys(data[0]);
+        ws.addRow(keys);
+        data.forEach(item => ws.addRow(keys.map(k => item[k])));
+      }
+      wb.xlsx.writeBuffer().then(buf => {
+        saveAs(new Blob([buf]), `Rekap_Jurnal_Semester_${selectedSemester}_${selectedTahunAjaran.replace('/', '_')}.xlsx`);
+      });
       onClose();
     } catch (err) {
       console.error('Excel Export Error:', err);
@@ -2007,10 +2014,16 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         'Keterlambatan': st.isLate ? `Terlambat ${st.diffDays} Hari (H+${st.diffDays})` : (j.submitted_at ? 'Tepat Waktu' : 'Belum Diisi')
       };
     });
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws,'Jurnal');
-    XLSX.writeFile(wb, `Jurnal_KBM_${filterDate}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Jurnal');
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Jurnal_KBM_${filterDate}.xlsx`);
+    });
   };
 
   const teacherOptions = useMemo(() => {

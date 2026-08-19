@@ -6,7 +6,8 @@ import {
   Users, CheckCircle2, XCircle, Search, Settings, Save, Upload, Download, 
   ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource';
 import { PageHeader, StatCard, Avatar } from '../../../components/monitoring/ui/index.js';
@@ -190,9 +191,22 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     reader.onload = async (evt) => {
       try {
         const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(data);
+        const worksheet = workbook.worksheets[0];
+        const json = [];
+        let headers = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) {
+            headers = row.values;
+            return;
+          }
+          const rowData = {};
+          row.eachCell((cell, colNumber) => {
+            rowData[headers[colNumber]] = cell.value;
+          });
+          json.push(rowData);
+        });
         if (json && json.length > 0) {
           showToast(`Berhasil membaca ${json.length} data siswa dari file.`, 'success');
         } else {
@@ -315,10 +329,16 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         "Lama PKL": s.lamaPKL
       };
     });
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Siswa PKL");
-    XLSX.writeFile(wb, `Data_Siswa_PKL_${eligibleClass}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Siswa PKL");
+    if (exportData.length > 0) {
+      const keys = Object.keys(exportData[0]);
+      ws.addRow(keys);
+      exportData.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Data_Siswa_PKL_${eligibleClass}.xlsx`);
+    });
   };
 
   return (

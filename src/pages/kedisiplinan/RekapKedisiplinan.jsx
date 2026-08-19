@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAppStore } from '../../store/useAppStore.js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FileSpreadsheet, Download, Search, Users, User, Award, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
@@ -247,7 +248,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   }, [filteredRiwayat, filteredAbsensi, classes, students, studentScores]);
 
   const exportExcel = () => {
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     
     // Prepare Students Recap sheet
     const studentsRecapData = filteredStudentsList.map((s, idx) => {
@@ -258,14 +259,26 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       };
     });
     
-    const wsStudents = XLSX.utils.json_to_sheet(studentsRecapData);
-    XLSX.utils.book_append_sheet(wb, wsStudents,"Rekap_Siswa");
+    const wsStudents = wb.addWorksheet("Rekap_Siswa");
+    if (studentsRecapData.length > 0) {
+       const keys = Object.keys(studentsRecapData[0]);
+       wsStudents.addRow(keys);
+       studentsRecapData.forEach(item => wsStudents.addRow(keys.map(k => item[k])));
+    }
     
-    const wsClassStats = XLSX.utils.json_to_sheet(classStats.map(cs => ({"Kelas": cs.class_name,"Total Poin Pelanggaran": cs.poin,"Rata-rata Skor Kredit": cs.avg_score,"Total Alpa": cs.alpa,"Total Sakit": cs.sakit,"Total Izin": cs.izin
-    })));
-    XLSX.utils.book_append_sheet(wb, wsClassStats,"Rekap_Kelas");
+    const classStatsData = classStats.map(cs => ({"Kelas": cs.class_name,"Total Poin Pelanggaran": cs.poin,"Rata-rata Skor Kredit": cs.avg_score,"Total Alpa": cs.alpa,"Total Sakit": cs.sakit,"Total Izin": cs.izin
+    }));
     
-    XLSX.writeFile(wb, `Rekap_Kehadiran_Skor_Kredit_Siswa_${filterBulan ||'Semua'}.xlsx`);
+    const wsClassStats = wb.addWorksheet("Rekap_Kelas");
+    if (classStatsData.length > 0) {
+       const keys2 = Object.keys(classStatsData[0]);
+       wsClassStats.addRow(keys2);
+       classStatsData.forEach(item => wsClassStats.addRow(keys2.map(k => item[k])));
+    }
+    
+    wb.xlsx.writeBuffer().then(buf => {
+       saveAs(new Blob([buf]), `Rekap_Kehadiran_Skor_Kredit_Siswa_${filterBulan ||'Semua'}.xlsx`);
+    });
     showToast('Rekap Excel berhasil diunduh!');
   };
 

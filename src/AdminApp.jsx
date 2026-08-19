@@ -24,7 +24,7 @@ import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import { AdminHeader } from "./components/admin/AdminHeader.jsx";
 import AdminContentRouter from "./components/admin/AdminContentRouter.jsx";
 import { WorkspaceGuidePanel } from "./components/WorkspaceGuidePanel.jsx";
-
+import CustomRolesModal from "./components/admin/CustomRolesModal.jsx";
 import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
 import SystemModals from './components/admin/SystemModals.jsx';
 import CrudModals from './components/admin/CrudModals.jsx';
@@ -935,7 +935,7 @@ export default function App() {
 
   const handleSelectAll = useCallback((tabKey, items) => {
     const isAllSelected = items.length > 0 && items.every(item => {
-      const id = item.id || item.code || item.nip || item.name;
+      const id = item.id || item.code || item.nis || item.nip || item.name;
       return selectedRows[tabKey]?.includes(id);
     });
     
@@ -944,7 +944,7 @@ export default function App() {
     } else {
       setSelectedRows(prev => ({ 
         ...prev, 
-        [tabKey]: items.map(item => item.id || item.code || item.nip || item.name) 
+        [tabKey]: items.map(item => item.id || item.code || item.nis || item.nip || item.name) 
       }));
     }
   }, [selectedRows, setSelectedRows]);
@@ -1366,7 +1366,7 @@ export default function App() {
       }
       setTeachingLoads(prev => prev.filter(item => !isSelectedId(item.id)));
     } else if (type === "siswa") {
-      const removedStudents = students.filter(item => isSelectedId(item.nis) || isSelectedId(item.id));
+      const removedStudents = students.filter(item => isSelectedId(item.nis) || isSelectedId(item.code) || isSelectedId(item.id));
       if (removedStudents.length === 0) {
         showNotification("Data siswa tidak ditemukan atau sudah terhapus.", "warning");
         removeFromSelection();
@@ -1376,7 +1376,7 @@ export default function App() {
         snapshot.payload.students = removedStudents;
         shouldRecordSnapshot = true;
       }
-      setStudents(prev => prev.filter(item => !isSelectedId(item.nis) && !isSelectedId(item.id)));
+      setStudents(prev => prev.filter(item => !isSelectedId(item.nis) && !isSelectedId(item.code) && !isSelectedId(item.id)));
     }
     if (shouldRecordSnapshot) pushDeleteHistory(snapshot);
     removeFromSelection();
@@ -1609,33 +1609,22 @@ export default function App() {
   
   
   const downloadTeacherTemplate = async () => {
-    let XLSX;
+    let ExcelJS, saveAs;
     try {
-      XLSX = await import("xlsx");
+      ExcelJS = await import("exceljs");
+      const fileSaver = await import("file-saver");
+      saveAs = fileSaver.saveAs || fileSaver.default || fileSaver;
     } catch {
       showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.", "error");
       return;
     }
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     const silabusData = [["Mata Pelajaran (wajib)", "Guru Pengajar (wajib)", "Judul Pertemuan / BAB (wajib)", "Kelas / Semester", "Tujuan Pembelajaran", "Materi Pembelajaran (pisah enter)", "Catatan (opsional)"]];
-    const wsSilabus = XLSX.utils.aoa_to_sheet(silabusData);
-    wsSilabus["!cols"] = [{
-      wch: 25
-    }, {
-      wch: 20
-    }, {
-      wch: 40
-    }, {
-      wch: 20
-    }, {
-      wch: 50
-    }, {
-      wch: 50
-    }, {
-      wch: 24
-    }];
-    XLSX.utils.book_append_sheet(wb, wsSilabus, "Modul");
-    XLSX.writeFile(wb, `Template Modul - ${currentUser?.name || currentUser?.username}.xlsx`);
+    const wsSilabus = wb.addWorksheet("Modul");
+    silabusData.forEach(row => wsSilabus.addRow(row));
+    wsSilabus.columns.forEach(c => c.width = 25);
+    const buffer = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Template Modul - ${currentUser?.name || currentUser?.username}.xlsx`);
     showNotification("Template Modul berhasil diunduh.", "success");
   };
   const exportAttendanceToExcel = async () => {
@@ -1644,37 +1633,24 @@ export default function App() {
       showNotification("Tidak ada data absensi untuk diekspor.", "error");
       return;
     }
-    let XLSX;
+    let ExcelJS, saveAs;
     try {
-      XLSX = await import("xlsx");
+      ExcelJS = await import("exceljs");
+      const fileSaver = await import("file-saver");
+      saveAs = fileSaver.saveAs || fileSaver.default || fileSaver;
     } catch {
       showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.", "error");
       return;
     }
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     const rows = recordsToExport.map(r => [r.date, r.time, r.teacherCode, getTeacherName(r.teacherCode), r.sessionName || "-", r.status, r.mode, r.note || "-", r.location ? `${r.location.lat}, ${r.location.lng}` : "-"]);
-    const ws = XLSX.utils.aoa_to_sheet([["Tanggal", "Waktu", "Kode Guru", "Nama Guru", "Sesi", "Status", "Mode", "Catatan", "Lokasi (Lat, Lng)"], ...rows]);
-    ws["!cols"] = [{
-      wch: 14
-    }, {
-      wch: 12
-    }, {
-      wch: 14
-    }, {
-      wch: 34
-    }, {
-      wch: 20
-    }, {
-      wch: 14
-    }, {
-      wch: 12
-    }, {
-      wch: 30
-    }, {
-      wch: 24
-    }];
-    XLSX.utils.book_append_sheet(wb, ws, "Absensi_Guru");
-    XLSX.writeFile(wb, `Laporan Absensi Guru ${appSettings.appName || "TimeSchedule"}.xlsx`);
+    const ws = wb.addWorksheet("Absensi_Guru");
+    const header = ["Tanggal", "Waktu", "Kode Guru", "Nama Guru", "Sesi", "Status", "Mode", "Catatan", "Lokasi (Lat, Lng)"];
+    ws.addRow(header);
+    rows.forEach(row => ws.addRow(row));
+    ws.columns.forEach(c => c.width = 18);
+    const buffer = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Laporan Absensi Guru ${appSettings.appName || "TimeSchedule"}.xlsx`);
     showNotification("Data absensi berhasil diekspor.", "success");
   };
   const handleSaveDashboardMessage = () => {
@@ -1796,29 +1772,26 @@ export default function App() {
     showNotification(decision === "approved" ? "Koreksi absensi disetujui." : "Koreksi absensi ditolak.", "success");
   };
   const downloadAcademicCalendarTemplate = async () => {
-    let XLSX;
+    let ExcelJS, saveAs;
     try {
-      XLSX = await import("xlsx");
+      ExcelJS = await import("exceljs");
+      const fileSaver = await import("file-saver");
+      saveAs = fileSaver.saveAs || fileSaver.default || fileSaver;
     } catch {
       showNotification("Fitur Excel belum dapat dimuat. Silakan coba lagi.", "error");
       return;
     }
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     const data = [
       ["Judul Kegiatan (wajib)", "Tanggal Mulai (YYYY-MM-DD)", "Tanggal Selesai (YYYY-MM-DD)", "Kategori Kegiatan", "Keterangan"],
       ["Ujian Tengah Semester Ganjil", "2026-09-15", "2026-09-19", "Kurikulum", "Pelaksanaan UTS Ganjil serentak"],
       ["Libur Hari Kemerdekaan", "2026-08-17", "2026-08-17", "Hari Libur", "Upacara bendera dan libur nasional"]
     ];
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws["!cols"] = [
-      { wch: 30 },
-      { wch: 26 },
-      { wch: 28 },
-      { wch: 20 },
-      { wch: 45 }
-    ];
-    XLSX.utils.book_append_sheet(wb, ws, "Kalender");
-    XLSX.writeFile(wb, `Template Kalender Akademik ${appSettings.appName || "TimeSchedule"}.xlsx`);
+    const ws = wb.addWorksheet("Kalender");
+    data.forEach(row => ws.addRow(row));
+    ws.columns.forEach(c => c.width = 30);
+    const buffer = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Template Kalender Akademik ${appSettings.appName || "TimeSchedule"}.xlsx`);
     showNotification("Template kalender akademik berhasil diunduh.", "success");
   };
   const openImportGuide = () => setIsImportGuideOpen(true);

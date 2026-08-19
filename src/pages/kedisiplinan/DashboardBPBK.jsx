@@ -10,7 +10,8 @@ import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import { useAppStore } from "../../store/useAppStore.js";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function DashboardBPBK({ students = [], classes = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
@@ -665,10 +666,16 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       Jumlah_Sesi_BK: s.sesi_count
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Rekap BK & Kedisiplinan");
-    XLSX.writeFile(wb, `Rekap_Bimbingan_Konseling_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Rekap BK & Kedisiplinan");
+    if (dataToExport.length > 0) {
+      const keys = Object.keys(dataToExport[0]);
+      ws.addRow(keys);
+      dataToExport.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Rekap_Bimbingan_Konseling_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    });
   };
 
   // Open 360° Dossier

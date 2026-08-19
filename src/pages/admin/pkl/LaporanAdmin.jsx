@@ -1,7 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useMemo, useEffect } from"react";
 import { FileBarChart2, FileSpreadsheet, Calendar } from"lucide-react";
-import * as XLSX from"xlsx";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import useAuthStore from"../../../store/monitoring/authStore";
 import { Search, Filter, Download, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight, AlertCircle } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -99,40 +100,43 @@ const LaporanAdmin = ({ students = [], teachers = [] }) => {
   const handleExport = async () => {
     setGenerating(true);
     await new Promise(r => setTimeout(r, 800));
-
-    let wb = XLSX.utils.book_new();
-    let ws, sheetName;
+    let wb = new ExcelJS.Workbook();
+    let sheetName;
+    let rows = [];
 
     if (selectedType ==='kehadiran') {
-      const rows = mappedSiswa
+      rows = mappedSiswa
         .filter(s => filterJurusan ==='Semua' || s.jurusan === filterJurusan)
         .map(s => ({'NIS': s.nis,'Nama Siswa': s.nama,'Kelas': s.kelas,'Jurusan': s.jurusan,'Total Hadir': s.totalHadir,'Total Absen': s.totalAbsen,'Total Izin': s.totalIzin,'Total Hari Kerja': s.totalHariKerja,'Persentase Kehadiran': `${s.persenKehadiran}%`,
         }));
-      ws = XLSX.utils.json_to_sheet(rows);
       sheetName ='Laporan Kehadiran';
     } else if (selectedType ==='jurnal') {
-      const rows = dataJurnal.map(j => {
+      rows = dataJurnal.map(j => {
         const s = mappedSiswa.find(x => x.nis === j.student_nis);
         return {'Nama Siswa': s?.nama ||'-','Kelas': s?.kelas ||'-','Tanggal': j.date,'Kegiatan': j.activity,'Kendala': j.problems,'Solusi': j.solutions,'Jam Masuk': j.time_in,'Jam Keluar': j.time_out,'Status': j.status,'Catatan Guru': j.notes ||'-',
         };
       });
-      ws = XLSX.utils.json_to_sheet(rows);
       sheetName ='Laporan Jurnal';
     } else {
-      const rows = teachers.map(g => {
-        const siswaGuru = mappedSiswa.filter(s => s.guruPembimbingId === g.code);
-        const rataHadir = siswaGuru.length
-          ? (siswaGuru.reduce((a, s) => a + s.persenKehadiran, 0) / siswaGuru.length).toFixed(1)
-          :'-';
+      rows = teachers.map(g => {
+        const siswaGuru = mappedSiswa.filter(s => s.teacher_code === g.code);
+        const avg = siswaGuru.reduce((a, b) => a + (b.persenKehadiran || 0), 0) / (siswaGuru.length || 1);
+        const rataHadir = siswaGuru.length ? avg.toFixed(1) : '-';
         return {'Nama Guru': g.name,'Jurusan': g.preferredMajor,'Kategori': g.type,'Jumlah Siswa Bimbingan': siswaGuru.length,'Rata-rata Kehadiran Siswa': rataHadir + (rataHadir !=='-' ?'%' :''),
         };
       });
-      ws = XLSX.utils.json_to_sheet(rows);
       sheetName ='Rekap Per Guru';
     }
 
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    XLSX.writeFile(wb, `PKL_${sheetName.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    const ws = wb.addWorksheet(sheetName);
+    if (rows.length > 0) {
+      const keys = Object.keys(rows[0]);
+      ws.addRow(keys);
+      rows.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `PKL_${sheetName.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    });
     setGenerating(false);
   };  const jurusanOptions = useMemo(() => {
     return ["Semua", ...Array.from(new Set(mappedSiswa.map(s => s.jurusan))).filter(Boolean)];

@@ -287,8 +287,19 @@ export const SharedDashboardLogs = () => {
     if (isSiswa) {
       return all.filter(t => ['kehadiran_siswa', 'siswa_terlambat', 'siswa_prestasi'].includes(t.id));
     }
+    
+    // Filter siswa bermasalah: hanya kesiswaan, kepsek, admin, dan guru (wali kelas) yang bisa melihat
+    const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(user?.role) || 
+                              (user?.role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan') || 
+                              (user?.role || "").includes('kesiswaan');
+    const isGuru = user?.role === 'guru';
+    
+    if (!isKesiswaanOrAdmin && !isGuru) {
+      return all.filter(t => t.id !== 'siswa_bermasalah');
+    }
+    
     return all;
-  }, [isSiswa, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length]);
+  }, [isSiswa, user, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length]);
 
   const renderListItem = (item, type, index) => {
     const absoluteIndex = (currentPage - 1) * itemsPerPage + index + 1;

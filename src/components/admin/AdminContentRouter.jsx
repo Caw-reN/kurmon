@@ -1,13 +1,15 @@
 import { lazy } from'react';
-import { AlertCircle } from'lucide-react';
+import { BookOpen, MapPin, AlertCircle, ClipboardList, UserX } from'lucide-react';
 import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parseTeacherCodes, parsePositiveInt, getLoadKey } from'../../utils/adminHelpers.js';
 import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
 import { Suspense } from'react';
+import { Shield, Edit2, Lock, Trash2 } from'lucide-react';
 import AbsensiSiswa from'../../pages/kedisiplinan/AbsensiSiswa.jsx';
 import ManajemenPiket from'../../pages/kedisiplinan/ManajemenPiket.jsx';
 import BKDashboard from'../../pages/kedisiplinan/BKDashboard.jsx';
 import JurnalHarianGuru from'../../pages/kedisiplinan/JurnalHarianGuru.jsx';
 import CatatanWaliKelas from'../../pages/kedisiplinan/CatatanWaliKelas.jsx';
+import { PageHeader } from'../monitoring/ui/index.js';
 
 
 const TabSilabus = lazy(() => import("../../pages/admin/tabs/TabSilabus.jsx"));
@@ -594,6 +596,14 @@ export default function AdminContentRouter({ context }) {
       case "laporan_rekap_walas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
           <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
+        </Suspense>;
+      case "absensiguru":
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat absensi guru...</div>}>
+          <TabAbsensiGuru {...context} />
+        </Suspense>;
+      case "absensi":
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat absensi...</div>}>
+          <TabAbsensi {...context} />
         </Suspense>;
       case"hikvision_students":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
