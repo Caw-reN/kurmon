@@ -3,7 +3,7 @@ import {
   UserMinus, Search, RotateCcw, AlertCircle, CheckCircle2, 
   User, Calendar, FileText, ArrowRight, X, ShieldAlert,
   LogOut, Filter, Info, Sparkles, Download, AlertTriangle,
-  GraduationCap, RefreshCw, Layers
+  GraduationCap, RefreshCw, Layers, Plus
 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -25,6 +25,7 @@ export default function SiswaKeluar() {
   const [confirmModal, setConfirmModal] = useState(null); // 'exit' or 'restore'
   const [targetRestoreStudent, setTargetRestoreStudent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
   // Exit Form State
   const [exitForm, setExitForm] = useState({
@@ -284,244 +285,28 @@ export default function SiswaKeluar() {
         </div>
       </div>
 
-      {/* 🔴 Main Workspace Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* 📋 Kolom Kiri: Form Keluar & KPI Statistik (4 Cols on LG) */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          {/* Card Form Mutasi */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-xs transition-shadow">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  <FileText size={18} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-800 text-sm">Formulir Keluar</h3>
-                  <p className="text-[11px] text-slate-400 font-medium">Input data mutasi keluar</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 border border-emerald-200/60 uppercase tracking-wide">
-                Input Data
-              </span>
-            </div>
-            
-            <form onSubmit={(e) => { e.preventDefault(); if (selectedStudent) setConfirmModal('exit'); }} className="space-y-4">
-              
-              {/* Opsi Filter Kelas untuk Memudahkan Pencarian */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-                  <Layers size={13} className="text-slate-400" />
-                  <span>Filter Kelas (Opsional)</span>
-                </label>
-                <select
-                  value={selectedClassFilter}
-                  onChange={(e) => setSelectedClassFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer"
-                >
-                  <option value="ALL">✨ Semua Kelas ({activeStudents.length} Siswa)</option>
-                  {classList.map(cls => (
-                    <option key={cls} value={cls}>Kelas {cls}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Autocomplete Input Siswa */}
-              <div className="relative">
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                  <span>Cari &amp; Pilih Siswa <span className="text-rose-500">*</span></span>
-                  {selectedStudent && (
-                    <button 
-                      type="button" 
-                      onClick={() => { setSelectedStudent(null); setSearchTerm(''); }} 
-                      className="text-[10px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center gap-1 cursor-pointer"
-                    >
-                      <X size={12} /> Reset
-                    </button>
-                  )}
-                </label>
-                
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <input 
-                    type="text"
-                    value={searchTerm} 
-                    onChange={e => {
-                      setSearchTerm(e.target.value);
-                      if (selectedStudent && e.target.value !== (selectedStudent.namaSiswa || selectedStudent.name)) {
-                        setSelectedStudent(null);
-                      }
-                    }} 
-                    placeholder={selectedClassFilter !== 'ALL' ? `Ketik nama siswa kelas ${selectedClassFilter}...` : "Ketik Nama atau NIS siswa..."}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" 
-                  />
-                </div>
-
-                {/* Autocomplete Suggestions Dropdown */}
-                {filteredActive.length > 0 && !selectedStudent && (
-                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-md z-30 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
-                    <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                      Siswa Ditemukan ({filteredActive.length})
-                    </div>
-                    {filteredActive.map(s => {
-                      const studentName = s.namaSiswa || s.name || s.nama;
-                      const studentClass = s.class_name || s.kelas || s.className || 'Umum';
-                      return (
-                        <button
-                          key={s.nis || s.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedStudent(s);
-                            setSearchTerm(studentName);
-                          }}
-                          className="w-full text-left p-2.5 hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
-                              {studentName.charAt(0)}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-xs font-extrabold text-slate-800 group-hover:text-emerald-950 truncate">
-                                {studentName}
-                              </div>
-                              <div className="text-[10px] text-slate-500 font-mono">NIS: {s.nis || '-'}</div>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 group-hover:bg-emerald-200 group-hover:text-emerald-800 transition-colors shrink-0 ml-2">
-                            {studentClass}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Card Ringkasan Siswa Terpilih */}
-              {selectedStudent && (
-                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-2xs animate-in zoom-in-95 duration-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
-                      {(selectedStudent.namaSiswa || selectedStudent.name || 'S').charAt(0)}
-                    </div>
-                    <div>
-                      <div className="text-xs font-black text-slate-900">
-                        {selectedStudent.namaSiswa || selectedStudent.name}
-                      </div>
-                      <div className="text-[10px] font-semibold text-emerald-800 flex items-center gap-2 mt-0.5">
-                        <span className="font-mono bg-emerald-200/60 px-1.5 py-0.2 rounded font-bold">NIS: {selectedStudent.nis}</span>
-                        <span>•</span>
-                        <span>Kelas: {selectedStudent.class_name || selectedStudent.kelas || selectedStudent.className || 'Umum'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                </div>
-              )}
-
-              {/* Tanggal Keluar */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  <Calendar size={13} className="text-slate-400" />
-                  <span>Tanggal Mutasi Keluar <span className="text-rose-500">*</span></span>
-                </label>
-                <input 
-                  type="date"
-                  required
-                  value={exitForm.tanggal_keluar} 
-                  onChange={e => setExitForm({ ...exitForm, tanggal_keluar: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all cursor-pointer" 
-                />
-              </div>
-
-              {/* Alasan Keluar - Quick Choice Pills */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                  <span>Alasan Mutasi Keluar <span className="text-rose-500">*</span></span>
-                </label>
-                
-                <div className="grid grid-cols-2 gap-1.5 mb-2">
-                  {[
-                    { key: 'Pindah Sekolah', label: 'Pindah Sekolah', color: 'border-blue-200 bg-blue-50/70 text-blue-900 active:bg-blue-200 hover:bg-blue-100' },
-                    { key: 'Mengundurkan Diri', label: 'Mengundurkan Diri', color: 'border-amber-200 bg-amber-50/70 text-amber-900 active:bg-amber-200 hover:bg-amber-100' },
-                    { key: 'Dikeluarkan', label: 'Dikeluarkan', color: 'border-rose-200 bg-rose-50/70 text-rose-900 active:bg-rose-200 hover:bg-rose-100' },
-                    { key: 'Lainnya', label: 'Lainnya', color: 'border-slate-200 bg-slate-100 text-slate-800 active:bg-slate-200 hover:bg-slate-200' },
-                  ].map(item => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setExitForm({ ...exitForm, alasan: item.key })}
-                      className={`px-2.5 py-2 rounded-[var(--ui-radius-small)] border text-[11px] font-extrabold transition-all text-center cursor-pointer ${
-                        exitForm.alasan === item.key 
-                          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-600 text-white shadow-2xs' 
-                          : item.color
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Keterangan / Tujuan */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  <FileText size={13} className="text-slate-400" />
-                  <span>Keterangan / Sekolah Tujuan</span>
-                </label>
-                <textarea 
-                  rows="3"
-                  value={exitForm.keterangan} 
-                  onChange={e => setExitForm({ ...exitForm, keterangan: e.target.value })}
-                  placeholder="Contoh: Pindah ke SMKN 1 Jakarta / Alasan ikut orang tua..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button 
-                type="submit" 
-                disabled={!selectedStudent} 
-                className="w-full py-3 px-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs uppercase tracking-wider rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-              >
-                <UserMinus size={16} /> Proses Mutasi Keluar
-              </button>
-            </form>
-          </div>
-
-          {/* 📊 Statistik Pengeluaran KPI Grid */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Info size={14} className="text-emerald-600" />
-                <span>Statistik Pengeluaran</span>
-              </h4>
-              <span className="text-[10px] font-bold text-slate-400">Total: {exitedStudents.length}</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], bg: 'bg-blue-50/80 border-blue-200/70 text-blue-900', dot: 'bg-blue-500' },
-                { label: 'Mundur', count: reasonStats['Mengundurkan Diri'], bg: 'bg-amber-50/80 border-amber-200/70 text-amber-900', dot: 'bg-amber-500' },
-                { label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'], bg: 'bg-rose-50/80 border-rose-200/70 text-rose-900', dot: 'bg-rose-500' },
-                { label: 'Lainnya', count: reasonStats['Lainnya'], bg: 'bg-slate-50/80 border-slate-200/70 text-slate-900', dot: 'bg-slate-400' },
-              ].map(stat => (
-                <div key={stat.label} className={`p-3 rounded-[var(--ui-radius-card)] border ${stat.bg} flex flex-col justify-between transition-transform hover:scale-[1.02] shadow-2xs`}>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{stat.label}</span>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-lg font-black">{stat.count}</span>
-                    <span className={`w-2.5 h-2.5 rounded-full ${stat.dot} shadow-2xs`} />
-                  </div>
-                </div>
-              ))}
+      
+      {/* 📊 Statistik Pengeluaran KPI Cards Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {[
+          { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], bg: 'bg-blue-50/80 border-blue-200/70 text-blue-900', dot: 'bg-blue-500' },
+          { label: 'Mundur', count: reasonStats['Mengundurkan Diri'], bg: 'bg-amber-50/80 border-amber-200/70 text-amber-900', dot: 'bg-amber-500' },
+          { label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'], bg: 'bg-rose-50/80 border-rose-200/70 text-rose-900', dot: 'bg-rose-500' },
+          { label: 'Lainnya', count: reasonStats['Lainnya'], bg: 'bg-slate-50/80 border-slate-200/70 text-slate-900', dot: 'bg-slate-400' },
+        ].map(stat => (
+          <div key={stat.label} className={`p-4 rounded-[var(--ui-radius-card)] border ${stat.bg} flex flex-col justify-between transition-transform hover:scale-[1.02] shadow-sm`}>
+            <span className="text-[11px] font-extrabold text-slate-600 uppercase tracking-tight">{stat.label}</span>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-2xl font-black text-slate-800">{stat.count}</span>
+              <span className={`w-3 h-3 rounded-full ${stat.dot} shadow-2xs`} />
             </div>
           </div>
+        ))}
+      </div>
 
-        </div>
 
-        {/* 📑 Kolom Kanan: Daftar Riwayat Keluar & Filter Tab (8 Cols on LG) */}
-        <div className="lg:col-span-8 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-4">
+      {/* 📑 Kolom Kanan: Daftar Riwayat Keluar & Filter Tab (8 Cols on LG) */}
+        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-4">
           
           {/* Header Bar & Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
@@ -547,6 +332,16 @@ export default function SiswaKeluar() {
               >
                 <Download size={14} />
                 <span>Export Excel</span>
+              </button>
+
+              {/* Tambah Mutasi Button */}
+              <button
+                type="button"
+                onClick={() => setIsFormModalOpen(true)}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 rounded-[var(--ui-radius-small)] font-black text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-sm shadow-emerald-600/30 cursor-pointer shrink-0"
+              >
+                <Plus size={14} />
+                <span className="hidden sm:inline">Catat Mutasi</span>
               </button>
 
               {/* Instant Search Bar */}
@@ -759,7 +554,219 @@ export default function SiswaKeluar() {
 
         </div>
 
-      </div>
+      {/* 📝 Modal Form Mutasi Keluar */}
+      {isFormModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="bg-white border-b border-slate-100 p-4 sm:p-5 flex items-center justify-between z-10 rounded-t-[var(--ui-radius-card)]">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm">Formulir Keluar</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Input mutasi keluar siswa</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsFormModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-[var(--ui-radius-small)] text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-5 overflow-y-auto">
+              <form onSubmit={(e) => { e.preventDefault(); if (selectedStudent) setConfirmModal('exit'); }} className="space-y-4">
+              
+              {/* Opsi Filter Kelas untuk Memudahkan Pencarian */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                  <Layers size={13} className="text-slate-400" />
+                  <span>Filter Kelas (Opsional)</span>
+                </label>
+                <select
+                  value={selectedClassFilter}
+                  onChange={(e) => setSelectedClassFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer"
+                >
+                  <option value="ALL">✨ Semua Kelas ({activeStudents.length} Siswa)</option>
+                  {classList.map(cls => (
+                    <option key={cls} value={cls}>Kelas {cls}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Autocomplete Input Siswa */}
+              <div className="relative">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                  <span>Cari &amp; Pilih Siswa <span className="text-rose-500">*</span></span>
+                  {selectedStudent && (
+                    <button 
+                      type="button" 
+                      onClick={() => { setSelectedStudent(null); setSearchTerm(''); }} 
+                      className="text-[10px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center gap-1 cursor-pointer"
+                    >
+                      <X size={12} /> Reset
+                    </button>
+                  )}
+                </label>
+                
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input 
+                    type="text"
+                    value={searchTerm} 
+                    onChange={e => {
+                      setSearchTerm(e.target.value);
+                      if (selectedStudent && e.target.value !== (selectedStudent.namaSiswa || selectedStudent.name)) {
+                        setSelectedStudent(null);
+                      }
+                    }} 
+                    placeholder={selectedClassFilter !== 'ALL' ? `Ketik nama siswa kelas ${selectedClassFilter}...` : "Ketik Nama atau NIS siswa..."}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all" 
+                  />
+                </div>
+
+                {/* Autocomplete Suggestions Dropdown */}
+                {filteredActive.length > 0 && !selectedStudent && (
+                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-md z-30 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
+                    <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      Siswa Ditemukan ({filteredActive.length})
+                    </div>
+                    {filteredActive.map(s => {
+                      const studentName = s.namaSiswa || s.name || s.nama;
+                      const studentClass = s.class_name || s.kelas || s.className || 'Umum';
+                      return (
+                        <button
+                          key={s.nis || s.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStudent(s);
+                            setSearchTerm(studentName);
+                          }}
+                          className="w-full text-left p-2.5 hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
+                              {studentName.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-extrabold text-slate-800 group-hover:text-emerald-950 truncate">
+                                {studentName}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono">NIS: {s.nis || '-'}</div>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 group-hover:bg-emerald-200 group-hover:text-emerald-800 transition-colors shrink-0 ml-2">
+                            {studentClass}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Ringkasan Siswa Terpilih */}
+              {selectedStudent && (
+                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-2xs animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+                      {(selectedStudent.namaSiswa || selectedStudent.name || 'S').charAt(0)}
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-slate-900">
+                        {selectedStudent.namaSiswa || selectedStudent.name}
+                      </div>
+                      <div className="text-[10px] font-semibold text-emerald-800 flex items-center gap-2 mt-0.5">
+                        <span className="font-mono bg-emerald-200/60 px-1.5 py-0.2 rounded font-bold">NIS: {selectedStudent.nis}</span>
+                        <span>•</span>
+                        <span>Kelas: {selectedStudent.class_name || selectedStudent.kelas || selectedStudent.className || 'Umum'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                </div>
+              )}
+
+              {/* Tanggal Keluar */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <Calendar size={13} className="text-slate-400" />
+                  <span>Tanggal Mutasi Keluar <span className="text-rose-500">*</span></span>
+                </label>
+                <input 
+                  type="date"
+                  required
+                  value={exitForm.tanggal_keluar} 
+                  onChange={e => setExitForm({ ...exitForm, tanggal_keluar: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all cursor-pointer" 
+                />
+              </div>
+
+              {/* Alasan Keluar - Quick Choice Pills */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                  <span>Alasan Mutasi Keluar <span className="text-rose-500">*</span></span>
+                </label>
+                
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  {[
+                    { key: 'Pindah Sekolah', label: 'Pindah Sekolah', color: 'border-blue-200 bg-blue-50/70 text-blue-900 active:bg-blue-200 hover:bg-blue-100' },
+                    { key: 'Mengundurkan Diri', label: 'Mengundurkan Diri', color: 'border-amber-200 bg-amber-50/70 text-amber-900 active:bg-amber-200 hover:bg-amber-100' },
+                    { key: 'Dikeluarkan', label: 'Dikeluarkan', color: 'border-rose-200 bg-rose-50/70 text-rose-900 active:bg-rose-200 hover:bg-rose-100' },
+                    { key: 'Lainnya', label: 'Lainnya', color: 'border-slate-200 bg-slate-100 text-slate-800 active:bg-slate-200 hover:bg-slate-200' },
+                  ].map(item => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setExitForm({ ...exitForm, alasan: item.key })}
+                      className={`px-2.5 py-2 rounded-[var(--ui-radius-small)] border text-[11px] font-extrabold transition-all text-center cursor-pointer ${
+                        exitForm.alasan === item.key 
+                          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-600 text-white shadow-2xs' 
+                          : item.color
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Keterangan / Tujuan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <FileText size={13} className="text-slate-400" />
+                  <span>Keterangan / Sekolah Tujuan</span>
+                </label>
+                <textarea 
+                  rows="3"
+                  value={exitForm.keterangan} 
+                  onChange={e => setExitForm({ ...exitForm, keterangan: e.target.value })}
+                  placeholder="Contoh: Pindah ke SMKN 1 Jakarta / Alasan ikut orang tua..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                disabled={!selectedStudent} 
+                className="w-full py-3 px-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs uppercase tracking-wider rounded-[var(--ui-radius-small)] shadow-sm shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                <UserMinus size={16} /> Proses Mutasi Keluar
+              </button>
+            </form>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ⚠️ Modal Konfirmasi Proses Mutasi Keluar */}
       {confirmModal === 'exit' && selectedStudent && (
