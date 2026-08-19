@@ -93,8 +93,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const filteredRiwayat = useMemo(() => {
     return riwayat.filter(r => {
       const student = students.find(s => String(s.nis) === String(r.siswa_nis));
+      if (!student) return false; // Abaikan data jika siswa sudah dihapus
       const mBulan = !filterBulan || (r.tanggal_kejadian && r.tanggal_kejadian.startsWith(filterBulan));
-      const className = student ? (student.class_name || student.kelas) : null;
+      const className = student.class_name || student.kelas || null;
       const mKelas = filterKelas === "all" || className === filterKelas;
       return mBulan && mKelas;
     });
@@ -103,8 +104,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const filteredAbsensi = useMemo(() => {
     return absensi.filter(a => {
       const student = students.find(s => String(s.nis) === String(a.siswa_nis));
+      if (!student) return false; // Abaikan data jika siswa sudah dihapus
       const mBulan = !filterBulan || (a.tanggal && a.tanggal.startsWith(filterBulan));
-      const className = student ? (student.class_name || student.kelas) : null;
+      const className = student.class_name || student.kelas || null;
       const mKelas = filterKelas === "all" || className === filterKelas;
       return mBulan && mKelas;
     });

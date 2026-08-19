@@ -413,6 +413,9 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
   const filteredCatatan = useMemo(() => {
     return catatanList.filter(c => {
+      const student = students.find(s => String(s.nis) === String(c.siswa_nis));
+      if (!student) return false; // Abaikan catatan milik siswa yang sudah dihapus
+      
       const matchSiswa = !selectedSiswa || String(c.siswa_nis) === String(selectedSiswa.nis);
       const matchSearch = !search || (c.siswa_name || '').toLowerCase().includes(search.toLowerCase()) || String(c.siswa_nis).includes(search);
       const matchKelas = filterKelas === 'all' || !filterKelas || c.kelas === filterKelas;

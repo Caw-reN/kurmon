@@ -163,8 +163,11 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         if (!sNis || !iNis) return false;
         return sNis === iNis || (sNis.length >= 5 && iNis.length >= 5 && (sNis.endsWith(iNis) || iNis.endsWith(sNis)));
       });
-      const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
-      const studentClass = student ? (student.class_name || student.kelas || "") : "";
+      
+      if (!student) return false; // Abaikan surat milik siswa yang sudah dihapus
+
+      const studentName = student.namaSiswa || student.name || item.siswa_nis;
+      const studentClass = student.class_name || student.kelas || "";
       
       const itemDateStr = getItemDateStr(item.tanggal);
       const mSearch = activeSearch === "" || studentName.toLowerCase().includes(activeSearch.toLowerCase()) || String(item.siswa_nis).includes(activeSearch);

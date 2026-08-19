@@ -199,6 +199,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
   // Filtered Sessions List
   const filteredSessions = useMemo(() => {
     return bkSessions.filter(ses => {
+      const studentExists = students.find(s => String(s.nis) === String(ses.student_nis));
+      if (!studentExists) return false; // Abaikan sesi milik siswa yang sudah dihapus
+      
       if (filterCategory !== "all" && ses.category !== filterCategory) return false;
       if (filterStatus !== "all" && ses.status !== filterStatus) return false;
       if (search) {
@@ -212,7 +215,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       }
       return true;
     });
-  }, [bkSessions, filterCategory, filterStatus, search]);
+  }, [bkSessions, filterCategory, filterStatus, search, students]);
 
   // Handle Save Session (Create / Edit)
   const handleSaveSession = async (e) => {
