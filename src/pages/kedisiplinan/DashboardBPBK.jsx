@@ -455,7 +455,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
 
   // Handle Delete Session
   const handleDeleteSession = async (id) => {
-    if (!window.confirm("Hapus catatan sesi konseling ini?")) return;
+    if (!await window.confirmAsync("Hapus catatan sesi konseling ini?")) return;
     try {
       const res = await fetch(`/api/kedisiplinan/bk/sessions/${id}`, {
         method: "DELETE",
@@ -504,7 +504,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
 
   // Handle Delete Visit
   const handleDeleteVisit = async (id) => {
-    if (!window.confirm("Hapus catatan kunjungan rumah ini?")) return;
+    if (!await window.confirmAsync("Hapus catatan kunjungan rumah ini?")) return;
     try {
       const res = await fetch(`/api/kedisiplinan/bk/home-visits/${id}`, {
         method: "DELETE",
@@ -568,7 +568,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
 
   // Handle Delete Letter
   const handleDeleteLetter = async (id) => {
-    if (!window.confirm("Hapus catatan surat ini?")) return;
+    if (!await window.confirmAsync("Hapus catatan surat ini?")) return;
     try {
       const res = await fetch(`/api/kedisiplinan/bk/letters/${id}`, {
         method: "DELETE",

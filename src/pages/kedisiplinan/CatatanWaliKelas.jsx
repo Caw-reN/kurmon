@@ -426,7 +426,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Hapus catatan wali kelas ini?')) return;
+    if (!await window.confirmAsync('Hapus catatan wali kelas ini?')) return;
     try {
       await fetch('/api/kesiswaan/catatan-walikelas', {
         method: 'POST',
