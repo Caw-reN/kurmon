@@ -197,11 +197,6 @@ const MasterDataGuru = memo(function MasterDataGuru({
 
   const pageHeader = (
     <div className="space-y-4">
-      <PageHeader 
-        title="Data Guru" 
-        description="Kelola data induk guru, beban mengajar, dan status koneksi mesin absensi." 
-        icon={Users} 
-      />
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Guru */}
@@ -411,7 +406,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
             </tr>
           );
         },
-        { customHeaderButtons: customButtons, pageHeader }
+        { tabKey: "guru", defaultSort: { key: "code", dir: "asc" }, customHeaderButtons: customButtons, pageHeader }
       )}
 
       {/* Import Confirm Modal */}

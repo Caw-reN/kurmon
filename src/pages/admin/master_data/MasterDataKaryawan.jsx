@@ -235,11 +235,6 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
 
   const pageHeader = (
     <div className="space-y-4">
-      <PageHeader 
-        title="Data Karyawan" 
-        description="Kelola data induk staf dan karyawan sekolah serta status koneksi mesin absensi." 
-        icon={Users} 
-      />
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Karyawan */}
@@ -401,7 +396,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
             </tr>
           );
         },
-        { customHeaderButtons: customButtons, pageHeader }
+        { tabKey: "karyawan", defaultSort: { key: "code", dir: "asc" }, customHeaderButtons: customButtons, pageHeader }
       )}
 
       {/* Import Confirm Modal */}

@@ -905,7 +905,7 @@ export default function App() {
     }
   }, [currentUser, teachers]);
   const getActiveSortConfig = useCallback(tabKey => tableSorts[tabKey] || DEFAULT_TABLE_SORTS[tabKey] || {
-    key: "name",
+    key: tabKey === "guru" || tabKey === "karyawan" || tabKey === "data_pegawai" ? "code" : tabKey === "siswa" ? "nis" : tabKey === "ruangan" ? "id" : "code",
     dir: "asc"
   }, [tableSorts]);
   const getRowKeyForTab = (tabKey, item) => getTableRowKey(tabKey, item);

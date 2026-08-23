@@ -46,7 +46,7 @@ function DialogContent({ className, children, showCloseButton = true, onClose, .
       <div
         ref={ref}
         data-slot="dialog-content"
-        className={cn('fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--ui-radius-small)] bg-popover p-4 text-xs/relaxed text-popover-foreground ring-1 ring-foreground/10 outline-none animate-in fade-in-0 zoom-in-95',
+        className={cn('fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--ui-radius-card)] bg-white p-4 text-xs/relaxed text-slate-800 shadow-[var(--ui-shadow-modal)] border border-[var(--ui-border-muted)] outline-none animate-in fade-in-0 zoom-in-95',
           className
         )}
         {...props}
@@ -56,7 +56,7 @@ function DialogContent({ className, children, showCloseButton = true, onClose, .
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-2 right-2 inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+            className="absolute top-2 right-2 inline-flex items-center justify-center rounded-[var(--ui-radius-control)] p-1.5 text-slate-400 hover:text-[var(--ui-primary)] hover:bg-[var(--ui-surface-muted)] transition-colors cursor-pointer border-none bg-transparent"
           >
             <XIcon size={15} strokeWidth={2.5} />
             <span className="sr-only">Close</span>

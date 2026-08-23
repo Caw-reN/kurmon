@@ -1605,11 +1605,10 @@ const server = createServer(async (req, res) => {
             0 as total_absen
           FROM pkl_students p
           LEFT JOIN pkl_logbooks l ON p.nis = l.student_nis
-          GROUP BY p.nis
+          GROUP BY p.nis, p.location_id, p.teacher_code, p.status, p.location_update_count, p.start_date, p.end_date
         `);
         
-        const filteredRows = rows.filter(r => activeNisList.includes(String(r.nis)));
-        send(req, res, 200, { ok: true, data: filteredRows });
+        send(req, res, 200, { ok: true, data: rows });
       } catch (err) {
         if (err.code === "42P01") send(req, res, 200, { ok: true, data: [] });
         else sendDatabaseError(req, res, err);

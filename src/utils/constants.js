@@ -131,6 +131,11 @@ export const TABLE_SORT_OPTIONS = {
     { value: "name", label: "Nama Pengguna" },
     { value: "role", label: "Peran" },
   ],
+  data_pegawai: [
+    { value: "code", label: "No. Urut / Kode (1, 2, 3...)" },
+    { value: "name", label: "Nama Pegawai (A-Z)" },
+    { value: "type", label: "Kategori / Tipe" },
+  ],
   advanced_rules: [
     { value: "name", label: "Nama Aturan" },
     { value: "type", label: "Tipe" },
@@ -138,6 +143,7 @@ export const TABLE_SORT_OPTIONS = {
 };
 
 export const DEFAULT_TABLE_SORTS = {
+  data_pegawai: { key: "code", dir: "asc" },
   kelas: { key: "name", dir: "asc" },
   jurusan: { key: "name", dir: "asc" },
   guru: { key: "code", dir: "asc" },

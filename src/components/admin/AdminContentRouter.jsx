@@ -659,11 +659,11 @@ export default function AdminContentRouter({ context }) {
         </div>}>
           <KartuPelajar students={students} />
         </Suspense>;
-      case"esurat":
+      case "esurat":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat E-Surat...
         </div>}>
-          <ESurat />
+          <ESurat appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} />
         </Suspense>;
       case"kenaikan_kelas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">

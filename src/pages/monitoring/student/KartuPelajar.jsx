@@ -7,6 +7,7 @@ import {
   ChevronRight, ArrowLeftRight, Search, CheckCircle, Info, QrCode, Calendar, Building, X, User
 } from 'lucide-react';
 import { StudentCard } from '../../admin/pengaturan/KartuPelajar.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 /**
  * KartuPelajar.jsx — Halaman Khusus Kartu Pelajar Siswa.
@@ -439,16 +440,18 @@ const KartuPelajarSiswa = () => {
             <form onSubmit={handleSubmitRequest} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-slate-700">Alasan Pengajuan Cetak</label>
-                <select
+                <CustomSelect
                   value={requestReason}
-                  onChange={(e) => setRequestReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,16px)] px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="Kartu Hilang / Rusak">Kartu Hilang / Rusak</option>
-                  <option value="Perubahan Data / Foto">Perubahan Data / Foto Siswa</option>
-                  <option value="Cetak Fisik Baru">Cetak Fisik Pertama Kali</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
+                  onChange={(val) => setRequestReason(val)}
+                  options={[
+                    { value: 'Kartu Hilang / Rusak', label: 'Kartu Hilang / Rusak' },
+                    { value: 'Perubahan Data / Foto', label: 'Perubahan Data / Foto Siswa' },
+                    { value: 'Cetak Fisik Baru', label: 'Cetak Fisik Pertama Kali' },
+                    { value: 'Lainnya', label: 'Lainnya' }
+                  ]}
+                  searchable={false}
+                  placeholder="Pilih Alasan Pengajuan"
+                />
               </div>
 
               {requestReason === 'Lainnya' && (

@@ -5,6 +5,7 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { UISelect, Modal } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 export default function TatibSkorKredit() {
   const [items, setItems] = useState([]);
@@ -600,18 +601,18 @@ export default function TatibSkorKredit() {
                 </button>
               )}
             </div>
-            <div className="w-full sm:w-48 shrink-0 relative">
-              <select
+            <div className="w-full sm:w-52 shrink-0">
+              <CustomSelect
                 value={sortOption}
-                onChange={e => setSortOption(e.target.value)}
-                className="w-full pl-3.5 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none cursor-pointer"
-              >
-                <option value="nama_asc">Urutkan: Nama (A-Z)</option>
-                <option value="nama_desc">Urutkan: Nama (Z-A)</option>
-                <option value="poin_desc">Urutkan: Skor Tertinggi</option>
-                <option value="poin_asc">Urutkan: Skor Terendah</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                onChange={val => setSortOption(val)}
+                options={[
+                  { value: 'nama_asc', label: 'Urutkan: Nama (A-Z)' },
+                  { value: 'nama_desc', label: 'Urutkan: Nama (Z-A)' },
+                  { value: 'poin_desc', label: 'Urutkan: Skor Tertinggi' },
+                  { value: 'poin_asc', label: 'Urutkan: Skor Terendah' }
+                ]}
+                searchable={false}
+              />
             </div>
           </div>
         </div>

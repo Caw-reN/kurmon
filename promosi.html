@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KG2 School — Ekosistem Manajemen Sekolah Digital Terpadu</title>
+    <meta name="description" content="KG2 School adalah platform all-in-one untuk sekolah modern: Kurikulum (RPP/Silabus), BK/Kesiswaan, PKL/Hubin, Sarpras QR Code, Absensi Hikvision, E-Surat, WhatsApp Notifikasi, dan banyak lagi.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --clr-primary: #0ea5e9;
+            --clr-primary-d: #0284c7;
+            --clr-primary-bg: #f0f9ff;
+            --clr-emerald: #10b981;
+            --clr-emerald-bg: #ecfdf5;
+            --clr-amber: #f59e0b;
+            --clr-amber-bg: #fffbeb;
+            --clr-violet: #8b5cf6;
+            --clr-violet-bg: #f5f3ff;
+            --clr-rose: #f43f5e;
+            --clr-rose-bg: #fff1f2;
+            --clr-cyan: #06b6d4;
+            --clr-cyan-bg: #ecfeff;
+            --clr-slate-900: #0f172a;
+            --clr-slate-700: #334155;
+            --clr-slate-500: #64748b;
+            --clr-slate-200: #e2e8f0;
+            --clr-slate-100: #f1f5f9;
+            --clr-slate-50: #f8fafc;
+            --clr-white: #ffffff;
+            --radius-xl: 1.5rem;
+            --radius-md: 0.75rem;
+            --radius-sm: 0.375rem;
+            --radius-pill: 9999px;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0/.1),0 8px 10px -6px rgb(0 0 0/.1);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+        html{scroll-behavior:smooth}
+        body{background:var(--clr-slate-50);color:var(--clr-slate-700);overflow-x:hidden}
+
+        /* ─── NAV ─── */
+        nav{position:fixed;top:0;inset-x:0;z-index:999;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--clr-slate-200)}
+        .nav-inner{max-width:1280px;margin:auto;padding:.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.625rem;text-decoration:none;font-size:1.375rem;font-weight:800;color:var(--clr-slate-900)}
+        .logo-ic{background:var(--clr-primary-bg);color:var(--clr-primary);padding:.5rem;border-radius:var(--radius-md);display:flex}
+        .nav-pills{display:none;gap:.25rem}
+        @media(min-width:900px){.nav-pills{display:flex}}
+        .nav-pill{padding:.4rem .875rem;border-radius:var(--radius-pill);font-size:.8rem;font-weight:700;color:var(--clr-slate-500);text-decoration:none;transition:.2s}
+        .nav-pill:hover{background:var(--clr-slate-100);color:var(--clr-slate-900)}
+        .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.25rem;border-radius:var(--radius-pill);font-weight:700;font-size:.875rem;text-decoration:none;transition:all .2s;cursor:pointer;border:none}
+        .btn-sky{background:var(--clr-primary);color:#fff;box-shadow:0 4px 14px rgba(14,165,233,.4)}
+        .btn-sky:hover{background:var(--clr-primary-d);transform:translateY(-1px)}
+        .btn-ghost{background:transparent;color:var(--clr-slate-900);border:1.5px solid var(--clr-slate-200)}
+        .btn-ghost:hover{border-color:var(--clr-primary);color:var(--clr-primary)}
+
+        /* ─── LAYOUT ─── */
+        .wrap{max-width:1280px;margin:auto;padding:0 1.5rem}
+
+        /* ─── HERO ─── */
+        .hero{padding:8rem 0 3rem;text-align:center;position:relative;overflow:hidden}
+        .hero::before{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:1100px;height:1100px;background:radial-gradient(circle,rgba(14,165,233,.08) 0%,transparent 68%);z-index:-1}
+        .chip-row{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1.5rem}
+        .chip{display:inline-flex;align-items:center;gap:.375rem;padding:.3rem .875rem;border-radius:var(--radius-pill);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+        .chip-sky{background:var(--clr-primary-bg);color:var(--clr-primary)}
+        .chip-green{background:var(--clr-emerald-bg);color:var(--clr-emerald)}
+        .chip-amber{background:var(--clr-amber-bg);color:var(--clr-amber)}
+        .chip-violet{background:var(--clr-violet-bg);color:var(--clr-violet)}
+        .chip-rose{background:var(--clr-rose-bg);color:var(--clr-rose)}
+        .hero h1{font-size:clamp(2.25rem,5vw,4rem);font-weight:800;line-height:1.08;color:var(--clr-slate-900);max-width:900px;margin:0 auto 1.25rem}
+        .grad{background:linear-gradient(135deg,var(--clr-primary),var(--clr-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .hero-sub{font-size:1.125rem;color:var(--clr-slate-500);max-width:700px;margin:0 auto 2.5rem;line-height:1.7}
+        .cta-row{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+        /* ─── STATS BAR ─── */
+        .stats-bar{background:var(--clr-slate-900);padding:2rem 0;margin-top:4rem}
+        .stats-inner{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;text-align:center}
+        .stat-val{font-size:2.25rem;font-weight:800;color:#fff}
+        .stat-lbl{font-size:.8rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-top:.25rem}
+
+        /* ─── SECTION TITLES ─── */
+        .sec-hd{text-align:center;margin-bottom:3.5rem}
+        .sec-hd h2{font-size:2rem;font-weight:800;color:var(--clr-slate-900);margin-bottom:.75rem}
+        .sec-hd p{color:var(--clr-slate-500);max-width:600px;margin:auto;font-size:1.0625rem}
+        .label-pill{display:inline-block;padding:.3rem 1rem;border-radius:var(--radius-pill);font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.25rem}
+
+        /* ─── MODULE CARDS GRID ─── */
+        .module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.75rem}
+        .mod-card{background:var(--clr-white);border:1px solid var(--clr-slate-200);border-radius:var(--radius-xl);padding:2rem;transition:all .3s;position:relative;overflow:hidden}
+        .mod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+        .mod-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-xl)}
+        .c-sky::before{background:var(--clr-primary)}
+        .c-green::before{background:var(--clr-emerald)}
+        .c-amber::before{background:var(--clr-amber)}
+        .c-violet::before{background:var(--clr-violet)}
+        .c-rose::before{background:var(--clr-rose)}
+        .c-cyan::before{background:var(--clr-cyan)}
+        .c-slate::before{background:#94a3b8}
+        .mod-icon{width:3.25rem;height:3.25rem;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem}
+        .mod-card h3{font-size:1.25rem;font-weight:800;color:var(--clr-slate-900);margin-bottom:.625rem}
+        .mod-card .mod-sub{font-size:.875rem;color:var(--clr-slate-500);line-height:1.6;margin-bottom:1.25rem}
+        .feature-tags{display:flex;flex-wrap:wrap;gap:.375rem}
+        .tag{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .625rem;border-radius:var(--radius-sm);font-size:.72rem;font-weight:700;border:1px solid}
+
+        /* ─── FEATURE SPLIT ─── */
+        .split{display:flex;align-items:center;gap:4rem;padding:4rem 0}
+        .split.rev{flex-direction:row-reverse}
+        @media(max-width:900px){.split,.split.rev{flex-direction:column;gap:2.5rem}}
+        .split-txt{flex:1}
+        .split-txt h3{font-size:1.875rem;font-weight:800;color:var(--clr-slate-900);line-height:1.2;margin-bottom:1rem}
+        .split-txt p{color:var(--clr-slate-500);line-height:1.7;margin-bottom:1.5rem}
+        .split-vis{flex:1.1;position:relative}
+        .glass-box{background:var(--clr-white);border:1px solid var(--clr-slate-200);border-radius:var(--radius-xl);padding:1.75rem;box-shadow:var(--shadow-lg)}
+        .pill-list{list-style:none;display:flex;flex-direction:column;gap:.875rem}
+        .pill-item{display:flex;align-items:flex-start;gap:.875rem;padding:1rem;background:var(--clr-slate-50);border-radius:var(--radius-md);border:1px solid var(--clr-slate-200)}
+        .pill-ic{padding:.5rem;border-radius:var(--radius-md);display:flex;flex-shrink:0}
+        .pill-item h4{font-size:.9375rem;font-weight:800;color:var(--clr-slate-900);margin-bottom:.2rem}
+        .pill-item p{font-size:.8125rem;color:var(--clr-slate-500);line-height:1.5}
+
+        /* ─── DARK SECTION ─── */
+        .dark-sec{background:var(--clr-slate-900);padding:5rem 0;color:#fff}
+        .dark-sec .sec-hd h2{color:#fff}
+        .dark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:2.5rem}
+        .dark-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:1.75rem;transition:.25s}
+        .dark-card:hover{background:rgba(255,255,255,.1);transform:translateY(-4px)}
+        .dark-card h4{font-size:1.125rem;font-weight:800;color:#fff;margin:.875rem 0 .5rem}
+        .dark-card p{font-size:.875rem;color:#94a3b8;line-height:1.6}
+
+        /* ─── ROLE TABLE ─── */
+        .role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem}
+        .role-card{background:var(--clr-white);border:1px solid var(--clr-slate-200);border-radius:var(--radius-xl);padding:1.75rem;text-align:center;box-shadow:var(--shadow-md);transition:.25s}
+        .role-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl)}
+        .role-avatar{width:3.5rem;height:3.5rem;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+        .role-card h4{font-size:1rem;font-weight:800;color:var(--clr-slate-900);margin-bottom:.5rem}
+        .role-card p{font-size:.8125rem;color:var(--clr-slate-500);line-height:1.6}
+
+        /* ─── TECH STRIP ─── */
+        .tech-strip{background:var(--clr-white);border-top:1px solid var(--clr-slate-200);border-bottom:1px solid var(--clr-slate-200);padding:2rem 0}
+        .tech-scroll{display:flex;flex-wrap:wrap;gap:1rem 2rem;justify-content:center;align-items:center}
+        .tech-item{display:flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:700;color:var(--clr-slate-500)}
+        .tech-dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--clr-primary)}
+
+        /* ─── CTA ─── */
+        .cta-sec{padding:6rem 0;background:linear-gradient(135deg,var(--clr-slate-900) 0%,#1e1b4b 100%);position:relative;overflow:hidden;text-align:center}
+        .cta-sec::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+        .cta-inner{position:relative;z-index:1;max-width:700px;margin:auto}
+        .cta-inner h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;color:#fff;margin-bottom:1.25rem;line-height:1.15}
+        .cta-inner p{color:#94a3b8;font-size:1.125rem;margin-bottom:2.5rem}
+        .cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+        .btn-white{background:#fff;color:var(--clr-slate-900);font-size:1rem;padding:.875rem 2rem;box-shadow:0 4px 15px rgba(255,255,255,.15)}
+        .btn-white:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,255,255,.25)}
+        .btn-outline-white{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);font-size:1rem;padding:.875rem 2rem}
+        .btn-outline-white:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+
+        footer{background:var(--clr-white);border-top:1px solid var(--clr-slate-200);padding:2rem;text-align:center;color:var(--clr-slate-500);font-size:.875rem}
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        .fade-up{animation:fadeUp .6s ease both}
+        .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+
+        /* ─── SECTION SPACERS ─── */
+        section.pad{padding:5rem 0}
+        section.pad-sm{padding:3.5rem 0}
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-ic"><i data-lucide="layout-template" style="width:20px;height:20px"></i></div>
+      KG2 School
+    </a>
+    <div class="nav-pills">
+      <a href="#modul" class="nav-pill">Modul</a>
+      <a href="#kesiswaan" class="nav-pill">Kesiswaan</a>
+      <a href="#pkl" class="nav-pill">PKL/Hubin</a>
+      <a href="#sarpras" class="nav-pill">Sarpras</a>
+      <a href="#absensi" class="nav-pill">Absensi</a>
+      <a href="#pengguna" class="nav-pill">Role Pengguna</a>
+    </div>
+    <a href="http://localhost:6677" class="btn btn-sky" target="_blank">
+      <i data-lucide="log-in" style="width:15px;height:15px"></i> Buka Aplikasi
+    </a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="chip-row fade-up">
+      <span class="chip chip-sky"><i data-lucide="book-open" style="width:12px;height:12px"></i> Kurikulum & RPP</span>
+      <span class="chip chip-rose"><i data-lucide="heart-handshake" style="width:12px;height:12px"></i> BK / BP & Kesiswaan</span>
+      <span class="chip chip-amber"><i data-lucide="building-2" style="width:12px;height:12px"></i> PKL / Hubin</span>
+      <span class="chip chip-green"><i data-lucide="qr-code" style="width:12px;height:12px"></i> Sarpras & Inventaris</span>
+      <span class="chip chip-violet"><i data-lucide="scan-face" style="width:12px;height:12px"></i> Absensi Hikvision</span>
+    </div>
+
+    <h1 class="fade-up d1">Satu Platform, <span class="grad">Seluruh Ekosistem</span> Manajemen Sekolah</h1>
+
+    <p class="hero-sub fade-up d2">
+      <strong>KG2 School</strong> bukan sekadar aplikasi rapor atau absensi biasa. Ini adalah ekosistem terintegrasi yang menghubungkan <em>Kurikulum, BK/Kesiswaan, PKL/Hubin, Sarana Prasarana, Absensi CCTV Hikvision, E-Surat, Notifikasi WhatsApp</em>, dan banyak lagi — dalam satu dashboard yang indah, cepat, dan mudah digunakan di HP maupun laptop.
+    </p>
+
+    <div class="cta-row fade-up d3">
+      <a href="#modul" class="btn btn-sky">Jelajahi Semua Fitur</a>
+      <a href="http://localhost:6677" class="btn btn-ghost" target="_blank">
+        <i data-lucide="arrow-right" style="width:15px;height:15px"></i> Demo Langsung
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ STATS ══════════════════ -->
+<div class="stats-bar">
+  <div class="wrap">
+    <div class="stats-inner">
+      <div><div class="stat-val">10+</div><div class="stat-lbl">Modul Utama</div></div>
+      <div><div class="stat-val">7</div><div class="stat-lbl">Jenis Role Pengguna</div></div>
+      <div><div class="stat-val">100%</div><div class="stat-lbl">Berbasis Web</div></div>
+      <div><div class="stat-val">QR</div><div class="stat-lbl">Inventaris Sarpras</div></div>
+      <div><div class="stat-val">AI</div><div class="stat-lbl">Analitik & Laporan</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SEMUA MODUL ══════════════════ -->
+<section id="modul" class="pad" style="background:var(--clr-white);border-bottom:1px solid var(--clr-slate-200)">
+  <div class="wrap">
+    <div class="sec-hd">
+      <h2>Semua Modul dalam Satu Platform</h2>
+      <p>Dari kegiatan belajar-mengajar hingga pengelolaan aset fisik sekolah — semuanya terpusat, terintegrasi, dan mudah diakses.</p>
+    </div>
+
+    <div class="module-grid">
+
+      <!-- 1. Kurikulum -->
+      <div class="mod-card c-sky">
+        <div class="mod-icon" style="background:var(--clr-primary-bg);color:var(--clr-primary)"><i data-lucide="book-open-text"></i></div>
+        <h3>Modul Kurikulum (Kurmon)</h3>
+        <p class="mod-sub">Pusat pengelolaan administrasi akademik guru: RPP, Silabus, dan distribusi materi ajar secara digital.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Monitoring RPP Otomatis</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Upload PDF + Kompresi</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Silabus per Pertemuan</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Distribusi Materi Siswa</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Import Excel Batch</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">KPI Kepatuhan Guru %</span>
+        </div>
+      </div>
+
+      <!-- 2. BK & Kesiswaan -->
+      <div class="mod-card c-rose" id="kesiswaan">
+        <div class="mod-icon" style="background:var(--clr-rose-bg);color:var(--clr-rose)"><i data-lucide="heart-handshake"></i></div>
+        <h3>BK / BP & Kesiswaan</h3>
+        <p class="mod-sub">Dashboard lengkap untuk Bimbingan Konseling, pelanggaran siswa, rekap prestasi, dan catatan wali kelas terintegrasi dalam satu panel.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Dashboard BK & Konseling</span>
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Rekap Kedisiplinan Siswa</span>
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Tatib Skor Kredit Pelanggaran</span>
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Riwayat Prestasi Siswa</span>
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Catatan Wali Kelas Digital</span>
+          <span class="tag" style="background:var(--clr-rose-bg);color:var(--clr-rose);border-color:rgba(244,63,94,.2)">Absensi Siswa Harian</span>
+        </div>
+      </div>
+
+      <!-- 3. PKL & Hubin -->
+      <div class="mod-card c-amber" id="pkl">
+        <div class="mod-icon" style="background:var(--clr-amber-bg);color:var(--clr-amber)"><i data-lucide="building-2"></i></div>
+        <h3>PKL / Hubungan Industri (Hubin)</h3>
+        <p class="mod-sub">Modul khusus SMK untuk mengelola seluruh siklus Praktik Kerja Lapangan: dari penempatan siswa, penugasan pembimbing, jurnal harian, hingga laporan akhir.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Dashboard PKL Real-time</span>
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Data Perusahaan Mitra</span>
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Penugasan Guru Pembimbing</span>
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Jurnal Harian PKL</span>
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Administrasi & Penarikan PKL</span>
+          <span class="tag" style="background:var(--clr-amber-bg);color:var(--clr-amber);border-color:rgba(245,158,11,.2)">Laporan & Rekap Akhir</span>
+        </div>
+      </div>
+
+      <!-- 4. Sarpras + QR -->
+      <div class="mod-card c-green" id="sarpras">
+        <div class="mod-icon" style="background:var(--clr-emerald-bg);color:var(--clr-emerald)"><i data-lucide="scan-line"></i></div>
+        <h3>Sarana & Prasarana (+ QR Code)</h3>
+        <p class="mod-sub">Pendataan seluruh aset fisik sekolah dengan label QR Code. Scan langsung dari HP untuk melihat detail barang, lokasi, kondisi, dan riwayat peminjaman.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Inventaris Barang QR Code</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Pelacakan Lokasi Aset</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Fasilitas & Ruangan</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Pelaporan Kerusakan</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Manajemen Peminjaman</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Cetak Label Barcode</span>
+        </div>
+      </div>
+
+      <!-- 5. Absensi Hikvision -->
+      <div class="mod-card c-violet" id="absensi">
+        <div class="mod-icon" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="scan-face"></i></div>
+        <h3>Absensi Biometrik (Hikvision)</h3>
+        <p class="mod-sub">Integrasi langsung dengan kamera dan fingerprint Hikvision untuk rekap absensi guru, staf, dan siswa secara otomatis berbasis pengenalan wajah.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Integrasi Kamera Hikvision</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Laporan Absensi Guru</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Laporan Absensi Siswa</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Laporan Absensi Staf</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Manajemen Perangkat</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Rekap Keterlambatan</span>
+        </div>
+      </div>
+
+      <!-- 6. Kedisiplinan & Jurnal Guru -->
+      <div class="mod-card c-cyan">
+        <div class="mod-icon" style="background:var(--clr-cyan-bg);color:var(--clr-cyan)"><i data-lucide="clipboard-check"></i></div>
+        <h3>Jurnal Harian Guru & Kedisiplinan</h3>
+        <p class="mod-sub">Guru mengisi jurnal mengajar harian secara digital. Admin dapat memantau kepatuhan pengisian dan mengelola jadwal piket guru sekolah.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Jurnal Mengajar Harian</span>
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Jadwal & Panel Piket</span>
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Rekap Kehadiran Guru</span>
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Kelola Pelanggaran Siswa</span>
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Kenaikan Kelas Otomatis</span>
+          <span class="tag" style="background:var(--clr-cyan-bg);color:var(--clr-cyan);border-color:rgba(6,182,212,.2)">Siswa Keluar / Mutasi</span>
+        </div>
+      </div>
+
+      <!-- 7. Komunikasi & Notifikasi -->
+      <div class="mod-card c-sky">
+        <div class="mod-icon" style="background:var(--clr-primary-bg);color:var(--clr-primary)"><i data-lucide="message-square"></i></div>
+        <h3>E-Surat & Notifikasi WhatsApp</h3>
+        <p class="mod-sub">Kirim surat elektronik resmi sekolah dan notifikasi WhatsApp otomatis (absensi, pelanggaran, PKL) langsung ke orang tua siswa atau staf terkait.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">E-Surat Digital Resmi</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Integrasi WhatsApp API</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Notif Absensi ke Ortu</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Broadcast Pengumuman</span>
+          <span class="tag" style="background:var(--clr-primary-bg);color:var(--clr-primary);border-color:rgba(14,165,233,.2)">Manajemen API Key</span>
+        </div>
+      </div>
+
+      <!-- 8. Kartu Pelajar & Data Siswa -->
+      <div class="mod-card c-violet">
+        <div class="mod-icon" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="id-card"></i></div>
+        <h3>Kartu Pelajar & Data Siswa</h3>
+        <p class="mod-sub">Generate Kartu Pelajar digital dengan QR Code untuk validasi identitas. Kelola seluruh data siswa, kelas, jurusan, dan riwayat akademik dalam satu tempat.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Generate Kartu Pelajar</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">QR Code Identitas Siswa</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Validasi Siswa Digital</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Master Data Lengkap</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Import Data Excel Massal</span>
+          <span class="tag" style="background:var(--clr-violet-bg);color:var(--clr-violet);border-color:rgba(139,92,246,.2)">Data Kelas & Jurusan</span>
+        </div>
+      </div>
+
+      <!-- 9. Jadwal & Kalender -->
+      <div class="mod-card c-green">
+        <div class="mod-icon" style="background:var(--clr-emerald-bg);color:var(--clr-emerald)"><i data-lucide="calendar-days"></i></div>
+        <h3>Jadwal Pelajaran & Kalender Sekolah</h3>
+        <p class="mod-sub">Kelola jadwal pelajaran per kelas, kalender akademik, hari libur, dan agenda sekolah yang dapat diakses oleh semua warga sekolah secara real-time.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Jadwal Pelajaran Kelas</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Kalender Akademik</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Hari Libur & Agenda</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Denah Sekolah Digital</span>
+          <span class="tag" style="background:var(--clr-emerald-bg);color:var(--clr-emerald);border-color:rgba(16,185,129,.2)">Struktur Organisasi</span>
+        </div>
+      </div>
+
+      <!-- 10. Backup & Sistem -->
+      <div class="mod-card c-slate">
+        <div class="mod-icon" style="background:var(--clr-slate-100);color:var(--clr-slate-700)"><i data-lucide="shield-check"></i></div>
+        <h3>Sistem & Keamanan Data</h3>
+        <p class="mod-sub">Backup otomatis ke Google Drive, audit log aktivitas pengguna, manajemen fitur per-role, dan profil sekolah yang dapat dikustomisasi penuh.</p>
+        <div class="feature-tags">
+          <span class="tag" style="background:var(--clr-slate-100);color:var(--clr-slate-700);border-color:var(--clr-slate-200)">Backup ke Google Drive</span>
+          <span class="tag" style="background:var(--clr-slate-100);color:var(--clr-slate-700);border-color:var(--clr-slate-200)">Audit Log Lengkap</span>
+          <span class="tag" style="background:var(--clr-slate-100);color:var(--clr-slate-700);border-color:var(--clr-slate-200)">Manajemen Fitur Per-Role</span>
+          <span class="tag" style="background:var(--clr-slate-100);color:var(--clr-slate-700);border-color:var(--clr-slate-200)">Profil Sekolah Kustom</span>
+          <span class="tag" style="background:var(--clr-slate-100);color:var(--clr-slate-700);border-color:var(--clr-slate-200)">Multi-Tahun Ajaran</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DETAIL: PKL/HUBIN ══════════════════ -->
+<section class="pad" style="background:var(--clr-slate-50)">
+  <div class="wrap">
+    <div class="split">
+      <div class="split-txt">
+        <div class="label-pill" style="background:var(--clr-amber-bg);color:var(--clr-amber)">Modul Hubin / PKL</div>
+        <h3>Kelola PKL dari <em style="font-style:normal;color:var(--clr-amber)">Penempatan</em> Hingga <em style="font-style:normal;color:var(--clr-amber)">Penarikan</em></h3>
+        <p>Modul Hubungan Industri (Hubin) di KG2 School dirancang khusus untuk SMK yang memiliki program PKL. Guru pembimbing bisa langsung memantau progres jurnal siswa di lapangan, sementara admin Hubin mengelola data perusahaan mitra dan administrasi penarikan.</p>
+        <ul class="pill-list">
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-amber-bg);color:var(--clr-amber)"><i data-lucide="map-pin"></i></div>
+            <div><h4>Penempatan Siswa ke Perusahaan</h4><p>Assign ribuan siswa ke ratusan perusahaan mitra dengan sistem drag-assign yang mudah dan dapat difilter per jurusan.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-amber-bg);color:var(--clr-amber)"><i data-lucide="notebook-pen"></i></div>
+            <div><h4>Jurnal Harian & Monitoring</h4><p>Siswa mengisi jurnal harian PKL secara digital. Guru pembimbing mendapat notifikasi dan bisa memberi penilaian langsung.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-amber-bg);color:var(--clr-amber)"><i data-lucide="file-text"></i></div>
+            <div><h4>Laporan & Sertifikat Otomatis</h4><p>Generate laporan akhir PKL, rekap nilai, dan sertifikat kelulusan PKL langsung dari sistem tanpa mengetik ulang.</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="split-vis">
+        <div class="glass-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;border-bottom:1px solid var(--clr-slate-200);padding-bottom:1rem">
+            <div><div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--clr-slate-500)">Dashboard PKL</div><div style="font-size:1.25rem;font-weight:800;color:var(--clr-slate-900)">Tahun Ajaran 2025/2026</div></div>
+            <span class="chip chip-amber">Aktif</span>
+          </div>
+          <!-- KPI Cards -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+            <div style="background:var(--clr-amber-bg);border-radius:.75rem;padding:1rem;border:1px solid rgba(245,158,11,.2)">
+              <div style="font-size:1.75rem;font-weight:800;color:var(--clr-amber)">248</div>
+              <div style="font-size:.7rem;font-weight:800;color:var(--clr-slate-500);text-transform:uppercase">Siswa PKL</div>
+            </div>
+            <div style="background:var(--clr-emerald-bg);border-radius:.75rem;padding:1rem;border:1px solid rgba(16,185,129,.2)">
+              <div style="font-size:1.75rem;font-weight:800;color:var(--clr-emerald)">52</div>
+              <div style="font-size:.7rem;font-weight:800;color:var(--clr-slate-500);text-transform:uppercase">Perusahaan Mitra</div>
+            </div>
+          </div>
+          <!-- Progress Bar -->
+          <div style="background:var(--clr-slate-50);border-radius:.75rem;padding:1rem;border:1px solid var(--clr-slate-200)">
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;margin-bottom:.5rem"><span>Progres Jurnal Harian</span><span style="color:var(--clr-emerald)">87%</span></div>
+            <div style="height:8px;background:var(--clr-slate-200);border-radius:999px;overflow:hidden">
+              <div style="width:87%;height:100%;background:linear-gradient(90deg,var(--clr-emerald),#34d399);border-radius:999px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DETAIL: BK/KESISWAAN ══════════════════ -->
+<section class="pad" style="background:var(--clr-white);border-top:1px solid var(--clr-slate-200)">
+  <div class="wrap">
+    <div class="split rev">
+      <div class="split-txt">
+        <div class="label-pill" style="background:var(--clr-rose-bg);color:var(--clr-rose)">Modul BK / BP & Kesiswaan</div>
+        <h3>Bimbingan Konseling <em style="font-style:normal;color:var(--clr-rose)">Berbasis Data</em>, Bukan Asumsi</h3>
+        <p>Sistem BK di KG2 School memungkinkan guru BK melihat pola pelanggaran siswa, riwayat konseling, dan prestasi dalam satu layar. Wali kelas punya catatan digital per siswa yang bisa diakses kapan saja.</p>
+        <ul class="pill-list">
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-rose-bg);color:var(--clr-rose)"><i data-lucide="scale"></i></div>
+            <div><h4>Tatib & Skor Kredit Pelanggaran</h4><p>Setiap pelanggaran memiliki bobot poin. Sistem otomatis merekap total poin siswa dan memberi peringatan jika melewati ambang batas.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-rose-bg);color:var(--clr-rose)"><i data-lucide="award"></i></div>
+            <div><h4>Riwayat Prestasi Siswa</h4><p>Catat dan tampilkan seluruh prestasi akademik maupun non-akademik siswa. Berguna saat pembuatan surat rekomendasi beasiswa.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-rose-bg);color:var(--clr-rose)"><i data-lucide="notebook"></i></div>
+            <div><h4>Catatan Wali Kelas Terstruktur</h4><p>Wali kelas punya buku catatan digital per siswa yang terorganisir berdasarkan tanggal, kategori, dan tindak lanjut.</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="split-vis">
+        <div class="glass-box" style="border-top:4px solid var(--clr-rose)">
+          <div style="margin-bottom:1.25rem"><div style="font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--clr-slate-500);letter-spacing:.08em">Rekap Kedisiplinan</div><div style="font-size:1.125rem;font-weight:800;color:var(--clr-slate-900);margin-top:.25rem">Semester Ganjil 2025/2026</div></div>
+          <!-- Example student rows -->
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem;background:var(--clr-slate-50);border-radius:.625rem;border:1px solid var(--clr-slate-200)">
+              <div style="display:flex;align-items:center;gap:.75rem">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--clr-violet-bg);color:var(--clr-violet);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem">AR</div>
+                <div><div style="font-size:.875rem;font-weight:800">Ardi Ramadhan</div><div style="font-size:.75rem;color:var(--clr-slate-500)">XII-TKJ-1</div></div>
+              </div>
+              <div style="text-align:right"><div style="font-size:1.125rem;font-weight:800;color:var(--clr-emerald)">85</div><div style="font-size:.7rem;color:var(--clr-slate-500)">Skor Kredit</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem;background:#fff1f2;border-radius:.625rem;border:1px solid rgba(244,63,94,.2)">
+              <div style="display:flex;align-items:center;gap:.75rem">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--clr-rose-bg);color:var(--clr-rose);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem">DS</div>
+                <div><div style="font-size:.875rem;font-weight:800">Dika Saputra</div><div style="font-size:.75rem;color:var(--clr-slate-500)">XI-MM-2</div></div>
+              </div>
+              <div style="text-align:right"><div style="font-size:1.125rem;font-weight:800;color:var(--clr-rose)">34</div><div style="font-size:.7rem;color:var(--clr-slate-500);font-weight:700">⚠ Peringatan</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem;background:var(--clr-slate-50);border-radius:.625rem;border:1px solid var(--clr-slate-200)">
+              <div style="display:flex;align-items:center;gap:.75rem">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--clr-primary-bg);color:var(--clr-primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem">NF</div>
+                <div><div style="font-size:.875rem;font-weight:800">Nadia Fitri</div><div style="font-size:.75rem;color:var(--clr-slate-500)">X-RPL-1</div></div>
+              </div>
+              <div style="text-align:right"><div style="font-size:1.125rem;font-weight:800;color:var(--clr-primary)">100</div><div style="font-size:.7rem;color:var(--clr-slate-500)">Skor Kredit</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DETAIL: ABSENSI HIKVISION ══════════════════ -->
+<section class="pad" style="background:var(--clr-slate-50);border-top:1px solid var(--clr-slate-200)">
+  <div class="wrap">
+    <div class="split">
+      <div class="split-txt">
+        <div class="label-pill" style="background:var(--clr-violet-bg);color:var(--clr-violet)">Modul Absensi Biometrik</div>
+        <h3>Absensi Wajah Otomatis via <em style="font-style:normal;color:var(--clr-violet)">Hikvision</em></h3>
+        <p>KG2 School terintegrasi langsung dengan ekosistem kamera dan fingerprint CCTV Hikvision yang sudah terpasang di sekolah. Data kehadiran guru, siswa, dan staf terkirim otomatis ke dashboard tanpa perlu absen manual.</p>
+        <ul class="pill-list">
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="camera"></i></div>
+            <div><h4>Manajemen Perangkat Kamera</h4><p>Daftarkan seluruh kamera Hikvision dan fingerprint yang terpasang dari panel admin. Lihat status online/offline setiap perangkat secara real-time.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="bar-chart-2"></i></div>
+            <div><h4>Laporan Kehadiran Terperinci</h4><p>Filter laporan per tanggal, per guru, per kelas, atau per perangkat. Export ke Excel dengan satu klik untuk kebutuhan penggajian atau evaluasi.</p></div>
+          </li>
+          <li class="pill-item">
+            <div class="pill-ic" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="bell-ring"></i></div>
+            <div><h4>Alert Keterlambatan Otomatis</h4><p>Sistem otomatis menandai dan mengirim notifikasi WhatsApp ke orang tua saat siswa terlambat atau tidak hadir tanpa konfirmasi sebelumnya.</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="split-vis">
+        <div class="glass-box" style="border-top:4px solid var(--clr-violet)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--clr-slate-900)">Kehadiran Hari Ini</div>
+            <span style="font-size:.75rem;font-weight:800;background:var(--clr-violet-bg);color:var(--clr-violet);padding:.25rem .625rem;border-radius:999px">Kamis, 21 Agt 2026</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">
+            <div style="padding:1rem;background:var(--clr-emerald-bg);border-radius:.625rem;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:var(--clr-emerald)">42</div><div style="font-size:.65rem;font-weight:800;color:var(--clr-slate-500);text-transform:uppercase">Hadir</div></div>
+            <div style="padding:1rem;background:var(--clr-amber-bg);border-radius:.625rem;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:var(--clr-amber)">5</div><div style="font-size:.65rem;font-weight:800;color:var(--clr-slate-500);text-transform:uppercase">Terlambat</div></div>
+            <div style="padding:1rem;background:var(--clr-rose-bg);border-radius:.625rem;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:var(--clr-rose)">2</div><div style="font-size:.65rem;font-weight:800;color:var(--clr-slate-500);text-transform:uppercase">Absen</div></div>
+          </div>
+          <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--clr-slate-500);letter-spacing:.07em;margin-bottom:.625rem">Log Masuk Terkini</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.625rem .875rem;background:var(--clr-slate-50);border-radius:.5rem;font-size:.8125rem">
+              <span style="font-weight:700">Ahmad Guru, S.Pd</span><span style="color:var(--clr-emerald);font-weight:800;font-size:.75rem">07:12 WIB ✓</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.625rem .875rem;background:var(--clr-amber-bg);border-radius:.5rem;font-size:.8125rem;border:1px solid rgba(245,158,11,.2)">
+              <span style="font-weight:700">Budi Santoso, S.Kom</span><span style="color:var(--clr-amber);font-weight:800;font-size:.75rem">07:38 WIB ⚠</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ ROLE PENGGUNA ══════════════════ -->
+<section id="pengguna" class="pad" style="background:var(--clr-white);border-top:1px solid var(--clr-slate-200)">
+  <div class="wrap">
+    <div class="sec-hd">
+      <h2>Dirancang untuk Setiap Peran di Sekolah</h2>
+      <p>Setiap pengguna hanya melihat fitur yang relevan dengan tanggung jawabnya. Tidak ada kebingungan menu yang berlebihan.</p>
+    </div>
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-primary-bg);color:var(--clr-primary)"><i data-lucide="crown"></i></div>
+        <h4>Super Admin</h4>
+        <p>Akses penuh ke seluruh sistem, manajemen role, konfigurasi sekolah, dan pengaturan API.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-emerald-bg);color:var(--clr-emerald)"><i data-lucide="book-open"></i></div>
+        <h4>Waka Kurikulum</h4>
+        <p>Monitoring RPP guru, penyusunan silabus, materi ajar, dan jadwal pelajaran.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-amber-bg);color:var(--clr-amber)"><i data-lucide="building-2"></i></div>
+        <h4>Waka Hubin (PKL)</h4>
+        <p>Kelola data perusahaan, penugasan guru pembimbing, jurnal dan laporan PKL.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-rose-bg);color:var(--clr-rose)"><i data-lucide="heart-handshake"></i></div>
+        <h4>Guru BK / BP</h4>
+        <p>Pantau data kedisiplinan, riwayat konseling, prestasi, dan catatan siswa binaan.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-cyan-bg);color:var(--clr-cyan)"><i data-lucide="users"></i></div>
+        <h4>Wali Kelas</h4>
+        <p>Catatan siswa per kelas, absensi harian, dan koordinasi langsung dengan BK dan orang tua.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-violet-bg);color:var(--clr-violet)"><i data-lucide="user-check"></i></div>
+        <h4>Guru Mapel</h4>
+        <p>Upload RPP, isi silabus dan jurnal mengajar, bagikan materi ke siswa, ikuti jadwal piket.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-avatar" style="background:var(--clr-slate-100);color:var(--clr-slate-700)"><i data-lucide="scan-line"></i></div>
+        <h4>Staf Sarpras</h4>
+        <p>Kelola inventaris aset, scan QR Code barang, lapor kerusakan, dan atur peminjaman ruangan.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TEKNOLOGI ══════════════════ -->
+<div class="tech-strip">
+  <div class="wrap">
+    <div class="tech-scroll">
+      <div class="tech-item"><div class="tech-dot"></div>React + Vite (SPA)</div>
+      <div class="tech-item"><div class="tech-dot"></div>Zustand State Management</div>
+      <div class="tech-item"><div class="tech-dot"></div>Node.js + Express API</div>
+      <div class="tech-item"><div class="tech-dot"></div>Hikvision ISAPI Integration</div>
+      <div class="tech-item"><div class="tech-dot"></div>WhatsApp Gateway API</div>
+      <div class="tech-item"><div class="tech-dot"></div>Google Drive Backup</div>
+      <div class="tech-item"><div class="tech-dot"></div>QR Code Generator</div>
+      <div class="tech-item"><div class="tech-dot"></div>PDF Compress Engine</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ INFRASTRUKTUR FITUR ══════════════════ -->
+<section class="dark-sec">
+  <div class="wrap">
+    <div class="sec-hd">
+      <h2>Infrastruktur Teknis Kelas Dunia</h2>
+      <p style="color:#94a3b8">Bukan hanya tampilan cantik. KG2 School dibangun di atas fondasi arsitektur yang kuat dan aman.</p>
+    </div>
+    <div class="dark-grid">
+      <div class="dark-card">
+        <i data-lucide="zap" style="color:#fde047"></i>
+        <h4>State Management Anti-Lag</h4>
+        <p>Arsitektur Zustand dengan konstan referensi statis menghilangkan infinite re-render dan memory leak yang biasa terjadi di aplikasi sekolah berbasis web.</p>
+      </div>
+      <div class="dark-card">
+        <i data-lucide="smartphone" style="color:#38bdf8"></i>
+        <h4>Mobile-First Responsive</h4>
+        <p>Semua halaman admin dirancang terlebih dahulu untuk layar HP. Tabel otomatis berubah jadi card view yang nyaman disentuh tanpa zoom-in.</p>
+      </div>
+      <div class="dark-card">
+        <i data-lucide="compress" style="color:#a78bfa"></i>
+        <h4>Kompresi PDF Otomatis</h4>
+        <p>Saat guru upload RPP, sistem otomatis mengecilkan ukuran PDF di browser sebelum dikirim ke server — tetap tajam, tapi hemat penyimpanan hingga 70%.</p>
+      </div>
+      <div class="dark-card">
+        <i data-lucide="shield-check" style="color:#4ade80"></i>
+        <h4>Autentikasi Berlapis</h4>
+        <p>JWT token + Role-based access control memastikan setiap pengguna hanya bisa mengakses data dan fitur sesuai tanggung jawabnya.</p>
+      </div>
+      <div class="dark-card">
+        <i data-lucide="database-backup" style="color:#f87171"></i>
+        <h4>Backup Google Drive Otomatis</h4>
+        <p>Seluruh database dan berkas penting sekolah tersinkron otomatis ke Google Drive. Data aman meski ada kerusakan server lokal.</p>
+      </div>
+      <div class="dark-card">
+        <i data-lucide="bar-chart-3" style="color:#fb923c"></i>
+        <h4>Dashboard Analitik Real-time</h4>
+        <p>Kepala Sekolah dan Waka dapat melihat ringkasan KPI seluruh unit kerja dalam satu dashboard — kepatuhan RPP, absensi, PKL, dan kondisi aset.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CTA ══════════════════ -->
+<section class="cta-sec">
+  <div class="wrap cta-inner">
+    <h2>Sekolah Anda Layak Mendapatkan Sistem yang <span style="color:#7dd3fc">Lebih Baik</span></h2>
+    <p>KG2 School telah menggabungkan semua kebutuhan manajemen sekolah modern — dari ruang guru hingga lapangan PKL — dalam satu platform yang bisa diakses dari mana saja.</p>
+    <div class="cta-btns">
+      <a href="http://localhost:6677" class="btn btn-white" target="_blank">
+        <i data-lucide="log-in" style="width:18px;height:18px"></i> Masuk ke Dashboard
+      </a>
+      <a href="#modul" class="btn btn-outline-white">
+        <i data-lucide="layers" style="width:18px;height:18px"></i> Lihat Semua Modul
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>&copy; 2026 KG2 School — Platform Ekosistem Manajemen Sekolah Digital Terpadu. Kurikulum · BK/BP · PKL · Sarpras QR · Absensi Hikvision · E-Surat · WhatsApp.</p>
+  </div>
+</footer>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

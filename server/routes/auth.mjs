@@ -314,7 +314,18 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             walasClass,
             isDefaultPassword,
             hasChangedPassword,
-            authToken: createSession(role, { id: userCode, username: userCode, name: teacher.name })
+            authToken: createSession(role, { 
+              id: userCode, 
+              username: userCode, 
+              name: teacher.name,
+              division: teacher.division || "",
+              subrole: teacher.subrole || "",
+              isWalas,
+              walasClass,
+              isBK: teacher.isBK || false,
+              isBPBK: teacher.isBPBK || false,
+              isKesiswaan: teacher.isKesiswaan || false
+            })
           }
         });
         return true;

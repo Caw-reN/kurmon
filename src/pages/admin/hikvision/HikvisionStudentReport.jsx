@@ -59,6 +59,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     class_name: defaultClassName
   });
 
+  const [dailyDetailModal, setDailyDetailModal] = useState(null); // 'present' | 'late' | 'absent' | null
+  const [dailySearchQuery, setDailySearchQuery] = useState('');
+
   React.useEffect(() => {
     if (routeTab === "walas_report" && user?.walasClass) {
       setFilter(f => ({ ...f, class_name: user.walasClass }));
@@ -1252,202 +1255,295 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />
       ) : (
         <>
-          {/* Wali Kelas Daily Monitoring Widgets */}
-      {isCurrentMonthYear && !isHolidayOrWeekendToday && data.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Present Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
-            <div className="p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50/60 border-b border-emerald-100/80 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
-                  <UserCheck size={15} strokeWidth={2.5} />
+          {/* Daily Attendance KPI Summary Cards (Modern & Responsive) */}
+          {isCurrentMonthYear && !isHolidayOrWeekendToday && data.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+              {/* Card 1: Siswa Hadir */}
+              <div 
+                onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-1">
+                      Siswa Masuk Hari Ini
+                    </span>
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                        {presentStudentsToday.length}
+                      </h3>
+                      <span className="text-xs font-bold text-slate-400">/ {data.length} Siswa</span>
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
+                    <UserCheck size={20} strokeWidth={2.5} />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Siswa Masuk Hari Ini
-                  </h3>
+                
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60">
+                    {data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir
+                  </span>
+                  <span className="font-bold text-slate-400 group-hover:text-emerald-700 flex items-center gap-1 transition-colors">
+                    Lihat Daftar &rarr;
+                  </span>
                 </div>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-[var(--ui-radius-pill)] border border-emerald-200/60">
-                {presentStudentsToday.length} Siswa
-              </span>
-            </div>
 
-            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
-              {presentStudentsToday.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
-                  <span>Belum ada siswa masuk hari ini.</span>
-                </div>
-              ) : (
-                presentStudentsToday.map(s => {
-                  const dayData = s.days[todayNum];
-                  const isLate = dayData.isLate || dayData.status === "Terlambat";
-                  return (
-                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/80 transition-colors">
-                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-emerald-200/60">
-                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5">
-                            <span>{s.nis}</span>
-                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border ${
-                          isLate 
-                            ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>
-                          {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
-                        </span>
-                      </div>
+              {/* Card 2: Siswa Terlambat */}
+              <div 
+                onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-1">
+                      Siswa Terlambat
+                    </span>
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                        {lateStudentsToday.length}
+                      </h3>
+                      <span className="text-xs font-bold text-slate-400">Siswa</span>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Late Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
-            <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/60 border-b border-amber-100/80 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
-                  <ShieldAlert size={15} strokeWidth={2.5} />
+                  </div>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs">
+                    <Clock size={20} strokeWidth={2.5} />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Siswa Terlambat Hari Ini
-                  </h3>
+                
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className={`font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] border ${
+                    lateStudentsToday.length > 0 
+                      ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
+                      : 'text-slate-500 bg-slate-50 border-slate-200/60'
+                  }`}>
+                    {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Siswa Terlambat` : 'Semua Tepat Waktu'}
+                  </span>
+                  <span className="font-bold text-slate-400 group-hover:text-amber-600 flex items-center gap-1 transition-colors">
+                    Lihat Daftar &rarr;
+                  </span>
                 </div>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-[var(--ui-radius-pill)] border border-amber-200/60">
-                {lateStudentsToday.length} Siswa
-              </span>
-            </div>
 
-            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
-              {lateStudentsToday.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
-                  <span>Tidak ada siswa terlambat hari ini.</span>
-                </div>
-              ) : (
-                lateStudentsToday.map(s => {
-                  const dayData = s.days[todayNum];
-                  return (
-                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-2.5 text-xs hover:bg-slate-50/80 transition-colors">
-                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-amber-200/60">
-                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5">
-                            <span>{s.nis}</span>
-                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border border-amber-200">
-                          {dayData.in?.substring(0, 5) || "Terlambat"}
-                        </span>
-                        <button 
-                          type="button"
-                          onClick={() => handleCellClick(s, todayNum)}
-                          className="px-2.5 py-1 text-[11px] font-extrabold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
-                          title="Ubah Status"
-                        >
-                          <Edit2 size={12} />
-                          <span>Ubah</span>
-                        </button>
-                      </div>
+              {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
+              <div 
+                onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-1">
+                      Belum Hadir / Izin / Sakit
+                    </span>
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                        {absentStudentsToday.length}
+                      </h3>
+                      <span className="text-xs font-bold text-slate-400">Siswa</span>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Absent Students Today */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col transition-all hover:shadow-md">
-            <div className="p-3.5 bg-gradient-to-r from-rose-50 to-pink-50/60 border-b border-rose-100/80 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
-                  <UserX size={15} strokeWidth={2.5} />
+                  </div>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs">
+                    <UserX size={20} strokeWidth={2.5} />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Siswa Tidak Masuk Hari Ini
-                  </h3>
+                
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200/60">
+                    Kelola Surat / Alpa
+                  </span>
+                  <span className="font-bold text-slate-400 group-hover:text-rose-600 flex items-center gap-1 transition-colors">
+                    Kelola &rarr;
+                  </span>
                 </div>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-[var(--ui-radius-pill)] border border-rose-200/60">
-                {absentStudentsToday.length} Siswa
-              </span>
             </div>
+          )}
 
-            <div className="flex-1 min-h-[160px] max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
-              {absentStudentsToday.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
-                  <UserCheck size={24} className="text-slate-300 stroke-[1.5]" />
-                  <span>Semua siswa telah fingerprint hari ini.</span>
+          {/* Interactive Modal for Daily Attendance Lists */}
+          {dailyDetailModal && (
+            <Modal
+              isOpen={Boolean(dailyDetailModal)}
+              onClose={() => { setDailyDetailModal(null); setDailySearchQuery(''); }}
+              title="Monitoring Kehadiran Siswa Hari Ini"
+              maxWidth="max-w-2xl"
+            >
+              <div className="space-y-3.5">
+                {/* Segmented Filter Tabs inside Modal */}
+                <div className="flex items-center gap-1.5 p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setDailyDetailModal('present')}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                      dailyDetailModal === 'present'
+                        ? 'bg-white text-emerald-700 border-emerald-200 shadow-xs'
+                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                    }`}
+                  >
+                    <UserCheck size={14} className="shrink-0 text-emerald-600" />
+                    <span>Masuk ({presentStudentsToday.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDailyDetailModal('late')}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                      dailyDetailModal === 'late'
+                        ? 'bg-white text-amber-700 border-amber-200 shadow-xs'
+                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                    }`}
+                  >
+                    <Clock size={14} className="shrink-0 text-amber-600" />
+                    <span>Terlambat ({lateStudentsToday.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDailyDetailModal('absent')}
+                    className={`flex-1 min-w-[140px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                      dailyDetailModal === 'absent'
+                        ? 'bg-white text-rose-700 border-rose-200 shadow-xs'
+                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                    }`}
+                  >
+                    <UserX size={14} className="shrink-0 text-rose-600" />
+                    <span>Belum Hadir ({absentStudentsToday.length})</span>
+                  </button>
                 </div>
-              ) : (
-                absentStudentsToday.map(s => {
-                  const dayData = s.days[todayNum];
-                  const status = dayData?.status || dayData?.in || "Alpa";
-                  
-                  let badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
-                  if (status === "Sakit") badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-                  if (status === "Izin") badgeClass = "bg-blue-50 text-blue-700 border-blue-200";
 
-                  // Clean title note so technical strings like "(Alpa Otomatis..." don't ruin UI
-                  const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+                {/* Search Input in Modal */}
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={dailySearchQuery}
+                    onChange={e => setDailySearchQuery(e.target.value)}
+                    placeholder="Cari nama siswa, NIS, atau kelas..."
+                    className="w-full h-9 pl-9 pr-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] transition-all"
+                  />
+                  {dailySearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setDailySearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
 
-                  return (
-                    <div key={s.nis} className="p-2.5 px-3.5 flex items-center justify-between gap-2.5 text-xs hover:bg-slate-50/80 transition-colors">
-                      <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 text-[11px] font-black flex items-center justify-center shrink-0 border border-rose-200/60">
-                          {s.name ? s.name.charAt(0).toUpperCase() : '?'}
+                {/* List Container */}
+                <div className="border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] max-h-[340px] overflow-y-auto custom-scrollbar bg-white">
+                  {(() => {
+                    const currentList = dailyDetailModal === 'present' 
+                      ? presentStudentsToday 
+                      : dailyDetailModal === 'late' 
+                        ? lateStudentsToday 
+                        : absentStudentsToday;
+
+                    const filtered = currentList.filter(s => {
+                      if (!dailySearchQuery) return true;
+                      const q = dailySearchQuery.toLowerCase();
+                      const name = String(s.name || '').toLowerCase();
+                      const nis = String(s.nis || '').toLowerCase();
+                      const cls = String(s.class_name || '').toLowerCase();
+                      return name.includes(q) || nis.includes(q) || cls.includes(q);
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
+                          <Users size={28} className="text-slate-300 stroke-[1.5]" />
+                          <span>{dailySearchQuery ? 'Tidak ada siswa yang sesuai pencarian.' : 'Tidak ada data siswa untuk kategori ini.'}</span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
-                          <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 truncate">
-                            <span>{s.nis}</span>
-                            {s.class_name && <span className="text-slate-500 font-medium">• {s.class_name}</span>}
-                            {displayNote && <span className="text-slate-500 font-normal truncate" title={displayNote}>({displayNote})</span>}
+                      );
+                    }
+
+                    return filtered.map((s, idx) => {
+                      const dayData = s.days[todayNum] || {};
+                      const isLate = dayData.isLate || dayData.status === "Terlambat";
+                      const status = dayData?.status || dayData?.in || "Alpa";
+                      const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+
+                      let avatarColor = 'bg-emerald-100 text-emerald-700 border-emerald-200/60';
+                      if (dailyDetailModal === 'late') avatarColor = 'bg-amber-100 text-amber-700 border-amber-200/60';
+                      if (dailyDetailModal === 'absent') avatarColor = 'bg-rose-100 text-rose-700 border-rose-200/60';
+
+                      return (
+                        <div key={s.nis || idx} className="p-2.5 px-3.5 flex items-center justify-between gap-3 text-xs hover:bg-[var(--ui-surface-muted)] transition-colors">
+                          <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-full text-xs font-black flex items-center justify-center shrink-0 border ${avatarColor}`}>
+                              {s.name ? s.name.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
+                              <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 truncate">
+                                <span>{s.nis}</span>
+                                {s.class_name && <span className="text-slate-600 font-bold">• {s.class_name}</span>}
+                                {displayNote && <span className="text-slate-500 font-normal truncate" title={displayNote}>({displayNote})</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {dailyDetailModal === 'present' && (
+                              <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-2xs ${
+                                isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              }`}>
+                                {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
+                              </span>
+                            )}
+
+                            {dailyDetailModal === 'late' && (
+                              <>
+                                <span className="px-2 py-0.5 bg-amber-50 text-amber-700 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border border-amber-200 shadow-2xs">
+                                  {dayData.in?.substring(0, 5) || "Terlambat"}
+                                </span>
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    setDailyDetailModal(null);
+                                    handleCellClick(s, todayNum);
+                                  }}
+                                  className="px-2.5 py-1 text-[11px] font-extrabold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
+                                  title="Ubah Status"
+                                >
+                                  <Edit2 size={12} />
+                                  <span>Ubah</span>
+                                </button>
+                              </>
+                            )}
+
+                            {dailyDetailModal === 'absent' && (
+                              <>
+                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-2xs ${
+                                  status === "Sakit" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                  status === "Izin" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                  "bg-rose-50 text-rose-700 border-rose-200"
+                                }`}>
+                                  {status === "Alpa" ? "Belum Scan" : status}
+                                </span>
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    setDailyDetailModal(null);
+                                    handleCellClick(s, todayNum);
+                                  }}
+                                  className="px-2.5 py-1 text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95 whitespace-nowrap"
+                                  title="Input Surat Izin/Sakit"
+                                >
+                                  <FileText size={12} />
+                                  <span>Input Surat</span>
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-small)] text-[10px] border ${badgeClass}`}>
-                          {status === "Alpa" ? "Belum Scan" : status}
-                        </span>
-                        <button 
-                          type="button"
-                          onClick={() => handleCellClick(s, todayNum)}
-                          className="px-2.5 py-1 text-[11px] font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95 whitespace-nowrap"
-                          title="Input Surat Izin/Sakit"
-                        >
-                          <FileText size={12} />
-                          <span>Input Surat</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </Modal>
+          )}
 
       {/* Mobile Filter Card (Reference Layout matching media__1785568140000.png) */}
       <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-4 shadow-sm border border-slate-100/90 flex flex-col gap-4">

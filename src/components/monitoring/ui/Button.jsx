@@ -4,9 +4,9 @@ import { Loader2 } from'lucide-react';
 const variantStyles = {
   primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 shadow-sm border border-black/5',
   default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 shadow-sm border border-black/5',
-  outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 shadow-2xs',
-  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60 shadow-2xs',
-  ghost: 'bg-transparent hover:bg-slate-100/80 text-slate-650',
+  outline: 'border border-[var(--ui-border-soft)] bg-white text-slate-700 hover:bg-[var(--ui-surface-muted)] hover:border-[var(--ui-primary)]/40 hover:text-[var(--ui-primary)] shadow-[var(--ui-shadow-control)]',
+  secondary: 'bg-[var(--ui-surface-muted)] text-slate-700 hover:bg-[var(--ui-border-muted)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)]',
+  ghost: 'bg-transparent hover:bg-[var(--ui-surface-muted)] text-slate-650',
   danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
   destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
 };

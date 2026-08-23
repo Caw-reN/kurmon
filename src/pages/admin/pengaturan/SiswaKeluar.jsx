@@ -8,6 +8,7 @@ import {
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 
 export default function SiswaKeluar() {
@@ -549,16 +550,16 @@ export default function SiswaKeluar() {
                   <Layers size={13} className="text-slate-400" />
                   <span>Filter Kelas (Opsional)</span>
                 </label>
-                <select
+                <CustomSelect
                   value={selectedClassFilter}
-                  onChange={(e) => setSelectedClassFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer"
-                >
-                  <option value="ALL">✨ Semua Kelas ({activeStudents.length} Siswa)</option>
-                  {classList.map(cls => (
-                    <option key={cls} value={cls}>Kelas {cls}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedClassFilter(val)}
+                  options={[
+                    { value: 'ALL', label: `✨ Semua Kelas (${activeStudents.length} Siswa)` },
+                    ...classList.map(cls => ({ value: cls, label: `Kelas ${cls}` }))
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Filter Kelas"
+                />
               </div>
 
               {/* Autocomplete Input Siswa */}

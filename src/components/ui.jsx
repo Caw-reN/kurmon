@@ -124,8 +124,8 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
         disabled={disabled}
         onClick={handleOpen}
         data-slot="select-trigger"
-        className={cn("w-full h-9 bg-white border border-slate-200/90 pl-3 pr-2 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)] shadow-2xs hover:border-slate-300",
-          disabled && "cursor-not-allowed opacity-50 bg-slate-100",
+        className={cn("w-full h-9 bg-white border border-[var(--ui-border-soft)] pl-3 pr-2 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:shadow-[var(--ui-focus-ring)] focus:border-[var(--ui-primary)] shadow-[var(--ui-shadow-control)] hover:border-[var(--ui-primary)]/40",
+          disabled && "cursor-not-allowed opacity-50 bg-[var(--ui-surface-muted)]",
           buttonClass
         )}
       >
@@ -144,7 +144,7 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
 
       {open && createPortal(
         <div 
-          className="ui-select-portal fixed bg-white border border-slate-200/90 rounded-[var(--ui-radius-control)] shadow-sm p-1.5 min-w-[200px] z-[99999] animate-in fade-in zoom-in-95 duration-150 font-inherit"
+          className="ui-select-portal fixed bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-popover)] p-1.5 min-w-[200px] z-[99999] animate-in fade-in zoom-in-95 duration-150 font-inherit"
           style={dropdownStyle}
         >
           {options.length > 5 && (
@@ -154,7 +154,7 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
                 placeholder="Cari kata kunci…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)]"
+                className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:shadow-[var(--ui-focus-ring)] focus:border-[var(--ui-primary)]"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === ' ' || e.key === 'Enter') {
@@ -172,7 +172,7 @@ export const UISelect = ({ value, onChange, children, className = "", required, 
               return (
                 <React.Fragment key={idx}>
                   {showGroupHeader && (
-                    <div className="px-2 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50/80 rounded-[var(--ui-radius-small)] mt-1">
+                    <div className="px-2 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-small)] mt-1">
                       {opt.group}
                     </div>
                   )}
@@ -224,12 +224,12 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
       <div 
         data-slot="dialog-content" 
         className={cn(
-          "bg-white w-full rounded-t-3xl sm:rounded-[var(--ui-radius-card)] shadow-2xl sm:shadow-xs overflow-hidden flex flex-col relative z-10 border-t sm:border border-slate-100/80 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-250", 
+          "bg-white w-full rounded-t-3xl sm:rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-modal)] overflow-hidden flex flex-col relative z-10 border-t sm:border border-[var(--ui-border-muted)] animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-250", 
           maxWidth,
           scrollable ? "max-h-[92vh] sm:max-h-[85vh]" : ""
         )}
@@ -240,14 +240,14 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
         </div>
 
         {title ? (
-          <div className="flex items-center justify-between gap-3 px-5 py-3.5 sm:py-4 border-b border-slate-100 shrink-0">
+          <div className="flex items-center justify-between gap-3 px-5 py-3.5 sm:py-4 border-b border-[var(--ui-border-muted)] shrink-0">
             <h3 className="text-sm font-bold text-slate-800 tracking-tight min-w-0 truncate">
               {title}
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center rounded-[var(--ui-radius-control)] p-1.5 text-slate-400 hover:text-[var(--ui-primary)] hover:bg-[var(--ui-surface-muted)] transition-colors border-none bg-transparent cursor-pointer shrink-0"
             >
               <X size={16} strokeWidth={2.5} />
             </button>
@@ -256,7 +256,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-3 sm:top-4 z-50 inline-flex items-center justify-center rounded-[var(--ui-radius-small)] p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border-none bg-transparent cursor-pointer shrink-0"
+              className="absolute right-4 top-3 sm:top-4 z-50 inline-flex items-center justify-center rounded-[var(--ui-radius-control)] p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-primary)] hover:bg-[var(--ui-surface-muted)] transition-colors border-none bg-transparent cursor-pointer shrink-0"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -274,12 +274,12 @@ export const Button = ({ children, variant = "primary", size = "default", classN
   const variantStyles = {
     primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
     default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
-    outline: 'border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 shadow-2xs',
-    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60 shadow-2xs',
+    outline: 'border border-[var(--ui-border-soft)] bg-white text-slate-700 hover:bg-[var(--ui-surface-muted)] hover:border-[var(--ui-primary)]/40 hover:text-[var(--ui-primary)] shadow-[var(--ui-shadow-control)]',
+    secondary: 'bg-[var(--ui-surface-muted)] text-slate-700 hover:bg-[var(--ui-border-muted)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)]',
     accent: 'bg-[var(--ui-accent)] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
     danger: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
     destructive: 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95 shadow-sm border border-rose-600/20',
-    ghost: 'bg-transparent hover:bg-slate-100/80 text-slate-650',
+    ghost: 'bg-transparent hover:bg-[var(--ui-surface-muted)] text-slate-650',
   };
 
   const sizeStyles = {
@@ -419,7 +419,7 @@ export const TablePagination = ({
   if (isLoading || totalItems === 0) return null;
 
   return (
-    <div className="px-5 py-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50 rounded-b-[var(--ui-radius-card)]">
+    <div className="px-5 py-4 border-t border-[var(--ui-border-muted)] flex flex-wrap items-center justify-between gap-4 bg-[var(--ui-surface-muted)] rounded-b-[var(--ui-radius-card)]">
       <div className="flex items-center gap-3">
         <span className="text-xs text-slate-500 font-medium">
           Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems} data
@@ -561,7 +561,7 @@ export const UITimeInput24 = ({
           required={required}
           maxLength={5}
           className={cn(
-            "w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none tracking-wider text-slate-800",
+            "w-full border border-[var(--ui-border-soft)] bg-white rounded-[var(--ui-radius-control)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] outline-none tracking-wider text-slate-800",
             className
           )}
         />
@@ -581,7 +581,7 @@ export const UITimeInput24 = ({
             width: `${dropdownPos.width}px`,
             zIndex: 99999
           }}
-          className="bg-white border border-slate-200 rounded-[var(--ui-radius-small)] shadow-sm p-2 animate-in fade-in-50 zoom-in-95"
+          className="bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-popover)] p-2 animate-in fade-in-50 zoom-in-95"
         >
           <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 px-1 flex justify-between">
             <span>Pilih Jam (24H)</span>
@@ -589,7 +589,7 @@ export const UITimeInput24 = ({
           </div>
           <div className="grid grid-cols-2 gap-1 h-44">
             {/* Hours column 00 - 23 */}
-            <div className="overflow-y-auto pr-1 custom-scrollbar space-y-0.5 border-r border-slate-100">
+            <div className="overflow-y-auto pr-1 custom-scrollbar space-y-0.5 border-r border-[var(--ui-border-muted)]">
               {hours.map(h => {
                 const formattedH = String(h).padStart(2, "0");
                 const isSelected = currentHour === h;
@@ -599,10 +599,10 @@ export const UITimeInput24 = ({
                     type="button"
                     onClick={() => selectHour(h)}
                     className={cn(
-                      "w-full text-center py-1 text-xs font-bold rounded cursor-pointer transition-colors",
+                      "w-full text-center py-1 text-xs font-bold rounded-[var(--ui-radius-small)] cursor-pointer transition-colors",
                       isSelected
                         ? "bg-[var(--ui-primary)] text-white"
-                        : "text-slate-700 hover:bg-slate-100"
+                        : "text-slate-700 hover:bg-[var(--ui-surface-muted)]"
                     )}
                   >
                     {formattedH}:00
@@ -621,10 +621,10 @@ export const UITimeInput24 = ({
                     type="button"
                     onClick={() => selectMinute(m)}
                     className={cn(
-                      "w-full text-center py-1 text-xs font-bold rounded cursor-pointer transition-colors",
+                      "w-full text-center py-1 text-xs font-bold rounded-[var(--ui-radius-small)] cursor-pointer transition-colors",
                       isSelected
                         ? "bg-[var(--ui-primary)] text-white"
-                        : "text-slate-700 hover:bg-slate-100"
+                        : "text-slate-700 hover:bg-[var(--ui-surface-muted)]"
                     )}
                   >
                     :{formattedM}

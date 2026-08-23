@@ -38,9 +38,9 @@ const Toggle = ({
       {/* Icon */}
       {Icon && (
         <div
-          className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center flex-shrink-0
+          className={`w-10 h-10 rounded-[var(--ui-radius-control)] flex items-center justify-center flex-shrink-0
             transition-colors duration-200
-            ${checked ?'bg-[var(--ui-primary)] text-white' :'bg-gray-100 text-gray-400'}`}
+            ${checked ? 'bg-[var(--ui-primary)] text-white' : 'bg-[var(--ui-surface-muted)] text-slate-400 border border-[var(--ui-border-soft)]'}`}
         >
           <Icon size={20} />
         </div>
@@ -58,9 +58,9 @@ const Toggle = ({
 
       {/* Toggle track */}
       <div
-        className={['relative flex-shrink-0 w-12 h-6 rounded-full','transition-colors duration-300 ease-in-out',
-          checked ?'bg-[var(--ui-primary)]' :'bg-gray-200',
-        ].join('')}
+        className={['relative flex-shrink-0 w-12 h-6 rounded-full', 'transition-colors duration-300 ease-in-out',
+          checked ? 'bg-[var(--ui-primary)]' : 'bg-[var(--ui-border-soft)]',
+        ].join(' ')}
       >
         {/* Toggle thumb */}
         <div

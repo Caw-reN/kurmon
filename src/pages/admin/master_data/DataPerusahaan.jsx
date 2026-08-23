@@ -1,21 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, Upload, Download, Plus, Search, CheckCircle2, Clock, 
-  MapPin, Users, Edit3, Trash2, Loader2, Filter, X, ArrowUpDown, 
-  Map, List, Sparkles, AlertCircle, Phone, Tag
+  MapPin, Users, Edit3, Trash2, Filter, X, ArrowUpDown, 
+  Compass, ListFilter, AlertCircle, Phone, Sparkles, Check, RefreshCw
 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getMajorFullName } from '../../../utils/constants.js';
-import { PageHeader, Badge } from "../../../components/monitoring/ui/index.js";
-import { Button } from '../../../components/ui.jsx';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { PageHeader } from "../../../components/monitoring/ui/index.js";
+import { Button, Modal } from '../../../components/ui.jsx';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import ImportModal from "../../../components/monitoring/ui/ImportModal.jsx";
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { usePagination } from '../../../components/ui/PaginationControls.jsx';
 
+// Leaflet default icon fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -23,28 +23,80 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const JURUSAN_COLORS = { TJKT: '#15803d', TKJ: '#15803d', TKR: '#b91c1c', MP: '#7c3aed', Akuntansi: '#7c3aed', AK: '#047857', DKV: '#db2777' };
+const createCustomIcon = (color = '#059669') => {
+  return L.divIcon({
+    className: 'custom-leaflet-marker',
+    html: `
+      <div style="
+        background-color: ${color};
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      ">
+        <div style="
+          width: 10px;
+          height: 10px;
+          background: white;
+          border-radius: 50%;
+          transform: rotate(45deg);
+        "></div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
 
-const createIcon = (color) => L.divIcon({
-  className: '',
-  html: `<div style="width:28px;height:28px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.25)"></div>`,
-  iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -30],
-});
+const getToken = () => {
+  try {
+    const raw = sessionStorage.getItem("school_schedule_session_v1");
+    if (raw) return JSON.parse(raw)?.authToken;
+  } catch (e) {}
+  return null;
+};
 
-const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
+function ChangeMapView({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] && center[1]) {
+      map.flyTo(center, zoom || 11, { duration: 1.2 });
+    }
+  }, [center, zoom, map]);
+  return null;
+}
+
+const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
   const [locations, setLocations] = useState([]);
+  const [pklStudentsMapping, setPklStudentsMapping] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterJurusan, setFilterJurusan] = useState('Semua');
-  const [filterVerified, setFilterVerified] = useState('Semua'); //'Semua' | 'verified' | 'pending'
-  const [sortBy, setSortBy] = useState('nama_asc'); //'nama_asc' | 'nama_desc' | 'kuota_desc' | 'status_pending'
-  const [view, setView] = useState('list'); //'list' | 'map'
+  const [filterVerified, setFilterVerified] = useState('Semua'); // 'Semua' | 'verified' | 'pending'
+  const [sortBy, setSortBy] = useState('nama_asc'); // 'nama_asc' | 'nama_desc' | 'kuota_desc' | 'status_pending'
+  const [view, setView] = useState('list'); // 'list' | 'map'
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [formData, setFormData] = useState({ 
-    id: null, nama_perusahaan: '', alamat: '', kota: '', bidang: '', telepon: '', jurusan: '', kuota: 0, lat: -6.2618, lng: 107.0005, kompetensi: [] 
+    id: null, 
+    nama_perusahaan: '', 
+    alamat: '', 
+    kota: 'Bekasi', 
+    bidang: '', 
+    telepon: '', 
+    jurusan: 'TKJ', 
+    kuota: 15, 
+    lat: -6.2618, 
+    lng: 107.0005, 
+    kompetensi: [] 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -54,6 +106,26 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const fetchLocationsAndPlacements = () => {
+    setLoading(true);
+    const token = getToken();
+
+    Promise.all([
+      fetch('/api/pkl/locations', { headers: token ? { 'Authorization': `Bearer ${token}` } : {} })
+        .then(res => res.json()).catch(() => ({ ok: false, data: [] })),
+      fetch('/api/monitoring/pkl-students', { headers: token ? { 'Authorization': `Bearer ${token}` } : {} })
+        .then(res => res.json()).catch(() => ({ ok: false, data: [] }))
+    ]).then(([locData, pklData]) => {
+      if (locData?.ok) setLocations(Array.isArray(locData.data) ? locData.data : []);
+      if (pklData?.ok) setPklStudentsMapping(Array.isArray(pklData.data) ? pklData.data : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchLocationsAndPlacements();
+  }, []);
+
   const jurusanOptions = useMemo(() => {
     const fromSchool = majors || [];
     const fromLocations = locations.map(p => p.jurusan).filter(Boolean);
@@ -62,28 +134,15 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
     return ['Semua', ...unique];
   }, [majors, locations]);
 
-  const fetchLocations = () => {
-    setLoading(true);
-    const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
-    fetch('/api/pkl/locations', {
-      headers: { 'Authorization': `Bearer ${sessionToken}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.ok) setLocations(data.data || []);
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchLocations();
-  }, []);
-
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.nama_perusahaan.trim()) {
+      showToast('Nama perusahaan wajib diisi.', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
-    const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+    const token = getToken();
     try {
       const isEdit = !!formData.id;
       const url = isEdit ? `/api/pkl/locations/${formData.id}` : '/api/pkl/locations';
@@ -92,15 +151,15 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         method: method,
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}` 
+          'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify(formData)
       });
       if (res.ok) {
         setShowAddModal(false);
-        fetchLocations();
+        fetchLocationsAndPlacements();
         showToast(isEdit ? 'Data perusahaan berhasil diperbarui!' : 'Perusahaan mitra baru berhasil ditambahkan!');
-        setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: '', bidang: '', telepon: '', jurusan: '', kuota: 0, lat: -6.2618, lng: 107.0005, kompetensi: [] });
+        setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: 'Bekasi', bidang: '', telepon: '', jurusan: 'TKJ', kuota: 15, lat: -6.2618, lng: 107.0005, kompetensi: [] });
       } else {
         showToast('Gagal menyimpan data perusahaan.', 'error');
       }
@@ -118,8 +177,8 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
       kota: p.kota || '',
       bidang: p.bidang || '',
       telepon: p.telepon || '',
-      jurusan: p.jurusan || '',
-      kuota: p.kuota || 0,
+      jurusan: p.jurusan || 'TKJ',
+      kuota: p.kuota || 15,
       lat: p.lat || -6.2618,
       lng: p.lng || 107.0005,
       kompetensi: typeof p.kompetensi === 'string' ? JSON.parse(p.kompetensi || '[]') : (p.kompetensi || [])
@@ -128,16 +187,20 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
   };
 
   const handleDelete = async (id, nama) => {
-    if (!await window.confirmAsync(`Yakin ingin menghapus perusahaan ${nama}?`)) return;
-    const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+    if (typeof window !== 'undefined' && window.confirm) {
+      if (!window.confirm(`Yakin ingin menghapus perusahaan "${nama}"? Data penempatan siswa di perusahaan ini akan dilepas.`)) return;
+    }
+    const token = getToken();
     try {
       const res = await fetch(`/api/pkl/locations/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${sessionToken}` }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         showToast(`Perusahaan "${nama}" berhasil dihapus.`);
-        fetchLocations();
+        fetchLocationsAndPlacements();
+      } else {
+        showToast('Gagal menghapus data.', 'error');
       }
     } catch (err) {
       showToast('Gagal menghapus data.', 'error');
@@ -145,60 +208,90 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
   };
 
   const handleVerify = async (id, nama) => {
-    if (!await window.confirmAsync(`Verifikasi perusahaan "${nama}" sebagai mitra resmi? Status akan berubah menjadi Terverifikasi.`)) return;
-    const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+    const token = getToken();
     try {
       const res = await fetch(`/api/pkl/locations/${id}/verify`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${sessionToken}` }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         showToast(`Perusahaan "${nama}" berhasil diverifikasi.`);
-        fetchLocations();
+        fetchLocationsAndPlacements();
       }
     } catch (err) { 
       showToast('Gagal memverifikasi perusahaan.', 'error');
     }
   };
 
+  // Filtered & Sorted Company List
   const filtered = useMemo(() => {
-    const res = locations.filter(p => {
-      const matchSearch = p.nama_perusahaan.toLowerCase().includes(search.toLowerCase()) ||
-        (p.alamat || '').toLowerCase().includes(search.toLowerCase()) ||
-        (p.kota || '').toLowerCase().includes(search.toLowerCase());
-      const matchJurusan = filterJurusan === 'Semua' || p.jurusan === filterJurusan;
+    const safeLocations = Array.isArray(locations) ? locations : [];
+    const res = safeLocations.filter(p => {
+      const nama = String(p.nama_perusahaan || '').toLowerCase();
+      const alamat = String(p.alamat || '').toLowerCase();
+      const kota = String(p.kota || '').toLowerCase();
+      const bidang = String(p.bidang || '').toLowerCase();
+      const q = String(search || '').toLowerCase();
+
+      const matchSearch = nama.includes(q) || alamat.includes(q) || kota.includes(q) || bidang.includes(q);
+      const matchJurusan = filterJurusan === 'Semua' || (p.jurusan || '').includes(filterJurusan);
       const matchVerified = filterVerified === 'Semua' || 
-        (filterVerified === 'verified' && p.verified) || 
-        (filterVerified === 'pending' && !p.verified);
+        (filterVerified === 'verified' && (p.verified || p.status === 'aktif')) || 
+        (filterVerified === 'pending' && !p.verified && p.status !== 'aktif');
       return matchSearch && matchJurusan && matchVerified;
     });
 
     res.sort((a, b) => {
-      if (sortBy === 'nama_asc') return a.nama_perusahaan.localeCompare(b.nama_perusahaan);
-      if (sortBy === 'nama_desc') return b.nama_perusahaan.localeCompare(a.nama_perusahaan);
+      const nameA = String(a.nama_perusahaan || '');
+      const nameB = String(b.nama_perusahaan || '');
+      if (sortBy === 'nama_asc') return nameA.localeCompare(nameB);
+      if (sortBy === 'nama_desc') return nameB.localeCompare(nameA);
       if (sortBy === 'kuota_desc') return (b.kuota || 0) - (a.kuota || 0);
       if (sortBy === 'status_pending') {
-        if (a.verified === b.verified) return a.nama_perusahaan.localeCompare(b.nama_perusahaan);
-        return a.verified ? 1 : -1;
+        const isVerA = a.verified || a.status === 'aktif';
+        const isVerB = b.verified || b.status === 'aktif';
+        if (isVerA === isVerB) return nameA.localeCompare(nameB);
+        return isVerA ? 1 : -1;
       }
       return 0;
     });
 
+    return res;
   }, [locations, search, filterJurusan, filterVerified, sortBy]);
 
-  const { paginatedData: currentLocations, PaginationBar } = usePagination(filtered, 20);
+  const { paginatedData: currentLocations, PaginationBar } = usePagination(filtered, 12);
+
+  // Map coordinates calculation
+  const locationsWithCoords = useMemo(() => {
+    return filtered.filter(l => l.lat && l.lng && !isNaN(parseFloat(l.lat)) && !isNaN(parseFloat(l.lng)));
+  }, [filtered]);
+
+  const mapCenter = useMemo(() => {
+    if (locationsWithCoords.length === 0) return [-6.2618, 107.0005];
+    const avgLat = locationsWithCoords.reduce((s, l) => s + parseFloat(l.lat), 0) / locationsWithCoords.length;
+    const avgLng = locationsWithCoords.reduce((s, l) => s + parseFloat(l.lng), 0) / locationsWithCoords.length;
+    return [avgLat, avgLng];
+  }, [locationsWithCoords]);
+
+  const verifiedCount = locations.filter(l => l.verified || l.status === 'aktif').length;
+  const pendingCount = locations.filter(l => !l.verified && l.status !== 'aktif').length;
 
   const handleExport = () => {
-    const exportData = filtered.map(p => ({
-      ID: p.id,
-      "Nama Perusahaan": p.nama_perusahaan,
-      Alamat: p.alamat,
-      Kota: p.kota,
-      Telepon: p.telepon,
-      "Bidang Usaha": p.bidang,
-      Jurusan: p.jurusan,
-      Kuota: p.kuota
-    }));
+    const exportData = filtered.map(p => {
+      const terisi = pklStudentsMapping.filter(s => String(s.location_id) === String(p.id)).length;
+      return {
+        ID: p.id,
+        "Nama Perusahaan": p.nama_perusahaan,
+        Alamat: p.alamat,
+        Kota: p.kota,
+        Telepon: p.telepon,
+        "Bidang Usaha": p.bidang,
+        Jurusan: p.jurusan,
+        "Kuota Maks": p.kuota,
+        "Siswa Ditempatkan": terisi,
+        Status: p.verified ? "Terverifikasi" : "Menunggu"
+      };
+    });
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Perusahaan PKL");
     if (exportData.length > 0) {
@@ -211,41 +304,19 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
     });
   };
 
-  const handleDownloadTemplate = () => {
-    const templateData = [
-      {
-        'Nama Perusahaan': 'PT Inovasi Teknologi',
-        'Alamat': 'Jl. Sudirman No 123',
-        'Kota': 'Jakarta',
-        'Telepon': '021-123456',
-        'Bidang Usaha': 'IT / Software',
-        'Jurusan': 'TKJ',
-        'Kuota': 5
-      }
-    ];
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet("Template Perusahaan");
-    const keys = Object.keys(templateData[0]);
-    ws.addRow(keys);
-    templateData.forEach(item => ws.addRow(keys.map(k => item[k])));
-    wb.xlsx.writeBuffer().then(buf => {
-      saveAs(new Blob([buf]), "Template_Master_Perusahaan.xlsx");
-    });
-  };
-
   const handleProcessImport = async (jsonData) => {
     let successCount = 0;
-    const sessionToken = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+    const token = getToken();
 
     for (const row of jsonData) {
       const payload = {
         nama_perusahaan: row['Nama Perusahaan'] || row['nama_perusahaan'] || '',
         alamat: row['Alamat'] || row['alamat'] || '',
-        kota: row['Kota'] || row['kota'] || '',
+        kota: row['Kota'] || row['kota'] || 'Bekasi',
         telepon: row['Telepon'] || row['telepon'] || '',
         bidang: row['Bidang Usaha'] || row['Bidang'] || row['bidang'] || '',
-        jurusan: row['Jurusan'] || row['jurusan'] || 'Semua',
-        kuota: parseInt(row['Kuota'] || row['kuota']) || 0,
+        jurusan: row['Jurusan'] || row['jurusan'] || 'TKJ',
+        kuota: parseInt(row['Kuota'] || row['kuota']) || 15,
         lat: -6.2618,
         lng: 107.0005,
         kompetensi: []
@@ -258,7 +329,7 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionToken}` 
+            'Authorization': `Bearer ${token}` 
           },
           body: JSON.stringify(payload)
         });
@@ -269,138 +340,126 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
     }
     
     showToast(`Berhasil menyimpan ${successCount} data perusahaan baru.`);
-    fetchLocations();
+    fetchLocationsAndPlacements();
   };
 
-  const verifiedCount = locations.filter(l => l.verified).length;
-  const pendingCount = locations.filter(l => !l.verified).length;
-
   return (
-    <div className="space-y-5 animate-in fade-in duration-300 pb-10">
-      {/* Page Header */}
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-300 pb-10">
+      {/* Clean Page Header */}
       <PageHeader
         icon={Building2}
         title="Data Perusahaan PKL"
-        description={`${locations.length} mitra terdaftar (${verifiedCount} Terverifikasi, ${pendingCount} Menunggu)`}
-      >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          {/* List / Map view toggle */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/25 p-1 rounded-[var(--ui-radius-small)] flex items-center shadow-sm">
-            <button
-              onClick={() => setView('list')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
-                view === 'list' 
-                  ? 'bg-white text-[var(--ui-primary)] shadow-sm' 
-                  : 'bg-transparent text-white hover:bg-white/10'
-              }`}
-            >
-              <List size={14} />
-              <span>Daftar</span>
-            </button>
-            <button
-              onClick={() => setView('map')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
-                view === 'map' 
-                  ? 'bg-white text-[var(--ui-primary)] shadow-sm' 
-                  : 'bg-transparent text-white hover:bg-white/10'
-              }`}
-            >
-              <Map size={14} />
-              <span>Peta</span>
-            </button>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {!readOnly && (
-              <button 
+        description={`Direktori ${locations.length} mitra DUDI (${verifiedCount} Terverifikasi, ${pendingCount} Menunggu).`}
+        rightContent={
+          !readOnly && (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
                 onClick={() => setShowImportModal(true)} 
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+                className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
               >
-                <Upload size={14} strokeWidth={2.5} /> Impor
-              </button>
-            )}
-            <button 
-              onClick={handleExport} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
-            >
-              <Download size={14} strokeWidth={2.5} /> Ekspor
-            </button>
-            {!readOnly && (
-              <button 
-                onClick={() => { 
-                  setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: '', bidang: '', telepon: '', jurusan: '', kuota: 0, lat: -6.2618, lng: 107.0005, kompetensi: [] }); 
-                  setShowAddModal(true); 
+                <Upload size={13} strokeWidth={2.5} /> Impor
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleExport} 
+                className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              >
+                <Download size={13} strokeWidth={2.5} /> Ekspor
+              </Button>
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={() => {
+                  setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: 'Bekasi', bidang: '', telepon: '', jurusan: 'TKJ', kuota: 15, lat: -6.2618, lng: 107.0005, kompetensi: [] });
+                  setShowAddModal(true);
                 }} 
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-white bg-emerald-600 hover:bg-emerald-700 font-black text-xs shadow-sm cursor-pointer active:scale-95 transition-all"
+                className="flex items-center gap-1.5 font-bold shadow-sm"
               >
-                <Plus size={15} strokeWidth={2.5} /> Tambah Mitra
-              </button>
-            )}
-          </div>
-        </div>
-      </PageHeader>
+                <Plus size={14} strokeWidth={2.5} /> Tambah Mitra
+              </Button>
+            </div>
+          )
+        }
+      />
 
-      {/* Interactive Quick Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      {/* 3 Quick Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         <div 
-          onClick={() => setFilterVerified('Semua')}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-xs bg-slate-50/50' : 'hover:border-slate-300'
+          onClick={() => { setFilterVerified('Semua'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterVerified === 'Semua' ? 'border-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20' : 'border-slate-200/80'
           }`}
         >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-            <Building2 size={22} />
-          </div>
           <div>
-            <p className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">TOTAL MITRA PKL</p>
-            <h3 className="text-2xl font-black text-slate-800 mt-0.5">{locations.length}</h3>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+              TOTAL MITRA PKL
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{locations.length}</h3>
+              <span className="text-xs font-bold text-slate-400">Industri</span>
+            </div>
           </div>
-        </div>
-
-        <div 
-          onClick={() => setFilterVerified('verified')}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'verified' ? 'ring-2 ring-emerald-500 shadow-xs bg-emerald-50/30' : 'hover:border-emerald-200'
-          }`}
-        >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={22} />
-          </div>
-          <div>
-            <p className="text-[11px] font-extrabold uppercase text-emerald-600 tracking-wider">TERVERIFIKASI</p>
-            <h3 className="text-2xl font-black text-emerald-700 mt-0.5">{verifiedCount}</h3>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <Building2 size={22} strokeWidth={2.5} />
           </div>
         </div>
 
         <div 
-          onClick={() => setFilterVerified('pending')}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterVerified === 'pending' ? 'ring-2 ring-amber-500 shadow-xs bg-amber-50/30' : 'hover:border-amber-200'
+          onClick={() => { setFilterVerified('verified'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterVerified === 'verified' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200/80'
           }`}
         >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-            <Clock size={22} />
-          </div>
           <div>
-            <p className="text-[11px] font-extrabold uppercase text-amber-600 tracking-wider">MENUNGGU VERIFIKASI</p>
-            <h3 className="text-2xl font-black text-amber-700 mt-0.5">{pendingCount}</h3>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-1">
+              TERVERIFIKASI
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">{verifiedCount}</h3>
+              <span className="text-xs font-bold text-emerald-600">Mitra Resmi</span>
+            </div>
+          </div>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <CheckCircle2 size={22} strokeWidth={2.5} />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => { setFilterVerified('pending'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterVerified === 'pending' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-slate-200/80'
+          }`}
+        >
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-1">
+              MENUNGGU VERIFIKASI
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-amber-700 tracking-tight">{pendingCount}</h3>
+              <span className="text-xs font-bold text-amber-600">Pengajuan</span>
+            </div>
+          </div>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <Clock size={22} strokeWidth={2.5} />
           </div>
         </div>
       </div>
 
-      {/* Filter Control Panel */}
-      <div className="ui-card p-4 space-y-4">
-        {/* Search Bar + Mobile Filter Toggle */}
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative w-full md:flex-1">
+      {/* Main Filter & View Bar (View Switcher is placed cleanly here!) */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-4">
+        {/* Row 1: Search + Status Tabs + View Mode Switcher */}
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+          <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
+            <input
               type="text"
-              value={search} 
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari nama perusahaan, alamat, atau kota..."
-              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
+              value={search}
+              onChange={e => { setSearch(e.target.value); }}
+              placeholder="Cari nama perusahaan, alamat, bidang usaha, atau kota..."
+              className="w-full pl-10 pr-10 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:shadow-[var(--ui-focus-ring)] focus:border-[var(--ui-primary)] transition-all"
             />
             {search && (
               <button 
@@ -412,46 +471,64 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
             )}
           </div>
 
-          {/* Status Pill Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto shrink-0 overflow-x-auto">
-            {[
-              { id: 'Semua', label: 'Semua Status' },
-              { id: 'verified', label: 'Terverifikasi' },
-              { id: 'pending', label: 'Menunggu' }
-            ].map(st => (
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Status Tabs */}
+            <div className="flex items-center gap-1 bg-[var(--ui-surface-muted)] p-1 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] shrink-0">
+              {[
+                { id: 'Semua', label: 'Semua Status' },
+                { id: 'verified', label: 'Terverifikasi' },
+                { id: 'pending', label: 'Menunggu' }
+              ].map(st => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => { setFilterVerified(st.id); }}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
+                    filterVerified === st.id 
+                      ? 'bg-white text-slate-800 shadow-2xs' 
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {/* View Mode Switcher (Daftar / Peta) */}
+            <div className="flex items-center gap-1 bg-[var(--ui-surface-muted)] p-1 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] shrink-0">
               <button
-                key={st.id}
-                type="button"
-                onClick={() => setFilterVerified(st.id)}
-                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
-                  filterVerified === st.id 
-                    ? 'bg-white text-slate-800 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                onClick={() => setView('list')}
+                className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center gap-1.5 ${
+                  view === 'list' 
+                    ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
                 }`}
               >
-                {st.label}
+                <ListFilter size={13} />
+                <span>Daftar</span>
               </button>
-            ))}
+              <button
+                onClick={() => setView('map')}
+                className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center gap-1.5 ${
+                  view === 'map' 
+                    ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                }`}
+              >
+                <Compass size={13} />
+                <span>Peta</span>
+              </button>
+            </div>
           </div>
-
-          {/* Mobile Filter Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer"
-          >
-            <Filter size={14} />
-            <span>Filter & Sortir ({filterJurusan !== 'Semua' || sortBy !== 'nama_asc' ? 'Aktif' : 'Semua'})</span>
-          </button>
         </div>
 
-        {/* Dropdown Filters for Jurusan & SortBy (Desktop always, Mobile collapsible) */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
+        {/* Row 2: Filter Jurusan & Sortir */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[var(--ui-border-muted)]">
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Jurusan Prioritas:</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block">Filter Jurusan Prioritas:</label>
             <CustomSelect
               value={filterJurusan}
-              onChange={val => setFilterJurusan(val)}
+              onChange={val => { setFilterJurusan(val); }}
               options={jurusanOptions.map(j => ({ value: j, label: j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}` }))}
               placeholder="Semua Jurusan"
               searchable={false}
@@ -459,17 +536,17 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
           </div>
 
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
-              <ArrowUpDown size={12} className="text-slate-400" /> Sortir & Urutan:
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block flex items-center gap-1">
+              <ArrowUpDown size={11} className="text-slate-400" /> Sortir & Urutan:
             </label>
             <CustomSelect
               value={sortBy}
-              onChange={val => setSortBy(val)}
+              onChange={val => { setSortBy(val); }}
               searchable={false}
               options={[
                 { value: 'nama_asc', label: 'Nama Perusahaan (A - Z)' },
                 { value: 'nama_desc', label: 'Nama Perusahaan (Z - A)' },
-                { value: 'kuota_desc', label: 'Kuota Siswa (Terbanyak)' },
+                { value: 'kuota_desc', label: 'Kuota Siswa Terbesar' },
                 { value: 'status_pending', label: 'Status: Menunggu Verifikasi Dahulu' },
               ]}
             />
@@ -477,142 +554,167 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      {loading ? (
-        <div className="ui-card flex flex-col items-center justify-center py-16 text-slate-400 space-y-3">
-          <Loader2 className="animate-spin text-[var(--ui-primary)]" size={32} />
-          <p className="text-xs font-bold">Memuat data perusahaan PKL...</p>
+      {/* Main Body: Cards Grid View or Interactive Map View */}
+      {view === 'map' ? (
+        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] overflow-hidden flex flex-col h-[520px]">
+          <div className="p-3 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] flex items-center justify-between text-xs font-bold text-slate-700">
+            <span>Peta Interaktif Sebaran DUDI ({locationsWithCoords.length} Lokasi Berkoordinat)</span>
+            <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 font-black">
+              GPS Synchronized
+            </span>
+          </div>
+          <div className="flex-1 w-full relative z-0">
+            <MapContainer 
+              center={mapCenter} 
+              zoom={11} 
+              scrollWheelZoom={true} 
+              className="w-full h-full" 
+              style={{ zIndex: 0 }}
+            >
+              <ChangeMapView center={mapCenter} zoom={11} />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {locationsWithCoords.map(loc => {
+                const terisi = pklStudentsMapping.filter(s => String(s.location_id) === String(loc.id)).length;
+                return (
+                  <Marker 
+                    key={loc.id} 
+                    position={[parseFloat(loc.lat), parseFloat(loc.lng)]}
+                    icon={createCustomIcon('#059669')}
+                  >
+                    <Popup>
+                      <div className="p-2 min-w-[210px] text-slate-800 font-sans">
+                        <h4 className="font-extrabold text-sm text-slate-900 mb-1">{loc.nama_perusahaan}</h4>
+                        <p className="text-xs text-slate-500 mb-2 leading-relaxed">{loc.alamat || loc.kota}</p>
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/60">
+                            {loc.jurusan || 'Umum'}
+                          </span>
+                          <span className="font-black text-emerald-700">
+                            {terisi} / {loc.kuota || 15} Siswa
+                          </span>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          </div>
         </div>
-      ) : view === 'list' ? (
-        <div className="ui-card overflow-hidden shadow-sm">
-          <div className="divide-y divide-slate-100">
-            {filtered.length === 0 && (
-              <div className="py-16 px-4 flex flex-col items-center justify-center text-slate-400 space-y-3">
-                <Building2 size={36} className="text-slate-300" />
-                <p className="font-bold text-sm text-slate-600">Tidak ada perusahaan mitra ditemukan</p>
-                <p className="text-xs text-slate-400">Coba ubah kata kunci pencarian atau reset filter status.</p>
-              </div>
-            )}
-            
-            {filtered.map(p => {
-              let kompetensi = [];
-              try { 
-                kompetensi = typeof p.kompetensi === 'string' ? JSON.parse(p.kompetensi) : p.kompetensi; 
-              } catch(e) {}
-              
-              const jurusanColor = JURUSAN_COLORS[p.jurusan] || '#64748b';
-              const terisi = students.filter(s => String(s.perusahaanId) === String(p.id)).length;
-              const kuota = p.kuota || 0;
-              const percent = kuota > 0 ? Math.min(100, Math.round((terisi / kuota) * 100)) : 0;
-              const isFull = kuota > 0 && terisi >= kuota;
+      ) : (
+        /* Modern Cards Grid View */
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+            {currentLocations.map(p => {
+              const terisi = pklStudentsMapping.filter(s => String(s.location_id) === String(p.id)).length;
+              const maxKuota = Number(p.kuota) || 15;
+              const percent = maxKuota > 0 ? Math.min(100, Math.round((terisi / maxKuota) * 100)) : 0;
+              const isVerified = p.verified || p.status === 'aktif';
 
               return (
                 <div 
                   key={p.id} 
-                  className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 ${
-                    !p.verified ? 'bg-amber-50/20' : ''
-                  }`}
+                  className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group"
                 >
-                  <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                    <div 
-                      className="w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm mt-0.5"
-                      style={{ backgroundColor: jurusanColor + '18' }}
-                    >
-                      <Building2 size={20} style={{ color: jurusanColor }} />
+                  <div>
+                    {/* Top Row: Icon, Name, and Status Badge */}
+                    <div className="flex items-start justify-between gap-3 mb-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                          <Building2 size={20} strokeWidth={2.2} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-extrabold text-slate-900 text-sm truncate leading-snug" title={p.nama_perusahaan}>
+                            {p.nama_perusahaan}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                            {p.bidang || "Mitra Industri PKL"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black uppercase shrink-0 border ${
+                        isVerified
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                          : 'bg-amber-50 text-amber-700 border-amber-200/80'
+                      }`}>
+                        {isVerified ? 'Terverifikasi' : 'Menunggu'}
+                      </span>
                     </div>
 
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-black text-slate-800 text-sm tracking-tight">{p.nama_perusahaan}</h4>
-                        {p.verified ? (
-                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-emerald-100 text-emerald-700 font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
-                            <CheckCircle2 size={10} /> Terverifikasi
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[9.5px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200">
-                            <Clock size={10} /> Diajukan Siswa – Belum Diverifikasi
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                        <MapPin size={13} className="text-slate-400 shrink-0" />
-                        <span className="truncate">{p.alamat || 'Alamat belum diatur'} {p.kota ? `• ${p.kota}` : ''}</span>
-                      </div>
-
+                    {/* Address & Contact Details */}
+                    <div className="bg-[var(--ui-surface-muted)] p-2.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] space-y-1 mb-3 text-[11px]">
+                      <p className="text-slate-600 font-medium line-clamp-1 flex items-center gap-1.5" title={p.alamat}>
+                        <MapPin size={12} className="text-slate-400 shrink-0" />
+                        <span className="truncate">{p.alamat || p.kota || 'Alamat belum diatur'}</span>
+                      </p>
                       {p.telepon && (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                        <p className="text-slate-500 font-medium flex items-center gap-1.5">
                           <Phone size={12} className="text-slate-400 shrink-0" />
                           <span>{p.telepon}</span>
-                        </div>
-                      )}
-
-                      {Array.isArray(kompetensi) && kompetensi.length > 0 && (
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          {kompetensi.map(k => (
-                            <span key={k} className="text-[9.5px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-[var(--ui-radius-small)] font-bold">
-                              {k}
-                            </span>
-                          ))}
-                        </div>
+                        </p>
                       )}
                     </div>
+
+                    {/* Major Tags */}
+                    {p.jurusan && (
+                      <div className="flex items-center gap-1 flex-wrap mb-3">
+                        {p.jurusan.split(/[,/]+/).map((j, i) => (
+                          <span key={i} className="text-[9.5px] font-black px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60 uppercase">
+                            {j.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Kuota & Action Bar */}
-                  <div className="flex flex-col sm:items-end justify-between shrink-0 space-y-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                    <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                      {p.jurusan && (
-                        <span className="inline-block px-2.5 py-0.5 text-[10px] font-black rounded-[var(--ui-radius-small)] bg-purple-50 text-purple-700 border border-purple-200 uppercase">
-                          Jurusan {p.jurusan}
-                        </span>
-                      )}
-                      
-                      <div className="w-36 sm:w-32 space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-black">
-                          <span className="text-slate-400 uppercase">Kapasitas:</span>
-                          <span className={isFull ? 'text-rose-600' : 'text-emerald-600'}>
-                            {terisi} / {kuota} Siswa
-                          </span>
-                        </div>
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all ${isFull ? 'bg-rose-500' : 'bg-emerald-500'}`} 
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
+                  {/* Quota Progress Bar & Action Buttons */}
+                  <div className="pt-3 border-t border-[var(--ui-border-muted)] space-y-2.5">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] font-bold mb-1">
+                        <span className="text-slate-500">Kapasitas Penempatan:</span>
+                        <span className="text-slate-800 font-black">{terisi} / {maxKuota} Siswa ({percent}%)</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            percent >= 100 ? 'bg-rose-500' : percent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
                       </div>
                     </div>
 
-                    {/* Action buttons */}
                     {!readOnly && (
-                      <div className="flex items-center gap-1.5 justify-end w-full sm:w-auto">
-                        {!p.verified && (
-                          <button 
+                      <div className="flex items-center justify-end gap-1.5 pt-1">
+                        {!isVerified && (
+                          <button
+                            type="button"
                             onClick={() => handleVerify(p.id, p.nama_perusahaan)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all cursor-pointer active:scale-95"
-                            title="Verifikasi sebagai mitra resmi"
+                            className="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-[var(--ui-radius-small)] border border-emerald-200 transition-all cursor-pointer flex items-center gap-1"
+                            title="Verifikasi Perusahaan"
                           >
-                            <CheckCircle2 size={13} />
-                            <span>Verifikasi</span>
+                            <Check size={12} /> Verifikasi
                           </button>
                         )}
-                        
-                        <button 
+                        <button
+                          type="button"
                           onClick={() => handleEdit(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
-                          title="Edit Perusahaan"
+                          className="px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-[var(--ui-radius-small)] border border-slate-200 transition-all cursor-pointer flex items-center gap-1"
+                          title="Edit Data Perusahaan"
                         >
-                          <Edit3 size={13} />
-                          <span>Edit</span>
+                          <Edit3 size={12} /> Edit
                         </button>
-
-                        <button 
+                        <button
+                          type="button"
                           onClick={() => handleDelete(p.id, p.nama_perusahaan)}
-                          className="inline-flex items-center gap-1 px-2 py-1.5 bg-red-50 hover:bg-red-100 text-rose-600 border border-red-200 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all cursor-pointer active:scale-95"
+                          className="px-2 py-1 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[var(--ui-radius-small)] border border-rose-200 transition-all cursor-pointer flex items-center gap-1"
                           title="Hapus Perusahaan"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     )}
@@ -620,181 +722,178 @@ const DataPerusahaan = ({ students = [], readOnly, majors = [] }) => {
                 </div>
               );
             })}
-            
-            {/* Pagination Box */}
-            {filtered.length > 0 && (
-              <div className="ui-card mt-2 rounded-[var(--ui-radius-card)] border border-slate-100 overflow-hidden">
-                <PaginationBar />
-              </div>
-            )}
           </div>
-        </div>
-      ) : (
-        /* PETA INTERAKTIF VIEW */
-        <div className="ui-card overflow-hidden h-[520px] shadow-sm relative">
-          <MapContainer 
-            center={[-6.2618, 107.0005]} 
-            zoom={12}
-            style={{ height: '100%', width: '100%' }} 
-            scrollWheelZoom={false}
-          >
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
-            />
-            {filtered.map(p => (
-              <Marker 
-                key={p.id} 
-                position={[p.lat || -6.2618, p.lng || 107.0005]}
-                icon={createIcon(JURUSAN_COLORS[p.jurusan] || '#15803d')}
-              >
-                <Popup>
-                  <div className="min-w-[200px] space-y-1.5" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    <h4 className="font-extrabold text-sm text-slate-900 leading-snug">{p.nama_perusahaan}</h4>
-                    <p className="text-xs text-slate-500 font-medium">{p.alamat || 'Alamat tidak tersedia'}</p>
-                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100 text-xs font-bold text-emerald-700">
-                      <Users size={13} /> 
-                      <span>{p.kuota || 0} Kuota Siswa</span>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+
+          {/* Empty State */}
+          {filtered.length === 0 && (
+            <div className="bg-white rounded-[var(--ui-radius-card)] p-12 text-center border border-slate-200/80">
+              <Building2 size={36} className="mx-auto text-slate-300 mb-2" />
+              <h4 className="text-sm font-bold text-slate-700">Tidak ada data perusahaan mitra</h4>
+              <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau tambah mitra baru.</p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 overflow-hidden">
+            <PaginationBar />
+          </div>
         </div>
       )}
 
-      {/* Add / Edit Company Modal */}
+      {/* Modal Tambah / Edit Perusahaan */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div>
-                <h3 className="font-extrabold text-slate-800 text-base">{formData.id ? 'Edit Perusahaan Mitra' : 'Tambah Perusahaan Mitra Baru'}</h3>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Lengkapi profil perusahaan tempat PKL siswa</p>
-              </div>
-              <button 
-                onClick={() => setShowAddModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center border-none cursor-pointer transition-colors"
-              >
-                <X size={18} />
-              </button>
+        <Modal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          title={formData.id ? "Edit Perusahaan Mitra PKL" : "Tambah Perusahaan Mitra PKL"}
+          maxWidth="max-w-xl"
+        >
+          <form onSubmit={handleAddSubmit} className="space-y-3.5">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Nama Perusahaan / Industri <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.nama_perusahaan}
+                onChange={e => setFormData({ ...formData, nama_perusahaan: e.target.value })}
+                placeholder="Contoh: PT Astra Honda Motor"
+                className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
+              />
             </div>
 
-            <form onSubmit={handleAddSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Nama Perusahaan Mitra *</label>
-                <input 
-                  required 
-                  type="text" 
-                  value={formData.nama_perusahaan} 
-                  onChange={e => setFormData({ ...formData, nama_perusahaan: e.target.value })} 
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
-                  placeholder="Contoh: PT Inovasi Teknologi Indonesia" 
+                <label className="text-xs font-bold text-slate-700 block mb-1">Bidang Usaha</label>
+                <input
+                  type="text"
+                  value={formData.bidang}
+                  onChange={e => setFormData({ ...formData, bidang: e.target.value })}
+                  placeholder="Contoh: Manufaktur Otomotif"
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Alamat Lengkap *</label>
-                <textarea 
-                  required 
-                  value={formData.alamat} 
-                  onChange={e => setFormData({ ...formData, alamat: e.target.value })} 
-                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
-                  rows="2" 
-                  placeholder="Jl. Raya industri No. 123, Kawasan Industri..." 
+                <label className="text-xs font-bold text-slate-700 block mb-1">Kota / Wilayah</label>
+                <input
+                  type="text"
+                  value={formData.kota}
+                  onChange={e => setFormData({ ...formData, kota: e.target.value })}
+                  placeholder="Contoh: Bekasi / Cikarang"
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Alamat Lengkap</label>
+              <textarea
+                rows={2}
+                value={formData.alamat}
+                onChange={e => setFormData({ ...formData, alamat: e.target.value })}
+                placeholder="Jl. Raya Kawasan Industri MM2100 Blok KK..."
+                className="w-full p-2.5 text-xs font-medium rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Jurusan yang Sesuai</label>
+                <input
+                  type="text"
+                  value={formData.jurusan}
+                  onChange={e => setFormData({ ...formData, jurusan: e.target.value })}
+                  placeholder="TKJ, RPL, TKR"
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Kota / Kabupaten</label>
-                  <input 
-                    type="text" 
-                    value={formData.kota} 
-                    onChange={e => setFormData({ ...formData, kota: e.target.value })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
-                    placeholder="Contoh: Bekasi" 
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Nomor Telepon / HP</label>
-                  <input 
-                    type="text" 
-                    value={formData.telepon} 
-                    onChange={e => setFormData({ ...formData, telepon: e.target.value })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
-                    placeholder="Contoh: 021-88997766" 
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Kapasitas Kuota</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={formData.kuota}
+                  onChange={e => setFormData({ ...formData, kuota: parseInt(e.target.value) || 0 })}
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Jurusan Prioritas</label>
-                  <CustomSelect 
-                    value={formData.jurusan} 
-                    onChange={val => setFormData({ ...formData, jurusan: val })}
-                    options={[
-                      { value: "", label: "-- Pilih Jurusan --" },
-                      ...jurusanOptions.filter(j => j !== 'Semua').map(j => ({ value: j, label: `${j} - ${getMajorFullName(j)}` }))
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Kuota Siswa (Orang)</label>
-                  <input 
-                    type="text" 
-                    inputMode="numeric" 
-                    value={formData.kuota} 
-                    onChange={e => setFormData({ ...formData, kuota: e.target.value.replace(/[^0-9]/g, '') })} 
-                    className="w-full px-3.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all" 
-                    placeholder="5" 
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">No. Telepon</label>
+                <input
+                  type="text"
+                  value={formData.telepon}
+                  onChange={e => setFormData({ ...formData, telepon: e.target.value })}
+                  placeholder="(021) 8980123"
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)]"
+                />
               </div>
+            </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] border-none cursor-pointer transition-all"
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 bg-[var(--ui-primary)] hover:opacity-90 text-white font-bold text-xs rounded-[var(--ui-radius-small)] border-none cursor-pointer shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
-                >
-                  {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : null}
-                  <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Perusahaan'}</span>
-                </button>
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Latitude GPS</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.lat}
+                  onChange={e => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
+                  className="w-full h-8 px-2.5 text-xs font-mono rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] bg-slate-50 text-slate-700"
+                />
               </div>
-            </form>
-          </div>
-        </div>
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 block mb-1">Longitude GPS</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.lng}
+                  onChange={e => setFormData({ ...formData, lng: parseFloat(e.target.value) || 0 })}
+                  className="w-full h-8 px-2.5 text-xs font-mono rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] bg-slate-50 text-slate-700"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--ui-border-muted)] flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setShowAddModal(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-1.5"
+              >
+                {isSubmitting ? <RefreshCw size={13} className="animate-spin" /> : <Check size={14} />}
+                <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Perusahaan'}</span>
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
-      
-      {/* Import Modal Component */}
+
+      {/* Modal Impor Excel */}
       {showImportModal && (
         <ImportModal
           isOpen={showImportModal}
           onClose={() => setShowImportModal(false)}
-          title="Import Data Perusahaan PKL"
-          expectedColumns={['Nama Perusahaan', 'Alamat', 'Kota', 'Telepon', 'Bidang Usaha', 'Jurusan', 'Kuota']}
-          guideText="Data perusahaan akan ditambahkan (menjadi data baru). Sistem tidak menimpa data perusahaan secara otomatis berdasarkan nama karena ada kemungkinan nama perusahaan sama untuk cabang berbeda."
-          onDownloadTemplate={handleDownloadTemplate}
           onImport={handleProcessImport}
-          onExportCurrent={handleExport}
+          title="Impor Data Perusahaan PKL"
+          templateName="Template_Perusahaan_PKL"
         />
       )}
 
-      {/* Floating Toast Notification */}
+      {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-modal)] font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 

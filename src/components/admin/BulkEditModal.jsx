@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui.jsx';
 import { Button } from '../ui.jsx';
+import { CustomSelect } from '../CustomSelect.jsx';
 import { Edit3, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
 
 /**
@@ -240,31 +241,33 @@ export default function BulkEditModal({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Kelas Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetClass}
-                  onChange={(e) => setTargetClass(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Kelas --</option>
-                  {(classes || []).map(c => (
-                    <option key={c.name} value={c.name}>Kelas {c.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTargetClass(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Kelas --' },
+                    ...(classes || []).map(c => ({ value: c.name, label: `Kelas ${c.name}` }))
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Kelas"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Jenis Kelamin Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetGender}
-                  onChange={(e) => setTargetGender(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jenis Kelamin --</option>
-                  <option value="L">Laki-laki (L)</option>
-                  <option value="P">Perempuan (P)</option>
-                </select>
+                  onChange={(val) => setTargetGender(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jenis Kelamin --' },
+                    { value: 'L', label: 'Laki-laki (L)' },
+                    { value: 'P', label: 'Perempuan (P)' }
+                  ]}
+                  searchable={false}
+                  placeholder="Pilih Jenis Kelamin"
+                />
               </div>
             </>
           )}
@@ -276,33 +279,35 @@ export default function BulkEditModal({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Wali Kelas Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetHomeroom}
-                  onChange={(e) => setTargetHomeroom(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Wali Kelas --</option>
-                  {(teachers || []).map(t => (
-                    <option key={t.code} value={t.code}>{t.name || t.code}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTargetHomeroom(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Wali Kelas --' },
+                    ...(teachers || []).map(t => ({ value: t.code, label: `${t.name || t.code} (${t.code})` }))
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Wali Kelas"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Jurusan Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetMajor}
-                  onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
-                  {(majors || []).map(m => {
-                    const mName = typeof m === 'object' ? m.name : m;
-                    return <option key={mName} value={mName}>Jurusan {mName}</option>;
-                  })}
-                </select>
+                  onChange={(val) => setTargetMajor(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jurusan --' },
+                    ...(majors || []).map(m => {
+                      const mName = typeof m === 'object' ? m.name : m;
+                      return { value: mName, label: `Jurusan ${mName}` };
+                    })
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Jurusan"
+                />
               </div>
             </>
           )}
@@ -314,34 +319,38 @@ export default function BulkEditModal({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Tipe / Peran Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetType}
-                  onChange={(e) => setTargetType(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Tipe --</option>
-                  <option value="Umum">Umum</option>
-                  <option value="Kejuruan">Kejuruan</option>
-                  <option value="Piket">Guru Piket</option>
-                </select>
+                  onChange={(val) => setTargetType(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Tipe --' },
+                    { value: 'Umum', label: 'Umum' },
+                    { value: 'Kejuruan', label: 'Kejuruan' },
+                    { value: 'Piket', label: 'Guru Piket' }
+                  ]}
+                  searchable={false}
+                  placeholder="Pilih Tipe"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Preferensi Jurusan Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetMajor}
-                  onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
-                  <option value="Semua">Semua Jurusan</option>
-                  {(majors || []).map(m => {
-                    const mName = typeof m === 'object' ? m.name : m;
-                    return <option key={mName} value={mName}>Jurusan {mName}</option>;
-                  })}
-                </select>
+                  onChange={(val) => setTargetMajor(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jurusan --' },
+                    { value: 'Semua', label: 'Semua Jurusan' },
+                    ...(majors || []).map(m => {
+                      const mName = typeof m === 'object' ? m.name : m;
+                      return { value: mName, label: `Jurusan ${mName}` };
+                    })
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Preferensi Jurusan"
+                />
               </div>
             </>
           )}
@@ -353,35 +362,39 @@ export default function BulkEditModal({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Kategori Jurusan Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetMajor}
-                  onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
-                  <option value="Umum">Mata Pelajaran Umum</option>
-                  {(majors || []).map(m => {
-                    const mName = typeof m === 'object' ? m.name : m;
-                    return <option key={mName} value={mName}>Jurusan {mName}</option>;
-                  })}
-                </select>
+                  onChange={(val) => setTargetMajor(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jurusan --' },
+                    { value: 'Umum', label: 'Mata Pelajaran Umum' },
+                    ...(majors || []).map(m => {
+                      const mName = typeof m === 'object' ? m.name : m;
+                      return { value: mName, label: `Jurusan ${mName}` };
+                    })
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Kategori Jurusan"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Tingkat Target Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetGrade}
-                  onChange={(e) => setTargetGrade(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Tingkat --</option>
-                  <option value="Semua">Semua Tingkat</option>
-                  <option value="X">Tingkat X</option>
-                  <option value="XI">Tingkat XI</option>
-                  <option value="XII">Tingkat XII</option>
-                </select>
+                  onChange={(val) => setTargetGrade(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Tingkat --' },
+                    { value: 'Semua', label: 'Semua Tingkat' },
+                    { value: 'X', label: 'Tingkat X' },
+                    { value: 'XI', label: 'Tingkat XI' },
+                    { value: 'XII', label: 'Tingkat XII' }
+                  ]}
+                  searchable={false}
+                  placeholder="Pilih Tingkat"
+                />
               </div>
             </>
           )}
@@ -393,33 +406,37 @@ export default function BulkEditModal({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Jenis Ruangan Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetType}
-                  onChange={(e) => setTargetType(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jenis --</option>
-                  <option value="Teori">Ruang Teori (Kelas)</option>
-                  <option value="Praktik">Ruang Praktik (Lab/Bengkel)</option>
-                </select>
+                  onChange={(val) => setTargetType(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jenis --' },
+                    { value: 'Teori', label: 'Ruang Teori (Kelas)' },
+                    { value: 'Praktik', label: 'Ruang Praktik (Lab/Bengkel)' }
+                  ]}
+                  searchable={false}
+                  placeholder="Pilih Jenis Ruangan"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
                   Ubah Alokasi Jurusan Ke:
                 </label>
-                <select
+                <CustomSelect
                   value={targetMajor}
-                  onChange={(e) => setTargetMajor(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/70 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-indigo-500"
-                >
-                  <option value="">-- Biarkan Tetap / Jangan Ubah Jurusan --</option>
-                  <option value="All">Semua Jurusan (Umum)</option>
-                  {(majors || []).map(m => {
-                    const mName = typeof m === 'object' ? m.name : m;
-                    return <option key={mName} value={mName}>Jurusan {mName}</option>;
-                  })}
-                </select>
+                  onChange={(val) => setTargetMajor(val)}
+                  options={[
+                    { value: '', label: '-- Biarkan Tetap / Jangan Ubah Jurusan --' },
+                    { value: 'All', label: 'Semua Jurusan (Umum)' },
+                    ...(majors || []).map(m => {
+                      const mName = typeof m === 'object' ? m.name : m;
+                      return { value: mName, label: `Jurusan ${mName}` };
+                    })
+                  ]}
+                  searchable={true}
+                  placeholder="Pilih Alokasi Jurusan"
+                />
               </div>
             </>
           )}

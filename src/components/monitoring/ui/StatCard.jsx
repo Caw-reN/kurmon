@@ -53,9 +53,9 @@ const StatCard = ({
         {/* Trend indicator */}
         {trend !== undefined && (
           <div
-            className={`inline-flex items-center gap-1 mt-2 text-xs font-semibold px-2 py-0.5 rounded-[var(--ui-radius-small)]
-              ${trendIsNeutral ?'bg-gray-100 text-gray-500' :
-                trendIsPositive ?'bg-emerald-100 text-emerald-700' :'bg-red-100 text-rose-600'}`}
+            className={`inline-flex items-center gap-1 mt-2 text-xs font-semibold px-2 py-0.5 rounded-[var(--ui-radius-control)]
+              ${trendIsNeutral ? 'bg-[var(--ui-surface-muted)] text-slate-500 border border-[var(--ui-border-soft)]' :
+                trendIsPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-rose-600'}`}
           >
             {trendIsNeutral ? (
               <Minus size={12} />

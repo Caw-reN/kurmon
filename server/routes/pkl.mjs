@@ -7,35 +7,73 @@ export async function handlePklRoutes(req, res, url, ctx) {
       try {
         const stats = {
           totalSiswa: 0,
-          siswaAktifHariIni: 0,
           totalPerusahaan: 0,
           totalGuru: 0,
-          persenKehadiranRataRata: 0,
-          jurnalPending: []
+          totalKuota: 0,
+          kuotaTerisi: 0,
+          jurnalPending: [],
+          byMajor: {},
+          byLocation: []
         };
-        const locRes = await dbPool.query("SELECT COUNT(*) FROM pkl_locations WHERE status = 'aktif'");
-        stats.totalPerusahaan = parseInt(locRes.rows[0].count, 10);
         
-        // Hitung hanya siswa yang benar-benar terdaftar PKL:
-        // yaitu yang sudah punya location_id (penempatan) ATAU teacher_code (guru pembimbing)
+        const locRes = await dbPool.query("SELECT COUNT(*), COALESCE(SUM(kuota), 0) as total_kuota FROM pkl_locations WHERE status = 'aktif' OR verified = true");
+        stats.totalPerusahaan = parseInt(locRes.rows[0].count, 10);
+        stats.totalKuota = parseInt(locRes.rows[0].total_kuota, 10);
+        
         const stuRes = await dbPool.query(`
           SELECT COUNT(*) FROM pkl_students 
           WHERE status = 'aktif' 
-            AND (location_id IS NOT NULL OR teacher_code IS NOT NULL)
+            AND location_id IS NOT NULL
         `);
         stats.totalSiswa = parseInt(stuRes.rows[0].count, 10) || 0;
+        stats.kuotaTerisi = stats.totalSiswa;
         
-        const guruRes = await dbPool.query("SELECT COUNT(DISTINCT teacher_code) FROM pkl_students WHERE teacher_code IS NOT NULL");
+        const guruRes = await dbPool.query("SELECT COUNT(DISTINCT teacher_code) FROM pkl_students WHERE teacher_code IS NOT NULL AND teacher_code != ''");
         stats.totalGuru = parseInt(guruRes.rows[0].count, 10) || 0;
         
         const logRes = await dbPool.query(`
-          SELECT l.id, l.student_nis, l.kegiatan, l.created_at, s.payload->>'name' as student_name
+          SELECT l.id, l.student_nis, l.kegiatan, l.catatan as kendala, l.status, l.created_at, 
+                 s.payload->>'name' as student_name, s.payload->>'class_name' as class_name
           FROM pkl_logbooks l
           LEFT JOIN mst_students s ON l.student_nis = s.id
           WHERE l.status = 'pending' 
           ORDER BY l.created_at DESC LIMIT 10
         `);
         stats.jurnalPending = logRes.rows;
+
+        // Distribusi siswa per jurusan
+        const majorRes = await dbPool.query(`
+          SELECT s.payload->>'class_name' as class_name, count(*) as count
+          FROM pkl_students ps
+          JOIN mst_students s ON ps.nis = s.id
+          WHERE ps.status = 'aktif' AND ps.location_id IS NOT NULL
+          GROUP BY s.payload->>'class_name'
+        `);
+        
+        const majorMap = {};
+        for (const row of majorRes.rows) {
+          const cls = (row.class_name || "").toUpperCase();
+          let m = "Lainnya";
+          if (cls.includes("TKJ") || cls.includes("TJKT")) m = "TKJ";
+          else if (cls.includes("RPL") || cls.includes("PPLG")) m = "RPL";
+          else if (cls.includes("TKR") || cls.includes("OTOMOTIF")) m = "TKR";
+          else if (cls.includes("AK") || cls.includes("AKL")) m = "AKL";
+          else if (cls.includes("MP") || cls.includes("MPLB") || cls.includes("OTKP")) m = "MP";
+          
+          majorMap[m] = (majorMap[m] || 0) + parseInt(row.count, 10);
+        }
+        stats.byMajor = majorMap;
+
+        // Rincian penempatan per DUDI
+        const locStudentRes = await dbPool.query(`
+          SELECT l.id, l.nama_perusahaan, l.kota, l.jurusan, l.kuota, l.lat, l.lng, COUNT(ps.nis) as placed_count
+          FROM pkl_locations l
+          LEFT JOIN pkl_students ps ON l.id = ps.location_id AND ps.status = 'aktif'
+          WHERE l.status = 'aktif' OR l.verified = true
+          GROUP BY l.id, l.nama_perusahaan, l.kota, l.jurusan, l.kuota, l.lat, l.lng
+          ORDER BY placed_count DESC, l.nama_perusahaan ASC
+        `);
+        stats.byLocation = locStudentRes.rows;
 
         return send(req, res, 200, { ok: true, data: stats });
       } catch (err) {
@@ -105,8 +143,12 @@ export async function handlePklRoutes(req, res, url, ctx) {
       if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
       const id = parseInt(locationIdMatch[1], 10);
       try {
+        await dbPool.query("UPDATE pkl_students SET location_id = NULL WHERE location_id = $1", [id]);
+        await dbPool.query("UPDATE pkl_mutasi SET old_location_id = NULL WHERE old_location_id = $1", [id]);
+        await dbPool.query("UPDATE pkl_mutasi SET new_location_id = NULL WHERE new_location_id = $1", [id]);
+        await dbPool.query("DELETE FROM pkl_surat_pengantar WHERE location_id = $1", [id]);
         await dbPool.query("DELETE FROM pkl_locations WHERE id = $1", [id]);
-        return send(req, res, 200, { ok: true });
+        return send(req, res, 200, { ok: true, message: "Lokasi perusahaan berhasil dihapus" });
       } catch (err) {
         return sendDatabaseError(req, res, err);
       }
@@ -208,11 +250,18 @@ export async function handlePklRoutes(req, res, url, ctx) {
       if (!session) return;
       try {
         const result = await dbPool.query(`
-          SELECT l.id, l.student_nis, l.tanggal, l.kegiatan, l.catatan as kendala, l.solusi, 
+          SELECT l.id, l.student_nis, 
+                 TO_CHAR(l.tanggal, 'YYYY-MM-DD') as tanggal, 
+                 l.kegiatan, l.catatan as kendala, l.solusi, 
                  l.jam_masuk as "jamMasuk", l.jam_keluar as "jamKeluar", l.catatan_guru as "catatanGuru", l.status, l.created_at,
-                 s.payload->>'name' as student_name, s.payload->>'class_name' as class_name
+                 COALESCE(s.payload->>'name', s.payload->>'nama', 'Siswa') as student_name, 
+                 COALESCE(s.payload->>'class_name', s.payload->>'kelas', 'Kelas XII') as class_name,
+                 COALESCE(s.payload->>'jurusan', s.payload->>'major', 'Umum') as jurusan,
+                 loc.nama_perusahaan as company_name
           FROM pkl_logbooks l
-          LEFT JOIN mst_students s ON l.student_nis = s.id
+          LEFT JOIN mst_students s ON (l.student_nis = s.id OR l.student_nis = s.payload->>'nis')
+          LEFT JOIN pkl_students ps ON l.student_nis = ps.nis
+          LEFT JOIN pkl_locations loc ON ps.location_id = loc.id
           ORDER BY l.created_at DESC
         `);
         return send(req, res, 200, { ok: true, data: result.rows });
@@ -235,6 +284,18 @@ export async function handlePklRoutes(req, res, url, ctx) {
           WHERE id = $3
         `, [status, catatanGuru || '', id]);
         return send(req, res, 200, { ok: true, message: "Logbook updated successfully" });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+    const logbookIdMatch = url.pathname.match(/^\/api\/pkl\/logbooks\/(\d+)$/);
+    if (req.method === "DELETE" && logbookIdMatch) {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      const id = parseInt(logbookIdMatch[1], 10);
+      try {
+        await dbPool.query("DELETE FROM pkl_logbooks WHERE id = $1", [id]);
+        return send(req, res, 200, { ok: true, message: "Logbook berhasil dihapus" });
       } catch (err) {
         return sendDatabaseError(req, res, err);
       }

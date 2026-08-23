@@ -1,38 +1,19 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
-  FileText, 
-  Printer, 
-  FileSignature, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  X, 
-  AlertCircle, 
-  CheckCircle2, 
-  Search, 
-  Download, 
-  Sparkles, 
-  Building2, 
-  User, 
-  Calendar, 
-  Copy, 
-  Check, 
-  Eye, 
-  Layers, 
-  Bookmark, 
-  HelpCircle,
-  FileCheck,
-  RefreshCw,
-  Send,
-  Sliders,
-  ChevronRight
+  FileText, Printer, FileSignature, Plus, Edit2, Trash2, X, 
+  AlertCircle, CheckCircle2, Search, Download, Sparkles, Building2, 
+  User, Calendar, Copy, Check, Eye, Layers, Bookmark, HelpCircle,
+  FileCheck, RefreshCw, Send, Sliders, ChevronRight, GraduationCap,
+  Maximize2, Minimize2, Settings2, RotateCcw, ChevronDown, ChevronUp,
+  SlidersHorizontal, Save
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { Button, UISelect, Modal } from '../../../components/ui.jsx';
+import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
+import { Button, Modal } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 const JENIS_SURAT = [
   { key: 'sp1', label: 'Surat Panggilan 1 (SP1)', desc: 'Peringatan pertama untuk siswa bermasalah kedisiplinan', category: 'Kedisiplinan' },
@@ -141,61 +122,120 @@ const PLACEHOLDER_VARIABLES = [
   { var: '{TOTAL_POIN}', desc: 'Total poin pelanggaran siswa' },
 ];
 
-function PrintPreviewPaper({ template, student, school, appSettings = {}, customValues = {}, paperRef }) {
+function PrintPreviewPaper({ template, student, school, appSettings = {}, customValues = {}, liveMargins = {}, paperRef }) {
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
   const renderedContent = useMemo(() => {
     if (!template?.isi_template) return '';
 
+    const namaSekolah = school?.nama_sekolah || school?.name || appSettings?.schoolName || 'SMK KARYA GUNA 2 BEKASI';
+    const namaKepsek = school?.kepala_sekolah || appSettings?.kepsekName || 'Yunie Purwiasih, M.Pd';
+    const nipKepsek = school?.nip_kepsek || appSettings?.kepsekNip || '19750512 200501 2 003';
+    const studentNisn = student?.nisn || student?.payload?.nisn || student?.nis || '-';
+
     let content = template.isi_template;
-    content = content.replace(/{NAMA_SISWA}/g, student?.namaSiswa || student?.name || '[NAMA_SISWA]');
+    content = content.replace(/{NAMA_SISWA}/g, student?.namaSiswa || student?.name || student?.nama || '[NAMA_SISWA]');
     content = content.replace(/{NIS}/g, student?.nis || '[NIS]');
-    content = content.replace(/{NISN}/g, student?.nisn || '[NISN]');
+    content = content.replace(/{NISN}/g, studentNisn);
     content = content.replace(/{KELAS}/g, student?.class_name || student?.kelas || '[KELAS]');
-    content = content.replace(/{JURUSAN}/g, student?.major || student?.jurusan || '[JURUSAN]');
-    content = content.replace(/{NAMA_SEKOLAH}/g, school?.nama_sekolah || school?.name || '[NAMA_SEKOLAH]');
-    content = content.replace(/{NAMA_KEPSEK}/g, school?.kepala_sekolah || '[NAMA_KEPSEK]');
-    content = content.replace(/{NIP_KEPSEK}/g, school?.nip_kepsek || '[NIP_KEPSEK]');
+    content = content.replace(/{JURUSAN}/g, student?.major || student?.jurusan || (student?.class_name?.split(' ')[1] || 'Umum'));
+    content = content.replace(/{NAMA_SEKOLAH}/g, namaSekolah);
+    content = content.replace(/{NAMA_KEPSEK}/g, namaKepsek);
+    content = content.replace(/{NIP_KEPSEK}/g, nipKepsek);
     content = content.replace(/{TANGGAL}/g, customValues.tanggalSurat || today);
     content = content.replace(/{NOMOR_SURAT}/g, customValues.nomorSurat || '421.5/001/ESURAT/2026');
-    content = content.replace(/{KETERANGAN}/g, customValues.keterangan || '[KETERANGAN_KHUSUS]');
-    content = content.replace(/{TOTAL_POIN}/g, customValues.totalPoin || student?.poin || '0');
+    content = content.replace(/{KETERANGAN}/g, customValues.keterangan || 'Keperluan Administrasi Sekolah');
+    content = content.replace(/{TOTAL_POIN}/g, String(customValues.totalPoin || student?.poin || '0'));
     return content;
-  }, [template, student, school, customValues, today]);
+  }, [template, student, school, appSettings, customValues, today]);
+
+  const defaultLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><rect width='120' height='120' rx='16' fill='%23064e3b'/><text x='60' y='68' font-family='sans-serif' font-size='24' font-weight='900' fill='%23ffffff' text-anchor='middle'>SMK</text></svg>";
+
+  // Dynamic Layout & Margins from live props or appSettings
+  const kopMarginTop = liveMargins.kopMarginTop ?? appSettings?.kopMarginTop ?? 15;
+  const kopMarginSide = liveMargins.kopMarginSide ?? appSettings?.kopMarginSide ?? 20;
+  const kopMarginBottom = liveMargins.kopMarginBottom ?? appSettings?.kopMarginBottom ?? 15;
+  const kopSpacing = liveMargins.kopSpacing ?? appSettings?.kopSpacing ?? 20;
+  const kopBannerHeight = liveMargins.kopBannerHeight ?? appSettings?.kopBannerHeight ?? 130;
+  const kopLogoSize = liveMargins.kopLogoSize ?? appSettings?.kopLogoSize ?? 72;
+  const kopAlign = liveMargins.kopAlign ?? appSettings?.kopAlign ?? 'center';
+  const kopDivider = liveMargins.kopDivider ?? appSettings?.kopDivider ?? (appSettings?.useKopSuratGambar ? 'none' : 'double');
+  const kopBannerFullWidth = liveMargins.kopBannerFullWidth ?? appSettings?.kopBannerFullWidth ?? false;
 
   return (
     <div 
       ref={paperRef}
-      className="print-paper-canvas bg-white shadow-xs rounded-sm border border-slate-200 p-8 sm:p-12 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none"
+      style={{
+        paddingTop: `${kopMarginTop}mm`,
+        paddingLeft: `${kopMarginSide}mm`,
+        paddingRight: `${kopMarginSide}mm`,
+        paddingBottom: `${kopMarginBottom}mm`,
+      }}
+      className="print-paper-canvas bg-white shadow-md rounded-sm border border-slate-200 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none animate-in fade-in transition-all duration-150"
     >
       <div>
         {/* Kop Surat Header */}
-        {appSettings.useKopSuratGambar && appSettings.kopSuratGambar ? (
-          <img src={appSettings.kopSuratGambar} alt="Kop Surat" className="w-full h-auto object-contain mb-6" />
+        {appSettings?.useKopSuratGambar && appSettings?.kopSuratGambar ? (
+          <div 
+            style={{ 
+              marginBottom: `${kopSpacing}px`,
+              ...(kopBannerFullWidth ? {
+                marginLeft: `-${kopMarginSide}mm`,
+                marginRight: `-${kopMarginSide}mm`,
+                marginTop: `-${kopMarginTop}mm`,
+                paddingTop: `4mm`
+              } : {})
+            }} 
+            className="w-full flex justify-center overflow-hidden"
+          >
+            <img 
+              src={appSettings.kopSuratGambar} 
+              alt="Kop Surat" 
+              style={{ maxHeight: `${kopBannerHeight}px` }}
+              className="w-full h-auto object-contain mx-auto transition-all" 
+            />
+          </div>
         ) : (
-          <div className="flex items-center gap-4 pb-4 border-b-4 border-double border-slate-900 mb-8">
-            {school?.logo_url ? (
-              <img src={school.logo_url} alt="Logo" className="w-20 h-20 object-contain shrink-0" />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-bold text-xs text-slate-500 shrink-0">
-                LOGO
-              </div>
-            )}
-            <div className="text-center flex-1">
-              <p className="text-xs font-sans uppercase font-extrabold tracking-widest text-slate-600">PEMERINTAH DAERAH</p>
-              <h2 className="font-black text-xl uppercase tracking-wider font-sans text-slate-900">
-                {school?.nama_sekolah || school?.name || 'NAMA SEKOLAH'}
+          <div 
+            style={{ marginBottom: `${kopSpacing}px` }}
+            className={`flex items-center gap-4 pb-3 ${
+              kopDivider === 'double' ? 'border-b-4 border-double border-slate-900' :
+              kopDivider === 'single' ? 'border-b border-slate-900' :
+              kopDivider === 'thick' ? 'border-b-2 border-slate-900' :
+              kopDivider === 'dashed' ? 'border-b-2 border-dashed border-slate-900' : ''
+            }`}
+          >
+            <img 
+              src={appSettings?.kopSuratLogo || school?.logo_url || defaultLogo} 
+              alt="Logo" 
+              style={{ width: `${kopLogoSize}px`, height: `${kopLogoSize}px` }}
+              className="object-contain shrink-0" 
+              onError={(e) => { e.target.src = defaultLogo; }}
+            />
+            <div className={`flex-1 ${kopAlign === 'left' ? 'text-left' : 'text-center'}`}>
+              <p className="text-[11px] font-sans uppercase font-extrabold tracking-widest text-slate-600">
+                {appSettings?.kopSuratBaris1 || 'PEMERINTAH DAERAH PROVINSI JAWA BARAT'}
+              </p>
+              {appSettings?.kopSuratBaris2 && (
+                <p className="text-xs font-sans uppercase font-bold text-slate-700">
+                  {appSettings.kopSuratBaris2}
+                </p>
+              )}
+              <h2 className="font-black text-lg sm:text-xl uppercase tracking-wider font-sans text-slate-900 leading-tight">
+                {appSettings?.kopSuratBaris3 || school?.nama_sekolah || school?.name || appSettings?.schoolName || 'SMK KARYA GUNA 2 BEKASI'}
               </h2>
-              <p className="text-xs font-sans mt-0.5">{school?.alamat || 'Jl. Pendidikan No. 1, Kota Sekolah'}</p>
-              <p className="text-xs font-sans text-slate-600">
-                Telp: {school?.telepon || '-'} | Website: {school?.website || '-'} | Email: {school?.email || '-'}
+              <p className="text-[11.5px] font-sans mt-0.5">
+                {appSettings?.kopSuratAlamat || school?.alamat || 'Jl. Karang Satria RT.10/16, Kelurahan Duren Jaya, Kecamatan Bekasi Timur'}
+              </p>
+              <p className="text-[11px] font-sans text-slate-600">
+                {appSettings?.kopSuratKontak || `Telp: ${school?.telepon || '085117551755'} | Website: ${school?.website || 'smkkg2.sch.id'} | Email: ${school?.email || '-'}`}
               </p>
             </div>
           </div>
         )}
 
         {/* Body Content */}
-        <div className="whitespace-pre-wrap text-justify leading-relaxed font-serif text-slate-800 text-[13.5px]">
+        <div className="whitespace-pre-wrap text-justify leading-relaxed font-serif text-slate-800 text-[13px] sm:text-[13.5px]">
           {renderedContent || (
             <div className="py-20 text-center text-slate-300 italic font-sans">
               <FileSignature size={48} className="mx-auto mb-3 opacity-30" />
@@ -206,10 +246,10 @@ function PrintPreviewPaper({ template, student, school, appSettings = {}, custom
       </div>
 
       {/* Footer Legal Stamp Placeholder */}
-      <div className="pt-8 border-t border-slate-100 flex justify-between items-end text-[11px] font-sans text-slate-400">
+      <div className="pt-6 border-t border-slate-100 flex justify-between items-end text-[10.5px] font-sans text-slate-400">
         <div>
           <p className="italic">Dokumen Resmi E-Surat Terverifikasi Digital</p>
-          <p className="text-[10px]">Dicetak pada: {today}</p>
+          <p className="text-[9.5px]">Dicetak pada: {today}</p>
         </div>
         <div className="text-right">
           <p className="font-mono">{school?.npsn ? `NPSN: ${school.npsn}` : 'AKREDITASI A'}</p>
@@ -219,337 +259,614 @@ function PrintPreviewPaper({ template, student, school, appSettings = {}, custom
   );
 }
 
-export default function ESurat() {
+export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: propAppSettings, setAppSettings, onSave }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [mobileStudioTab, setMobileStudioTab] = useState('form'); // 'form' | 'preview'
   const [templates, setTemplates] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [school, setSchool] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState(null);
-  
-  const [form, setForm] = useState({ jenis: 'sp1', nama: '', isi_template: '' });
+  const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  
-  // Custom Variables Input state for generator
+  const [school, setSchool] = useState({});
+  const [studentSearch, setStudentSearch] = useState('');
+  const [selectedClass, setSelectedClass] = useState('all');
+  const [toast, setToast] = useState(null);
+  const [showMarginSettings, setShowMarginSettings] = useState(true);
+
+  const paperRef = useRef(null);
+  const authToken = useAuthStore(state => state.user?.authToken);
+  const storeAppSettings = useAppStore(state => state.appSettings) || {};
+  const appSettings = propAppSettings || storeAppSettings;
+
+  // Live Margins State (Editable right in E-Surat studio!)
+  const [liveMargins, setLiveMargins] = useState({
+    kopMarginTop: appSettings?.kopMarginTop ?? 15,
+    kopMarginSide: appSettings?.kopMarginSide ?? 20,
+    kopMarginBottom: appSettings?.kopMarginBottom ?? 15,
+    kopSpacing: appSettings?.kopSpacing ?? 20,
+    kopBannerHeight: appSettings?.kopBannerHeight ?? 130,
+    kopBannerFullWidth: appSettings?.kopBannerFullWidth ?? false,
+  });
+
+  useEffect(() => {
+    if (appSettings) {
+      setLiveMargins({
+        kopMarginTop: appSettings.kopMarginTop ?? 15,
+        kopMarginSide: appSettings.kopMarginSide ?? 20,
+        kopMarginBottom: appSettings.kopMarginBottom ?? 15,
+        kopSpacing: appSettings.kopSpacing ?? 20,
+        kopBannerHeight: appSettings.kopBannerHeight ?? 130,
+        kopBannerFullWidth: appSettings.kopBannerFullWidth ?? false,
+      });
+    }
+  }, [appSettings]);
+
+  // Form Custom Values
   const [customValues, setCustomValues] = useState({
     nomorSurat: '421.5/001/ESURAT/2026',
     tanggalSurat: new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
     keterangan: 'Keperluan Administrasi Sekolah',
-    totalPoin: '0'
+    totalPoin: 0
   });
 
-  const [studentSearch, setStudentSearch] = useState('');
-  const [selectedClass, setSelectedClass] = useState('all');
-  const [activeTab, setActiveTab] = useState('cetak');
-  const [toast, setToast] = useState(null);
-  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  // Modal State for Template CRUD
+  const [showModal, setShowModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [form, setForm] = useState({ jenis: 'sp1', nama: '', isi_template: '' });
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isSavingMargins, setIsSavingMargins] = useState(false);
 
-  const paperRef = useRef(null);
-  const textareaRef = useRef(null);
-  const authToken = useAuthStore(state => state.user?.authToken);
-
-  const showToast = (msg, type = 'success') => {
-    setToast({ message: msg, type });
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchData = async () => {
-    if (!authToken) return;
-    setIsLoading(true);
+  const handleSaveLiveMargins = async () => {
+    setIsSavingMargins(true);
     try {
-      const [tRes, sRes, scRes] = await Promise.all([
-        fetch('/api/esurat', { headers: { Authorization: `Bearer ${authToken}` } }),
-        fetch('/api/data/load', { headers: { Authorization: `Bearer ${authToken}` } }),
+      const updated = {
+        ...appSettings,
+        ...liveMargins
+      };
+      if (setAppSettings) setAppSettings(updated);
+      if (onSave) await onSave({ appSettings: updated }, "menyimpan margin surat");
+      showToast('Pengaturan margin & posisi kop surat berhasil disimpan!');
+    } catch {
+      showToast('Gagal menyimpan margin.', 'error');
+    }
+    setIsSavingMargins(false);
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [tplRes, stRes, scRes] = await Promise.all([
+        fetch('/api/esurat/templates', { headers: { Authorization: `Bearer ${authToken}` } }),
+        fetch('/api/students/active', { headers: { Authorization: `Bearer ${authToken}` } }),
         fetch('/api/school-profile', { headers: { Authorization: `Bearer ${authToken}` } }),
       ]);
-      
-      const tData = await tRes.json(); 
-      if (tData.ok) {
-        if (tData.data && tData.data.length > 0) {
-          setTemplates(tData.data);
-          if (!selectedTemplate) setSelectedTemplate(tData.data[0]);
-        } else {
-          // If DB is empty, auto-populate default presets so user can use them immediately
-          const defaults = PRESET_DEFAULT_TEMPLATES.map((p, idx) => ({ ...p, id: `preset_default_${idx + 1}` }));
-          setTemplates(defaults);
-          if (!selectedTemplate) setSelectedTemplate(defaults[0]);
-        }
-      }
 
-      const sData = await sRes.json(); 
-      if (sData.payload && sData.payload.students) {
-        setStudents(sData.payload.students);
-        if (sData.payload.students.length > 0 && !selectedStudent) {
-          setSelectedStudent(sData.payload.students[0]);
-        }
-      }
+      const tplData = await tplRes.json();
+      const stData = await stRes.json();
+      const scData = await scRes.json();
 
-      const scData = await scRes.json(); 
+      let validTpls = [];
+      if (tplData.ok && Array.isArray(tplData.data) && tplData.data.length > 0) {
+        validTpls = tplData.data;
+      } else {
+        validTpls = PRESET_DEFAULT_TEMPLATES.map((p, idx) => ({ id: idx + 1, ...p }));
+      }
+      setTemplates(validTpls);
+      if (validTpls.length > 0) setSelectedTemplate(validTpls[0]);
+
+      if (stData.ok && Array.isArray(stData.data)) {
+        setStudents(stData.data);
+        if (stData.data.length > 0) setSelectedStudent(stData.data[0]);
+      }
       if (scData.ok) setSchool(scData.data || {});
-    } catch (e) { 
-      console.error(e); 
-      // Fallback defaults on network error
-      const defaults = PRESET_DEFAULT_TEMPLATES.map((p, idx) => ({ ...p, id: `preset_default_${idx + 1}` }));
-      setTemplates(defaults);
-      if (!selectedTemplate) setSelectedTemplate(defaults[0]);
+    } catch (e) {
+      setTemplates(PRESET_DEFAULT_TEMPLATES.map((p, idx) => ({ id: idx + 1, ...p })));
+      if (PRESET_DEFAULT_TEMPLATES.length > 0) setSelectedTemplate(PRESET_DEFAULT_TEMPLATES[0]);
     }
-    setIsLoading(false);
+    setLoading(false);
   };
 
-  useEffect(() => { 
-    fetchData(); 
+  useEffect(() => {
+    loadData();
   }, [authToken]);
 
-  const handleSave = async () => {
-    if (!form.jenis || !form.nama || !form.isi_template) return showToast('Semua field wajib diisi!', 'error');
-    try {
-      const body = editingTemplate ? { ...form, id: editingTemplate.id } : form;
-      const res = await fetch('/api/esurat', {
-        method: 'POST', 
-        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data.ok) { 
-        showToast(editingTemplate ? 'Template berhasil diperbarui!' : 'Template baru berhasil ditambahkan!'); 
-        setShowModal(false); 
-        fetchData(); 
-      } else {
-        // Fallback local save if server error
-        const localItem = { ...form, id: editingTemplate ? editingTemplate.id : 'tpl_' + Date.now() };
-        setTemplates(prev => editingTemplate ? prev.map(t => t.id === localItem.id ? localItem : t) : [localItem, ...prev]);
-        setSelectedTemplate(localItem);
-        setShowModal(false);
-        showToast('Template disimpan secara lokal di memori!');
-      }
-    } catch (e) { 
-      const localItem = { ...form, id: editingTemplate ? editingTemplate.id : 'tpl_' + Date.now() };
-      setTemplates(prev => editingTemplate ? prev.map(t => t.id === localItem.id ? localItem : t) : [localItem, ...prev]);
-      setSelectedTemplate(localItem);
-      setShowModal(false);
-      showToast('Template disimpan secara lokal di memori!');
-    }
-  };
-
-  const handleUsePresetDirectly = (preset) => {
-    const item = { ...preset, id: 'preset_' + (preset.jenis || Date.now()) };
-    setSelectedTemplate(item);
-    setTemplates(prev => {
-      if (prev.some(t => t.nama === preset.nama)) return prev;
-      return [item, ...prev];
+  const uniqueClasses = useMemo(() => {
+    const cls = new Set();
+    students.forEach(s => {
+      const c = s.class_name || s.kelas;
+      if (c) cls.add(c);
     });
-    setActiveTab('cetak');
-    showToast(`Template "${preset.nama}" aktif di Studio Cetak!`);
-  };
-
-  const handleSavePresetToDb = async (preset) => {
-    const item = { ...preset, id: 'preset_' + (preset.jenis || Date.now()) };
-    try {
-      const res = await fetch('/api/esurat', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(preset),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        showToast(`Template prasetel "${preset.nama}" berhasil disimpan!`);
-        fetchData();
-      } else {
-        setTemplates(prev => [item, ...prev.filter(t => t.nama !== preset.nama)]);
-        setSelectedTemplate(item);
-        showToast(`Template "${preset.nama}" dimuat di memori & siap digunakan!`);
-      }
-    } catch (e) {
-      setTemplates(prev => [item, ...prev.filter(t => t.nama !== preset.nama)]);
-      setSelectedTemplate(item);
-      showToast(`Template "${preset.nama}" dimuat di memori & siap digunakan!`);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!await window.confirmAsync('Hapus template surat ini?')) return;
-    try {
-      await fetch('/api/esurat', {
-        method: 'POST', 
-        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id }),
-      });
-      showToast('Template berhasil dihapus!'); 
-      fetchData();
-    } catch (e) { 
-      showToast('Gagal menghapus.', 'error'); 
-    }
-  };
-
-  const handlePrint = () => {
-    if (!selectedTemplate || !selectedStudent) return showToast('Pilih template dan siswa terlebih dahulu!', 'error');
-    window.print();
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!selectedTemplate || !selectedStudent) return showToast('Pilih template dan siswa terlebih dahulu!', 'error');
-    setIsExportingPDF(true);
-    showToast('Menyiapkan file PDF surat A4...', 'success');
-
-    setTimeout(async () => {
-      try {
-        const element = paperRef.current;
-        if (!element) throw new Error("Paper element not found");
-
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff'
-        });
-
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Surat_${selectedStudent.nis}_${selectedTemplate.jenis}_${new Date().getTime()}.pdf`);
-        showToast('File PDF Surat berhasil diunduh!');
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal mengeksport file PDF', 'error');
-      } finally {
-        setIsExportingPDF(false);
-      }
-    }, 500);
-  };
-
-  const insertVariableIntoTextarea = (varString) => {
-    if (!textareaRef.current) {
-      setForm(p => ({ ...p, isi_template: p.isi_template + varString }));
-      return;
-    }
-    const input = textareaRef.current;
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const text = form.isi_template;
-    const newText = text.substring(0, start) + varString + text.substring(end);
-    setForm(p => ({ ...p, isi_template: newText }));
-    
-    setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(start + varString.length, start + varString.length);
-    }, 50);
-  };
-
-  const classesList = useMemo(() => {
-    return ['all', ...new Set(students.map(s => s.class_name || s.kelas).filter(Boolean).sort())];
+    return Array.from(cls).sort();
   }, [students]);
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
-      const matchSearch = !studentSearch || 
-        (s.namaSiswa || s.name)?.toLowerCase().includes(studentSearch.toLowerCase()) || 
-        s.nis?.includes(studentSearch);
+      const name = s.namaSiswa || s.name || s.nama || '';
+      const nis = s.nis || '';
+      const matchSearch = !studentSearch || name.toLowerCase().includes(studentSearch.toLowerCase()) || nis.includes(studentSearch);
       const sClass = s.class_name || s.kelas;
       const matchClass = selectedClass === 'all' || sClass === selectedClass;
       return matchSearch && matchClass;
     });
   }, [students, studentSearch, selectedClass]);
 
-  const tabs = [
-    { id: 'cetak', label: 'Cetak & Studio E-Surat', icon: Printer },
-    { id: 'template', label: 'Kelola Template Surat', icon: FileText }
-  ];
+  const handlePrintDirect = () => {
+    if (!paperRef.current) return;
+    
+    // Create an isolated hidden iframe for printing only the A4 paper canvas
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const frameDoc = printFrame.contentWindow.document;
+    frameDoc.open();
+    frameDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${selectedTemplate?.nama || 'Surat Sekolah'} - ${selectedStudent?.name || selectedStudent?.nama || 'Siswa'}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 0;
+            }
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff !important;
+              font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+              color: #0f172a;
+              width: 210mm;
+            }
+            .print-paper-canvas {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              background: #ffffff !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            img {
+              max-width: 100%;
+            }
+            .text-center { text-align: center; }
+            .text-left { text-align: left; }
+            .text-right { text-align: right; }
+            .text-justify { text-align: justify; }
+            .font-bold { font-weight: 700; }
+            .font-black { font-weight: 900; }
+            .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+            .font-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+            .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+            .uppercase { text-transform: uppercase; }
+            .leading-relaxed { line-height: 1.625; }
+            .leading-tight { line-height: 1.25; }
+            .flex { display: flex; }
+            .items-center { align-items: center; }
+            .items-end { align-items: flex-end; }
+            .justify-between { justify-content: space-between; }
+            .justify-center { justify-content: center; }
+            .flex-1 { flex: 1 1 0%; }
+            .flex-col { flex-direction: column; }
+            .border-b-4 { border-bottom-width: 4px; }
+            .border-double { border-style: double; }
+            .border-b { border-bottom-width: 1px; }
+            .border-t { border-top-width: 1px; }
+            .border-slate-900 { border-color: #0f172a; }
+            .border-slate-100 { border-color: #f1f5f9; }
+            .border-slate-200 { border-color: #e2e8f0; }
+            .whitespace-pre-wrap { white-space: pre-wrap; }
+            .italic { font-style: italic; }
+            .w-full { width: 100%; }
+            .shrink-0 { flex-shrink: 0; }
+          </style>
+        </head>
+        <body>
+          <div class="print-paper-canvas" style="${paperRef.current.getAttribute('style') || ''}">
+            ${paperRef.current.innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              window.focus();
+              setTimeout(function() {
+                window.print();
+                setTimeout(function() {
+                  window.parent.document.body.removeChild(window.frameElement);
+                }, 1000);
+              }, 250);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    frameDoc.close();
+  };
+
+  const handleExportPDF = async () => {
+    if (!paperRef.current) return;
+    setIsExportingPdf(true);
+    try {
+      const element = paperRef.current;
+      
+      // Ensure all images are loaded before generating canvas
+      const images = element.querySelectorAll('img');
+      await Promise.all(Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      }));
+
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 1200
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, Math.min(297, pdfHeight));
+      
+      const studentCode = selectedStudent?.nis || 'Siswa';
+      const templateTitle = (selectedTemplate?.nama || 'Dokumen').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fileName = `Surat_${templateTitle}_${studentCode}.pdf`;
+      pdf.save(fileName);
+      showToast('PDF Surat berhasil diunduh!');
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      showToast('Gagal memproses file PDF via renderer. Mencoba cetak...', 'error');
+      handlePrintDirect();
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleSaveTemplate = async (e) => {
+    if (e) e.preventDefault();
+    if (!form.nama || !form.isi_template) {
+      showToast('Nama dan isi template wajib diisi', 'error');
+      return;
+    }
+
+    try {
+      if (editingTemplate) {
+        await fetch(`/api/esurat/templates/${editingTemplate.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify(form)
+        });
+        showToast('Template berhasil diperbarui!');
+      } else {
+        await fetch('/api/esurat/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify(form)
+        });
+        showToast('Template baru berhasil ditambahkan!');
+      }
+      setShowModal(false);
+      loadData();
+    } catch (err) {
+      showToast('Gagal menyimpan template', 'error');
+    }
+  };
+
+  const handleDeleteTemplate = async (id) => {
+    if (typeof window !== 'undefined' && window.confirm) {
+      if (!window.confirm('Apakah Anda yakin ingin menghapus template ini?')) return;
+    }
+    try {
+      await fetch(`/api/esurat/templates/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      showToast('Template berhasil dihapus!');
+      loadData();
+    } catch (e) {
+      showToast('Gagal menghapus template', 'error');
+    }
+  };
 
   return (
-    <div className="space-y-6 relative animate-in fade-in duration-300 w-full font-inherit">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-300 pb-10">
+      {/* Clean Page Header */}
       <PageHeader
-        title="Administrasi E-Surat & Template Sekolah"
         icon={FileSignature}
+        title="Administrasi E-Surat & Template Sekolah"
         description="Generator surat otomatis sekolah, penomoran agenda, template kustom, dan cetak dokumen A4 siap edar."
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      >
-        <Button 
-          variant="outline" 
-          onClick={() => { setEditingTemplate(null); setForm({ jenis: 'sp1', nama: '', isi_template: '' }); setShowModal(true); }} 
-          className="bg-[var(--ui-primary-btn,var(--ui-primary))] hover:opacity-90 active:scale-98 text-white font-bold text-xs px-3.5 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all shrink-0"
-        >
-          <Plus size={15} /> Buat Template Baru
-        </Button>
-      </PageHeader>
+      />
 
-      {/* Summary KPI Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
+      {/* Unified Tab Switcher Bar */}
+      <div className="bg-white p-1.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('cetak')}
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+              activeTab === 'cetak'
+                ? 'bg-white text-slate-800 shadow-2xs'
+                : 'bg-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Printer size={14} />
+            <span>Cetak & Studio E-Surat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('template')}
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+              activeTab === 'template'
+                ? 'bg-white text-slate-800 shadow-2xs'
+                : 'bg-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <FileText size={14} />
+            <span>Kelola Template Surat ({templates.length})</span>
+          </button>
+        </div>
+
+        {activeTab === 'template' && !readOnly && (
+          <Button 
+            variant="primary" 
+            size="sm"
+            onClick={() => { setEditingTemplate(null); setForm({ jenis: 'sp1', nama: '', isi_template: '' }); setShowModal(true); }} 
+            className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)] w-full sm:w-auto justify-center"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            <span>+ Buat Template Baru</span>
+          </Button>
+        )}
+      </div>
+
+      {/* 4 Responsive Summary KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-            <FileText size={20} />
+            <FileText size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none">{templates.length} Template</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Template Surat Aktif</p>
+            <p className="text-sm font-black text-slate-800 leading-tight">{templates.length} Format</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Template Aktif</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <User size={20} />
+            <User size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none truncate">
-              {selectedStudent ? (selectedStudent.namaSiswa || selectedStudent.name) : 'Belum Dipilih'}
+            <p className="text-sm font-black text-slate-800 leading-tight truncate">
+              {selectedStudent ? (selectedStudent.namaSiswa || selectedStudent.name || selectedStudent.nama) : 'Pilih Siswa'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Siswa Penerima Surat</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 truncate">
+              {selectedStudent ? `${selectedStudent.nis} • ${selectedStudent.class_name || selectedStudent.kelas}` : 'Penerima Surat'}
+            </p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-            <Bookmark size={20} />
+            <Bookmark size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none truncate">
-              {selectedTemplate ? selectedTemplate.nama : 'Belum Dipilih'}
+            <p className="text-sm font-black text-slate-800 leading-tight truncate">
+              {selectedTemplate ? selectedTemplate.nama : 'Pilih Format'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Format Surat Aktif</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Format Surat Aktif</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Building2 size={20} />
+            <Building2 size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none truncate">
-              {useAppStore.getState().appSettings?.useKopSuratGambar ? 'Gambar Custom' : 'Header Resmi Teks'}
+            <p className="text-sm font-black text-slate-800 leading-tight truncate">
+              {appSettings?.useKopSuratGambar ? 'Gambar Banner Kop' : 'Header Resmi Teks'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Kop Surat Sekolah</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+              Margin: Samping {liveMargins.kopMarginSide}mm
+            </p>
           </div>
         </div>
       </div>
 
       {/* ─── TAB 1: CETAK & STUDIO E-SURAT ───────────────────────────────────── */}
       {activeTab === 'cetak' && (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start animate-in fade-in duration-200">
-          
-          {/* Left Panel: Configuration Studio (5 cols) */}
-          <div className="xl:col-span-5 space-y-4">
+        <div className="space-y-4">
+          {/* Mobile Switcher between Form & Preview */}
+          <div className="xl:hidden flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)]">
+            <button
+              type="button"
+              onClick={() => setMobileStudioTab('form')}
+              className={`flex-1 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
+                mobileStudioTab === 'form' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              📝 Form & Pengaturan
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileStudioTab('preview')}
+              className={`flex-1 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
+                mobileStudioTab === 'preview' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+              }`}
+            >
+              👁️ Pratinjau Dokumen A4
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
             
-            {/* Step 1: Template Selection */}
-            <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                  Pilih Template Surat
-                </span>
-                <span className="text-[10px] font-bold text-slate-400">{templates.length} Format</span>
+            {/* Left Panel: Configuration Studio (5 cols) */}
+            <div className={`xl:col-span-5 space-y-4 ${mobileStudioTab === 'preview' ? 'hidden xl:block' : 'block'}`}>
+              
+              {/* LIVE MARGIN & KOP CONTROLS ACCORDION */}
+              <div className="bg-white border-2 border-[var(--ui-primary)]/40 rounded-[var(--ui-radius-card)] p-4 shadow-[var(--ui-shadow-card)] space-y-3 bg-gradient-to-br from-white to-[var(--ui-primary)]/5">
+                <div 
+                  className="flex items-center justify-between cursor-pointer select-none"
+                  onClick={() => setShowMarginSettings(!showMarginSettings)}
+                >
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <SlidersHorizontal size={15} className="text-[var(--ui-primary)]" />
+                    Atur Margin & Penempatan Kop Langsung
+                  </span>
+                  <div className="flex items-center gap-1.5 text-slate-400">
+                    <span className="text-[10px] font-bold">Realtime</span>
+                    {showMarginSettings ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+                </div>
+
+                {showMarginSettings && (
+                  <div className="space-y-3 pt-2 border-t border-slate-200/80 animate-in fade-in duration-150">
+                    {/* Side Margins */}
+                    <div>
+                      <div className="flex justify-between items-center text-xs font-bold mb-1">
+                        <span className="text-slate-700">Margin Samping Kiri & Kanan</span>
+                        <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-mono text-[11px]">
+                          {liveMargins.kopMarginSide} mm
+                        </span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="35" 
+                        value={liveMargins.kopMarginSide} 
+                        onChange={e => setLiveMargins({ ...liveMargins, kopMarginSide: Number(e.target.value) })}
+                        className="w-full accent-[var(--ui-primary)] cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-bold px-0.5">
+                        <span>0mm (Mepet Tepi)</span>
+                        <span>15mm (Standar)</span>
+                        <span>35mm (Lebar)</span>
+                      </div>
+                    </div>
+
+                    {/* Top Margin */}
+                    <div>
+                      <div className="flex justify-between items-center text-xs font-bold mb-1">
+                        <span className="text-slate-700">Margin Atas Kertas</span>
+                        <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-mono text-[11px]">
+                          {liveMargins.kopMarginTop} mm
+                        </span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="40" 
+                        value={liveMargins.kopMarginTop} 
+                        onChange={e => setLiveMargins({ ...liveMargins, kopMarginTop: Number(e.target.value) })}
+                        className="w-full accent-[var(--ui-primary)] cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Banner Height */}
+                    {appSettings?.useKopSuratGambar && (
+                      <div>
+                        <div className="flex justify-between items-center text-xs font-bold mb-1">
+                          <span className="text-slate-700">Tinggi Banner Kop</span>
+                          <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-mono text-[11px]">
+                            {liveMargins.kopBannerHeight} px
+                          </span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="50" 
+                          max="250" 
+                          value={liveMargins.kopBannerHeight} 
+                          onChange={e => setLiveMargins({ ...liveMargins, kopBannerHeight: Number(e.target.value) })}
+                          className="w-full accent-[var(--ui-primary)] cursor-pointer"
+                        />
+                      </div>
+                    )}
+
+                    {/* Full Width Banner Toggle */}
+                    {appSettings?.useKopSuratGambar && (
+                      <div className="flex items-center justify-between p-2 rounded bg-white border border-slate-200">
+                        <span className="text-xs font-bold text-slate-700">Bentangkan Banner Penuh (Edge-to-Edge)</span>
+                        <input 
+                          type="checkbox"
+                          checked={liveMargins.kopBannerFullWidth}
+                          onChange={e => setLiveMargins({ ...liveMargins, kopBannerFullWidth: e.target.checked })}
+                          className="w-4 h-4 rounded text-[var(--ui-primary)] cursor-pointer"
+                        />
+                      </div>
+                    )}
+
+                    {/* Spacing between kop and body */}
+                    <div>
+                      <div className="flex justify-between items-center text-xs font-bold mb-1">
+                        <span className="text-slate-700">Jarak Rongga Kop ke Isi Surat</span>
+                        <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-mono text-[11px]">
+                          {liveMargins.kopSpacing} px
+                        </span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="50" 
+                        value={liveMargins.kopSpacing} 
+                        onChange={e => setLiveMargins({ ...liveMargins, kopSpacing: Number(e.target.value) })}
+                        className="w-full accent-[var(--ui-primary)] cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        type="button"
+                        onClick={handleSaveLiveMargins}
+                        disabled={isSavingMargins}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-1.5 shadow-sm"
+                      >
+                        {isSavingMargins ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+                        <span>Simpan Margin Permanen</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {templates.length === 0 ? (
-                <div className="p-4 text-center text-slate-400 bg-slate-50 rounded-[var(--ui-radius-control)] border border-dashed border-slate-200">
-                  <p className="text-xs font-bold">Belum ada template surat tersimpan.</p>
-                  <p className="text-[10px] mt-1">Pindah ke tab "Kelola Template" atau muat prasetel.</p>
+              {/* Step 1: Template Selection */}
+              <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-[var(--ui-shadow-card)] space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    Pilih Template Surat
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">{templates.length} Format</span>
                 </div>
-              ) : (
+
                 <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                   {templates.map(t => {
                     const isSelected = selectedTemplate?.id === t.id;
@@ -561,16 +878,14 @@ export default function ESurat() {
                         onClick={() => setSelectedTemplate(t)}
                         className={`w-full text-left p-3 rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                           isSelected 
-                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20 shadow-xs' 
+                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20 shadow-2xs' 
                             : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--ui-radius-small)] bg-white/80 border border-slate-200 shrink-0">
-                              {jenisObj?.label || t.jenis}
-                            </span>
-                          </div>
+                          <span className="text-[9.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/90 border border-slate-200 shrink-0 text-slate-700">
+                            {jenisObj?.label || t.jenis}
+                          </span>
                           <p className="font-extrabold text-xs text-slate-800 mt-1 truncate">{t.nama}</p>
                         </div>
                         {isSelected && <CheckCircle2 size={16} className="text-[var(--ui-primary)] shrink-0" />}
@@ -578,386 +893,289 @@ export default function ESurat() {
                     );
                   })}
                 </div>
-              )}
-            </div>
-
-            {/* Step 2: Target Student Selector */}
-            <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                  Pilih Siswa Penerima
-                </span>
-                {selectedStudent && (
-                  <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
-                    Siswa Terpilih
-                  </span>
-                )}
               </div>
 
-              {/* Filters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                  <input 
-                    type="text"
-                    value={studentSearch} 
-                    onChange={e => setStudentSearch(e.target.value)} 
-                    placeholder="Cari NIS atau Nama…" 
-                    className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-semibold focus:outline-none focus:bg-white" 
-                  />
+              {/* Step 2: Target Student Selector */}
+              <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-[var(--ui-shadow-card)] space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    Pilih Siswa Penerima
+                  </span>
+                  {selectedStudent && (
+                    <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200">
+                      Siswa Terpilih
+                    </span>
+                  )}
                 </div>
 
-                <UISelect 
-                  value={selectedClass} 
-                  onChange={e => setSelectedClass(e.target.value)}
-                  className="h-8 text-xs font-bold"
-                >
-                  {classesList.map(c => <option key={c} value={c}>{c === 'all' ? 'Semua Kelas' : c}</option>)}
-                </UISelect>
-              </div>
-
-              {/* Student Scroll List */}
-              <div className="max-h-[220px] overflow-y-auto space-y-1 border border-slate-200/80 rounded-[var(--ui-radius-control)] p-1">
-                {filteredStudents.length === 0 ? (
-                  <div className="p-4 text-center text-slate-400 text-xs font-bold">
-                    Tidak ada siswa ditemukan.
+                {/* Filters */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Cari NIS atau Nama..."
+                      value={studentSearch}
+                      onChange={e => setStudentSearch(e.target.value)}
+                      className="w-full pl-8 pr-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                    />
                   </div>
-                ) : (
-                  filteredStudents.slice(0, 40).map(s => {
+                  <div>
+                    <CustomSelect
+                      value={selectedClass}
+                      onChange={val => setSelectedClass(val)}
+                      options={[
+                        { value: 'all', label: 'Semua Kelas' },
+                        ...uniqueClasses.map(c => ({ value: c, label: `Kelas ${c}` }))
+                      ]}
+                      searchable={true}
+                      placeholder="Semua Kelas"
+                    />
+                  </div>
+                </div>
+
+                {/* Student Selectable List */}
+                <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1 divide-y divide-slate-100">
+                  {filteredStudents.map(s => {
                     const isSelected = selectedStudent?.nis === s.nis;
+                    const name = s.namaSiswa || s.name || s.nama;
+                    const cls = s.class_name || s.kelas;
+
                     return (
-                      <button
+                      <div
                         key={s.nis}
-                        type="button"
                         onClick={() => setSelectedStudent(s)}
-                        className={`w-full text-left px-2.5 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-between text-xs ${
+                        className={`p-2.5 rounded-[var(--ui-radius-control)] cursor-pointer flex items-center justify-between gap-2.5 transition-all ${
                           isSelected 
-                            ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-bold border border-[var(--ui-primary)]/20' 
-                            : 'text-slate-700 hover:bg-slate-50'
+                            ? 'bg-emerald-50/80 border border-emerald-300 text-emerald-800 font-black shadow-2xs' 
+                            : 'hover:bg-slate-50 text-slate-700'
                         }`}
                       >
-                        <div className="min-w-0 flex-1 truncate">
-                          <span className="font-bold text-slate-800">{s.namaSiswa || s.name}</span>
-                          <span className="text-[10px] text-slate-400 font-mono ml-2">NIS: {s.nis} ({s.class_name || s.kelas})</span>
-                        </div>
-                        {isSelected && <Check size={14} className="text-[var(--ui-primary)] shrink-0 ml-1" />}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Step 3: Custom Field Input Variables */}
-            <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                  Penomoran &amp; Keterangan Khusus
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
-                    Nomor Surat ({'{NOMOR_SURAT}'})
-                  </label>
-                  <input 
-                    type="text"
-                    value={customValues.nomorSurat} 
-                    onChange={e => setCustomValues(p => ({ ...p, nomorSurat: e.target.value }))}
-                    placeholder="Contoh: 421.5/001/2026"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
-                    Tanggal Surat ({'{TANGGAL}'})
-                  </label>
-                  <input 
-                    type="text"
-                    value={customValues.tanggalSurat} 
-                    onChange={e => setCustomValues(p => ({ ...p, tanggalSurat: e.target.value }))}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:bg-white"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
-                    Keterangan Tambahan / Alasan ({'{KETERANGAN}'})
-                  </label>
-                  <textarea 
-                    rows={2}
-                    value={customValues.keterangan} 
-                    onChange={e => setCustomValues(p => ({ ...p, keterangan: e.target.value }))}
-                    placeholder="Contoh: Keperluan pendaftaran beasiswa / Pembinaan kedisiplinan"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-semibold text-slate-800 focus:bg-white resize-y"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                onClick={handleDownloadPDF} 
-                disabled={!selectedTemplate || !selectedStudent || isExportingPDF}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold rounded-[var(--ui-radius-control)] border-slate-300 py-2.5"
-              >
-                <Download size={15} /> Download PDF A4
-              </Button>
-
-              <Button 
-                type="button" 
-                onClick={handlePrint} 
-                disabled={!selectedTemplate || !selectedStudent}
-                className="flex-1 bg-[var(--ui-primary-btn,var(--ui-primary))] hover:opacity-90 text-white font-black text-xs px-4 py-2.5 rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
-              >
-                <Printer size={15} /> Cetak Langsung
-              </Button>
-            </div>
-
-          </div>
-
-          {/* Right Panel: Realtime A4 Paper Studio Preview (7 cols) */}
-          <div className="xl:col-span-7 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)] p-4 sm:p-6 shadow-sm space-y-4 sticky top-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-amber-400 shrink-0" />
-                <h3 className="font-black text-xs uppercase tracking-widest text-slate-200">
-                  Pratinjau Kertas Dokumen A4 Realtime
-                </h3>
-              </div>
-
-              <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-[var(--ui-radius-small)]">
-                Format Standar A4 (210mm x 297mm)
-              </span>
-            </div>
-
-            {/* Interactive Paper Workspace */}
-            <div className="bg-slate-950/80 border border-slate-800 rounded-[var(--ui-radius-control)] p-4 sm:p-6 overflow-x-auto max-h-[750px] overflow-y-auto custom-scrollbar flex items-start justify-center">
-              <PrintPreviewPaper 
-                template={selectedTemplate} 
-                student={selectedStudent} 
-                school={school} 
-                appSettings={useAppStore.getState().appSettings}
-                customValues={customValues}
-                paperRef={paperRef}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-1">
-              <span>*Variabel dinamis otomatis diganti berdasarkan data siswa &amp; sekolah.</span>
-              <span className="text-emerald-400 font-bold">Siap Dicetak</span>
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
-      {/* ─── TAB 2: KELOLA TEMPLATE SURAT ───────────────────────────────────── */}
-      {activeTab === 'template' && (
-        <div className="space-y-6 animate-in fade-in duration-200 font-inherit">
-          
-          {/* Preset Template Quick Loader Section */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 space-y-3">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div>
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles size={14} className="text-amber-500" />
-                  Prasetel Template Standar Sekolah (Quick Preset)
-                </h4>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Tambahkan template resmi dengan sekali klik tanpa perlu mengetik dari awal.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {PRESET_DEFAULT_TEMPLATES.map((preset, idx) => (
-                <div key={idx} className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-control)] p-3.5 shadow-2xs flex flex-col justify-between space-y-3">
-                  <div>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
-                      {preset.jenis}
-                    </span>
-                    <h5 className="font-bold text-xs text-slate-800 mt-1.5">{preset.nama}</h5>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => handleUsePresetDirectly(preset)}
-                      className="flex-1 bg-[var(--ui-primary)]/10 hover:bg-[var(--ui-primary)] text-[var(--ui-primary)] hover:text-white font-bold text-[11px] py-1.5 px-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center gap-1"
-                      title="Gunakan preset langsung di Studio Cetak A4"
-                    >
-                      <Send size={11} /> Gunakan
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSavePresetToDb(preset)}
-                      className="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-[11px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/80 transition-all cursor-pointer flex items-center justify-center gap-1"
-                      title="Simpan preset ke daftar template saya"
-                    >
-                      <Plus size={11} /> Simpan
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Existing Templates Grid */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
-                <Layers size={16} className="text-[var(--ui-primary)]" />
-                Daftar Template Tersimpan ({templates.length})
-              </h3>
-            </div>
-
-            {isLoading ? (
-              <div className="p-12 text-center text-slate-400">
-                <RefreshCw size={28} className="animate-spin mx-auto mb-2 opacity-40" />
-                <p className="text-xs font-bold">Memuat template surat…</p>
-              </div>
-            ) : templates.length === 0 ? (
-              <div className="text-center py-16 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] text-slate-400 p-6">
-                <FileText size={48} className="mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="font-bold text-sm text-slate-700">Belum ada template surat tersimpan.</p>
-                <p className="text-xs text-slate-400 mt-1">Klik tombol "Buat Template Baru" atau gunakan prasetel di atas.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {templates.map(t => {
-                  const jenisObj = JENIS_SURAT.find(j => j.key === t.jenis);
-                  return (
-                    <div 
-                      key={t.id} 
-                      className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-5 shadow-xs hover:shadow-xs hover:-translate-y-0.5 transition-all flex flex-col justify-between space-y-4"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[10px] font-black bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] px-2 py-0.5 rounded-[var(--ui-radius-small)] uppercase tracking-wider border border-[var(--ui-primary)]/20">
-                            {jenisObj?.label || t.jenis}
-                          </span>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingTemplate(t);
-                                setForm({ jenis: t.jenis, nama: t.nama, isi_template: t.isi_template });
-                                setShowModal(true);
-                              }}
-                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/80 cursor-pointer transition-colors"
-                              title="Edit Template"
-                            >
-                              <Edit2 size={13} />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(t.id)}
-                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 cursor-pointer transition-colors"
-                              title="Hapus Template"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar name={name} size="xs" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold truncate">{name}</p>
+                            <p className="text-[10px] text-slate-400 font-semibold">{s.nis} • {cls}</p>
                           </div>
                         </div>
-
-                        <h3 className="font-extrabold text-sm text-slate-800 leading-snug">{t.nama}</h3>
-                        <p className="text-xs text-slate-500 line-clamp-4 font-serif leading-relaxed bg-slate-50/80 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100">
-                          {t.isi_template}
-                        </p>
+                        {isSelected && <Check size={14} className="text-emerald-600 shrink-0" />}
                       </div>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                        <span>Status: Siap Digunakan</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedTemplate(t);
-                            setActiveTab('cetak');
-                          }}
-                          className="font-bold text-[var(--ui-primary)] hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>Gunakan</span>
-                          <ChevronRight size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            )}
-          </div>
 
+              {/* Step 3: Numbering & Details */}
+              <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-[var(--ui-shadow-card)] space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    Penomoran & Keterangan Khusus
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="text-[9.5px] font-bold text-slate-500 uppercase block mb-1">Nomor Surat ({'{NOMOR_SURAT}'})</label>
+                    <input
+                      type="text"
+                      value={customValues.nomorSurat}
+                      onChange={e => setCustomValues({ ...customValues, nomorSurat: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] font-mono text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] font-bold text-slate-500 uppercase block mb-1">Tanggal Surat ({'{TANGGAL}'})</label>
+                    <input
+                      type="text"
+                      value={customValues.tanggalSurat}
+                      onChange={e => setCustomValues({ ...customValues, tanggalSurat: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] font-bold text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9.5px] font-bold text-slate-500 uppercase block mb-1">Keterangan Tambahan / Alasan ({'{KETERANGAN}'})</label>
+                  <textarea
+                    rows={2}
+                    value={customValues.keterangan}
+                    onChange={e => setCustomValues({ ...customValues, keterangan: e.target.value })}
+                    className="w-full px-2.5 py-1.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] text-xs font-medium resize-none"
+                    placeholder="Keperluan Administrasi Sekolah..."
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handleExportPDF}
+                  disabled={isExportingPdf}
+                  className="w-full flex items-center justify-center gap-1.5 font-bold text-xs py-2.5"
+                >
+                  <Download size={14} />
+                  <span>{isExportingPdf ? 'Mengekspor...' : 'Download PDF A4'}</span>
+                </Button>
+
+                <Button
+                  variant="primary"
+                  type="button"
+                  onClick={handlePrintDirect}
+                  className="w-full flex items-center justify-center gap-1.5 font-bold text-xs py-2.5 shadow-[var(--ui-shadow-control)]"
+                >
+                  <Printer size={14} />
+                  <span>Cetak Langsung</span>
+                </Button>
+              </div>
+
+            </div>
+
+            {/* Right Panel: Live A4 Document Preview (7 cols) */}
+            <div className={`xl:col-span-7 ${mobileStudioTab === 'form' ? 'hidden xl:block' : 'block'}`}>
+              <div className="bg-slate-900 rounded-[var(--ui-radius-card)] p-4 sm:p-6 shadow-xl relative overflow-hidden">
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800 text-xs">
+                  <span className="font-extrabold text-amber-400 flex items-center gap-1.5">
+                    <Sparkles size={14} /> Pratinjau Kertas Dokumen A4 Realtime
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Margin: {liveMargins.kopMarginSide}mm | Top: {liveMargins.kopMarginTop}mm
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto pb-4">
+                  <PrintPreviewPaper
+                    template={selectedTemplate}
+                    student={selectedStudent}
+                    school={school}
+                    appSettings={appSettings}
+                    customValues={customValues}
+                    liveMargins={liveMargins}
+                    paperRef={paperRef}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800 text-[10px] text-slate-400">
+                  <span>*Variabel dinamis otomatis diganti berdasarkan data siswa & sekolah.</span>
+                  <span className="text-emerald-400 font-bold">Siap Dicetak</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
 
-      {/* ─── MODAL: BUAT / EDIT TEMPLATE SURAT ─────────────────────────────── */}
+      {/* ─── TAB 2: KELOLA TEMPLATE SURAT ────────────────────────────────────── */}
+      {activeTab === 'template' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {templates.map(t => {
+              const jenisObj = JENIS_SURAT.find(j => j.key === t.jenis);
+              return (
+                <div key={t.id} className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col justify-between gap-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {jenisObj?.label || t.jenis}
+                      </span>
+                    </div>
+                    <h4 className="font-black text-sm text-slate-800 leading-snug">{t.nama}</h4>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-3 leading-relaxed font-mono text-[11px] bg-slate-50 p-2.5 rounded border border-slate-100 mt-2">
+                      {t.isi_template}
+                    </p>
+                  </div>
+
+                  {!readOnly && (
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingTemplate(t);
+                          setForm({ jenis: t.jenis, nama: t.nama, isi_template: t.isi_template });
+                          setShowModal(true);
+                        }}
+                        className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-[var(--ui-radius-control)] flex items-center gap-1 cursor-pointer"
+                      >
+                        <Edit2 size={13} /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTemplate(t.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded bg-slate-100 hover:bg-rose-50 border border-slate-200 cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Modal CRUD Template */}
       {showModal && (
         <Modal
-          isOpen={true}
+          isOpen={showModal}
           onClose={() => setShowModal(false)}
-          title={editingTemplate ? 'Edit Template Surat' : 'Buat Template Surat Baru'}
-          maxWidth="max-w-4xl"
+          title={editingTemplate ? "Edit Template Surat" : "Buat Template Surat Baru"}
+          maxWidth="max-w-2xl"
         >
-          <div className="space-y-5 font-inherit">
-            
-            {/* Top Info Header & Form Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSaveTemplate} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-0.5">
-                  Jenis Surat / Kategori
-                </label>
-                <UISelect 
-                  value={form.jenis} 
-                  onChange={e => setForm(p => ({ ...p, jenis: e.target.value }))}
-                  className="w-full text-xs font-bold"
-                >
-                  {JENIS_SURAT.map(j => <option key={j.key} value={j.key}>{j.label}</option>)}
-                </UISelect>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Kategori Jenis Surat</label>
+                <CustomSelect
+                  value={form.jenis}
+                  onChange={val => setForm(prev => ({ ...prev, jenis: val }))}
+                  options={JENIS_SURAT.map(j => ({ value: j.key, label: j.label }))}
+                  searchable={false}
+                  placeholder="Pilih Kategori Surat"
+                />
               </div>
-
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-0.5">
-                  Judul / Nama Template
-                </label>
-                <input 
-                  type="text" 
-                  value={form.nama} 
-                  onChange={e => setForm(p => ({ ...p, nama: e.target.value }))} 
-                  placeholder="Contoh: Surat Panggilan Orang Tua (SP1)…"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)]" 
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Nama Judul Template</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Surat Panggilan Wali Murid..."
+                  value={form.nama}
+                  onChange={e => setForm({ ...form, nama: e.target.value })}
+                  className="w-full h-9 px-2.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] font-bold text-xs"
                 />
               </div>
             </div>
 
-            {/* Variable Injector Palette */}
-            <div className="bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-control)] p-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                  <Sparkles size={12} className="text-amber-500" />
-                  Sisipkan Variabel Otomatis (Klik Untuk Menambahkan Ke Teks)
-                </label>
-                <span className="text-[10px] text-slate-400 font-semibold">Klik chip di bawah</span>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase">Isi Teks Surat (Termasuk Placeholder)</label>
+                <span className="text-[10px] text-slate-400">Gunakan tag kurung kurawal</span>
               </div>
+              <textarea
+                required
+                rows={10}
+                value={form.isi_template}
+                onChange={e => setForm({ ...form, isi_template: e.target.value })}
+                className="w-full p-3 font-mono text-xs leading-relaxed rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)]"
+              />
+            </div>
 
+            {/* Variable Tags reference */}
+            <div className="p-3 bg-slate-50 rounded border border-slate-200">
+              <span className="text-[10px] font-black uppercase text-slate-500 block mb-1.5">Tag Variabel yang Tersedia:</span>
               <div className="flex flex-wrap gap-1.5">
                 {PLACEHOLDER_VARIABLES.map(v => (
                   <button
                     key={v.var}
                     type="button"
-                    onClick={() => insertVariableIntoTextarea(v.var)}
+                    onClick={() => setForm({ ...form, isi_template: form.isi_template + ' ' + v.var })}
+                    className="px-1.5 py-0.5 rounded bg-white border border-slate-200 font-mono text-[10px] font-bold text-indigo-700 hover:bg-indigo-50 cursor-pointer"
                     title={v.desc}
-                    className="px-2 py-1 bg-white hover:bg-[var(--ui-primary)]/10 text-slate-700 hover:text-[var(--ui-primary)] border border-slate-200/80 rounded-[var(--ui-radius-small)] text-[11px] font-mono font-bold transition-all cursor-pointer shadow-2xs"
                   >
                     {v.var}
                   </button>
@@ -965,73 +1183,58 @@ export default function ESurat() {
               </div>
             </div>
 
-            {/* Textarea Code/Format Editor */}
-            <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-0.5">
-                Isi Format Template Surat
-              </label>
-              <textarea 
-                ref={textareaRef}
-                rows={12} 
-                value={form.isi_template} 
-                onChange={e => setForm(p => ({ ...p, isi_template: e.target.value }))}
-                placeholder="Ketik isi template surat di sini. Gunakan tombol chip variabel di atas untuk menyisipkan data siswa/sekolah otomatis..."
-                className="w-full px-3.5 py-3 bg-white border border-slate-300 rounded-[var(--ui-radius-control)] text-xs font-serif leading-relaxed text-slate-900 focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)] resize-y" 
-              />
+            <div className="pt-2 flex justify-end gap-2">
+              <Button variant="outline" size="sm" type="button" onClick={() => setShowModal(false)}>
+                Batal
+              </Button>
+              <Button variant="primary" size="sm" type="submit">
+                Simpan Template
+              </Button>
             </div>
-
-            {/* Action Bar */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">
-                Gunakan format surat yang rapi dan terstruktur.
-              </span>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" type="button" onClick={() => setShowModal(false)}>
-                  Batal
-                </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleSave} 
-                  className="bg-[var(--ui-primary-btn,var(--ui-primary))] hover:opacity-90 text-white font-black text-xs px-4 py-2 rounded-[var(--ui-radius-control)] shadow-xs cursor-pointer"
-                >
-                  Simpan Template
-                </Button>
-              </div>
-            </div>
-
-          </div>
+          </form>
         </Modal>
       )}
 
-      {/* Hidden Print Styling */}
-      <style>{`
-        @media print { 
-          body * { visibility: hidden !important; } 
-          .print-paper-canvas, .print-paper-canvas * { visibility: visible !important; } 
-          .print-paper-canvas { 
-            position: fixed !important; 
-            top: 0 !important; 
-            left: 0 !important; 
-            width: 100% !important; 
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 20mm !important;
-            box-shadow: none !important;
-            border: none !important;
-          } 
-        }
-      `}</style>
-
-      {/* Global Toast Alert */}
+      {/* Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-sm font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-modal)] font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
-        } z-[9999]`}>
+        }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 
           <span>{toast.message}</span>
         </div>
       )}
+
+      {/* Print Media Query CSS */}
+      <style>{`
+        @media print {
+          body, html {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          .print-paper-canvas, .print-paper-canvas * {
+            visibility: visible !important;
+          }
+          .print-paper-canvas {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

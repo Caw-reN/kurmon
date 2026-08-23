@@ -27,7 +27,7 @@ export function PaginationControls({
   const endItem = Math.min(safePage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 px-4 py-3 border-t border-slate-100 bg-slate-50/60 shrink-0">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 px-4 py-3 border-t border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] shrink-0">
       {/* Left: Items info + rows selector */}
       <div className="flex items-center gap-2.5">
         <span className="text-[11px] text-slate-500 font-medium">
@@ -39,7 +39,7 @@ export function PaginationControls({
           <button
             type="button"
             onClick={() => setShowDropdown(v => !v)}
-            className="h-6 px-2 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer"
+            className="h-6 px-2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-[11px] font-bold text-slate-600 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] transition-all flex items-center gap-1 cursor-pointer shadow-[var(--ui-shadow-control)]"
           >
             <span>{itemsPerPage} baris</span>
             <span className="text-[8px] text-slate-400">▼</span>
@@ -50,7 +50,7 @@ export function PaginationControls({
                 className="fixed inset-0 z-40"
                 onClick={() => setShowDropdown(false)}
               />
-              <div className="absolute left-0 bottom-7 min-w-[90px] bg-white border border-slate-200 shadow-sm rounded-[var(--ui-radius-small)] p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
+              <div className="absolute left-0 bottom-7 min-w-[90px] bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-popover)] rounded-[var(--ui-radius-control)] p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
                 {pageSizeOptions.map(size => (
                   <button
                     key={size}
@@ -60,10 +60,10 @@ export function PaginationControls({
                       onPageChange?.(1);
                       setShowDropdown(false);
                     }}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-colors cursor-pointer border-none ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-control)] text-[10px] font-bold transition-colors cursor-pointer border-none ${
                       itemsPerPage === size
-                        ?'bg-[var(--ui-primary)] text-white'
-                        :'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                        ? 'bg-[var(--ui-primary)] text-white'
+                        : 'text-slate-600 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)]'
                     }`}
                   >
                     {size} baris
@@ -81,7 +81,7 @@ export function PaginationControls({
           type="button"
           onClick={() => onPageChange?.(safePage - 1)}
           disabled={safePage <= 1}
-          className="w-7 h-7 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="w-7 h-7 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white flex items-center justify-center text-slate-600 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-[var(--ui-shadow-control)]"
         >
           <ChevronLeft size={13} />
         </button>
@@ -94,7 +94,7 @@ export function PaginationControls({
           type="button"
           onClick={() => onPageChange?.(safePage + 1)}
           disabled={safePage >= totalPages}
-          className="w-7 h-7 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="w-7 h-7 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white flex items-center justify-center text-slate-600 hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-[var(--ui-shadow-control)]"
         >
           <ChevronRight size={13} />
         </button>
@@ -114,10 +114,11 @@ export function usePagination(data = [], defaultPerPage = 20) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultPerPage);
 
-  const totalItems = data.length;
+  const safeData = Array.isArray(data) ? data : [];
+  const totalItems = safeData.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const safePage = Math.max(1, Math.min(currentPage, totalPages));
-  const paginatedData = data.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const paginatedData = safeData.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
   const handlePageChange = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   const handlePerPageChange = (perPage) => {

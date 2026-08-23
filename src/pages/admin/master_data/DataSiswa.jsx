@@ -1,96 +1,35 @@
-import { Button, TablePagination } from '../../../components/ui.jsx';
-import { CustomSelect } from '../../../components/CustomSelect.jsx';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Users, CheckCircle2, XCircle, Search, Settings, Save, Upload, Download, 
-  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown
+  Users, CheckCircle2, XCircle, Search, Save, Upload, Download, 
+  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown,
+  GraduationCap, Briefcase, Calendar, Check, Clock, Sparkles, Layers
 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import useAuthStore from '../../../store/monitoring/authStore';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource';
-import { PageHeader, StatCard, Avatar } from '../../../components/monitoring/ui/index.js';
+import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
+import { Button, Modal } from '../../../components/ui.jsx';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
+import { usePagination } from '../../../components/ui/PaginationControls.jsx';
 
-/**
- * ClickPicker component for dropdown select with search
- */
-const ClickPicker = ({ value, onChange, options, placeholder = "Pilih..." }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const ref = useRef(null);
+const getToken = () => {
+  try {
+    const raw = sessionStorage.getItem("school_schedule_session_v1");
+    if (raw) return JSON.parse(raw)?.authToken;
+  } catch (e) {}
+  return null;
+};
 
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
-
-  const filteredOptions = options.filter(opt => 
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const selectedOpt = options.find(o => String(o.value) === String(value));
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => { setIsOpen(!isOpen); setSearch(''); }}
-        className="w-full text-left flex justify-between items-center px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20"
-      >
-        <span className={selectedOpt ? "text-slate-800 font-bold" : "text-slate-400"}>
-          {selectedOpt ? selectedOpt.label : placeholder}
-        </span>
-        <span className="text-slate-400 text-xs">▼</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-[60] mt-1 w-full bg-white border border-slate-200 rounded-[var(--ui-radius-small)] shadow-sm max-h-60 overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95">
-          <div className="p-2 border-b border-slate-100 bg-slate-50 shrink-0">
-            <input
-              type="text"
-              autoFocus
-              placeholder="Cari..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
-            />
-          </div>
-          <div className="overflow-y-auto flex-1 py-1 custom-scrollbar">
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-slate-400 text-center font-medium">Tidak ditemukan</div>
-            ) : (
-              filteredOptions.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold transition-colors cursor-pointer border-none ${
-                    String(opt.value) === String(value)
-                      ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-bold'
-                      : 'text-slate-700 bg-transparent hover:bg-slate-50'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                  {String(opt.value) === String(value) && (
-                    <span className="w-2 h-2 rounded-full bg-[var(--ui-primary)]"></span>
-                  )}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+// Major badge color palette
+const getMajorBadgeStyle = (jurusan = '') => {
+  const j = jurusan.toUpperCase();
+  if (j.includes('TKJ') || j.includes('TJKT')) return 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
+  if (j.includes('TKR') || j.includes('OTO')) return 'bg-orange-50 text-orange-700 border-orange-200/60';
+  if (j.includes('RPL') || j.includes('PPLG')) return 'bg-cyan-50 text-cyan-700 border-cyan-200/60';
+  if (j.includes('AK') || j.includes('AKL')) return 'bg-pink-50 text-pink-700 border-pink-200/60';
+  if (j.includes('MP') || j.includes('MPLB') || j.includes('OTKP')) return 'bg-purple-50 text-purple-700 border-purple-200/60';
+  return 'bg-slate-50 text-slate-700 border-slate-200/60';
 };
 
 const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, onSave, setActiveTab }) => {
@@ -103,60 +42,58 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   
   const [selectedSiswa, setSelectedSiswa] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(15);
-
   const [eligibleClass, setEligibleClass] = useState("XII");
 
-  const authToken = useAuthStore(state => state.user?.authToken);
-  
   const [perusahaanPKL, setPerusahaanPKL] = useState([]);
   const [pklStudentsMapping, setPklStudentsMapping] = useState([]);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  useEffect(() => {
-    fetch("/api/monitoring/lokasi-pkl/public")
-      .then(res => res.json())
-      .then(data => { if (data.ok) setPerusahaanPKL(data.data); })
-      .catch(console.error);
+  const fetchPKLData = () => {
+    const token = getToken();
+    setLoading(true);
+
+    Promise.all([
+      fetch("/api/pkl/locations", { headers: token ? { "Authorization": `Bearer ${token}` } : {} })
+        .then(r => r.json()).catch(() => ({ ok: false, data: [] })),
+      fetch("/api/monitoring/pkl-students", { headers: token ? { "Authorization": `Bearer ${token}` } : {} })
+        .then(r => r.json()).catch(() => ({ ok: false, data: [] })),
+      fetch("/api/settings/pkl", { headers: token ? { "Authorization": `Bearer ${token}` } : {} })
+        .then(r => r.json()).catch(() => ({ ok: false }))
+    ]).then(([locData, pklData, settingsData]) => {
+      if (locData?.ok) setPerusahaanPKL(Array.isArray(locData.data) ? locData.data : []);
+      if (pklData?.ok) setPklStudentsMapping(Array.isArray(pklData.data) ? pklData.data : []);
       
-    fetch("/api/settings/pkl", { headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {} })
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok && data.data?.eligibleClass) {
-          setEligibleClass(data.data.eligibleClass);
-        } else {
-          const localSnapshot = getDatabaseSnapshot() || {};
-          const localSettings = localSnapshot.appSettings || {};
-          if (localSettings.eligibleClass) setEligibleClass(localSettings.eligibleClass);
-        }
-      })
-      .catch(() => {
+      if (settingsData?.ok && settingsData.data?.eligibleClass) {
+        setEligibleClass(settingsData.data.eligibleClass);
+      } else {
         const localSnapshot = getDatabaseSnapshot() || {};
         const localSettings = localSnapshot.appSettings || {};
         if (localSettings.eligibleClass) setEligibleClass(localSettings.eligibleClass);
-      });
-        
-    if (authToken) {
-      fetch("/api/monitoring/pkl-students", { headers: { "Authorization": `Bearer ${authToken}` } })
-        .then(res => res.json())
-        .then(data => { if (data.ok) setPklStudentsMapping(data.data); })
-        .catch(console.error);
-    }
-  }, [authToken]);
+      }
+      setLoading(false);
+    }).catch(err => {
+      console.error("[DataSiswa] Error loading PKL data:", err);
+      setLoading(false);
+    });
+  };
 
-  const saveSettings = async () => {
-    setIsSavingSettings(true);
+  useEffect(() => {
+    fetchPKLData();
+  }, []);
+
+  const handleTingkatChange = async (newTingkat) => {
+    setEligibleClass(newTingkat);
+    const token = getToken();
     try {
       const localSnapshot = getDatabaseSnapshot() || {};
-      const newSettings = { ...(localSnapshot.appSettings || {}), eligibleClass };
+      const newSettings = { ...(localSnapshot.appSettings || {}), eligibleClass: newTingkat };
       const updatedSnapshot = { ...localSnapshot, appSettings: newSettings };
       
       setDatabaseSnapshot(updatedSnapshot);
@@ -164,24 +101,18 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       if (onSave) await onSave(updatedSnapshot);
 
       const headers = { "Content-Type": "application/json" };
-      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch("/api/settings/pkl", {
+      await fetch("/api/settings/pkl", {
         method: "PUT",
         headers,
-        body: JSON.stringify({ eligibleClass })
+        body: JSON.stringify({ eligibleClass: newTingkat })
       });
-      const resJson = await res.json();
-      if (!resJson.ok) {
-        console.warn("Server save error:", resJson.error);
-      }
 
-      showToast(`Pengaturan tingkat PKL (${eligibleClass}) berhasil disimpan!`);
+      showToast(`Menampilkan siswa PKL Tingkat ${newTingkat}`);
     } catch (e) {
       console.error(e);
-      showToast("Gagal menyimpan pengaturan", "error");
     }
-    setIsSavingSettings(false);
   };
 
   const handleImport = (e) => {
@@ -219,13 +150,17 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     reader.readAsArrayBuffer(file);
   };
 
-  // Parse student data cleanly
+  // Parse student data with accurate database mapping
   const pklStudents = useMemo(() => {
-    return students.filter(s => s.class_name && s.class_name.toUpperCase().startsWith(eligibleClass.toUpperCase()))
+    const targetPrefix = String(eligibleClass || 'XII').toUpperCase();
+    
+    return students
+      .filter(s => s.class_name && s.class_name.toUpperCase().startsWith(targetPrefix))
       .map(s => {
-        const mapping = pklStudentsMapping.find(m => String(m.nis) === String(s.nis)) || {};
+        const studentNis = String(s.nis || s.id || '').trim();
+        const mapping = pklStudentsMapping.find(m => String(m.nis).trim() === studentNis) || {};
         
-        // Extract Jurusan code from class_name e.g. "XII TKJ 3" -> "TKJ", "XII TKR 1" -> "TKR"
+        // Extract Jurusan code
         const nameParts = (s.class_name || '').trim().split(/\s+/);
         let jCode = 'Umum';
         if (nameParts.length >= 2) {
@@ -234,48 +169,50 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           jCode = s.jurusan;
         }
 
+        const isAssigned = Boolean(mapping.location_id);
+
         return {
-          id: s.nis,
-          nis: String(s.nis || '').trim(),
-          nama: String(s.name || '').trim(),
+          id: studentNis,
+          nis: studentNis,
+          nama: String(s.name || s.nama || '').trim(),
           kelas: String(s.class_name || '').trim(),
           jurusan: jCode,
-          perusahaanId: mapping.location_id,
-          guruPembimbingCode: mapping.teacher_code,
-          statusPKL: mapping.location_id ? 'Sudah PKL' : 'Belum PKL',
-          lamaPKL: mapping.location_id ? '6 Bulan' : '-'
+          perusahaanId: mapping.location_id || null,
+          guruPembimbingCode: mapping.teacher_code || null,
+          statusPKL: isAssigned ? 'Sudah PKL' : 'Belum PKL',
+          lamaPKL: isAssigned ? '6 Bulan' : '-'
         };
       });
   }, [students, eligibleClass, pklStudentsMapping]);
 
-  // Sort Jurusan Options Alphabetically
+  // Jurusan Options
   const jurusanOptions = useMemo(() => {
     const unique = Array.from(new Set(pklStudents.map(s => s.jurusan))).filter(Boolean);
     unique.sort((a, b) => a.localeCompare(b));
     return ['Semua', ...unique];
   }, [pklStudents]);
 
-  // Sort Kelas Options Naturally (e.g. XII AK 1, XII AK 2, XII TKJ 1, XII TKJ 2...)
+  // Kelas Options
   const kelasOptions = useMemo(() => {
     const unique = Array.from(new Set(pklStudents.map(s => s.kelas))).filter(Boolean);
     unique.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
     return ['Semua', ...unique];
   }, [pklStudents]);
 
-  // Filter & Sort Students array
+  // Filter & Sort Students
   const filtered = useMemo(() => {
     const result = pklStudents.filter((s) => {
+      const q = search.toLowerCase();
       const matchSearch =
-        s.nama.toLowerCase().includes(search.toLowerCase()) ||
-        s.nis.toLowerCase().includes(search.toLowerCase()) ||
-        s.kelas.toLowerCase().includes(search.toLowerCase());
+        s.nama.toLowerCase().includes(q) ||
+        s.nis.toLowerCase().includes(q) ||
+        s.kelas.toLowerCase().includes(q);
       const matchStatus = filterStatus === 'Semua' || s.statusPKL === filterStatus;
       const matchJurusan = filterJurusan === 'Semua' || s.jurusan === filterJurusan;
       const matchKelas = filterKelas === 'Semua' || s.kelas === filterKelas;
       return matchSearch && matchStatus && matchJurusan && matchKelas;
     });
 
-    // Apply Sorting
     result.sort((a, b) => {
       if (sortBy === 'kelas_nis') {
         const classComp = a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
@@ -284,15 +221,9 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         if (nisComp !== 0) return nisComp;
         return a.nama.localeCompare(b.nama);
       }
-      if (sortBy === 'nama_asc') {
-        return a.nama.localeCompare(b.nama);
-      }
-      if (sortBy === 'nama_desc') {
-        return b.nama.localeCompare(a.nama);
-      }
-      if (sortBy === 'nis_asc') {
-        return a.nis.localeCompare(b.nis, undefined, { numeric: true });
-      }
+      if (sortBy === 'nama_asc') return a.nama.localeCompare(b.nama);
+      if (sortBy === 'nama_desc') return b.nama.localeCompare(a.nama);
+      if (sortBy === 'nis_asc') return a.nis.localeCompare(b.nis, undefined, { numeric: true });
       if (sortBy === 'status_belum') {
         if (a.statusPKL === b.statusPKL) return a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
         return a.statusPKL === 'Belum PKL' ? -1 : 1;
@@ -307,8 +238,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     return result;
   }, [pklStudents, search, filterStatus, filterJurusan, filterKelas, sortBy]);
 
-  const paginatedData = useMemo(() => filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filtered, currentPage, itemsPerPage]);
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const { paginatedData, PaginationBar } = usePagination(filtered, 15);
 
   const totalCount = pklStudents.length;
   const sudahPklCount = pklStudents.filter(s => s.statusPKL === 'Sudah PKL').length;
@@ -316,7 +246,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
   const handleExport = () => {
     const exportData = filtered.map(s => {
-      const guru = teachers.find(g => String(g.code) === String(s.guruPembimbingCode));
+      const guru = teachers.find(g => String(g.code || g.id) === String(s.guruPembimbingCode));
       const perusahaan = perusahaanPKL.find(p => String(p.id) === String(s.perusahaanId));
       return {
         NIS: s.nis,
@@ -324,7 +254,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         Kelas: s.kelas,
         Jurusan: s.jurusan,
         "Perusahaan PKL": perusahaan?.nama_perusahaan || "Belum Ditempatkan",
-        "Guru Pembimbing": guru?.name || "Belum Ditugaskan",
+        "Guru Pembimbing": guru?.name || guru?.nama || "Belum Ditugaskan",
         "Status PKL": s.statusPKL,
         "Lama PKL": s.lamaPKL
       };
@@ -341,128 +271,164 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     });
   };
 
+  const handleSaveAssignment = async () => {
+    if (!selectedSiswa) return;
+    setIsSavingSettings(true);
+    const token = getToken();
+
+    try {
+      await fetch("/api/monitoring/pkl-students/bulk", {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`, 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ 
+          updates: [{ 
+            nis: selectedSiswa.nis, 
+            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null, 
+            teacher_code: selectedSiswa.guruPembimbingCode || null 
+          }] 
+        })
+      });
+      
+      setPklStudentsMapping(prev => {
+        const newMap = [...prev];
+        const idx = newMap.findIndex(m => String(m.nis) === String(selectedSiswa.nis));
+        if (idx >= 0) {
+          newMap[idx] = {
+            ...newMap[idx],
+            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null,
+            teacher_code: selectedSiswa.guruPembimbingCode || null
+          };
+        } else {
+          newMap.push({ 
+            nis: selectedSiswa.nis, 
+            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null, 
+            teacher_code: selectedSiswa.guruPembimbingCode || null 
+          });
+        }
+        return newMap;
+      });
+
+      showToast("Penugasan PKL siswa berhasil diperbarui!");
+      setSelectedSiswa(null);
+    } catch (e) {
+      showToast("Gagal menyimpan penugasan", "error");
+    }
+    setIsSavingSettings(false);
+  };
+
   return (
-    <div className="space-y-5 animate-in fade-in duration-300 pb-10">
-      {/* Top Banner Header */}
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-300 pb-10">
+      {/* Top Banner Header (Clean & Uncluttered) */}
       <PageHeader
         icon={Users}
         title="Data Siswa PKL"
-        description={`${pklStudents.length} siswa kelas ${eligibleClass} sinkron otomatis dari Master Data`}
-      >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Tingkat PKL selector */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/25 px-3 py-1.5 rounded-[var(--ui-radius-small)] flex items-center justify-between gap-2 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Settings size={14} className="text-white shrink-0"/>
-              <span className="text-[10px] font-black text-white uppercase tracking-wider">Tingkat:</span>
-              <div className="flex bg-black/20 p-0.5 rounded-[var(--ui-radius-small)]">
-                {["X", "XI", "XII"].map(lvl => (
-                  <button
-                    key={lvl}
-                    type="button"
-                    onClick={() => { setEligibleClass(lvl); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none ${
-                      eligibleClass === lvl 
-                        ? 'bg-white text-[var(--ui-primary)] shadow-sm scale-105' 
-                        : 'bg-transparent text-white/80 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {lvl}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button 
-              onClick={saveSettings} 
-              disabled={isSavingSettings} 
-              className="cursor-pointer bg-white/20 hover:bg-white/30 text-white border-none p-1.5 rounded-[var(--ui-radius-small)] transition-all active:scale-95 flex items-center gap-1 text-[11px] font-bold" 
-              title="Simpan Pengaturan Tingkat"
-            >
-              <Save size={13} />
-              <span className="hidden sm:inline">Simpan</span>
-            </button>
-          </div>
-          
-          {/* Action buttons */}
+        description={`Manajemen ${pklStudents.length} siswa kelas ${eligibleClass} sinkron otomatis dari Master Data.`}
+        rightContent={
           <div className="flex items-center gap-2">
-            <button 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 const f = document.createElement('input'); f.type = 'file'; f.accept = '.xlsx,.xls'; f.onchange = handleImport; f.click();
-              }} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+              }}
+              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
             >
-              <Upload size={14} strokeWidth={2.5} /> Impor
-            </button>
-            <button 
-              onClick={handleExport} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border-none h-9 px-3.5 rounded-[var(--ui-radius-small)] text-[var(--ui-primary)] bg-white font-black text-xs shadow-sm hover:bg-slate-50 cursor-pointer active:scale-95 transition-all"
+              <Upload size={13} strokeWidth={2.5} /> Impor Excel
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
             >
-              <Download size={14} strokeWidth={2.5} /> Ekspor
-            </button>
+              <Download size={13} strokeWidth={2.5} /> Ekspor Excel
+            </Button>
           </div>
-        </div>
-      </PageHeader>
+        }
+      />
 
-      {/* Interactive Quick Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      {/* 3 Interactive Quick Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         <div 
-          onClick={() => { setFilterStatus('Semua'); setCurrentPage(1); }}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Semua' ? 'ring-2 ring-[var(--ui-primary)] shadow-xs bg-slate-50/50' : 'hover:border-slate-300'
+          onClick={() => { setFilterStatus('Semua'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterStatus === 'Semua' ? 'border-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20' : 'border-slate-200/80'
           }`}
         >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-            <Users size={22} />
-          </div>
           <div>
-            <p className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">TOTAL SISWA PKL</p>
-            <h3 className="text-2xl font-black text-slate-800 mt-0.5">{totalCount}</h3>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+              TOTAL SISWA PKL
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{totalCount}</h3>
+              <span className="text-xs font-bold text-slate-400">Kelas {eligibleClass}</span>
+            </div>
           </div>
-        </div>
-
-        <div 
-          onClick={() => { setFilterStatus('Sudah PKL'); setCurrentPage(1); }}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Sudah PKL' ? 'ring-2 ring-emerald-500 shadow-xs bg-emerald-50/30' : 'hover:border-emerald-200'
-          }`}
-        >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={22} />
-          </div>
-          <div>
-            <p className="text-[11px] font-extrabold uppercase text-emerald-600 tracking-wider">SUDAH PKL</p>
-            <h3 className="text-2xl font-black text-emerald-700 mt-0.5">{sudahPklCount}</h3>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <Users size={22} strokeWidth={2.5} />
           </div>
         </div>
 
         <div 
-          onClick={() => { setFilterStatus('Belum PKL'); setCurrentPage(1); }}
-          className={`ui-card p-4 flex items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] ${
-            filterStatus === 'Belum PKL' ? 'ring-2 ring-red-500 shadow-xs bg-red-50/30' : 'hover:border-red-200'
+          onClick={() => { setFilterStatus('Sudah PKL'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterStatus === 'Sudah PKL' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200/80'
           }`}
         >
-          <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0">
-            <XCircle size={22} />
-          </div>
           <div>
-            <p className="text-[11px] font-extrabold uppercase text-rose-600 tracking-wider">BELUM PKL</p>
-            <h3 className="text-2xl font-black text-red-700 mt-0.5">{belumPklCount}</h3>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-1">
+              SUDAH DITEMPATKAN
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">{sudahPklCount}</h3>
+              <span className="text-xs font-bold text-emerald-600">
+                ({totalCount > 0 ? Math.round((sudahPklCount / totalCount) * 100) : 0}%)
+              </span>
+            </div>
+          </div>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <CheckCircle2 size={22} strokeWidth={2.5} />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => { setFilterStatus('Belum PKL'); }}
+          className={`bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 ${
+            filterStatus === 'Belum PKL' ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-200/80'
+          }`}
+        >
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-1">
+              BELUM DITEMPATKAN
+            </span>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-rose-700 tracking-tight">{belumPklCount}</h3>
+              <span className="text-xs font-bold text-rose-500">
+                ({totalCount > 0 ? Math.round((belumPklCount / totalCount) * 100) : 0}%)
+              </span>
+            </div>
+          </div>
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 shadow-xs">
+            <XCircle size={22} strokeWidth={2.5} />
           </div>
         </div>
       </div>
 
-      {/* Main Filter & Search Control Panel */}
-      <div className="ui-card p-4 space-y-4">
-        {/* Search Bar + Mobile Filter Toggle */}
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative w-full md:flex-1">
+      {/* Main Filter & Search Control Panel (Sangat Rapi & Ergonomis) */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-4">
+        {/* Row 1: Search Bar + Status Tabs */}
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+          <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={search}
-              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+              onChange={e => { setSearch(e.target.value); }}
               placeholder="Cari nama siswa, NIS, atau kelas..."
-              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+              className="w-full pl-10 pr-10 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:shadow-[var(--ui-focus-ring)] focus:border-[var(--ui-primary)] transition-all"
             />
             {search && (
               <button 
@@ -474,16 +440,16 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
             )}
           </div>
 
-          {/* Status Pill Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto shrink-0 overflow-x-auto">
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1 bg-[var(--ui-surface-muted)] p-1 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] shrink-0 overflow-x-auto">
             {['Semua', 'Sudah PKL', 'Belum PKL'].map(st => (
               <button
                 key={st}
                 type="button"
-                onClick={() => { setFilterStatus(st); setCurrentPage(1); }}
-                className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
+                onClick={() => { setFilterStatus(st); }}
+                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
                   filterStatus === st 
-                    ? 'bg-white text-slate-800 shadow-sm' 
+                    ? 'bg-white text-slate-800 shadow-2xs' 
                     : 'text-slate-500 hover:text-slate-800 bg-transparent'
                 }`}
               >
@@ -496,20 +462,41 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           <button
             type="button"
             onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer"
+            className="md:hidden flex items-center justify-center gap-2 py-2 px-3 bg-[var(--ui-surface-muted)] hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-control)] transition-all border border-[var(--ui-border-muted)] cursor-pointer"
           >
             <Filter size={14} />
-            <span>Filter & Sortir ({filterKelas !== 'Semua' || filterJurusan !== 'Semua' || sortBy !== 'kelas_nis' ? 'Aktif' : 'Semua'})</span>
+            <span>Filter Tambahan</span>
           </button>
         </div>
 
-        {/* Dropdown Filters for Kelas, Jurusan, and SortBy (Desktop always, Mobile collapsible) */}
-        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100 ${showMobileFilters ? 'block' : 'hidden md:grid'}`}>
+        {/* Row 2: Tingkat Selector, Filter Kelas, Jurusan, dan Sortir */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[var(--ui-border-muted)] ${showMobileFilters ? 'block space-y-3 sm:space-y-0' : 'hidden md:grid'}`}>
+          {/* Tingkat PKL Switcher (Moved here for high usability!) */}
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Kelas:</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block">Tingkat Peserta PKL:</label>
+            <div className="flex items-center p-0.5 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] h-9">
+              {["X", "XI", "XII"].map(lvl => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => handleTingkatChange(lvl)}
+                  className={`flex-1 h-7.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1 ${
+                    eligibleClass === lvl 
+                      ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
+                >
+                  Kelas {lvl}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block">Filter Kelas:</label>
             <CustomSelect
               value={filterKelas}
-              onChange={val => { setFilterKelas(val); setCurrentPage(1); }}
+              onChange={val => { setFilterKelas(val); }}
               options={kelasOptions.map(k => ({ value: k, label: k === 'Semua' ? 'Semua Kelas' : `Kelas ${k}` }))}
               placeholder="Semua Kelas"
               searchable={kelasOptions.length > 6}
@@ -517,10 +504,10 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           </div>
 
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block">Filter Jurusan:</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block">Filter Jurusan:</label>
             <CustomSelect
               value={filterJurusan}
-              onChange={val => { setFilterJurusan(val); setCurrentPage(1); }}
+              onChange={val => { setFilterJurusan(val); }}
               options={jurusanOptions.map(j => ({ value: j, label: j === 'Semua' ? 'Semua Jurusan' : `Jurusan ${j}` }))}
               placeholder="Semua Jurusan"
               searchable={false}
@@ -528,94 +515,80 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
           </div>
 
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 block flex items-center gap-1">
-              <ArrowUpDown size={12} className="text-slate-400" /> Sortir & Urutan:
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 block flex items-center gap-1">
+              <ArrowUpDown size={11} className="text-slate-400" /> Sortir & Urutan:
             </label>
             <CustomSelect
               value={sortBy}
-              onChange={val => { setSortBy(val); setCurrentPage(1); }}
+              onChange={val => { setSortBy(val); }}
               searchable={false}
               options={[
-                { value: 'kelas_nis', label: 'Per Kelas & NIS (Standar Sekolah)' },
+                { value: 'kelas_nis', label: 'Per Kelas & NIS (Standar)' },
                 { value: 'nama_asc', label: 'Nama Siswa (A - Z)' },
                 { value: 'nama_desc', label: 'Nama Siswa (Z - A)' },
                 { value: 'nis_asc', label: 'Nomor NIS (Kecil - Besar)' },
-                { value: 'status_belum', label: 'Status: Belum PKL Dahulu' },
-                { value: 'status_sudah', label: 'Status: Sudah PKL Dahulu' },
+                { value: 'status_belum', label: 'Belum PKL Dahulu' },
+                { value: 'status_sudah', label: 'Sudah PKL Dahulu' },
               ]}
             />
           </div>
         </div>
       </div>
 
-      {/* Main Table / List Card View */}
-      <div className="ui-card overflow-hidden shadow-sm">
+      {/* Main Table View */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] overflow-hidden">
         {/* DESKTOP TABLE VIEW */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-xs text-left">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[11px] font-extrabold uppercase tracking-wider">
-                <th 
-                  onClick={() => setSortBy(sortBy === 'nama_asc' ? 'nama_desc' : 'nama_asc')}
-                  className="px-4 py-3 cursor-pointer hover:bg-slate-100/60 transition-colors select-none group"
-                  title="Klik untuk sortir Nama (A-Z / Z-A)"
-                >
-                  <div className="flex items-center gap-1">
-                    <span>SISWA</span>
-                    <ArrowUpDown size={12} className="text-slate-400 group-hover:text-slate-700" />
-                  </div>
-                </th>
-                <th className="px-4 py-3">JURUSAN</th>
-                <th className="px-4 py-3">PERUSAHAAN PKL</th>
-                <th className="px-4 py-3">GURU PEMBIMBING</th>
-                <th 
-                  onClick={() => setSortBy(sortBy === 'status_belum' ? 'status_sudah' : 'status_belum')}
-                  className="px-4 py-3 text-center cursor-pointer hover:bg-slate-100/60 transition-colors select-none group"
-                  title="Klik untuk sortir Status PKL"
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    <span>STATUS</span>
-                    <ArrowUpDown size={12} className="text-slate-400 group-hover:text-slate-700" />
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-right">AKSI</th>
+              <tr className="bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] text-slate-500 text-[11px] font-black uppercase tracking-wider">
+                <th className="px-4 py-3.5">SISWA</th>
+                <th className="px-4 py-3.5">JURUSAN</th>
+                <th className="px-4 py-3.5">PERUSAHAAN PKL</th>
+                <th className="px-4 py-3.5">GURU PEMBIMBING</th>
+                <th className="px-4 py-3.5 text-center">STATUS</th>
+                <th className="px-4 py-3.5 text-right">AKSI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[var(--ui-border-muted)]">
               {paginatedData.map(s => {
-                const guru = teachers.find(g => String(g.code) === String(s.guruPembimbingCode));
+                const guru = teachers.find(g => String(g.code || g.id) === String(s.guruPembimbingCode));
                 const perusahaan = perusahaanPKL.find(p => String(p.id) === String(s.perusahaanId));
                 
                 return (
-                  <tr key={s.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-0">
+                  <tr key={s.id} className="hover:bg-[var(--ui-surface-muted)] transition-colors">
                     {/* Siswa info */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={s.nama} size="sm" />
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">{s.nama}</p>
-                          <p className="text-[11px] font-semibold text-slate-400 mt-0.5">NIS: {s.nis} • <span className="text-slate-600 font-bold">{s.kelas}</span></p>
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-slate-800 text-xs truncate max-w-[200px]" title={s.nama}>{s.nama}</p>
+                          <p className="text-[10.5px] font-semibold text-slate-400 mt-0.5">NIS: {s.nis} • <span className="text-slate-600 font-bold">{s.kelas}</span></p>
                         </div>
                       </div>
                     </td>
 
                     {/* Jurusan */}
                     <td className="px-4 py-3">
-                      <span className="inline-block px-2.5 py-1 text-[10px] font-black rounded-[var(--ui-radius-small)] bg-purple-50 text-purple-700 border border-purple-200 uppercase">
+                      <span className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] font-black text-[10px] uppercase border ${getMajorBadgeStyle(s.jurusan)}`}>
                         {s.jurusan}
                       </span>
                     </td>
 
-                    {/* Perusahaan */}
+                    {/* Perusahaan PKL */}
                     <td className="px-4 py-3">
                       {perusahaan ? (
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                          <Building2 size={14} className="text-blue-500 shrink-0" />
-                          <span className="truncate max-w-[200px]">{perusahaan.nama_perusahaan}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                            <Building2 size={13} />
+                          </div>
+                          <span className="font-bold text-slate-800 text-xs truncate max-w-[220px]" title={perusahaan.nama_perusahaan}>
+                            {perusahaan.nama_perusahaan}
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block"></span> Belum Ditempatkan
+                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded border border-slate-200/60">
+                          Belum Ditempatkan
                         </span>
                       )}
                     </td>
@@ -623,33 +596,38 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                     {/* Guru Pembimbing */}
                     <td className="px-4 py-3">
                       {guru ? (
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                          <UserCheck size={14} className="text-emerald-500 shrink-0" />
-                          <span className="truncate max-w-[160px]">{guru.name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                            <GraduationCap size={13} />
+                          </div>
+                          <span className="font-bold text-slate-700 text-xs truncate max-w-[180px]" title={guru.name || guru.nama}>
+                            {guru.name || guru.nama}
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 inline-block">
-                          Belum ditugaskan
+                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded border border-slate-200/60">
+                          Belum Ditugaskan
                         </span>
                       )}
                     </td>
 
-                    {/* Status */}
+                    {/* Status PKL */}
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-block px-2.5 py-1 text-[10px] font-black rounded-[var(--ui-radius-small)] border ${
-                        s.statusPKL === 'Sudah PKL' 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                          : 'bg-red-50 text-red-700 border-red-200'
+                      <span className={`inline-block px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black border shadow-2xs ${
+                        s.statusPKL === 'Sudah PKL'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                          : 'bg-rose-50 text-rose-700 border-rose-200/80'
                       }`}>
                         {s.statusPKL}
                       </span>
                     </td>
 
-                    {/* Aksi */}
+                    {/* Aksi Penugasan */}
                     <td className="px-4 py-3 text-right">
                       <button
+                        type="button"
                         onClick={() => setSelectedSiswa(s)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
+                        className="px-3 py-1 text-[11px] font-extrabold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 hover:bg-[var(--ui-primary)] hover:text-white border border-[var(--ui-primary)]/20 rounded-[var(--ui-radius-control)] transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 shadow-2xs"
                       >
                         <span>Penugasan</span>
                         <ChevronRight size={13} />
@@ -663,51 +641,48 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         </div>
 
         {/* MOBILE CARD VIEW */}
-        <div className="block md:hidden divide-y divide-slate-100">
+        <div className="md:hidden divide-y divide-[var(--ui-border-muted)]">
           {paginatedData.map(s => {
-            const guru = teachers.find(g => String(g.code) === String(s.guruPembimbingCode));
+            const guru = teachers.find(g => String(g.code || g.id) === String(s.guruPembimbingCode));
             const perusahaan = perusahaanPKL.find(p => String(p.id) === String(s.perusahaanId));
 
             return (
-              <div key={s.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar name={s.nama} size="md" />
+              <div key={s.id} className="p-3.5 flex flex-col gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar name={s.nama} size="sm" />
                     <div>
-                      <h4 className="font-extrabold text-slate-800 text-sm leading-snug">{s.nama}</h4>
-                      <p className="text-xs font-semibold text-slate-400 mt-0.5">NIS: {s.nis} • <span className="text-slate-700 font-bold">{s.kelas}</span></p>
+                      <h4 className="font-bold text-xs text-slate-800">{s.nama}</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold">{s.nis} • {s.kelas}</p>
                     </div>
                   </div>
-                  <span className={`inline-block px-2 py-0.5 text-[9.5px] font-black rounded-[var(--ui-radius-small)] border shrink-0 ${
-                    s.statusPKL === 'Sudah PKL' 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                      : 'bg-red-50 text-red-700 border-red-200'
+                  <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black border ${
+                    s.statusPKL === 'Sudah PKL'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border-rose-200'
                   }`}>
                     {s.statusPKL}
                   </span>
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
+                <div className="bg-[var(--ui-surface-muted)] p-2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] space-y-1 text-[11px]">
+                  <div className="flex justify-between">
                     <span className="text-slate-400 font-medium">Perusahaan:</span>
-                    <span className="font-bold text-slate-800 truncate max-w-[180px]">
-                      {perusahaan?.nama_perusahaan || <span className="text-slate-400 font-normal">Belum Ditempatkan</span>}
-                    </span>
+                    <span className="font-bold text-slate-700 truncate max-w-[180px]">{perusahaan?.nama_perusahaan || 'Belum Ditempatkan'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-medium">Guru Pembimbing:</span>
-                    <span className="font-bold text-slate-800 truncate max-w-[180px]">
-                      {guru?.name || <span className="text-amber-600 font-normal">Belum Ditugaskan</span>}
-                    </span>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-medium">Pembimbing:</span>
+                    <span className="font-bold text-slate-700 truncate max-w-[180px]">{guru?.name || guru?.nama || 'Belum Ditugaskan'}</span>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setSelectedSiswa(s)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-100 hover:bg-[var(--ui-primary)] text-slate-700 hover:text-white font-bold text-xs rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer active:scale-95"
+                  className="w-full py-1.5 text-xs font-bold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 rounded-[var(--ui-radius-control)] border border-[var(--ui-primary)]/20 flex items-center justify-center gap-1"
                 >
                   <span>Atur Penugasan PKL</span>
-                  <ChevronRight size={14} />
+                  <ChevronRight size={13} />
                 </button>
               </div>
             );
@@ -716,154 +691,105 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
         {/* Empty State */}
         {filtered.length === 0 && (
-          <div className="py-16 text-center text-slate-400 space-y-3">
-            <Users size={36} className="mx-auto text-slate-300" />
-            <p className="font-bold text-sm text-slate-600">Tidak ada data siswa PKL ditemukan</p>
-            <p className="text-xs text-slate-400">Coba ubah kata kunci pencarian atau reset filter kelas/jurusan.</p>
+          <div className="py-16 px-4 text-center">
+            <Users size={36} className="mx-auto text-slate-300 mb-2" />
+            <h4 className="text-sm font-bold text-slate-700">Tidak ada data siswa PKL</h4>
+            <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter yang aktif.</p>
           </div>
         )}
 
-        {/* Table Pagination */}
-        <TablePagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filtered.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
-        />
+        {/* Pagination Controls */}
+        <PaginationBar />
       </div>
 
-      {/* Slide-over Detail & Assignment Drawer Modal */}
+      {/* Modern Modal Penugasan PKL */}
       {selectedSiswa && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
-            onClick={() => setSelectedSiswa(null)} 
-          />
-          <div className="relative bg-[#f8fafc] w-full max-w-md h-full overflow-y-auto shadow-xs z-10 p-5 flex flex-col space-y-4 animate-in slide-in-from-right-full duration-300">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 shrink-0">
-              <div>
-                <h2 className="font-extrabold text-slate-800 text-base">Detail Penugasan PKL</h2>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Kelola lokasi perusahaan & guru pembimbing</p>
+        <Modal
+          isOpen={Boolean(selectedSiswa)}
+          onClose={() => setSelectedSiswa(null)}
+          title="Atur Penugasan Siswa PKL"
+          maxWidth="max-w-lg"
+        >
+          <div className="space-y-4">
+            {/* Student Info Card */}
+            <div className="p-3.5 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] flex items-center gap-3">
+              <Avatar name={selectedSiswa.nama} size="lg" />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-extrabold text-sm text-slate-800 truncate">{selectedSiswa.nama}</h3>
+                <p className="text-xs text-slate-400 font-medium">NIS: {selectedSiswa.nis} • Kelas: {selectedSiswa.kelas}</p>
+                <span className={`mt-1 inline-block px-2 py-0.5 text-[10px] font-black rounded border ${getMajorBadgeStyle(selectedSiswa.jurusan)}`}>
+                  Jurusan {selectedSiswa.jurusan}
+                </span>
               </div>
-              <button 
-                onClick={() => setSelectedSiswa(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center border-none cursor-pointer transition-colors"
-              >
-                <X size={18} />
-              </button>
             </div>
 
-            {/* Profile Header Card */}
-            <div className="ui-card p-5 flex flex-col items-center text-center">
-              <Avatar name={selectedSiswa.nama} size="xl" className="mb-3 shadow-xs" />
-              <h3 className="font-black text-lg text-slate-800 tracking-tight">{selectedSiswa.nama}</h3>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5">NIS: {selectedSiswa.nis} • Kelas: {selectedSiswa.kelas}</p>
-              <span className="mt-3 px-3 py-1 text-xs font-black rounded-[var(--ui-radius-small)] bg-purple-100 text-purple-700 border border-purple-200">
-                Jurusan {selectedSiswa.jurusan}
-              </span>
-            </div>
+            {/* Assignment Form */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Perusahaan Mitra (DUDI)
+                </label>
+                <CustomSelect
+                  value={selectedSiswa.perusahaanId || ""}
+                  onChange={(val) => setSelectedSiswa({ ...selectedSiswa, perusahaanId: val })}
+                  options={[
+                    { value: "", label: "-- Belum Ditempatkan --" },
+                    ...perusahaanPKL.map(p => ({ 
+                      value: p.id, 
+                      label: `${p.nama_perusahaan} (${p.jurusan || p.kota || 'Umum'})` 
+                    }))
+                  ]}
+                  placeholder="Pilih Perusahaan PKL"
+                  searchable={true}
+                />
+              </div>
 
-            {/* Current Summary */}
-            <div className="ui-card p-4 space-y-2.5">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Informasi Status</h4>
-              {[
-                { label: 'Status PKL', value: selectedSiswa.statusPKL },
-                { label: 'Lama PKL', value: selectedSiswa.lamaPKL },
-                { label: 'Perusahaan Terpilih', value: perusahaanPKL.find(p => String(p.id) === String(selectedSiswa.perusahaanId))?.nama_perusahaan || 'Belum Ditempatkan' },
-                { label: 'Guru Pembimbing', value: teachers.find(g => String(g.code) === String(selectedSiswa.guruPembimbingCode))?.name || 'Belum ditugaskan' },
-              ].map(info => (
-                <div key={info.label} className="flex justify-between items-start gap-4 py-1 border-b border-slate-50 last:border-0">
-                  <span className="text-xs font-semibold text-slate-400">{info.label}</span>
-                  <span className="text-xs font-bold text-slate-800 text-right">{info.value}</span>
-                </div>
-              ))}
-            </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Guru Pembimbing PKL
+                </label>
+                <CustomSelect
+                  value={selectedSiswa.guruPembimbingCode || ""}
+                  onChange={(val) => setSelectedSiswa({ ...selectedSiswa, guruPembimbingCode: val })}
+                  options={[
+                    { value: "", label: "-- Belum Ditugaskan --" },
+                    ...teachers.map(g => ({ 
+                      value: g.code || g.id, 
+                      label: `${g.name || g.nama} (${g.mapel || g.subject || 'Guru'})` 
+                    }))
+                  ]}
+                  placeholder="Pilih Guru Pembimbing"
+                  searchable={true}
+                />
+              </div>
 
-            {/* Assignment Edit Form */}
-            <div className="ui-card p-4 space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Settings size={14} className="text-slate-400"/> Update Lokasi & Guru Pembimbing
-              </h4>
-              
-              <div className="space-y-3.5">
-                <div>
-                  <label className="text-xs text-slate-600 font-bold mb-1.5 block">Lokasi Perusahaan PKL</label>
-                  <ClickPicker 
-                    value={selectedSiswa.perusahaanId || ""}
-                    onChange={(val) => setSelectedSiswa({ ...selectedSiswa, perusahaanId: val })}
-                    placeholder="Pilih Perusahaan PKL"
-                    options={[
-                      { value: "", label: "-- Tanpa Perusahaan --" },
-                      ...perusahaanPKL.map(p => ({ value: p.id, label: p.nama_perusahaan }))
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-slate-600 font-bold mb-1.5 block">Guru Pembimbing PKL</label>
-                  <ClickPicker 
-                    value={selectedSiswa.guruPembimbingCode || ""}
-                    onChange={(val) => setSelectedSiswa({ ...selectedSiswa, guruPembimbingCode: val })}
-                    placeholder="Pilih Guru Pembimbing"
-                    options={[
-                      { value: "", label: "-- Tanpa Pembimbing --" },
-                      ...teachers.map(g => ({ value: g.code, label: g.name }))
-                    ]}
-                  />
-                </div>
-
-                <Button 
-                  onClick={async () => {
-                    setIsSavingSettings(true);
-                    try {
-                      await fetch("/api/monitoring/pkl-students/bulk", {
-                        method: "POST",
-                        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
-                        body: JSON.stringify({ 
-                          updates: [{ 
-                            nis: selectedSiswa.nis, 
-                            location_id: selectedSiswa.perusahaanId || null, 
-                            teacher_code: selectedSiswa.guruPembimbingCode || null 
-                          }] 
-                        })
-                      });
-                      
-                      setPklStudentsMapping(prev => {
-                        const newMap = [...prev];
-                        const idx = newMap.findIndex(m => String(m.nis) === String(selectedSiswa.nis));
-                        if (idx >= 0) {
-                          newMap[idx].location_id = selectedSiswa.perusahaanId;
-                          newMap[idx].teacher_code = selectedSiswa.guruPembimbingCode;
-                        } else {
-                          newMap.push({ nis: selectedSiswa.nis, location_id: selectedSiswa.perusahaanId, teacher_code: selectedSiswa.guruPembimbingCode });
-                        }
-                        return newMap;
-                      });
-
-                      showToast("Penugasan PKL siswa berhasil diperbarui!");
-                      setSelectedSiswa(null);
-                    } catch (e) {
-                      showToast("Gagal menyimpan penugasan", "error");
-                    }
-                    setIsSavingSettings(false);
-                  }}
-                  disabled={isSavingSettings}
-                  className="w-full py-2.5 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm mt-2"
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedSiswa(null)}
                 >
-                  {isSavingSettings ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                  <span>{isSavingSettings ? 'Menyimpan...' : 'Simpan Penugasan PKL'}</span>
+                  Batal
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveAssignment}
+                  disabled={isSavingSettings}
+                  className="flex items-center gap-1.5"
+                >
+                  {isSavingSettings ? <RefreshCw size={13} className="animate-spin" /> : <Check size={14} />}
+                  <span>{isSavingSettings ? 'Menyimpan...' : 'Simpan Penugasan'}</span>
                 </Button>
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-modal)] font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 

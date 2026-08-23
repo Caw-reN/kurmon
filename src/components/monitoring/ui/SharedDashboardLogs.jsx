@@ -4,6 +4,7 @@ import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
+import { CustomSelect } from '../../CustomSelect.jsx';
 
 export const getClassBadge = (className) => {
   if (!className || className === '-') return 'bg-slate-100 text-slate-600 border-slate-200';
@@ -53,9 +54,15 @@ export const SharedDashboardLogs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  const [subFilter, setSubFilter] = useState('all');
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeLogTab, searchQuery]);
+  }, [activeLogTab, searchQuery, subFilter]);
+
+  useEffect(() => {
+    setSubFilter('all');
+  }, [activeLogTab]);
 
   // Store fallbacks
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
@@ -133,6 +140,26 @@ export const SharedDashboardLogs = () => {
     return result;
   };
 
+  const uniqueSiswaOptions = useMemo(() => {
+    const defaultOption = { label: 'Semua Jurusan', value: 'all' };
+    if (!allStudents || allStudents.length === 0) return [defaultOption];
+    
+    const majorSet = new Set();
+    allStudents.forEach(s => {
+      let cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
+      if (cls && cls !== '-' && cls !== 'UNDEFINED' && cls !== 'NULL') {
+        // Hapus tingkat (X/XI/XII) dan rombel angka
+        let major = cls.replace(/^(X|XI|XII|XIII)\s+/i, '').replace(/\s+\d+$/i, '').trim();
+        if (major) {
+          majorSet.add(major);
+        }
+      }
+    });
+
+    const majorOptions = Array.from(majorSet).sort().map(m => ({ label: m, value: m }));
+    return [defaultOption, ...majorOptions];
+  }, [allStudents]);
+
   const guruKaryawanLogs = useMemo(() => {
     let logs = [];
     if (dashLogs?.teacherLogs && dashLogs.teacherLogs.length > 0) {
@@ -176,10 +203,14 @@ export const SharedDashboardLogs = () => {
     // Diurutkan dari jam absen tercepat (ASC)
     logs.sort((a, b) => new Date(a.date || a.timestamp || a.created_at || 0) - new Date(b.date || b.timestamp || b.created_at || 0));
 
+    if (subFilter !== 'all') {
+      logs = logs.filter(item => String(item.role_type || '').toLowerCase().includes(subFilter));
+    }
+
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.name || item.username || '').toLowerCase().includes(q));
-  }, [dashLogs, storeAttendanceRecords, storeTeachers, todayStr, searchQuery]);
+  }, [dashLogs, storeAttendanceRecords, storeTeachers, todayStr, searchQuery, subFilter]);
 
   const terlambatGuruLogs = useMemo(() => {
     let logs = guruKaryawanLogs.filter(item => 
@@ -203,10 +234,18 @@ export const SharedDashboardLogs = () => {
     // Diurutkan dari jam absen tercepat (ASC)
     logs.sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
 
+    if (subFilter !== 'all') {
+      logs = logs.filter(item => {
+        const student = studentLookupMap.nisMap.get(item.nis || item.username || item.employee_id) || studentLookupMap.nameMap.get(item.name?.toLowerCase() || item.student_name?.toLowerCase());
+        const className = String(student?.class_name || student?.kelas || item.class_name || item.kelas || '').toUpperCase();
+        return className.includes(subFilter.toUpperCase());
+      });
+    }
+
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.student_name || item.name || item.employee_id || item.nis || '').toLowerCase().includes(q));
-  }, [dashLogs, searchQuery]);
+  }, [dashLogs, searchQuery, subFilter, studentLookupMap]);
 
   const terlambatSiswaLogs = useMemo(() => {
     let logs = kehadiranSiswaLogs.filter(item => {
@@ -224,19 +263,37 @@ export const SharedDashboardLogs = () => {
     let logs = [...(dashLogs?.problematicStudentLogs || [])];
     // Update Terkini (DESC)
     logs.sort((a, b) => new Date(b.last_seen || b.created_at || 0) - new Date(a.last_seen || a.created_at || 0));
+
+    if (subFilter !== 'all') {
+      logs = logs.filter(item => {
+        const student = studentLookupMap.nisMap.get(item.nis || item.username || item.employee_id) || studentLookupMap.nameMap.get(item.name?.toLowerCase() || item.student_name?.toLowerCase());
+        const className = String(student?.class_name || student?.kelas || item.class_name || item.kelas || '').toUpperCase();
+        return className.includes(subFilter.toUpperCase());
+      });
+    }
+
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.name || item.nis || '').toLowerCase().includes(q));
-  }, [dashLogs, searchQuery]);
+  }, [dashLogs, searchQuery, subFilter, studentLookupMap]);
 
   const siswaPrestasiLogs = useMemo(() => {
     let logs = [...(dashLogs?.achievingStudentLogs || [])];
     // Update Terkini (DESC)
     logs.sort((a, b) => new Date(b.created_at || b.tanggal_prestasi || 0) - new Date(a.created_at || a.tanggal_prestasi || 0));
+
+    if (subFilter !== 'all') {
+      logs = logs.filter(item => {
+        const student = studentLookupMap.nisMap.get(item.nis || item.username || item.employee_id) || studentLookupMap.nameMap.get(item.name?.toLowerCase() || item.student_name?.toLowerCase());
+        const className = String(student?.class_name || student?.kelas || item.class_name || item.kelas || '').toUpperCase();
+        return className.includes(subFilter.toUpperCase());
+      });
+    }
+
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.name || item.nis || item.nama_prestasi || '').toLowerCase().includes(q));
-  }, [dashLogs, searchQuery]);
+  }, [dashLogs, searchQuery, subFilter, studentLookupMap]);
 
   const tabsConfig = useMemo(() => {
     const all = [
@@ -414,10 +471,10 @@ export const SharedDashboardLogs = () => {
           </div>
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-1">
-          <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
+          <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200 mt-1 inline-block text-center shadow-xs tracking-tight">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-2 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-1 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
             {timeText}
           </span>
         </div>
@@ -431,7 +488,7 @@ export const SharedDashboardLogs = () => {
     
 
   return (
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-t border-slate-100 mt-auto">
+      <div className="flex items-center justify-between px-4 py-3 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
         <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
           Data {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
         </span>
@@ -439,7 +496,7 @@ export const SharedDashboardLogs = () => {
           <button 
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
           >
             Prev
           </button>
@@ -447,7 +504,7 @@ export const SharedDashboardLogs = () => {
           <button 
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
           >
             Next
           </button>
@@ -467,10 +524,10 @@ export const SharedDashboardLogs = () => {
   }
 
   return (
-    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 flex flex-col overflow-hidden h-auto transition-all duration-300">
+    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-card)] border border-[var(--ui-border-muted)] flex flex-col overflow-hidden h-auto transition-all duration-300">
       
       {/* Dynamic Header */}
-      <div className="px-4 py-3.5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="px-4 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <img src="/icons/031-monitor.svg" alt="Monitor" className="w-5 h-5 opacity-90 shrink-0" />
           <div>
@@ -485,24 +542,52 @@ export const SharedDashboardLogs = () => {
           </div>
         </div>
 
-        {/* Search Input Bar */}
-        <div className="relative w-full sm:w-52">
-          <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
-          <input 
-            type="text" 
-            placeholder="Cari nama / NIS / kelas..." 
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)] placeholder:text-slate-400"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold border-none bg-transparent cursor-pointer">×</button>
+        {/* Search & Filter Input Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          {activeLogTab.includes('guru') && (
+            <div className="w-full sm:w-36 relative z-50">
+              <CustomSelect
+                value={subFilter}
+                onChange={setSubFilter}
+                options={[
+                  { label: 'Semua Tipe', value: 'all' },
+                  { label: 'Guru', value: 'guru' },
+                  { label: 'Karyawan', value: 'karyawan' }
+                ]}
+                searchable={false}
+                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
+              />
+            </div>
           )}
+          {activeLogTab.includes('siswa') && (
+            <div className="w-full sm:w-40 relative z-50">
+              <CustomSelect
+                value={subFilter}
+                onChange={setSubFilter}
+                options={uniqueSiswaOptions}
+                searchable={true}
+                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
+              />
+            </div>
+          )}
+          <div className="relative w-full sm:w-52">
+            <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+            <input 
+              type="text" 
+              placeholder="Cari nama / NIS / kelas..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full h-[34px] pl-8 pr-3 bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-control)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] placeholder:text-slate-400 transition-all"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-[var(--ui-primary)] font-bold border-none bg-transparent cursor-pointer transition-colors">×</button>
+            )}
+          </div>
         </div>
       </div>
       
       {/* Navigation Tabs Bar - Box Grid Style */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 sm:p-4 bg-slate-50/50 border-b border-slate-100">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -512,8 +597,8 @@ export const SharedDashboardLogs = () => {
               onClick={() => setActiveLogTab(tab.id)}
               className={`py-2 px-1 rounded-[var(--ui-radius-card)] border flex flex-col items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer text-center w-full min-h-[70px] relative ${
                 isActive
-                  ? 'bg-white border-[var(--ui-primary)]/40 shadow-sm ring-1 ring-[var(--ui-primary)]/20'
-                  : 'bg-white border-slate-200/60 shadow-xs hover:-translate-y-0.5 hover:shadow-xs'
+                  ? 'bg-white border-[var(--ui-primary)]/50 shadow-[var(--ui-shadow-float)] ring-1 ring-[var(--ui-primary)]/20'
+                  : 'bg-white border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)] hover:-translate-y-0.5 hover:shadow-[var(--ui-shadow-card)]'
               }`}
             >
               <div className="relative mt-1">
@@ -535,14 +620,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'guru_karyawan' && (
           <div className="animate-in fade-in duration-200">
             {guruKaryawanLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Guru Hadir" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Kehadiran</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Belum ada guru atau karyawan yang scan absen hari ini</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {guruKaryawanLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_karyawan', i))}
                 </div>
                 {renderPagination(guruKaryawanLogs.length)}
@@ -555,14 +640,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'kehadiran_siswa' && (
           <div className="animate-in fade-in duration-200">
             {kehadiranSiswaLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/066-education.svg" alt="Kehadiran Siswa" className="w-9 h-9 mx-auto opacity-30 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Data Kehadiran Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Scan absensi siswa untuk menampilkan log live</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {kehadiranSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'kehadiran_siswa', i))}
                 </div>
                 {renderPagination(kehadiranSiswaLogs.length)}
@@ -575,14 +660,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'siswa_terlambat' && (
           <div className="animate-in fade-in duration-200">
             {terlambatSiswaLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh siswa tercatat tepat waktu hari ini</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {terlambatSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_terlambat', i))}
                 </div>
                 {renderPagination(terlambatSiswaLogs.length)}
@@ -595,14 +680,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'guru_terlambat' && (
           <div className="animate-in fade-in duration-200">
             {terlambatGuruLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Guru & Karyawan</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh guru dan karyawan tercatat hadir tepat waktu hari ini</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {terlambatGuruLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_terlambat', i))}
                 </div>
                 {renderPagination(terlambatGuruLogs.length)}
@@ -615,14 +700,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'siswa_bermasalah' && (
           <div className="animate-in fade-in duration-200">
             {bermasalahLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Aman" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Catatan Siswa Bermasalah</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Kedisiplinan siswa dalam kondisi kondusif</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {bermasalahLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_bermasalah', i))}
                 </div>
                 {renderPagination(bermasalahLogs.length)}
@@ -635,14 +720,14 @@ export const SharedDashboardLogs = () => {
         {activeLogTab === 'siswa_prestasi' && (
           <div className="animate-in fade-in duration-200">
             {siswaPrestasiLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-small)] bg-slate-50/50 border border-dashed border-slate-200 text-center">
+              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/063-follow.svg" alt="Prestasi" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Data Siswa Berprestasi</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Catatan pencapaian dan prestasi siswa akan muncul di sini</p>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-slate-200/80 rounded-[var(--ui-radius-small)] overflow-hidden divide-y divide-slate-100 flex-1 min-h-[290px]">
+                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 min-h-[290px]">
                   {siswaPrestasiLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_prestasi', i))}
                 </div>
                 {renderPagination(siswaPrestasiLogs.length)}
