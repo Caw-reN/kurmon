@@ -3,7 +3,7 @@ import {
   MessageSquare, X, AlertCircle, Plus, Users, Search, ChevronRight, ChevronLeft, 
   Download, Calendar, Edit2, Trash2, CheckCircle2, Link as LinkIcon, Printer, 
   Filter, Award, ShieldAlert, BookOpen, HeartPulse, UserCheck, UserX, Clock, 
-  ArrowUpDown, Check, RotateCcw, Sparkles
+  ArrowUpDown, Check, RotateCcw, Sparkles, Star, Hourglass
 } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
@@ -460,6 +460,15 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
   // Dropdown Opsi Kelas yang tersaring sesuai Tingkat & Jurusan
   const classOptions = useMemo(() => {
+    const walasLabel = (
+      <div className="flex items-center gap-1.5">
+        <Star size={12} className="text-amber-500 fill-amber-500" />
+        <span>Kelas Ampuan Saya ({walasClass})</span>
+      </div>
+    );
+    if (!isKesiswaan && isWalas && walasClass) {
+      return [{ value: walasClass, label: walasLabel, searchText: `Kelas Ampuan Saya ${walasClass}` }];
+    }
     let filtered = classes;
     if (filterTingkat !== 'all') {
       filtered = filtered.filter(c => c.name.startsWith(filterTingkat + ' ') || (c.grade && String(c.grade) === filterTingkat));
@@ -469,19 +478,28 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     }
     return [
       { value: 'all', label: 'Semua Kelas' },
-      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan Saya (${walasClass})` }] : []),
+      ...(walasClass ? [{ value: walasClass, label: walasLabel, searchText: `Kelas Ampuan Saya ${walasClass}` }] : []),
       ...filtered.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
     ];
-  }, [classes, filterTingkat, filterJurusan, walasClass]);
+  }, [classes, filterTingkat, filterJurusan, walasClass, isKesiswaan, isWalas]);
 
   // Dropdown Opsi Kelas untuk Panel Catatan
   const catatanClassOptions = useMemo(() => {
+    const walasLabel = (
+      <div className="flex items-center gap-1.5">
+        <Star size={12} className="text-amber-500 fill-amber-500" />
+        <span>Kelas Ampuan Saya ({walasClass})</span>
+      </div>
+    );
+    if (!isKesiswaan && isWalas && walasClass) {
+      return [{ value: walasClass, label: walasLabel, searchText: `Kelas Ampuan Saya ${walasClass}` }];
+    }
     return [
       { value: 'all', label: 'Semua Kelas' },
-      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan Saya (${walasClass})` }] : []),
+      ...(walasClass ? [{ value: walasClass, label: walasLabel, searchText: `Kelas Ampuan Saya ${walasClass}` }] : []),
       ...classes.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
     ];
-  }, [classes, walasClass]);
+  }, [classes, walasClass, isKesiswaan, isWalas]);
 
   // === FILTER DAFTAR SISWA (PANEL KIRI) ===
   const filteredStudents = useMemo(() => {
@@ -489,6 +507,11 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       const cls = getStudentClass(s);
       const name = getStudentName(s).toLowerCase();
       const nis = String(getStudentNis(s));
+
+      // 0. Strict Walas Check
+      if (!isKesiswaan && isWalas && walasClass) {
+        if (cls !== walasClass) return false;
+      }
 
       // 1. Filter Tingkat
       if (filterTingkat !== 'all') {
@@ -537,7 +560,9 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       }
 
       // Filter Kelas Catatan
-      if (filterCatatanKelas !== 'all' && c.kelas !== filterCatatanKelas) {
+      if (!isKesiswaan && isWalas && walasClass) {
+        if (c.kelas !== walasClass) return false;
+      } else if (filterCatatanKelas !== 'all' && c.kelas !== filterCatatanKelas) {
         return false;
       }
 
@@ -911,7 +936,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Card 1: Total Siswa Binaan */}
         <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-violet-50 border border-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
             <Users size={18} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
@@ -967,13 +992,13 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
         {/* Card 5: Total Catatan Terbit */}
         <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0">
             <MessageSquare size={18} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Entri Catatan</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base font-black text-indigo-700">{kpiStats.totalCatatan}</span>
+              <span className="text-base font-black text-teal-700">{kpiStats.totalCatatan}</span>
               <span className="text-[10px] text-slate-400 font-bold">entri</span>
             </div>
           </div>
@@ -987,7 +1012,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
           onClick={() => setMobileTab('siswa')}
           className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             mobileTab === 'siswa' 
-              ? 'bg-white text-violet-700 shadow-xs font-black' 
+              ? 'bg-white text-emerald-700 shadow-xs font-black' 
               : 'text-slate-600 hover:text-slate-900 bg-transparent'
           }`}
         >
@@ -999,7 +1024,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
           onClick={() => setMobileTab('catatan')}
           className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
             mobileTab === 'catatan' 
-              ? 'bg-white text-violet-700 shadow-xs font-black' 
+              ? 'bg-white text-emerald-700 shadow-xs font-black' 
               : 'text-slate-600 hover:text-slate-900 bg-transparent'
           }`}
         >
@@ -1016,7 +1041,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
           {/* Header Panel Kiri */}
           <div className="p-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-xs">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
                 <Users size={13} />
               </div>
               <h3 className="font-extrabold text-slate-800 text-xs tracking-tight">
@@ -1042,61 +1067,97 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
           {/* Filter Bar Panel Kiri: Tingkat, Jurusan, Kelas, Status, Search */}
           <div className="p-3 border-b border-slate-100 bg-white shrink-0 flex flex-col gap-2.5">
-            {/* Quick Pill Filter: Tingkat */}
-            <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-[var(--ui-radius-small)]">
-              {[
-                { id: 'all', label: 'Semua' },
-                { id: 'X', label: 'Kelas X' },
-                { id: 'XI', label: 'Kelas XI' },
-                { id: 'XII', label: 'Kelas XII' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => { setFilterTingkat(tab.id); setFilterKelas('all'); }}
-                  className={`flex-1 py-1 text-[11px] font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer text-center ${
-                    filterTingkat === tab.id
-                      ? 'bg-white text-slate-800 shadow-2xs font-black'
-                      : 'text-slate-500 hover:text-slate-800 bg-transparent'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Row Filter: Jurusan & Kelas Binaan */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="w-full">
-                <CustomSelect
-                  options={[
-                    { value: 'all', label: 'Semua Jurusan' },
-                    ...jurusanList.map(j => ({ value: j, label: `Jurusan ${j}` }))
-                  ]}
-                  value={filterJurusan}
-                  onChange={v => { setFilterJurusan(v); setFilterKelas('all'); }}
-                  placeholder="Filter Jurusan"
-                />
+            {(!isKesiswaan && isWalas && walasClass) ? (
+              <div className="flex items-center gap-1.5 p-2 bg-emerald-50 border border-emerald-100 rounded-[var(--ui-radius-small)]">
+                <Users size={14} className="text-emerald-600" />
+                <span className="text-xs font-black text-emerald-800 tracking-tight">Menampilkan khusus kelas binaan Anda.</span>
               </div>
+            ) : (
+              <>
+                {/* Quick Pill Filter: Tingkat */}
+                <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-[var(--ui-radius-small)]">
+                  {[
+                    { id: 'all', label: 'Semua' },
+                    { id: 'X', label: 'Kelas X' },
+                    { id: 'XI', label: 'Kelas XI' },
+                    { id: 'XII', label: 'Kelas XII' },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => { setFilterTingkat(tab.id); setFilterKelas('all'); }}
+                      className={`flex-1 py-1 text-[11px] font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer text-center ${
+                        filterTingkat === tab.id
+                          ? 'bg-white text-slate-800 shadow-2xs font-black'
+                          : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="w-full">
-                <CustomSelect
-                  options={classOptions}
-                  value={filterKelas}
-                  onChange={v => setFilterKelas(v)}
-                  placeholder="Filter Kelas"
-                />
-              </div>
-            </div>
+                {/* Row Filter: Jurusan & Kelas Binaan */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="w-full">
+                    <CustomSelect
+                      options={[
+                        { value: 'all', label: 'Semua Jurusan' },
+                        ...jurusanList.map(j => ({ value: j, label: `Jurusan ${j}` }))
+                      ]}
+                      value={filterJurusan}
+                      onChange={v => { setFilterJurusan(v); setFilterKelas('all'); }}
+                      placeholder="Filter Jurusan"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <CustomSelect
+                      options={classOptions}
+                      value={filterKelas}
+                      onChange={v => setFilterKelas(v)}
+                      placeholder="Filter Kelas"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Filter Status Pemetaan Siswa */}
             <div className="w-full">
               <CustomSelect
                 options={[
                   { value: 'all', label: 'Semua Status Siswa' },
-                  { value: 'with_notes', label: '✅ Sudah Ada Catatan' },
-                  { value: 'no_notes', label: '⏳ Belum Ada Catatan' },
-                  { value: 'with_violations', label: '⚠️ Memiliki Pelanggaran/Poin' },
+                  { 
+                    value: 'with_notes', 
+                    searchText: 'Sudah Ada Catatan',
+                    label: (
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 size={12} className="text-emerald-500" />
+                        <span>Sudah Ada Catatan</span>
+                      </div>
+                    )
+                  },
+                  { 
+                    value: 'no_notes', 
+                    searchText: 'Belum Ada Catatan',
+                    label: (
+                      <div className="flex items-center gap-1.5">
+                        <Hourglass size={12} className="text-amber-500" />
+                        <span>Belum Ada Catatan</span>
+                      </div>
+                    )
+                  },
+                  { 
+                    value: 'with_violations', 
+                    searchText: 'Memiliki Pelanggaran Poin',
+                    label: (
+                      <div className="flex items-center gap-1.5">
+                        <AlertCircle size={12} className="text-rose-500" />
+                        <span>Memiliki Pelanggaran/Poin</span>
+                      </div>
+                    )
+                  },
                 ]}
                 value={filterStatusSiswa}
                 onChange={v => setFilterStatusSiswa(v)}
@@ -1161,14 +1222,14 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       }}
                       className={`w-full flex items-center justify-between text-left p-3 transition-all duration-200 cursor-pointer border-none bg-transparent hover:bg-slate-50 ${
                         isSelected 
-                          ? 'bg-violet-50/70 font-semibold border-l-4 border-l-violet-600 shadow-2xs' 
+                          ? 'bg-emerald-50/70 font-semibold border-l-4 border-l-emerald-600 shadow-2xs' 
                           : 'border-l-4 border-l-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-xs font-black shrink-0 border ${
                           isSelected 
-                            ? 'bg-violet-600 text-white border-violet-700 shadow-2xs' 
+                            ? 'bg-emerald-600 text-white border-emerald-700 shadow-2xs' 
                             : siswaCatatan.length > 0
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                               : 'bg-slate-100 text-slate-600 border-slate-200'
@@ -1207,7 +1268,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                           </span>
                         )}
 
-                        <ChevronRight size={13} className={`transition-transform shrink-0 ${isSelected ? 'translate-x-0.5 text-violet-600' : 'text-slate-300'}`} />
+                        <ChevronRight size={13} className={`transition-transform shrink-0 ${isSelected ? 'translate-x-0.5 text-emerald-600' : 'text-slate-300'}`} />
                       </div>
                     </button>
                   );
@@ -1234,7 +1295,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px]">
             {/* Header: Siswa Terpilih (Morphing Banner) atau Toolbar Normal */}
             {selectedSiswa ? (
-              <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-700 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs">
+              <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                   <div className="absolute top-0 right-0 w-36 h-36 rounded-full border-8 border-white -mr-8 -mt-8" />
                   <div className="absolute bottom-0 left-1/3 w-20 h-20 rounded-full border-4 border-white -mb-4" />
@@ -1253,9 +1314,9 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       {getInitials(getStudentName(selectedSiswa))}
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[9.5px] font-black uppercase tracking-widest text-violet-200">Siswa Terpilih</span>
+                      <span className="text-[9.5px] font-black uppercase tracking-widest text-emerald-200">Siswa Terpilih</span>
                       <h3 className="font-extrabold text-sm sm:text-base leading-tight mt-0.5 truncate">{getStudentName(selectedSiswa)}</h3>
-                      <p className="text-[11px] text-violet-100 font-semibold mt-0.5">
+                      <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">
                         NIS: {getStudentNis(selectedSiswa)} · Kelas: {getStudentClass(selectedSiswa) || '-'}
                       </p>
                     </div>
@@ -1294,7 +1355,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                           siswa_name: getStudentName(selectedSiswa),
                           kelas: getStudentClass(selectedSiswa) || walasClass
                         })}
-                        className="bg-white text-violet-800 hover:bg-violet-50 border-none font-black text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0 shadow-2xs"
+                        className="bg-white text-emerald-800 hover:bg-emerald-50 border-none font-black text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0 shadow-2xs"
                       >
                         <Plus size={13} strokeWidth={2.5} />
                         <span>+ Catat</span>
@@ -1435,7 +1496,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
               </div>
             ) : filteredCatatan.length === 0 ? (
               <div className="p-10 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-violet-50 text-violet-500 border border-violet-100 flex items-center justify-center mb-3">
+                <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-emerald-50 text-emerald-500 border border-emerald-100 flex items-center justify-center mb-3">
                   <MessageSquare size={26} />
                 </div>
                 <h3 className="font-extrabold text-slate-800 text-sm">Belum Ada Catatan Wali Kelas</h3>
@@ -1477,7 +1538,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                                       const st = students.find(s => String(getStudentNis(s)) === String(c.siswa_nis));
                                       if (st) setSelectedSiswa(st);
                                     }}
-                                    className="font-extrabold text-slate-800 text-xs hover:text-violet-700 hover:underline cursor-pointer border-none bg-transparent p-0 text-left"
+                                    className="font-extrabold text-slate-800 text-xs hover:text-emerald-700 hover:underline cursor-pointer border-none bg-transparent p-0 text-left"
                                   >
                                     {c.siswa_name || c.siswa_nis}
                                   </button>
@@ -1520,7 +1581,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
                             {c.tindak_lanjut && (
                               <div className="mt-2.5 bg-slate-50 border border-slate-200/80 p-2.5 rounded-[var(--ui-radius-small)] flex items-start gap-2">
-                                <CheckCircle2 size={13} className="text-violet-600 shrink-0 mt-0.5" />
+                                <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
                                 <p className="text-[11px] text-slate-600 leading-normal font-medium">
                                   <span className="font-extrabold text-slate-800">Tindak Lanjut:</span> {c.tindak_lanjut}
                                 </p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'rea
 import { 
   BookOpen, BookOpenText, Link2, Video, Globe, ExternalLink,
   Users, CheckCircle2, AlertCircle, RefreshCw, Search, FileText, Eye, 
-  Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, 
+  Download, Trash2, Upload, X, PenTool, LayoutList, BarChart3, Edit2,
   UploadCloud, Plus, Calendar, GraduationCap, ChevronRight, FileCheck,
   Check, Filter, Layers, PlayCircle, Clock, Zap, Sparkles, ShieldCheck,
   LayoutGrid, List, SlidersHorizontal, ArrowUpRight, FolderOpen, UserCheck, UserX
@@ -92,6 +92,10 @@ export default function ModulAjar(props) {
   // ── Modal states ─────────────────────────────────────────────
   const [isModulModalOpen, setIsModulModalOpen] = useState(false);
   const [isMateriModalOpen, setIsMateriModalOpen] = useState(false);
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameData, setRenameData] = useState({ id: null, type: '', currentName: '', newName: '' });
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameError, setRenameError] = useState('');
   const [previewDoc, setPreviewDoc] = useState(null);
   const [toast, setToast] = useState(null);
   const [isDraggingModul, setIsDraggingModul] = useState(false);
@@ -119,6 +123,7 @@ export default function ModulAjar(props) {
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
     mapel: '', semester: 'Ganjil', kelas: '-',
+    deskripsi: '',
     file_size: null, original_size: null,
     saved_percent: 0, is_compressed: false
   });
@@ -254,6 +259,7 @@ export default function ModulAjar(props) {
           teacher_code: d.teacher_code,
           file_url: d.file_url,
           nama_dokumen: d.nama_dokumen,
+          deskripsi: d.deskripsi,
           created_at: d.created_at || d.tanggal
         });
       });
@@ -471,7 +477,8 @@ export default function ModulAjar(props) {
           teacher_name: teacherName || 'Administrator',
           nama_dokumen: modulForm.nama_dokumen, file_url: modulForm.file_url,
           tahun_ajaran: modulForm.tahun_ajaran || activeYear, 
-          mapel: modulForm.mapel, kelas: modulForm.kelas || '-', semester: modulForm.semester
+          mapel: modulForm.mapel, kelas: modulForm.kelas || '-', semester: modulForm.semester,
+          deskripsi: modulForm.deskripsi
         })
       });
       const data = await res.json();
@@ -482,7 +489,7 @@ export default function ModulAjar(props) {
           nama_dokumen: '', file_url: '',
           tahun_ajaran: activeYear, kelas: '-',
           mapel: availableSubjects[0] || '',
-          semester: 'Ganjil',
+          semester: 'Ganjil', deskripsi: '',
           file_size: null, original_size: null,
           saved_percent: 0, is_compressed: false
         });
@@ -590,6 +597,51 @@ export default function ModulAjar(props) {
       }
     } catch (e) {
       showToast('Gagal menghapus materi.', 'error');
+    }
+  };
+
+  const handleRenameModul = (id, currentName) => {
+    setRenameError('');
+    setRenameData({ id, type: 'modul', currentName: currentName || '', newName: currentName || '' });
+    setRenameModalOpen(true);
+  };
+
+  const handleRenameMateri = (id, currentTitle) => {
+    setRenameError('');
+    setRenameData({ id, type: 'materi', currentName: currentTitle || '', newName: currentTitle || '' });
+    setRenameModalOpen(true);
+  };
+
+  const submitRename = async (e) => {
+    e.preventDefault();
+    setRenameError('');
+    const { id, type, currentName, newName } = renameData;
+    if (!newName || newName.trim() === '' || newName === currentName) {
+      setRenameModalOpen(false);
+      return;
+    }
+
+    setIsRenaming(true);
+    try {
+      const endpoint = type === 'modul' ? '/api/modul-ajar-guru' : '/api/materi-ajar';
+      const payload = type === 'modul' ? { action: 'rename', id, nama_dokumen: newName } : { action: 'rename', id, judul: newName };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(type === 'modul' ? 'Nama Modul Ajar berhasil diubah.' : 'Judul Materi Pembelajaran berhasil diubah.');
+        setRenameModalOpen(false);
+        fetchModulData();
+      } else {
+        setRenameError(data.error || 'Gagal mengubah nama.');
+      }
+    } catch (e) {
+      setRenameError('Terjadi kesalahan saat mengubah nama.');
+    } finally {
+      setIsRenaming(false);
     }
   };
 
@@ -1228,14 +1280,24 @@ export default function ModulAjar(props) {
                       )}
 
                       {canDelete && (
-                        <button 
-                          type="button"
-                          onClick={() => isModul ? handleDeleteModul(item.originalId, item.teacher_code) : handleDeleteMateri(item.originalId, item.teacher_code)} 
-                          className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-[var(--ui-radius-control)] transition-all cursor-pointer" 
-                          title="Hapus"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        <>
+                          <button 
+                            type="button"
+                            onClick={() => isModul ? handleRenameModul(item.originalId, item.title) : handleRenameMateri(item.originalId, item.title)} 
+                            className="p-2 text-sky-500 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 rounded-[var(--ui-radius-control)] transition-all cursor-pointer" 
+                            title="Ubah Nama"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => isModul ? handleDeleteModul(item.originalId, item.teacher_code) : handleDeleteMateri(item.originalId, item.teacher_code)} 
+                            className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-[var(--ui-radius-control)] transition-all cursor-pointer" 
+                            title="Hapus"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -1315,14 +1377,24 @@ export default function ModulAjar(props) {
                               )}
 
                               {canDelete && (
-                                <button
-                                  type="button"
-                                  onClick={() => isModul ? handleDeleteModul(item.originalId, item.teacher_code) : handleDeleteMateri(item.originalId, item.teacher_code)}
-                                  className="p-1.5 rounded bg-rose-50 text-rose-600 hover:bg-rose-100 cursor-pointer border border-rose-200"
-                                  title="Hapus"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => isModul ? handleRenameModul(item.originalId, item.title) : handleRenameMateri(item.originalId, item.title)}
+                                    className="p-1.5 rounded bg-sky-50 text-sky-600 hover:bg-sky-100 cursor-pointer border border-sky-200"
+                                    title="Ubah Nama"
+                                  >
+                                    <Edit2 size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => isModul ? handleDeleteModul(item.originalId, item.teacher_code) : handleDeleteMateri(item.originalId, item.teacher_code)}
+                                    className="p-1.5 rounded bg-rose-50 text-rose-600 hover:bg-rose-100 cursor-pointer border border-rose-200"
+                                    title="Hapus"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </>
                               )}
                             </div>
                           </td>
@@ -1459,6 +1531,21 @@ export default function ModulAjar(props) {
                   className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-600 cursor-not-allowed"
                 />
               </div>
+            </div>
+
+            {/* Deskripsi */}
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                Deskripsi Singkat <span className="text-slate-400 font-medium normal-case">(Opsional)</span>
+              </label>
+              <textarea
+                value={modulForm.deskripsi || ''}
+                onChange={e => setModulForm(f => ({ ...f, deskripsi: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)]/20 transition-all resize-none shadow-xs"
+                placeholder="Tuliskan catatan atau deskripsi singkat untuk Modul Ajar ini..."
+                rows={2}
+                disabled={isUploadingModul}
+              />
             </div>
 
             {/* File PDF Picker & Showcase */}
@@ -1779,7 +1866,7 @@ export default function ModulAjar(props) {
         </Modal>
       )}
 
-      {/* ── MODAL 3: PDF PREVIEW MODAL ── */}
+      {/* ── MODAL: PREVIEW DOC ── */}
       {previewDoc && (
         <Modal 
           isOpen={true} 
@@ -1802,6 +1889,70 @@ export default function ModulAjar(props) {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* ── MODAL: RENAME FILE ── */}
+      {renameModalOpen && (
+        <Modal 
+          isOpen={true} 
+          onClose={() => !isRenaming && setRenameModalOpen(false)} 
+          title={renameData.type === 'modul' ? 'Ubah Nama Modul Ajar' : 'Ubah Judul Materi'}
+          maxWidth="max-w-md"
+        >
+          <form onSubmit={submitRename} className="space-y-4">
+            {renameError && (
+              <div className="p-3 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2 font-bold text-xs">
+                <AlertCircle size={15} className="shrink-0 text-rose-600" />
+                <span>{renameError}</span>
+              </div>
+            )}
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                {renameData.type === 'modul' ? 'Nama Berkas' : 'Judul Materi'}
+              </label>
+              <input
+                type="text"
+                autoFocus
+                required
+                value={renameData.newName}
+                onChange={e => setRenameData(d => ({ ...d, newName: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)]/20 transition-all shadow-xs"
+                placeholder={renameData.type === 'modul' ? 'Contoh: Modul_Ajar_IPA.pdf' : 'Masukkan judul materi'}
+                disabled={isRenaming}
+              />
+            </div>
+            
+            <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={() => setRenameModalOpen(false)} 
+                disabled={isRenaming}
+                className="font-bold text-xs px-4"
+              >
+                Batal
+              </Button>
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={isRenaming || !renameData.newName.trim()}
+                className="font-bold text-xs px-4 flex items-center gap-1.5 shadow-md"
+              >
+                {isRenaming ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} />
+                    <span>Simpan Perubahan</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
 

@@ -36,6 +36,9 @@ const isColorDark = (hexColor) => {
 
 export const applyDocumentBranding = (settings = {}) => {
   if (typeof document === "undefined") return;
+  if (window.__THEME_PREVIEW_ACTIVE__ && window.__THEME_PREVIEW_SETTINGS__) {
+    settings = window.__THEME_PREVIEW_SETTINGS__;
+  }
 
   const appName = settings.appName || "TimeSchedule";
   document.title = settings.siteTitle || `${appName} | Jadwal, Denah & Modul Ajar Sekolah`;

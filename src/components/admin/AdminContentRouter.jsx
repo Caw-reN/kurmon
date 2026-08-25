@@ -348,7 +348,7 @@ export default function AdminContentRouter({ context }) {
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Jurusan...
         </div>}>
-          <MasterDataJurusan majors={majors} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
+          <MasterDataJurusan majors={majors} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
         </Suspense>;
       case "data_pegawai":
       case "guru":

@@ -373,6 +373,16 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           if (t.id) nipToCode[String(t.id).trim().toLowerCase()] = code;
         });
 
+        const staffsRes = await dbPool.query("SELECT id, payload FROM mst_staffs");
+        const staffToCode = {};
+        staffsRes.rows.forEach(r => {
+          const s = r.payload;
+          const code = s.staff_code || s.code || r.id;
+          if (r.id) staffToCode[String(r.id).trim().toLowerCase()] = code;
+          if (s.staff_code) staffToCode[String(s.staff_code).trim().toLowerCase()] = code;
+          if (s.code) staffToCode[String(s.code).trim().toLowerCase()] = code;
+        });
+
         const studentsRes = await dbPool.query("SELECT payload FROM mst_students");
         const allNisList = studentsRes.rows.map(r => String(r.payload.nis || "").trim().toLowerCase());
         const nisSet = new Set(allNisList);
@@ -447,7 +457,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const validLogs = logs.filter(l => l.employeeNoString && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
               const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
-                const personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
+                const empStr = String(l.employeeNoString || '').trim().toLowerCase();
+                let personType = 'siswa';
+                if (nipToCode[empStr]) {
+                  personType = 'guru';
+                } else if (staffToCode[empStr]) {
+                  personType = 'karyawan';
+                } else if (dtype === 'guru') {
+                  personType = 'guru';
+                } else if (dtype === 'karyawan' || dtype === 'staff') {
+                  personType = 'karyawan';
+                }
                 const tsStr = (l.time || '').replace('T', ' ').substring(0, 19);
                 await dbPool.query(query, [device.id, l.employeeNoString, tsStr, `${l.major}-${l.minor}`, personType]);
                 logsSynced++;
@@ -462,7 +482,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         // 3. Proses Log Mentah H-3 ke Data Rekap Absensi
         const logsRes = await dbPool.query(`
-          SELECT l.employee_id, l.timestamp, d.ip_address, d.location, d.device_type
+          SELECT l.employee_id, l.timestamp, d.ip_address, d.location, d.device_type, l.person_type
           FROM hikvision_logs l
           JOIN hikvision_devices d ON l.device_id = d.id
           WHERE l.timestamp >= NOW() - INTERVAL '3 days'
@@ -492,8 +512,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const date = `${ts.getFullYear()}-${String(ts.getMonth() + 1).padStart(2, "0")}-${String(ts.getDate()).padStart(2, "0")}`;
           const time = ts.toTimeString().substring(0, 5);
           
-          const dtype = log.device_type || 'siswa';
-          const roleConf = getRoleTimeConfig(conf, dtype);
+          let personType = log.person_type || log.device_type || 'siswa';
+          const empKey = empId.toLowerCase();
+          if (nipToCode[empKey]) personType = 'guru';
+          else if (staffToCode[empKey]) personType = 'karyawan';
+
+          const roleConf = getRoleTimeConfig(conf, personType);
 
           let sessionName = "";
           let status = "";
@@ -508,8 +532,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             return; // Di luar jam absensi
           }
 
-          if (dtype === 'guru' || dtype === 'karyawan') {
-            const teacherCode = nipToCode[empId.toLowerCase()];
+          if (personType === 'guru' || personType === 'karyawan') {
+            const teacherCode = nipToCode[empKey] || staffToCode[empKey] || empId;
             if (!teacherCode) return;
             const recordId = `hik-${teacherCode}-${date}-${sessionName}`;
             if (existingTeacherIds.has(recordId)) return;
@@ -519,7 +543,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             });
             existingTeacherIds.add(recordId);
             attendanceProcessed++;
-          } else if (dtype === 'siswa') {
+          } else if (personType === 'siswa') {
             const actualNis = resolveNis(empId);
             if (!actualNis) return;
             const recordKey = `${actualNis}_${date}`;

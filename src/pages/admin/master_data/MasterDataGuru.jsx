@@ -196,7 +196,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
   }, [teachers, teacherTargetJpMap]);
 
   const pageHeader = (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Guru */}

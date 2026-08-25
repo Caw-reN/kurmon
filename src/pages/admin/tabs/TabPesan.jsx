@@ -1,11 +1,11 @@
 import { Button } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-import { MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2 } from'lucide-react';
+import { MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2, Edit2 } from'lucide-react';
 import { UISelect } from'../../../components/ui.jsx';
 
 
 export default function TabPesan(props) {
-  const { getTabPermissionLevel, activeUserRole, isLeadershipRole, currentUser, dashboardMessageForm, setDashboardMessageForm, DASHBOARD_MESSAGE_TARGETS, DASHBOARD_MESSAGE_PRIORITIES, handleSaveDashboardMessage, dashboardMessages, handleToggleDashboardMessageSafe, handleRemoveDashboardMessageSafe } = props;
+  const { getTabPermissionLevel, activeUserRole, isLeadershipRole, currentUser, dashboardMessageForm, setDashboardMessageForm, DASHBOARD_MESSAGE_TARGETS, DASHBOARD_MESSAGE_PRIORITIES, handleSaveDashboardMessage, dashboardMessages, handleToggleDashboardMessageSafe, handleRemoveDashboardMessageSafe, updateDashboardMessage } = props;
   const { ...allProps } = props;
   // Destructure specific props as needed in the component
 
@@ -20,31 +20,31 @@ export default function TabPesan(props) {
               description="Buat dan kelola pengumuman resmi dari sekolah yang tayang langsung di dashboard seluruh pengguna."
             />
             <div
-              className={`grid grid-cols-1 ${canEdit ?"xl:grid-cols-[400px_1fr]" :"xl:grid-cols-1"} gap-6 w-full`}
+              className={`grid grid-cols-1 ${canEdit ?"lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr]" :"lg:grid-cols-1"} gap-6 w-full`}
             >
             {/* Form Buat Pesan */}
             {canEdit && (
-              <section className="ui-card h-fit overflow-hidden flex flex-col">
-                <div className="p-6 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
-                  <div className="flex items-center gap-3 mb-2">
+              <section className="ui-card h-fit flex flex-col">
+                <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/50 to-white">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
                       <MessageSquare size={18} />
                     </div>
                     <div>
-                      <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                      <h2 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
                         Buat Pengumuman
                       </h2>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        Pesan akan tayang di dashboard.
+                      <p className="text-[11px] md:text-xs text-slate-500 font-medium">
+                        Pesan akan tayang di dashboard pengguna.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-4 md:p-5 space-y-4">
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                      Judul Pesan
+                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                      Judul Pesan <span className="text-red-500">*</span>
                     </label>
                     <input
                       value={dashboardMessageForm.title}
@@ -54,13 +54,13 @@ export default function TabPesan(props) {
                           title: e.target.value
                         })
                       }
-                      className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-card)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] shadow-sm transition-all"
+                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
                       placeholder="Contoh: Rapat evaluasi pekan ini"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                      Isi Pesan
+                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                      Isi Pesan <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       value={dashboardMessageForm.body}
@@ -70,13 +70,14 @@ export default function TabPesan(props) {
                           body: e.target.value
                         })
                       }
-                      className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-card)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] min-h-[100px] shadow-sm transition-all resize-none"
+                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 min-h-[100px] transition-all resize-y outline-none"
                       placeholder="Tulis pengumuman singkat dan jelas..."
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
+                      <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
                         Target
                       </label>
                       <UISelect
@@ -87,7 +88,7 @@ export default function TabPesan(props) {
                             target: e.target.value
                           })
                         }
-                        className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-card)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)] shadow-sm"
+                        className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] outline-none"
                       >
                         {DASHBOARD_MESSAGE_TARGETS.map((target) => (
                           <option key={target.value} value={target.value}>
@@ -97,7 +98,7 @@ export default function TabPesan(props) {
                       </UISelect>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
+                      <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
                         Prioritas
                       </label>
                       <UISelect
@@ -108,7 +109,7 @@ export default function TabPesan(props) {
                             priority: e.target.value
                           })
                         }
-                        className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-card)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)] shadow-sm"
+                        className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] outline-none"
                       >
                         {DASHBOARD_MESSAGE_PRIORITIES.map((priority) => (
                           <option key={priority.value} value={priority.value}>
@@ -118,9 +119,10 @@ export default function TabPesan(props) {
                       </UISelect>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
+                      <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
                         Mulai Tampil
                       </label>
                       <input
@@ -132,12 +134,12 @@ export default function TabPesan(props) {
                             startDate: e.target.value
                           })
                         }
-                        className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)] shadow-sm"
+                        className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                        Selesai
+                      <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                        Selesai Tampil
                       </label>
                       <input
                         type="date"
@@ -148,16 +150,16 @@ export default function TabPesan(props) {
                             endDate: e.target.value
                           })
                         }
-                        className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)] shadow-sm"
+                        className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
                       />
                     </div>
                   </div>
 
-                  <label className="flex items-center justify-between gap-3 bg-white border-none rounded-[var(--ui-radius-card)] p-3 cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                    <span className="text-xs font-black text-slate-700">
-                      Pin di Dashboard
+                  <label className="flex items-center justify-between gap-3 bg-slate-50/50 border border-slate-200 rounded-[var(--ui-radius-small)] px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors mt-2">
+                    <span className="text-xs font-bold text-slate-700">
+                      Sematkan (Pin) di Dashboard
                     </span>
-                    <div className="relative inline-block w-10 h-6">
+                    <div className="relative inline-block w-9 h-5">
                       <input
                         type="checkbox"
                         checked={!!dashboardMessageForm.pinned}
@@ -169,17 +171,18 @@ export default function TabPesan(props) {
                         }
                         className="peer sr-only"
                       />
-                      <div className="w-10 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--ui-primary)]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)] shadow-inner"></div>
+                      <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--ui-primary)]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
                     </div>
                   </label>
 
-                  <div className="pt-2">
+                  <div className="pt-4">
                     <button
                       type="button"
                       onClick={handleSaveDashboardMessage}
-                      className="w-full flex justify-center items-center gap-2"
+                      className="w-full flex justify-center items-center gap-2 px-4 py-3 rounded-[var(--ui-radius-small)] text-white font-bold text-sm tracking-wide shadow-sm hover:opacity-90 hover:-translate-y-0.5 transition-all outline-none"
+                      style={{ backgroundColor: 'var(--ui-primary)' }}
                     >
-                      <Send size={16} /> Publikasikan
+                      <Send size={16} /> Publikasikan Pengumuman
                     </button>
                   </div>
                 </div>
@@ -187,31 +190,31 @@ export default function TabPesan(props) {
             )}
 
             {/* Daftar Pesan */}
-            <section className="ui-card flex flex-col min-h-[500px]">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between gap-4">
+            <section className="ui-card flex flex-col h-full min-h-[400px]">
+              <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                  <h2 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
                     Daftar Pengumuman
                   </h2>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  <p className="text-[11px] md:text-xs text-slate-500 font-medium">
                     {dashboardMessages.length} pesan tersimpan dalam sistem.
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-slate-50 border-none flex items-center justify-center text-slate-500 shrink-0">
+                <div className="w-9 h-9 md:w-10 md:h-10 rounded-[var(--ui-radius-small)] bg-slate-50 border flex items-center justify-center text-slate-400 shrink-0">
                   <LayoutTemplate size={16} />
                 </div>
               </div>
 
-              <div className="p-6 space-y-4 flex-1 bg-slate-50/50">
+              <div className="p-4 md:p-5 space-y-3 md:space-y-4 flex-1 bg-slate-50/30">
                 {dashboardMessages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center p-10 bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-small)]">
-                    <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
+                  <div className="flex flex-col items-center justify-center h-full text-center py-12 px-6 bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-small)]">
+                    <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mb-4">
                       <MessageSquare size={24} />
                     </div>
-                    <h3 className="text-lg font-black text-slate-700">
+                    <h3 className="text-base md:text-lg font-bold text-slate-700">
                       Belum Ada Pengumuman
                     </h3>
-                    <p className="text-sm font-medium text-slate-500 mt-2 max-w-sm">
+                    <p className="text-[11px] md:text-sm font-medium text-slate-500 mt-2 max-w-sm">
                       Buat pesan baru menggunakan form di sebelah kiri untuk
                       menampilkannya di dashboard pengguna.
                     </p>
@@ -227,65 +230,97 @@ export default function TabPesan(props) {
                     return (
                       <article
                         key={message.id}
-                        className={`relative ui-card ${isActive ?"" :"bg-slate-50/50 opacity-75"} p-5 transition-all hover:-translate-y-1 group`}
+                        className={`relative border bg-white rounded-[var(--ui-radius-card)] ${isActive ?"border-slate-200 shadow-sm" :"border-slate-100 opacity-60 bg-slate-50/50"} p-4 md:p-5 transition-all group`}
                       >
                         {message.pinned && isActive && (
-                          <div className="absolute -top-2.5 -right-2.5 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-sm rotate-12">
-                            <Pin size={12} fill="currentColor" />
+                          <div 
+                            className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-md z-10 cursor-pointer transition-colors" 
+                            title="Disematkan (Pinned). Klik untuk melepaskan sematan."
+                            onClick={() => {
+                              if (updateDashboardMessage) {
+                                updateDashboardMessage(message.id, { ...message, pinned: false });
+                                const nextMsgs = dashboardMessages.map(m => m.id === message.id ? { ...m, pinned: false } : m);
+                                if (props.saveDatabaseNow) {
+                                  props.saveDatabaseNow({ dashboardMessages: nextMsgs }, "melepas sematan pesan dashboard");
+                                }
+                              }
+                            }}
+                          >
+                            <Pin size={13} fill="currentColor" />
                           </div>
                         )}
 
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <div className="flex flex-col sm:flex-row gap-4 md:gap-5">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2.5">
                               <span
-                                className={`px-2 py-1 rounded-[var(--ui-radius-small)] border text-[9px] font-black uppercase tracking-widest ${priority.className}`}
+                                className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] border text-[10px] font-bold tracking-wide ${priority.className}`}
                               >
                                 {priority.label}
                               </span>
-                              <span className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[9px] font-black uppercase border-none tracking-widest">
-                                Untuk:{""}
-                                {DASHBOARD_MESSAGE_TARGETS.find(
+                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200 tracking-wide">
+                                Untuk: {DASHBOARD_MESSAGE_TARGETS.find(
                                   (t) => t.value === message.target,
                                 )?.label ||"Semua"}
                               </span>
                               {!isActive && (
-                                <span className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-200 text-slate-600 text-[9px] font-black uppercase border border-slate-300 tracking-widest">
+                                <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-200 text-slate-600 text-[10px] font-bold uppercase border border-slate-300 tracking-wide">
                                   Nonaktif
                                 </span>
                               )}
                             </div>
 
-                            <h3 className="text-lg font-black text-slate-800 leading-tight">
+                            <h3 className="text-base md:text-lg font-bold text-slate-800 leading-snug">
                               {message.title}
                             </h3>
-                            <p className="text-sm font-medium text-slate-600 mt-2 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-[13px] md:text-sm text-slate-600 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
                               {message.body}
                             </p>
 
-                            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                            <div className="flex flex-wrap items-center gap-3 md:gap-4 mt-3 pt-3 border-t border-slate-100">
+                              <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-semibold text-slate-500">
                                 <Calendar size={12} />
-                                {message.startDate ||"Sekarang"} &rarr;{""}
-                                {message.endDate ||"Seterusnya"}
+                                <span>{message.startDate ||"Sekarang"}</span>
+                                <span className="text-slate-300">&rarr;</span>
+                                <span>{message.endDate ||"Seterusnya"}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                              <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-semibold text-slate-500">
                                 <User size={12} />
-                                Oleh {message.createdBy ||"Sistem"}
+                                <span>Oleh {message.createdBy ||"Sistem"}</span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex md:flex-col gap-2 shrink-0 md:border-l md:border-slate-100 md:pl-4 justify-start md:justify-center">
+                          <div className="flex flex-row sm:flex-col gap-2 shrink-0 sm:w-[130px] sm:border-l sm:border-slate-100 sm:pl-4 justify-start pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                             {canEdit && (
                               <>
-                                <Button variant="outline"
+                                <Button variant="outline" size="sm"
+                                  onClick={() => {
+                                    setDashboardMessageForm({
+                                      id: message.id,
+                                      title: message.title,
+                                      body: message.body,
+                                      target: message.target || "semua",
+                                      priority: message.priority || "normal",
+                                      startDate: message.startDate || "",
+                                      endDate: message.endDate || "",
+                                      pinned: !!message.pinned
+                                    });
+                                    // scroll to top
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }}
+                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-100 hover:border-blue-200"
+                                >
+                                  <Edit2 size={13} />
+                                  <span>Edit</span>
+                                </Button>
+                                <Button variant="outline" size="sm"
                                   onClick={() =>handleToggleDashboardMessageSafe(
                                       message.id,
                                       !isActive,
                                     )
                                   }
-                                  className={`flex items-center justify-center gap-2 ${isActive ?"bg-white border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50" :"bg-[var(--ui-primary)] text-white border-transparent shadow-sm"}`}
+                                  className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] ${isActive ?"bg-white border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50" :"bg-[var(--ui-primary)] text-white border-transparent shadow-sm"}`}
                                 >
                                   {isActive ? (
                                     <>
@@ -295,16 +330,15 @@ export default function TabPesan(props) {
                                     <>
                                       <Eye size={14} /> Tampilkan
                                     </>
-                                  )}</Button>
-                                <Button variant="outline"
-                                  onClick={() =>handleRemoveDashboardMessageSafe(message.id)
-                                  }
-                                  className="flex items-center justify-center gap-2 md:px-3"
+                                  )}
+                                </Button>
+                                <Button variant="outline" size="sm"
+                                  onClick={() =>handleRemoveDashboardMessageSafe(message.id)}
+                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50 border-red-100 hover:border-red-200"
                                 >
-                                  <Trash2 size={14} className="md:mr-1" />{""}
-                                  <span className="hidden md:inline">
-                                    Hapus
-                                  </span></Button>
+                                  <Trash2 size={13} />
+                                  <span>Hapus</span>
+                                </Button>
                               </>
                             )}
                           </div>

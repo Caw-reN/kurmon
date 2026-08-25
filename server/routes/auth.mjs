@@ -158,7 +158,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     const body = await readJsonBody(req);
     const username = String(body.username || "").trim().toLowerCase();
     const password = String(body.password || "");
-    console.log(`Login attempt: user='${username}', passLength=${password.length}`);
+    // Hanya log di non-production untuk menghindari username terekspos di log produksi
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Login attempt: user='${username}'`);
+    }
 
     const now = Date.now();
     const attempts = loginAttempts.get(username) || { count: 0, lockUntil: 0 };

@@ -1200,6 +1200,8 @@ export function useAdminCRUD(props) {
     updateDashboardMessage(id, {
       isActive
     });
+    const nextMsgs = dashboardMessages.map(m => m.id === id ? { ...m, isActive } : m);
+    if (saveDatabaseNow) saveDatabaseNow({ dashboardMessages: nextMsgs }, "mengubah status pesan dashboard");
     showNotification(isActive ?"Pesan dashboard diaktifkan." :"Pesan dashboard dinonaktifkan.","success");
   };
   const handleRemoveDashboardMessageSafe = id => {
@@ -1209,6 +1211,8 @@ export function useAdminCRUD(props) {
       return;
     }
     removeDashboardMessage(id);
+    const nextMsgs = dashboardMessages.filter(m => m.id !== id);
+    if (saveDatabaseNow) saveDatabaseNow({ dashboardMessages: nextMsgs }, "menghapus pesan dashboard");
     showNotification("Pesan dashboard berhasil dihapus.","success");
   };
   const handleRemoveAttendanceRecordSafe = id => {

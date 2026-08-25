@@ -1546,8 +1546,8 @@ export default function App() {
 
       // Fallback DEFAULTS
       const DEFAULTS = {
-        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
-        bpbk: ["dashboard","kedisiplinan_bpbk","kedisiplinan_absensi","riwayat_prestasi","siswa","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","catatan_walikelas","walas_report","hikvision_report_siswa"],
+        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
+        bpbk: ["dashboard","kedisiplinan_bpbk","kedisiplinan_absensi","riwayat_prestasi","siswa","absensiguru","jurnal_harian","silabusguru","akademik","pesan","catatan_walikelas","walas_report","hikvision_report_siswa"],
         pembina_osis: ["dashboard","kedisiplinan_piket","riwayat_prestasi","akademik","siswa","absensiguru","jurnal_harian","modul_ajar","pesan"],
         sekretaris_osis: ["dashboard","riwayat_prestasi","akademik","absensiguru","jurnal_harian","pesan"],
         sekretaris_kesiswaan: ["dashboard","absensi","kedisiplinan_piket","kedisiplinan_absensi","catatan_walikelas","riwayat_prestasi","siswa","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
@@ -1627,16 +1627,33 @@ export default function App() {
       showNotification("Judul dan isi pesan wajib diisi.", "warning");
       return;
     }
-    addDashboardMessage({
-      ...dashboardMessageForm,
-      id: `msg-${createClientId()}`,
-      title,
-      body,
-      createdBy: currentUser?.name || currentUser?.username || "Admin",
-      createdRole: currentUser?.role || "admin",
-      createdAt: new Date().toISOString(),
-      isActive: true
-    });
+    
+    if (dashboardMessageForm.id) {
+      updateDashboardMessage(dashboardMessageForm.id, {
+        ...dashboardMessageForm,
+        title,
+        body
+      });
+      const nextMsgs = dashboardMessages.map(m => m.id === dashboardMessageForm.id ? { ...dashboardMessageForm, title, body } : m);
+      saveDatabaseNow({ dashboardMessages: nextMsgs }, "memperbarui pesan dashboard");
+      showNotification("Pengumuman berhasil diperbarui.", "success");
+    } else {
+      const newMsg = {
+        ...dashboardMessageForm,
+        id: `msg-${createClientId()}`,
+        title,
+        body,
+        createdBy: currentUser?.name || currentUser?.username || "Admin",
+        createdRole: currentUser?.role || "admin",
+        createdAt: new Date().toISOString(),
+        isActive: true
+      };
+      addDashboardMessage(newMsg);
+      const nextMsgs = [...dashboardMessages, newMsg];
+      saveDatabaseNow({ dashboardMessages: nextMsgs }, "menambah pesan dashboard");
+      showNotification("Pesan dashboard berhasil dipublikasikan.", "success");
+    }
+    
     setDashboardMessageForm({
       title: "",
       body: "",
@@ -1646,7 +1663,6 @@ export default function App() {
       endDate: "",
       pinned: true
     });
-    showNotification("Pesan dashboard berhasil dipublikasikan.", "success");
   };
   const updateAttendanceSession = (sessionId, patch) => {
     if (!ensureDatabaseReadyForWrite("mengubah sesi absensi")) return;
@@ -2612,6 +2628,12 @@ export default function App() {
   }) => {
     const activeRole = normalizeUserRole(currentUser?.role);
 
+    if (id === 'beban') {
+      const isKurikulumWaka = activeRole === "waka" && (currentUser?.division || "").toLowerCase() === "kurikulum";
+      const isSuperAdminOrAdmin = activeRole === "superadmin" || activeRole === "admin";
+      if (!isSuperAdminOrAdmin && !isKurikulumWaka) return null;
+    }
+
     // Admin & superadmin always get everything
     if (activeRole === "superadmin" || activeRole === "admin") {
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
@@ -2663,8 +2685,8 @@ export default function App() {
     } else {
       // Fallback DEFAULTS jika belum diatur di rolePermissions
       const DEFAULTS = {
-        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
-        bpbk: ["dashboard","kedisiplinan_bpbk","kedisiplinan_absensi","riwayat_prestasi","siswa","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","catatan_walikelas","walas_report","hikvision_report_siswa"],
+        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
+        bpbk: ["dashboard","kedisiplinan_bpbk","kedisiplinan_absensi","riwayat_prestasi","siswa","absensiguru","jurnal_harian","silabusguru","akademik","pesan","catatan_walikelas","walas_report","hikvision_report_siswa"],
         pembina_osis: ["dashboard","kedisiplinan_piket","riwayat_prestasi","akademik","siswa","absensiguru","jurnal_harian","modul_ajar","pesan"],
         sekretaris_osis: ["dashboard","riwayat_prestasi","akademik","absensiguru","jurnal_harian","pesan"],
         sekretaris_kesiswaan: ["dashboard","absensi","kedisiplinan_piket","kedisiplinan_absensi","catatan_walikelas","riwayat_prestasi","siswa","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
@@ -3820,10 +3842,33 @@ export default function App() {
     <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
       <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} toggleSidebar={toggleSidebar} isSidebarCollapsed={isSidebarCollapsed} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
 
-      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto ${activeTab === "dashboard" ? "px-3 pb-24 lg:pb-3 md:px-5 md:pb-5 xl:px-6 xl:pb-6" : "px-5 pb-24 lg:pb-5 md:px-8 md:pb-8"} pt-3 sm:pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
+      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-4 pb-28 md:px-6 md:pb-6 pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
         <div className="flex-1 flex flex-col w-full min-w-0">
 
-          <AdminContentRouter context={tabProps} />
+          {databaseHydrated ? (
+            <AdminContentRouter context={tabProps} />
+          ) : (
+            <div className="flex-1 flex flex-col w-full min-w-0 gap-5 animate-pulse mt-1">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-slate-200 rounded-[var(--ui-radius-card)]" />
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="h-5 w-48 bg-slate-200 rounded" />
+                  <div className="h-3 w-64 bg-slate-100 rounded" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-24 bg-slate-100 rounded-[var(--ui-radius-card)] border border-slate-200/50" />
+                ))}
+              </div>
+              <div className="flex-1 min-h-[400px] w-full bg-slate-50/80 rounded-[var(--ui-radius-card)] border border-slate-200/50 p-4">
+                <div className="h-10 w-full bg-slate-200/60 rounded-[var(--ui-radius-small)] mb-4" />
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="h-12 w-full bg-slate-100/80 rounded-[var(--ui-radius-small)] mb-2" />
+                ))}
+              </div>
+            </div>
+          )}
 
           {workspaceGuide && <Modal isOpen={showGuideModal} onClose={() => setShowGuideModal(false)} maxWidth="max-w-4xl" title="Petunjuk Penggunaan">
             <div className="p-0 -mx-4 -my-4 sm:-mx-5 sm:-my-5">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
+import { useAppStore } from '../../../store/useAppStore.js';
 import { ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, Download, Send, X, FileText, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -47,6 +48,8 @@ export default function MyAttendancePage({ setActiveTab }) {
   const teacherCode = user?.teacherCode || user?.code || user?.username;
   const teacherName = user?.name || user?.username || '';
   const teacherNIP  = user?.nip || '';
+
+  const academicCalendar = useAppStore(state => state.academicCalendar) || [];
 
   const today = new Date();
   const [filter, setFilter]   = useState({ month: today.getMonth() + 1, year: today.getFullYear() });
@@ -373,6 +376,10 @@ export default function MyAttendancePage({ setActiveTab }) {
             const showIn  = dayData && !dayData.isManual && dayData.in;
             const showOut = dayData && !dayData.isManual && dayData.out;
 
+            const currentDateStr = `${filter.year}-${String(filter.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const dayEvent = academicCalendar.find(evt => evt.dateStart <= currentDateStr && evt.dateEnd >= currentDateStr);
+            const isHolidayEvent = dayEvent && (dayEvent.categoryId === 'cal-c5' || dayEvent.title.toLowerCase().includes('libur'));
+
             return (
               <button
                 key={day}
@@ -400,24 +407,39 @@ export default function MyAttendancePage({ setActiveTab }) {
                   </div>
                 )}
 
-                {/* Jam Masuk & Keluar — shown in cell on desktop */}
+                {/* Jam Masuk & Keluar */}
                 {showIn && (
-                  <div className="hidden sm:flex flex-col items-center w-full px-1">
+                  <div className="flex flex-col items-center w-full px-0 sm:px-1">
                     <div className="flex items-center gap-0.5 w-full justify-center">
-                      <span className="text-[7px] text-emerald-500 font-black">↑</span>
-                      <span className="text-[8px] font-black text-emerald-700">{fmt5(dayData.in)}</span>
+                      <span className={`hidden sm:inline text-[7px] font-black ${style?.text || 'text-emerald-500'}`}>↑</span>
+                      <span className={`text-[8px] font-black tracking-tighter ${style?.text || 'text-emerald-700'}`}>{fmt5(dayData.in)}</span>
                     </div>
                     {showOut && (
                       <div className="flex items-center gap-0.5 w-full justify-center">
-                        <span className="text-[7px] text-slate-400 font-black">↓</span>
-                        <span className="text-[8px] font-black text-slate-500">{fmt5(dayData.out)}</span>
+                        <span className="hidden sm:inline text-[7px] text-slate-400 font-black">↓</span>
+                        <span className="text-[8px] font-black text-slate-500 tracking-tighter">{fmt5(dayData.out)}</span>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Mobile: dot only */}
-                {style && <span className={`sm:hidden w-2 h-2 rounded-full ${style.dot} mt-0.5`} />}
+                {/* Info Hari Kosong (Libur/Event) */}
+                {!style && !showIn && !isFuture && (
+                  <div className="flex flex-col items-center justify-center w-full px-1 mt-0.5 grow">
+                    {dayEvent ? (
+                      <span className={`text-[7.5px] font-black uppercase tracking-widest text-center leading-tight ${isHolidayEvent ? 'text-rose-500' : 'text-slate-400'}`}>
+                        {dayEvent.title}
+                      </span>
+                    ) : isWeekend ? (
+                      <span className="text-[7.5px] font-black text-rose-400/80 uppercase tracking-widest text-center leading-tight">
+                        Libur Akhir Pekan
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Mobile: dot indicator */}
+                {style && <span className={`sm:hidden w-1.5 h-1.5 rounded-full ${style.dot} ${showIn ? 'mt-0.5' : 'mt-1'}`} />}
               </button>
             );
           })}

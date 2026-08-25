@@ -389,6 +389,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Global Micro-animation for Table Rows */
+  tbody tr {
+    @apply transition-all duration-200 ease-out;
+  }
+  tbody tr:hover {
+    @apply -translate-y-[1px];
+    box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+    position: relative;
+    z-index: 10;
+  }
 }
 
 

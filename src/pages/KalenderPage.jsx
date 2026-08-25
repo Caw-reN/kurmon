@@ -1,47 +1,28 @@
-import { Button } from '../components/ui.jsx';
-import { useEffect, useMemo, useState } from'react';
-import { useAppStore } from'../store/useAppStore';
-import { subscribeDatabaseSnapshot } from'../utils/dataSource.js';
-import { loadInitialState } from'../utils/state.js';
-import { CalendarIcon, ChevronLeft, ChevronRight } from'lucide-react';
-
+import { Button, Modal } from '../components/ui.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { useAppStore } from '../store/useAppStore';
+import { subscribeDatabaseSnapshot } from '../utils/dataSource.js';
+import { loadInitialState } from '../utils/state.js';
+import { 
+  CalendarDays, Search, BookOpen, Calendar, 
+  ChevronLeft, ChevronRight, X 
+} from 'lucide-react';
 
 export default function KalenderPage() {
   const academicCalendarRaw = useAppStore((state) => state.academicCalendar);
   const calendarCategoriesRaw = useAppStore((state) => state.calendarCategories);
   const academicCalendar = academicCalendarRaw || [];
   const calendarCategories = calendarCategoriesRaw || [];
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [eventScope, setEventScope] = useState("month");
-  const [nationalHolidays, setNationalHolidays] = useState([]);
+  
   const [dataVersion, setDataVersion] = useState(0);
-
+  const [nationalHolidays, setNationalHolidays] = useState([]);
+  
   useEffect(() => subscribeDatabaseSnapshot(() => setDataVersion((version) => version + 1)), []);
 
-  const appSettings = useMemo(() => {
-    void dataVersion;
-    const defaults = {
-      primaryColor:"#064e3b",
-      accentColor:"#a3e635",
-      fontFamily:"Lexend",
-      logoText:"TS",
-      appName:"TimeSchedule",
-      footerText:"© 2026 TimeSchedule by Admin."
-    };
-    defaults.contactEmail ="admin@school.sch.id";
-    defaults.contactPhone ="+62 123-456-789";
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  }, [dataVersion]);
-  const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
-
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-
-  // Fetch National Holidays from libur.deno.dev
+  const currentYearData = new Date().getFullYear();
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        // Asumsi API mendukung query parameter year, atau minimal return tahun berjalan
         const res = await fetch(`https://libur.deno.dev/api`);
         if (res.ok) {
           const data = await res.json();
@@ -52,373 +33,529 @@ export default function KalenderPage() {
       }
     };
     fetchHolidays();
-  }, [currentYear]);
+  }, [currentYearData]);
 
-  // Generate Calendar Grid
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Minggu
+  // -- STATE UNTUK FILTER DAN TAMPILAN --
+  const [searchQuery, setSearchQuery] = useState('');
+  const [timeFilter, setTimeFilter] = useState('all'); // all, month, upcoming, past
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewMode, setViewMode] = useState('split'); // split, list, calendar
+  const [selectedDate, setSelectedDate] = useState(null); // click filter from mini calendar
+  const [showGuide, setShowGuide] = useState(false);
+  
+  // -- MINI CALENDAR STATE --
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const prevMonth = () => setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
-
-  const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-  const dayNames = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  // Helper date
   const createLocalDate = (dateString) => {
-    const [year, month, day] = String(dateString ||"").slice(0, 10).split("-").map(Number);
+    if (!dateString) return null;
+    const [year, month, day] = String(dateString).slice(0, 10).split("-").map(Number);
     if (!year || !month || !day) return null;
     return new Date(year, month - 1, day);
   };
-  const toDateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-  const calendarTone = {
-    blue:"bg-blue-100 text-blue-700 border-blue-200",
-    emerald:"bg-emerald-100 text-emerald-700 border-emerald-200",
-    green:"bg-green-100 text-green-700 border-green-200",
-    red:"bg-red-100 text-red-700 border-red-200",
-    rose:"bg-rose-100 text-rose-700 border-rose-200",
-    amber:"bg-amber-100 text-amber-700 border-amber-200",
-    orange:"bg-orange-100 text-orange-700 border-orange-200",
-    purple:"bg-purple-100 text-purple-700 border-purple-200",
-    slate:"bg-slate-100 text-slate-700 border-slate-200",
-  };
-  const categoryTextColor = {
-    blue:"text-blue-700",
-    emerald:"text-emerald-700",
-    green:"text-green-700",
-    red:"text-red-700",
-    rose:"text-rose-700",
-    amber:"text-amber-700",
-    orange:"text-orange-700",
-    purple:"text-purple-700",
-    slate:"text-slate-700",
-  };
-  const getCalendarTone = (color ="blue") => calendarTone[color] || calendarTone.blue;
-  const eventCardTone = {
-    blue:"bg-blue-500 -blue-500/20",
-    emerald:"bg-emerald-500 -emerald-500/20",
-    green:"bg-emerald-500 -green-500/20",
-    red:"bg-rose-500 -red-500/20",
-    rose:"bg-rose-500 -rose-500/20",
-    amber:"bg-amber-500 -amber-500/20",
-    orange:"bg-orange-500 -orange-500/20",
-    purple:"bg-purple-500 -purple-500/20",
-    slate:"bg-slate-600 -slate-500/20",
-  };
-  const getEventCardTone = (color ="blue") => eventCardTone[color] || eventCardTone.blue;
-  const formatShortDate = (date) => date.toLocaleDateString("id-ID", { weekday:"long", day:"numeric", month:"short" });
-  const formatDateRange = (start, end) => {
-    if (!start || !end) return"-";
-    if (start.toDateString() === end.toDateString()) return formatShortDate(start);
-    return `${formatShortDate(start)} - ${formatShortDate(end)}`;
-  };
-  const calendarEventsByDay = (() => {
-    const eventsByDay = new Map();
-    const categoryById = new Map(calendarCategories.map((category) => [category.id, category]));
-    const monthStart = new Date(currentYear, currentMonth, 1);
-    const monthEnd = new Date(currentYear, currentMonth + 1, 0);
 
-    academicCalendar.forEach((event) => {
-      const start = createLocalDate(event.dateStart);
-      const end = createLocalDate(event.dateEnd || event.dateStart);
-      if (!start || !end) return;
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < monthStart || start > monthEnd) return;
-
-      const firstVisibleDay = new Date(Math.max(start.getTime(), monthStart.getTime()));
-      const lastVisibleDay = new Date(Math.min(end.getTime(), monthEnd.getTime()));
-      const category = categoryById.get(event.categoryId);
-      const isMultiDay = start.toDateString() !== end.toDateString();
-      for (let day = firstVisibleDay.getDate(); day <= lastVisibleDay.getDate(); day += 1) {
-        const eventDate = new Date(currentYear, currentMonth, day);
-        if (eventDate < firstVisibleDay || eventDate > lastVisibleDay) continue;
-        const key = toDateKey(eventDate);
-        const list = eventsByDay.get(key) || [];
-        const isSegmentStart = eventDate.toDateString() === firstVisibleDay.toDateString() || eventDate.getDay() === 0;
-        const isSegmentEnd = eventDate.toDateString() === lastVisibleDay.toDateString() || eventDate.getDay() === 6;
-        list.push({
-          id: event.id || `${event.title}-${event.dateStart}-${event.dateEnd || event.dateStart}`,
-          title: event.title,
-          color: category?.color ||"blue",
-          isHoliday: false,
-          isMultiDay,
-          segmentStart: !isMultiDay || isSegmentStart,
-          segmentEnd: !isMultiDay || isSegmentEnd,
-          showTitle: !isMultiDay || isSegmentStart,
-        });
-        eventsByDay.set(key, list);
-      }
-    });
-
-    return eventsByDay;
-  })();
-
-  const getDayEvents = (day) => {
-    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const dateObj = new Date(currentYear, currentMonth, day);
-    const isSunday = dateObj.getDay() === 0;
-
-    const events = [...(calendarEventsByDay.get(dateStr) || [])];
-
-    // Check National Holidays
-    const holiday = nationalHolidays.find(h => h.date === dateStr && h.is_national_holiday);
-    if (holiday) {
-      events.push({ title: holiday.name, isHoliday: true, color:"red", isMultiDay: false, segmentStart: true, segmentEnd: true, showTitle: true });
-    } else if (isSunday) {
-      events.push({ title:"Hari Minggu", isHoliday: true, color:"red", isMultiDay: false, segmentStart: true, segmentEnd: true, showTitle: true });
-    }
-
-    return events;
-  };
-  const displayedMonthStart = new Date(currentYear, currentMonth, 1);
-  const displayedMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(today);
-  todayEnd.setHours(23, 59, 59, 999);
-  const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - today.getDay());
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
-  const categoryById = new Map(calendarCategories.map((category) => [category.id, category]));
-  const overlapsRange = (start, end, rangeStart, rangeEnd) => start <= rangeEnd && end >= rangeStart;
-  const sidebarEvents = [
-    ...academicCalendar.map((event) => {
+  
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  // -- TONES CONFIGURATION --
+  const categoryTones = {
+    blue: { text: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-500" },
+    emerald: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
+    green: { text: "text-green-700", bg: "bg-green-50", border: "border-green-200", dot: "bg-green-500" },
+    red: { text: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },
+    rose: { text: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },
+    amber: { text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
+    orange: { text: "text-orange-700", bg: "bg-orange-50", border: "border-orange-200", dot: "bg-orange-500" },
+    purple: { text: "text-purple-700", bg: "bg-purple-50", border: "border-purple-200", dot: "bg-purple-500" },
+    slate: { text: "text-slate-700", bg: "bg-slate-50", border: "border-slate-200", dot: "bg-slate-500" },
+  };
+  const getTone = (color) => categoryTones[color] || categoryTones.slate;
+
+  // -- PREPARE EVENTS --
+  const allEvents = useMemo(() => {
+    const categoryById = new Map(calendarCategories.map((category) => [category.id, category]));
+    
+    const events = academicCalendar.map(event => {
       const start = createLocalDate(event.dateStart);
       const end = createLocalDate(event.dateEnd || event.dateStart);
       if (!start || !end) return null;
-      const category = categoryById.get(event.categoryId);
+      end.setHours(23, 59, 59, 999);
+      
+      const cat = categoryById.get(event.categoryId);
       return {
-        id: event.id || `${event.title}-${event.dateStart}-${event.dateEnd || event.dateStart}`,
-        title: event.title ||"Kegiatan akademik",
-        description: event.description || category?.name ||"Agenda akademik sekolah",
+        id: event.id,
+        title: event.title,
+        description: event.description || 'Tidak ada rincian keterangan tambahan.',
         start,
         end,
-        color: category?.color ||"blue",
-        categoryName: category?.name ||"Akademik",
+        categoryId: event.categoryId,
+        categoryName: cat ? cat.name : 'Sekolah',
+        color: cat ? cat.color : 'amber', 
+        type: 'akademik'
       };
-    }).filter(Boolean),
-    ...nationalHolidays
-      .filter((holiday) => holiday.is_national_holiday)
-      .map((holiday) => {
-        const date = createLocalDate(holiday.date);
-        if (!date) return null;
-        return {
-          id: `holiday-${holiday.date}-${holiday.name}`,
-          title: holiday.name,
-          description:"Libur nasional",
-          start: date,
-          end: date,
-          color:"red",
-          categoryName:"Libur",
-        };
-      })
-      .filter(Boolean),
-  ].filter((event) => overlapsRange(event.start, event.end, displayedMonthStart, displayedMonthEnd))
-    .sort((a, b) => a.start - b.start || a.title.localeCompare(b.title,"id", { sensitivity:"base" }));
-  const visibleSidebarEvents = sidebarEvents.filter((event) => {
-    if (eventScope ==="today") return overlapsRange(event.start, event.end, today, todayEnd);
-    if (eventScope ==="week") return overlapsRange(event.start, event.end, weekStart, weekEnd);
-    return true;
-  });
+    }).filter(Boolean);
+
+    const holidays = nationalHolidays.filter(h => h.is_national_holiday).map(holiday => {
+      const date = createLocalDate(holiday.date);
+      if (!date) return null;
+      date.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      
+      return {
+        id: `hol-${holiday.date}`,
+        title: holiday.name,
+        description: `Libur ${holiday.name}`,
+        start: date,
+        end,
+        categoryId: 'holiday',
+        categoryName: 'Libur Nasional',
+        color: 'rose',
+        type: 'holiday'
+      };
+    }).filter(Boolean);
+
+    return [...events, ...holidays].sort((a, b) => a.start - b.start);
+  }, [academicCalendar, nationalHolidays, calendarCategories]);
+
+  // -- AGGREGATION UNTUK BADGES HEADER --
+  const { monthCount, upcomingCount } = useMemo(() => {
+    let m = 0;
+    let u = 0;
+    allEvents.forEach(e => {
+      const isPast = e.end < today;
+      const isCurrentMonth = e.start.getMonth() === currentMonth && e.start.getFullYear() === currentYear;
+      
+      if (isCurrentMonth) m++;
+      if (!isPast && !isCurrentMonth) u++; 
+    });
+    return { monthCount: m, upcomingCount: u };
+  }, [allEvents, currentMonth, currentYear, today]);
+
+  // -- FILTER LOGIC --
+  const filteredEvents = useMemo(() => {
+    return allEvents.filter(event => {
+      // 1. Search Query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!event.title.toLowerCase().includes(q) && 
+            !event.categoryName.toLowerCase().includes(q) && 
+            !event.description.toLowerCase().includes(q)) {
+          return false;
+        }
+      }
+
+      // 2. Category
+      if (selectedCategory !== 'all' && event.categoryId !== selectedCategory) {
+        return false;
+      }
+
+      // 3. Time Filter
+      const isPast = event.end < today;
+      const isCurrentMonth = event.start.getMonth() === currentMonth && event.start.getFullYear() === currentYear;
+      
+      if (timeFilter === 'month' && !isCurrentMonth) return false;
+      if (timeFilter === 'upcoming' && (isPast || isCurrentMonth)) return false; 
+      if (timeFilter === 'past' && !isPast) return false;
+
+      // 4. Selected Date (from mini calendar)
+      if (selectedDate) {
+        const clickDate = new Date(selectedDate);
+        clickDate.setHours(0,0,0,0);
+        const evStart = new Date(event.start); evStart.setHours(0,0,0,0);
+        const evEnd = new Date(event.end); evEnd.setHours(23,59,59,999);
+        if (clickDate < evStart || clickDate > evEnd) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allEvents, searchQuery, selectedCategory, timeFilter, selectedDate, today, currentMonth, currentYear]);
+
+  // Utilities
+  const formatShortDate = (date) => date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  const formatDateRange = (start, end) => {
+    if (!start || !end) return "-";
+    if (start.toDateString() === end.toDateString()) return formatShortDate(start);
+    return `${formatShortDate(start)} - ${formatShortDate(end)}`;
+  };
+  const getStatus = (start, end) => {
+    if (end < today) return { label: 'Selesai', class: 'bg-slate-100 text-slate-500' };
+    if (start <= today && end >= today) return { label: 'Sedang Berjalan', class: 'bg-emerald-100 text-emerald-700' };
+    return { label: 'Mendatang', class: 'bg-blue-100 text-blue-700' };
+  };
+
+  // -- MINI CALENDAR LOGIC --
+  const calYear = calendarDate.getFullYear();
+  const calMonth = calendarDate.getMonth();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(calYear, calMonth, 1).getDay();
+  const monthNames = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+  
+  const prevMonth = () => setCalendarDate(new Date(calYear, calMonth - 1, 1));
+  const nextMonth = () => setCalendarDate(new Date(calYear, calMonth + 1, 1));
+  const goToToday = () => { setCalendarDate(new Date()); setSelectedDate(null); };
+
+  const isCurrentMonthView = calYear === currentYear && calMonth === currentMonth;
+
+  // Calendar Day Events map
+  const getEventsForDay = (day) => {
+    const d = new Date(calYear, calMonth, day);
+    d.setHours(0,0,0,0);
+    return allEvents.filter(e => {
+      const s = new Date(e.start); s.setHours(0,0,0,0);
+      const end = new Date(e.end); end.setHours(23,59,59,999);
+      return d >= s && d <= end;
+    });
+  };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-fade-in relative">
-      <div className="flex flex-col gap-6 w-full max-w-full">
-        <div className="bg-white/60 backdrop-blur-xl rounded-[var(--ui-radius-card)] p-5 md:p-8 border border-white/50 shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-8 lg:gap-10 items-start">
-            <section className="min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-[var(--ui-radius-small)] flex items-center justify-center shadow-sm" style={{ backgroundColor: `${primaryColor}10`, color: primaryColor }}>
-                    <CalendarIcon size={23} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Event calendar</p>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Kalender Akademik</h1>
-                    <p className="text-sm font-medium text-slate-500">Tahun ajaran aktif dan agenda sekolah.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 bg-slate-50 p-1.5 rounded-[var(--ui-radius-small)] border-none w-full sm:w-auto justify-between sm:justify-center">
-                  <button onClick={prevMonth} className="flex items-center justify-center"><ChevronLeft size={16} /></button>
-                  <div className="text-sm font-black text-slate-800 min-w-[150px] text-center">
-                    {monthNames[currentMonth]} {currentYear}
-                  </div>
-                  <button onClick={nextMonth} className="flex items-center justify-center"><ChevronRight size={16} /></button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto md:overflow-x-visible overflow-y-visible custom-scrollbar pb-2">
-                <div className="w-full md:min-w-[720px]">
-                  <div className="grid grid-cols-7 mb-3">
-                    {dayNames.map((d, idx) => (
-                      <div key={d} className={`px-2 text-left text-[11px] font-black uppercase tracking-widest ${idx === 0 ?"text-rose-500" :"text-slate-400"}`}>
-                        {d.slice(0, 3)}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-y-2 overflow-visible">
-                    {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                      <div key={`empty-${i}`} className="min-h-[52px] md:min-h-[86px] px-1 py-2 text-slate-200">
-                        <span className="text-sm font-black opacity-40">{new Date(currentYear, currentMonth, i - firstDayOfMonth + 1).getDate()}</span>
-                      </div>
-                    ))}
-
-                    {Array.from({ length: daysInMonth }).map((_, i) => {
-                      const day = i + 1;
-                      const dateObj = new Date(currentYear, currentMonth, day);
-                      const events = getDayEvents(day);
-                      const isToday = dateObj.toDateString() === today.toDateString();
-                      
-                      // Identify active multi-day event
-                      const activeMultiDay = events.find(e => e.isMultiDay);
-                      const isMultiDayActive = !!activeMultiDay;
-
-                      // Determine text color
-                      const isRedDay = events.some(e => e.isHoliday);
-                      const dayTextColor = isToday 
-                        ?"text-white" 
-                        : isMultiDayActive 
-                          ? (categoryTextColor[activeMultiDay.color] ||"text-slate-700") 
-                          : isRedDay 
-                            ?"text-rose-500" 
-                            :"text-slate-700";
-
-                      return (
-                        <div key={day} className="min-h-[52px] md:min-h-[56px] px-1 py-1 relative overflow-visible flex flex-col items-stretch">
-                          {/* Date Number Container with Dynamic Block/Ribbon Background */}
-                          <div className="relative w-full h-8 flex items-center justify-start overflow-visible shrink-0">
-                            {/* Multi-day Event Ribbon Background behind date (Shown on all devices) */}
-                            {isMultiDayActive && (
-                              <div 
-                                className={`absolute inset-y-0.5 ${getCalendarTone(activeMultiDay.color)} ${
-                                  activeMultiDay.segmentStart 
-                                    ?"rounded-l-[6px] border-l ml-0.5" 
-                                    :"-ml-1.5 border-l-0"
-                                } ${
-                                  activeMultiDay.segmentEnd 
-                                    ?"rounded-r-[6px] border-r mr-0.5" 
-                                    :"-mr-1.5 border-r-0"
-                                } z-0`}
-                                style={{
-                                  left: activeMultiDay.segmentStart ?'2px' :'-6px',
-                                  right: activeMultiDay.segmentEnd ?'2px' :'-6px'
-                                }}
-                              />
-                            )}
-                            
-                            {/* Day Number Square (Rounded corners matching style) */}
-                            <div 
-                              className={`relative z-10 w-8 h-8 rounded-[6px] flex items-center justify-center text-sm font-black transition-all ${dayTextColor}`}
-                              style={isToday ? { backgroundColor: primaryColor } : undefined}
-                            >
-                              {day}
-                            </div>
-                          </div>
-
-                          {/* Standalone Event Badges (Shown on all devices only if NO active multi-day event) */}
-                          {!isMultiDayActive && events.length > 0 && (
-                            <div className="flex flex-row flex-wrap gap-0.5 justify-start pl-0.5 mt-0.5">
-                              {events.slice(0, 3).map((evt, idx) => {
-                                const toneClass = getCalendarTone(evt.color);
-                                return (
-                                  <div 
-                                    key={`single-${idx}`} 
-                                    className={`w-2.5 h-2.5 rounded-[2px] border shrink-0 ${toneClass}`}
-                                    title={evt.title}
-                                  />
-                                );
-                              })}
-                              {events.length > 3 && (
-                                <span className="text-[7px] font-black text-slate-400 leading-none flex items-center">+</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {Array.from({ length: (7 - ((firstDayOfMonth + daysInMonth) % 7)) % 7 }).map((_, i) => (
-                      <div key={`empty-end-${i}`} className="min-h-[52px] md:min-h-[86px] px-1 py-2 text-slate-200">
-                        <span className="text-sm font-black opacity-40">{i + 1}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-[var(--ui-radius-small)] bg-slate-50 border-none p-4">
-                <h3 className="text-sm font-black text-slate-700 mb-3">Keterangan Warna</h3>
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-[var(--ui-radius-small)] bg-red-100 border border-red-200"></div>
-                    <span className="text-xs font-bold text-slate-600">Libur Nasional / Minggu</span>
-                  </div>
-                  {calendarCategories.map(cat => (
-                    <div key={cat.id} className="flex items-center gap-2">
-                      <div className={`w-4 h-4 rounded-[var(--ui-radius-small)] bg-${cat.color}-100 border border-${cat.color}-200`}></div>
-                      <span className="text-xs font-bold text-slate-600">{cat.name}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-3 text-xs font-bold text-slate-400">Kegiatan lebih dari 1 hari tampil sebagai blok warna menyatu mengikuti rentang tanggal.</p>
-              </div>
-            </section>
-
-            <aside className="rounded-[var(--ui-radius-small)] bg-slate-50 border-none p-4 md:p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Your events</p>
-                  <h2 className="text-xl font-black text-slate-800 mt-1">Kegiatan</h2>
-                </div>
-                <span className="rounded-[var(--ui-radius-small)] bg-white border-none px-3 py-1.5 text-[10px] font-black text-slate-500 shadow-sm">
-                  {visibleSidebarEvents.length} agenda
-                </span>
-              </div>
-
-              <div className="mt-4 flex gap-2 border-b border-slate-200 pb-2">
-                {[
-                  { id:"today", label:"Today" },
-                  { id:"week", label:"Week" },
-                  { id:"month", label:"Month" },
-                ].map((tab) => (
-                  <Button variant="outline"
-                    key={tab.id}
-                    type="button"
-                    onClick={() =>setEventScope(tab.id)}
-                    className={`${eventScope === tab.id ?"text-slate-900 border-slate-900" :"text-slate-400 border-transparent hover:text-slate-700"}`}
-                  >
-                    {tab.label}</Button>
-                ))}
-              </div>
-
-              <div className="mt-4 space-y-3 max-h-[560px] overflow-y-auto custom-scrollbar pr-1">
-                {visibleSidebarEvents.length === 0 ? (
-                  <div className="rounded-[var(--ui-radius-small)] border border-dashed border-slate-300 bg-white p-6 text-center">
-                    <CalendarIcon size={32} className="mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm font-black text-slate-600">Belum ada kegiatan</p>
-                    <p className="text-xs font-bold text-slate-400 mt-1">Agenda akan muncul sesuai filter yang dipilih.</p>
-                  </div>
-                ) : (
-                  visibleSidebarEvents.map((event) => {
-                    const isMultiDay = event.start.toDateString() !== event.end.toDateString();
-                    return (
-                      <div key={event.id} className={`rounded-[var(--ui-radius-small)] p-4 text-white shadow-sm ${getEventCardTone(event.color)}`}>
-                        <div className="flex items-start justify-between gap-3 text-[11px] font-bold text-white/85">
-                          <span>{formatDateRange(event.start, event.end)}</span>
-                          <span>{isMultiDay ? `${Math.round((event.end - event.start) / 86400000) + 1} hari` :"Sehari"}</span>
-                        </div>
-                        <h3 className="mt-2 text-sm font-black leading-snug">{event.title}</h3>
-                        <p className="mt-1 text-xs font-semibold text-white/80 leading-relaxed">{event.description || event.categoryName}</p>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </aside>
+    <div className="w-full flex flex-col gap-5 animate-fade-in pb-10">
+      
+      {/* 1. HEADER SECTION */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
+            <CalendarDays size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg md:text-xl font-black text-slate-800">Kalender Akademik</h1>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">Jadwal kegiatan akademik, agenda sekolah, dan informasi hari libur resmi.</p>
+          </div>
+        </div>
+        
+        {/* Desktop Badges */}
+        <div className="hidden md:flex flex-wrap gap-2">
+          <div className="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 flex items-center gap-2">
+            <span className="text-[10px] font-black text-amber-600 tracking-wider">BULAN INI:</span>
+            <span className="text-[10px] font-black text-white bg-amber-500 px-2 rounded-full">{monthCount}</span>
+          </div>
+          <div className="px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+            <span className="text-[10px] font-black text-emerald-600 tracking-wider">MENDATANG:</span>
+            <span className="text-[10px] font-black text-white bg-emerald-500 px-2 rounded-full">{upcomingCount}</span>
           </div>
         </div>
       </div>
+
+      {/* 2. FILTER & TOOLBAR SECTION */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 border border-slate-200 shadow-sm flex flex-col gap-4">
+        
+        <div className="flex flex-col md:flex-row gap-3">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Cari judul agenda, kategori, atau tanggal kegiatan..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+            />
+          </div>
+          
+          <Button variant="outline" onClick={() => setShowGuide(true)} className="shrink-0 text-xs font-bold gap-2 text-slate-600 border-slate-200">
+            <BookOpen size={14} /> Panduan
+          </Button>
+        </div>
+
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-t border-slate-100 pt-3">
+          
+          {/* Time Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black tracking-widest text-slate-400 mr-2">FILTER:</span>
+            
+            <button 
+              onClick={() => { setTimeFilter('all'); setSelectedDate(null); }}
+              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'all' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+            >
+              Semua ({allEvents.length})
+            </button>
+            <button 
+              onClick={() => { setTimeFilter('month'); setSelectedDate(null); }}
+              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'month' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+            >
+              Bulan Ini ({monthCount})
+            </button>
+            <button 
+              onClick={() => { setTimeFilter('upcoming'); setSelectedDate(null); }}
+              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'upcoming' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+            >
+              Mendatang ({upcomingCount})
+            </button>
+            <button 
+              onClick={() => { setTimeFilter('past'); setSelectedDate(null); }}
+              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'past' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+            >
+              Sudah Lewat
+            </button>
+            
+            {/* If date is selected from mini calendar */}
+            {selectedDate && (
+              <div className="px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-2">
+                Tanggal: {formatShortDate(selectedDate)}
+                <button onClick={() => setSelectedDate(null)} className="hover:bg-amber-200 rounded-full p-0.5"><X size={12} /></button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Category Dropdown */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="all">Semua Kategori</option>
+              {calendarCategories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+              <option value="holiday">Libur Nasional</option>
+            </select>
+
+            {/* View Mode Toggles */}
+            <div className="flex bg-slate-50 p-1 rounded-[var(--ui-radius-small)] border border-slate-100">
+              <button 
+                onClick={() => setViewMode('split')}
+                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'split' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Split View
+              </button>
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'list' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Daftar Penuh
+              </button>
+              <button 
+                onClick={() => setViewMode('calendar')}
+                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'calendar' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Kalender Penuh
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. MAIN CONTENT (Split, List, or Calendar) */}
+      <div className={`grid grid-cols-1 ${viewMode === 'split' ? 'lg:grid-cols-[1fr_360px]' : ''} gap-5 items-start`}>
+        
+        {/* EVENT CARDS LIST */}
+        {(viewMode === 'split' || viewMode === 'list') && (
+          <div className="flex flex-col gap-4">
+            
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                DAFTAR KEGIATAN ({filteredEvents.length})
+              </h2>
+              <span className="text-[10px] font-bold text-slate-400">Urutan berdasarkan tanggal</span>
+            </div>
+
+            {filteredEvents.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-card)] p-12 text-center flex flex-col items-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                  <Calendar size={28} className="text-slate-300" />
+                </div>
+                <h3 className="text-sm font-black text-slate-700">Tidak ada agenda ditemukan</h3>
+                <p className="text-xs text-slate-400 mt-1">Ubah filter pencarian atau tanggal untuk melihat agenda lainnya.</p>
+              </div>
+            ) : (
+              <div className={`grid grid-cols-1 ${viewMode === 'list' ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                {filteredEvents.map(event => {
+                  const tone = getTone(event.color);
+                  const status = getStatus(event.start, event.end);
+                  
+                  return (
+                    <div key={event.id} className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-4 shadow-xs hover:shadow-md transition-shadow flex flex-col group">
+                      
+                      <div className="flex items-start justify-between mb-3">
+                        {/* Category Badge */}
+                        <div className={`px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${tone.bg} ${tone.border}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}></div>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${tone.text}`}>
+                            {event.categoryName}
+                          </span>
+                        </div>
+                        
+                        {/* Status Badge */}
+                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${status.class}`}>
+                          {status.label}
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-black text-slate-800 mb-1 group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2">
+                        {event.title}
+                      </h3>
+                      
+                      <p className="text-xs font-medium text-slate-500 mb-4 line-clamp-2 flex-1">
+                        {event.description}
+                      </p>
+
+                      <div className="mt-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] px-3 py-2 w-fit">
+                        <Calendar size={14} className="text-slate-400" />
+                        <span className="text-[11px] font-bold text-slate-600">
+                          {formatDateRange(event.start, event.end)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SIDEBAR CALENDAR WIDGET */}
+        {(viewMode === 'split' || viewMode === 'calendar') && (
+          <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-4 md:p-5 shadow-sm sticky top-6">
+            
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-slate-800 tracking-wider">
+                  {monthNames[calMonth]} {calYear}
+                </h3>
+                {isCurrentMonthView && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black">
+                    Bulan Ini
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={goToToday}
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-[10px] font-black transition-colors"
+                >
+                  Hari Ini
+                </button>
+                <div className="flex items-center bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200 overflow-hidden">
+                  <button onClick={prevMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors"><ChevronLeft size={16} /></button>
+                  <div className="w-px h-4 bg-slate-200"></div>
+                  <button onClick={nextMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors"><ChevronRight size={16} /></button>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[10px] font-medium text-slate-500 mb-4 flex items-center gap-1.5">
+              <CalendarDays size={12} />
+              Klik tanggal untuk memfilter agenda kegiatan.
+            </p>
+
+            {/* Calendar Grid */}
+            <div className="border border-slate-200 rounded-[var(--ui-radius-small)] overflow-hidden">
+              <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+                {["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"].map((day, i) => (
+                  <div key={day} className={`py-2 text-center text-[10px] font-black ${i === 0 ? 'text-rose-600' : 'text-slate-600'}`}>
+                    {day}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-7">
+                {/* Empty cells before month starts */}
+                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                  <div key={`empty-${i}`} className="h-12 border-b border-r border-slate-100 bg-slate-50/50"></div>
+                ))}
+
+                {/* Days of month */}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const dateObj = new Date(calYear, calMonth, day);
+                  const isToday = dateObj.toDateString() === today.toDateString();
+                  const isSunday = dateObj.getDay() === 0;
+                  const dayEvents = getEventsForDay(day);
+                  
+                  const isSelected = selectedDate && dateObj.toDateString() === selectedDate.toDateString();
+                  
+                  // Filter valid tone events
+                  const validEvents = dayEvents.filter(e => e.color);
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      onClick={() => setSelectedDate(isSelected ? null : dateObj)}
+                      className={`h-12 border-b border-r border-slate-100 p-1 flex flex-col items-center justify-start cursor-pointer hover:bg-slate-50 transition-colors relative
+                        ${isSelected ? 'bg-amber-50 ring-inset ring-2 ring-amber-400' : ''}
+                      `}
+                    >
+                      <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full mt-0.5 z-10
+                        ${isToday ? 'bg-emerald-600 text-white' : (isSunday ? 'text-rose-600' : 'text-slate-700')}
+                      `}>
+                        {day}
+                      </span>
+                      
+                      {validEvents.length > 0 && (
+                        <div className="flex flex-wrap items-center justify-center gap-0.5 mt-1">
+                          {validEvents.slice(0,3).map((e, idx) => {
+                            const t = getTone(e.color);
+                            // Multi-day ribbon look
+                            const isMulti = e.start.toDateString() !== e.end.toDateString();
+                            
+                            if (isMulti) {
+                              return <div key={idx} className={`w-full h-1 mt-0.5 rounded-sm ${t.bg} border-y ${t.border}`} title={e.title}></div>;
+                            }
+                            return <div key={idx} className={`w-1.5 h-1.5 rounded-full ${t.dot}`} title={e.title}></div>;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                
+                {/* Empty cells after month ends */}
+                {Array.from({ length: (7 - ((firstDayOfMonth + daysInMonth) % 7)) % 7 }).map((_, i) => (
+                  <div key={`empty-end-${i}`} className="h-12 border-b border-r border-slate-100 bg-slate-50/50"></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="mt-5 border-t border-slate-100 pt-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
+                <BookOpen size={12} /> LEGENDA KATEGORI
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {calendarCategories.map(cat => {
+                  const t = getTone(cat.color);
+                  return (
+                    <div key={cat.id} className={`px-2 py-1 rounded-full border flex items-center gap-1.5 ${t.bg} ${t.border}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${t.dot}`}></div>
+                      <span className={`text-[9px] font-bold ${t.text}`}>{cat.name}</span>
+                    </div>
+                  );
+                })}
+                <div className="px-2 py-1 rounded-full border flex items-center gap-1.5 bg-rose-50 border-rose-200">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
+                  <span className="text-[9px] font-bold text-rose-700">Libur Nasional</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL PANDUAN */}
+      {showGuide && (
+        <Modal isOpen={true} onClose={() => setShowGuide(false)} title="Panduan Kalender Akademik" maxWidth="max-w-2xl">
+          <div className="p-5 space-y-4 text-sm text-slate-600 font-medium leading-relaxed">
+            <p>
+              Kalender Akademik merupakan pusat informasi terkait jadwal kegiatan, hari libur, dan agenda penting sekolah selama satu tahun ajaran.
+            </p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Gunakan <strong>kolom pencarian</strong> untuk menemukan agenda berdasarkan judul.</li>
+              <li>Pilih <strong>Filter Waktu</strong> (Bulan Ini / Mendatang) untuk melihat kegiatan spesifik.</li>
+              <li>Klik pada tanggal di <strong>Kalender Mini</strong> untuk melihat kegiatan pada tanggal tersebut secara spesifik.</li>
+              <li>Toggle tipe tampilan: <strong className="text-slate-800">Split View</strong> (standar), <strong className="text-slate-800">Daftar Penuh</strong> (menyembunyikan kalender mini), atau <strong className="text-slate-800">Kalender Penuh</strong>.</li>
+            </ul>
+            <p className="pt-2 border-t border-slate-100 mt-4 text-xs">
+              Libur Nasional ditarik secara otomatis menggunakan API hari libur pemerintah yang berlaku.
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

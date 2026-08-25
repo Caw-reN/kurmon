@@ -145,7 +145,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   let headerBorderColor = hexToRgba(surfaceColor, 0.15);
   let headerTextColor = surfaceColor; 
   let headerMutedTextColor = hexToRgba(surfaceColor, 0.8);
-  let headerBackdropFilter = 'blur(12px)';
+  let headerBackdropFilter = 'none';
   let headerShadow = '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)';
   
   let buttonBorderColor = surfaceColor;
@@ -167,11 +167,11 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
     buttonHoverBgColor = primaryColor;
     buttonHoverTextColor = surfaceColor;
   } else if (headerStyle === 'glass') {
-    headerBgColor = hexToRgba(surfaceColor, 0.7); // translucent
+    headerBgColor = surfaceColor; // Fallback from translucent to solid
     headerBorderColor = 'rgba(0,0,0,0.05)';
     headerTextColor = '#1e293b';
     headerMutedTextColor = '#64748b';
-    headerBackdropFilter = 'blur(16px)';
+    headerBackdropFilter = 'none';
     headerShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
     
     buttonBorderColor = primaryColor;
@@ -179,11 +179,11 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
     buttonHoverBgColor = primaryColor;
     buttonHoverTextColor = surfaceColor;
   } else if (headerStyle === 'minimal') {
-    headerBgColor = hexToRgba(surfaceColor, 0.45); // subtle thin glass box
+    headerBgColor = surfaceColor; // Fallback from thin glass to solid
     headerBorderColor = 'rgba(255, 255, 255, 0.25)';
     headerTextColor = primaryColor;
     headerMutedTextColor = hexToRgba(primaryColor, 0.8);
-    headerBackdropFilter = 'blur(12px)';
+    headerBackdropFilter = 'none';
     headerShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.04)';
     
     buttonBorderColor = primaryColor;
@@ -322,7 +322,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed top-[75px] left-4 right-4 backdrop-blur-md border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-sm"
+          className="md:hidden fixed top-[75px] left-4 right-4 border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-sm"
           style={{
             backgroundColor: headerBgColor === 'transparent' ? primaryColor : headerBgColor,
             borderColor: headerBorderColor
@@ -376,7 +376,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
       {/* MODAL BANTUAN */}
       {isBantuanOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 animate-in fade-in duration-200">
           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
@@ -516,7 +516,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
       {/* MODAL PANDUAN (Fallback for subpages where PublicGuideModal is not mounted) */}
       {isPanduanOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 animate-in fade-in duration-200">
           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">

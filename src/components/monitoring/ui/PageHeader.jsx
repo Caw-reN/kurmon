@@ -36,7 +36,7 @@ export default function PageHeader({
   };
 
   return (
-    <div className={cn("relative z-20 flex flex-col gap-2.5 pb-2", isPlain ? '-mb-2' : '')}>
+    <div className={cn("relative z-20 flex flex-col gap-2.5", isPlain ? '-mb-2' : '')}>
       {/* Mobile Navigation Header (Shown on Mobile screens when not plain) */}
       {!isPlain && (
         <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">

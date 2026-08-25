@@ -3,8 +3,8 @@ import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate } from'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles } from'lucide-react';
 import { X, Search, ArrowRight, LogIn, ChevronLeft, Check, Info, Mail } from'lucide-react';
-import HeaderNavbar from'../components/layout/HeaderNavbar.jsx';
-import TeacherStudentIllustration from'../components/TeacherStudentIllustration.jsx';
+import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
+
 
 
 const hexToRgba = (hexColor, alpha = 1) => {
@@ -40,13 +40,9 @@ export default function LandingPage() {
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const isShortScreen = isMobile && (screenHeight <= 750 || screenWidth <= 390);
   const isTinyScreen = isMobile && (screenHeight <= 580 || screenWidth <= 340);
-  const [mobileFlowStep, setMobileFlowStep] = useState('loading');
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const [showPublicGuide, setShowPublicGuide] = useState(false);
   const [showPublicHelp, setShowPublicHelp] = useState(false);
-  const [isSvgAnimated, setIsSvgAnimated] = useState(false);
   const [isNavScrolled, setIsNavScrolled] = useState(false);
 
   const [showRulesModal, setShowRulesModal] = useState(false);
@@ -112,7 +108,7 @@ export default function LandingPage() {
   const renderRulesModal = () => {
     if (!showRulesModal) return null;
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 animate-in fade-in duration-200">
         <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
           
           {/* Header */}
@@ -285,15 +281,6 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    if (isMobile && mobileFlowStep ==='landing') {
-      const timer = setTimeout(() => {
-        setIsSvgAnimated(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isMobile, mobileFlowStep]);
-
-  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
       setScreenWidth(window.innerWidth);
@@ -302,33 +289,6 @@ export default function LandingPage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile && mobileFlowStep ==='loading') {
-      setLoadingProgress(0);
-      const duration = 1500; // 1.5s
-      const intervalTime = 30; // update every 30ms
-      const steps = duration / intervalTime;
-      let currentStep = 0;
-
-      const timer = setInterval(() => {
-        currentStep += 1;
-        const progress = Math.min(Math.round((currentStep / steps) * 100), 100);
-        setLoadingProgress(progress);
-
-        if (currentStep >= steps) {
-          clearInterval(timer);
-          setMobileFlowStep('landing');
-        }
-      }, intervalTime);
-
-      return () => clearInterval(timer);
-    }
-  }, [isMobile, mobileFlowStep]);
-
-  useEffect(() => {
-    setIsLoaded(true);
   }, []);
 
   const { primaryColor, accentColor, heroTitle, heroSubtitle, logoText } = appSettings;
@@ -387,7 +347,7 @@ export default function LandingPage() {
   };
 
   const handleTouchEnd = () => {
-    const totalItems = partners.length + 1;
+    const totalItems = partners.length || 1;
     if (totalItems <= 1) return;
     const swipeThreshold = 40;
     const diff = touchStart - touchEnd;
@@ -414,7 +374,7 @@ export default function LandingPage() {
 
   const handleMouseUp = () => {
     if (!isDragging) return;
-    const totalItems = partners.length + 1;
+    const totalItems = partners.length || 1;
     if (totalItems <= 1) return;
     const swipeThreshold = 40;
     const diff = dragStart - dragEnd;
@@ -445,7 +405,7 @@ export default function LandingPage() {
   }, [appSettings]);
 
   useEffect(() => {
-    const totalItems = partners.length + 1;
+    const totalItems = partners.length || 1;
     if (totalItems <= 1) return;
     const interval = setInterval(() => {
       setActiveSlide(prev => (prev + 1) % totalItems);
@@ -508,7 +468,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className={`relative flex flex-col min-h-screen w-full transition-opacity duration-700 bg-[var(--ui-bg)] overflow-x-hidden font-sans ${isLoaded ?'opacity-100' :'opacity-0'}`} style={{'--accent-color': accentColor ||'#a3e635','--ui-primary': primaryColor ||'#4B7BE5' }}>
+    <div className="relative flex flex-col min-h-screen w-full bg-[var(--ui-bg)] overflow-x-hidden font-sans" style={{'--accent-color': accentColor ||'#a3e635','--ui-primary': primaryColor ||'#4B7BE5' }}>
 
       {/* GLOBAL DECORATIVE BACKGROUND */}
       {appSettings.heroImage ? (
@@ -521,7 +481,7 @@ export default function LandingPage() {
       ) : (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
           {/* Soft Wash Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-purple-50/30 to-blue-50/40 backdrop-blur-[100px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-slate-100"></div>
           {/* Glowing Blobs */}
           <div className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: primaryColor }}></div>
           <div className="absolute bottom-[-10%] left-[-5%] w-[700px] h-[700px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: accentColor ||'#a3e635' }}></div>
@@ -589,7 +549,7 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="h-8.5 px-3 rounded-[var(--ui-radius-small)] bg-white/20 hover:bg-white/30 active:scale-95 text-white border border-white/40 shadow-xs flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer select-none"
+              className="h-8.5 px-3 rounded-[var(--ui-radius-small)] bg-slate-800 hover:bg-slate-900 active:scale-95 text-white border border-slate-700 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer select-none"
               aria-label="Masuk Aplikasi"
               title="Masuk ke Aplikasi"
             >
@@ -738,7 +698,7 @@ export default function LandingPage() {
                   <div className="absolute right-3.5 bottom-3.5 pointer-events-none z-20 drop-shadow-xs">
                     {imageSrc ? (
                       <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1.5 shadow-xs">
-                        <img src={imageSrc} alt={partner.name} className="w-full h-full object-contain rounded-[var(--ui-radius-small)]" />
+                        <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain rounded-[var(--ui-radius-small)]" />
                       </div>
                     ) : (
                       <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-slate-800 p-2 shadow-xs">
@@ -796,7 +756,7 @@ export default function LandingPage() {
                   {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
                     <div key={`${mitra.id ||'m'}-${idx}`} className="w-[80px] md:w-[110px] h-[35px] md:h-[45px] flex items-center justify-center shrink-0 group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
                       {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
+                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
                       ) : (
                         <span className="text-xs md:text-sm font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
                       )}
@@ -923,10 +883,16 @@ export default function LandingPage() {
           {/* Right Column (Illustration) - Only render if custom background image is NOT set */}
           {!appSettings.heroImage && (
             <div className="w-[380px] lg:w-[450px] flex items-center justify-center shrink-0 min-h-0">
-              <div className="w-full max-w-[320px] lg:max-w-[380px] aspect-square flex items-center justify-center p-6 bg-white/20 backdrop-blur-xs rounded-[var(--ui-radius-card)] border border-white/40 shadow-xs relative">
+              <div className="w-full max-w-[320px] lg:max-w-[380px] aspect-square flex items-center justify-center p-6 bg-slate-800 rounded-[var(--ui-radius-card)] border border-slate-700 shadow-xs relative overflow-hidden">
                 {/* Glowing decorative background behind illustration */}
                 <div className="absolute inset-4 rounded-full blur-2xl opacity-10 bg-gradient-to-tr from-blue-500 to-purple-500"></div>
-                <TeacherStudentIllustration isAnimated={isSvgAnimated} />
+                <div className="flex flex-col items-center justify-center gap-4 text-white/90">
+                  <MonitorSmartphone size={80} strokeWidth={1.5} className="animate-pulse" />
+                  <div className="flex gap-4">
+                    <BookOpen size={40} strokeWidth={1.5} className="text-blue-300" />
+                    <Sparkles size={40} strokeWidth={1.5} className="text-purple-300" />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1017,7 +983,7 @@ export default function LandingPage() {
                     >
                       <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none w-24 h-24 transform group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700">
                         {imageSrc ? (
-                          <img src={imageSrc} alt="" className="w-full h-full object-contain grayscale brightness-0 invert" />
+                          <img src={imageSrc} alt="" loading="lazy" className="w-full h-full object-contain grayscale brightness-0 invert" />
                         ) : (
                           <IconComponent className="w-full h-full text-white" strokeWidth={1.5} />
                         )}
@@ -1032,7 +998,7 @@ export default function LandingPage() {
 
                     <div className="absolute -right-3 -bottom-4 lg:-right-4 lg:-bottom-5 pointer-events-none z-20 group-hover:-translate-y-3 group-hover:scale-110 transition-transform duration-500 drop-shadow-xs">
                       {imageSrc ? (
-                        <img src={imageSrc} alt={name} className="w-16 h-16 lg:w-20 lg:h-20 object-contain" />
+                        <img src={imageSrc} alt={name} loading="lazy" className="w-16 h-16 lg:w-20 lg:h-20 object-contain" />
                       ) : (
                         <div className="w-16 h-16 lg:w-20 lg:h-20 flex items-center justify-center rotate-[-5deg] group-hover:rotate-0 transition-all duration-300 text-slate-800">
                           <IconComponent className="w-full h-full opacity-90" strokeWidth={1.5} />
@@ -1061,7 +1027,7 @@ export default function LandingPage() {
                 {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
                   <div key={`${mitra.id ||'m'}-${idx}`} className="w-[70px] lg:w-[90px] h-[30px] lg:h-[35px] flex items-center justify-center shrink-0 group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
                     {mitra.image ? (
-                      <img src={mitra.image} alt={mitra.name} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
+                      <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
                     ) : (
                       <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
                     )}
@@ -1202,7 +1168,7 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300 p-0 md:p-4 text-left">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/80 animate-in fade-in duration-300 p-0 md:p-4 text-left">
       {/* Backdrop overlay listener to close */}
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 
@@ -1354,7 +1320,7 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300 p-0 md:p-4 text-left">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/80 animate-in fade-in duration-300 p-0 md:p-4 text-left">
       {/* Backdrop overlay listener to close */}
       <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
 

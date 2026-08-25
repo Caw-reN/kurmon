@@ -303,11 +303,21 @@ async function autoSyncGuruAttendanceToAppData() {
       if (t.id) nipToCode[String(t.id).trim().toLowerCase()] = code;
     });
 
+    const staffsRes = await dbPool.query("SELECT id, payload FROM mst_staffs");
+    const staffToCode = {};
+    staffsRes.rows.forEach(r => {
+      const s = r.payload;
+      const code = s.staff_code || s.code || r.id;
+      if (r.id) staffToCode[String(r.id).trim().toLowerCase()] = code;
+      if (s.staff_code) staffToCode[String(s.staff_code).trim().toLowerCase()] = code;
+      if (s.code) staffToCode[String(s.code).trim().toLowerCase()] = code;
+    });
+
     const { rows: logs } = await dbPool.query(`
-      SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, d.ip_address, d.location, d.device_type
+      SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, d.ip_address, d.location, d.device_type, l.person_type
       FROM hikvision_logs l
       JOIN hikvision_devices d ON l.device_id = d.id
-      WHERE d.device_type IN ('guru', 'karyawan')
+      WHERE l.person_type IN ('guru', 'karyawan') OR d.device_type IN ('guru', 'karyawan')
       ORDER BY l.timestamp ASC
     `);
     if (logs.length === 0) return;
@@ -338,13 +348,17 @@ async function autoSyncGuruAttendanceToAppData() {
 
       for (const log of logs) {
         const empId = String(log.employee_id || '').trim();
-        const teacherCode = nipToCode[empId.toLowerCase()] || null;
+        const empKey = empId.toLowerCase();
+        const teacherCode = nipToCode[empKey] || staffToCode[empKey] || null;
         if (!teacherCode) continue;
 
         const date = log.time_str.substring(0, 10);
         const time = log.time_str.substring(11, 16);
         
-        const roleType = log.device_type === 'karyawan' ? 'karyawan' : 'guru';
+        let roleType = log.person_type || log.device_type || 'guru';
+        if (nipToCode[empKey]) roleType = 'guru';
+        else if (staffToCode[empKey]) roleType = 'karyawan';
+        
         const roleConf = getRoleTimeConfigLocal(conf, roleType);
 
         let sessionName = '';
@@ -1008,6 +1022,7 @@ const initDb = async () => {
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS mapel VARCHAR(100)");
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS kelas VARCHAR(50)");
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS semester VARCHAR(50)");
+      await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS deskripsi TEXT");
     } catch (e) {
       console.warn("Failed to alter modul_ajar_guru table columns:", e.message);
     }
@@ -1033,6 +1048,11 @@ const initDb = async () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Migration: Pastikan kolom rincian_absensi ada (dijalankan sekali saat startup, bukan per-request)
+    try {
+      await dbPool.query("ALTER TABLE jurnal_harian_guru ADD COLUMN IF NOT EXISTS rincian_absensi JSONB DEFAULT '[]'::jsonb");
+    } catch (_) {}
 
     // Catatan Wali Kelas
     await dbPool.query(`
@@ -1128,7 +1148,10 @@ const initDb = async () => {
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_emp_time ON hikvision_logs (employee_id, timestamp);
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_device_time ON hikvision_logs (device_id, timestamp DESC);
         CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_tanggal ON kedisiplinan_absensi (tanggal);
-        CREATE INDEX IF NOT EXISTS idx_jurnal_guru_code_date ON jurnal_harian_guru (teacher_code, tanggal);
+        CREATE INDEX IF NOT EXISTS idx_jurnal_guru_code_date ON jurnal_harian_guru (teacher_code, tanggal DESC);
+        CREATE INDEX IF NOT EXISTS idx_catatan_wk_teacher_date ON catatan_walikelas (teacher_code, tanggal DESC);
+        CREATE INDEX IF NOT EXISTS idx_catatan_wk_siswa ON catatan_walikelas (siswa_nis);
+        CREATE INDEX IF NOT EXISTS idx_catatan_wk_kelas ON catatan_walikelas (kelas);
       `);
       console.log("Database indexes verified/created.");
     } catch (idxErr) {
@@ -3688,7 +3711,7 @@ const server = createServer(async (req, res) => {
           const session = getSession(req);
           
           if (body.action === "upload") {
-            const { teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester } = body;
+            const { teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi } = body;
             if (!teacher_code || !teacher_name || !nama_dokumen || !file_url || !tahun_ajaran) {
               return send(req, res, 400, { ok: false, error: "Data modul ajar tidak lengkap." });
             }
@@ -3723,8 +3746,8 @@ const server = createServer(async (req, res) => {
             }
 
             await dbPool.query(
-              "INSERT INTO modul_ajar_guru (teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-              [teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel || null, kelas || null, semester || null]
+              "INSERT INTO modul_ajar_guru (teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+              [teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel || null, kelas || null, semester || null, deskripsi || null]
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "delete") {
@@ -3747,6 +3770,33 @@ const server = createServer(async (req, res) => {
               return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin menghapus dokumen ini." });
             }
             await dbPool.query("DELETE FROM modul_ajar_guru WHERE id = $1", [body.id]);
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "rename") {
+            const { id, nama_dokumen } = body;
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM modul_ajar_guru WHERE id = $1", [id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Dokumen modul ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin mengubah dokumen ini." });
+            }
+            if (!nama_dokumen || !nama_dokumen.trim()) {
+              return send(req, res, 400, { ok: false, error: "Nama dokumen tidak boleh kosong." });
+            }
+            let newName = nama_dokumen.trim();
+            if (!newName.toLowerCase().endsWith('.pdf')) newName += '.pdf';
+            
+            await dbPool.query("UPDATE modul_ajar_guru SET nama_dokumen = $1 WHERE id = $2", [newName, id]);
             send(req, res, 200, { ok: true });
           } else {
             send(req, res, 400, { ok: false, error: "Action tidak dikenal." });

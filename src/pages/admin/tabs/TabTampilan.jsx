@@ -3,7 +3,7 @@ import React from'react';
 import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
-import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2 } from'lucide-react';
+import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
 import { UISelect } from'../../../components/ui.jsx';
@@ -70,17 +70,23 @@ export default function TabTampilan(props) {
   }));
 
   React.useEffect(() => {
-    setAppSettings({
-      ...globalAppSettings,
-      heroTitleColor: globalAppSettings.heroTitleColor ||"#1e293b",
-      heroSubtitleColor: globalAppSettings.heroSubtitleColor ||"#64748b",
-      heroHighlightColor: globalAppSettings.heroHighlightColor || globalAppSettings.primaryColor ||"#00bfa5",
-    });
-  }, [globalAppSettings]);
+    // Dihapus agar tidak overwrite state lokal (unsaved changes) saat database sync (polling) berjalan.
+  }, []);
 
-  // Real-time live theme preview while editing
+  // Set status preview aktif hanya pada saat komponen mount/unmount
+  React.useEffect(() => {
+    window.__THEME_PREVIEW_ACTIVE__ = true;
+    return () => {
+      window.__THEME_PREVIEW_ACTIVE__ = false;
+      window.__THEME_PREVIEW_SETTINGS__ = null;
+      applyDocumentBranding(globalAppSettings);
+    };
+  }, []);
+
+  // Update preview secara live setiap kali appSettings berubah
   React.useEffect(() => {
     if (appSettings) {
+      window.__THEME_PREVIEW_SETTINGS__ = appSettings;
       applyDocumentBranding(appSettings);
     }
   }, [appSettings]);
@@ -886,12 +892,12 @@ export default function TabTampilan(props) {
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <Button 
-                          variant="outline" 
-                          type="button" 
+                          type="button"
                           onClick={applySafeColors}
                           className="bg-emerald-700 text-white hover:bg-emerald-800 border-none font-black text-xs px-4 py-2.5 rounded-[var(--ui-radius-card)] shadow-xs cursor-pointer flex items-center gap-2"
                         >
-                          🛡️ Setel Ke Warna Aman &amp; Standar
+                          <ShieldCheck size={14} />
+                          <span>Setel Ke Warna Aman & Standar</span>
                         </Button>
                         <Button variant="outline" type="button" onClick={applyAutoRecommendedTheme} >Auto Rekomendasi Tema</Button>
                       </div>
@@ -901,39 +907,33 @@ export default function TabTampilan(props) {
                             {p.name}</Button>
                         ))}
                       </div>
-                      <div className="grid grid-cols-3 gap-3 pt-3">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Utama</label>
-                          <input type="color" value={appSettings.primaryColor ||"#064e3b"} onChange={(e) => setAppSettings({ ...appSettings, primaryColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Aksen</label>
-                          <input type="color" value={appSettings.accentColor ||"#a3e635"} onChange={(e) => setAppSettings({ ...appSettings, accentColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Tombol Primary</label>
-                          <input type="color" value={appSettings.primaryButtonColor || appSettings.primaryColor ||"#064e3b"} onChange={(e) => setAppSettings({ ...appSettings, primaryButtonColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Tombol Aksen</label>
-                          <input type="color" value={appSettings.actionButtonColor || appSettings.accentColor ||"#a3e635"} onChange={(e) => setAppSettings({ ...appSettings, actionButtonColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Background Web (BG)</label>
-                          <input type="color" value={appSettings.bgColor ||"#f8fafc"} onChange={(e) => setAppSettings({ ...appSettings, bgColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Warna Kartu/Box (Surface)</label>
-                          <input type="color" value={appSettings.surfaceColor ||"#ffffff"} onChange={(e) => setAppSettings({ ...appSettings, surfaceColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Utama</label>
-                          <input type="color" value={appSettings.textColor ||"#0f172a"} onChange={(e) => setAppSettings({ ...appSettings, textColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Kartu/Box</label>
-                          <input type="color" value={appSettings.cardTextColor || (appSettings.textColor || "#0f172a")} onChange={(e) => setAppSettings({ ...appSettings, cardTextColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer" />
-                        </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-3">
+                        {[
+                          { label: "Utama", key: "primaryColor", fallback: "#064e3b" },
+                          { label: "Aksen", key: "accentColor", fallback: "#a3e635" },
+                          { label: "Tombol Primary", key: "primaryButtonColor", fallback: appSettings.primaryColor || "#064e3b" },
+                          { label: "Tombol Aksen", key: "actionButtonColor", fallback: appSettings.accentColor || "#a3e635" },
+                        ].map((colorItem) => (
+                          <div key={colorItem.key} className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 block">
+                              {colorItem.label}
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color" 
+                                value={appSettings[colorItem.key] || colorItem.fallback} 
+                                onChange={(e) => setAppSettings({ ...appSettings, [colorItem.key]: e.target.value })} 
+                                className="w-8 h-8 rounded-[var(--ui-radius-small)] border border-slate-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0" 
+                              />
+                              <input 
+                                type="text" 
+                                value={appSettings[colorItem.key] || colorItem.fallback} 
+                                onChange={(e) => setAppSettings({ ...appSettings, [colorItem.key]: e.target.value })} 
+                                className="w-full border-none bg-white p-2 rounded-[var(--ui-radius-small)] text-[10px] font-mono font-bold uppercase focus:outline-[var(--ui-primary)] shadow-sm" 
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                       <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -1065,10 +1065,46 @@ export default function TabTampilan(props) {
                   <div className="border-none rounded-[var(--ui-radius-card)] p-5 bg-white shadow-sm flex flex-col sm:flex-row gap-5 items-center">
                     <div className="flex-1 w-full">
                       <p className="text-[10px] font-black text-slate-500 uppercase mb-2">Preview Tema</p>
-                      <div className="rounded-[var(--ui-radius-small)] p-5 text-white shadow-inner" style={{ background: appSettings.primaryColor ||"var(--ui-primary)" }}>
-                        <div className="inline-block px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold text-black" style={{ background: appSettings.accentColor ||"var(--ui-accent)" }}>{appSettings.logoText ||"TS"}</div>
-                        <h4 className="font-black mt-3 text-lg line-clamp-1">{appSettings.appName}</h4>
-                        <p className="text-[10px] opacity-90 leading-tight mt-1 line-clamp-2">{appSettings.heroTitle}</p>
+                      <div className="rounded-[var(--ui-radius-small)] p-5 text-white shadow-inner flex flex-col gap-4 relative overflow-hidden group" style={{ background: appSettings.primaryColor ||"var(--ui-primary)", fontFamily: appSettings.fontFamily }}>
+                        {/* Background accent */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                        
+                        {/* Header Mini */}
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-2">
+                            <div className="inline-block px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold shadow-sm" style={{ background: appSettings.accentColor ||"var(--ui-accent)", color: contrastRatio("#000000", appSettings.accentColor ||"#ffffff") > 4.5 ? "#000000" : "#ffffff" }}>{appSettings.logoText ||"TS"}</div>
+                            <h4 className="font-black text-sm sm:text-base line-clamp-1 tracking-tight">{appSettings.appName}</h4>
+                          </div>
+                          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shadow-inner">
+                            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          </div>
+                        </div>
+
+                        {/* Typography & Interactive Content */}
+                        <div className="relative z-10 flex flex-col gap-3">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase opacity-70 tracking-widest">{appSettings.fontFamily || "Font Utama"}</p>
+                            <p className="text-xs font-medium opacity-90 leading-relaxed line-clamp-2">
+                              {appSettings.heroTitle || "Aplikasi pengelolaan akademik inovatif dengan fitur absensi dan jurnal harian real-time."}
+                            </p>
+                          </div>
+                          
+                          {/* Mini Card & Buttons */}
+                          <div className="bg-black/10 backdrop-blur-sm p-3 rounded-[var(--ui-radius-card)] border border-white/10 flex flex-wrap gap-2.5 items-center justify-between mt-1 transition-all hover:bg-black/15">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shadow-xs shrink-0" style={{ background: appSettings.primaryButtonColor ||"var(--ui-primary-btn)" }}>
+                                <CheckCircle2 size={13} className="text-white" />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-[9px] font-bold opacity-80 uppercase tracking-wider truncate">Status Sistem</span>
+                                <span className="text-[11px] font-black truncate">Aktif & Optimal</span>
+                              </div>
+                            </div>
+                            <button type="button" className="text-[10px] font-black px-3 py-1.5 rounded-[var(--ui-radius-small)] shadow-sm hover:scale-105 active:scale-95 transition-all shrink-0 cursor-pointer border-none" style={{ background: appSettings.actionButtonColor ||"var(--ui-accent-btn)", color: contrastRatio("#000000", appSettings.actionButtonColor ||"#ffffff") > 4.5 ? "#000000" : "#ffffff" }}>
+                              Coba Hover
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="w-full sm:w-40 text-center sm:text-left space-y-2 shrink-0">
@@ -1079,7 +1115,7 @@ export default function TabTampilan(props) {
                       ) : (
                         <p className="text-emerald-600 text-[10px] font-bold bg-emerald-50 p-2 rounded-[var(--ui-radius-small)] border border-emerald-100"><CheckCircle2 size={14} className="inline mr-1" /> Ideal.</p>
                       )}
-                      <button type="button" onClick={autoFixContrast} className="w-full mt-1 cursor-pointer">Perbaiki Kontras</button>
+                      <Button variant="outline" type="button" onClick={autoFixContrast} className="w-full mt-2 text-xs font-bold border-slate-200 hover:bg-slate-50 shadow-sm">Perbaiki Kontras</Button>
                     </div>
                   </div>
 

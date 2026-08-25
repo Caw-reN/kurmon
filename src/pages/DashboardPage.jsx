@@ -23,7 +23,7 @@ import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   UserX,
   Clock3,
   ShieldAlert,
-  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
+  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, BellRing, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
@@ -376,7 +376,7 @@ export default function DashboardPage({
     ];
 
     return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 relative z-10 pb-6">
+      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-6">
         {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
         <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
           <div className="relative">
@@ -680,8 +680,11 @@ export default function DashboardPage({
               dashboardMessages.slice(0, 2).map((msg, idx) => (
                 <div 
                   key={idx} 
+                  role="button"
+                  tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
@@ -867,7 +870,231 @@ export default function DashboardPage({
           <SharedDashboardLogs />
         </div>
 
-        <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
+        {/* Mobile Notification Modal (Desktop Style) */}
+      {showMobileNotif && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white border border-slate-200/50 shadow-2xl rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+            
+            {/* Header (Sticky) */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
+              <div className="flex items-center gap-3">
+                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shadow-inner">
+                   <Bell size={18} strokeWidth={2.5} />
+                 </div>
+                 <div className="flex flex-col">
+                   <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
+                   <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
+                 </div>
+              </div>
+              <button 
+                onClick={() => setShowMobileNotif(false)} 
+                className="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer active:scale-95"
+              >
+                <X size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
+              
+              {/* Realtime Notification Consent Prompt */}
+              <div className="bg-gradient-to-br from-[var(--ui-primary)]/10 to-[var(--ui-primary)]/5 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--ui-primary)]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                <div className="flex items-start gap-3 relative z-10">
+                  <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
+                    <BellRing className="w-4 h-4" strokeWidth={2.5} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
+                    <span className="text-[11px] font-medium text-slate-500 mt-1 leading-snug">Terima info absensi & piket langsung di layar Anda secara instan.</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if ("Notification" in window) {
+                      Notification.requestPermission().then(p => {
+                        if (p === 'granted') alert('Notifikasi realtime diaktifkan!');
+                      });
+                    }
+                  }}
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10"
+                  style={{ backgroundColor: "var(--ui-primary)" }}
+                >
+                  <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
+                </button>
+              </div>
+
+              {/* TODAY'S CLASS REMINDERS */}
+              <div className="flex flex-col gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
+                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                    Jadwal Mengajar
+                  </span>
+                </div>
+                {!todayClasses || todayClasses.length === 0 ? (
+                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                    Tidak ada jadwal mengajar hari ini.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {todayClasses.map((item, idx) => (
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                          <Clock3 className="w-5 h-5" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col min-w-0 text-left justify-center">
+                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-indigo-600 transition-colors">
+                            {item.subject}
+                          </span>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                            <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{item.className}</span>
+                            <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ANNOUNCEMENTS / MESSAGES */}
+              <div className="flex flex-col gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 rounded-full bg-rose-500" />
+                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                    Pengumuman Terbaru
+                  </span>
+                </div>
+                {!dashboardMessages || dashboardMessages.length === 0 ? (
+                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                    Belum ada pengumuman terbaru.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {dashboardMessages.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-md transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                          <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col min-w-0 justify-center">
+                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-rose-600 transition-colors">
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-500 truncate">
+                            {item.sender} • {item.date || 'Hari ini'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Spacer comment */}
+      {showAllAnnouncementsModal && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                  <Megaphone size={16} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800">Semua Pengumuman Sekolah</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowAllAnnouncementsModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
+              {(!dashboardMessages || dashboardMessages.length === 0) ? (
+                <div className="text-center py-8 text-xs font-bold text-slate-400">
+                  Belum ada pengumuman resmi sekolah.
+                </div>
+              ) : (
+                dashboardMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
+                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 hover:shadow-xs transition-all cursor-pointer flex flex-col gap-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800">{msg.title}</h4>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.content || msg.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Detail Single Announcement */}
+      {activeAnnouncementDetail && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <Megaphone size={16} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setActiveAnnouncementDetail(null)}
+                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-rose-100 text-rose-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">
+                  {activeAnnouncementDetail.priority === 'high' ? 'PENTING' : 'INFO'}
+                </span>
+                <span className="text-xs text-slate-400 font-semibold">{activeAnnouncementDetail.date || 'Hari ini'}</span>
+              </div>
+              <h2 className="text-base font-black text-slate-900 leading-snug">
+                {activeAnnouncementDetail.title}
+              </h2>
+              <div className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line pt-2 border-t border-slate-100">
+                {activeAnnouncementDetail.content || activeAnnouncementDetail.body}
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setActiveAnnouncementDetail(null)}
+                className="px-4 py-2 bg-slate-800 text-white rounded-[var(--ui-radius-small)] text-xs font-bold border-none cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
       </div>
     );
 }
@@ -973,7 +1200,7 @@ export default function DashboardPage({
   const pklJurnalCount = 0;
 
   return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 relative z-10 pb-8">
+      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-8">
 
       {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
       <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
@@ -1409,8 +1636,11 @@ export default function DashboardPage({
               dashboardMessages.slice(0, 2).map((msg, idx) => (
                 <div 
                   key={idx} 
+                  role="button"
+                  tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
@@ -1945,38 +2175,43 @@ export default function DashboardPage({
 
 
 
-      {/* Mobile Notification Modal */}
+      {/* Mobile Notification Modal (Desktop Style) */}
       {showMobileNotif && (
-        <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-xs flex items-start justify-center pt-16 px-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xs w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
-                  <Bell size={16} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-800 leading-tight">Notifikasi & Informasi</h3>
-                  <p className="text-[10px] text-slate-400 font-medium">Pemberitahuan sistem sekolah</p>
-                </div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white border border-slate-200/50 shadow-2xl rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+            
+            {/* Header (Sticky) */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
+              <div className="flex items-center gap-3">
+                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shadow-inner">
+                   <Bell size={18} strokeWidth={2.5} />
+                 </div>
+                 <div className="flex flex-col">
+                   <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
+                   <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
+                 </div>
               </div>
               <button 
-                onClick={() => setShowMobileNotif(false)}
-                className="w-7 h-7 rounded-full bg-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+                onClick={() => setShowMobileNotif(false)} 
+                className="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer active:scale-95"
               >
-                <CloseIcon size={14} />
+                <X size={16} strokeWidth={2.5} />
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-4 overflow-y-auto flex flex-col gap-3">
-              {/* Realtime Notification Consent */}
-              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[var(--ui-radius-card)] p-3 flex flex-col gap-2">
-                <div className="flex items-start gap-2.5">
-                  <Bell className="text-[var(--ui-primary)] w-4 h-4 shrink-0 mt-0.5" />
+            {/* Scrollable Content */}
+            <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
+              
+              {/* Realtime Notification Consent Prompt */}
+              <div className="bg-gradient-to-br from-[var(--ui-primary)]/10 to-[var(--ui-primary)]/5 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--ui-primary)]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                <div className="flex items-start gap-3 relative z-10">
+                  <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
+                    <BellRing className="w-4 h-4" strokeWidth={2.5} />
+                  </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
-                    <span className="text-[10px] font-medium text-slate-500 mt-0.5 leading-tight">Info absensi, jadwal & kegiatan sekolah langsung ke layar HP Anda.</span>
+                    <span className="text-[13px] font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
+                    <span className="text-[11px] font-medium text-slate-500 mt-1 leading-snug">Terima info absensi & piket langsung di layar Anda secara instan.</span>
                   </div>
                 </div>
                 <button
@@ -1987,85 +2222,91 @@ export default function DashboardPage({
                       });
                     }
                   }}
-                  className="w-full py-1.5 text-white font-bold text-xs rounded-[var(--ui-radius-small)] border-none cursor-pointer shadow-xs active:scale-95 transition-transform"
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10"
                   style={{ backgroundColor: "var(--ui-primary)" }}
                 >
-                  Izinkan Notifikasi
+                  <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
                 </button>
               </div>
 
-              {/* JADWAL MENGAJAR HARI INI */}
-              {(currentUser?.role || '').toLowerCase() === 'guru' && (
-                <div className="flex flex-col gap-1.5 shrink-0 text-left">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider ml-1">
-                    Jadwal Mengajar Hari Ini
+              {/* TODAY'S CLASS REMINDERS */}
+              <div className="flex flex-col gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
+                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                    Jadwal Mengajar
                   </span>
-                  {!todayClasses || todayClasses.length === 0 ? (
-                    <div className="text-xs font-semibold text-slate-400 p-3 text-center bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-100">
-                      Tidak ada jadwal mengajar hari ini.
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar">
-                      {todayClasses.map((item, idx) => (
-                        <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-card)]">
-                          <Clock3 className="text-[var(--ui-primary)] w-4 h-4 mt-0.5 shrink-0" />
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-slate-800 truncate">
-                              {item.subject}
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-500 mt-0.5">
-                              Kelas: {item.className} • Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
-                            </span>
+                </div>
+                {!todayClasses || todayClasses.length === 0 ? (
+                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                    Tidak ada jadwal mengajar hari ini.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {todayClasses.map((item, idx) => (
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                          <Clock3 className="w-5 h-5" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col min-w-0 text-left justify-center">
+                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-indigo-600 transition-colors">
+                            {item.subject}
+                          </span>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                            <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{item.className}</span>
+                            <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* System Announcements */}
-              <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider ml-1">Pemberitahuan Terbaru</span>
-                
-                {dashboardMessages && dashboardMessages.length > 0 ? (
-                  dashboardMessages.slice(0, 3).map((msg, i) => (
-                    <div key={i} className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-100 flex flex-col gap-1 text-left">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800 truncate">{msg.title}</span>
-                        {msg.pinned && <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-md">PINNED</span>}
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.body}</p>
-                      <span className="text-[9px] font-medium text-slate-400 mt-0.5">
-                        {new Date(msg.createdAt || new Date()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-center bg-slate-50 rounded-[var(--ui-radius-card)] border border-dashed border-slate-200">
-                    <p className="text-xs font-bold text-slate-400">Tidak ada notifikasi baru hari ini</p>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Panduan Link */}
-              <button
-                onClick={() => { setShowMobileNotif(false); setShowPanduan(true); }}
-                className="w-full py-2 px-3 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border-none cursor-pointer mt-1 transition-colors"
-              >
-                <HelpCircle size={14} />
-                <span>Buka Panduan Aplikasi</span>
-              </button>
+              {/* ANNOUNCEMENTS / MESSAGES */}
+              <div className="flex flex-col gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 rounded-full bg-rose-500" />
+                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                    Pengumuman Terbaru
+                  </span>
+                </div>
+                {!dashboardMessages || dashboardMessages.length === 0 ? (
+                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                    Belum ada pengumuman terbaru.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {dashboardMessages.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-md transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                          <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col min-w-0 justify-center">
+                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-rose-600 transition-colors">
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-500 truncate">
+                            {item.sender} • {item.date || 'Hari ini'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
       )}
-
-      {/* Modal Popup All Announcements List */}
+      
+      {/* Spacer comment */}
       {showAllAnnouncementsModal && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xs w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                   <Megaphone size={16} strokeWidth={2.5} />
@@ -2111,9 +2352,10 @@ export default function DashboardPage({
 
       {/* Modal Detail Single Announcement */}
       {activeAnnouncementDetail && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xs w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
                   <Megaphone size={16} strokeWidth={2.5} />
@@ -2253,10 +2495,11 @@ function DashboardMessageCarousel({ dashboardMessages }) {
 
       {/* Modal Popup Detail Pengumuman */}
       {selectedMsg && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-xs w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {/* Modal Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                   <Megaphone size={16} strokeWidth={2.5} />

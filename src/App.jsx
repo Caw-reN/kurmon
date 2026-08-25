@@ -223,6 +223,15 @@ export default function App() {
             nextPayload.teachers = nextPayload.teachers.map((t) => { const s = { ...t }; delete s.password; return s; });
           }
           setDatabaseSnapshot(nextPayload);
+          // PRELOAD HERO IMAGE FOR LANDING PAGE (LCP OPTIMIZATION)
+          if (nextPayload?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
+            const link = document.createElement('link');
+            link.id = 'preload-hero';
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = nextPayload.appSettings.heroImage;
+            document.head.appendChild(link);
+          }
           try {
             localStorage.setItem(OFFLINE_CACHE_KEY, JSON.stringify({ _savedAt: Date.now(), payload: nextPayload }));
           } catch (e) {
@@ -248,11 +257,27 @@ export default function App() {
             const parsed = offlineEntry?.payload || (typeof offlineEntry === "object" && !offlineEntry._savedAt ? offlineEntry : null);
             if (parsed && typeof parsed === "object" && isFresh) {
               setDatabaseSnapshot(parsed);
+              if (parsed?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
+                const link = document.createElement('link');
+                link.id = 'preload-hero';
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = parsed.appSettings.heroImage;
+                document.head.appendChild(link);
+              }
               recovered = true;
               console.info("Recovered database snapshot from offline backup (fresh).");
             } else if (parsed && typeof parsed === "object" && !isFresh) {
               // Cache expired — use anyway but warn, then clear
               setDatabaseSnapshot(parsed);
+              if (parsed?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
+                const link = document.createElement('link');
+                link.id = 'preload-hero';
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = parsed.appSettings.heroImage;
+                document.head.appendChild(link);
+              }
               recovered = true;
               console.warn("Offline backup sudah kadaluarsa (>24 jam). Digunakan sementara.");
               try { localStorage.removeItem(OFFLINE_CACHE_KEY); } catch { /* intentionally ignored */ }

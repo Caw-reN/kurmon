@@ -333,7 +333,6 @@ export default function TabHakAkses(props) {
     } else if (presetKey === 'guru_biasa') {
       next['dashboard'] = 'edit';
       next['silabusguru'] = 'edit';
-      next['modul_ajar'] = 'edit';
       next['jurnal_harian'] = 'edit';
       next['absensiguru'] = 'edit';
       next['kedisiplinan_piket'] = 'edit';

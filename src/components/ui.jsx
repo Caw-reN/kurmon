@@ -231,7 +231,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
         className={cn(
           "bg-white w-full rounded-t-3xl sm:rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-modal)] overflow-hidden flex flex-col relative z-10 border-t sm:border border-[var(--ui-border-muted)] animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-250", 
           maxWidth,
-          scrollable ? "max-h-[92vh] sm:max-h-[85vh]" : ""
+          "max-h-[92vh] sm:max-h-[85vh]"
         )}
       >
         {/* Mobile Top Drag Handle */}
@@ -261,7 +261,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
             <X size={16} strokeWidth={2.5} />
           </button>
         )}
-        <div className={cn("p-4 sm:p-5 flex-1 min-h-0 pb-[calc(16px+env(safe-area-inset-bottom))] sm:pb-5", scrollable ? "overflow-y-auto custom-scrollbar" : "")}>
+        <div className={cn("p-4 sm:p-5 flex-1 min-h-0 pb-[calc(16px+env(safe-area-inset-bottom))] sm:pb-5", scrollable ? "overflow-y-auto custom-scrollbar" : "flex flex-col")}>
           {children}
         </div>
       </div>

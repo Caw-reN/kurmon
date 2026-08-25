@@ -59,7 +59,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           params.push(`${filterYear}-07-01`, `${filterYear}-12-31`);
           query += ` AND j.tanggal >= $${params.length - 1} AND j.tanggal <= $${params.length}`;
         } else if (filterSemester === 'genap' || filterSemester === '2') {
-          params.push(`${filterYear}-01-01`, `${filterYear}-06-30`);
+          // Semester Genap: Jan - Jun tahun BERIKUTNYA dari TA (TA 2025/2026 → Genap = 2026)
+          const genapYear = filterYear + 1;
+          params.push(`${genapYear}-01-01`, `${genapYear}-06-30`);
           query += ` AND j.tanggal >= $${params.length - 1} AND j.tanggal <= $${params.length}`;
         }
 
@@ -76,18 +78,12 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const sortDir = (url.searchParams.get('sort') || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
         query += ` ORDER BY j.tanggal ${sortDir}, j.jam_ke ASC`;
 
+        // Limit di-cap maksimum 500 baris untuk keamanan performa server
         const rawLimit = url.searchParams.get('limit');
-        if (rawLimit === 'all' || rawLimit === '1000' || rawLimit === '2000') {
-          const limit = 3000;
-          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-          params.push(limit, offset);
-        } else {
-          const limit = Math.min(parseInt(rawLimit || '50', 10), 200);
-          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-          params.push(limit, offset);
-        }
+        const limit = rawLimit === 'all' ? 500 : Math.min(parseInt(rawLimit || '50', 10), 500);
+        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+        query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(limit, offset);
 
         const { rows } = await dbPool.query(query, params);
         send(req, res, 200, { ok: true, data: rows, total: rows.length });
@@ -119,14 +115,11 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const body = await readJsonBody(req);
         const teacherCode = session?.code || session?.id || '';
         const teacherName = session?.name || '';
-        // Definisikan role & isAdmin di scope luar agar tersedia di semua branch
         const role = session?.role || '';
         const isAdmin = ['admin', 'superadmin'].includes(role);
 
-        // Auto migration for rincian_absensi
-        try {
-          await dbPool.query("ALTER TABLE jurnal_harian_guru ADD COLUMN IF NOT EXISTS rincian_absensi JSONB DEFAULT '[]'::jsonb");
-        } catch (_) {}
+        // NOTE: ALTER TABLE sudah dipindahkan ke startup migration di auth-server.mjs
+        // Tidak perlu dijalankan lagi di sini.
 
         const rincianJson = body.rincian_absensi ? JSON.stringify(body.rincian_absensi) : '[]';
         
@@ -337,11 +330,19 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
 
       // 2. Petakan mapping employee_id / NIS dengan mst_students dan hikvision_students
       const employeeToNisMap = {};
+      // Pre-index siswa dengan Map untuk O(1) lookup (mengganti O(n*m) nested loop)
+      const siswaByNis = new Map();
+      const siswaByName = new Map();
       siswaList.forEach(s => {
         const nis = String(s.nis || s.code || s.id || '').trim();
-        employeeToNisMap[nis.toLowerCase()] = nis;
-        if (s.name || s.nama) {
-          employeeToNisMap[String(s.name || s.nama).trim().toLowerCase()] = nis;
+        if (nis) {
+          employeeToNisMap[nis.toLowerCase()] = nis;
+          siswaByNis.set(nis.toLowerCase(), nis);
+        }
+        const name = String(s.name || s.nama || '').trim().toLowerCase();
+        if (name) {
+          employeeToNisMap[name] = nis;
+          siswaByName.set(name, nis);
         }
       });
 
@@ -350,13 +351,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         hikStudents.forEach(h => {
           const hNis = String(h.nis || '').trim().toLowerCase();
           const hName = String(h.name || '').trim().toLowerCase();
-          const matchedSiswa = siswaList.find(s => {
-            const sNis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
-            const sName = String(s.name || s.nama || '').trim().toLowerCase();
-            return (sName && hName && sName === hName) || sNis === hNis || (hNis.length >= 5 && sNis.length >= 5 && (sNis.endsWith(hNis) || hNis.endsWith(sNis)));
-          });
-          if (matchedSiswa) {
-            const canonNis = String(matchedSiswa.nis || matchedSiswa.code || matchedSiswa.id || '').trim();
+          // O(1) Map lookup — tidak lagi O(n) per item
+          const canonNis = siswaByNis.get(hNis) || siswaByName.get(hName);
+          if (canonNis) {
             employeeToNisMap[hNis] = canonNis;
           }
         });

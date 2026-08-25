@@ -217,7 +217,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
   const notConnectedCount = Math.max(0, students.length - connectedCount);
 
   const pageHeader = (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <PageHeader 
         title="Data Siswa"
         icon={GraduationCap}

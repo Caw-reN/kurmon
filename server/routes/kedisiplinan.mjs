@@ -124,33 +124,10 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
-        if (req.method === "GET" && url.pathname === "/api/kesiswaan/catatan-walikelas") {
-          try {
-            const kelas = url.searchParams.get("kelas");
-            const jenis = url.searchParams.get("jenis");
-            let query = "SELECT * FROM catatan_walikelas";
-            const params = [];
-            let conditions = [];
-            if (kelas && kelas !== "all") {
-              params.push(kelas);
-              conditions.push(`kelas = $${params.length}`);
-            }
-            if (jenis && jenis !== "all") {
-              params.push(jenis);
-              conditions.push(`jenis_catatan = $${params.length}`);
-            }
-            if (conditions.length > 0) {
-              query += " WHERE " + conditions.join(" AND ");
-            }
-            query += " ORDER BY tanggal DESC, created_at DESC";
-            
-            const { rows } = await dbPool.query(query, params);
-            send(req, res, 200, { ok: true, data: rows });
-          } catch(e) {
-            sendDatabaseError(req, res, e);
-          }
-          return;
-        }
+        // NOTE: GET /api/kesiswaan/catatan-walikelas is handled by jurnal.mjs
+        // which includes proper authentication and teacher_code filtering.
+        // The duplicate handler that was here WITHOUT auth has been removed (security fix).
+
 
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/catatan-walikelas") {
           try {
@@ -625,26 +602,40 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
         ]);
       }
 
-      // 2. Check if SP-1 already recorded in konseling
+      // 2. Check if SP-1 already recorded in bk_sessions
       const checkKonseling = await dbPool.query(`
-        SELECT id FROM kedisiplinan_buku_konseling 
-        WHERE siswa_nis = $1
-          AND (jenis_kasus LIKE '%Alpa >%' OR status LIKE '%SP%')
+        SELECT id FROM bk_sessions 
+        WHERE student_nis = $1
+          AND (problem LIKE '%Alpa >%' OR status LIKE '%SP%')
         LIMIT 1
       `, [cleanNis]);
 
       if (checkKonseling.rows.length === 0) {
         await dbPool.query(`
-          INSERT INTO kedisiplinan_buku_konseling 
-          (siswa_nis, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) 
+          INSERT INTO bk_sessions 
+          (student_nis, counselor_name, category, problem, solution, status) 
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
           'Sistem Kesiswaan', 
+          'Kedisiplinan',
           `Pelanggaran Absensi (Alpa > ${kSettings.batasAlpa || 5} Hari)`, 
           'Penerbitan Surat Peringatan 1 (SP-1) & Pemanggilan Orang Tua', 
-          `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari.`, 
-          'SP-1 Diterbitkan'
+          'Berjalan'
+        ]);
+        
+        // Terbitkan SP-1 secara otomatis di bk_letters
+        await dbPool.query(`
+          INSERT INTO bk_letters
+          (student_nis, letter_type, letter_no, reason, status, appointed_person)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          cleanNis,
+          'SP 1',
+          `BK-AUTO/${new Date().getFullYear()}/ALPA-${alpaCount}`,
+          `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari.`,
+          'Diterbitkan',
+          'Sistem BK Otomatis'
         ]);
       }
     }
@@ -683,26 +674,26 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
         ]);
       }
 
-      // 2. Check if Teguran already recorded in konseling
+      // 2. Check if Teguran already recorded in bk_sessions
       const checkTltKonseling = await dbPool.query(`
-        SELECT id FROM kedisiplinan_buku_konseling 
-        WHERE siswa_nis = $1
-          AND (jenis_kasus LIKE '%Terlambat >%' OR status LIKE '%Teguran%')
+        SELECT id FROM bk_sessions 
+        WHERE student_nis = $1
+          AND (problem LIKE '%Terlambat >%' OR solution LIKE '%Teguran%')
         LIMIT 1
       `, [cleanNis]);
 
       if (checkTltKonseling.rows.length === 0) {
         await dbPool.query(`
-          INSERT INTO kedisiplinan_buku_konseling 
-          (siswa_nis, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) 
+          INSERT INTO bk_sessions 
+          (student_nis, counselor_name, category, problem, solution, status) 
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
           'Sistem Kesiswaan', 
+          'Kedisiplinan',
           `Kedisiplinan: Terlambat Datang > ${kSettings.batasTerlambat || 3} Kali`, 
-          'Teguran Lisan & Pembinaan Wali Kelas', 
-          `Otomatis diterbitkan oleh sistem karena akumulasi Terlambat siswa mencapai ${terlambatCount} kali.`, 
-          'Teguran Diterbitkan'
+          `Otomatis diterbitkan oleh sistem karena akumulasi Terlambat siswa mencapai ${terlambatCount} kali. (Teguran Lisan)`, 
+          'Berjalan'
         ]);
       }
     }

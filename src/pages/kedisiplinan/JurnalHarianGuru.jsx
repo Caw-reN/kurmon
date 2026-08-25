@@ -881,10 +881,17 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     catatan: jurnal?.catatan || '',
     jumlah_hadir: jurnal?.jumlah_hadir || 0,
     rincian_absensi: jurnal?.rincian_absensi || [],
+    laporan_bk: [], // Siswa yang dilapor ke BK {nis, name, kasus}
+    teacher_name: jurnal?.teacher_name || user?.name || '',
+    teacher_code: jurnal?.teacher_code || '',
     tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
     status: 'submitted',
   });
   
+  const [mobileTab, setMobileTab] = useState('materi');
+  const [laporSiswaNis, setLaporSiswaNis] = useState('');
+  const [laporSiswaKasus, setLaporSiswaKasus] = useState('');
+
   // DRAFT LOGIC - Muat Draf Saat Inisialisasi
   useEffect(() => {
     if (!jurnal?.id) {
@@ -1056,15 +1063,40 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   const handleSetSemuaHadir = () => {
     setLiveStudents(prev => {
       const updated = prev.map(s => ({ ...s, status: 'Hadir', keterangan: '' }));
-      setForm(f => ({ ...f, jumlah_hadir: updated.length, rincian_absensi: updated }));
+      setForm(f => ({ ...f, rincian_absensi: updated, jumlah_hadir: updated.length }));
       return updated;
     });
+  };
+
+  // Add Lapor BK
+  const handleAddLaporBk = () => {
+    if (!laporSiswaNis || !laporSiswaKasus.trim()) return;
+    const student = liveStudents.find(s => s.nis === laporSiswaNis);
+    if (!student) return;
+    
+    // Cek duplikasi
+    if (form.laporan_bk.find(l => l.nis === laporSiswaNis)) {
+      return;
+    }
+
+    setForm(f => ({
+      ...f,
+      laporan_bk: [...f.laporan_bk, { nis: student.nis, name: student.name, kasus: laporSiswaKasus.trim(), class_name: student.class_name }]
+    }));
+    setLaporSiswaNis('');
+    setLaporSiswaKasus('');
+  };
+
+  const handleRemoveLaporBk = (nis) => {
+    setForm(f => ({
+      ...f,
+      laporan_bk: f.laporan_bk.filter(l => l.nis !== nis)
+    }));
   };
 
   const handleSetSinkronAbsensi = () => {
     fetchLiveAttendance(true);
   };
-
   const handleStepHadir = (delta) => {
     setForm(f => {
       const maxVal = totalStudentsCount || 100;
@@ -1137,21 +1169,21 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   ];
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-xl">
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+    <Modal isOpen={true} onClose={onClose} title={form.id ? 'Edit Jurnal Pembelajaran' : 'Isi Jurnal Harian'} maxWidth="max-w-6xl" scrollable={false}>
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 relative">
         
-        {/* TOP COMPACT UNIFIED HERO CARD (1x Lihat Langsung Paham) */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-2xs space-y-1.5">
+        {/* TOP COMPACT UNIFIED HERO CARD */}
+        <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="px-2 py-0.5 rounded-md bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0">
+              <span className="px-2.5 py-1 rounded-md bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-2xs">
                 {form.kelas}
               </span>
               <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
                 {form.mapel}
               </span>
             </div>
-            <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
+            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-md bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
               {form.slot_label || `Jam ke-${form.jam_ke}`}
             </span>
           </div>
@@ -1162,7 +1194,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               <span>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'short', year:'numeric' })}</span>
             </div>
             
-            {/* Status Pengisian / Keterlambatan */}
+            {/* Status Pengisian */}
             {jurnal?.submitted_at ? (
               existingStatusInfo.isLate ? (
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
@@ -1188,145 +1220,236 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
           </div>
         </div>
 
-        {/* STEPPER TABS (Super Compact) */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/70">
-          <button
+        {/* MOBILE TABS (Hidden on Desktop) */}
+        <div className="lg:hidden shrink-0 flex items-center bg-slate-100 p-1 rounded-xl mx-3 mt-3 border border-slate-200">
+          <button 
             type="button"
-            onClick={() => { setErrorMsg(''); setStep(1); }}
-            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
-              step === 1 
-                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/80' 
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => setMobileTab('materi')} 
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'materi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
           >
-            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-              step === 1 ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-200 text-slate-700'
-            }`}>
-              1
-            </span>
-            <span className="truncate">1. Presensi ({totalCalculatedHadir}/{totalStudentsCount})</span>
+            <BookOpen size={14} /> 1. Materi KBM
           </button>
-
-          <button
+          <button 
             type="button"
-            onClick={() => { setErrorMsg(''); setStep(2); }}
-            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
-              step === 2 
-                ? 'bg-white text-[var(--ui-primary)] shadow-xs border border-emerald-200/80' 
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => setMobileTab('presensi')} 
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'presensi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
           >
-            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-              step === 2 ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-200 text-slate-700'
-            }`}>
-              2
-            </span>
-            <span className="truncate">2. Materi &amp; KBM *</span>
+            <Users size={14} /> 2. Presensi
           </button>
         </div>
 
-        {/* TAHAP 1: PRESENSI & KEHADIRAN KELAS */}
-        {step === 1 && (
-          <div className="space-y-3 animate-in fade-in-50 duration-200">
-            {/* 5 Quick KPI Attendance Filter Pills */}
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
-              <button
-                type="button"
-                onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')}
-                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
-                  filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/50'
-                }`}
-              >
-                <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Hadir</span>
-                <span className="text-xs font-black text-emerald-900">{hadirCount}</span>
-              </button>
+        {/* MAIN 2-COLUMN CONTENT */}
+        <div className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden bg-slate-50 mt-3 lg:mt-0">
+          <div className="flex flex-col lg:flex-row h-full min-h-0">
+            
+            {/* COLUMN 1: MATERI & KBM (Left, 40%) */}
+            <div className={`w-full lg:w-[40%] flex-col gap-3.5 p-4 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-slate-200 bg-white ${mobileTab === 'materi' ? 'flex' : 'hidden lg:flex'}`}>
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2">
+                <BookOpen size={14} className="text-[var(--ui-primary)]" />
+                Materi & KBM
+              </h3>
+              
+              {errorMsg && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')}
-                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
-                  filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-yellow-50/70 border-yellow-200 hover:bg-yellow-100/50'
-                }`}
-              >
-                <span className="text-[9px] font-black uppercase tracking-wider text-yellow-700">Telat</span>
-                <span className="text-xs font-black text-yellow-900">{telatCount}</span>
-              </button>
+              {/* 1. MATERI POKOK */}
+              <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-xl border border-emerald-200/90 shadow-2xs">
+                <label className="flex items-center justify-between text-xs font-black text-slate-800">
+                  <span className="flex items-center gap-1.5">
+                    <Award size={14} className="text-emerald-700" />
+                    Materi Pokok
+                  </span>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white uppercase tracking-wider">
+                    Wajib *
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Konfigurasi Routing Dinamis BGP"
+                  value={form.materi_pokok}
+                  onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
+                  required
+                />
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')}
-                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
-                  filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-amber-50/70 border-amber-200 hover:bg-amber-100/50'
-                }`}
-              >
-                <span className="text-[9px] font-black uppercase tracking-wider text-amber-700">Sakit</span>
-                <span className="text-xs font-black text-amber-900">{sakitCount}</span>
-              </button>
+              {/* 2. KEGIATAN PEMBELAJARAN */}
+              <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/90 shadow-2xs">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <label className="flex items-center gap-1.5 text-xs font-black text-slate-800">
+                    <FileText size={14} className="text-[var(--ui-primary)]" />
+                    Kegiatan Pembelajaran <span className="text-rose-500">*</span>
+                  </label>
+                </div>
+                <div className="flex items-center gap-1 flex-wrap mb-1">
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('lengkap')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all shadow-2xs cursor-pointer">+ Lengkap</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-800 border border-blue-200 transition-all shadow-2xs cursor-pointer">+ Praktik</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('diskusi')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-2xs cursor-pointer">+ Diskusi</button>
+                </div>
+                <textarea
+                  rows={4}
+                  placeholder="Tuliskan ringkasan kegiatan KBM di kelas..."
+                  value={form.kegiatan_pembelajaran}
+                  onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] resize-none leading-relaxed"
+                  required
+                />
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')}
-                className={`flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
-                  filterRollCall === 'izin' ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-400/20' : 'bg-blue-50/70 border-blue-200 hover:bg-blue-100/50'
-                }`}
-              >
-                <span className="text-[9px] font-black uppercase tracking-wider text-blue-700">Izin</span>
-                <span className="text-xs font-black text-blue-900">{izinCount}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')}
-                className={`col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-1.5 rounded-xl border text-center cursor-pointer transition-all ${
-                  filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-rose-50/70 border-rose-200 hover:bg-rose-100/50'
-                }`}
-              >
-                <span className="text-[9px] font-black uppercase tracking-wider text-rose-700">Alpa</span>
-                <span className="text-xs font-black text-rose-900">{alpaCount}</span>
-              </button>
-            </div>
-
-            {/* Presensi Student Roll Call Box */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="relative flex-1 min-w-[150px]">
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              {/* 3. METODE & CATATAN */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                    <ClipboardList size={12} className="text-[var(--ui-primary)]" /> Metode Pembelajaran
+                  </label>
+                  <CustomSelect
+                    options={METODE_OPTIONS.map(m => ({ value: m, label: m }))}
+                    value={form.metode_pembelajaran}
+                    onChange={val => setForm({ ...form, metode_pembelajaran: val })}
+                    className="w-full text-xs font-bold"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                      <MessageSquare size={12} className="text-[var(--ui-primary)]" /> Catatan Umum KBM
+                    </label>
+                    <button type="button" onClick={() => handleAddCatatan('KBM berjalan tertib & kondusif')} className="text-[9px] font-bold text-emerald-700 hover:underline cursor-pointer">+ Tertib</button>
+                  </div>
                   <input
                     type="text"
-                    placeholder="Cari nama / NIS..."
-                    value={searchRollCall}
-                    onChange={e => setSearchRollCall(e.target.value)}
-                    className="w-full pl-7 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                    placeholder="Opsional: KBM berjalan kondusif..."
+                    value={form.catatan}
+                    onChange={e => setForm({ ...form, catatan: e.target.value })}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handleSetSemuaHadir}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1"
-                    title="Set semua siswa hadir"
-                  >
-                    <CheckCheck size={12} />
-                    <span>Semua Hadir ({totalStudentsCount})</span>
+                {/* 4. LAPOR SISWA BERMASALAH (BP/BK) */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <label className="text-[10px] font-black text-rose-600 uppercase tracking-wider flex items-center gap-1">
+                    <ShieldAlert size={12} className="text-rose-600" /> Lapor Siswa / Catatan Kasus
+                  </label>
+                  
+                  <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-xl space-y-2 shadow-2xs">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <CustomSelect
+                          value={laporSiswaNis}
+                          onChange={(val) => setLaporSiswaNis(val)}
+                          options={liveStudents.map(s => ({ value: s.nis, label: `${s.name} (${s.nis})`, searchText: `${s.name} ${s.nis}` }))}
+                          placeholder="-- Pilih Siswa Bermasalah --"
+                          className="w-full text-xs font-semibold"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tulis masalah (misal: Main HP saat jam KBM)..."
+                          value={laporSiswaKasus}
+                          onChange={(e) => setLaporSiswaKasus(e.target.value)}
+                          onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLaporBk(); } }}
+                          className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddLaporBk}
+                        disabled={!laporSiswaNis || !laporSiswaKasus.trim()}
+                        className="sm:mt-0 px-3 py-2 sm:h-[62px] rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0 gap-1.5"
+                      >
+                        <Plus size={14} /> <span className="sm:hidden">Tambah</span>
+                      </button>
+                    </div>
+
+                    {form.laporan_bk && form.laporan_bk.length > 0 && (
+                      <div className="pt-2 mt-2 border-t border-rose-200/60 space-y-1.5">
+                        <div className="text-[10px] font-black text-rose-700">Daftar Laporan (Akan diteruskan ke BK):</div>
+                        {form.laporan_bk.map((l, i) => (
+                          <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-white rounded border border-rose-100 shadow-2xs">
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-black text-slate-800 truncate">{l.name}</div>
+                              <div className="text-[10px] font-medium text-rose-700 truncate">{l.kasus}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveLaporBk(l.nis)}
+                              className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors shrink-0"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* COLUMN 2: PRESENSI & BK (Right, 60%) */}
+            <div className={`w-full lg:w-[60%] flex-col h-full bg-slate-50/50 ${mobileTab === 'presensi' ? 'flex' : 'hidden lg:flex'}`}>
+              {/* Header Kolom 2 */}
+              <div className="p-3 border-b border-slate-200 bg-white flex flex-col gap-2 shrink-0">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                    <Users size={14} className="text-[var(--ui-primary)]" />
+                    Presensi & Lapor Siswa
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">Hadir: {form.jumlah_hadir}/{totalStudentsCount}</span>
+                  </div>
+                </div>
+
+                {/* 5 Quick KPI Attendance Filter Pills */}
+                <div className="grid grid-cols-5 gap-1.5 mt-1">
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-white border-emerald-200 hover:bg-emerald-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-emerald-700">Hadir</span>
+                    <span className="text-xs font-black text-emerald-900">{hadirCount}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSetSinkronAbsensi}
-                    disabled={isLoadingAttendance}
-                    className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-                    title="Sinkronkan ulang absensi dari mesin/piket"
-                  >
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-white border-yellow-200 hover:bg-yellow-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-yellow-700">Telat</span>
+                    <span className="text-xs font-black text-yellow-900">{telatCount}</span>
+                  </button>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-white border-amber-200 hover:bg-amber-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-amber-700">Sakit</span>
+                    <span className="text-xs font-black text-amber-900">{sakitCount}</span>
+                  </button>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'izin' ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-400/20' : 'bg-white border-blue-200 hover:bg-blue-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-blue-700">Izin</span>
+                    <span className="text-xs font-black text-blue-900">{izinCount}</span>
+                  </button>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-white border-rose-200 hover:bg-rose-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-rose-700">Alpa</span>
+                    <span className="text-xs font-black text-rose-900">{alpaCount}</span>
+                  </button>
+                </div>
+                
+                {/* Tools Panel */}
+                <div className="flex items-center justify-between gap-2 mt-1">
+                  <div className="relative flex-1 min-w-0">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input type="text" placeholder="Cari nama/NIS..." value={searchRollCall} onChange={e => setSearchRollCall(e.target.value)} className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]" />
+                  </div>
+                  <button type="button" onClick={handleSetSemuaHadir} className="text-[10px] font-extrabold px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-2xs shrink-0">
+                    <CheckCheck size={13} />
+                    <span className="hidden sm:inline">Set Semua Hadir</span>
+                    <span className="sm:hidden">Hadir Semua</span>
+                  </button>
+                  <button type="button" onClick={handleSetSinkronAbsensi} disabled={isLoadingAttendance} className="p-1.5 text-slate-400 hover:text-[var(--ui-primary)] rounded-md hover:bg-[var(--ui-primary)]/10 transition-colors cursor-pointer border border-transparent hover:border-[var(--ui-primary)]/20 shrink-0" title="Sinkron ulang">
                     <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin text-emerald-600' : ''} />
                   </button>
                 </div>
               </div>
 
-              {/* Roll Call Student Rows (Compact & Responsive) */}
-              <div className="max-h-[200px] overflow-y-auto pr-1 space-y-1 custom-scrollbar border border-slate-100 rounded-xl p-1 bg-slate-50/50">
+              {/* List Siswa */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar min-h-[300px] lg:min-h-0 bg-slate-100/30">
                 {filteredRollCallStudents.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                    {liveStudents.length === 0 ? 'Memuat data siswa kelas...' : 'Tidak ada siswa pada filter ini.'}
+                  <div className="py-10 text-center text-xs text-slate-400 font-bold flex flex-col items-center gap-2">
+                    <Users size={24} className="text-slate-300" />
+                    {liveStudents.length === 0 ? 'Memuat data siswa...' : 'Tidak ada siswa ditemukan.'}
                   </div>
                 ) : (
                   filteredRollCallStudents.map((s, idx) => {
@@ -1335,109 +1458,43 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     const isNonHadir = !['hadir', 'terlambat'].includes(currentStatus.toLowerCase());
 
                     return (
-                      <div
-                        key={s.nis || idx}
-                        className={`p-1.5 rounded-lg border transition-all ${
-                          currentStatus === 'Hadir' ? 'bg-white border-slate-200/70 hover:border-emerald-200' :
-                          isTelat ? 'bg-yellow-50/60 border-yellow-300' :
-                          currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-200' :
-                          ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/60 border-blue-200' :
-                          'bg-rose-50/60 border-rose-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1.5">
-                          <div className="min-w-0 flex-1 flex items-center gap-1.5">
-                            <span className="text-[9px] font-mono font-bold text-slate-400 shrink-0">#{idx + 1}</span>
+                      <div key={s.nis || idx} className={`p-2 sm:p-2.5 rounded-xl border transition-all shadow-2xs ${currentStatus === 'Hadir' ? 'bg-white border-slate-200 hover:border-emerald-300' : isTelat ? 'bg-yellow-50/60 border-yellow-300' : currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-300' : ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/60 border-blue-300' : 'bg-rose-50/60 border-rose-300'}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          
+                          {/* Info Siswa */}
+                          <div className="min-w-0 flex-1 flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">#{idx + 1}</span>
                             <div className="min-w-0 truncate">
-                              <p className="text-xs font-black text-slate-800 truncate" title={s.name}>{s.name}</p>
-                              <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-mono">
+                              <p className="text-xs sm:text-[13px] font-black text-slate-800 truncate" title={s.name}>{s.name}</p>
+                              <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-slate-400 font-semibold mt-0.5">
                                 <span>{s.nis}</span>
-                                {isTelat && s.keterangan && (
-                                  <span className="text-yellow-700 font-bold bg-yellow-100 px-1 rounded">{s.keterangan}</span>
-                                )}
+                                {isTelat && s.keterangan && <span className="text-yellow-700 font-bold bg-yellow-100 px-1 rounded truncate">{s.keterangan}</span>}
                               </div>
                             </div>
                           </div>
 
-                          {/* 5 Status Switcher Buttons: [H] [T] [S] [I] [A] */}
-                          <div className="flex items-center gap-0.5 shrink-0 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
-                                currentStatus === 'Hadir'
-                                  ? 'bg-emerald-600 text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-emerald-700'
-                              }`}
-                              title="Hadir Tepat Waktu"
-                            >
-                              H
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStudentStatus(s.nis, 'Terlambat')}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
-                                isTelat
-                                  ? 'bg-yellow-500 text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-yellow-700'
-                              }`}
-                              title="Terlambat Masuk"
-                            >
-                              T
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
-                                currentStatus === 'Sakit'
-                                  ? 'bg-amber-500 text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-amber-700'
-                              }`}
-                              title="Sakit"
-                            >
-                              S
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
-                                ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus)
-                                  ? 'bg-blue-600 text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-blue-700'
-                              }`}
-                              title="Izin / Dispensasi"
-                            >
-                              I
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
-                                ['Alpa', 'Alpha'].includes(currentStatus)
-                                  ? 'bg-rose-600 text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-rose-700'
-                              }`}
-                              title="Alpa / Tanpa Keterangan"
-                            >
-                              A
-                            </button>
+                          {/* Tombol Absen (Bigger targets) */}
+                          <div className="flex items-center gap-1 shrink-0 bg-slate-100/80 p-1 rounded-lg border border-slate-200 w-full sm:w-auto justify-between sm:justify-start">
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Hadir' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'}`}>H</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Terlambat')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${isTelat ? 'bg-yellow-500 text-white shadow-xs' : 'text-slate-600 hover:text-yellow-700 hover:bg-yellow-50'}`}>T</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Sakit' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'}`}>S</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'}`}>I</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${['Alpa', 'Alpha'].includes(currentStatus) ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50'}`}>A</button>
                           </div>
                         </div>
 
-                        {/* Keterangan input for non-hadir / catatan */}
+                        {/* Input Alasan */}
                         {(isNonHadir || (isTelat && !s.keterangan)) && (
-                          <div className="mt-1 pt-1 border-t border-slate-200/50 flex items-center gap-1.5">
-                            <span className="text-[9px] font-bold text-slate-500 shrink-0">Alasan:</span>
+                          <div className="mt-2 pt-2 border-t border-slate-200/50 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <span className="text-[10px] font-black shrink-0 flex items-center gap-1 text-slate-500">
+                              Alasan:
+                            </span>
                             <input
                               type="text"
-                              placeholder={`Alasan ${currentStatus} (contoh: izin UKS / terlambat 15 menit)...`}
+                              placeholder={`Keterangan ${currentStatus} (contoh: izin UKS)...`}
                               value={s.keterangan || ''}
                               onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
-                              className="w-full px-2 py-0.5 text-[10px] bg-white border border-slate-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border rounded-md font-semibold focus:outline-none focus:ring-2 shadow-2xs border-slate-200 focus:border-[var(--ui-primary)] focus:ring-[var(--ui-primary)]/10 text-slate-800"
                             />
                           </div>
                         )}
@@ -1447,215 +1504,44 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                 )}
               </div>
 
-              {/* Integrated Attendance Counter Footer */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-slate-700">Total Hadir:</span>
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 text-xs font-black">
-                    {form.jumlah_hadir} / {totalStudentsCount} Siswa
-                  </span>
-                  {telatCount > 0 && (
-                    <span className="text-[10px] font-bold text-yellow-700 bg-yellow-50 px-1.5 py-0.5 rounded border border-yellow-200">
-                      Termasuk {telatCount} Telat
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleStepHadir(-1)}
-                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-black cursor-pointer"
-                    title="Kurangi 1"
-                  >
-                    <Minus size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleStepHadir(1)}
-                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-black cursor-pointer"
-                    title="Tambah 1"
-                  >
-                    <Plus size={13} />
-                  </button>
+              {/* Adjust Hadir Control (Footer of Col 2) */}
+              <div className="p-2 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
+                <span className="text-[10px] font-black text-slate-500 uppercase">Hitungan Manual</span>
+                <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-0.5 border border-slate-200/80">
+                  <button type="button" onClick={() => handleStepHadir(-1)} className="w-8 h-7 rounded-md bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Minus size={13} /></button>
+                  <span className="text-xs font-black text-slate-800 min-w-[30px] text-center">{form.jumlah_hadir}</span>
+                  <button type="button" onClick={() => handleStepHadir(1)} className="w-8 h-7 rounded-md bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Plus size={13} /></button>
                 </div>
               </div>
             </div>
 
-            {/* Step 1 Footer Action */}
-            <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs font-bold cursor-pointer">
-                Batal
-              </Button>
-              <Button 
-                type="button" 
-                onClick={() => { setErrorMsg(''); setStep(2); }}
-                className="rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Lanjut: Isi Materi KBM</span>
-                <ArrowRight size={14} />
-              </Button>
-            </div>
           </div>
-        )}
+        </div>
 
-        {/* TAHAP 2: MATERI & KEGIATAN PEMBELAJARAN (Tonjolkan yang Wajib Diisi) */}
-        {step === 2 && (
-          <div className="space-y-3.5 animate-in fade-in-50 duration-200">
-            {/* Quick Context Strip */}
-            <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700">
-              <span className="font-extrabold text-slate-800 truncate">{form.mapel} ({form.kelas})</span>
-              <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
-                {form.jumlah_hadir} Siswa Hadir
-              </span>
-            </div>
-
-            {/* 1. MATERI POKOK (WAJIB DIISI) */}
-            <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-xl border border-emerald-200/90 shadow-2xs">
-              <label className="flex items-center justify-between text-xs font-black text-slate-800">
-                <span className="flex items-center gap-1.5">
-                  <Award size={14} className="text-emerald-700" />
-                  Materi Pokok / Pokok Bahasan
-                </span>
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white uppercase tracking-wider">
-                  Wajib Diisi *
-                </span>
-              </label>
-              <input
-                type="text"
-                placeholder="Contoh: Konfigurasi Routing Dinamis BGP / SPLDV"
-                value={form.materi_pokok}
-                onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
-                required
-                autoFocus
-              />
-            </div>
-
-            {/* 2. KEGIATAN PEMBELAJARAN (WAJIB DIISI + QUICK TEMPLATE) */}
-            <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/90 shadow-2xs">
-              <div className="flex items-center justify-between flex-wrap gap-1">
-                <label className="flex items-center gap-1.5 text-xs font-black text-slate-800">
-                  <FileText size={14} className="text-[var(--ui-primary)]" />
-                  Kegiatan Pembelajaran &amp; Alur Belajar <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex items-center gap-1 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => handleApplyKegiatanTemplate('lengkap')}
-                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
-                  >
-                    + Lengkap
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleApplyKegiatanTemplate('praktik')}
-                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-blue-50 text-blue-800 border border-blue-200 transition-all cursor-pointer"
-                  >
-                    + Praktik Lab
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleApplyKegiatanTemplate('diskusi')}
-                    className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all cursor-pointer"
-                  >
-                    + Diskusi
-                  </button>
-                </div>
-              </div>
-              <textarea
-                rows={3}
-                placeholder="Tuliskan ringkasan kegiatan KBM di kelas..."
-                value={form.kegiatan_pembelajaran}
-                onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] resize-none leading-relaxed"
-                required
-              />
-            </div>
-
-            {/* 3. METODE & CATATAN TAMBAHAN (KOMPAK) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {/* Metode */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                  <ClipboardList size={12} className="text-[var(--ui-primary)]" />
-                  Metode Pembelajaran
-                </label>
-                <CustomSelect
-                  options={METODE_OPTIONS.map(m => ({ value: m, label: m }))}
-                  value={form.metode_pembelajaran}
-                  onChange={val => setForm({ ...form, metode_pembelajaran: val })}
-                  className="w-full text-xs font-bold z-50 relative"
-                />
-              </div>
-
-              {/* Catatan / Kendala */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                    <MessageSquare size={12} className="text-[var(--ui-primary)]" />
-                    Catatan Kelas (Opsional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => handleAddCatatan('KBM berjalan tertib & kondusif')}
-                    className="text-[9px] font-bold text-emerald-700 hover:underline cursor-pointer"
-                  >
-                    + Tertib
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Contoh: Siswa aktif bertanya..."
-                  value={form.catatan}
-                  onChange={e => setForm({ ...form, catatan: e.target.value })}
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
-                />
-              </div>
-            </div>
-
-            {/* Error Notification */}
-            {errorMsg && (
-              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
-                <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            {/* Step 2 Footer Navigation */}
-            <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
-              <Button 
-                variant="outline" 
-                type="button" 
-                onClick={() => { setErrorMsg(''); setStep(1); }} 
-                className="rounded-xl px-4 py-2 text-xs font-bold cursor-pointer flex items-center gap-1"
-              >
-                <ArrowLeft size={13} />
-                <span>Presensi</span>
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={saving}
-                className="rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center gap-1.5"
-              >
-                {saving ? (
-                  <>
-                    <RefreshCw size={13} className="animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={14} />
-                    <span>{form.id ? 'Perbarui Jurnal' : 'Simpan Jurnal'}</span>
-                  </>
-                )}
-              </Button>
-            </div>
+        {/* STICKY FOOTER ACTION BAR */}
+        <div className="shrink-0 p-3 sm:px-4 sm:py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] rounded-b-xl z-20">
+          <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 w-full sm:w-auto text-center sm:text-left">
+            Pastikan absen dan materi sudah diisi dengan benar.
           </div>
-        )}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-5 py-2 sm:py-2.5 text-xs font-bold cursor-pointer flex-1 sm:flex-none">
+              Tutup
+            </Button>
+            <Button type="submit" disabled={saving} className="rounded-xl px-6 py-2 sm:py-2.5 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-2 flex-1 sm:flex-none active:scale-95 transition-transform">
+              {saving ? (
+                <><RefreshCw size={14} className="animate-spin" /> Menyimpan...</>
+              ) : (
+                <><Check size={16} strokeWidth={3} /> {form.id ? 'Perbarui Jurnal' : 'Simpan Jurnal'}</>
+              )}
+            </Button>
+          </div>
+        </div>
+
       </form>
     </Modal>
   );
+
+
 }
 
 export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [], onBack }) {
@@ -1952,13 +1838,47 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const handleSave = async (form) => {
     try {
       const res = await fetch('/api/jurnal/harian', {
-        method:'POST',
-        headers: { Authorization: `Bearer ${authToken}`,'Content-Type':'application/json' },
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
       const data = await res.json();
       if (data.ok) {
         showToast('Jurnal berhasil disimpan!');
+
+        // Auto-forward catatan ke BP/BK jika ada laporan siswa
+        if (form.laporan_bk && form.laporan_bk.length > 0) {
+          const bkFails = [];
+          for (const s of form.laporan_bk) {
+            const catatanForm = {
+              siswa_nis: s.nis,
+              siswa_name: s.name,
+              tanggal: form.tanggal,
+              jenis_catatan: 'perilaku',
+              isi_catatan: `[Laporan KBM ${form.mapel}] ${s.kasus}`,
+              tindak_lanjut: '',
+              poin_pelanggaran_id: null,
+              kelas: s.class_name || form.kelas
+            };
+            try {
+              const bkRes = await fetch('/api/kesiswaan/catatan-walikelas', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(catatanForm)
+              });
+              const bkData = await bkRes.json();
+              if (!bkData.ok) bkFails.push(s.name);
+            } catch (e) {
+              bkFails.push(s.name);
+            }
+          }
+          if (bkFails.length > 0) {
+            showToast(`Jurnal tersimpan. Laporan BK gagal untuk: ${bkFails.join(', ')}`, 'warning');
+          } else {
+            showToast(`${form.laporan_bk.length} laporan BK berhasil diteruskan.`);
+          }
+        }
+
         setActiveModal(null);
         fetchJurnal();
         return { success: true };

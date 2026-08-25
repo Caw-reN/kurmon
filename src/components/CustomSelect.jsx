@@ -89,7 +89,7 @@ export function CustomSelect({
   const hasValue = selectedOption !== null;
 
   const filteredOptions = searchable 
-    ? (options || []).filter(opt => opt && String(opt.label ?? opt.value ?? "").toLowerCase().includes(String(searchTerm || "").toLowerCase()))
+    ? (options || []).filter(opt => opt && String(opt.searchText ?? opt.label ?? opt.value ?? "").toLowerCase().includes(String(searchTerm || "").toLowerCase()))
     : (options || []);
 
   return (
