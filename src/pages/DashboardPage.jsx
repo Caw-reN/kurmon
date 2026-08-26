@@ -50,16 +50,23 @@ const messageTone = (priority) => {
 
 export default function DashboardPage({
   currentUser,
-  classes = [],
-  teachers = [],
-  subjects = [],
-  rooms = [],
-  schedule = [],
-  teachingLoads = [],
-  subjectComposition = [],
+  classes: _classes,
+  teachers: _teachers,
+  subjects: _subjects,
+  rooms: _rooms,
+  schedule: _schedule,
+  teachingLoads: _teachingLoads,
+  subjectComposition: _subjectComposition,
   setActiveTab,
   onOpenProfile,
   handleLogout }) {
+  const classes = _classes || [];
+  const teachers = _teachers || [];
+  const subjects = _subjects || [];
+  const rooms = _rooms || [];
+  const schedule = _schedule || [];
+  const teachingLoads = _teachingLoads || [];
+  const subjectComposition = _subjectComposition || [];
   const today = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }), []);
   const todayShort = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }), []);
   const todayLong = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }), []);
@@ -1204,8 +1211,8 @@ export default function DashboardPage({
         currentUser={currentUser}
         classes={classes}
         teachers={teachers}
-        staffs={useAppStore.getState().staffs || []}
-        students={useAppStore.getState().students || []}
+        staffs={useDataStore.getState().staffs || []}
+        students={useDataStore.getState().students || []}
         subjects={subjects}
         rooms={rooms}
         schedule={schedule}
