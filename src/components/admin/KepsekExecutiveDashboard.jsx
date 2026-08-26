@@ -405,14 +405,6 @@ export default function KepsekExecutiveDashboard({
         </div>
       </div>
 
-      {/* ═══════════════ ALERTS ═══════════════ */}
-      {visibleAlerts.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {visibleAlerts.map(alert => (
-            <AlertBanner key={alert.id} {...alert} onDismiss={() => dismiss(alert.id)} dismiss />
-          ))}
-        </div>
-      )}
 
       {/* ═══════════════ 6 KPI PILLARS ═══════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
