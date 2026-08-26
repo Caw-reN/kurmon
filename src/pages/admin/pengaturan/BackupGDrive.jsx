@@ -184,6 +184,19 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       link.click();
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      
+      const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2) + ' MB';
+      const label = type === 'excel' ? 'Excel Export' : type === 'json' ? 'JSON Backup' : 'SQL Dump';
+      const newLog = { 
+        id: Date.now(), 
+        type: 'Download Lokal', 
+        status: 'success', 
+        filename: `kurmon_backup_${type}_${dateStr}.${ext}`, 
+        size: fileSizeMB, 
+        created_at: new Date().toISOString() 
+      };
+      setBackupLogs(prev => [newLog, ...prev]);
+      
       showToast(`Berhasil mengunduh backup ${type.toUpperCase()}!`);
     } catch (err) {
       showToast(`Gagal mengunduh backup ${type}.`, 'error');
@@ -487,10 +500,10 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             </div>
 
             <div>
-              <button onClick={handleArchive} disabled={isArchiving || !archiveDate || (!isTelegramConfigured && !isR2Configured)} className="flex items-center justify-center gap-2 mx-auto">
+              <Button variant="default" onClick={handleArchive} disabled={isArchiving || !archiveDate || (!isTelegramConfigured && !isR2Configured)} className="flex items-center justify-center gap-2 mx-auto bg-rose-600 hover:bg-rose-700 text-white border-none shadow-md disabled:opacity-60 disabled:bg-slate-400">
                 {isArchiving ? <RefreshCw size={18} className="animate-spin text-white" /> : <Trash2 size={18} className="text-white" />}
-                <span className="text-white">{isArchiving ?'Sedang Memproses...' :'Mulai Bersihkan Data'}</span>
-              </button>
+                <span className="text-white font-bold">{isArchiving ? 'Sedang Memproses...' : 'Mulai Bersihkan Data'}</span>
+              </Button>
             </div>
           </div>
         </div>

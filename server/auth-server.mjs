@@ -3268,6 +3268,129 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    // === API: ARCHIVE DATA ===
+    if (req.method === "POST" && url.pathname === "/api/archive-data") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+        send(req, res, 403, { ok: false, error: "Akses ditolak" });
+        return;
+      }
+
+      try {
+        const body = await readJsonBody(req);
+        const { dateBefore } = body;
+        if (!dateBefore) {
+          send(req, res, 400, { ok: false, error: "Parameter dateBefore wajib ada." });
+          return;
+        }
+
+        const dateBeforeObj = new Date(dateBefore);
+        if (isNaN(dateBeforeObj.getTime())) {
+          send(req, res, 400, { ok: false, error: "Format tanggal tidak valid." });
+          return;
+        }
+
+        const dateBeforeStr = dateBeforeObj.toISOString();
+
+        // Check if Telegram or R2 is available
+        const { rows: keys } = await dbPool.query("SELECT * FROM api_keys WHERE service_name IN ('telegram_backup', 'cloudflare_r2') AND is_active = true");
+        if (keys.length === 0) {
+          send(req, res, 400, { ok: false, error: "Tidak ada integrasi Cloud (Telegram/R2) yang aktif. Arsip dibatalkan demi keamanan data." });
+          return;
+        }
+
+        // Fetch data to be archived
+        const archiveData = {};
+        const getArchiveData = async (table) => {
+           try {
+             const result = await dbPool.query(`SELECT * FROM ${table} WHERE created_at < $1`, [dateBeforeStr]);
+             archiveData[table] = result.rows;
+           } catch(e) { archiveData[table] = []; } // table might not exist or no created_at
+        };
+
+        await getArchiveData('audit_logs');
+        await getArchiveData('whatsapp_logs');
+        await getArchiveData('hikvision_attendance_logs');
+
+        // Check if there is data
+        const totalRows = archiveData.audit_logs.length + archiveData.whatsapp_logs.length + archiveData.hikvision_attendance_logs.length;
+        if (totalRows === 0) {
+           send(req, res, 200, { ok: true, message: "Tidak ada data lama yang perlu diarsipkan sebelum " + dateBeforeStr.split('T')[0] });
+           return;
+        }
+
+        const archiveJsonStr = JSON.stringify(archiveData, null, 2);
+        const fileName = `Archive_Kurmon_${dateBeforeStr.split('T')[0]}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        let uploaded = false;
+        
+        // Try R2 first, if not try Telegram
+        const r2Key = keys.find(k => k.service_name === 'cloudflare_r2');
+        if (r2Key) {
+           try {
+             const credentials = JSON.parse(r2Key.api_key);
+             const s3 = new S3Client({
+                region: "auto",
+                endpoint: r2Key.extra_config.endpoint,
+                credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
+             });
+             await s3.send(new PutObjectCommand({
+                Bucket: r2Key.extra_config.bucket,
+                Key: "archives/" + fileName,
+                Body: archiveJsonStr,
+                ContentType: "application/json",
+             }));
+             uploaded = true;
+           } catch(e) {
+             console.error("Archive R2 error:", e);
+           }
+        }
+
+        if (!uploaded) {
+          const telegramKey = keys.find(k => k.service_name === 'telegram_backup');
+          if (telegramKey) {
+             const botToken = telegramKey.api_key;
+             const chatId = telegramKey.extra_config.chat_id;
+             const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
+             let multipartBody = "--" + boundary + "\r\n";
+             multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
+             multipartBody += "--" + boundary + "\r\n";
+             multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
+             multipartBody += "Content-Type: application/json\r\n\r\n";
+             multipartBody += archiveJsonStr + "\r\n";
+             multipartBody += "--" + boundary + "--\r\n";
+
+             const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+               method: 'POST',
+               headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+               body: Buffer.from(multipartBody, 'utf-8')
+             });
+             const telegramData = await telegramRes.json();
+             if (telegramData.ok) uploaded = true;
+          }
+        }
+
+        if (!uploaded) {
+           send(req, res, 500, { ok: false, error: "Gagal mengunggah arsip ke Cloud (Telegram/R2). Pembersihan data dibatalkan." });
+           return;
+        }
+
+        // Delete the data
+        try { await dbPool.query("DELETE FROM audit_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
+        try { await dbPool.query("DELETE FROM whatsapp_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
+        try { await dbPool.query("DELETE FROM hikvision_attendance_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
+
+        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+          [session.id, session.name, session.role, 'ARCHIVE_AND_PURGE', 'system', `Arsip ${totalRows} data lama sukses diunggah. Data telah dihapus dari database.`]);
+
+        send(req, res, 200, { ok: true, message: `Berhasil mengarsipkan dan membersihkan ${totalRows} baris data lama.` });
+      } catch (err) {
+        console.error("Archive Data Error:", err);
+        send(req, res, 500, { ok: false, error: err.message });
+      }
+      return;
+    }
+
     // === API: CLOUDFLARE R2 MANUAL BACKUP ===
     if (req.method === "POST" && url.pathname === "/api/backup-r2") {
       const session = requireAuthenticated(req, res);
