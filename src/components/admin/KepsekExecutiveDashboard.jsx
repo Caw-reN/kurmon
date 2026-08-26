@@ -64,29 +64,29 @@ export default function KepsekExecutiveDashboard({
     const validTeachers = new Set();
     const baseTotalGuru = (teachers || []).length || 52;
     (teachers || []).forEach(t => {
-      if (t.code) validTeachers.add(String(t.code).toLowerCase());
-      if (t.username) validTeachers.add(String(t.username).toLowerCase());
-      if (t.name) validTeachers.add(String(t.name).toLowerCase());
-      if (t.id) validTeachers.add(String(t.id).toLowerCase());
+      if (t?.code) validTeachers.add(String(t.code).toLowerCase());
+      if (t?.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t?.name) validTeachers.add(String(t.name).toLowerCase());
+      if (t?.id) validTeachers.add(String(t.id).toLowerCase());
     });
 
     const recs = (attendanceRecords || []).filter(r => {
-      const recDate = r.date ? String(r.date).slice(0, 10) : '';
+      const recDate = r?.date ? String(r.date).slice(0, 10) : '';
       return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
     });
 
-    const recentTeacherLogs = (dashLogs?.teacherLogs || dashLogs?.recentLogs || []).filter(r => {
-      const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
+    const recentTeacherLogs = (Array.isArray(dashLogs?.teacherLogs) ? dashLogs.teacherLogs : Array.isArray(dashLogs?.recentLogs) ? dashLogs.recentLogs : []).filter(r => {
+      const type = String(r?.true_person_type || r?.role_type || r?.device_type || '').toUpperCase();
       return type.includes('GURU') || type.includes('KARYAWAN');
     });
 
     const mergedLogs = {};
     recs.forEach(r => {
-      const key = String(r.teacherCode || r.employee_id || r.true_person_name || r.name || r.id || '').toLowerCase();
+      const key = String(r?.teacherCode || r?.employee_id || r?.true_person_name || r?.name || r?.id || '').toLowerCase();
       if (key) mergedLogs[key] = { ...r, source: 'app' };
     });
     recentTeacherLogs.forEach(r => {
-      const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
+      const key = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').toLowerCase();
       if (key) {
         mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
       }
@@ -101,7 +101,7 @@ export default function KepsekExecutiveDashboard({
         unknownStaffCount++;
       }
 
-      let s = String(r.status || 'Hadir').toLowerCase();
+      let s = String(r?.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
       if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
       
@@ -131,25 +131,25 @@ export default function KepsekExecutiveDashboard({
 
   // ── Statistik Siswa ──
   const siswaStats = useMemo(() => {
-    const hikLogs = dashLogs?.hikvisionStudentToday || [];
-    const recentLogs = dashLogs?.recentLogs || [];
+    const hikLogs = Array.isArray(dashLogs?.hikvisionStudentToday) ? dashLogs.hikvisionStudentToday : [];
+    const recentLogs = Array.isArray(dashLogs?.recentLogs) ? dashLogs.recentLogs : [];
     
     let allLogs = [...hikLogs];
     if (allLogs.length === 0 && recentLogs.length > 0) {
       allLogs = recentLogs.filter(r => 
-        String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')
+        String(r?.true_person_type || r?.device_type || 'SISWA').toUpperCase().includes('SISWA')
       );
     }
 
     const uniqueSiswa = {};
     allLogs.forEach(r => {
-      const key = r.employee_id || r.nis || r.true_person_name || r.name || r.id;
+      const key = r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id;
       if (key && !uniqueSiswa[key]) uniqueSiswa[key] = r;
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(uniqueSiswa).forEach(r => {
-      let s = String(r.status || 'Hadir').toLowerCase();
+      let s = String(r?.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
       
       if (s.includes('hadir')) statuses.Hadir++;
@@ -159,8 +159,8 @@ export default function KepsekExecutiveDashboard({
       else if (s.includes('alpa')) statuses.Alpa++;
       else statuses.Hadir++;
     });
-    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
 
+    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
     if (currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
       const unrecorded = Math.max(0, totalSiswaInSchool - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses.Alpa));
@@ -179,7 +179,7 @@ export default function KepsekExecutiveDashboard({
   const totalClassesCount = (classes || []).length || 0;
   const totalRoomsCount = (rooms || []).length || 0;
   const totalSubjectsCount = (subjects || []).length || 0;
-  const totalJP = useMemo(() => (teachingLoads || []).reduce((sum, l) => sum + (Number(l.duration) || 0), 0), [teachingLoads]);
+  const totalJP = useMemo(() => (teachingLoads || []).reduce((sum, l) => sum + (Number(l?.duration) || 0), 0), [teachingLoads]);
 
   // Kehadiran Live
   const guruPresentTotal = (guruStats.Hadir || 0) + (guruStats.Terlambat || 0);
@@ -197,12 +197,12 @@ export default function KepsekExecutiveDashboard({
   // Jurnal & KBM Stats
   const todayClasses = useMemo(() => {
     return (schedule || []).slice(0, 8).map((slot, idx) => ({
-      id: slot.id || idx,
-      jamStart: slot.jamStart || idx + 1,
-      subject: slot.subjectName || slot.subject || 'Mata Pelajaran',
-      className: slot.className || slot.kelas || 'Kelas',
-      room: slot.roomName || slot.room || 'Ruang Kelas',
-      teacher: slot.teacherName || slot.teacherCode || 'Guru Pengajar',
+      id: slot?.id || idx,
+      jamStart: slot?.jamStart || idx + 1,
+      subject: slot?.subjectName || slot?.subject || 'Mata Pelajaran',
+      className: slot?.className || slot?.kelas || 'Kelas',
+      room: slot?.roomName || slot?.room || 'Ruang Kelas',
+      teacher: slot?.teacherName || slot?.teacherCode || 'Guru Pengajar',
       status: idx % 3 === 0 ? 'Selesai' : idx % 3 === 1 ? 'Berlangsung' : 'Jadwal'
     }));
   }, [schedule]);

@@ -79,12 +79,12 @@ export default function DashboardPage({
     roomUsagePercent,
     roomCapacityData,
     scheduleSlots } = useMemo(() => {
-    const mCount = new Set(classes.map((item) => item.major).filter(Boolean)).size;
-    const pTeachers = teachers.filter((teacher) => teacher.type ==="Jurusan").length;
-    const nTeachers = teachers.length - pTeachers;
-    const prSubjects = subjects.filter((subject) => subject.isBlock).length;
-    const uRooms = new Set(schedule.map((item) => item.roomId).filter(Boolean));
-    const ruPercent = rooms.length > 0 ? Math.round((uRooms.size / rooms.length) * 100) : 0;
+    const mCount = new Set((classes || []).map((item) => item?.major).filter(Boolean)).size;
+    const pTeachers = (teachers || []).filter((teacher) => teacher?.type ==="Jurusan").length;
+    const nTeachers = (teachers || []).length - pTeachers;
+    const prSubjects = (subjects || []).filter((subject) => subject?.isBlock).length;
+    const uRooms = new Set((schedule || []).map((item) => item?.roomId).filter(Boolean));
+    const ruPercent = (rooms || []).length > 0 ? Math.round((uRooms.size / (rooms || []).length) * 100) : 0;
     return {
       majorCount: mCount,
       productiveTeachers: pTeachers,
@@ -94,9 +94,9 @@ export default function DashboardPage({
       roomUsagePercent: ruPercent,
       roomCapacityData: [
         { name:"Terpakai", value: uRooms.size },
-        { name:"Kosong", value: rooms.length - uRooms.size }
+        { name:"Kosong", value: (rooms || []).length - uRooms.size }
       ],
-      scheduleSlots: schedule.length };
+      scheduleSlots: (schedule || []).length };
   }, [classes, teachers, subjects, schedule, rooms]);
 
   const activeRole = currentUser?.role ==="superadmin" ?"admin" : currentUser?.role;
