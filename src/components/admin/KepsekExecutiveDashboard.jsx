@@ -171,15 +171,15 @@ export default function KepsekExecutiveDashboard({
   }, [dashLogs]);
 
   // ── Calculated Real Statistics ──
-  const totalGuruCount = teachers.length || guruStats.totalGuru || 52;
-  const totalStaffCount = staffs.length || 15;
+  const totalGuruCount = (teachers || []).length || guruStats.totalGuru || 52;
+  const totalStaffCount = (staffs || []).length || 15;
   const totalSDM = totalGuruCount + totalStaffCount;
 
-  const totalSiswaCount = students.length || dashLogs?.totalStudents || 0;
-  const totalClassesCount = classes.length || 0;
-  const totalRoomsCount = rooms.length || 0;
-  const totalSubjectsCount = subjects.length || 0;
-  const totalJP = useMemo(() => teachingLoads.reduce((sum, l) => sum + (Number(l.duration) || 0), 0), [teachingLoads]);
+  const totalSiswaCount = (students || []).length || dashLogs?.totalStudents || 0;
+  const totalClassesCount = (classes || []).length || 0;
+  const totalRoomsCount = (rooms || []).length || 0;
+  const totalSubjectsCount = (subjects || []).length || 0;
+  const totalJP = useMemo(() => (teachingLoads || []).reduce((sum, l) => sum + (Number(l.duration) || 0), 0), [teachingLoads]);
 
   // Kehadiran Live
   const guruPresentTotal = (guruStats.Hadir || 0) + (guruStats.Terlambat || 0);
@@ -196,7 +196,7 @@ export default function KepsekExecutiveDashboard({
 
   // Jurnal & KBM Stats
   const todayClasses = useMemo(() => {
-    return schedule.slice(0, 8).map((slot, idx) => ({
+    return (schedule || []).slice(0, 8).map((slot, idx) => ({
       id: slot.id || idx,
       jamStart: slot.jamStart || idx + 1,
       subject: slot.subjectName || slot.subject || 'Mata Pelajaran',
@@ -345,7 +345,7 @@ export default function KepsekExecutiveDashboard({
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Jurnal KBM Hari Ini</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">{jurnalCountSubmitted}</h3>
-              <span className="text-xs font-bold text-slate-400">/ {todayClasses.length || schedule.length} Slot</span>
+              <span className="text-xs font-bold text-slate-400">/ {todayClasses.length || (schedule || []).length} Slot</span>
             </div>
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2 flex">
               <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${jurnalPercentage}%` }} />
@@ -589,7 +589,7 @@ export default function KepsekExecutiveDashboard({
 
               <div className="flex items-center justify-between text-xs text-slate-500 font-semibold bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)]">
                 <span>Total Beban Kurikulum Active: <strong className="text-slate-800 font-black">{totalJP} JP</strong></span>
-                <span>Slot Jadwal: <strong className="text-slate-800 font-black">{schedule.length} Slot</strong></span>
+                <span>Slot Jadwal: <strong className="text-slate-800 font-black">{(schedule || []).length} Slot</strong></span>
               </div>
             </div>
 
@@ -871,7 +871,7 @@ export default function KepsekExecutiveDashboard({
                 <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100">Bimbingan</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-slate-800">{classes.length}</span>
+                <span className="text-3xl font-black text-slate-800">{(classes || []).length}</span>
                 <span className="text-xs font-bold text-slate-500">Rombel Terbimbing</span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">Monitoring jurnal pembimbingan wali kelas per rombongan belajar.</p>
@@ -931,7 +931,7 @@ export default function KepsekExecutiveDashboard({
             </div>
             <div className="bg-white p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col gap-1">
               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Pembimbing PKL</span>
-              <span className="text-2xl font-black text-slate-800">{teachers.length > 10 ? 10 : teachers.length}</span>
+              <span className="text-2xl font-black text-slate-800">{(teachers || []).length > 10 ? 10 : (teachers || []).length}</span>
               <span className="text-[11px] text-indigo-600 font-bold">Guru Pembimbing</span>
             </div>
             <div className="bg-white p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col gap-1">
