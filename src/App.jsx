@@ -97,7 +97,7 @@ const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
 
   // If user IS logged in but role is not permitted for this route:
   if (allowedRoles && !allowedRoles.includes(role)) {
-    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk') {
+    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk' || role === 'kepsek') {
       return <Navigate to="/dashboard" replace />;
     }
     if (role === 'guru') return <Navigate to="/dashboard" replace />;
@@ -331,7 +331,7 @@ export default function App() {
           </Route>
 
           {/* ── Admin & Guru (Schedule App) ── */}
-          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "tu", "waka", "piket", "bk"]} isLoginPage={true} />}>
+          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "tu", "waka", "piket", "bk", "kepsek"]} isLoginPage={true} />}>
             <Route path="/dashboard/*" element={<AdminApp />} />
           </Route>
           <Route path="/teacher/*" element={<Navigate to="/dashboard" replace />} />
