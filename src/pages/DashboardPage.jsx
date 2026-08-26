@@ -1217,8 +1217,6 @@ export default function DashboardPage({
         dashboardMessages={dashboardMessages}
         academicCalendar={useAppStore.getState().academicCalendar || []}
         activityLogs={useAppStore.getState().activityLogs || []}
-        guruStats={guruStats}
-        siswaStats={siswaStats}
         setActiveTab={setActiveTab}
       />
     );

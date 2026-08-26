@@ -46,15 +46,129 @@ export default function KepsekExecutiveDashboard({
   dashboardMessages = [],
   academicCalendar = [],
   activityLogs = [],
-  guruStats = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0, totalGuru: 52, totalMasuk: 0 },
-  siswaStats = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0, total: 0, totalSiswaInSchool: 0 },
-  setActiveTab
 }) {
   const [activeTabSection, setActiveTabSection] = useState('overview'); // 'overview' | 'kurikulum' | 'kesiswaan' | 'hubin' | 'sdm'
   const [searchFilter, setSearchFilter] = useState('');
 
   const todayLong = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), []);
   const todayShort = useMemo(() => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }), []);
+
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const jkt = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+    return jkt.toISOString().slice(0, 10);
+  }, []);
+
+  // ── Statistik Guru ──
+  const guruStats = useMemo(() => {
+    const validTeachers = new Set();
+    const baseTotalGuru = (teachers || []).length || 52;
+    (teachers || []).forEach(t => {
+      if (t.code) validTeachers.add(String(t.code).toLowerCase());
+      if (t.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t.name) validTeachers.add(String(t.name).toLowerCase());
+      if (t.id) validTeachers.add(String(t.id).toLowerCase());
+    });
+
+    const recs = (attendanceRecords || []).filter(r => {
+      const recDate = r.date ? String(r.date).slice(0, 10) : '';
+      return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
+    });
+
+    const recentTeacherLogs = (dashLogs?.teacherLogs || dashLogs?.recentLogs || []).filter(r => {
+      const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
+      return type.includes('GURU') || type.includes('KARYAWAN');
+    });
+
+    const mergedLogs = {};
+    recs.forEach(r => {
+      const key = String(r.teacherCode || r.employee_id || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) mergedLogs[key] = { ...r, source: 'app' };
+    });
+    recentTeacherLogs.forEach(r => {
+      const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) {
+        mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
+      }
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
+    let unknownStaffCount = 0;
+
+    Object.entries(mergedLogs).forEach(([key, r]) => {
+      const isKnownTeacher = validTeachers.has(key);
+      if (!isKnownTeacher && baseTotalGuru > 0) {
+        unknownStaffCount++;
+      }
+
+      let s = String(r.status || 'Hadir').toLowerCase();
+      if (s === 'late') s = 'terlambat';
+      if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
+      
+      if (s.includes('hadir')) statuses.Hadir++;
+      else if (s.includes('terlambat')) statuses.Terlambat++;
+      else if (s.includes('izin')) statuses.Izin++;
+      else if (s.includes('sakit')) statuses.Sakit++;
+      else if (s.includes('dinas')) statuses['Dinas Luar']++;
+      else if (s.includes('alpa')) statuses.Alpa++;
+      else statuses.Hadir++;
+    });
+    
+    const totalGuru = baseTotalGuru + unknownStaffCount;
+    
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00") {
+      const recordedTeachers = Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length;
+      const unrecorded = Math.max(0, baseTotalGuru - recordedTeachers);
+      statuses.Alpa += unrecorded;
+    }
+
+    const totalMasuk = statuses.Hadir + statuses.Terlambat;
+    const belumAbsen = Math.max(0, baseTotalGuru - Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length);
+    
+    return { ...statuses, belumAbsen, totalMasuk, totalGuru };
+  }, [attendanceRecords, todayStr, teachers, dashLogs]);
+
+  // ── Statistik Siswa ──
+  const siswaStats = useMemo(() => {
+    const hikLogs = dashLogs?.hikvisionStudentToday || [];
+    const recentLogs = dashLogs?.recentLogs || [];
+    
+    let allLogs = [...hikLogs];
+    if (allLogs.length === 0 && recentLogs.length > 0) {
+      allLogs = recentLogs.filter(r => 
+        String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')
+      );
+    }
+
+    const uniqueSiswa = {};
+    allLogs.forEach(r => {
+      const key = r.employee_id || r.nis || r.true_person_name || r.name || r.id;
+      if (key && !uniqueSiswa[key]) uniqueSiswa[key] = r;
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+    Object.values(uniqueSiswa).forEach(r => {
+      let s = String(r.status || 'Hadir').toLowerCase();
+      if (s === 'late') s = 'terlambat';
+      
+      if (s.includes('hadir')) statuses.Hadir++;
+      else if (s.includes('terlambat')) statuses.Terlambat++;
+      else if (s.includes('izin')) statuses.Izin++;
+      else if (s.includes('sakit')) statuses.Sakit++;
+      else if (s.includes('alpa')) statuses.Alpa++;
+      else statuses.Hadir++;
+    });
+    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
+
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
+      const unrecorded = Math.max(0, totalSiswaInSchool - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses.Alpa));
+      statuses.Alpa += unrecorded;
+    }
+
+    return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
+  }, [dashLogs]);
 
   // ── Calculated Real Statistics ──
   const totalGuruCount = teachers.length || guruStats.totalGuru || 52;
