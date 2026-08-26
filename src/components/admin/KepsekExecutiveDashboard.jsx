@@ -74,20 +74,35 @@ const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent
   </div>
 );
 
-const AlertBanner = ({ icon: Icon, title, desc, color, dismiss, onDismiss }) => (
-  <div className={`flex items-start gap-3 p-3.5 rounded-xl border text-sm font-medium ${color}`}>
-    <Icon size={16} className="shrink-0 mt-0.5" />
-    <div className="flex-1 min-w-0">
-      <span className="font-black block text-xs uppercase tracking-wide">{title}</span>
-      <span className="text-[11px] opacity-80">{desc}</span>
+// Pagination hook
+const usePaginated = (data, pageSize = 20) => {
+  const [page, setPage] = React.useState(0);
+  const total = data.length;
+  const totalPages = Math.ceil(total / pageSize);
+  const sliced = data.slice(page * pageSize, (page + 1) * pageSize);
+  const reset = () => setPage(0);
+  return { sliced, page, setPage, totalPages, total, reset };
+};
+
+const Pagination = ({ page, totalPages, total, pageSize, setPage }) => {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+      <span className="text-[10px] font-semibold text-slate-400">Menampilkan {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} dari {total}</span>
+      <div className="flex items-center gap-1">
+        <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+          className="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          ← Prev
+        </button>
+        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[var(--ui-primary)] text-white">{page + 1}/{totalPages}</span>
+        <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+          className="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          Next →
+        </button>
+      </div>
     </div>
-    {onDismiss && (
-      <button onClick={onDismiss} className="shrink-0 opacity-60 hover:opacity-100">
-        <X size={14} />
-      </button>
-    )}
-  </div>
-);
+  );
+};
 
 const EmptyState = ({ icon, message }) => (
   <div className="flex flex-col items-center justify-center py-8 gap-2 text-slate-400">
@@ -118,12 +133,16 @@ export default function KepsekExecutiveDashboard({
 }) {
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
-  const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
   const [syllabusFilter, setSyllabusFilter] = useState('all');
   const [expandedGuru, setExpandedGuru] = useState(null);
+  const [schedulePage, setSchedulePage] = useState(0);
+  const [syllabusPage, setSyllabusPage] = useState(0);
+  const [pklPage, setPklPage] = useState(0);
+  const [kedisiplinanPage, setKedisiplinanPage] = useState(0);
+  const [prestasiPage, setPrestasiPage] = useState(0);
+  const PAGE_SIZE = 20;
 
-  const dismiss = (id) => setDismissedAlerts(prev => new Set([...prev, id]));
-  const gotoTab = (id) => setParentTab ? setParentTab(id) : null;
+  const gotoTab = (id) => { if (setParentTab) setParentTab(id); };
 
   // ── Time ─────────────────────────────────────────────────────────────────
   const todayLong = useMemo(() =>
@@ -265,21 +284,6 @@ export default function KepsekExecutiveDashboard({
   const pklLocationCount = dashLogs?.totalLocations || 0;
   const majorCount = useMemo(() => new Set((classes || []).map(c => c.major || c.jurusan || c.program).filter(Boolean)).size, [classes]);
 
-  // ── Alert items ───────────────────────────────────────────────────────────
-  const alerts = useMemo(() => {
-    const items = [];
-    const kurangSilabus = syllabusStatsPerTeacher.filter(t => t.status === 'Kurang').length;
-    if (kurangSilabus > 0) items.push({ id: 'silabus', icon: AlertTriangle, color: 'bg-rose-50 border-rose-200 text-rose-700', title: `${kurangSilabus} Guru Belum Lengkap Modul`, desc: `${kurangSilabus} guru belum memenuhi target upload modul ajar/silabus. Perlu segera ditindaklanjuti.` });
-    if (guruStats.Terlambat > 3) items.push({ id: 'late_guru', icon: Clock, color: 'bg-amber-50 border-amber-200 text-amber-700', title: `${guruStats.Terlambat} Guru Terlambat`, desc: 'Lebih dari 3 guru tercatat terlambat hari ini. Mohon perhatikan kedisiplinan.' });
-    if (siswaStats.Terlambat > 10) items.push({ id: 'late_siswa', icon: Clock, color: 'bg-orange-50 border-orange-200 text-orange-700', title: `${siswaStats.Terlambat} Siswa Terlambat`, desc: 'Banyak siswa terlambat. Perlu evaluasi penegakan tata tertib.' });
-    if ((dashLogs?.problematicStudentLogs || []).length > 0) items.push({ id: 'bpbk', icon: Shield, color: 'bg-purple-50 border-purple-200 text-purple-700', title: `${dashLogs.problematicStudentLogs.length} Siswa Perlu Pembinaan BPBK`, desc: 'Terdapat siswa yang tercatat memerlukan bimbingan kedisiplinan segera.' });
-    const jurnalBelum = Math.max(0, todaySchedule.length - jurnalSubmitted);
-    if (jurnalBelum > 2) items.push({ id: 'jurnal', icon: FileText, color: 'bg-indigo-50 border-indigo-200 text-indigo-700', title: `${jurnalBelum} Jurnal Kelas Belum Terisi`, desc: 'Beberapa slot KBM belum memiliki jurnal harian dari guru pengampu.' });
-    return items;
-  }, [syllabusStatsPerTeacher, guruStats, siswaStats, dashLogs, todaySchedule, jurnalSubmitted]);
-
-  const visibleAlerts = alerts.filter(a => !dismissedAlerts.has(a.id));
-
   // ── Filtered Syllabus ─────────────────────────────────────────────────────
   const filteredSyllabus = useMemo(() => {
     let data = syllabusStatsPerTeacher;
@@ -287,6 +291,21 @@ export default function KepsekExecutiveDashboard({
     if (search) data = data.filter(t => (t.name || t.code || '').toLowerCase().includes(search.toLowerCase()));
     return data;
   }, [syllabusStatsPerTeacher, syllabusFilter, search]);
+
+  // Pagination derived
+  const schedulePageData = todaySchedule.slice(schedulePage * PAGE_SIZE, (schedulePage + 1) * PAGE_SIZE);
+  const scheduleTotalPages = Math.ceil(todaySchedule.length / PAGE_SIZE);
+  const syllabusPageData = filteredSyllabus.slice(syllabusPage * PAGE_SIZE, (syllabusPage + 1) * PAGE_SIZE);
+  const syllabusTotalPages = Math.ceil(filteredSyllabus.length / PAGE_SIZE);
+  const pklData = dashLogs?.latestStudentLogs || [];
+  const pklPageData = pklData.slice(pklPage * PAGE_SIZE, (pklPage + 1) * PAGE_SIZE);
+  const pklTotalPages = Math.ceil(pklData.length / PAGE_SIZE);
+  const kedisiplinanData = dashLogs?.problematicStudentLogs || [];
+  const kedisiplinanPageData = kedisiplinanData.slice(kedisiplinanPage * PAGE_SIZE, (kedisiplinanPage + 1) * PAGE_SIZE);
+  const kedisiplinanTotalPages = Math.ceil(kedisiplinanData.length / PAGE_SIZE);
+  const prestasiData = dashLogs?.achievingStudentLogs || [];
+  const prestasiPageData = prestasiData.slice(prestasiPage * PAGE_SIZE, (prestasiPage + 1) * PAGE_SIZE);
+  const prestasiTotalPages = Math.ceil(prestasiData.length / PAGE_SIZE);
 
   const TABS = [
     { id: 'overview', label: 'Ringkasan', icon: '/icons/035-graph bar.svg' },
@@ -481,7 +500,7 @@ export default function KepsekExecutiveDashboard({
             {/* KBM Today */}
             <SectionCard title="Status KBM & Jurnal Hari Ini" subtitle={`${todaySchedule.length} slot terjadwal`} icon="/icons/011-schedule.svg" action="Jadwal Penuh" onAction={() => gotoTab('generate')}>
               <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                {todaySchedule.length > 0 ? todaySchedule.map((row, i) => (
+                {todaySchedule.length > 0 ? schedulePageData.map((row, i) => (
                   <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
                     <span className={`w-2 h-2 rounded-full shrink-0 ${row.status === 'Selesai' ? 'bg-emerald-500' : row.status === 'Berlangsung' ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300'}`} />
                     <div className="flex-1 min-w-0">
@@ -502,6 +521,7 @@ export default function KepsekExecutiveDashboard({
                   <EmptyState icon="/icons/011-schedule.svg" message="Belum ada jadwal hari ini" />
                 )}
               </div>
+              <Pagination page={schedulePage} totalPages={scheduleTotalPages} total={todaySchedule.length} pageSize={PAGE_SIZE} setPage={setSchedulePage} />
               <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
                 <span>Total JP: <strong className="text-slate-800">{totalJP}</strong></span>
                 <span>Jurnal: <strong className="text-emerald-700">{jurnalSubmitted}/{todaySchedule.length}</strong></span>
@@ -599,7 +619,7 @@ export default function KepsekExecutiveDashboard({
                   </tr>
                 </thead>
                 <tbody>
-                  {todaySchedule.length > 0 ? todaySchedule.map((row, i) => (
+                  {todaySchedule.length > 0 ? schedulePageData.map((row, i) => (
                     <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-3 font-black text-slate-900">Jam {row.jamStart}</td>
                       <td className="py-3 px-3 font-bold text-slate-800">{row.subject}</td>
@@ -621,6 +641,7 @@ export default function KepsekExecutiveDashboard({
                 </tbody>
               </table>
             </div>
+            <Pagination page={schedulePage} totalPages={scheduleTotalPages} total={todaySchedule.length} pageSize={PAGE_SIZE} setPage={setSchedulePage} />
           </SectionCard>
 
           {/* Pemantauan Silabus / Modul */}
@@ -658,7 +679,7 @@ export default function KepsekExecutiveDashboard({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSyllabus.length > 0 ? filteredSyllabus.map((t, i) => (
+                  {filteredSyllabus.length > 0 ? syllabusPageData.map((t, i) => (
                     <React.Fragment key={t.id || i}>
                       <tr
                         onClick={() => setExpandedGuru(expandedGuru === i ? null : i)}
@@ -725,6 +746,7 @@ export default function KepsekExecutiveDashboard({
                 </tbody>
               </table>
             </div>
+            <Pagination page={syllabusPage} totalPages={syllabusTotalPages} total={filteredSyllabus.length} pageSize={PAGE_SIZE} setPage={setSyllabusPage} />
           </SectionCard>
         </div>
       )}
@@ -751,10 +773,10 @@ export default function KepsekExecutiveDashboard({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Catatan Kedisiplinan BPBK */}
-            <SectionCard title="Catatan Kedisiplinan BPBK" subtitle="Siswa yang memerlukan pembinaan" icon="/icons/099-alert.svg" action="Buka Buku BPBK" onAction={() => gotoTab('kedisiplinan_bpbk')}>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
-                {(dashLogs?.problematicStudentLogs || []).slice(0, 10).length > 0 ?
-                  (dashLogs?.problematicStudentLogs || []).slice(0, 10).map((s, i) => (
+            <SectionCard title="Catatan Kedisiplinan BPBK" subtitle={`${kedisiplinanData.length} siswa perlu pembinaan`} icon="/icons/099-alert.svg" action="Buka Buku BPBK" onAction={() => gotoTab('kedisiplinan_bpbk')}>
+              <div className="space-y-2">
+                {kedisiplinanData.length > 0 ?
+                  kedisiplinanPageData.map((s, i) => (
                     <div key={i} className="flex items-start gap-3 p-2.5 bg-rose-50 rounded-xl border border-rose-100">
                       <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center text-[10px] font-black text-rose-700 shrink-0 uppercase">{(s.name || s.studentName || 'S').charAt(0)}</div>
                       <div className="flex-1 min-w-0">
@@ -770,14 +792,15 @@ export default function KepsekExecutiveDashboard({
                       <p className="text-xs font-medium">Tidak ada catatan pelanggaran</p>
                     </div>
                   )}
+                <Pagination page={kedisiplinanPage} totalPages={kedisiplinanTotalPages} total={kedisiplinanData.length} pageSize={PAGE_SIZE} setPage={setKedisiplinanPage} />
               </div>
             </SectionCard>
 
             {/* Prestasi Siswa */}
-            <SectionCard title="Prestasi & Penghargaan" subtitle="Capaian kompetisi dan akademik" icon="/icons/034-star.svg" action="Lihat Semua" onAction={() => gotoTab('riwayat_prestasi')}>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
-                {(dashLogs?.achievingStudentLogs || []).slice(0, 8).length > 0 ?
-                  (dashLogs?.achievingStudentLogs || []).slice(0, 8).map((s, i) => (
+            <SectionCard title="Prestasi & Penghargaan" subtitle={`${prestasiData.length} siswa berprestasi`} icon="/icons/034-star.svg" action="Lihat Semua" onAction={() => gotoTab('riwayat_prestasi')}>
+              <div className="space-y-2">
+                {prestasiData.length > 0 ?
+                  prestasiPageData.map((s, i) => (
                     <div key={i} className="flex items-start gap-3 p-2.5 bg-amber-50 rounded-xl border border-amber-100">
                       <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-black text-amber-700 shrink-0 uppercase">{(s.name || s.studentName || 'S').charAt(0)}</div>
                       <div className="flex-1 min-w-0">
@@ -790,6 +813,7 @@ export default function KepsekExecutiveDashboard({
                   )) : (
                     <EmptyState icon="/icons/034-star.svg" message="Belum ada data prestasi" />
                   )}
+                <Pagination page={prestasiPage} totalPages={prestasiTotalPages} total={prestasiData.length} pageSize={PAGE_SIZE} setPage={setPrestasiPage} />
               </div>
             </SectionCard>
 
@@ -920,10 +944,10 @@ export default function KepsekExecutiveDashboard({
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Siswa PKL */}
-            <SectionCard title="Daftar Siswa PKL Aktif" subtitle={`${pklCount} siswa sedang melaksanakan PKL`} icon="/icons/066-education.svg" action="Dasbor PKL Penuh" onAction={() => gotoTab('pkl_dashboard')}>
-              <div className="space-y-1.5 max-h-72 overflow-y-auto">
-                {(dashLogs?.latestStudentLogs || []).slice(0, 15).length > 0
-                  ? (dashLogs?.latestStudentLogs || []).slice(0, 15).map((s, i) => (
+            <SectionCard title="Daftar Siswa PKL Aktif" subtitle={`${pklData.length} siswa sedang melaksanakan PKL`} icon="/icons/066-education.svg" action="Dasbor PKL Penuh" onAction={() => gotoTab('pkl_dashboard')}>
+              <div className="space-y-1.5">
+                {pklData.length > 0
+                  ? pklPageData.map((s, i) => (
                     <div key={i} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-xl border border-transparent hover:border-slate-100 transition-all">
                       <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center text-[10px] font-black text-sky-700 shrink-0 uppercase">{(s.name || s.studentName || 'S').charAt(0)}</div>
                       <div className="flex-1 min-w-0">
@@ -935,6 +959,7 @@ export default function KepsekExecutiveDashboard({
                   ))
                   : <EmptyState icon="/icons/066-education.svg" message="Belum ada data siswa PKL" />
                 }
+                <Pagination page={pklPage} totalPages={pklTotalPages} total={pklData.length} pageSize={PAGE_SIZE} setPage={setPklPage} />
               </div>
             </SectionCard>
 
