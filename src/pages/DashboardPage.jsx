@@ -2578,6 +2578,16 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
   // ── Statistik Guru dari attendanceRecords & dashLogs ──
   const guruStats = useMemo(() => {
+    // 1. Buat Set daftar guru valid dari master data
+    const validTeachers = new Set();
+    const baseTotalGuru = (teachers || []).length || 52;
+    (teachers || []).forEach(t => {
+      if (t.code) validTeachers.add(String(t.code).toLowerCase());
+      if (t.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t.name) validTeachers.add(String(t.name).toLowerCase());
+      if (t.id) validTeachers.add(String(t.id).toLowerCase());
+    });
+
     const recs = (attendanceRecords || []).filter(r => {
       const recDate = r.date ? String(r.date).slice(0, 10) : '';
       return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
@@ -2588,8 +2598,33 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       return type.includes('GURU') || type.includes('KARYAWAN');
     });
 
-    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
+    // 2. Gabungkan log absensi dari Apps & Hikvision untuk menghindari duplikat
+    const mergedLogs = {};
+    
+    // - Dari Apps
     recs.forEach(r => {
+      const key = String(r.teacherCode || r.employee_id || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) mergedLogs[key] = { ...r, source: 'app' };
+    });
+
+    // - Dari Hikvision (override status dari app jika ada)
+    recentTeacherLogs.forEach(r => {
+      const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) {
+        mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
+      }
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
+    let unknownStaffCount = 0;
+
+    Object.entries(mergedLogs).forEach(([key, r]) => {
+      const isKnownTeacher = validTeachers.has(key);
+      if (!isKnownTeacher && baseTotalGuru > 0) {
+        // Ini adalah Karyawan / Staff yang tidak ada di master data guru
+        unknownStaffCount++;
+      }
+
       let s = String(r.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
       if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
@@ -2602,37 +2637,21 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else if (s.includes('alpa')) statuses.Alpa++;
       else statuses.Hadir++;
     });
-
-    if (recentTeacherLogs.length > 0) {
-      let tHadir = 0;
-      let tTelat = 0;
-      const uniqueTeachers = {};
-      recentTeacherLogs.forEach(r => {
-        const key = r.employee_id || r.true_person_name || r.name || r.id;
-        if (key && !uniqueTeachers[key]) uniqueTeachers[key] = r;
-      });
-
-      Object.values(uniqueTeachers).forEach(r => {
-        const s = String(r.status || 'hadir').toLowerCase();
-        if (s.includes('terlambat') || s.includes('late')) tTelat++;
-        else tHadir++;
-      });
-      statuses.Hadir = Math.max(statuses.Hadir, tHadir);
-      statuses.Terlambat = Math.max(statuses.Terlambat, tTelat);
-    }
-
-    const uniqueRecentCount = new Set(recentTeacherLogs.map(r => r.employee_id || r.true_person_name || r.name || r.id)).size;
-    const totalMasuk = Math.max(recs.filter(r => r.in).length, uniqueRecentCount);
-    const totalGuru = dashLogs?.totalTeachers || (teachers || []).length || 52;
     
-    // Auto-calculate Alpa if current time is past cutoff limit (08:00)
+    // Dynamic total denominator (Guru Master + Karyawan Tambahan)
+    const totalGuru = baseTotalGuru + unknownStaffCount;
+    
+    // Auto-calculate Alpa untuk Guru Master yang tidak absen sama sekali (jika sudah jam 08:00)
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
     if (currentTimeJkt > "08:00:00") {
-      const unrecorded = Math.max(0, totalGuru - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa));
+      const recordedTeachers = Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length;
+      const unrecorded = Math.max(0, baseTotalGuru - recordedTeachers);
       statuses.Alpa += unrecorded;
     }
 
-    const belumAbsen = Math.max(0, totalGuru - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa));
+    const totalMasuk = statuses.Hadir + statuses.Terlambat;
+    const belumAbsen = Math.max(0, baseTotalGuru - Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length);
+    
     return { ...statuses, belumAbsen, totalMasuk, totalGuru };
   }, [attendanceRecords, todayStr, teachers, dashLogs]);
 
