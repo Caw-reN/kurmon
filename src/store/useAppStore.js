@@ -74,15 +74,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   // ─── KEPALA SEKOLAH ─────────────────────────────────────────────────────────
   kepsek: {
-    dashboard: "otomatis", generate: "view", absensi: "otomatis", pesan: "otomatis",
-    akademik: "view",
-    pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
-    pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
-    pkl_laporan: "view",
-    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "view",
-    walas_report: "view", catatan_walikelas: "view", riwayat_prestasi: "view",
-    laporan_absensi: "view", hikvision_report_guru: "view",
-    hikvision_report_karyawan: "view", hikvision_report_siswa: "view"
+    dashboard: "otomatis",
+    pesan: "view"
   },
 
   // ─── WAKA ───────────────────────────────────────────────────────────────────
