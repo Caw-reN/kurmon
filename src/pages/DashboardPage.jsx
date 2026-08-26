@@ -2606,7 +2606,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     if (recentTeacherLogs.length > 0) {
       let tHadir = 0;
       let tTelat = 0;
+      const uniqueTeachers = {};
       recentTeacherLogs.forEach(r => {
+        const key = r.employee_id || r.true_person_name || r.name || r.id;
+        if (key && !uniqueTeachers[key]) uniqueTeachers[key] = r;
+      });
+
+      Object.values(uniqueTeachers).forEach(r => {
         const s = String(r.status || 'hadir').toLowerCase();
         if (s.includes('terlambat') || s.includes('late')) tTelat++;
         else tHadir++;
@@ -2615,7 +2621,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       statuses.Terlambat = Math.max(statuses.Terlambat, tTelat);
     }
 
-    const totalMasuk = Math.max(recs.filter(r => r.in).length, recentTeacherLogs.length);
+    const uniqueRecentCount = new Set(recentTeacherLogs.map(r => r.employee_id || r.true_person_name || r.name || r.id)).size;
+    const totalMasuk = Math.max(recs.filter(r => r.in).length, uniqueRecentCount);
     const totalGuru = dashLogs?.totalTeachers || (teachers || []).length || 52;
     
     // Auto-calculate Alpa if current time is past cutoff limit (08:00)
@@ -2642,8 +2649,14 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       );
     }
 
-    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+    const uniqueSiswa = {};
     allLogs.forEach(r => {
+      const key = r.employee_id || r.nis || r.true_person_name || r.name || r.id;
+      if (key && !uniqueSiswa[key]) uniqueSiswa[key] = r;
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+    Object.values(uniqueSiswa).forEach(r => {
       let s = String(r.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
       
@@ -2663,7 +2676,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       statuses.Alpa += unrecorded;
     }
 
-    return { ...statuses, total: allLogs.length, totalSiswaInSchool };
+    return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
   }, [dashLogs]);
 
   const guruPercent = guruStats.totalGuru > 0 
