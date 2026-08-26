@@ -28,6 +28,7 @@ import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
 import { getAttendanceStatusTone } from "../utils/adminHelpers.js";
+import KepsekExecutiveDashboard from "../components/admin/KepsekExecutiveDashboard.jsx";
 
 const DashboardCharts = lazy(() => import("./DashboardCharts.jsx"));
 const ACTIVITY_PAGE_SIZE = 6;
@@ -1197,7 +1198,31 @@ export default function DashboardPage({
   // Remove dummy data references for PKL stats — use 0 defaults
   const pklSiswaCount = 0;
   const pklMitraCount = 0;
-  const pklJurnalCount = 0;
+  if (isKepsek) {
+    return (
+      <KepsekExecutiveDashboard
+        currentUser={currentUser}
+        classes={classes}
+        teachers={teachers}
+        staffs={useAppStore.getState().staffs || []}
+        students={useAppStore.getState().students || []}
+        subjects={subjects}
+        rooms={rooms}
+        schedule={schedule}
+        teachingLoads={teachingLoads}
+        subjectComposition={subjectComposition}
+        dashLogs={dashLogs}
+        attendanceRecords={attendanceRecords}
+        syllabuses={syllabuses}
+        dashboardMessages={dashboardMessages}
+        academicCalendar={useAppStore.getState().academicCalendar || []}
+        activityLogs={useAppStore.getState().activityLogs || []}
+        guruStats={guruStats}
+        siswaStats={siswaStats}
+        setActiveTab={setActiveTab}
+      />
+    );
+  }
 
   return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-8">

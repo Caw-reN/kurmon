@@ -26,7 +26,6 @@ const DataPegawai = lazy(() => import("../../pages/admin/master_data/DataPegawai
 const MasterDataGuru = lazy(() => import("../../pages/admin/master_data/MasterDataGuru.jsx"));
 const MasterDataKaryawan = lazy(() => import("../../pages/admin/master_data/MasterDataKaryawan.jsx"));
 const DashboardPage = lazy(() => import("../../pages/DashboardPage.jsx"));
-const KepsekDashboard = lazy(() => import("../../pages/KepsekDashboard.jsx"));
 const MonitoringDataSiswa = lazy(() => import("../../pages/admin/master_data/DataSiswa.jsx"));
 const RiwayatPrestasi = lazy(() => import("../../pages/kedisiplinan/RiwayatPrestasi.jsx"));
 const MonitoringDataPerusahaan = lazy(() => import("../../pages/admin/master_data/DataPerusahaan.jsx"));
@@ -301,9 +300,6 @@ export default function AdminContentRouter({ context }) {
     }
     switch (activeTab) {
       case"dashboard":
-        if (activeUserRole === "kepsek") {
-          return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">Memuat Dashboard...</div>}><KepsekDashboard /></Suspense>;
-        }
         return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} />;
       case"fitur":
         return <FiturManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
