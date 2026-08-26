@@ -400,6 +400,45 @@
     position: relative;
     z-index: 10;
   }
+
+  /* Global Premium Stroke for Lucide Icons */
+  svg.lucide {
+    stroke-width: var(--ui-icon-stroke, 2.2px) !important;
+  }
+
+  /* Form Input Styles */
+  .input-style-filled input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only),
+  .input-style-filled textarea,
+  .input-style-filled select {
+    background-color: var(--ui-surface-muted, #f1f5f9) !important;
+    border-color: transparent !important;
+  }
+  .input-style-filled input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only):focus,
+  .input-style-filled textarea:focus,
+  .input-style-filled select:focus {
+    background-color: #ffffff !important;
+    border-color: var(--ui-primary) !important;
+  }
+
+  .input-style-underline input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only),
+  .input-style-underline textarea,
+  .input-style-underline select {
+    border-radius: 0 !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 2px solid var(--ui-border-soft) !important;
+    background-color: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-shadow: none !important;
+  }
+  .input-style-underline input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only):focus,
+  .input-style-underline textarea:focus,
+  .input-style-underline select:focus {
+    border-bottom-color: var(--ui-primary) !important;
+    box-shadow: none !important;
+  }
 }
 
 
@@ -412,6 +451,26 @@
   backdrop-filter: blur(10px);
   /* Ring putih di dalam untuk efek kaca/float */
   outline: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism Solid (Off) */
+.glass-solid .ui-card,
+.glass-solid .app-sidebar,
+.glass-solid .app-header {
+  backdrop-filter: none !important;
+  background-color: #ffffff !important;
+}
+
+/* Glassmorphism Strong (Tebal Kaca) */
+.glass-strong .ui-card {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+}
+.glass-strong .app-sidebar,
+.glass-strong .app-header {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
 }
 
 /* Antigravity Float Card - efek mengambang penuh */
@@ -529,6 +588,20 @@ a[class*="active:scale"]:active {
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
   width: 8px;
+}
+
+/* Modifiers for Kustomisasi Scrollbar */
+.scrollbar-thin ::-webkit-scrollbar,
+.scrollbar-thin .custom-scrollbar::-webkit-scrollbar {
+  height: 4px !important;
+  width: 4px !important;
+}
+
+.scrollbar-hidden ::-webkit-scrollbar,
+.scrollbar-hidden .custom-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
 }
 
 /* Ensure firefox uses thin scrollbars */

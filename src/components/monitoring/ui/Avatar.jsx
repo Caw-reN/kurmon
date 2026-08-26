@@ -56,7 +56,7 @@ const Avatar = ({ src, name ='', size ='md', online, className ='' }) => {
       {online !== undefined && (
         <span
           className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-[var(--ui-radius-small)] ring-2 ring-white
-            ${online ?'bg-success' :'bg-gray-300'}`}
+            ${online ?'bg-success' :'bg-slate-300'}`}
         />
       )}
     </div>

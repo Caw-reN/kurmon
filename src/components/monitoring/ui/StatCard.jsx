@@ -55,7 +55,7 @@ const StatCard = ({
           <div
             className={`inline-flex items-center gap-1 mt-2 text-xs font-semibold px-2 py-0.5 rounded-[var(--ui-radius-control)]
               ${trendIsNeutral ? 'bg-[var(--ui-surface-muted)] text-slate-500 border border-[var(--ui-border-soft)]' :
-                trendIsPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-rose-600'}`}
+                trendIsPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600'}`}
           >
             {trendIsNeutral ? (
               <Minus size={12} />

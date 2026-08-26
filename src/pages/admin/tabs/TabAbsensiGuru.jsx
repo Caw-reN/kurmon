@@ -144,14 +144,14 @@ export default function TabAbsensiGuru(props) {
                     </span>
                   </div>
                   {!featureAllowsCurrentMode && (
-                    <p className="mb-3 text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                    <p className="mb-3 text-xs text-rose-600 font-bold bg-rose-50 p-3 rounded-[var(--ui-radius-small)] border border-rose-100">
                       Mode absensi ini sedang tidak lengkap/aktif. Hubungi
                       admin untuk mengaktifkan fitur terkait.
                     </p>
                   )}
                   {needsLocation ? (
                     locationError ? (
-                      <p className="text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                      <p className="text-xs text-rose-600 font-bold bg-rose-50 p-3 rounded-[var(--ui-radius-small)] border border-rose-100">
                         {locationError}
                       </p>
                     ) : teacherLocation ? (
@@ -301,7 +301,7 @@ export default function TabAbsensiGuru(props) {
                       className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:bg-white shadow-sm cursor-pointer"
                     />
                     {photoError && (
-                      <p className="text-xs text-rose-600 font-bold bg-red-50 p-3 rounded-[var(--ui-radius-small)] border border-red-100">
+                      <p className="text-xs text-rose-600 font-bold bg-rose-50 p-3 rounded-[var(--ui-radius-small)] border border-rose-100">
                         {photoError}
                       </p>
                     )}

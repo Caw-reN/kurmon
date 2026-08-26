@@ -226,7 +226,11 @@ export async function handleDataRoutes(req, res, url, ctx) {
           for (const key of keysToCompare) {
             const valA = cleanObjectForCompare(a[key]);
             const valB = cleanObjectForCompare(b[key]);
-            if (JSON.stringify(valA) !== JSON.stringify(valB)) {
+            const strA = JSON.stringify(valA);
+            const strB = JSON.stringify(valB);
+            if (strA !== strB) {
+              console.log(`[SAVE] Payload diff found on key: ${key}`);
+              // Uncomment to see exact diff: console.log(`A: ${strA}\nB: ${strB}`);
               return false;
             }
           }
@@ -234,6 +238,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
         };
 
         if (isPayloadEqual(payload, fullExistingPayload)) {
+          console.log("[SAVE] No changes detected. Skipping DB update.");
           // No changes detected, skip DB queries and logging
           send(req, res, 200, { ok: true, noChanges: true });
           return true;

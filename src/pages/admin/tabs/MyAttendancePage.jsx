@@ -14,10 +14,10 @@ function getStatusStyle(dayData) {
   if (!dayData) return null;
   if (dayData.isManual) {
     const s = dayData.status;
-    if (s === 'Izin')       return { bg:'bg-blue-100',   text:'text-blue-700',   border:'border-blue-200',   label:'Izin',      dot:'bg-blue-500' };
+    if (s === 'Izin')       return { bg:'bg-indigo-100',   text:'text-indigo-700',   border:'border-indigo-200',   label:'Izin',      dot:'bg-indigo-500' };
     if (s === 'Sakit')      return { bg:'bg-yellow-100', text:'text-yellow-700', border:'border-yellow-200', label:'Sakit',     dot:'bg-yellow-500' };
     if (s === 'Dinas Luar') return { bg:'bg-purple-100', text:'text-purple-700', border:'border-purple-200', label:'Dinas',     dot:'bg-purple-500' };
-    if (s === 'Alpa')       return { bg:'bg-red-100',    text:'text-red-700',    border:'border-red-200',    label:'Alpa',      dot:'bg-rose-500' };
+    if (s === 'Alpa')       return { bg:'bg-rose-100',    text:'text-rose-700',    border:'border-rose-200',    label:'Alpa',      dot:'bg-rose-500' };
   }
   if (dayData.in) {
     if (dayData.isLate)     return { bg:'bg-amber-100',  text:'text-amber-700',  border:'border-amber-200',  label:'Terlambat', dot:'bg-amber-500' };
@@ -29,7 +29,7 @@ function getStatusStyle(dayData) {
 const LEGEND = [
   { dot:'bg-emerald-500', label:'Hadir' },
   { dot:'bg-amber-500',   label:'Terlambat' },
-  { dot:'bg-blue-500',    label:'Izin' },
+  { dot:'bg-indigo-500',    label:'Izin' },
   { dot:'bg-yellow-500',  label:'Sakit' },
   { dot:'bg-purple-500',  label:'Dinas Luar' },
   { dot:'bg-rose-500',     label:'Alpa' },
@@ -323,9 +323,9 @@ export default function MyAttendancePage({ setActiveTab }) {
         {[
           { label:'Hadir',     value:stats.hadir,     dot:'bg-emerald-500', bg:'bg-emerald-50', text:'text-emerald-700' },
           { label:'Terlambat', value:stats.terlambat, dot:'bg-amber-500',   bg:'bg-amber-50',   text:'text-amber-700' },
-          { label:'Izin',      value:stats.izin,      dot:'bg-blue-500',    bg:'bg-blue-50',    text:'text-blue-700' },
+          { label:'Izin',      value:stats.izin,      dot:'bg-indigo-500',    bg:'bg-indigo-50',    text:'text-indigo-700' },
           { label:'Sakit',     value:stats.sakit,     dot:'bg-yellow-500',  bg:'bg-yellow-50',  text:'text-yellow-700' },
-          { label:'Alpa',      value:stats.alpa,      dot:'bg-rose-500',     bg:'bg-red-50',     text:'text-red-700' },
+          { label:'Alpa',      value:stats.alpa,      dot:'bg-rose-500',     bg:'bg-rose-50',     text:'text-rose-700' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-[var(--ui-radius-small)] px-2 py-2.5 flex flex-col items-center gap-0.5`}>
             <span className={`w-2 h-2 rounded-[var(--ui-radius-pill)] ${s.dot}`} />
@@ -354,7 +354,7 @@ export default function MyAttendancePage({ setActiveTab }) {
         {/* Day headers */}
         <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-100">
           {DAY_NAMES_SHORT.map(d => (
-            <div key={d} className={`py-2 text-center text-[10px] font-black uppercase tracking-widest ${d==='Min'||d==='Sab' ? 'text-red-400' : 'text-slate-400'}`}>
+            <div key={d} className={`py-2 text-center text-[10px] font-black uppercase tracking-widest ${d==='Min'||d==='Sab' ? 'text-rose-400' : 'text-slate-400'}`}>
               {d}
             </div>
           ))}
@@ -394,7 +394,7 @@ export default function MyAttendancePage({ setActiveTab }) {
                 {/* Date number */}
                 <span className={`
                   w-7 h-7 flex items-center justify-center rounded-full text-xs font-black shrink-0
-                  ${isToday ? 'bg-[var(--ui-primary)] text-white' : isWeekend ? 'text-red-400' : 'text-slate-600'}
+                  ${isToday ? 'bg-[var(--ui-primary)] text-white' : isWeekend ? 'text-rose-400' : 'text-slate-600'}
                 `}>
                   {day}
                 </span>
@@ -575,7 +575,7 @@ export default function MyAttendancePage({ setActiveTab }) {
               />
             </div>
             {submitMsg && (
-              <div className={`text-xs font-black px-3 py-2 rounded-[var(--ui-radius-small)] ${submitMsg === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+              <div className={`text-xs font-black px-3 py-2 rounded-[var(--ui-radius-small)] ${submitMsg === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                 {submitMsg === 'success' ? '✓ Keterangan berhasil disimpan' : submitMsg}
               </div>
             )}

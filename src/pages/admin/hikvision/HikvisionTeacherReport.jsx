@@ -1109,7 +1109,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (status === "Izin") {
       return (
         <span 
-          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-200 block truncate text-center" 
+          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-200 block truncate text-center" 
           title={dayData.note || 'Izin'}
         >
           IZIN
@@ -1141,7 +1141,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (status === "Terlambat" || dayData.isLate) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-red-100 text-red-800 border border-red-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 border border-rose-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>
@@ -1149,7 +1149,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     }
     return (
       <div 
-        className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-green-100 text-green-800 border border-green-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
+        className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 border border-emerald-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
       >
         {renderTaps(dayData)}
       </div>
@@ -1341,7 +1341,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
              <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Izin</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> Alpa</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Kosong</span>
@@ -1398,7 +1398,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                          </td>
                          <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
                          <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
-                         <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin}</td>
+                         <td className="px-3 py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin}</td>
                          <td className="px-3 py-3 text-center font-black text-amber-700 border-r border-slate-100">{d.total_sakit}</td>
                          <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_alpa}</td>
                          {daysToRender.map((dayNum) => {
@@ -1456,21 +1456,21 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   ))}
                 </tr>
                 {/* JML IZIN */}
-                <tr className="bg-blue-100/90 border-b border-blue-200 text-blue-950">
-                  <td className="px-4 py-2 sticky left-0 bg-blue-100 z-10 border-r border-blue-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
+                <tr className="bg-indigo-100/90 border-b border-indigo-200 text-indigo-950">
+                  <td className="px-4 py-2 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-blue-200/80">
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-indigo-200/80">
                       {dailyTotals.izin[d] > 0 ? (
                         <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-2xs">
                           {dailyTotals.izin[d]}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-blue-300">0</span>
+                        <span className="text-[10px] font-bold text-indigo-300">0</span>
                       )}
                     </td>
                   ))}
@@ -1502,7 +1502,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-red-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-rose-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
                   {daysToRender.map(d => (
                     <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
                       {dailyTotals.alpa[d] > 0 ? (
@@ -1586,13 +1586,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                         </td>
                         <td className="px-4 py-3 text-center font-bold text-emerald-600">{d.total_hadir}</td>
                         <td className="px-4 py-3 text-center font-bold text-amber-600">{d.total_terlambat}</td>
-                        <td className="px-4 py-3 text-center font-bold text-blue-600">{d.total_izin}</td>
+                        <td className="px-4 py-3 text-center font-bold text-indigo-600">{d.total_izin}</td>
                         <td className="px-4 py-3 text-center font-bold text-yellow-600">{d.total_sakit}</td>
                         <td className="px-4 py-3 text-center font-bold text-rose-500">{d.total_alpa}</td>
                         <td className="px-4 py-3 text-center font-bold text-slate-650">{targetJP} JP</td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2.5 py-1 rounded font-black text-xs ${
-                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-red-50/65 text-rose-600'
+                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-rose-50/65 text-rose-600'
                           }`}>
                             {score} Poin
                           </span>
@@ -1617,7 +1617,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       {/* Modal Cetak Rapor Guru */}
       {selectedTeacherForRapor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-md w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
               <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
                 <FileText size={16} className="text-rose-500" />

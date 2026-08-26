@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from'react';
-import { useLocation, useNavigate } from'react-router-dom';
+import { useLocation } from'react-router-dom';
 import { Home, CalendarDays, Map, BookOpen, Calendar, Building2 } from'lucide-react';
 import { subscribeDatabaseSnapshot } from'../../utils/dataSource.js';
 import { loadInitialState } from'../../utils/state.js';
@@ -34,10 +34,11 @@ export default function PublicLayout() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navigate = useNavigate();
   const isLoginModalOpen = false;
   const setIsLoginModalOpen = (open) => {
-    if (open) navigate("/dashboard");
+    // Gunakan window.location.href (hard navigation) bukan React navigate
+    // untuk menghindari bug removeChild dari Google Translate saat unmount LandingPage
+    if (open) window.location.href = "/dashboard";
   };
   const setModalViewMode = () => {};
 
@@ -92,7 +93,8 @@ export default function PublicLayout() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col antialiased relative selection:bg-slate-800 selection:text-white font-sans overflow-x-hidden"
+      className="min-h-screen flex flex-col antialiased relative selection:bg-slate-800 selection:text-white font-sans overflow-x-hidden notranslate"
+      translate="no"
       style={{"--ui-primary": appSettings.primaryColor ||"#064e3b","--ui-accent": appSettings.accentColor ||"#a3e635","--ui-primary-button": appSettings.primaryButtonColor || appSettings.primaryColor ||"#064e3b","--ui-action": appSettings.actionButtonColor || appSettings.accentColor ||"#a3e635","--ui-bg": appSettings.bgColor ||"#f8fafc","--ui-surface": appSettings.surfaceColor ||"#ffffff","--ui-text": appSettings.textColor ||"#0f172a","--ui-radius-card": appSettings.uiRadius ==="lg" ?"24px" : appSettings.uiRadius ==="md" ?"16px" : appSettings.uiRadius ==="full" ?"32px" :"12px","--ui-radius-control": appSettings.uiRadius ==="lg" ?"16px" : appSettings.uiRadius ==="md" ?"10px" : appSettings.uiRadius ==="full" ?"9999px" :"8px","--ui-radius-small": appSettings.uiRadius ==="lg" ?"12px" : appSettings.uiRadius ==="md" ?"8px" : appSettings.uiRadius ==="full" ?"9999px" :"6px",
       }}
     >
@@ -230,8 +232,8 @@ export default function PublicLayout() {
         </div>
       )}
 
-      {/* CTA BANNER (Hidden on mobile and homepage) */}
-      {(!isMobile || location.pathname !=='/') && (
+      {/* CTA BANNER (Hidden on homepage) */}
+      {location.pathname !== '/' && (
         <section className="hidden sm:block relative z-10 w-full max-w-[1400px] mx-auto px-5 md:px-8 mb-10 mt-8 animate-in fade-in duration-300 print:hidden">
           <div className="w-full rounded-[var(--ui-radius-small)] flex flex-col sm:flex-row items-center justify-between p-6 md:p-8 relative overflow-hidden shadow-sm" style={{ backgroundColor: primaryColor }}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
@@ -256,8 +258,8 @@ export default function PublicLayout() {
       )}
 
 
-      {/* FOOTER (Hidden on mobile and homepage as requested) */}
-      {(!isMobile || location.pathname !=='/') && (
+      {/* FOOTER (Hidden on homepage as requested) */}
+      {location.pathname !== '/' && (
         <footer className="hidden sm:block relative z-10 w-full bg-transparent border-t border-slate-200 mt-auto print:hidden">
           <div className="w-full max-w-[1400px] mx-auto px-5 md:px-8 py-10 md:py-12">
             

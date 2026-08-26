@@ -31,15 +31,15 @@ const RejectModal = ({ jurnal, siswa, onConfirm, onCancel }) => {
       <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-[var(--ui-radius-card)]
         shadow-sm p-6 z-10">
         {/* Handle bar (mobile) */}
-        <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5 sm:hidden" />
+        <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-5 sm:hidden" />
 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-800">Tolak / Minta Revisi</h3>
-          <Button variant="outline" onClick={onCancel} ><X size={18} className="text-gray-500" /></Button>
+          <Button variant="outline" onClick={onCancel} ><X size={18} className="text-slate-500" /></Button>
         </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)] p-3 mb-4">
-          <p className="text-xs text-red-700 font-semibold">{siswa?.nama}</p>
+        <div className="bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-small)] p-3 mb-4">
+          <p className="text-xs text-rose-700 font-semibold">{siswa?.nama}</p>
           <p className="text-xs text-rose-500 mt-0.5">Jurnal: {jurnal.tanggal}</p>
           <p className="text-xs text-rose-600 mt-1 line-clamp-2">{jurnal.kegiatan}</p>
         </div>
@@ -134,7 +134,7 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
   return (
     <div className={`bg-white border rounded-[var(--ui-radius-small)] overflow-hidden transition-all duration-200
       ${localStatus ==='approved' ?'border-emerald-200 opacity-80' :
-        localStatus ==='revision' ?'border-red-200 opacity-80' :'border-slate-200 hover:-card'}`}>
+        localStatus ==='revision' ?'border-rose-200 opacity-80' :'border-slate-200 hover:-card'}`}>
       {/* Card header */}
       <button
         className="w-full flex items-start gap-4 text-left p-4 bg-transparent border-none cursor-pointer hover:bg-slate-50 transition-colors"
@@ -147,12 +147,12 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
             <Badge variant={localStatus} />
           </div>
           <p className="text-xs text-slate-400">{siswa?.kelas}</p>
-          <p className="text-xs font-semibold text-gray-600 mt-1">
+          <p className="text-xs font-semibold text-slate-600 mt-1">
             📅 {new Date(jurnal.tanggal).toLocaleDateString('id-ID', {
               weekday:'long', day:'numeric', month:'long',
             })}
           </p>
-          <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 pr-4">
+          <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 pr-4">
             {jurnal.kegiatan}
           </p>
         </div>
@@ -169,19 +169,19 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
               Deskripsi Kegiatan
             </p>
-            <p className="text-sm text-gray-700 leading-relaxed">{jurnal.kegiatan}</p>
+            <p className="text-sm text-slate-700 leading-relaxed">{jurnal.kegiatan}</p>
           </div>
 
           {/* Kendala */}
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kendala</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{jurnal.kendala}</p>
+            <p className="text-sm text-slate-700 leading-relaxed">{jurnal.kendala}</p>
           </div>
 
           {/* Solusi */}
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Solusi</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{jurnal.solusi}</p>
+            <p className="text-sm text-slate-700 leading-relaxed">{jurnal.solusi}</p>
           </div>
 
           {/* Jam */}
@@ -238,10 +238,10 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
             </div>
           )}
           {localStatus ==='revision' && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200
+            <div className="flex items-center gap-2 bg-rose-50 border border-rose-200
               rounded-[var(--ui-radius-small)] px-4 py-3">
               <XCircle size={16} className="text-rose-600" />
-              <p className="text-sm font-semibold text-red-700">Jurnal dikembalikan untuk revisi</p>
+              <p className="text-sm font-semibold text-rose-700">Jurnal dikembalikan untuk revisi</p>
             </div>
           )}
         </div>
@@ -320,7 +320,7 @@ const ValidasiJurnal = () => {
             {tab.label}
             {tab.count > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-[var(--ui-radius-small)] font-bold
-                ${filterStatus === tab.key ?'bg-white/20 text-white' :'bg-gray-100 text-gray-600'}`}>
+                ${filterStatus === tab.key ?'bg-white/20 text-white' :'bg-slate-100 text-slate-600'}`}>
                 {tab.count}
               </span>
             )}</Button>

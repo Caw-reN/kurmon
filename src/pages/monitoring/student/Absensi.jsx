@@ -4,8 +4,10 @@ import useAbsensiStore from '../../../store/monitoring/absensiStore';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { 
   CheckCircle2, Clock, Calendar, AlertCircle, Fingerprint, MapPin, Camera, 
-  Navigation, Crosshair, ArrowRight, Check, X, Building2, User, RefreshCw
+  Navigation, Crosshair, ArrowRight, Check, X, Building2, User, RefreshCw, 
+  History, Target, ShieldAlert, HelpCircle, Loader2 
 } from 'lucide-react';
+import { compressImage } from '../../../utils/imageUtils.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 /**
@@ -151,14 +153,15 @@ const StudentAbsensi = () => {
 
   const withinRadius = distanceMeters !== null ? distanceMeters <= allowedRadius : false;
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setSelfiePhoto(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await compressImage(file, { maxWidth: 600, maxHeight: 600, quality: 0.8 });
+      setSelfiePhoto(compressedDataUrl);
+    } catch (err) {
+      console.error("Gagal kompresi:", err);
+    }
   };
 
   // BUG-01 + BUG-05 FIX: handleDoAbsen sekarang menyimpan absensi ke database melalui API.
@@ -403,10 +406,10 @@ const StudentAbsensi = () => {
                 {studentName}
               </h3>
               <div className="flex items-center gap-2 text-xs text-white/90 flex-wrap">
-                <span className="bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-md font-semibold">
+                <span className="bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] font-semibold">
                   NIS: <strong className="font-extrabold text-white">{studentNis}</strong>
                 </span>
-                <span className="bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-md font-semibold">
+                <span className="bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] font-semibold">
                   Kelas: <strong className="font-extrabold text-white">{studentClass}</strong>
                 </span>
               </div>
@@ -424,7 +427,7 @@ const StudentAbsensi = () => {
                 <Navigation size={14} className="text-white/80 shrink-0" />
                 <span>Radius Max: <strong className="font-bold text-white">{allowedRadius}m</strong></span>
                 {userCoords && distanceMeters !== null && (
-                  <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${withinRadius ? 'bg-emerald-500/30 text-emerald-200' : 'bg-rose-500/30 text-rose-200'}`}>
+                  <span className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] font-bold text-[11px] ${withinRadius ? 'bg-emerald-500/30 text-emerald-200' : 'bg-rose-500/30 text-rose-200'}`}>
                     ({distanceMeters}m {withinRadius ? 'di radius' : 'di luar'})
                   </span>
                 )}
@@ -523,19 +526,19 @@ const StudentAbsensi = () => {
 
         {/* Legend Badges */}
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-[11px] font-bold text-slate-600 pb-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 border border-emerald-100">
             <span className="w-2 h-2 rounded-full bg-emerald-500" /> Tepat Waktu
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-700 border border-amber-100">
             <span className="w-2 h-2 rounded-full bg-amber-500" /> Terlambat
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 border border-sky-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-700 border border-sky-100">
             <span className="w-2 h-2 rounded-full bg-sky-500" /> Izin / Sakit
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-700 border border-rose-100">
             <span className="w-2 h-2 rounded-full bg-rose-500" /> Alpa
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 text-slate-500 border border-slate-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 border border-slate-100">
             <span className="w-2 h-2 rounded-full bg-slate-300" /> Libur
           </span>
         </div>
@@ -596,7 +599,7 @@ const StudentAbsensi = () => {
                     {day}
                   </span>
                   {isToday && (
-                    <span className="text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white tracking-tight">
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white tracking-tight">
                       Hari Ini
                     </span>
                   )}
@@ -606,22 +609,22 @@ const StudentAbsensi = () => {
 
                 <div className="mt-1">
                   {record?.isHadir && (
-                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-200/60 truncate max-w-full">
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200/60 truncate max-w-full">
                       Hadir
                     </span>
                   )}
                   {record?.isLate && (
-                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-200/60 truncate max-w-full">
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200/60 truncate max-w-full">
                       Terlambat
                     </span>
                   )}
                   {record?.isIzin && (
-                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-sky-700 bg-sky-100/80 px-1.5 sm:px-2 py-0.5 rounded-md border border-sky-200/60 truncate max-w-full">
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-sky-700 bg-sky-100/80 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-sky-200/60 truncate max-w-full">
                       Izin/Sakit
                     </span>
                   )}
                   {record?.isAlpa && (
-                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-rose-700 bg-rose-100/80 px-1.5 sm:px-2 py-0.5 rounded-md border border-rose-200/60 truncate max-w-full">
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-rose-700 bg-rose-100/80 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-rose-200/60 truncate max-w-full">
                       Alpa
                     </span>
                   )}

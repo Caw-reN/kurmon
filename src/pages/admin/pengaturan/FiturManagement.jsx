@@ -162,7 +162,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
               key={cfg.key}
               className={`group relative bg-white border rounded-[var(--ui-radius-card)] p-5 transition-all duration-200 flex flex-col justify-between ${
                 isActive 
-                  ? 'border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300' 
+                  ? 'border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300' 
                   : 'border-slate-200/60 bg-slate-50/50 shadow-none opacity-85'
               }`}
             >
@@ -294,7 +294,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
       {confirmKey && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setConfirmKey(null)} />
-          <div className="relative bg-white rounded-[var(--ui-radius-card)] p-6 max-w-sm w-full shadow-lg z-10 border border-slate-100 animate-in zoom-in-95 duration-200">
+          <div className="relative bg-white rounded-[var(--ui-radius-card)] p-6 max-w-sm w-full shadow-[var(--ui-shadow-card)] z-10 border border-slate-100 animate-in zoom-in-95 duration-200">
             <div className="w-12 h-12 bg-amber-50 border border-amber-200/80 rounded-[var(--ui-radius-card)] flex items-center justify-center mb-4 text-amber-600">
               <AlertTriangle size={24} />
             </div>

@@ -44,7 +44,7 @@ export default function TabPesan(props) {
                 <div className="p-4 md:p-5 space-y-4">
                   <div>
                     <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
-                      Judul Pesan <span className="text-red-500">*</span>
+                      Judul Pesan <span className="text-rose-500">*</span>
                     </label>
                     <input
                       value={dashboardMessageForm.title}
@@ -60,7 +60,7 @@ export default function TabPesan(props) {
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
-                      Isi Pesan <span className="text-red-500">*</span>
+                      Isi Pesan <span className="text-rose-500">*</span>
                     </label>
                     <textarea
                       value={dashboardMessageForm.body}
@@ -234,7 +234,7 @@ export default function TabPesan(props) {
                       >
                         {message.pinned && isActive && (
                           <div 
-                            className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-md z-10 cursor-pointer transition-colors" 
+                            className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-sm z-10 cursor-pointer transition-colors" 
                             title="Disematkan (Pinned). Klik untuk melepaskan sematan."
                             onClick={() => {
                               if (updateDashboardMessage) {
@@ -309,7 +309,7 @@ export default function TabPesan(props) {
                                     // scroll to top
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-100 hover:border-blue-200"
+                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-100 hover:border-indigo-200"
                                 >
                                   <Edit2 size={13} />
                                   <span>Edit</span>
@@ -334,7 +334,7 @@ export default function TabPesan(props) {
                                 </Button>
                                 <Button variant="outline" size="sm"
                                   onClick={() =>handleRemoveDashboardMessageSafe(message.id)}
-                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50 border-red-100 hover:border-red-200"
+                                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-100 hover:border-rose-200"
                                 >
                                   <Trash2 size={13} />
                                   <span>Hapus</span>

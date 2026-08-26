@@ -22,7 +22,7 @@ const SERVICE_PRESETS = [
 
 const COLOR_MAP = { 
   emerald: { bg: 'bg-emerald-50 text-emerald-600 border-emerald-100', activeBadge: 'bg-emerald-100/80 text-emerald-700 border-emerald-200' }, 
-  blue: { bg: 'bg-blue-50 text-blue-600 border-blue-100', activeBadge: 'bg-blue-100/80 text-blue-700 border-blue-200' }, 
+  blue: { bg: 'bg-indigo-50 text-indigo-600 border-indigo-100', activeBadge: 'bg-indigo-100/80 text-indigo-700 border-indigo-200' }, 
   orange: { bg: 'bg-orange-50 text-orange-600 border-orange-100', activeBadge: 'bg-orange-100/80 text-orange-700 border-orange-200' }, 
   purple: { bg: 'bg-purple-50 text-purple-600 border-purple-100', activeBadge: 'bg-purple-100/80 text-purple-700 border-purple-200' } 
 };

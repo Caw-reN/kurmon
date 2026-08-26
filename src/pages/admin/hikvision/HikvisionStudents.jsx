@@ -22,7 +22,7 @@ const Toast = ({ message, type, onClose }) => {
   const ic = { success: "text-emerald-600", error: "text-rose-600", info: "text-sky-600" };
   return (
     <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-[var(--ui-radius-small)] border shadow-md ${bg[type] || bg.info} max-w-md`}>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-[var(--ui-radius-small)] border shadow-sm ${bg[type] || bg.info} max-w-md`}>
         <Icon size={20} className={`${ic[type] || ic.info} shrink-0`} />
         <p className="text-xs sm:text-sm font-bold flex-1 leading-snug">{message}</p>
         <button 

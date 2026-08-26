@@ -218,7 +218,7 @@ const AbsensiSettings = ({ readOnly }) => {
                     value={radius}
                     disabled={readOnly}
                     onChange={(e) => setRadius(Number(e.target.value))}
-                    className="w-full accent-[var(--ui-primary)] cursor-pointer h-2 bg-slate-100 rounded-lg"
+                    className="w-full accent-[var(--ui-primary)] cursor-pointer h-2 bg-slate-100 rounded-[var(--ui-radius-control)]"
                   />
                   <div className="flex justify-between text-[10px] text-slate-400 font-bold">
                     <span>50m (Sangat Ketat)</span>

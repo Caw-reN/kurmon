@@ -301,16 +301,6 @@ export default function LandingPage() {
       .replace(/Modul/gi, "Materi");
   };
   const cleanHeroSubtitle = cleanText(heroSubtitle || "Sistem informasi terpadu guru dan siswa untuk jadwal, denah, hingga materi ajar.");
-  console.log("LandingPage appSettings:", {
-    primaryColor,
-    accentColor,
-    heroTitle,
-    heroSubtitle: cleanHeroSubtitle,
-    logoText,
-    heroTitleColor: appSettings?.heroTitleColor,
-    heroSubtitleColor: appSettings?.heroSubtitleColor,
-    heroHighlightColor: appSettings?.heroHighlightColor
-  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [userName, setUserName] = useState("Pengunjung");
@@ -472,11 +462,12 @@ export default function LandingPage() {
 
       {/* GLOBAL DECORATIVE BACKGROUND */}
       {appSettings.heroImage ? (
-        <div
-          className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 opacity-100 transition-all duration-700 bg-no-repeat bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${appSettings.heroImage})`
-          }}
+        <img
+          src={appSettings.heroImage}
+          fetchpriority="high"
+          loading="eager"
+          className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 opacity-100 transition-all duration-700 object-cover object-center"
+          alt="Hero Background"
         />
       ) : (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -515,20 +506,28 @@ export default function LandingPage() {
         {/* Curved Green Header Card (Matching Reference Image) */}
         <div
           className="w-full relative flex flex-col text-white select-none px-5 pb-6.5 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
-          style={{
-            backgroundImage: appSettings.heroImage 
-              ? `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', 0.94)} 0%, ${hexToRgba(primaryColor ||'#064e3b', 0.88)} 100%), url(${appSettings.heroImage})`
-              : `linear-gradient(135deg, ${primaryColor ||'#064e3b'} 0%, ${(primaryColor ||'#064e3b')}dd 100%)`,
-            backgroundSize:'cover',
-            backgroundPosition:'center',
-          }}
         >
+        {appSettings.heroImage && (
+          <img 
+            src={appSettings.heroImage} 
+            fetchpriority="high" 
+            loading="eager" 
+            className="absolute inset-0 w-full h-full object-cover object-center z-0" 
+            alt="Mobile Hero Background" 
+          />
+        )}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            background: `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.94 : 1)} 0%, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.88 : 0.86)} 100%)`
+          }}
+        />
         {/* Sparkles backdrop illustration */}
-        <Sparkles className="absolute left-6 top-16 text-white/5 animate-pulse" size={16} />
-        <Sparkles className="absolute right-12 bottom-6 text-white/5 animate-pulse" size={16} />
+        <Sparkles className="absolute left-6 top-16 text-white/10 animate-pulse z-10" size={16} />
+        <Sparkles className="absolute right-12 bottom-6 text-white/10 animate-pulse z-10" size={16} />
 
         {/* Top Bar inside Green Card */}
-        <div className="flex items-center justify-between mb-5 w-full">
+        <div className="flex items-center justify-between mb-5 w-full relative z-10">
           <div className="flex items-center gap-2.5">
             {appSettings.logoUrl ? (
               <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1 shadow-sm">
@@ -562,7 +561,7 @@ export default function LandingPage() {
         {/* Greetings */}
         <div className="text-left mt-1.5 mb-3.5 relative z-10 pl-0">
           <h2 className="text-[20px] font-normal opacity-90 leading-tight">Hello,</h2>
-          <h1 className="text-[28px] font-black leading-tight mt-0.5">Selamat Datang</h1>
+          <h1 className="text-[28px] font-black leading-tight mt-0.5">Selamat Datang{appSettings.appName ? ` di ${appSettings.appName}` : ''}</h1>
           <p className="text-[11px] opacity-80 font-medium leading-relaxed max-w-[280px] mt-2">
             {cleanHeroSubtitle}
           </p>
@@ -672,7 +671,7 @@ export default function LandingPage() {
               const rawColor = partner.color ||"blue";
               const colorMap = {
                 red:"bg-rose-500",
-                blue:"bg-blue-600",
+                blue:"bg-indigo-600",
                 emerald:"bg-emerald-500",
                 purple:"bg-purple-600",
                 orange:"bg-orange-500",
@@ -889,7 +888,7 @@ export default function LandingPage() {
                 <div className="flex flex-col items-center justify-center gap-4 text-white/90">
                   <MonitorSmartphone size={80} strokeWidth={1.5} className="animate-pulse" />
                   <div className="flex gap-4">
-                    <BookOpen size={40} strokeWidth={1.5} className="text-blue-300" />
+                    <BookOpen size={40} strokeWidth={1.5} className="text-indigo-300" />
                     <Sparkles size={40} strokeWidth={1.5} className="text-purple-300" />
                   </div>
                 </div>
@@ -963,7 +962,7 @@ export default function LandingPage() {
                 const rawColor = appSettings[`partnerColor${idx}`] || ["orange","blue","emerald","pink"][idx - 1] ||"blue";
                 const colorMap = {
                   red:"bg-rose-500",
-                  blue:"bg-blue-600",
+                  blue:"bg-indigo-600",
                   emerald:"bg-emerald-500",
                   purple:"bg-purple-600",
                   orange:"bg-orange-500",
@@ -1339,9 +1338,9 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
 
         {/* Body content scroll area */}
         <div className="px-6 py-4 space-y-5 overflow-y-auto custom-scrollbar select-text max-h-[55vh]">
-          <div className="bg-blue-50 border border-blue-100 rounded-[var(--ui-radius-small)] p-4 text-blue-800 flex items-start gap-2.5">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-4 text-indigo-800 flex items-start gap-2.5">
             <Info size={16} className="shrink-0 mt-0.5" style={{ color:'#1d4ed8' }} />
-            <p className="leading-relaxed font-semibold text-left text-blue-900 text-[11.5px]">
+            <p className="leading-relaxed font-semibold text-left text-indigo-900 text-[11.5px]">
               Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
             </p>
           </div>
@@ -1397,9 +1396,9 @@ const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactE
             {contactEmail && (
               <a 
                 href={`mailto:${contactEmail}`}
-                className="flex items-center gap-3 p-3 border border-slate-155 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+                className="flex items-center gap-3 p-3 border border-slate-155 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
               >
-                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                   <Mail size={16} strokeWidth={2.2} />
                 </div>
                 <div>

@@ -171,7 +171,7 @@ function PrintPreviewPaper({ template, student, school, appSettings = {}, custom
         paddingRight: `${kopMarginSide}mm`,
         paddingBottom: `${kopMarginBottom}mm`,
       }}
-      className="print-paper-canvas bg-white shadow-md rounded-sm border border-slate-200 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none animate-in fade-in transition-all duration-150"
+      className="print-paper-canvas bg-white shadow-sm rounded-[var(--ui-radius-small)] border border-slate-200 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[297mm] mx-auto relative flex flex-col justify-between select-none animate-in fade-in transition-all duration-150"
     >
       <div>
         {/* Kop Surat Header */}

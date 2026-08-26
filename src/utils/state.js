@@ -3,7 +3,7 @@ import { getDatabaseSnapshot } from './dataSource.js';
 export const loadInitialState = (key, defaultVal) => {
   try {
     const parsed = getDatabaseSnapshot();
-    if (parsed && parsed[key] !== undefined) {
+    if (parsed && parsed[key] !== undefined && parsed[key] !== null) {
       let val = parsed[key];
       if (key === "layoutBlockLabels" && val && typeof val === "object") {
         val = normalizeLayoutBlockLabels(val);

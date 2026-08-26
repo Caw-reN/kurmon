@@ -55,7 +55,7 @@ export function useAdminRenderers(props) {
                   key={clsName} 
                   draggable={editable}
                   onDragStart={(e) => { e.stopPropagation(); if (editable) setDragClassName(clsName); }}
-                  className={`cursor-pointer text-center text-[10px] md:text-xs font-black leading-tight px-1.5 py-0.5 rounded-sm border ${getFloorColorByClassName(clsName)}`} 
+                  className={`cursor-pointer text-center text-[10px] md:text-xs font-black leading-tight px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border ${getFloorColorByClassName(clsName)}`} 
                   style={{ backgroundColor: getFloorLegend(clsName).color }}
                 >
                   {clsName}
@@ -258,8 +258,8 @@ export function useAdminRenderers(props) {
           {/* Row 3: Lapangan */}
           <div className="grid grid-cols-8 gap-3 mb-3">
             <div className="col-span-2"></div>
-            <div className="col-span-5 h-64 bg-[#22c55e] border border-green-600 rounded relative overflow-hidden shadow-inner">
-              <div className="absolute inset-4 border-2 border-white/60 rounded-sm"></div>
+            <div className="col-span-5 h-64 bg-[#22c55e] border border-emerald-600 rounded relative overflow-hidden shadow-inner">
+              <div className="absolute inset-4 border-2 border-white/60 rounded-[var(--ui-radius-small)]"></div>
               <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-white/60"></div>
               <div className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 border-2 border-white/60 rounded-full"></div>
               <div className="absolute inset-0 flex items-center justify-center text-3xl font-black text-slate-900/80 tracking-widest">Lapangan</div>
@@ -295,7 +295,7 @@ export function useAdminRenderers(props) {
                 return (
                   <th 
                     key={c.name} 
-                    className="p-2 text-slate-800 min-w-[90px] max-w-[90px] sticky top-0 z-30 border-b-[2px] border-slate-300 drop-shadow-sm print:static print:bg-gray-200 print:text-black print:border-black print:border print:!shadow-none print:!drop-shadow-none print:min-w-0 print:max-w-none print:w-auto"
+                    className="p-2 text-slate-800 min-w-[90px] max-w-[90px] sticky top-0 z-30 border-b-[2px] border-slate-300 drop-shadow-sm print:static print:bg-slate-200 print:text-black print:border-black print:border print:!shadow-none print:!drop-shadow-none print:min-w-0 print:max-w-none print:w-auto"
                   style={{ backgroundColor: colColor }}
                 >
                   <div className="font-bold text-[11.5px] uppercase tracking-wide leading-tight">{c.name}</div>

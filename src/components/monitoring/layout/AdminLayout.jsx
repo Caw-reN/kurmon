@@ -112,7 +112,7 @@ const AdminLayout = () => {
                     end={item.end}
                     onClick={() => mobile && setMobileSidebarOpen(false)}
                     title={!sidebarOpen && !mobile ? item.label : undefined}
-                    className={({ isActive }) => cn('flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-all duration-150',
+                    className={({ isActive }) => cn('flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--ui-radius-small)] text-xs font-medium transition-all duration-150',
                       isActive
                         ?'bg-primary text-primary-foreground'
                         :'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -143,7 +143,7 @@ const AdminLayout = () => {
           </div>
           <button
             onClick={handleLogout}
-            className={cn("flex items-center gap-2 text-xs text-destructive font-semibold","hover:bg-destructive/10 px-2.5 py-2 rounded-md w-full transition-colors border-none cursor-pointer bg-transparent"
+            className={cn("flex items-center gap-2 text-xs text-destructive font-semibold","hover:bg-destructive/10 px-2.5 py-2 rounded-[var(--ui-radius-small)] w-full transition-colors border-none cursor-pointer bg-transparent"
             )}
           >
             <LogOut size={13} /> Keluar dari Akun

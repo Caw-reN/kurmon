@@ -25,7 +25,7 @@ const EmptyState = ({
       <div className="w-16 h-16 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 flex items-center justify-center mb-4">
         <Icon size={32} className="text-[var(--ui-primary)]" />
       </div>
-      <h3 className="font-bold text-gray-800 mb-1">{title}</h3>
+      <h3 className="font-bold text-slate-800 mb-1">{title}</h3>
       {description && <p className="text-sm text-slate-400 max-w-xs">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

@@ -162,7 +162,7 @@ const GlobalLoader = ({ title = "Menyiapkan Ruang Kelas...", showTip = false, er
           </p>
 
           {showTip && tip && (
-            <div className="mt-8 pt-4 border-t border-slate-100 text-left max-w-sm mx-auto bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div className="mt-8 pt-4 border-t border-slate-100 text-left max-w-sm mx-auto bg-slate-50/50 p-4 rounded-[var(--ui-radius-card)] border border-slate-100">
               <span className="text-[9px] font-black tracking-wider text-slate-400 uppercase block mb-1">Tips Hari Ini</span>
               <p className="text-slate-600 text-[11px] leading-relaxed font-semibold">{tip}</p>
             </div>
@@ -170,8 +170,8 @@ const GlobalLoader = ({ title = "Menyiapkan Ruang Kelas...", showTip = false, er
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-3 bg-red-50 border border-red-200 px-4 py-3 rounded-lg text-red-700 w-full shadow-md">
-            <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mt-4 flex items-center gap-3 bg-rose-50 border border-rose-200 px-4 py-3 rounded-[var(--ui-radius-control)] text-rose-700 w-full shadow-sm">
+            <svg className="w-5 h-5 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-xs font-semibold">{error}</span>

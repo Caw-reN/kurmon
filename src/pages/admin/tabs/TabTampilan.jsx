@@ -610,7 +610,7 @@ export default function TabTampilan(props) {
                           const selectedColor = appSettings[`partnerColor${number}`] || ["red","blue","purple","emerald"][number - 1];
                           const BANNER_COLORS = [
                             { value:"red", label:"Merah", bg:"bg-rose-500" },
-                            { value:"blue", label:"Biru", bg:"bg-blue-500" },
+                            { value:"blue", label:"Biru", bg:"bg-indigo-500" },
                             { value:"emerald", label:"Hijau", bg:"bg-emerald-500" },
                             { value:"purple", label:"Ungu", bg:"bg-purple-500" },
                             { value:"orange", label:"Oranye", bg:"bg-orange-500" },
@@ -779,15 +779,15 @@ export default function TabTampilan(props) {
                             <input type="text" placeholder="https://instagram.com/..." value={appSettings.socialInstagram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialInstagram: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-500 flex items-center justify-center shrink-0"><Send size={14} /></div>
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-500 flex items-center justify-center shrink-0"><Send size={14} /></div>
                             <input type="text" placeholder="https://t.me/..." value={appSettings.socialTelegram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialTelegram: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><Facebook size={14} /></div>
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0"><Facebook size={14} /></div>
                             <input type="text" placeholder="https://facebook.com/..." value={appSettings.socialFacebook ||""} onChange={(e) => setAppSettings({ ...appSettings, socialFacebook: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0"><Youtube size={14} /></div>
+                            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><Youtube size={14} /></div>
                             <input type="text" placeholder="https://youtube.com/..." value={appSettings.socialYoutube ||""} onChange={(e) => setAppSettings({ ...appSettings, socialYoutube: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
                           </div>
                         </div>
@@ -992,7 +992,7 @@ export default function TabTampilan(props) {
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Desain Card / Panel</label>
                             <UISelect value={appSettings.cardStyle ||"border"} onChange={(e) => setAppSettings({ ...appSettings, cardStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
                               <option value="border">Garis Batas Halus (Clean Border)</option>
-                              <option value="shadow">Bayangan Mengambang (Elevated Shadow)</option>
+                              <option value="shadow-sm">Bayangan Mengambang (Elevated Shadow)</option>
                               <option value="flat">Warna Datar Padat (Flat Filled)</option>
                             </UISelect>
                           </div>
@@ -1027,8 +1027,49 @@ export default function TabTampilan(props) {
                               <option value="solid">Warna Padat (Solid Color)</option>
                               <option value="flat">Datar Tanpa Bayangan (Flat No Shadow)</option>
                               <option value="outline">Garis Tepi (Clean Outline)</option>
-                              <option value="shadow">Bayangan Bersinar (Glow Shadow)</option>
+                              <option value="shadow-sm">Bayangan Bersinar (Glow Shadow)</option>
                               <option value="gradient">Seni Gradasi (Vibrant Gradient)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Intensitas Bayangan (Shadow System)</label>
+                            <UISelect value={appSettings.shadowIntensity ||"default"} onChange={(e) => setAppSettings({ ...appSettings, shadowIntensity: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="default">Premium Berlapis (Subtle Glass)</option>
+                              <option value="strong">Tegas & Menonjol (Strong Elevated)</option>
+                              <option value="flat">Datar / Tipis (Flat Minimalist)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ketebalan Ikon (Icon Stroke)</label>
+                            <UISelect value={appSettings.iconStroke ||"default"} onChange={(e) => setAppSettings({ ...appSettings, iconStroke: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="default">Standar Premium (2.2px)</option>
+                              <option value="thin">Tipis Elegan (1.5px)</option>
+                              <option value="medium">Sedang (2.0px)</option>
+                              <option value="thick">Sangat Tebal (2.8px)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Form Input</label>
+                            <UISelect value={appSettings.inputStyle ||"outline"} onChange={(e) => setAppSettings({ ...appSettings, inputStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="outline">Garis Luar (Outline - Default)</option>
+                              <option value="filled">Warna Latar (Filled / Muted)</option>
+                              <option value="underline">Garis Bawah (Underline Modern)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Efek Kaca (Glassmorphism)</label>
+                            <UISelect value={appSettings.glassEffect ||"subtle"} onChange={(e) => setAppSettings({ ...appSettings, glassEffect: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="subtle">Halus (Subtle - Default)</option>
+                              <option value="strong">Tebal Kaca (Strong Blur)</option>
+                              <option value="solid">Solid (Tanpa Efek Kaca)</option>
+                            </UISelect>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Scrollbar</label>
+                            <UISelect value={appSettings.scrollbarStyle ||"default"} onChange={(e) => setAppSettings({ ...appSettings, scrollbarStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="default">Standar (Modern Default)</option>
+                              <option value="thin">Tipis (Mac Style)</option>
+                              <option value="hidden">Sembunyi (Hidden / Clean)</option>
                             </UISelect>
                           </div>
                         </div>
@@ -1111,7 +1152,7 @@ export default function TabTampilan(props) {
                       <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Kontras</p>
                       <p className="text-xl font-black text-slate-800">{contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc").toFixed(2)} : 1</p>
                       {contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc") < 4.5 ? (
-                        <p className="text-rose-600 text-[10px] font-bold bg-red-50 p-2 rounded-[var(--ui-radius-small)] border border-red-100">⚠️ Sulit dibaca.</p>
+                        <p className="text-rose-600 text-[10px] font-bold bg-rose-50 p-2 rounded-[var(--ui-radius-small)] border border-rose-100">⚠️ Sulit dibaca.</p>
                       ) : (
                         <p className="text-emerald-600 text-[10px] font-bold bg-emerald-50 p-2 rounded-[var(--ui-radius-small)] border border-emerald-100"><CheckCircle2 size={14} className="inline mr-1" /> Ideal.</p>
                       )}

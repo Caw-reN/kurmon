@@ -11,7 +11,7 @@ export const getClassBadge = (className) => {
   const upper = String(className).toUpperCase().trim();
   
   if (upper.includes('TKJ') || upper.includes('TJKT')) {
-    return 'bg-blue-100/90 text-blue-800 border-blue-300 font-extrabold shadow-2xs';
+    return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-2xs';
   }
   if (upper.includes('TKR') || upper.includes('TKRO') || upper.includes('OTOMOTIF')) {
     return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold shadow-2xs';

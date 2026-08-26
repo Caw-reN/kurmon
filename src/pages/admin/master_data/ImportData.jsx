@@ -392,7 +392,7 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
 
       {/* Error state */}
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700
+        <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-700
           rounded-[var(--ui-radius-small)] p-4 text-sm">
           <AlertCircle size={18} className="flex-shrink-0" />
           {error}
@@ -437,7 +437,7 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
                 {previewData.slice(0, 10).map((row, i) => (
                   <tr key={i} className="hover:bg-bg transition-colors">
                     {columns.map((col) => (
-                      <td key={col} className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                      <td key={col} className="px-4 py-3 text-slate-700 whitespace-nowrap">
                         {String(row[col] ??'-')}
                       </td>
                     ))}
@@ -548,9 +548,9 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-[var(--ui-radius-small)] space-y-2">
-            <h4 className="font-bold text-blue-900 text-xs">Penjelasan Kolom & Aturan Pengisian:</h4>
-            <ul className="list-disc pl-5 space-y-1.5 text-xs text-blue-800">
+          <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-[var(--ui-radius-small)] space-y-2">
+            <h4 className="font-bold text-indigo-900 text-xs">Penjelasan Kolom & Aturan Pengisian:</h4>
+            <ul className="list-disc pl-5 space-y-1.5 text-xs text-indigo-800">
               <li><strong>NIS</strong>: Harus sesuai dengan NIS siswa yang sudah terdaftar di database utama.</li>
               <li><strong>Kode Guru</strong>: Harus terdaftar di Master Data Guru (misal: G001, G002...).</li>
               <li><strong>Nama Perusahaan</strong>: Jika nama perusahaan belum terdaftar, sistem akan otomatis mendaftarkannya sebagai lokasi PKL baru!</li>

@@ -18,7 +18,7 @@ import { useAppStore } from '../../store/useAppStore.js';
 
 const JENIS_CATATAN = [
   { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60', icon: MessageSquare },
-  { value: 'akademik', label: 'Akademik', color: 'bg-blue-50 text-blue-700 border-blue-200/60', icon: BookOpen },
+  { value: 'akademik', label: 'Akademik', color: 'bg-indigo-50 text-indigo-700 border-indigo-200/60', icon: BookOpen },
   { value: 'perilaku', label: 'Perilaku', color: 'bg-amber-50 text-amber-700 border-amber-200/60', icon: ShieldAlert },
   { value: 'prestasi', label: 'Prestasi', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', icon: Award },
   { value: 'kesehatan', label: 'Kesehatan', color: 'bg-rose-50 text-rose-700 border-rose-200/60', icon: HeartPulse },
@@ -1517,7 +1517,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                         <div key={c.id} className="p-4 sm:p-5 hover:bg-slate-50/60 transition-colors flex gap-3 sm:gap-4 items-start">
                           {/* Left icon denoting category */}
                           <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-solid ${
-                            c.jenis_catatan === 'akademik' ? 'bg-blue-50 text-blue-600 border-blue-200/70' :
+                            c.jenis_catatan === 'akademik' ? 'bg-indigo-50 text-indigo-600 border-indigo-200/70' :
                             c.jenis_catatan === 'perilaku' ? 'bg-amber-50 text-amber-600 border-amber-200/70' :
                             c.jenis_catatan === 'prestasi' ? 'bg-emerald-50 text-emerald-600 border-emerald-200/70' :
                             c.jenis_catatan === 'kesehatan' ? 'bg-rose-50 text-rose-600 border-rose-200/70' :
@@ -1631,7 +1631,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50 ${toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`}>
           <CheckCircle2 size={14} /> {toast.msg}
         </div>
       )}

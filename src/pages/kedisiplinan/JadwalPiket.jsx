@@ -166,7 +166,7 @@ export default function JadwalPiket({ teachers = [] }) {
       
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm border flex items-center gap-3 transition-all ${
-          toast.type ==="success" ?"bg-emerald-50 border-emerald-200 text-emerald-800" :"bg-red-50 border-red-200 text-red-800"
+          toast.type ==="success" ?"bg-emerald-50 border-emerald-200 text-emerald-800" :"bg-rose-50 border-rose-200 text-rose-800"
         }`}>
           {toast.type ==="success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-rose-500"/>}
           <p className="font-bold text-sm">{toast.message}</p>
@@ -356,12 +356,12 @@ export default function JadwalPiket({ teachers = [] }) {
                   })()}
                </div>
                {form.guru_ids && form.guru_ids.filter(id => !teachers.find(t => t.code === id)).length > 0 && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-rose-600">
+                  <div className="mt-2 p-2 bg-rose-50 border border-rose-200 rounded text-xs text-rose-600">
                     <AlertTriangle size={14} className="inline mr-1" />
                     Terdeteksi data guru tidak valid. Silakan uncheck semua atau hapus jadwal ini.
                     <div className="mt-1 flex flex-wrap gap-1">
                       {form.guru_ids.filter(id => !teachers.find(t => t.code === id)).map(id => (
-                        <span key={id} className="bg-red-100 px-2 py-0.5 rounded cursor-pointer hover:bg-red-200" onClick={() => toggleTeacher(id)}>
+                        <span key={id} className="bg-rose-100 px-2 py-0.5 rounded cursor-pointer hover:bg-rose-200" onClick={() => toggleTeacher(id)}>
                           Hapus ID: {id} &times;
                         </span>
                       ))}

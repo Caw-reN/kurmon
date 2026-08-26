@@ -402,7 +402,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
               <span className="text-xs font-bold text-slate-400">Industri</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
             <Building2 size={22} strokeWidth={2.5} />
           </div>
         </div>

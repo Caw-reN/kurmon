@@ -1874,7 +1874,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                   fetchRequests();
                                 }
                               }}
-                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 cursor-pointer"
+                              className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 cursor-pointer"
                               title="Hapus Log"
                             >
                               <Trash2 size={13} />

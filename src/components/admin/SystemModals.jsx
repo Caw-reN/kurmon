@@ -387,7 +387,7 @@ export default function SystemModals({
         ) : (
           <div className="p-1">
             <div className="flex items-start gap-4 mb-6">
-              <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-blue-50 text-indigo-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 shadow-sm">
                 <Lock size={22} />
               </div>
               <div>
@@ -493,7 +493,7 @@ export default function SystemModals({
                     <span>{typeof dep === 'object' ? dep.name || dep.title : dep}</span>
                   </span>
                   {typeof dep === 'object' && dep.detail && (
-                    <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200">{dep.detail}</span>
+                    <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200">{dep.detail}</span>
                   )}
                 </div>
               ))

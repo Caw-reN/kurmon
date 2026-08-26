@@ -308,7 +308,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
                       {item.type}
                     </span>
                     {assignedHomeroom !=="-" && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-blue-100/50 whitespace-nowrap">
+                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-indigo-100/50 whitespace-nowrap">
                         Wali {assignedHomeroom}
                       </span>
                     )}
@@ -413,7 +413,7 @@ const MasterDataGuru = memo(function MasterDataGuru({
       {importConfirmOpen && (
         <Modal isOpen={true} onClose={() => setImportConfirmOpen(false)}>
           <div className="p-6 w-full max-w-[400px] text-center">
-            <HardDrive size={40} className="mx-auto text-blue-600 mb-4" />
+            <HardDrive size={40} className="mx-auto text-indigo-600 mb-4" />
             <h3 className="text-lg font-bold text-slate-800 mb-2">Tarik Data Guru</h3>
             <p className="text-sm text-slate-600 mb-6">
               Apakah Anda yakin ingin menarik data guru dari mesin ke dalam sistem? Guru baru yang tidak ada di sistem akan ditambahkan secara otomatis.

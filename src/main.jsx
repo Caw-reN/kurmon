@@ -10,9 +10,17 @@ window.addEventListener('vite:preloadError', () => {
 
 window.addEventListener('unhandledrejection', (event) => {
   const msg = String(event?.reason?.message || '');
+  console.error("Unhandled Rejection:", msg, event.reason);
   if (msg.includes('Failed to fetch dynamically imported module') || msg.includes('Importing a module script failed')) {
     event.preventDefault();
-    window.location.reload();
+    const lastReload = sessionStorage.getItem('chunk_unhandled_reload');
+    if (!lastReload || Date.now() - parseInt(lastReload) > 5000) {
+      sessionStorage.setItem('chunk_unhandled_reload', Date.now().toString());
+      console.error("RELOADING DUE TO CHUNK ERROR");
+      window.location.reload();
+    } else {
+      console.error("PREVENTED INFINITE RELOAD LOOP FROM UNHANDLED REJECTION");
+    }
   }
 });
 
@@ -21,21 +29,32 @@ class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
   componentDidCatch(error, errorInfo) { 
     console.error('EB Caught:', error, errorInfo);
-    if (String(error?.message || '').includes('Failed to fetch dynamically imported module')) {
-      window.location.reload();
+    
+    // Auto-recover from React DOM corruption (e.g. removeChild errors from Google Translate)
+    const errorMsg = String(error?.message || '');
+    if (errorMsg.includes('removeChild') || errorMsg.includes('Node')) {
+      const lastCrash = sessionStorage.getItem('dom_crash_recovery');
+      if (!lastCrash || (Date.now() - parseInt(lastCrash)) > 5000) {
+        sessionStorage.setItem('dom_crash_recovery', Date.now().toString());
+        // Since they were trying to navigate when this unmount error happened,
+        // we can just reload the page to clear the corrupted DOM and complete the navigation.
+        console.warn("DOM corruption detected, recovering via reload...");
+        window.location.reload();
+      }
     }
   }
   render() {
     if (this.state.hasError) {
+      // If we are recovering from a DOM crash, just show nothing momentarily
+      const isRecovering = sessionStorage.getItem('dom_crash_recovery') && (Date.now() - parseInt(sessionStorage.getItem('dom_crash_recovery'))) < 5000;
+      if (isRecovering) return null;
+
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: 24, fontFamily: 'sans-serif' }}>
-          <div style={{ maxWidth: 440, width: '100%', background: '#fff', borderRadius: 16, padding: 32, textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1e293b', marginBottom: 8 }}>Pembaruan Aplikasi Tersedia</h2>
-            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>Sistem telah diperbarui ke versi terbaru. Silakan muat ulang halaman.</p>
-            <button onClick={() => window.location.reload()} style={{ width: '100%', padding: '10px 20px', background: '#059669', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>
-              Muat Ulang Sekarang
-            </button>
-          </div>
+        <div style={{ padding: 40, background: '#fee2e2', color: '#991b1b', fontFamily: 'sans-serif' }}>
+          <h2 style={{ fontWeight: 'bold', fontSize: 24, marginBottom: 10 }}>Aplikasi Mengalami Crash</h2>
+          <pre style={{ background: '#f87171', padding: 15, color: 'white', borderRadius: 8, whiteSpace: 'pre-wrap' }}>
+            {String(this.state.error?.stack || this.state.error)}
+          </pre>
         </div>
       );
     }

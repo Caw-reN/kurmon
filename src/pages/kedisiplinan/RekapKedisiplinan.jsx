@@ -14,7 +14,7 @@ import { Button, Modal } from '../../components/ui.jsx';
 
 const JENIS_CATATAN = [
   { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60' },
-  { value: 'akademik', label: 'Akademik', color: 'bg-blue-55 text-blue-700 border-blue-200/50' },
+  { value: 'akademik', label: 'Akademik', color: 'bg-indigo-55 text-indigo-700 border-indigo-200/50' },
   { value: 'perilaku', label: 'Perilaku', color: 'bg-amber-55 text-amber-700 border-amber-200/50' },
   { value: 'prestasi', label: 'Prestasi', color: 'bg-emerald-55 text-emerald-700 border-emerald-200/50' },
   { value: 'kesehatan', label: 'Kesehatan', color: 'bg-rose-55 text-rose-700 border-rose-200/50' },
@@ -611,7 +611,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   <th className="px-4 py-3.5 text-center w-12">No</th>
                   <th className="px-5 py-3.5">Siswa &amp; Kelas</th>
                   <th className="px-4 py-3.5 text-center text-emerald-700">Hadir</th>
-                  <th className="px-4 py-3.5 text-center text-blue-700">Izin</th>
+                  <th className="px-4 py-3.5 text-center text-indigo-700">Izin</th>
                   <th className="px-4 py-3.5 text-center text-amber-700">Sakit</th>
                   <th className="px-4 py-3.5 text-center text-rose-700">Alpa</th>
                   <th className="px-4 py-3.5 text-center">Skor Kredit</th>
@@ -650,7 +650,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{s.nis} • {s.class_name || "-"}</p>
                           </td>
                           <td className="px-4 py-3 text-center font-black text-emerald-600">{att.hadir}</td>
-                          <td className="px-4 py-3 text-center font-black text-blue-600">{att.izin}</td>
+                          <td className="px-4 py-3 text-center font-black text-indigo-600">{att.izin}</td>
                           <td className="px-4 py-3 text-center font-black text-amber-600">{att.sakit}</td>
                           <td className="px-4 py-3 text-center font-black text-rose-500">{att.alpa}</td>
                           <td className="px-4 py-3 text-center">
@@ -705,7 +705,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
                       <div className="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-[var(--ui-radius-small)] text-center text-[10px]">
                         <div><span className="block text-slate-400">Hadir</span><span className="font-extrabold text-emerald-600">{att.hadir}</span></div>
-                        <div><span className="block text-slate-400">Izin</span><span className="font-extrabold text-blue-600">{att.izin}</span></div>
+                        <div><span className="block text-slate-400">Izin</span><span className="font-extrabold text-indigo-600">{att.izin}</span></div>
                         <div><span className="block text-slate-400">Sakit</span><span className="font-extrabold text-amber-600">{att.sakit}</span></div>
                         <div><span className="block text-slate-400">Alpa</span><span className="font-extrabold text-rose-600">{att.alpa}</span></div>
                       </div>
@@ -744,7 +744,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   <th className="px-4 py-3.5 font-bold text-center text-rose-600">Total Poin Pelanggaran</th>
                   <th className="px-4 py-3.5 font-bold text-center text-[var(--ui-primary)]">Rata-rata Skor Kredit</th>
                   <th className="px-4 py-3.5 font-bold text-center text-amber-600">Total Alpa</th>
-                  <th className="px-4 py-3.5 font-bold text-center text-blue-600">Total Sakit</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-indigo-600">Total Sakit</th>
                   <th className="px-4 py-3.5 font-bold text-center text-emerald-600">Total Izin</th>
                 </tr>
               </thead>
@@ -760,7 +760,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                     <tr key={cs.class_name} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-4 py-3.5 font-extrabold text-slate-800">{cs.class_name}</td>
                       <td className="px-4 py-3.5 text-center font-black text-rose-600 bg-rose-50/30">{cs.poin}</td>
-                      <td className="px-4 py-3.5 text-center font-black text-[var(--ui-primary)] bg-blue-50/30">{cs.avg_score} / 100</td>
+                      <td className="px-4 py-3.5 text-center font-black text-[var(--ui-primary)] bg-indigo-50/30">{cs.avg_score} / 100</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.alpa}</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.sakit}</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.izin}</td>

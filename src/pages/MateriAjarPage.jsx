@@ -93,7 +93,7 @@ export default function MateriAjarPage() {
   const getLinkIcon = (url) => {
     if (!url) return <Link2 size={14} />;
     if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-rose-500" />;
-    if (url.includes('drive.google.com')) return <Globe size={14} className="text-blue-500" />;
+    if (url.includes('drive.google.com')) return <Globe size={14} className="text-indigo-500" />;
     return <ExternalLink size={14} className="text-indigo-500" />;
   };
 
@@ -187,7 +187,7 @@ export default function MateriAjarPage() {
               
               {filteredMateri.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <BookOpen size={44} className="text-slate-300 mb-3 stroke-1" />
+                  <BookOpen size={44} className="text-slate-300 mb-3 " />
                   <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
                   <p className="text-slate-500 text-[13px] max-w-sm mb-4">
                     {activeSubject ? `Materi ajar untuk mata pelajaran "${activeSubject}" belum dipublikasikan oleh guru.` : "Belum ada materi ajar yang dipublikasikan."}
@@ -214,7 +214,7 @@ export default function MateriAjarPage() {
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {item.mapel && (
-                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+                              <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-200/60">
                                 {item.mapel}
                               </span>
                             )}
@@ -246,7 +246,7 @@ export default function MateriAjarPage() {
                           <div>Guru Pengajar: <span className="text-slate-800 font-bold">{item.teacher_name}</span></div>
                           {item.tahun_ajaran && <div>Tahun Ajaran: <span className="text-slate-800 font-bold">{item.tahun_ajaran}</span></div>}
                           {item.tipe === 'link' && (
-                            <div className="text-blue-600 font-bold flex items-center gap-1.5 mt-1">
+                            <div className="text-indigo-600 font-bold flex items-center gap-1.5 mt-1">
                               {getLinkIcon(item.link_url)}
                               <span className="underline truncate max-w-[200px]">{item.link_url}</span>
                             </div>

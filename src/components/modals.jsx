@@ -89,9 +89,9 @@ export function BulkImportModal({
                 <div className="text-[10px] text-amber-700 uppercase tracking-widest mb-1">Akan Masuk</div>
                 <div className="text-lg text-amber-800">{previewData.inserted}</div>
               </div>
-              <div className="bg-blue-50 rounded-[var(--ui-radius-small)] p-3 border border-blue-100">
-                <div className="text-[10px] text-blue-700 uppercase tracking-widest mb-1">Akan Diperbarui</div>
-                <div className="text-lg text-blue-800">{previewData.updated || 0}</div>
+              <div className="bg-indigo-50 rounded-[var(--ui-radius-small)] p-3 border border-indigo-100">
+                <div className="text-[10px] text-indigo-700 uppercase tracking-widest mb-1">Akan Diperbarui</div>
+                <div className="text-lg text-indigo-800">{previewData.updated || 0}</div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3 text-xs font-bold">

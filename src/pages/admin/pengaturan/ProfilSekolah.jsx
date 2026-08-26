@@ -560,7 +560,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                       <td className="py-3 px-3 font-extrabold text-slate-900">{y.nama}</td>
                       <td className="py-3 px-3">
                         <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black ${
-                          y.semester === 'Ganjil' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          y.semester === 'Ganjil' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
                           {y.semester}
                         </span>
@@ -631,7 +631,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               <button
                 type="button"
                 onClick={() => applyPreset('banner')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
               >
                 🖼️ Banner Gambar Utuh
               </button>
@@ -676,7 +676,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                   paddingRight: `${kopState.kopMarginSide}mm`,
                   paddingBottom: `${kopState.kopMarginBottom}mm`,
                 }}
-                className="bg-white rounded-sm shadow-md border border-slate-200 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[160mm] mx-auto select-none transition-all duration-200"
+                className="bg-white rounded-[var(--ui-radius-small)] shadow-sm border border-slate-200 text-sm leading-relaxed font-serif text-slate-900 w-full max-w-[210mm] min-h-[160mm] mx-auto select-none transition-all duration-200"
               >
                 {kopState.useKopSuratGambar ? (
                   kopState.kopSuratGambar ? (

@@ -466,7 +466,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-2xs" },
               { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
               { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
-              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-blue-600 shadow-2xs" },
+              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-2xs" },
               { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
             ].map(tab => (
               <button
@@ -616,7 +616,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                          onClick={() => setPreviewItem(item)} 
                          className={`text-xs px-3 py-1 rounded-[var(--ui-radius-small)] font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs border ${
                            hasAttachment 
-                             ? 'bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border-blue-200' 
+                             ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border-indigo-200' 
                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
                          }`}
                        >
@@ -737,7 +737,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   <button 
                     type="button" 
                     onClick={() => setPreviewItem(item)} 
-                    className="text-xs px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 font-bold flex items-center gap-1 border border-blue-200"
+                    className="text-xs px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 font-bold flex items-center gap-1 border border-indigo-200"
                   >
                     <Eye size={12} />
                     <span>{hasAttachment ? 'Surat' : 'Upload'}</span>
@@ -856,8 +856,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                  <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
                    {form.fileData ? (
                      <div className="relative w-full h-32 flex justify-center items-center group">
-                       <img src={form.fileData} alt="Preview" className="max-h-full max-w-full object-contain rounded-md" />
-                       <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                       <img src={form.fileData} alt="Preview" className="max-h-full max-w-full object-contain rounded-[var(--ui-radius-small)]" />
+                       <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-[var(--ui-radius-small)]">
                          <span className="text-white text-xs font-bold flex items-center gap-2"><UploadCloud size={16}/> Ganti Surat</span>
                        </div>
                      </div>
@@ -915,8 +915,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
                     {editForm.surat_base64 || editForm.surat_url || editForm.gdrive_url ? (
                       <div className="relative w-full h-32 flex justify-center items-center group">
-                        <img src={editForm.surat_base64 || editForm.surat_url || editForm.gdrive_url} alt="Preview" className="max-h-full max-w-full object-contain rounded-md" />
-                        <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                        <img src={editForm.surat_base64 || editForm.surat_url || editForm.gdrive_url} alt="Preview" className="max-h-full max-w-full object-contain rounded-[var(--ui-radius-small)]" />
+                        <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-[var(--ui-radius-small)]">
                           <span className="text-white text-xs font-bold flex items-center gap-2"><UploadCloud size={16}/> Ganti Surat</span>
                         </div>
                       </div>
@@ -974,7 +974,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
               {(previewItem.gdrive_url && !previewItem.gdrive_url.startsWith('data:image')) ? (
                 <div className="w-full flex flex-col items-center gap-3 text-white py-6">
-                  <FileText className="w-16 h-16 text-blue-400 animate-pulse" />
+                  <FileText className="w-16 h-16 text-indigo-400 animate-pulse" />
                   <p className="text-xs font-semibold text-slate-300">Dokumen tersimpan di Google Drive</p>
                   <a 
                     href={previewItem.gdrive_url} 

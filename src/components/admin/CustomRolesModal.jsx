@@ -131,7 +131,7 @@ const CustomRolesModal = ({
               }} className="p-2 text-slate-400 hover:text-[var(--ui-primary)] bg-slate-50 hover:bg-[var(--ui-primary)]/10 rounded-[var(--ui-radius-small)] transition-colors">
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => handleDelete(r.value)} className="p-2 text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-red-50 rounded-[var(--ui-radius-small)] transition-colors">
+                    <button onClick={() => handleDelete(r.value)} className="p-2 text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </div>

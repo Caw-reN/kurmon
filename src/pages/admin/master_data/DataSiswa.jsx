@@ -367,7 +367,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               <span className="text-xs font-bold text-slate-400">Kelas {eligibleClass}</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
             <Users size={22} strokeWidth={2.5} />
           </div>
         </div>
@@ -597,7 +597,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                     <td className="px-4 py-3">
                       {guru ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                          <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
                             <GraduationCap size={13} />
                           </div>
                           <span className="font-bold text-slate-700 text-xs truncate max-w-[180px]" title={guru.name || guru.nama}>

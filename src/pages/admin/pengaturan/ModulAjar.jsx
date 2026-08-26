@@ -24,7 +24,7 @@ const EMPTY_OBJECT = {};
 const getLinkIcon = (url) => {
   if (!url) return <Link2 size={14} className="shrink-0" />;
   if (url.includes('youtube.com') || url.includes('youtu.be')) return <Video size={14} className="text-rose-500 shrink-0" />;
-  if (url.includes('drive.google.com')) return <Globe size={14} className="text-blue-500 shrink-0" />;
+  if (url.includes('drive.google.com')) return <Globe size={14} className="text-indigo-500 shrink-0" />;
   return <ExternalLink size={14} className="text-indigo-500 shrink-0" />;
 };
 
@@ -1192,7 +1192,7 @@ export default function ModulAjar(props) {
                 return (
                   <div 
                     key={item.id} 
-                    className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 hover:border-[var(--ui-primary)]/40 hover:shadow-md transition-all flex flex-col justify-between group"
+                    className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 hover:border-[var(--ui-primary)]/40 hover:shadow-sm transition-all flex flex-col justify-between group"
                   >
                     <div>
                       {/* Top Badges */}
@@ -1554,7 +1554,7 @@ export default function ModulAjar(props) {
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
                   Pilih Berkas PDF Modul Ajar <span className="text-rose-500">*</span>
                 </label>
-                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
                   Hanya .pdf (Maks. 5MB)
                 </span>
               </div>
@@ -1757,7 +1757,7 @@ export default function ModulAjar(props) {
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
                     Pilih Berkas PDF Materi <span className="text-rose-500">*</span>
                   </label>
-                  <span className="text-[10px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
+                  <span className="text-[10px] font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-sky-200">
                     PDF (Maks. 5MB)
                   </span>
                 </div>
@@ -1937,7 +1937,7 @@ export default function ModulAjar(props) {
                 variant="primary" 
                 type="submit" 
                 disabled={isRenaming || !renameData.newName.trim()}
-                className="font-bold text-xs px-4 flex items-center gap-1.5 shadow-md"
+                className="font-bold text-xs px-4 flex items-center gap-1.5 shadow-sm"
               >
                 {isRenaming ? (
                   <>

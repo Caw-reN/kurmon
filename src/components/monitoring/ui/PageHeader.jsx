@@ -61,7 +61,7 @@ export default function PageHeader({
           className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-4 bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5 relative overflow-hidden mb-1"
         >
           {Icon && (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ui-primary,#064e3b)] to-[color-mix(in_srgb,var(--ui-primary,#064e3b)_80%,#0f172a)] text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--ui-primary,#064e3b)] to-[color-mix(in_srgb,var(--ui-primary,#064e3b)_80%,#0f172a)] text-white flex items-center justify-center shrink-0 shadow-sm">
               <Icon size={20} strokeWidth={2.2} />
             </div>
           )}
@@ -130,7 +130,7 @@ export default function PageHeader({
         <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto">
           {Icon && (
             <div 
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm border"
+              className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border"
               style={
                 headerStyle === 'primary'
                   ? { backgroundColor: "rgba(255, 255, 255, 0.2)", borderColor: "rgba(255, 255, 255, 0.3)", color: "#ffffff" }
@@ -163,7 +163,7 @@ export default function PageHeader({
         {mappedTabs.length > 0 && (
           <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10">
             <div className={cn(
-              "flex items-center gap-1.5 p-1.5 rounded-xl w-max md:w-auto border",
+              "flex items-center gap-1.5 p-1.5 rounded-2xl w-max md:w-auto border",
               headerStyle === 'primary' ? "bg-black/20 border-white/10" : "bg-slate-100/80 border-slate-200/60"
             )}>
               
@@ -172,7 +172,7 @@ export default function PageHeader({
                   key={tab.id || tab.label}
                   onClick={tab.onClick}
                   className={cn(
-                    "flex-none flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer border shrink-0 whitespace-nowrap",
+                    "flex-none flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all duration-150 cursor-pointer border shrink-0 whitespace-nowrap",
                     tab.isActive
                       ? 'bg-white shadow-xs font-extrabold border-white'
                       : headerStyle === 'primary'
@@ -210,7 +210,7 @@ export default function PageHeader({
                   size="icon-sm"
                   onClick={onGuideClick}
                   title={guideText ||"Panduan"}
-                  className="shrink-0 rounded-lg w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white/80 border border-transparent"
+                  className="shrink-0 rounded-[var(--ui-radius-control)] w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white/80 border border-transparent"
                 >
                   <HelpCircle size={15} />
                 </Button>

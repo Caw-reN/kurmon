@@ -106,7 +106,7 @@ const TeacherDashboard = () => {
           label="Tidak Aktif"
           value={loading ?'-' : siswas.filter(s => s.status !=='aktif').length}
           icon={AlertTriangle}
-          iconBg="bg-red-100"
+          iconBg="bg-rose-100"
           iconColor="text-rose-600"
         />
       </div>

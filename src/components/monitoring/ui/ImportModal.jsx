@@ -276,12 +276,12 @@ const ImportModal = ({
 
             {/* Kolom Kanan: Panduan */}
             <div id="panduan-impor-card" className="space-y-4">
-              <div className="bg-blue-50 border border-blue-100 rounded-[var(--ui-radius-small)] p-5">
-                <div className="flex items-center gap-2 text-blue-700 font-bold mb-3">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-5">
+                <div className="flex items-center gap-2 text-indigo-700 font-bold mb-3">
                   <BookOpen size={18} />
                   <h3>Panduan Impor</h3>
                 </div>
-                <p className="text-sm text-blue-800 mb-4 leading-relaxed">
+                <p className="text-sm text-indigo-800 mb-4 leading-relaxed">
                   {guideText}
                 </p>
                 <div className="bg-white/70 rounded-[var(--ui-radius-small)] p-3 text-xs text-slate-700">
@@ -291,7 +291,7 @@ const ImportModal = ({
                       const detail = getColumnDetail(col);
                       return (
                         <li key={idx} className="border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
-                          <code className="bg-blue-100/70 text-blue-800 px-1 py-0.5 rounded font-mono font-bold text-[10px]">{col}</code>
+                          <code className="bg-indigo-100/70 text-indigo-800 px-1 py-0.5 rounded font-mono font-bold text-[10px]">{col}</code>
                           <span className="block text-[11px] text-slate-600 mt-0.5">{detail.desc}</span>
                           <span className="block text-[9px] text-slate-400 italic">Contoh: {detail.ex}</span>
                         </li>

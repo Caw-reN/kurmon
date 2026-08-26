@@ -443,8 +443,8 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
               Sistem akan membaca file JSON dari backup dan memasukkan seluruh datanya kembali ke database.
             </p>
             
-            <div className="inline-block p-4 bg-red-50 border border-red-200 rounded-[var(--ui-radius-small)] text-left mb-8 max-w-lg">
-              <p className="text-sm font-bold text-red-700 flex items-center gap-2 mb-1"><AlertCircle size={16} /> PERINGATAN KRITIKAL!</p>
+            <div className="inline-block p-4 bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-small)] text-left mb-8 max-w-lg">
+              <p className="text-sm font-bold text-rose-700 flex items-center gap-2 mb-1"><AlertCircle size={16} /> PERINGATAN KRITIKAL!</p>
               <p className="text-xs text-rose-600 leading-relaxed">
                 Melakukan restore akan <b>MENGHAPUS SELURUH DATA</b> saat ini dan menggantinya dengan data dari file JSON yang diunggah.
               </p>
@@ -464,7 +464,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {activeTab ==='archive' && (
         <div className="space-y-6 animate-in fade-in">
           <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-8 text-center">
-            <div className="w-20 h-20 bg-red-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <Trash2 size={36} />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Arsip & Pembersihan (Purging)</h2>
@@ -521,7 +521,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 <td className="px-4 py-3 font-mono text-xs text-slate-600">{log.filename}</td>
                 <td className="px-4 py-3 text-center text-slate-500 text-xs">{log.size ||'-'}</td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold ${log.status ==='success' ?'bg-emerald-100 text-emerald-700' :'bg-red-100 text-red-700'}`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold ${log.status ==='success' ?'bg-emerald-100 text-emerald-700' :'bg-rose-100 text-rose-700'}`}>
                     {log.status ==='success' ? <CheckCircle2 size={9} /> : <AlertCircle size={9} />} Sukses
                   </span>
                 </td>

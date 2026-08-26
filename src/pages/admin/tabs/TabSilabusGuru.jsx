@@ -210,7 +210,7 @@ export default function TabSilabusGuru(props) {
               <UISelect
                 value={newSyllabusSubject}
                 onChange={(e) => setNewSyllabusSubject(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
               >
                 <option value="">-- Pilih Mata Pelajaran --</option>
                 {uniqueSubjects.map((name) => (
@@ -235,7 +235,7 @@ export default function TabSilabusGuru(props) {
                 <button
                   type="button"
                   onClick={() => setNewSyllabusTitle(`Pertemuan ${nextTeacherMeetingNumber}: `)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black cursor-pointer border-none"
+                  className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black cursor-pointer border-none"
                 >
                   Auto: Pertemuan {nextTeacherMeetingNumber}
                 </button>
@@ -245,7 +245,7 @@ export default function TabSilabusGuru(props) {
                 value={newSyllabusTitle}
                 onChange={(e) => setNewSyllabusTitle(e.target.value)}
                 placeholder="Contoh: Pertemuan 1: Pengenalan Konsep Vektor"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:border-[var(--ui-primary)]"
               />
             </div>
 
@@ -258,7 +258,7 @@ export default function TabSilabusGuru(props) {
                 <UISelect
                   value={newSyllabusGrade}
                   onChange={(e) => setNewSyllabusGrade(e.target.value)}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none"
                 >
                   <option value="X">Kelas X</option>
                   <option value="XI">Kelas XI</option>
@@ -273,7 +273,7 @@ export default function TabSilabusGuru(props) {
                 <UISelect
                   value={newSyllabusSemester}
                   onChange={(e) => setNewSyllabusSemester(e.target.value)}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none"
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none"
                 >
                   <option value="Ganjil">Ganjil</option>
                   <option value="Genap">Genap</option>
@@ -287,7 +287,7 @@ export default function TabSilabusGuru(props) {
                 <UISelect
                   value={newSyllabusCategory}
                   onChange={(e) => setNewSyllabusCategory(e.target.value)}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none truncate"
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none truncate"
                 >
                   <option value="">-- Umum --</option>
                   {syllabusCategories?.map((cat) => (
@@ -309,7 +309,7 @@ export default function TabSilabusGuru(props) {
                 value={newSyllabusObjectives}
                 onChange={(e) => setNewSyllabusObjectives(e.target.value)}
                 placeholder="Contoh: Siswa mampu membedakan konsep vektor dan bitmap"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)]"
               />
             </div>
 
@@ -328,7 +328,7 @@ export default function TabSilabusGuru(props) {
                 onChange={(e) => setNewSyllabusMaterials(e.target.value)}
                 placeholder="Tulis materi per baris:&#10;1. Pengertian dasar grafis vektor&#10;2. Pengertian grafis bitmap&#10;3. Perbandingan format file"
                 rows={3}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none"
               />
               <p className="text-[10px] text-slate-400 font-medium mt-1">
                 Tulis satu materi per baris. Sistem otomatis menyusunnya sebagai poin A, B, C.
@@ -345,7 +345,7 @@ export default function TabSilabusGuru(props) {
                 value={newSyllabusNotes || ""}
                 onChange={(e) => setNewSyllabusNotes(e.target.value)}
                 placeholder="Contoh: Remedial, refleksi, atau bahan praktikum"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)]"
               />
             </div>
 
@@ -379,7 +379,7 @@ export default function TabSilabusGuru(props) {
                   showNotification("Harap pilih mata pelajaran dan isi judul pertemuan!", "warning");
                 }
               }}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer border-none"
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-[var(--ui-primary)] hover:opacity-90 text-white text-xs font-black rounded-2xl shadow-xs transition-all cursor-pointer border-none"
             >
               <CheckCircle2 size={16} />
               <span>Simpan Pertemuan</span>
@@ -401,7 +401,7 @@ export default function TabSilabusGuru(props) {
               <Button
                 variant="outline"
                 onClick={openTeacherGuide}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1 cursor-pointer"
                 title="Panduan"
               >
                 <HelpCircle size={13} />
@@ -410,7 +410,7 @@ export default function TabSilabusGuru(props) {
               <Button
                 variant="outline"
                 onClick={downloadTeacherTemplate}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1 cursor-pointer"
                 title="Unduh Template Excel"
               >
                 <Download size={13} />
@@ -419,7 +419,7 @@ export default function TabSilabusGuru(props) {
               <Button
                 variant="outline"
                 onClick={() => openModal("bulk", "add")}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1 cursor-pointer"
                 title="Import Excel"
               >
                 <Upload size={13} />
@@ -428,7 +428,7 @@ export default function TabSilabusGuru(props) {
               <button
                 type="button"
                 onClick={() => openModal("silabus_batch", "add")}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1 shadow-xs transition-all cursor-pointer border-none"
+                className="px-3 py-1.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1 shadow-xs transition-all cursor-pointer border-none"
               >
                 <RefreshCw size={13} />
                 <span>Isi Sekaligus</span>
@@ -447,7 +447,7 @@ export default function TabSilabusGuru(props) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               {/* Mapel List (4 cols) */}
-              <div className="md:col-span-4 rounded-xl bg-slate-50 p-2.5 space-y-1.5">
+              <div className="md:col-span-4 rounded-2xl bg-slate-50 p-2.5 space-y-1.5">
                 <div className="flex items-center justify-between px-2 py-1">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Mata Pelajaran
@@ -469,7 +469,7 @@ export default function TabSilabusGuru(props) {
                           setSelectedTeacherSilabusSubject(subjectName);
                           setSelectedTeacherSilabusId(subjectItems[0]?.id || "");
                         }}
-                        className={`w-full rounded-xl p-2.5 text-left transition-all flex items-center justify-between gap-2 cursor-pointer border-none ${
+                        className={`w-full rounded-2xl p-2.5 text-left transition-all flex items-center justify-between gap-2 cursor-pointer border-none ${
                           isActive 
                             ? "bg-[var(--ui-primary)] text-white shadow-xs" 
                             : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/60"
@@ -491,7 +491,7 @@ export default function TabSilabusGuru(props) {
               </div>
 
               {/* Meeting Detail & Tabs (8 cols) */}
-              <div className="md:col-span-8 rounded-xl border border-slate-200 p-4 space-y-3.5">
+              <div className="md:col-span-8 rounded-2xl border border-slate-200 p-4 space-y-3.5">
                 {/* Meeting Header */}
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                   <div>
@@ -508,7 +508,7 @@ export default function TabSilabusGuru(props) {
                       <Button
                         variant="outline"
                         onClick={() => openModal("silabus", "edit", activeTeacherSilabus)}
-                        className="px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        className="px-2 py-1 rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1 cursor-pointer"
                         title="Edit Pertemuan"
                       >
                         <Edit2 size={12} />
@@ -517,7 +517,7 @@ export default function TabSilabusGuru(props) {
                       <Button
                         variant="danger"
                         onClick={() => handleRemoveSyllabusSafe(activeTeacherSilabus.id, activeTeacherSilabus)}
-                        className="p-1 rounded-lg text-xs cursor-pointer"
+                        className="p-1 rounded-[var(--ui-radius-control)] text-xs cursor-pointer"
                         title="Hapus Pertemuan"
                       >
                         <Trash2 size={13} />
@@ -535,7 +535,7 @@ export default function TabSilabusGuru(props) {
                         key={item.id}
                         type="button"
                         onClick={() => setSelectedTeacherSilabusId(item.id)}
-                        className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-none ${
+                        className={`shrink-0 px-2.5 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer border-none ${
                           isActive 
                             ? "bg-[var(--ui-primary)] text-white shadow-xs" 
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -549,16 +549,16 @@ export default function TabSilabusGuru(props) {
 
                 {/* Active Meeting Content */}
                 {activeTeacherSilabus ? (
-                  <div className="space-y-3 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-md bg-[var(--ui-primary)] text-white text-[10px] font-black uppercase">
+                      <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] text-white text-[10px] font-black uppercase">
                         Pertemuan {activeTeacherIndex + 1}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 text-slate-600 text-[10px] font-bold">
                         {activeTeacherSilabus.gradeSemester || "-"}
                       </span>
                       {activeTeacherCategory && (
-                        <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 text-slate-600 text-[10px] font-bold">
                           {activeTeacherCategory.name}
                         </span>
                       )}
@@ -569,7 +569,7 @@ export default function TabSilabusGuru(props) {
                     </h5>
 
                     {/* Objectives */}
-                    <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-1">
+                    <div className="p-3 rounded-[var(--ui-radius-control)] bg-white border border-slate-200 space-y-1">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                         Tujuan Pembelajaran
                       </p>
@@ -579,7 +579,7 @@ export default function TabSilabusGuru(props) {
                     </div>
 
                     {/* Materials List */}
-                    <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-1.5">
+                    <div className="p-3 rounded-[var(--ui-radius-control)] bg-white border border-slate-200 space-y-1.5">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                         Materi Pembelajaran
                       </p>
@@ -592,7 +592,7 @@ export default function TabSilabusGuru(props) {
                             .map((line, index) => (
                               <div
                                 key={`${activeTeacherSilabus.id}-mat-${index}`}
-                                className="flex items-start gap-2 p-1.5 rounded-md bg-slate-50 text-xs font-semibold text-slate-700"
+                                className="flex items-start gap-2 p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 text-xs font-semibold text-slate-700"
                               >
                                 <span className="font-black text-[var(--ui-primary)] shrink-0">
                                   {String.fromCharCode(65 + index)}.
@@ -608,7 +608,7 @@ export default function TabSilabusGuru(props) {
 
                     {/* Notes */}
                     {activeTeacherSilabus.notes && (
-                      <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs font-medium text-amber-900">
+                      <div className="p-2.5 rounded-[var(--ui-radius-control)] bg-amber-50 border border-amber-200 text-xs font-medium text-amber-900">
                         <strong className="font-black">Catatan:</strong> {activeTeacherSilabus.notes}
                       </div>
                     )}

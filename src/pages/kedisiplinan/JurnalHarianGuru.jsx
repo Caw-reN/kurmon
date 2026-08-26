@@ -20,7 +20,7 @@ const METODE_OPTIONS = ['Ceramah & Diskusi','Problem Based Learning','Project Ba
 
 const JENIS_CATATAN_LABEL = {
   umum: { label:'Catatan Umum', color:'bg-slate-100 text-slate-700' },
-  akademik: { label:'Akademik', color:'bg-blue-100 text-blue-700' },
+  akademik: { label:'Akademik', color:'bg-indigo-100 text-indigo-700' },
   perilaku: { label:'Perilaku', color:'bg-amber-100 text-amber-700' },
   prestasi: { label:'Prestasi', color:'bg-emerald-100 text-emerald-700' },
   kesehatan: { label:'Kesehatan', color:'bg-rose-100 text-rose-700' },
@@ -112,7 +112,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_late') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
           <Clock size={10} className="stroke-[3] text-rose-600 shrink-0" />
           <span>{statusInfo.label}</span>
         </span>
@@ -128,7 +128,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_on_time') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
           <CheckCircle2 size={10} className="stroke-[3] text-emerald-600 shrink-0" />
           <span>Tepat Waktu</span>
         </span>
@@ -143,7 +143,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
 
   if (statusInfo.status === 'unsubmitted_past') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
         <AlertCircle size={10} className="stroke-[3] text-amber-600 shrink-0" />
         <span>Terlewat (H-{statusInfo.diffDays})</span>
       </span>
@@ -151,7 +151,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
       <AlertCircle size={10} className="stroke-[3] shrink-0" />
       <span>Belum Diisi</span>
     </span>
@@ -706,7 +706,7 @@ function ExportSemesterModal({
               value={selectedTahunAjaran}
               onChange={e => setSelectedTahunAjaran(e.target.value)}
               placeholder="Contoh: 2026/2027"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
             />
           </div>
 
@@ -754,7 +754,7 @@ function ExportSemesterModal({
         </div>
 
         {/* Pengesahan Preview Card */}
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 space-y-1">
+        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 space-y-1">
           <p className="font-extrabold text-slate-800 flex items-center gap-1.5">
             <CheckCircle2 size={13} className="text-emerald-600" />
             Pengesahan Otomatis Dokumen:
@@ -769,7 +769,7 @@ function ExportSemesterModal({
 
         {/* Error notice */}
         {exportError && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-rose-700 text-xs font-bold">
             <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
             <span>{exportError}</span>
           </div>
@@ -777,7 +777,7 @@ function ExportSemesterModal({
 
         {/* Footer Actions */}
         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <Button variant="outline" type="button" onClick={onClose} disabled={isExporting} className="w-full sm:w-auto rounded-xl px-4 py-2 text-xs font-bold cursor-pointer">
+          <Button variant="outline" type="button" onClick={onClose} disabled={isExporting} className="w-full sm:w-auto rounded-2xl px-4 py-2 text-xs font-bold cursor-pointer">
             Batal
           </Button>
 
@@ -786,7 +786,7 @@ function ExportSemesterModal({
               type="button"
               onClick={handleExportExcelSemester}
               disabled={isExporting}
-              className="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-2xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer flex items-center justify-center gap-1.5"
               title="Download format Spreadsheet Excel"
             >
               <Download size={13} />
@@ -797,7 +797,7 @@ function ExportSemesterModal({
               type="button"
               onClick={handleExportPDF}
               disabled={isExporting}
-              className="w-full sm:w-auto rounded-xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto rounded-2xl px-5 py-2 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
             >
               {isExporting ? (
                 <>
@@ -1176,14 +1176,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="px-2.5 py-1 rounded-md bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-2xs">
+              <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-2xs">
                 {form.kelas}
               </span>
               <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
                 {form.mapel}
               </span>
             </div>
-            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-md bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
+            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
               {form.slot_label || `Jam ke-${form.jam_ke}`}
             </span>
           </div>
@@ -1197,23 +1197,23 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             {/* Status Pengisian */}
             {jurnal?.submitted_at ? (
               existingStatusInfo.isLate ? (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
                   <Clock size={11} className="text-rose-600 shrink-0" />
                   <span>Terlambat H+{existingStatusInfo.diffDays} ({existingStatusInfo.timeStr})</span>
                 </span>
               ) : (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                   <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
                   <span>Tepat Waktu ({existingStatusInfo.timeStr})</span>
                 </span>
               )
             ) : isFillingPastDate ? (
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
                 <Clock size={11} className="text-amber-700 shrink-0" />
                 <span>Terlambat H+{diffDaysFromToday}</span>
               </span>
             ) : (
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-slate-100 text-slate-600 border border-slate-200">
                 Belum Disimpan
               </span>
             )}
@@ -1221,18 +1221,18 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         </div>
 
         {/* MOBILE TABS (Hidden on Desktop) */}
-        <div className="lg:hidden shrink-0 flex items-center bg-slate-100 p-1 rounded-xl mx-3 mt-3 border border-slate-200">
+        <div className="lg:hidden shrink-0 flex items-center bg-slate-100 p-1 rounded-2xl mx-3 mt-3 border border-slate-200">
           <button 
             type="button"
             onClick={() => setMobileTab('materi')} 
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'materi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'materi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <BookOpen size={14} /> 1. Materi KBM
           </button>
           <button 
             type="button"
             onClick={() => setMobileTab('presensi')} 
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'presensi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'presensi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <Users size={14} /> 2. Presensi
           </button>
@@ -1243,21 +1243,21 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
           <div className="flex flex-col lg:flex-row h-full min-h-0">
             
             {/* COLUMN 1: MATERI & KBM (Left, 40%) */}
-            <div className={`w-full lg:w-[40%] flex-col gap-3.5 p-4 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-slate-200 bg-white ${mobileTab === 'materi' ? 'flex' : 'hidden lg:flex'}`}>
+            <div className={`w-full lg:w-[40%] flex-col gap-3.5 p-4 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-slate-200 bg-white min-h-0 ${mobileTab === 'materi' ? 'flex' : 'hidden lg:flex'}`}>
               <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2">
                 <BookOpen size={14} className="text-[var(--ui-primary)]" />
                 Materi & KBM
               </h3>
               
               {errorMsg && (
-                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-700 text-xs font-bold">
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-rose-700 text-xs font-bold">
                   <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-600" />
                   <span>{errorMsg}</span>
                 </div>
               )}
 
               {/* 1. MATERI POKOK */}
-              <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-xl border border-emerald-200/90 shadow-2xs">
+              <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-200/90 shadow-2xs">
                 <label className="flex items-center justify-between text-xs font-black text-slate-800">
                   <span className="flex items-center gap-1.5">
                     <Award size={14} className="text-emerald-700" />
@@ -1272,13 +1272,13 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   placeholder="Contoh: Konfigurasi Routing Dinamis BGP"
                   value={form.materi_pokok}
                   onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
                   required
                 />
               </div>
 
               {/* 2. KEGIATAN PEMBELAJARAN */}
-              <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/90 shadow-2xs">
+              <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
                 <div className="flex items-center justify-between flex-wrap gap-1">
                   <label className="flex items-center gap-1.5 text-xs font-black text-slate-800">
                     <FileText size={14} className="text-[var(--ui-primary)]" />
@@ -1287,7 +1287,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                 </div>
                 <div className="flex items-center gap-1 flex-wrap mb-1">
                   <button type="button" onClick={() => handleApplyKegiatanTemplate('lengkap')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all shadow-2xs cursor-pointer">+ Lengkap</button>
-                  <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-800 border border-blue-200 transition-all shadow-2xs cursor-pointer">+ Praktik</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-2xs cursor-pointer">+ Praktik</button>
                   <button type="button" onClick={() => handleApplyKegiatanTemplate('diskusi')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-2xs cursor-pointer">+ Diskusi</button>
                 </div>
                 <textarea
@@ -1295,7 +1295,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   placeholder="Tuliskan ringkasan kegiatan KBM di kelas..."
                   value={form.kegiatan_pembelajaran}
                   onChange={e => setForm({ ...form, kegiatan_pembelajaran: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] resize-none leading-relaxed"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)] resize-none leading-relaxed"
                   required
                 />
               </div>
@@ -1325,7 +1325,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     placeholder="Opsional: KBM berjalan kondusif..."
                     value={form.catatan}
                     onChange={e => setForm({ ...form, catatan: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]"
                   />
                 </div>
 
@@ -1335,32 +1335,30 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     <ShieldAlert size={12} className="text-rose-600" /> Lapor Siswa / Catatan Kasus
                   </label>
                   
-                  <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-xl space-y-2 shadow-2xs">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <CustomSelect
-                          value={laporSiswaNis}
-                          onChange={(val) => setLaporSiswaNis(val)}
-                          options={liveStudents.map(s => ({ value: s.nis, label: `${s.name} (${s.nis})`, searchText: `${s.name} ${s.nis}` }))}
-                          placeholder="-- Pilih Siswa Bermasalah --"
-                          className="w-full text-xs font-semibold"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Tulis masalah (misal: Main HP saat jam KBM)..."
-                          value={laporSiswaKasus}
-                          onChange={(e) => setLaporSiswaKasus(e.target.value)}
-                          onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLaporBk(); } }}
-                          className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
-                        />
-                      </div>
+                  <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-2xl space-y-2 shadow-2xs">
+                    <CustomSelect
+                      value={laporSiswaNis}
+                      onChange={(val) => setLaporSiswaNis(val)}
+                      options={liveStudents.map(s => ({ value: s.nis, label: `${s.name} (${s.nis})`, searchText: `${s.name} ${s.nis}` }))}
+                      placeholder="-- Pilih Siswa Bermasalah --"
+                      className="w-full text-xs font-semibold"
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Tulis masalah (misal: Main HP saat jam KBM)..."
+                        value={laporSiswaKasus}
+                        onChange={(e) => setLaporSiswaKasus(e.target.value)}
+                        onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLaporBk(); } }}
+                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-[var(--ui-radius-control)] text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
+                      />
                       <button
                         type="button"
                         onClick={handleAddLaporBk}
                         disabled={!laporSiswaNis || !laporSiswaKasus.trim()}
-                        className="sm:mt-0 px-3 py-2 sm:h-[62px] rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0 gap-1.5"
+                        className="h-8 px-3 rounded-[var(--ui-radius-control)] bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       >
-                        <Plus size={14} /> <span className="sm:hidden">Tambah</span>
+                        <Plus size={14} />
                       </button>
                     </div>
 
@@ -1390,7 +1388,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             </div>
 
             {/* COLUMN 2: PRESENSI & BK (Right, 60%) */}
-            <div className={`w-full lg:w-[60%] flex-col h-full bg-slate-50/50 ${mobileTab === 'presensi' ? 'flex' : 'hidden lg:flex'}`}>
+            <div className={`w-full lg:w-[60%] flex-col h-full min-h-0 bg-slate-50/50 ${mobileTab === 'presensi' ? 'flex' : 'hidden lg:flex'}`}>
               {/* Header Kolom 2 */}
               <div className="p-3 border-b border-slate-200 bg-white flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between">
@@ -1399,29 +1397,29 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     Presensi & Lapor Siswa
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">Hadir: {form.jumlah_hadir}/{totalStudentsCount}</span>
+                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200 shadow-2xs">Hadir: {form.jumlah_hadir}/{totalStudentsCount}</span>
                   </div>
                 </div>
 
                 {/* 5 Quick KPI Attendance Filter Pills */}
                 <div className="grid grid-cols-5 gap-1.5 mt-1">
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-white border-emerald-200 hover:bg-emerald-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-white border-emerald-200 hover:bg-emerald-50'}`}>
                     <span className="text-[9px] font-black uppercase text-emerald-700">Hadir</span>
                     <span className="text-xs font-black text-emerald-900">{hadirCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-white border-yellow-200 hover:bg-yellow-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-white border-yellow-200 hover:bg-yellow-50'}`}>
                     <span className="text-[9px] font-black uppercase text-yellow-700">Telat</span>
                     <span className="text-xs font-black text-yellow-900">{telatCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-white border-amber-200 hover:bg-amber-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-white border-amber-200 hover:bg-amber-50'}`}>
                     <span className="text-[9px] font-black uppercase text-amber-700">Sakit</span>
                     <span className="text-xs font-black text-amber-900">{sakitCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'izin' ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-400/20' : 'bg-white border-blue-200 hover:bg-blue-50'}`}>
-                    <span className="text-[9px] font-black uppercase text-blue-700">Izin</span>
-                    <span className="text-xs font-black text-blue-900">{izinCount}</span>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'izin' ? 'bg-indigo-100 border-indigo-400 ring-2 ring-indigo-400/20' : 'bg-white border-indigo-200 hover:bg-indigo-50'}`}>
+                    <span className="text-[9px] font-black uppercase text-indigo-700">Izin</span>
+                    <span className="text-xs font-black text-indigo-900">{izinCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')} className={`flex flex-col items-center justify-center py-1 rounded-lg border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-white border-rose-200 hover:bg-rose-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-white border-rose-200 hover:bg-rose-50'}`}>
                     <span className="text-[9px] font-black uppercase text-rose-700">Alpa</span>
                     <span className="text-xs font-black text-rose-900">{alpaCount}</span>
                   </button>
@@ -1431,14 +1429,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                 <div className="flex items-center justify-between gap-2 mt-1">
                   <div className="relative flex-1 min-w-0">
                     <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input type="text" placeholder="Cari nama/NIS..." value={searchRollCall} onChange={e => setSearchRollCall(e.target.value)} className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]" />
+                    <input type="text" placeholder="Cari nama/NIS..." value={searchRollCall} onChange={e => setSearchRollCall(e.target.value)} className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]" />
                   </div>
-                  <button type="button" onClick={handleSetSemuaHadir} className="text-[10px] font-extrabold px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-2xs shrink-0">
+                  <button type="button" onClick={handleSetSemuaHadir} className="text-[10px] font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-2xs shrink-0">
                     <CheckCheck size={13} />
                     <span className="hidden sm:inline">Set Semua Hadir</span>
                     <span className="sm:hidden">Hadir Semua</span>
                   </button>
-                  <button type="button" onClick={handleSetSinkronAbsensi} disabled={isLoadingAttendance} className="p-1.5 text-slate-400 hover:text-[var(--ui-primary)] rounded-md hover:bg-[var(--ui-primary)]/10 transition-colors cursor-pointer border border-transparent hover:border-[var(--ui-primary)]/20 shrink-0" title="Sinkron ulang">
+                  <button type="button" onClick={handleSetSinkronAbsensi} disabled={isLoadingAttendance} className="p-1.5 text-slate-400 hover:text-[var(--ui-primary)] rounded-[var(--ui-radius-small)] hover:bg-[var(--ui-primary)]/10 transition-colors cursor-pointer border border-transparent hover:border-[var(--ui-primary)]/20 shrink-0" title="Sinkron ulang">
                     <RefreshCw size={13} className={isLoadingAttendance ? 'animate-spin text-emerald-600' : ''} />
                   </button>
                 </div>
@@ -1458,7 +1456,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     const isNonHadir = !['hadir', 'terlambat'].includes(currentStatus.toLowerCase());
 
                     return (
-                      <div key={s.nis || idx} className={`p-2 sm:p-2.5 rounded-xl border transition-all shadow-2xs ${currentStatus === 'Hadir' ? 'bg-white border-slate-200 hover:border-emerald-300' : isTelat ? 'bg-yellow-50/60 border-yellow-300' : currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-300' : ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-50/60 border-blue-300' : 'bg-rose-50/60 border-rose-300'}`}>
+                      <div key={s.nis || idx} className={`p-2 rounded-2xl border transition-all shadow-2xs ${currentStatus === 'Hadir' ? 'bg-white border-slate-200 hover:border-emerald-300' : isTelat ? 'bg-yellow-50/60 border-yellow-300' : currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-300' : ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-indigo-50/60 border-indigo-300' : 'bg-rose-50/60 border-rose-300'}`}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           
                           {/* Info Siswa */}
@@ -1474,12 +1472,12 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                           </div>
 
                           {/* Tombol Absen (Bigger targets) */}
-                          <div className="flex items-center gap-1 shrink-0 bg-slate-100/80 p-1 rounded-lg border border-slate-200 w-full sm:w-auto justify-between sm:justify-start">
-                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Hadir' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'}`}>H</button>
-                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Terlambat')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${isTelat ? 'bg-yellow-500 text-white shadow-xs' : 'text-slate-600 hover:text-yellow-700 hover:bg-yellow-50'}`}>T</button>
-                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Sakit' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'}`}>S</button>
-                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'}`}>I</button>
-                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')} className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-1 rounded-md text-[11px] sm:text-[10px] font-black transition-all cursor-pointer ${['Alpa', 'Alpha'].includes(currentStatus) ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50'}`}>A</button>
+                          <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Hadir')} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Hadir' ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600/30 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-700'}`}>H</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Terlambat')} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer ${isTelat ? 'bg-yellow-500 text-white shadow-sm ring-2 ring-yellow-500/30 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-yellow-100 hover:text-yellow-700'}`}>T</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Sakit')} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer ${currentStatus === 'Sakit' ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-500/30 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-amber-100 hover:text-amber-700'}`}>S</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Izin')} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer ${['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600/30 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-indigo-100 hover:text-indigo-700'}`}>I</button>
+                            <button type="button" onClick={() => handleUpdateStudentStatus(s.nis, 'Alpa')} className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer ${['Alpa', 'Alpha'].includes(currentStatus) ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-600/30 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-700'}`}>A</button>
                           </div>
                         </div>
 
@@ -1494,7 +1492,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                               placeholder={`Keterangan ${currentStatus} (contoh: izin UKS)...`}
                               value={s.keterangan || ''}
                               onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-xs bg-white border rounded-md font-semibold focus:outline-none focus:ring-2 shadow-2xs border-slate-200 focus:border-[var(--ui-primary)] focus:ring-[var(--ui-primary)]/10 text-slate-800"
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border rounded-[var(--ui-radius-small)] font-semibold focus:outline-none focus:ring-2 shadow-2xs border-slate-200 focus:border-[var(--ui-primary)] focus:ring-[var(--ui-primary)]/10 text-slate-800"
                             />
                           </div>
                         )}
@@ -1507,10 +1505,10 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               {/* Adjust Hadir Control (Footer of Col 2) */}
               <div className="p-2 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
                 <span className="text-[10px] font-black text-slate-500 uppercase">Hitungan Manual</span>
-                <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-0.5 border border-slate-200/80">
-                  <button type="button" onClick={() => handleStepHadir(-1)} className="w-8 h-7 rounded-md bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Minus size={13} /></button>
+                <div className="flex items-center gap-2 bg-slate-100 rounded-[var(--ui-radius-control)] p-0.5 border border-slate-200/80">
+                  <button type="button" onClick={() => handleStepHadir(-1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Minus size={13} /></button>
                   <span className="text-xs font-black text-slate-800 min-w-[30px] text-center">{form.jumlah_hadir}</span>
-                  <button type="button" onClick={() => handleStepHadir(1)} className="w-8 h-7 rounded-md bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Plus size={13} /></button>
+                  <button type="button" onClick={() => handleStepHadir(1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Plus size={13} /></button>
                 </div>
               </div>
             </div>
@@ -1524,10 +1522,10 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             Pastikan absen dan materi sudah diisi dengan benar.
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" type="button" onClick={onClose} className="rounded-xl px-5 py-2 sm:py-2.5 text-xs font-bold cursor-pointer flex-1 sm:flex-none">
+            <Button variant="outline" type="button" onClick={onClose} className="rounded-2xl px-5 py-2 sm:py-2.5 text-xs font-bold cursor-pointer flex-1 sm:flex-none">
               Tutup
             </Button>
-            <Button type="submit" disabled={saving} className="rounded-xl px-6 py-2 sm:py-2.5 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-2 flex-1 sm:flex-none active:scale-95 transition-transform">
+            <Button type="submit" disabled={saving} className="rounded-2xl px-6 py-2 sm:py-2.5 text-xs font-extrabold bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover,#047857)] text-white shadow-xs cursor-pointer flex items-center justify-center gap-2 flex-1 sm:flex-none active:scale-95 transition-transform">
               {saving ? (
                 <><RefreshCw size={14} className="animate-spin" /> Menyimpan...</>
               ) : (
@@ -2164,10 +2162,10 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                             </span>
                             {classAbsentStudents.map((abs, sIdx) => {
                               let stColor ='bg-amber-50 text-amber-700 border-amber-200/50';
-                              if (abs.status.toLowerCase() ==='izin') stColor ='bg-blue-50 text-blue-700 border-blue-200/50';
+                              if (abs.status.toLowerCase() ==='izin') stColor ='bg-indigo-50 text-indigo-700 border-indigo-200/50';
                               if (abs.status.toLowerCase() ==='alpa' || abs.status.toLowerCase() ==='alpha') stColor ='bg-rose-50 text-rose-700 border-rose-200/50';
                               return (
-                                <span key={sIdx} className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${stColor}`}>
+                                <span key={sIdx} className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border ${stColor}`}>
                                   {abs.name} ({abs.status.toUpperCase()})
                                 </span>
                               );
@@ -2193,7 +2191,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                                   Diisi: <strong className="text-slate-700">{statusInfo.fullSubmitStr}</strong>
                                 </span>
                                 {statusInfo.isLate && (
-                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 flex items-center gap-1">
+                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-control)] border border-rose-200 flex items-center gap-1">
                                     <Clock size={11} className="text-rose-600 shrink-0" />
                                     <span>Terlambat (Diisi H+{statusInfo.diffDays})</span>
                                   </span>

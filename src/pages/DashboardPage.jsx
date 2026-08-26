@@ -44,7 +44,7 @@ const DashboardChartsFallback = () => (
 const messageTone = (priority) => {
   if (priority === 'high') return 'bg-rose-50 text-rose-600';
   if (priority === 'medium') return 'bg-amber-50 text-amber-600';
-  return 'bg-blue-50 text-blue-600';
+  return 'bg-indigo-50 text-indigo-600';
 };
 
 export default function DashboardPage({
@@ -319,7 +319,7 @@ export default function DashboardPage({
       if (teacherSubrole === 'bpbk') return [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
-        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "riwayat_prestasi" },
+        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "kedisiplinan_absensi" },
         { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "siswa" },
@@ -330,7 +330,7 @@ export default function DashboardPage({
       if (teacherSubrole === 'walikelas') return [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
-        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "walas_report" },
+        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
         { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
@@ -341,7 +341,7 @@ export default function DashboardPage({
       if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) return [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
-        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "riwayat_prestasi" },
+        { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
@@ -362,7 +362,7 @@ export default function DashboardPage({
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
         { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
         { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
-        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-blue-50 text-blue-600", tab: "walas_report" },
+        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
         { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-indigo-50 text-indigo-600", tab: "akademik" },
       ];
@@ -453,7 +453,7 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'floating');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
                         (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
                           ? 'bg-white text-[var(--ui-primary)] shadow-xs'
                           : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -467,7 +467,7 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'stay');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
                         localStorage.getItem('kurmon_tabbar_style') === 'stay'
                           ? 'bg-white text-[var(--ui-primary)] shadow-xs'
                           : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -596,7 +596,7 @@ export default function DashboardPage({
             <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
               {teacherShortcuts.map((shortcut, idx) => {
                 const pastelBgs = [
-                  "bg-blue-50 text-blue-600 border-blue-100",
+                  "bg-indigo-50 text-indigo-600 border-indigo-100",
                   "bg-amber-50 text-amber-600 border-amber-100",
                   "bg-rose-50 text-rose-600 border-rose-100",
                   "bg-purple-50 text-purple-600 border-purple-100",
@@ -917,7 +917,7 @@ export default function DashboardPage({
                       });
                     }
                   }}
-                  className="w-full py-2.5 text-white font-bold text-xs rounded-xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10"
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-[var(--ui-shadow-card)] relative z-10"
                   style={{ backgroundColor: "var(--ui-primary)" }}
                 >
                   <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
@@ -939,8 +939,8 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-sm hover:border-indigo-200 transition-all cursor-pointer group">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <Clock3 className="w-5 h-5" strokeWidth={2.5} />
                         </div>
                         <div className="flex flex-col min-w-0 text-left justify-center">
@@ -948,7 +948,7 @@ export default function DashboardPage({
                             {item.subject}
                           </span>
                           <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{item.className}</span>
+                            <span className="bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-slate-600">{item.className}</span>
                             <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
                           </div>
                         </div>
@@ -973,8 +973,8 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-md transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
-                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-sm transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                        <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
                         </div>
                         <div className="flex flex-col min-w-0 justify-center">
@@ -1103,7 +1103,7 @@ export default function DashboardPage({
   const summaryRows = (() => {
     const defaultRows = [
     {
-      icon: School, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-blue-500",
+      icon: School, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-indigo-500",
       label:"Data Kelas", date: todayShort, count: `${classes.length} Kelas`,
       note:"Rombongan belajar aktif", progress: classes.length > 0 ? 100 : 5, type:"kelas",
       statusLabel: classes.length > 0 ?"Selesai" :"Belum Ada",
@@ -1130,8 +1130,8 @@ export default function DashboardPage({
       progress: scheduleSlots > 0 ? Math.min(Math.round((scheduleSlots / Math.max(teachingLoads.length * classes.length, 1)) * 100), 100) : 5,
       type:"jadwal",
       statusLabel: scheduleSlots > 0 ?"In Progress" :"Belum Ada",
-      statusCls: scheduleSlots > 0 ?"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-blue-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: scheduleSlots > 0 ?"bg-blue-500" :"bg-slate-300" },
+      statusCls: scheduleSlots > 0 ?"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100" :"bg-slate-50 text-slate-400 border-slate-100",
+      statusDot: scheduleSlots > 0 ?"bg-indigo-500" :"bg-slate-300" },
     {
       icon: DoorOpen, iconBg:"bg-amber-50", iconColor:"text-amber-500",
       label:"Data Ruangan", date: todayShort, count: `${rooms.length} Ruang`,
@@ -1144,8 +1144,8 @@ export default function DashboardPage({
       label:"Rekap Kehadiran", date: todayShort, count:"Pemantauan Aktif",
       note:"Absensi harian (Kesiswaan)", progress: 100, type:"absensi",
       statusLabel:"In Progress",
-      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-blue-100",
-      statusDot:"bg-blue-500" },
+      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100",
+      statusDot:"bg-indigo-500" },
     {
       icon: Users, iconBg:"bg-sky-50", iconColor:"text-sky-500",
       label:"Data Siswa PKL", date: todayShort, count: `0 Siswa`,
@@ -1158,8 +1158,8 @@ export default function DashboardPage({
       label:"Jurnal Harian", date: todayShort, count: `0 Catatan`,
       note:"Laporan kegiatan PKL siswa", progress: 65, type:"pkl_jurnal",
       statusLabel:"In Progress",
-      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-blue-100",
-      statusDot:"bg-blue-500" },
+      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100",
+      statusDot:"bg-indigo-500" },
   ];
     if (isTU) return defaultRows.filter(r => ['absensi','kelas','guru','pkl_siswa'].includes(r.type));
     if (isKepsek) return defaultRows;
@@ -1173,7 +1173,7 @@ export default function DashboardPage({
 
   // Define role-specific cards to ensure different content per role
   const allStatCards = {
-    kelas: { label:"Total Kelas", value: classes.length, icon:"/icons/008-warehouse.svg", color:"bg-[var(--ui-primary)]/10 text-blue-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab:"kelas" },
+    kelas: { label:"Total Kelas", value: classes.length, icon:"/icons/008-warehouse.svg", color:"bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab:"kelas" },
     guru: { label:"Total Guru", value: teachers.length, icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab:"guru" },
     mapel: { label:"Total Mapel", value: subjects.length, icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab:"mapel" },
     ruangan: { label:"Total Ruangan", value: rooms.length, icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab:"ruangan" },
@@ -1278,7 +1278,7 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'floating');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
                         (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
                           ? 'bg-white text-[var(--ui-primary)] shadow-xs'
                           : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -1292,7 +1292,7 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'stay');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-md text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
                         localStorage.getItem('kurmon_tabbar_style') === 'stay'
                           ? 'bg-white text-[var(--ui-primary)] shadow-xs'
                           : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -1533,7 +1533,7 @@ export default function DashboardPage({
                   const pastelBgs = [
                     "bg-emerald-50 text-emerald-600 border-emerald-100",
                     "bg-teal-50 text-teal-600 border-teal-100",
-                    "bg-blue-50 text-blue-600 border-blue-100",
+                    "bg-indigo-50 text-indigo-600 border-indigo-100",
                     "bg-amber-50 text-amber-600 border-amber-100",
                     "bg-rose-50 text-rose-600 border-rose-100",
                     "bg-purple-50 text-purple-600 border-purple-100",
@@ -1724,7 +1724,7 @@ export default function DashboardPage({
           <div className="px-4 pb-1">
             <div className="space-y-1.5 pt-2 border-t border-rose-200/60 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
               {dashLogs.backupErrors.map((err, i) => (
-                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-md border border-rose-100/80 shadow-xs">
+                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-[var(--ui-radius-small)] border border-rose-100/80 shadow-xs">
                   <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">
                     {new Date(err.time).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {err.action}
                   </span>
@@ -1774,13 +1774,13 @@ export default function DashboardPage({
                   { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
                   { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-sky-50 text-sky-600", tab:"kedisiplinan_absensi" },
                   { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
-                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-blue-50 text-blue-600", tab:"absensi" },
+                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-indigo-50 text-indigo-600", tab:"absensi" },
                   { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
                   { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"data_pegawai" },
                 ];
                 if (activeSubrole === 'bendahara') return [
                   { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-                  { label:"Data Pegawai", icon:"/icons/045-account.svg", color:"bg-blue-50 text-blue-600", tab:"data_pegawai" },
+                  { label:"Data Pegawai", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
                   { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-amber-50 text-amber-600", tab:"laporan_absensi" },
                   { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
                   { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
@@ -1791,7 +1791,7 @@ export default function DashboardPage({
                   { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
                   { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
                   { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
-                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-blue-50 text-blue-600", tab:"kedisiplinan_absensi" },
+                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-indigo-50 text-indigo-600", tab:"kedisiplinan_absensi" },
                   { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
                   { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-rose-50 text-rose-600", tab:"siswa_keluar" },
                 ];
@@ -1800,7 +1800,7 @@ export default function DashboardPage({
                 { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
                 { label:"Dashboard PKL", icon:"/icons/035-graph bar.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_dashboard" },
                 { label:"Catatan Kelas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
-                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-blue-50 text-blue-600", tab:"walas_report" },
+                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"walas_report" },
                 { label:"Absensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
                 { label:"Rekap BK", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_bpbk" },
                 { label:"Prestasi Siswa", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"riwayat_prestasi" },
@@ -1811,7 +1811,7 @@ export default function DashboardPage({
                   { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
                   { label:"Beban Mengajar", icon:"/icons/035-graph bar.svg", color:"bg-amber-50 text-amber-600", tab:"beban" },
                   { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"modul_ajar" },
-                  { label:"Ketersediaan", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"ketersediaan" },
+                  { label:"Ketersediaan", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"ketersediaan" },
                   { label:"Kelola Mapel", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"mapel" },
                   { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
                   { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
@@ -1822,7 +1822,7 @@ export default function DashboardPage({
                   { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
                   { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
                   { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
-                  { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-blue-50 text-blue-600", tab:"riwayat_prestasi" },
+                  { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
                   { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
                   { label:"Siswa Keluar", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa_keluar" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
@@ -1830,7 +1830,7 @@ export default function DashboardPage({
                 if (activeDivision === 'hubin') return [
                   { label:"Siswa PKL", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"pkl_data_siswa" },
                   { label:"Mitra DUDI", icon:"/icons/008-warehouse.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_data_perusahaan" },
-                  { label:"Penugasan", icon:"/icons/066-education.svg", color:"bg-blue-50 text-blue-600", tab:"pkl_penugasan" },
+                  { label:"Penugasan", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"pkl_penugasan" },
                   { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"pkl_jurnal" },
                   { label:"Administrasi", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_administrasi" },
                   { label:"Laporan PKL", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"pkl_laporan" },
@@ -1842,7 +1842,7 @@ export default function DashboardPage({
                   { label:"Denah Sekolah", icon:"/icons/008-warehouse.svg", color:"bg-emerald-50 text-emerald-600", tab:"denah" },
                   { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
                   { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
-                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"generate" },
+                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"generate" },
                   { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"walas_report" },
                   { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
@@ -1850,12 +1850,12 @@ export default function DashboardPage({
                 if (activeDivision === 'humas') return [
                   { label:"Pesan Dashboard", icon:"/icons/087-chat.svg", color:"bg-amber-50 text-amber-600", tab:"pesan" },
                   { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-emerald-50 text-emerald-600", tab:"tampilan" },
-                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-blue-50 text-blue-600", tab:"akademik" },
+                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
                   { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"modul_ajar" },
                 ];
               }
               if (activeRole === 'karyawan') return [
-                { label:"Absen Pegawai", icon:"/icons/045-account.svg", color:"bg-blue-50 text-blue-600", tab:"absensiguru" },
+                { label:"Absen Pegawai", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"absensiguru" },
                 { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
               ];
               
@@ -2027,7 +2027,7 @@ export default function DashboardPage({
                       }`}
                     >
                       <span>{tab.label}</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-md ${
+                      <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-[var(--ui-radius-small)] ${
                         activeDataTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                       }`}>
                         {tab.count}
@@ -2073,7 +2073,7 @@ export default function DashboardPage({
 
                       {/* Status Badge */}
                       <div className="shrink-0 w-[90px] text-right flex flex-col items-end gap-1">
-                        <span className={`inline-flex items-center justify-center min-w-[76px] gap-1 px-2.5 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider border ${
+                        <span className={`inline-flex items-center justify-center min-w-[76px] gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-black uppercase tracking-wider border ${
                           row.statusLabel === 'Selesai' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' 
                             : row.statusLabel === 'In Progress' 
@@ -2222,7 +2222,7 @@ export default function DashboardPage({
                       });
                     }
                   }}
-                  className="w-full py-2.5 text-white font-bold text-xs rounded-xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10"
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-[var(--ui-shadow-card)] relative z-10"
                   style={{ backgroundColor: "var(--ui-primary)" }}
                 >
                   <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
@@ -2244,8 +2244,8 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-sm hover:border-indigo-200 transition-all cursor-pointer group">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <Clock3 className="w-5 h-5" strokeWidth={2.5} />
                         </div>
                         <div className="flex flex-col min-w-0 text-left justify-center">
@@ -2253,7 +2253,7 @@ export default function DashboardPage({
                             {item.subject}
                           </span>
                           <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">{item.className}</span>
+                            <span className="bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-slate-600">{item.className}</span>
                             <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
                           </div>
                         </div>
@@ -2278,8 +2278,8 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-md transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
-                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-sm transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                        <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
                         </div>
                         <div className="flex flex-col min-w-0 justify-center">
@@ -2712,7 +2712,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
               <div style={{ width: `${(guruStats.Hadir / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
               <div style={{ width: `${(guruStats.Terlambat / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
-              <div style={{ width: `${(guruStats.Izin / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-blue-500 h-full" title="Izin" />
+              <div style={{ width: `${(guruStats.Izin / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
               <div style={{ width: `${(guruStats.Sakit / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-sky-400 h-full" title="Sakit" />
               <div style={{ width: `${(guruStats['Dinas Luar'] / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-purple-500 h-full" title="Dinas Luar" />
               <div style={{ width: `${(guruStats.Alpa / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
@@ -2727,7 +2727,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{guruStats.Terlambat}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin}</b>
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{guruStats.Sakit}</b>
@@ -2777,7 +2777,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
                 <div style={{ width: `${(siswaStats.Hadir / totalSiswaDenominator) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
                 <div style={{ width: `${(siswaStats.Terlambat / totalSiswaDenominator) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
-                <div style={{ width: `${(siswaStats.Izin / totalSiswaDenominator) * 100}%` }} className="bg-blue-500 h-full" title="Izin" />
+                <div style={{ width: `${(siswaStats.Izin / totalSiswaDenominator) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
                 <div style={{ width: `${(siswaStats.Sakit / totalSiswaDenominator) * 100}%` }} className="bg-sky-400 h-full" title="Sakit" />
                 <div style={{ width: `${(siswaStats.Alpa / totalSiswaDenominator) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
               </div>
@@ -2791,7 +2791,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{siswaStats.Terlambat}</b>
                 </div>
                 <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin}</b>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin}</b>
                 </div>
                 <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{siswaStats.Sakit}</b>

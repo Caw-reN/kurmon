@@ -42,7 +42,7 @@ export function LegacyScheduleTable({
               return (
                 <th 
                   key={c.name} 
-                  className="p-2 text-slate-800 min-w-[90px] max-w-[90px] sticky top-0 z-30 border-b-[2px] border-slate-300 drop-shadow-sm print:static print:bg-gray-200 print:text-black print:border-black print:border print:!shadow-none print:!drop-shadow-none print:min-w-0 print:max-w-none print:w-auto text-center"
+                  className="p-2 text-slate-800 min-w-[90px] max-w-[90px] sticky top-0 z-30 border-b-[2px] border-slate-300 drop-shadow-sm print:static print:bg-slate-200 print:text-black print:border-black print:border print:!shadow-none print:!drop-shadow-none print:min-w-0 print:max-w-none print:w-auto text-center"
                   style={{ backgroundColor: colColor }}
                 >
                   <div className="font-bold text-[11.5px] uppercase tracking-wide leading-tight">{c.name}</div>
@@ -300,7 +300,7 @@ export function LegacyDenahPreview({
                   {fixedBlock("kampus-a-musholla","Musholla","-","neutral", true)}
                 </div>
                 <div className="col-span-3 grid grid-cols-[1fr_0.32fr] gap-2 min-h-[230px] items-end">
-                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-emerald-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
                     <div className="absolute inset-4 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
                     <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
@@ -309,7 +309,7 @@ export function LegacyDenahPreview({
                       <div className="text-5xl font-black leading-none">LAPANGAN</div>
                     </div>
                   </div>
-                  <div className="w-full h-40 bg-emerald-500 border-4 border-green-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
+                  <div className="w-full h-40 bg-emerald-500 border-4 border-emerald-700 rounded-[var(--ui-radius-small)] relative overflow-hidden">
                     <div className="absolute inset-3 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
                     <div className="absolute left-0 right-0 top-1/2 border-t-2 border-white/80"></div>
                     <div className="absolute left-1/2 top-1/2 w-12 h-12 -translate-x-1/2 -translate-y-1/2 border-2 border-white/80 rounded-[var(--ui-radius-small)]"></div>
@@ -427,7 +427,7 @@ export function LegacyDenahPreview({
 
           <div className="grid grid-cols-8 gap-3 mb-3">
             <div className="col-span-2" />
-            <div className="col-span-5 h-64 bg-[#22c55e] border border-green-600 rounded-[var(--ui-radius-small)] relative overflow-hidden shadow-inner">
+            <div className="col-span-5 h-64 bg-[#22c55e] border border-emerald-600 rounded-[var(--ui-radius-small)] relative overflow-hidden shadow-inner">
               <div className="absolute inset-4 border-2 border-white/60 rounded-[var(--ui-radius-small)]" />
               <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-white/60" />
               <div className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 border-2 border-white/60 rounded-[var(--ui-radius-small)]" />

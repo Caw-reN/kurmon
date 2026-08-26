@@ -314,7 +314,7 @@ const StudentLayout = () => {
               <div className="min-w-0 flex-1">
                 <h3 className="font-black text-slate-900 text-sm truncate">{namaDisplay}</h3>
                 <p className="text-xs font-semibold text-slate-400 truncate">@{user?.username || 'siswa'}</p>
-                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-200/70 text-slate-700 tracking-wider">
+                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase bg-slate-200/70 text-slate-700 tracking-wider">
                   SISWA PKL
                 </span>
               </div>
@@ -396,7 +396,7 @@ const StudentLayout = () => {
               <button
                 type="button"
                 onClick={() => setShowPasswordModal(false)}
-                className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer"
+                className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer"
               >
                 <X size={15} />
               </button>

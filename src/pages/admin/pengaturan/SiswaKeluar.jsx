@@ -250,7 +250,7 @@ export default function SiswaKeluar() {
       {/* 📊 Statistik Pengeluaran KPI Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
-          { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], dot: 'bg-blue-500' },
+          { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], dot: 'bg-indigo-500' },
           { label: 'Mundur', count: reasonStats['Mengundurkan Diri'], dot: 'bg-amber-500' },
           { label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'], dot: 'bg-rose-500' },
           { label: 'Lainnya', count: reasonStats['Lainnya'], dot: 'bg-slate-400' },
@@ -414,7 +414,7 @@ export default function SiswaKeluar() {
                         <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wide border shadow-2xs ${
                           student.alasan === 'Dikeluarkan' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                           student.alasan === 'Mengundurkan Diri' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                          student.alasan === 'Pindah Sekolah' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-700 border-slate-200'
+                          student.alasan === 'Pindah Sekolah' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200'
                         }`}>
                           {student.alasan}
                         </span>
@@ -478,7 +478,7 @@ export default function SiswaKeluar() {
                     <span className={`inline-flex px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black uppercase border shrink-0 ${
                       student.alasan === 'Dikeluarkan' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                       student.alasan === 'Mengundurkan Diri' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                      student.alasan === 'Pindah Sekolah' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-700 border-slate-200'
+                      student.alasan === 'Pindah Sekolah' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200'
                     }`}>
                       {student.alasan}
                     </span>
@@ -595,7 +595,7 @@ export default function SiswaKeluar() {
 
                 {/* Autocomplete Suggestions Dropdown */}
                 {filteredActive.length > 0 && !selectedStudent && (
-                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-md z-30 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
+                  <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-sm z-30 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-150">
                     <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                       Siswa Ditemukan ({filteredActive.length})
                     </div>
@@ -678,7 +678,7 @@ export default function SiswaKeluar() {
                 
                 <div className="grid grid-cols-2 gap-1.5 mb-2">
                   {[
-                    { key: 'Pindah Sekolah', label: 'Pindah Sekolah', color: 'border-blue-200 bg-blue-50/70 text-blue-900 active:bg-blue-200 hover:bg-blue-100' },
+                    { key: 'Pindah Sekolah', label: 'Pindah Sekolah', color: 'border-indigo-200 bg-indigo-50/70 text-indigo-900 active:bg-indigo-200 hover:bg-indigo-100' },
                     { key: 'Mengundurkan Diri', label: 'Mengundurkan Diri', color: 'border-amber-200 bg-amber-50/70 text-amber-900 active:bg-amber-200 hover:bg-amber-100' },
                     { key: 'Dikeluarkan', label: 'Dikeluarkan', color: 'border-rose-200 bg-rose-50/70 text-rose-900 active:bg-rose-200 hover:bg-rose-100' },
                     { key: 'Lainnya', label: 'Lainnya', color: 'border-slate-200 bg-slate-100 text-slate-800 active:bg-slate-200 hover:bg-slate-200' },
@@ -847,7 +847,7 @@ export default function SiswaKeluar() {
 
       {/* 🔔 Floating Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-md font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600 shadow-rose-900/20' : 'bg-emerald-600 shadow-emerald-900/20'} z-50`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-sm font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600 shadow-rose-900/20' : 'bg-emerald-600 shadow-emerald-900/20'} z-50`}>
           {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} 
           <span>{toast.message}</span>
         </div>

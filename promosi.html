@@ -31,17 +31,21 @@
             --clr-slate-100: #f1f5f9;
             --clr-slate-50: #f8fafc;
             --clr-white: #ffffff;
-            --radius-xl: 1.5rem;
-            --radius-md: 0.75rem;
-            --radius-sm: 0.375rem;
+            /* Radius disinkronkan dengan kustomisasi UI Premium Web */
+            --radius-xl: 24px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
             --radius-pill: 9999px;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0/.1),0 8px 10px -6px rgb(0 0 0/.1);
+            /* Shadow disinkronkan dengan Antigravity Premium System */
+            --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 0 4px rgba(15, 23, 42, 0.03), 0 0 0 1px rgba(255,255,255,0.6) inset;
+            --shadow-lg: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 0 6px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(255,255,255,0.8) inset;
+            --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255,255,255,0.5) inset;
         }
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
         html{scroll-behavior:smooth}
         body{background:var(--clr-slate-50);color:var(--clr-slate-700);overflow-x:hidden}
+        /* Sinkronisasi Ketebalan Icon Premium */
+        svg.lucide { stroke-width: 2.2px !important; }
 
         /* ─── NAV ─── */
         nav{position:fixed;top:0;inset-x:0;z-index:999;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--clr-slate-200)}

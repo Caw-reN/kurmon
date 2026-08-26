@@ -105,7 +105,7 @@ export default function TabKetersediaan({
             {
               label:"Sudah isi hari",
               value: teachersWithDaysCount,
-              tone:"bg-[var(--ui-primary)]/10 text-blue-700"
+              tone:"bg-[var(--ui-primary)]/10 text-indigo-700"
             },
             {
               label:"Total hari aktif",
@@ -227,7 +227,7 @@ export default function TabKetersediaan({
                         Mapel Kompetensi
                       </p>
                       <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${subjectsList.length ?"bg-emerald-100 text-emerald-700" :"bg-red-50 text-rose-600"}`}
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${subjectsList.length ?"bg-emerald-100 text-emerald-700" :"bg-rose-50 text-rose-600"}`}
                       >
                         {subjectsList.length || 0} mapel
                       </span>

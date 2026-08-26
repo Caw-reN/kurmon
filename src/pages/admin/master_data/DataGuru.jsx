@@ -263,7 +263,7 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
                 </div>
 
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex-1 h-2 bg-gray-100 rounded-[var(--ui-radius-small)] overflow-hidden">
+                  <div className="flex-1 h-2 bg-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden">
                     <div
                       className={`h-full rounded-[var(--ui-radius-small)] transition-all ${
                         persen >= 100 ?'bg-danger' : persen >= 80 ?'bg-amber-500' :'bg-[var(--ui-primary)]'

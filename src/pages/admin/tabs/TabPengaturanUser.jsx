@@ -353,7 +353,7 @@ export default function TabPengaturanUser(props) {
 
           {/* Kepsek */}
           <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3 shadow-xs flex flex-col justify-between">
-            <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 flex items-center justify-center mb-1">
+            <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 flex items-center justify-center mb-1">
               <Building2 size={14} />
             </div>
             <div>
@@ -572,7 +572,7 @@ export default function TabPengaturanUser(props) {
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2.5">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
-                            isStaff ? 'bg-cyan-100 text-cyan-800' : 'bg-blue-100 text-blue-800'
+                            isStaff ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-800'
                           }`}>
                             {(user.name || '?')[0].toUpperCase()}
                           </div>
@@ -588,7 +588,7 @@ export default function TabPengaturanUser(props) {
                       {/* Source Badge */}
                       <td className="px-3 py-2.5 text-center">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          isStaff ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          isStaff ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
                           {user.sourceLabel}
                         </span>
@@ -597,7 +597,7 @@ export default function TabPengaturanUser(props) {
                       {/* Role Badge */}
                       <td className="px-4 py-2.5">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
-                          user.role === 'kepsek' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                          user.role === 'kepsek' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' :
                           user.role === 'waka' ? 'bg-amber-50 text-amber-800 border-amber-200' :
                           user.role === 'tu' ? 'bg-cyan-50 text-cyan-800 border-cyan-200' :
                           isStaff ? 'bg-slate-100 text-slate-700 border-slate-200' :
@@ -632,7 +632,7 @@ export default function TabPengaturanUser(props) {
                             size="sm"
                             variant="outline"
                             onClick={() => openModal(isStaff ? 'karyawan' : 'guru', "edit", user)}
-                            className="h-7 px-2 text-xs font-bold text-slate-600 hover:text-blue-600"
+                            className="h-7 px-2 text-xs font-bold text-slate-600 hover:text-indigo-600"
                             title="Edit Data User"
                           >
                             <Edit2 size={12} />
@@ -698,7 +698,7 @@ export default function TabPengaturanUser(props) {
             
             {/* User Info Banner */}
             <div className="p-3 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-800 font-black flex items-center justify-center shrink-0 text-sm">
+              <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black flex items-center justify-center shrink-0 text-sm">
                 {(resetModalUser.name || '?')[0].toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -718,7 +718,7 @@ export default function TabPengaturanUser(props) {
                 <button
                   type="button"
                   onClick={generateRandomPassword}
-                  className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
                 >
                   <Sparkles size={11} /> Acak Sandi
                 </button>
@@ -740,7 +740,7 @@ export default function TabPengaturanUser(props) {
                       setCopiedPass(true);
                       setTimeout(() => setCopiedPass(false), 2000);
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 p-1 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 p-1 cursor-pointer"
                     title="Salin password"
                   >
                     {copiedPass ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}

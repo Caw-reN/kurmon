@@ -1308,6 +1308,8 @@ const getHeaders = (req) => {
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-XSS-Protection": "1; mode=block",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;",
   };
   if (origin) {
     headers["Access-Control-Allow-Origin"] = origin;

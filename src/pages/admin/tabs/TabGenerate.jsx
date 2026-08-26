@@ -195,7 +195,7 @@ export default function TabGenerate(props) {
         </div>
       )}
       {swapWarning && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-start gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-start gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
           <AlertCircle size={17} className="text-rose-500 shrink-0 mt-0.5" />
           <div className="flex-1">
             {typeof swapWarning ==='string' ? <><strong className="mr-1">Perhatian:</strong> {swapWarning}</> : swapWarning}

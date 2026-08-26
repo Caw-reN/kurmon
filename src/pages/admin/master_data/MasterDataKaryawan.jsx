@@ -238,46 +238,46 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Karyawan */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 border border-[var(--ui-primary)]/20">
             <Users size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Karyawan Terdata</p>
-            <p className="text-lg sm:text-xl font-black text-slate-800">{displayStaffs.length}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider">Total Karyawan Terdata</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">{displayStaffs.length}</p>
           </div>
         </div>
 
         {/* Terhubung */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-emerald-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
             <CheckCircle2 size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
-            <p className="text-lg sm:text-xl font-black text-emerald-700">{connectedCount}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{connectedCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Mesin */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-rose-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
             <XCircle size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
-            <p className="text-lg sm:text-xl font-black text-rose-700">{notConnectedCount}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
+            <p className="text-xl sm:text-2xl font-black text-rose-700 tracking-tight">{notConnectedCount}</p>
           </div>
         </div>
 
         {/* Total Divisi */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
             <Briefcase size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Total Divisi / Unit</p>
-            <p className="text-lg sm:text-xl font-black text-amber-700">{uniqueDivisions.length} Divisi</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-amber-600 uppercase tracking-wider">Total Divisi / Unit</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{uniqueDivisions.length} Divisi</p>
           </div>
         </div>
       </div>
@@ -403,7 +403,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
       {importConfirmOpen && (
         <Modal isOpen={true} onClose={() => setImportConfirmOpen(false)}>
           <div className="p-6 w-full max-w-[400px] text-center">
-            <HardDrive size={40} className="mx-auto text-blue-600 mb-4" />
+            <HardDrive size={40} className="mx-auto text-indigo-600 mb-4" />
             <h3 className="text-lg font-bold text-slate-800 mb-2">Tarik Data Karyawan</h3>
             <p className="text-sm text-slate-600 mb-6">
               Apakah Anda yakin ingin menarik data karyawan dari mesin ke dalam sistem? Karyawan baru yang tidak ada di sistem akan ditambahkan secara otomatis.

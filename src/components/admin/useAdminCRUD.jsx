@@ -699,7 +699,7 @@ export function useAdminCRUD(props) {
             phone: formData.phone ||""
           };
           const nextStaffs = [...staffs, newStaff];
-          await syncAuthSnapshotNow(adminUser, nextStaffs,"menambah data karyawan");
+          await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, "menambah data karyawan");
           await saveDatabaseNow({
             staffs: nextStaffs,
           },"menambah data karyawan");
@@ -737,7 +737,7 @@ export function useAdminCRUD(props) {
             showNotification("Data karyawan tidak ditemukan. Tutup modal lalu buka ulang data karyawan.","warning");
             return;
           }
-          await syncAuthSnapshotNow(adminUser, nextStaffs,"memperbarui data karyawan");
+          await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, "memperbarui data karyawan");
           await saveDatabaseNow({
             staffs: nextStaffs
           },"memperbarui data karyawan");
@@ -796,7 +796,7 @@ export function useAdminCRUD(props) {
               subjects: []
             }
           };
-          await syncAuthSnapshotNow(adminUser, nextTeachers,"menambah data guru");
+          await syncAuthSnapshotNow(adminUser, nextTeachers, staffs, "menambah data guru");
           await saveDatabaseNow({
             teachers: nextTeachers,
             teacherAvailability: nextTeacherAvailability
@@ -837,7 +837,7 @@ export function useAdminCRUD(props) {
             showNotification("Data guru tidak ditemukan. Tutup modal lalu buka ulang data guru.","warning");
             return;
           }
-          await syncAuthSnapshotNow(adminUser, nextTeachers,"memperbarui data guru");
+          await syncAuthSnapshotNow(adminUser, nextTeachers, staffs, "memperbarui data guru");
           await saveDatabaseNow({
             teachers: nextTeachers
           },"memperbarui data guru");

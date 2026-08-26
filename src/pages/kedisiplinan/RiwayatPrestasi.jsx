@@ -375,7 +375,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                     <p className="font-black text-xs text-slate-800">{item.nama_prestasi}</p>
                     {item.peringkat && (
                       <div className="flex items-center gap-1.5">
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-md text-[10px] font-black inline-flex items-center gap-1">
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-[var(--ui-radius-small)] text-[10px] font-black inline-flex items-center gap-1">
                           <Award size={11} /> {item.peringkat}
                         </span>
                       </div>

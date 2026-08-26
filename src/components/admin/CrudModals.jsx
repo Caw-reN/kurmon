@@ -144,7 +144,7 @@ export default function CrudModals({
                   </UISelect>
                 </div>
               )}
-              {isClassMajorMismatch && <div className="text-xs font-bold text-rose-600 bg-red-50 border border-red-200 px-3 py-2 rounded-[var(--ui-radius-small)]">Nama kelas harus memuat jurusan yang dipilih.</div>}
+              {isClassMajorMismatch && <div className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-[var(--ui-radius-small)]">Nama kelas harus memuat jurusan yang dipilih.</div>}
             </>
           )}
           {modalConfig.type ==="jurusan" && (
@@ -898,8 +898,8 @@ export default function CrudModals({
           )}
           {modalConfig.type ==="waka_roles" && (
             <div className="space-y-4">
-              <div className="bg-[var(--ui-primary)]/10/50 border border-blue-100 p-3 rounded-[var(--ui-radius-small)] mb-2">
-                <p className="text-xs font-bold text-blue-800">Sesuaikan nama peran Waka yang tampil di aplikasi.</p>
+              <div className="bg-[var(--ui-primary)]/10/50 border border-indigo-100 p-3 rounded-[var(--ui-radius-small)] mb-2">
+                <p className="text-xs font-bold text-indigo-800">Sesuaikan nama peran Waka yang tampil di aplikasi.</p>
               </div>
               {WAKA_DIVISION_OPTIONS.map(div => {
                 const key = `waka${div.value.charAt(0).toUpperCase() + div.value.slice(1)}Label`;

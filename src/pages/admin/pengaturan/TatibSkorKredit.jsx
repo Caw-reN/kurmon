@@ -355,23 +355,23 @@ export default function TatibSkorKredit() {
         {/* Setting Cards Container (Always visible on Desktop, Collapsible on Mobile) */}
         <div className={`${showSettingsPanel ? 'block' : 'hidden md:grid'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1 border-t border-slate-100`}>
           {/* Card 1: Tingkat Pelanggaran */}
-          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-red-50/70 border border-red-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-red-100 text-rose-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-rose-50/70 border border-rose-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
               <ShieldAlert size={20} />
             </div>
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-500">Tingkat Pelanggaran</span>
-              <p className="text-xs font-black text-red-800 mt-0.5">Maks. {batasPoin} Poin (Drop Out)</p>
+              <p className="text-xs font-black text-rose-800 mt-0.5">Maks. {batasPoin} Poin (Drop Out)</p>
             </div>
           </div>
 
           {/* Card 2: Batas Poin Bermasalah */}
-          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-blue-50/70 border border-blue-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-indigo-50/70 border border-indigo-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
               <HelpCircle size={20} />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">Batas Poin DO</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-500">Batas Poin DO</span>
               {isAdmin ? (
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <input
@@ -379,12 +379,12 @@ export default function TatibSkorKredit() {
                     inputMode="numeric"
                     value={batasPoin}
                     onChange={(e) => handleUpdateBatasPoin(parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0)}
-                    className="w-16 px-2 py-0.5 text-xs font-black border border-blue-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900"
+                    className="w-16 px-2 py-0.5 text-xs font-black border border-indigo-200 rounded-[var(--ui-radius-small)] bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-900"
                   />
-                  <span className="text-[10px] font-bold text-blue-600">Poin</span>
+                  <span className="text-[10px] font-bold text-indigo-600">Poin</span>
                 </div>
               ) : (
-                <p className="text-xs font-black text-blue-800 mt-0.5">{batasPoin} Poin</p>
+                <p className="text-xs font-black text-indigo-800 mt-0.5">{batasPoin} Poin</p>
               )}
             </div>
           </div>
@@ -678,7 +678,7 @@ export default function TatibSkorKredit() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex px-3 py-1 rounded-[var(--ui-radius-pill)] text-xs font-black ${
-                          isPelanggaran ? 'bg-red-50 text-red-700 border border-red-200/60' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                          isPelanggaran ? 'bg-rose-50 text-rose-700 border border-rose-200/60' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
                         }`}>
                           {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
                         </span>
@@ -700,7 +700,7 @@ export default function TatibSkorKredit() {
                             </button>
                             <button
                               onClick={() => handleDelete(item.id)}
-                              className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors"
+                              className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors"
                               title="Hapus Aturan"
                             >
                               <Trash2 size={15} />
@@ -751,7 +751,7 @@ export default function TatibSkorKredit() {
                     </div>
 
                     <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-xs font-black shrink-0 ${
-                      isPelanggaran ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
+                      isPelanggaran ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
                     }`}>
                       {isPelanggaran ? `- ${item.nilai_poin} POIN` : `+ ${item.nilai_poin} POIN`}
                     </span>
@@ -759,7 +759,7 @@ export default function TatibSkorKredit() {
 
                   <div className="flex items-center justify-between pt-1">
                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] ${
-                      isPelanggaran ? 'bg-red-50 text-rose-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                      isPelanggaran ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                     }`}>
                       {isPelanggaran ? 'Pelanggaran' : 'Prestasi'}
                     </span>
@@ -774,7 +774,7 @@ export default function TatibSkorKredit() {
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-rose-600 text-xs font-bold rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-[var(--ui-radius-small)] transition-colors flex items-center gap-1"
                         >
                           <Trash2 size={12} /> Hapus
                         </button>

@@ -93,7 +93,7 @@ const MasterDataBeban = memo(function MasterDataBeban({
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                 {[
                   { label:"Beban tampil", value: filteredLoads.length, tone:"bg-slate-50 text-slate-700" },
-                  { label:"Total JP", value: totalFilteredJp, tone:"bg-[var(--ui-primary)]/10 text-blue-700" },
+                  { label:"Total JP", value: totalFilteredJp, tone:"bg-[var(--ui-primary)]/10 text-indigo-700" },
                   { label:"Guru terlibat", value: teachersInFilteredLoads, tone:"bg-emerald-50 text-emerald-700" },
                   { label:"Mapel unik", value: subjectsInFilteredLoads, tone:"bg-amber-50 text-amber-700" },
                 ].map((item) => (
@@ -276,7 +276,7 @@ const MasterDataBeban = memo(function MasterDataBeban({
                                 if (label ==="Rendah") { worstLabel ="Rendah"; break; }
                                 if (label ==="Sedang") worstLabel ="Sedang";
                               }
-                              const cls = worstLabel ==="Tinggi" ?"bg-[var(--ui-accent)]/20 text-[var(--ui-primary)]" : worstLabel ==="Sedang" ?"bg-yellow-50 text-yellow-700 border border-yellow-200/80" :"bg-red-50 text-red-700 border border-red-200/80";
+                              const cls = worstLabel ==="Tinggi" ?"bg-[var(--ui-accent)]/20 text-[var(--ui-primary)]" : worstLabel ==="Sedang" ?"bg-yellow-50 text-yellow-700 border border-yellow-200/80" :"bg-rose-50 text-rose-700 border border-rose-200/80";
                               return <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-[var(--ui-radius-small)] font-bold ${cls}`}>Kecocokan: {worstLabel}{codes.length > 1 ? ` (${codes.length} guru)` :""}</span>;
                             })()}
                           </td>

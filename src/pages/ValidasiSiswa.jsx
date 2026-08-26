@@ -117,7 +117,7 @@ export default function ValidasiSiswa() {
                 </div>
               </div>
               
-              <p className="text-xs text-center text-slate-500 font-semibold bg-blue-50 text-blue-700 p-3 rounded-[var(--ui-radius-small)]">
+              <p className="text-xs text-center text-slate-500 font-semibold bg-indigo-50 text-indigo-700 p-3 rounded-[var(--ui-radius-small)]">
                 Kartu pelajar ini adalah identitas resmi dan valid yang dikeluarkan oleh sistem informasi {schoolName}.
               </p>
             </>

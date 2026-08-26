@@ -9,7 +9,7 @@ function Card({
     <div
       data-slot="card"
       data-size={size}
-      className={cn("group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-[var(--ui-radius-card)] border border-border bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground shadow-sm [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
+      className={cn("ui-card group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-[var(--ui-radius-card)] border border-border bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground shadow-sm [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-[var(--ui-radius-card)] *:[img:last-child]:rounded-b-[var(--ui-radius-card)]",
         className
       )}
       {...props} />
@@ -23,7 +23,7 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className={cn("group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+      className={cn("group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-[var(--ui-radius-card)] px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
         className
       )}
       {...props} />
@@ -87,7 +87,7 @@ function CardFooter({
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center rounded-b-xl px-(--card-spacing) [.border-t]:pt-(--card-spacing)",
+      className={cn("flex items-center rounded-b-[var(--ui-radius-card)] px-(--card-spacing) [.border-t]:pt-(--card-spacing)",
         className
       )}
       {...props} />

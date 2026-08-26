@@ -15,10 +15,10 @@ export function GlobalAdminUI({ notification, setNotification, confirmDialog, se
         const isSuccess = notification.includes("[SUCCESS]") || notification.includes("✅") || lower.includes("berhasil") || lower.includes("disimpan") || lower.includes("ditambahkan") || lower.includes("selesai");
         let IconToUse = Info;
         let colorClass ="bg-white border-slate-200 text-slate-800 shadow-sm";
-        let iconClass ="text-blue-500";
+        let iconClass ="text-indigo-500";
         if (isError) {
           IconToUse = AlertCircle;
-          colorClass ="bg-red-50 border-red-200 text-red-800 shadow-sm";
+          colorClass ="bg-rose-50 border-rose-200 text-rose-800 shadow-sm";
           iconClass ="text-rose-600";
         } else if (isWarning) {
           IconToUse = AlertCircle;

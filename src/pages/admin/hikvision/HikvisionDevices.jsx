@@ -11,7 +11,7 @@ import { Modal } from'../../../components/ui.jsx';
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
 
 const DEVICE_TYPES = [
-  { value:'siswa', label:'Siswa', color:'bg-blue-100 text-blue-700 border-blue-200', icon: Users },
+  { value:'siswa', label:'Siswa', color:'bg-indigo-100 text-indigo-700 border-indigo-200', icon: Users },
   { value:'staff', label:'Guru & Karyawan', color:'bg-purple-100 text-purple-700 border-purple-200', icon: UserCheck },
 ];
 
@@ -247,7 +247,7 @@ export default function HikvisionDevices() {
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Lokasi Mesin</label>
-            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
               value={formData.location}
               onChange={e => setFormData({...formData, location: e.target.value})}
               placeholder={formData.device_type ==='siswa' ?"Contoh: Absensi TKJ" : formData.device_type ==='guru' ?"Contoh: Absensi Guru Gedung A" :"Contoh: Absensi Karyawan TU"}
@@ -255,7 +255,7 @@ export default function HikvisionDevices() {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">IP Address</label>
-            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full font-mono"
+            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full font-mono"
               value={formData.ip_address}
               onChange={e => setFormData({...formData, ip_address: e.target.value})}
               placeholder="Contoh: 192.168.1.100"
@@ -263,14 +263,14 @@ export default function HikvisionDevices() {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Username ISAPI</label>
-            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
               value={formData.username}
               onChange={e => setFormData({...formData, username: e.target.value})}
             />
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
-            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            <input className="px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
               type="password"
               value={formData.encrypted_password}
               onChange={e => setFormData({...formData, encrypted_password: e.target.value})}

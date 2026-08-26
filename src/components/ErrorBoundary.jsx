@@ -16,8 +16,15 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidMount() {
-    // Hapus flag penanda jika aplikasi berhasil berjalan dengan normal
-    sessionStorage.removeItem('chunk_failed_reload');
+    // Hapus flag penanda hanya jika aplikasi berhasil berjalan dengan normal selama beberapa detik,
+    // untuk mencegah infinite loop jika error terjadi segera setelah reload.
+    this.reloadTimeout = setTimeout(() => {
+      sessionStorage.removeItem('chunk_failed_reload');
+    }, 5000);
+  }
+
+  componentWillUnmount() {
+    if (this.reloadTimeout) clearTimeout(this.reloadTimeout);
   }
 
   componentDidCatch(error, errorInfo) {

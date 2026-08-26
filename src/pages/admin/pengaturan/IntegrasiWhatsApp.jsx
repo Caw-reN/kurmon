@@ -424,7 +424,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       {activeTab ==='rekap' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4 text-center hover:border-[var(--ui-primary)] transition-all group">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
               <FileText size={32} />
             </div>
             <h3 className="font-black text-slate-800 text-lg">Blast Rekap Harian</h3>
@@ -494,7 +494,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
                       <p className="text-xs text-slate-600 line-clamp-2">{log.message}</p>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase ${log.status ==='sent' ?'bg-emerald-100 text-emerald-700' : log.status ==='failed' ?'bg-red-100 text-red-700' : log.status === 'cancelled' ? 'bg-slate-100 text-slate-700' :'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase ${log.status ==='sent' ?'bg-emerald-100 text-emerald-700' : log.status ==='failed' ?'bg-rose-100 text-rose-700' : log.status === 'cancelled' ? 'bg-slate-100 text-slate-700' :'bg-amber-100 text-amber-700'}`}>
                         {log.status ==='sent' ? <CheckCircle2 size={10} /> : log.status ==='failed' ? <AlertCircle size={10} /> : <Clock size={10} />}
                         {log.status}
                       </span>

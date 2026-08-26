@@ -274,8 +274,8 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
       </div>
 
       {/* Info Tip Banner */}
-      <div className="bg-blue-50/80 border border-blue-200/70 text-blue-800 p-3 sm:p-4 rounded-[var(--ui-radius-card)] flex items-center gap-2.5 sm:gap-3 text-xs shadow-2xs">
-        <Info className="shrink-0 text-blue-600" size={16} />
+      <div className="bg-indigo-50/80 border border-indigo-200/70 text-indigo-800 p-3 sm:p-4 rounded-[var(--ui-radius-card)] flex items-center gap-2.5 sm:gap-3 text-xs shadow-2xs">
+        <Info className="shrink-0 text-indigo-600" size={16} />
         <p className="font-medium leading-relaxed">
           Pilih guru pembimbing pada dropdown header perusahaan untuk menugaskan <strong>seluruh siswa di perusahaan tersebut</strong> secara instan.
         </p>

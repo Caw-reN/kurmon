@@ -8,7 +8,7 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
 
 const DEVICE_TYPE_CONFIG = {
-  siswa:    { label:'Siswa',            color:'bg-blue-100 text-blue-700 border-blue-200',          icon: Users },
+  siswa:    { label:'Siswa',            color:'bg-indigo-100 text-indigo-700 border-indigo-200',          icon: Users },
   guru:     { label:'Guru',             color:'bg-emerald-100 text-emerald-700 border-emerald-200', icon: UserCheck },
   karyawan: { label:'Karyawan',         color:'bg-amber-100 text-amber-700 border-amber-200',     icon: Briefcase },
   staff:    { label:'Guru & Karyawan',  color:'bg-purple-100 text-purple-700 border-purple-200',  icon: UserCheck },
@@ -188,7 +188,7 @@ export default function HikvisionDashboard() {
       </div>
 
       {syncMessage && (
-        <div className={`p-4 rounded-[var(--ui-radius-small)] border-l-4 shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50 border-emerald-500 text-emerald-800' :'bg-red-50 border-rose-500 text-red-800'}`}>
+        <div className={`p-4 rounded-[var(--ui-radius-small)] border-l-4 shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50 border-emerald-500 text-emerald-800' :'bg-rose-50 border-rose-500 text-rose-800'}`}>
           <div className="flex justify-between items-start">
             <p className="font-bold">{syncMessage.text}</p>
             <Button variant="outline" onClick={() =>setSyncMessage(null)} >×</Button>
@@ -276,13 +276,13 @@ export default function HikvisionDashboard() {
                               <div className="flex items-center gap-1 text-slate-400">
                                 <MonitorSmartphone size={11} className="text-rose-400 opacity-80" />
                                 <span className="line-through decoration-rose-300">{device.ip_address}</span>
-                                <span className="text-[9px] text-rose-600 bg-rose-50 border border-rose-200 px-1 rounded-sm ml-1 uppercase font-black tracking-widest leading-none py-0.5">Offline</span>
+                                <span className="text-[9px] text-rose-600 bg-rose-50 border border-rose-200 px-1 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5">Offline</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-1 text-slate-500">
                                 <Activity size={11} className="text-emerald-500 animate-pulse" />
                                 <span>{device.ip_address}</span>
-                                <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-1 rounded-sm ml-1 uppercase font-black tracking-widest leading-none py-0.5">Online</span>
+                                <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-1 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5">Online</span>
                               </div>
                             )}
                           </div>

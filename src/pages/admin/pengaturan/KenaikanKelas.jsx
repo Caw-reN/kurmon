@@ -238,13 +238,13 @@ export default function KenaikanKelas({ appSettings = {} }) {
                       {gradeStudents.map(s => {
                         const isExcluded = exclusions[s.nis];
                         return (
-                          <tr key={s.nis} className={`border-b border-slate-100 ${isExcluded ?'bg-red-50' :'hover:bg-slate-50'}`}>
+                          <tr key={s.nis} className={`border-b border-slate-100 ${isExcluded ?'bg-rose-50' :'hover:bg-slate-50'}`}>
                             <td className="px-4 py-2.5 font-bold text-slate-700">{s.namaSiswa || s.name}</td>
                             <td className="px-4 py-2.5 text-slate-500 font-mono text-xs">{s.nis}</td>
                             <td className="px-4 py-2.5 text-slate-500">{s.class_name}</td>
                             <td className="px-4 py-2.5 text-center">
                               {isExcluded ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-red-100 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
                                   <AlertCircle size={12} className="shrink-0" />
                                   <span>Tidak Naik</span>
                                 </span>

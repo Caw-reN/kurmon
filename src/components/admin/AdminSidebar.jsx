@@ -67,7 +67,7 @@ export default function AdminSidebar({
           onClick={() => toggleGroup(groupKey)}
           type="button"
           className={cn(
-            "group relative mb-1 flex w-full items-center justify-between rounded-md border-none",
+            "group relative mb-1 flex w-full items-center justify-between rounded-[var(--ui-radius-small)] border-none",
             "px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all cursor-pointer",
             "hover:bg-muted hover:text-foreground"
           )}
@@ -383,7 +383,7 @@ export default function AdminSidebar({
           <button
             onClick={handleLogout}
             type="button"
-            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-red-700 hover:bg-red-100 transition-all cursor-pointer bg-red-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none"
+            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition-all cursor-pointer bg-rose-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none"
             title="Keluar Sistem"
           >
             <LogOut size={16} />
@@ -392,7 +392,7 @@ export default function AdminSidebar({
           <button
             onClick={handleLogout}
             type="button"
-            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer bg-red-50 rounded-[var(--ui-radius-small)] border-none"
+            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-rose-100 hover:text-rose-700 transition-all cursor-pointer bg-rose-50 rounded-[var(--ui-radius-small)] border-none"
           >
             <LogOut size={15} strokeWidth={2.5} />
             <span>Keluar Sistem</span>

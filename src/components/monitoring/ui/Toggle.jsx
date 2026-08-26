@@ -48,7 +48,7 @@ const Toggle = ({
 
       {/* Label & Description */}
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold text-sm ${checked ?'text-[var(--ui-primary)]' :'text-gray-700'}`}>
+        <p className={`font-semibold text-sm ${checked ?'text-[var(--ui-primary)]' :'text-slate-700'}`}>
           {label}
         </p>
         {description && (

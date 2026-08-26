@@ -270,7 +270,7 @@ export default function DashboardPKL() {
         <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-blue-600 block mb-0.5 truncate">
+              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-indigo-600 block mb-0.5 truncate">
                 Guru Pembimbing
               </span>
               <div className="flex items-baseline gap-1 sm:gap-2">
@@ -280,12 +280,12 @@ export default function DashboardPKL() {
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400">Guru</span>
               </div>
             </div>
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
               <GraduationCap size={18} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
             </div>
           </div>
           <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className="font-bold text-blue-700 bg-blue-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-blue-200/60 truncate">
+            <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-indigo-200/60 truncate">
               Monitoring
             </span>
             <span className="font-bold text-slate-400 hidden sm:inline">
@@ -588,7 +588,7 @@ export default function DashboardPKL() {
 
                 <div className="space-y-3">
                   {[
-                    { key: 'TKJ', label: 'Teknik Komputer & Jaringan (TKJ)', count: majorDistribution.TKJ || 0, color: 'bg-blue-500' },
+                    { key: 'TKJ', label: 'Teknik Komputer & Jaringan (TKJ)', count: majorDistribution.TKJ || 0, color: 'bg-indigo-500' },
                     { key: 'TKR', label: 'Teknik Kendaraan Ringan (TKR)', count: majorDistribution.TKR || 0, color: 'bg-orange-500' },
                     { key: 'MP', label: 'Manajemen Perkantoran (MPLB)', count: majorDistribution.MP || 0, color: 'bg-emerald-500' },
                     { key: 'RPL', label: 'Rekayasa Perangkat Lunak (RPL)', count: majorDistribution.RPL || 0, color: 'bg-cyan-500' },

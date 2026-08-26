@@ -197,14 +197,14 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2 cursor-pointer border border-slate-200"
+                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 font-bold rounded-2xl transition-all text-sm flex items-center justify-center gap-2 cursor-pointer border border-slate-200"
               >
                 <span>Nanti Saja</span>
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-[var(--ui-primary)] hover:opacity-90 active:scale-95 text-white font-black py-3 px-5 rounded-xl shadow-md shadow-[var(--ui-primary)]/20 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer border-none"
+                className="flex-1 bg-[var(--ui-primary)] hover:opacity-90 active:scale-95 text-white font-black py-3 px-5 rounded-2xl shadow-sm shadow-[var(--ui-primary)]/20 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer border-none"
               >
                 {isLoading ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>

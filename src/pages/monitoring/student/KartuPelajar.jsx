@@ -371,7 +371,7 @@ const KartuPelajarSiswa = () => {
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-400 font-semibold">Kelas</span>
-                <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
                   {studentClass}
                 </span>
               </div>

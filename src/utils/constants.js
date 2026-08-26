@@ -228,7 +228,7 @@ export const ATTENDANCE_SESSION_TYPES = [
 ];
 
 export const DASHBOARD_MESSAGE_PRIORITIES = [
-  { value: "normal", label: "Normal", className: "bg-[var(--ui-primary)]/10 text-blue-700 border-blue-100" },
+  { value: "normal", label: "Normal", className: "bg-[var(--ui-primary)]/10 text-indigo-700 border-indigo-100" },
   { value: "important", label: "Penting", className: "bg-amber-50 text-amber-700 border-amber-100" },
   { value: "urgent", label: "Darurat", className: "bg-rose-50 text-rose-700 border-rose-100" },
 ];
@@ -243,7 +243,7 @@ export const DASHBOARD_MESSAGE_TARGETS = [
 
 export const ROLE_OPTIONS = [
   { value: "admin", label: "Super Admin", shortLabel: "Admin", badgeClass: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield },
-  { value: "kepsek", label: "Kepala Sekolah", shortLabel: "Kepsek", badgeClass: "bg-blue-100 text-blue-700 border-blue-200", icon: User },
+  { value: "kepsek", label: "Kepala Sekolah", shortLabel: "Kepsek", badgeClass: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: User },
   { value: "waka", label: "Wakil Kepala Sekolah", shortLabel: "Waka", badgeClass: "bg-amber-100 text-amber-700 border-amber-200", icon: Briefcase },
   { value: "guru", label: "Guru", shortLabel: "Guru", badgeClass: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Users },
   { value: "tu", label: "Tata Usaha", shortLabel: "TU", badgeClass: "bg-teal-100 text-teal-700 border-teal-200", icon: Building2 },
@@ -342,12 +342,12 @@ export const ROLE_KEY_LABELS = {
   walikelas: { label: "Wali Kelas", color: "bg-teal-100 text-teal-800", short: "Walikelas" },
   karyawan: { label: "Karyawan", color: "bg-slate-100 text-slate-700", short: "Karyawan" },
   tu: { label: "Tata Usaha", color: "bg-cyan-100 text-cyan-800", short: "TU" },
-  kepsek: { label: "Kepala Sekolah", color: "bg-blue-100 text-blue-800", short: "Kepsek" },
+  kepsek: { label: "Kepala Sekolah", color: "bg-indigo-100 text-indigo-800", short: "Kepsek" },
   waka_kurikulum: { label: "Waka Kurikulum", color: "bg-amber-100 text-amber-800", short: "Waka Kurikulum" },
   waka_kesiswaan: { label: "Waka Kesiswaan", color: "bg-orange-100 text-orange-800", short: "Waka Kesiswaan" },
   waka_sarpras: { label: "Waka Sarpras", color: "bg-purple-100 text-purple-800", short: "Waka Sarpras" },
   waka_hubin: { label: "Waka Hubin", color: "bg-pink-100 text-pink-800", short: "Waka Hubin" },
-  bpbk: { label: "Guru BP/BK", color: "bg-red-100 text-red-800", short: "BP/BK" },
+  bpbk: { label: "Guru BP/BK", color: "bg-rose-100 text-rose-800", short: "BP/BK" },
   pembina_osis: { label: "Pembina OSIS", color: "bg-indigo-100 text-indigo-800", short: "Pembina OSIS" },
   sekretaris_osis: { label: "Sekretaris OSIS", color: "bg-violet-100 text-violet-800", short: "Sekr. OSIS" },
   sekretaris_kurikulum: { label: "Sekretaris Kurikulum", color: "bg-yellow-100 text-yellow-800", short: "Sekr. Kurikulum" },

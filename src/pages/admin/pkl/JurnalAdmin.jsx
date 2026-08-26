@@ -166,7 +166,7 @@ const JurnalAdmin = ({ readOnly }) => {
               <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">Logbook</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
             <BookOpen size={20} strokeWidth={2.2} />
           </div>
         </div>
@@ -409,8 +409,8 @@ const JurnalAdmin = ({ readOnly }) => {
                             </div>
                           </div>
                           {j.catatanGuru && (
-                            <div className="bg-blue-50/80 p-3 rounded-[var(--ui-radius-control)] border border-blue-200/70 text-xs text-blue-900 flex items-start gap-2">
-                              <MessageSquare size={14} className="text-blue-600 mt-0.5 shrink-0" />
+                            <div className="bg-indigo-50/80 p-3 rounded-[var(--ui-radius-control)] border border-indigo-200/70 text-xs text-indigo-900 flex items-start gap-2">
+                              <MessageSquare size={14} className="text-indigo-600 mt-0.5 shrink-0" />
                               <div>
                                 <span className="font-bold block">Catatan dari Guru Pembimbing:</span>
                                 <p className="mt-0.5">{j.catatanGuru}</p>

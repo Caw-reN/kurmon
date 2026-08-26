@@ -113,7 +113,7 @@ export const applyDocumentBranding = (settings = {}) => {
   let cardBorder = '1px solid rgba(0, 0, 0, 0.06)';
   let cardShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.02)';
 
-  if (settings.cardStyle === 'shadow') {
+  if (settings.cardStyle === 'shadow-sm') {
     cardBg = 'var(--ui-surface, #ffffff)';
     cardBorder = '1px solid transparent';
     cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)';
@@ -158,6 +158,37 @@ export const applyDocumentBranding = (settings = {}) => {
     root.classList.remove("accessibility-touch-large");
   }
 
+  // Icon Stroke
+  let iconStroke = "2.2px";
+  if (settings.iconStroke === "thin") iconStroke = "1.5px";
+  if (settings.iconStroke === "medium") iconStroke = "2.0px";
+  if (settings.iconStroke === "thick") iconStroke = "2.8px";
+  root.style.setProperty('--ui-icon-stroke', iconStroke);
+
+  // Shadow Intensity
+  let shadowControl = "0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04)";
+  let shadowCardIntense = "0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 0 4px rgba(15, 23, 42, 0.03), 0 0 0 1px rgba(255,255,255,0.6) inset";
+  let shadowModal = "0 32px 80px rgba(15, 23, 42, 0.20)";
+
+  if (settings.shadowIntensity === "strong") {
+    shadowControl = "0 2px 6px rgba(15, 23, 42, 0.1), 0 6px 16px rgba(15, 23, 42, 0.08)";
+    shadowCardIntense = "0 10px 30px -4px rgba(15, 23, 42, 0.15), 0 0 8px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(255,255,255,0.8) inset";
+    shadowModal = "0 40px 100px rgba(15, 23, 42, 0.30)";
+  } else if (settings.shadowIntensity === "flat") {
+    shadowControl = "none";
+    shadowCardIntense = "0 0 0 1px rgba(15, 23, 42, 0.05)";
+    shadowModal = "0 10px 40px rgba(15, 23, 42, 0.1)";
+  }
+
+  root.style.setProperty('--ui-shadow-control', shadowControl);
+  root.style.setProperty('--ui-shadow-card', shadowCardIntense);
+  root.style.setProperty('--ui-shadow-modal', shadowModal);
+  if (settings.touchTargetSize === "besar") {
+    root.classList.add("accessibility-touch-large");
+  } else {
+    root.classList.remove("accessibility-touch-large");
+  }
+
   // Sidebar Style Classes
   root.classList.remove("sidebar-white", "sidebar-gray", "sidebar-primary");
   if (settings.sidebarStyle === "abu-abu") {
@@ -182,7 +213,7 @@ export const applyDocumentBranding = (settings = {}) => {
 
   // Card Style Classes
   root.classList.remove("card-bordered", "card-elevated", "card-flat");
-  if (settings.cardStyle === "shadow") {
+  if (settings.cardStyle === "shadow-sm") {
     root.classList.add("card-elevated");
   } else if (settings.cardStyle === "flat") {
     root.classList.add("card-flat");
@@ -226,7 +257,7 @@ export const applyDocumentBranding = (settings = {}) => {
   root.classList.remove("btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient", "btn-style-flat");
   if (settings.buttonStyle === "outline") {
     root.classList.add("btn-style-outline");
-  } else if (settings.buttonStyle === "shadow") {
+  } else if (settings.buttonStyle === "shadow-sm") {
     root.classList.add("btn-style-shadow");
   } else if (settings.buttonStyle === "gradient") {
     root.classList.add("btn-style-gradient");
@@ -242,6 +273,36 @@ export const applyDocumentBranding = (settings = {}) => {
     root.classList.add("layout-boxed");
   } else {
     root.classList.add("layout-full");
+  }
+
+  // Form Input Style Classes
+  root.classList.remove("input-style-outline", "input-style-filled", "input-style-underline");
+  if (settings.inputStyle === "filled") {
+    root.classList.add("input-style-filled");
+  } else if (settings.inputStyle === "underline") {
+    root.classList.add("input-style-underline");
+  } else {
+    root.classList.add("input-style-outline");
+  }
+
+  // Glassmorphism Effect Classes
+  root.classList.remove("glass-solid", "glass-subtle", "glass-strong");
+  if (settings.glassEffect === "solid") {
+    root.classList.add("glass-solid");
+  } else if (settings.glassEffect === "strong") {
+    root.classList.add("glass-strong");
+  } else {
+    root.classList.add("glass-subtle");
+  }
+
+  // Scrollbar Style Classes
+  root.classList.remove("scrollbar-default", "scrollbar-thin", "scrollbar-hidden");
+  if (settings.scrollbarStyle === "thin") {
+    root.classList.add("scrollbar-thin");
+  } else if (settings.scrollbarStyle === "hidden") {
+    root.classList.add("scrollbar-hidden");
+  } else {
+    root.classList.add("scrollbar-default");
   }
 
   // Dynamic Print Size (A4 / F4)
@@ -285,6 +346,10 @@ export const resetDocumentBranding = () => {
   root.style.removeProperty('--background');
   root.style.removeProperty('--foreground');
   root.style.removeProperty('--radius');
+  root.style.removeProperty('--ui-icon-stroke');
+  root.style.removeProperty('--ui-shadow-control');
+  root.style.removeProperty('--ui-shadow-card');
+  root.style.removeProperty('--ui-shadow-modal');
   root.style.removeProperty('--sidebar-primary');
   root.style.removeProperty('--font-sans');
   root.style.fontFamily = "";

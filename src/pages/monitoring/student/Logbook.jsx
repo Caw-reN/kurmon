@@ -6,6 +6,7 @@ import {
   PenTool, FileText, Check, ShieldAlert, Sparkles, UserCheck, Trash2, Plus, ArrowRight, ShieldCheck, RefreshCw 
 } from 'lucide-react';
 import { Button } from '../../../components/ui.jsx';
+import { compressImage } from '../../../utils/imageUtils.js';
 
 /**
  * student/Logbook.jsx
@@ -75,18 +76,24 @@ const Logbook = () => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const handlePhotoAdd = (e) => {
+  const handlePhotoAdd = async (e) => {
     const files = Array.from(e.target.files);
     if (photos.length + files.length > 5) {
       setPhotoError('Maksimal 5 foto dokumentasi.');
       return;
     }
     setPhotoError('');
-    const newPhotos = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
+    
+    // Process files and compress them
+    const newPhotos = await Promise.all(files.map(async (file) => {
+      const compressedDataUrl = await compressImage(file, { maxWidth: 800, maxHeight: 800, quality: 0.8 });
+      return {
+        id: Date.now() + Math.random(),
+        file,
+        preview: compressedDataUrl, // Use compressed base64 for preview
+      };
     }));
+    
     setPhotos((prev) => [...prev, ...newPhotos]);
   };
 

@@ -23,7 +23,7 @@ export default defineConfig({
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react';
           if (id.includes('node_modules/recharts')) return 'charts';
           if (id.includes('node_modules/lucide-react')) return 'icons';
-          if (id.includes('node_modules/xlsx')) return 'xlsx';
+          if (id.includes('node_modules/xlsx') || id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) return 'fileHelper';
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) return 'pdf';
           if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) return 'maps';
           if (id.includes('node_modules/@tanstack')) return 'tanstack';

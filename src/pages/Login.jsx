@@ -140,7 +140,7 @@ export default function Login({
             ) : (
               <form onSubmit={handleForgotSubmit} action="javascript:void(0);" className="space-y-4">
                 {forgotError && (
-                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-rose-600">
+                  <div className="flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-rose-100 bg-rose-50 p-3 text-[11px] font-semibold text-rose-600">
                     <AlertCircle size={14} className="mt-0.5 shrink-0 text-rose-500" />
                     <span className="leading-snug">{forgotError}</span>
                   </div>
@@ -233,7 +233,7 @@ export default function Login({
             /* ── Login Form ──────────────────────────────────────── */
             <>
               {loginError && (
-                <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-red-100 bg-red-50 p-3 text-[11px] font-semibold text-rose-600">
+                <div className="mb-4 flex items-start gap-2 rounded-[var(--ui-radius-control)] border border-rose-100 bg-rose-50 p-3 text-[11px] font-semibold text-rose-600">
                   <AlertCircle size={14} className="mt-0.5 shrink-0 text-rose-500" />
                   <span className="leading-snug">{loginError}</span>
                 </div>

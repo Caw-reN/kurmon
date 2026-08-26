@@ -433,7 +433,7 @@ export default function AdminContentRouter({ context }) {
                     </button>
                   );
                 }
-                return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-red-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
+                return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
                   <Trash2 size={14} />
                 </button>;
               })()}
@@ -454,7 +454,7 @@ export default function AdminContentRouter({ context }) {
                   </div>
                 </div>
                 <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                     <BookOpen size={20} strokeWidth={2.2} />
                   </div>
                   <div>

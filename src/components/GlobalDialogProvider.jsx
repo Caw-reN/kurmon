@@ -54,7 +54,7 @@ export default function GlobalDialogProvider({ children }) {
       {alertConfig && (
         <Modal isOpen={true} onClose={closeAlert} title="Informasi" maxWidth="max-w-sm" scrollable={false}>
           <div className="flex flex-col items-center justify-center p-2 text-center">
-            <Info size={42} className="text-blue-500 mb-4 opacity-90" />
+            <Info size={42} className="text-indigo-500 mb-4 opacity-90" />
             <p className="text-slate-700 font-medium whitespace-pre-wrap">{alertConfig.message}</p>
           </div>
           <div className="flex justify-center mt-6">
@@ -76,7 +76,7 @@ export default function GlobalDialogProvider({ children }) {
             <Button variant="secondary" onClick={handleCancelAction} className="flex-1">
               Batal
             </Button>
-            <Button variant="danger" onClick={handleConfirmAction} className="flex-1 text-white bg-rose-600 hover:bg-red-700 border-none">
+            <Button variant="danger" onClick={handleConfirmAction} className="flex-1 text-white bg-rose-600 hover:bg-rose-700 border-none">
               Ya, Lanjutkan
             </Button>
           </div>

@@ -218,7 +218,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 />
               ) : (
                 <div
-                  className="h-full w-full rounded-md flex items-center justify-center font-black text-[10px] shrink-0 shadow-sm transition-colors duration-300"
+                  className="h-full w-full rounded-[var(--ui-radius-small)] flex items-center justify-center font-black text-[10px] shrink-0 shadow-sm transition-colors duration-300"
                   style={{ 
                     backgroundColor: headerStyle === 'primary' ? surfaceColor : primaryColor,
                     color: headerStyle === 'primary' ? primaryColor : surfaceColor
@@ -381,7 +381,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                <HelpCircle className="text-blue-500 animate-pulse" size={18} />
+                <HelpCircle className="text-indigo-500 animate-pulse" size={18} />
                 Pusat Bantuan & Layanan
               </h3>
               <button 
@@ -394,7 +394,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             
             {/* Body */}
             <div className="p-6 space-y-4 text-xs font-semibold text-slate-600 max-h-[70vh] overflow-y-auto">
-              <div className="bg-blue-50 border border-blue-100 rounded-[var(--ui-radius-small)] p-4 text-blue-800 flex items-start gap-2.5">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-4 text-indigo-800 flex items-start gap-2.5">
                 <Info size={16} className="shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                   Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
@@ -436,9 +436,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 {contactEmail && (
                   <a 
                     href={`mailto:${contactEmail}`}
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Mail size={16} />
                     </div>
                     <div>
@@ -470,9 +470,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getAbsoluteUrl(appSettings.socialFacebook)} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                     </div>
                     <div>
@@ -487,9 +487,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                     href={getAbsoluteUrl(appSettings.socialYoutube)} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-red-200 hover:bg-red-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+                    className="flex items-center gap-3 p-3 border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-red-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
                     </div>
                     <div>

@@ -167,7 +167,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
 
     if (addedCount > 0) {
       setStudents(newStudents);
-      saveDatabaseNow();
+      saveDatabaseNow({ students: newStudents });
       showFeedback("Berhasil", `Berhasil menarik ${addedCount} siswa baru dari mesin ke dalam sistem.`,"success");
     } else {
       showFeedback("Info","Tidak ada siswa baru yang ditambahkan. Semua NIS di mesin sudah ada di sistem.","info");
@@ -226,46 +226,46 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Siswa */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 border border-[var(--ui-primary)]/20">
             <GraduationCap size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Siswa Terdata</p>
-            <p className="text-lg sm:text-xl font-black text-slate-800">{students.length}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider">Total Siswa Terdata</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">{students.length}</p>
           </div>
         </div>
 
         {/* Terhubung */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-emerald-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
             <CheckCircle2 size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
-            <p className="text-lg sm:text-xl font-black text-emerald-700">{connectedCount}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{connectedCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Mesin */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-rose-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
             <XCircle size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
-            <p className="text-lg sm:text-xl font-black text-rose-700">{notConnectedCount}</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-rose-600 uppercase tracking-wider">Belum Ada di Mesin</p>
+            <p className="text-xl sm:text-2xl font-black text-rose-700 tracking-tight">{notConnectedCount}</p>
           </div>
         </div>
 
         {/* Total Rombel */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
             <Users size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Total Rombel Kelas</p>
-            <p className="text-lg sm:text-xl font-black text-amber-700">{(classes || []).length} Rombel</p>
+            <p className="text-[10px] sm:text-[11px] font-black text-amber-600 uppercase tracking-wider">Total Rombel Kelas</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{(classes || []).length} Rombel</p>
           </div>
         </div>
       </div>
@@ -314,7 +314,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
                 </span>
               </td>
               <td className="px-2.5 py-2.5 text-center font-bold text-slate-600 text-xs">
-                {item.gender ==='P' ? <span className="text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">P</span> : item.gender ==='L' ? <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">L</span> : '-'}
+                {item.gender ==='P' ? <span className="text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">P</span> : item.gender ==='L' ? <span className="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">L</span> : '-'}
               </td>
               <td className="px-2.5 py-2.5 text-center">
                 {isFetchingHik ? (
@@ -418,12 +418,12 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
       {/* Confirmation Modal */}
       <Modal isOpen={importConfirmOpen} onClose={() => setImportConfirmOpen(false)} title="Konfirmasi Impor Data">
         <div className="p-6">
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-[var(--ui-radius-small)] mb-6 flex items-start gap-3">
+          <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-[var(--ui-radius-small)] mb-6 flex items-start gap-3">
             <HardDrive className="mt-0.5 shrink-0" size={20} />
             <div>
               <p className="font-bold">Tarik Data Siswa dari Mesin</p>
               <p className="text-sm mt-1">Terdapat <strong>{hikStudents.length}</strong> data siswa di mesin Hikvision. Apakah Anda yakin ingin mengimpornya ke Master Data Siswa di sistem?</p>
-              <p className="text-sm mt-2 font-medium bg-blue-100 p-2 rounded-[var(--ui-radius-small)] inline-block text-blue-900">Catatan: Data dengan NIS yang sudah ada di dalam tabel akan dilewati otomatis.</p>
+              <p className="text-sm mt-2 font-medium bg-indigo-100 p-2 rounded-[var(--ui-radius-small)] inline-block text-indigo-900">Catatan: Data dengan NIS yang sudah ada di dalam tabel akan dilewati otomatis.</p>
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-6">
@@ -436,7 +436,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
       {/* Feedback Modal */}
       <Modal isOpen={feedbackModal.open} onClose={() => setFeedbackModal(prev => ({ ...prev, open: false }))} title={feedbackModal.title}>
         <div className="p-6 text-center">
-          <div className={`mx-auto w-16 h-16 flex items-center justify-center rounded-full mb-4 ${feedbackModal.type ==='success' ?'bg-emerald-100 text-emerald-600' : feedbackModal.type ==='error' ?'bg-red-100 text-rose-600' :'bg-blue-100 text-blue-600'}`}>
+          <div className={`mx-auto w-16 h-16 flex items-center justify-center rounded-full mb-4 ${feedbackModal.type ==='success' ?'bg-emerald-100 text-emerald-600' : feedbackModal.type ==='error' ?'bg-rose-100 text-rose-600' :'bg-indigo-100 text-indigo-600'}`}>
             {feedbackModal.type ==='success' ? <CheckCircle2 size={32} /> : feedbackModal.type ==='error' ? <AlertTriangle size={32} /> : <HardDrive size={32} />}
           </div>
           <h3 className="text-xl font-bold text-slate-800 mb-2">{feedbackModal.title}</h3>

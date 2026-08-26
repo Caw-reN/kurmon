@@ -192,7 +192,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-xs border flex items-center gap-3 transition-all ${
-          toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-red-50 border-red-200 text-red-800"
+          toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800"
         }`}>
           {toast.type === "success" ? <CheckCircle2 size={20} className="text-emerald-500"/> : <AlertTriangle size={20} className="text-rose-500"/>}
           <p className="font-bold text-sm">{toast.message}</p>

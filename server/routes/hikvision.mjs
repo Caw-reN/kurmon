@@ -393,6 +393,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
            return allNisList.find(dbNis => dbNis.length >= 5 && mid.length >= 5 && (dbNis.endsWith(mid) || mid.endsWith(dbNis)));
         };
 
+        const allPulledNis = new Set();
+        let allDevicesSuccessful = true;
+
         // 2. Loop Semua Perangkat (Sync Wajah & Sync Log Mentah)
         for (const device of devices) {
           const dtype = device.device_type || 'siswa';
@@ -426,6 +429,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   await dbPool.query("INSERT INTO hikvision_students (nis, name, device_group_id, class_name) VALUES ($1, $2, $3, $4)", [empNo, name, dbGrpId, dtype]);
                 }
                 
+                allPulledNis.add(empNo);
                 usersSynced++;
 
                 // Check mismatch
@@ -475,12 +479,23 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             }
             syncResults.push({ ip: device.ip_address, type: dtype, status: `Sukses (${users?.length || 0} pengguna, ${logs?.length || 0} log ditarik)` });
           } catch (deviceError) {
+            allDevicesSuccessful = false;
             console.error(`Gagal sinkronisasi ${device.ip_address}:`, deviceError.message);
             syncResults.push({ ip: device.ip_address, type: dtype, status: `Error: ${deviceError.message}` });
           }
         }
 
-        // 3. Proses Log Mentah H-3 ke Data Rekap Absensi
+        // 3. Ghost Data Cleanup (Only if all devices successfully returned users)
+        if (allDevicesSuccessful && allPulledNis.size > 0) {
+           const { rows: allDbUsers } = await dbPool.query("SELECT nis FROM hikvision_students");
+           for (const dbUser of allDbUsers) {
+             if (!allPulledNis.has(dbUser.nis)) {
+               await dbPool.query("DELETE FROM hikvision_students WHERE nis = $1", [dbUser.nis]);
+             }
+           }
+        }
+
+        // 4. Proses Log Mentah H-3 ke Data Rekap Absensi
         const logsRes = await dbPool.query(`
           SELECT l.employee_id, l.timestamp, d.ip_address, d.location, d.device_type, l.person_type
           FROM hikvision_logs l
@@ -1039,6 +1054,24 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           [className, nis]
         );
         send(req, res, 200, { ok: true, message: "Berhasil memperbarui pemetaan kelas." });
+      } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+    if (req.method === "DELETE" && url.pathname.startsWith("/api/hikvision/students/") && url.pathname !== "/api/hikvision/students/bulk") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      try {
+        const nis = url.pathname.split("/").pop();
+        const delRes = await dbPool.query(
+          "DELETE FROM hikvision_students WHERE nis = $1 RETURNING id",
+          [nis]
+        );
+        if (delRes.rowCount > 0) {
+          send(req, res, 200, { ok: true, message: "Berhasil menghapus data siswa dari database mesin." });
+        } else {
+          send(req, res, 404, { ok: false, error: "Data tidak ditemukan." });
+        }
       } catch (err) { sendDatabaseError(req, res, err); }
       return;
     }

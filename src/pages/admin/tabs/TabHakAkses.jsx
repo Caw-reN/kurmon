@@ -67,7 +67,7 @@ const ALL_TABS_METADATA = {
 
 // ─── KELOMPOK PERMISSION ──────────────────────────────────────────────────────
 const PERMISSION_GROUPS = [
-  { key: 'utama', label: 'Utama & Dashboard', color: 'bg-blue-500', tabs: ['dashboard', 'pesan', 'tampilan'] },
+  { key: 'utama', label: 'Utama & Dashboard', color: 'bg-indigo-500', tabs: ['dashboard', 'pesan', 'tampilan'] },
   { key: 'siswa', label: 'Siswa & Bimbingan', color: 'bg-emerald-500', tabs: ['siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk'] },
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate'] },
@@ -452,7 +452,7 @@ export default function TabHakAkses(props) {
             <button
               type="button"
               onClick={() => setCreateModalOpen(true)}
-              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
+              className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
             >
               + Role Baru
             </button>
@@ -478,7 +478,7 @@ export default function TabHakAkses(props) {
                         onClick={() => setSelectedRoleKey(r.key)}
                         className={`w-full text-left px-3 py-2 rounded-[var(--ui-radius-small)] transition-all flex items-center justify-between gap-2 border cursor-pointer ${
                           isSelected
-                            ? 'bg-[var(--ui-primary)] text-white border-blue-600 shadow-xs font-black'
+                            ? 'bg-[var(--ui-primary)] text-white border-indigo-600 shadow-xs font-black'
                             : 'bg-slate-50/70 hover:bg-slate-100 text-slate-700 border-slate-200/60'
                         }`}
                       >
@@ -573,7 +573,7 @@ export default function TabHakAkses(props) {
             </div>
             <div className="flex flex-wrap gap-1.5">
               {[
-                { key: 'full', label: 'Centang Full Semua', color: 'bg-blue-600 hover:bg-blue-700 text-white' },
+                { key: 'full', label: 'Centang Full Semua', color: 'bg-indigo-600 hover:bg-indigo-700 text-white' },
                 { key: 'kepsek_report', label: 'Kepsek (Lihat Saja)', color: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200' },
                 { key: 'kurikulum', label: 'Full Kurikulum', color: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200' },
                 { key: 'kesiswaan', label: 'Full Kesiswaan', color: 'bg-orange-50 hover:bg-orange-100 text-orange-800 border-orange-200' },
@@ -612,7 +612,7 @@ export default function TabHakAkses(props) {
                     <button
                       type="button"
                       onClick={() => handleToggleGroupLevel(group, 'edit')}
-                      className="text-blue-600 hover:underline cursor-pointer"
+                      className="text-indigo-600 hover:underline cursor-pointer"
                     >
                       Full All
                     </button>
@@ -694,7 +694,7 @@ export default function TabHakAkses(props) {
       </div>
 
       {/* STICKY SAVE BAR */}
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-80 shadow-md z-30 transition-all">
+      <div className="bg-slate-900 border border-slate-800 text-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-80 shadow-sm z-30 transition-all">
         <div className="flex items-center gap-2.5">
           <span className={`w-2.5 h-2.5 rounded-full ${isModified ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
           <span className="text-xs font-bold text-slate-200">

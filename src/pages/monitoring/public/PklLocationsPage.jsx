@@ -142,8 +142,8 @@ export default function PklLocationsPublicPage() {
                         <Marker key={p.id} position={[p.lat, p.lng]} icon={createIcon(JURUSAN_COLORS[p.jurusan || p.bidang])}>
                           <Popup>
                             <div className="min-w-[200px]" style={{ fontFamily:'Lexend, sans-serif' }}>
-                              <p className="font-bold text-sm text-gray-900 mb-1">{p.nama_perusahaan || p.nama}</p>
-                              <p className="text-xs text-gray-500 mb-2">{p.alamat || p.kota}</p>
+                              <p className="font-bold text-sm text-slate-900 mb-1">{p.nama_perusahaan || p.nama}</p>
+                              <p className="text-xs text-slate-500 mb-2">{p.alamat || p.kota}</p>
                               {(p.siswaAktif !== undefined) && (
                                 <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-bold bg-emerald-50 w-fit px-2 py-1 rounded-[var(--ui-radius-small)]">
                                   <Users size={12} /> {p.siswaAktif} Siswa Aktif

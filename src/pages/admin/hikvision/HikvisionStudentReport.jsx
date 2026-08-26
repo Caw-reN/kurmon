@@ -249,18 +249,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
     if (status ==="Izin") {
       return {
-        className:"bg-blue-100 text-blue-800 font-bold",
+        className:"bg-indigo-100 text-indigo-800 font-bold",
         style: { color:"#1e40af" }
       };
     }
     if (status ==="Terlambat" || dayData.isLate) {
       return {
-        className:"bg-red-100 text-red-800 font-bold",
+        className:"bg-rose-100 text-rose-800 font-bold",
         style: { color:"#b91c1c" }
       };
     }
     return {
-      className:"bg-green-100 text-green-800 font-bold",
+      className:"bg-emerald-100 text-emerald-800 font-bold",
       style: { color:"#166534" }
     };
   };
@@ -1157,9 +1157,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
      return (
-        <div className="p-8 text-center bg-red-50 rounded-[var(--ui-radius-small)] border border-red-200">
+        <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
            <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
-           <h3 className="text-xl font-bold text-red-700">Data Wali Kelas Belum Lengkap</h3>
+           <h3 className="text-xl font-bold text-rose-700">Data Wali Kelas Belum Lengkap</h3>
            <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
         </div>
      );
@@ -1516,7 +1516,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               <>
                                 <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-2xs ${
                                   status === "Sakit" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                  status === "Izin" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                  status === "Izin" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
                                   "bg-rose-50 text-rose-700 border-rose-200"
                                 }`}>
                                   {status === "Alpa" ? "Belum Scan" : status}
@@ -1722,8 +1722,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> TELAT
           </span>
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-blue-50 text-blue-700 border border-blue-200/60 shrink-0 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> IZIN/SKT
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> IZIN/SKT
           </span>
           <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> ALPA
@@ -1879,7 +1879,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Izin</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> PKL</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> Alpa</span>
@@ -1939,7 +1939,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                          <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
                              <div>{d.total_terlambat || 0}</div>
                           </td>
-                         <td className="px-3 py-3 text-center font-black text-blue-600 border-r border-slate-100">{d.total_izin || 0}</td>
+                         <td className="px-3 py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
                          <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
                          <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">
                              <div>{d.total_alpa || 0}</div>
@@ -2030,21 +2030,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   ))}
                 </tr>
                 {/* JML IZIN */}
-                <tr className="bg-blue-100/90 border-b border-blue-200 text-blue-950">
-                  <td className="px-4 py-2 sticky left-0 bg-blue-100 z-10 border-r border-blue-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-blue-300 text-blue-300 font-bold">-</td>
+                <tr className="bg-indigo-100/90 border-b border-indigo-200 text-indigo-950">
+                  <td className="px-4 py-2 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
                   {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-blue-200/80">
+                    <td key={d} className="px-1 py-1.5 text-center border-r border-indigo-200/80">
                       {dailyTotals.izin[d] > 0 ? (
                         <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-2xs">
                           {dailyTotals.izin[d]}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-blue-300">0</span>
+                        <span className="text-[10px] font-bold text-indigo-300">0</span>
                       )}
                     </td>
                   ))}
@@ -2076,7 +2076,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-red-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                  <td className="px-3 py-2 text-center border-r border-slate-700 text-rose-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
                   {daysToRender.map(d => (
                     <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
                       {dailyTotals.alpa[d] > 0 ? (
@@ -2151,7 +2151,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                    </label>
                    {permissionForm.gdriveUrl && !permissionForm.replaceImage ? (
                       <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-[var(--ui-radius-small)] text-center">
-                        <button type="button" onClick={() => setShowPermissionPreviewModal(true)} className="w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2">
+                        <button type="button" onClick={() => setShowPermissionPreviewModal(true)} className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2">
                            <Eye size={14} /> Lihat Surat / Foto
                         </button>
                       </div>
@@ -2216,7 +2216,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 {(permissionForm.gdriveUrl && !permissionForm.gdriveUrl.startsWith('data:image/')) ? (
                    <div className="text-center">
                      <p className="text-sm font-bold text-white mb-3">Dokumen tersimpan di Google Drive</p>
-                     <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow transition-colors">
+                     <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow-sm transition-colors">
                        <ExternalLink size={16} /> Buka Link Foto/Surat
                      </a>
                    </div>

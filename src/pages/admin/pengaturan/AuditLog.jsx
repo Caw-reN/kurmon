@@ -10,10 +10,10 @@ import { PageHeader } from "../../../components/monitoring/ui/index.js";
 import { UISelect } from "../../../components/ui.jsx";
 
 const ACTION_COLORS = {
-  UPDATE:         { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  UPDATE:         { bg: "bg-indigo-50",    text: "text-indigo-700",    border: "border-indigo-200" },
   UPSERT:         { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  DELETE:         { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200" },
-  SEND_WA:        { bg: "bg-green-50",   text: "text-green-700",   border: "border-green-200" },
+  DELETE:         { bg: "bg-rose-50",     text: "text-rose-700",     border: "border-rose-200" },
+  SEND_WA:        { bg: "bg-emerald-50",   text: "text-emerald-700",   border: "border-emerald-200" },
   LOGIN:          { bg: "bg-violet-50",  text: "text-violet-700",  border: "border-violet-200" },
   LOGOUT:         { bg: "bg-slate-50",   text: "text-slate-600",   border: "border-slate-200" },
   UPLOAD:         { bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-200" },
@@ -178,7 +178,7 @@ export default function AuditLog({ activeTab, setActiveTab }) {
         tabs={[{ id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck }, { id: "pengaturanuser", label: "Akun Pengguna", icon: Key }, { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }]}
         activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-[var(--ui-radius-small)] text-sm text-blue-700">
+      <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-[var(--ui-radius-small)] text-sm text-indigo-700">
         <Info size={16} className="shrink-0" />
         <span>Klik baris mana saja untuk melihat <b>detail lengkap</b> aktivitas termasuk IP address, perangkat, dan browser yang digunakan.</span>
       </div>
@@ -232,7 +232,7 @@ export default function AuditLog({ activeTab, setActiveTab }) {
               const ActionIcon = ACTION_ICONS[log.action] || ACTION_ICONS.DEFAULT;
               const { browser, os, icon } = parseUserAgent(log.user_agent);
               return (
-                <tr key={log.id} className="border-b border-slate-100 hover:bg-blue-50/30 transition-colors cursor-pointer group" onClick={() => setSelectedLog(log)}>
+                <tr key={log.id} className="border-b border-slate-100 hover:bg-indigo-50/30 transition-colors cursor-pointer group" onClick={() => setSelectedLog(log)}>
                   <td className="px-4 py-3 text-xs text-slate-400 font-mono whitespace-nowrap">
                     {new Date(log.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "2-digit" })}<br />
                     {new Date(log.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}

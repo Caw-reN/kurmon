@@ -297,7 +297,7 @@ export default function SilabusPage() {
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {doc.mapel && (
-                                <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+                                <span className="inline-flex px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-200/60">
                                   {doc.mapel}
                                 </span>
                               )}
@@ -347,7 +347,7 @@ export default function SilabusPage() {
 
               {filteredSessions.length === 0 && filteredDocs.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <BookOpen size={44} className="text-slate-300 mb-3 stroke-1" />
+                  <BookOpen size={44} className="text-slate-300 mb-3 " />
                   <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
                   <p className="text-slate-500 text-[13px] max-w-sm">
                     {activeSubject ? `Materi modul ajar untuk mata pelajaran "${activeSubject}" belum dipublikasikan.` : "Belum ada modul ajar yang dipublikasikan."}

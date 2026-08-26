@@ -885,20 +885,20 @@ export function useAdminScheduleGenerator(props) {
     });
     setSwapWarning(failed > 0 ? <div className="flex flex-col gap-3 w-full text-sm">
       <div>
-        <span className="font-bold text-red-800 text-base">
+        <span className="font-bold text-rose-800 text-base">
           Generate parsial berhasil: {failed} beban belum muat
         </span>
-        <p className="text-red-700 mt-1">
+        <p className="text-rose-700 mt-1">
           Jadwal yang bisa dipasang sudah tetap disimpan. Angka di bawah
           menunjukkan kenapa sisa beban belum bisa ditempatkan secara
           otomatis.
         </p>
       </div>
-      <div className="bg-red-50/70 border border-red-200 rounded-[var(--ui-radius-small)] p-3">
-        <div className="text-[11px] font-black text-red-800 uppercase tracking-widest mb-2">
+      <div className="bg-rose-50/70 border border-rose-200 rounded-[var(--ui-radius-small)] p-3">
+        <div className="text-[11px] font-black text-rose-800 uppercase tracking-widest mb-2">
           Rincian penyebab
         </div>
-        <ul className="list-disc ml-5 space-y-1.5 text-red-700">
+        <ul className="list-disc ml-5 space-y-1.5 text-rose-700">
           {generationStats.quota > 0 && <li>
             <strong>
               Maks Kelas Beban ({generationStats.quota} jadwal):
@@ -953,14 +953,14 @@ export function useAdminScheduleGenerator(props) {
           </li>}
         </ul>
       </div>
-      {generationFailures.length > 0 && <details className="bg-white/70 border border-red-200 rounded-[var(--ui-radius-small)] overflow-hidden" open>
-        <summary className="cursor-pointer px-3 py-2.5 text-[11px] font-black text-red-800 uppercase tracking-widest">
+      {generationFailures.length > 0 && <details className="bg-white/70 border border-rose-200 rounded-[var(--ui-radius-small)] overflow-hidden" open>
+        <summary className="cursor-pointer px-3 py-2.5 text-[11px] font-black text-rose-800 uppercase tracking-widest">
           Beban yang belum muat ({generationFailures.length}) - klik untuk
           lihat rincian bentrok
         </summary>
-        <div className="max-h-80 overflow-auto border-t border-red-100">
+        <div className="max-h-80 overflow-auto border-t border-rose-100">
           <table className="w-full min-w-[760px] text-left text-xs">
-            <thead className="sticky top-0 bg-red-50 text-red-800 uppercase tracking-wide text-[10px]">
+            <thead className="sticky top-0 bg-rose-50 text-rose-800 uppercase tracking-wide text-[10px]">
               <tr>
                 <th className="px-3 py-2">Kelas & Mapel</th>
                 <th className="px-3 py-2">Guru</th>
@@ -968,11 +968,11 @@ export function useAdminScheduleGenerator(props) {
                 <th className="px-3 py-2">Rincian Slot / Bentrok</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-red-100 text-red-800">
+            <tbody className="divide-y divide-red-100 text-rose-800">
               {generationFailures.map(failure => <tr key={failure.id} className="align-top">
                 <td className="px-3 py-2 font-semibold whitespace-nowrap">
                   <div>{failure.className}</div>
-                  <div className="font-normal text-red-700">
+                  <div className="font-normal text-rose-700">
                     {failure.subject}
                     {failure.duration > 0 ? ` (${failure.duration} JP)` :""}
                   </div>
@@ -991,11 +991,11 @@ export function useAdminScheduleGenerator(props) {
           </table>
         </div>
       </details>}
-      <div className="bg-red-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-red-200 block">
-        <div className="text-[11px] font-black text-red-800 uppercase tracking-widest mb-1.5">
+      <div className="bg-rose-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-rose-200 block">
+        <div className="text-[11px] font-black text-rose-800 uppercase tracking-widest mb-1.5">
           Langkah cepat
         </div>
-        <div className="text-red-800 text-xs font-semibold leading-relaxed space-y-1">
+        <div className="text-rose-800 text-xs font-semibold leading-relaxed space-y-1">
           <p>
             1. Tambah Target JP atau Maks Kelas pada beban yang paling
             sering gagal.
@@ -1011,7 +1011,7 @@ export function useAdminScheduleGenerator(props) {
           </p>
         </div>
       </div>
-      <span className="mt-2 text-xs font-bold text-red-800 bg-red-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-red-200 block">
+      <span className="mt-2 text-xs font-bold text-rose-800 bg-rose-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-rose-200 block">
         💡 SOLUSI: Coba edit Beban Mengajar (tambah Target JP / Maks Kelas),
         tambah Hari Hadir guru, atau tambah Ruang Lab. Anda juga bisa
         menarik manual sisa jadwal yang tidak terpasang ini di menu Jadwal.
