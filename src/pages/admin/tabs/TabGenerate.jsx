@@ -98,31 +98,23 @@ export default function TabGenerate(props) {
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">Pilih penyusunan secara Otomatis via Algoritma Generator atau Manual per slot.</p>
             </div>
             
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 shrink-0">
-              <button
-                type="button"
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant={scheduleGenerationMode === "auto" ? 'primary' : 'ghost'}
                 onClick={() => setScheduleGenerationMode && setScheduleGenerationMode("auto")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scheduleGenerationMode === "auto"
-                    ? "bg-white text-[var(--ui-primary)] shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={scheduleGenerationMode !== "auto" ? 'text-slate-500' : ''}
               >
-                <Wand2 size={14} />
+                <Wand2 size={15} />
                 <span>Mode Otomatis</span>
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={scheduleGenerationMode === "manual" ? 'primary' : 'ghost'}
                 onClick={() => setScheduleGenerationMode && setScheduleGenerationMode("manual")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scheduleGenerationMode === "manual"
-                    ? "bg-white text-[var(--ui-primary)] shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={scheduleGenerationMode !== "manual" ? 'text-slate-500' : ''}
               >
-                <Edit3 size={14} />
+                <Edit3 size={15} />
                 <span>Mode Manual</span>
-              </button>
+              </Button>
             </div>
           </div>
 

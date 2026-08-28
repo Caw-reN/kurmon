@@ -136,7 +136,7 @@ export default function SilabusPage() {
 
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-100 print-hidden">
             <div className="flex-grow">
-              <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Modul Ajar</span>
+              <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Administrasi Guru</span>
               <div className="flex flex-wrap items-center gap-3 mt-1">
                 <h2 className="text-[20px] font-black text-slate-800 tracking-tight">
                   {activeSubject ? activeSubject : "Semua Mata Pelajaran"}
@@ -280,12 +280,12 @@ export default function SilabusPage() {
                   </div>
                 </div>
               )}
-              {/* List of Uploaded PDF Modul Ajar files */}
+              {/* List of Uploaded PDF Administrasi Guru files */}
               {filteredDocs.length > 0 && (
                 <div className="space-y-4 print-block mt-4">
                   <h3 className="text-[15px] font-black text-slate-800 border-b border-slate-200/60 pb-2.5 flex items-center gap-2">
                     <BookOpenText size={18} className="text-slate-500" />
-                    Berkas Modul Ajar (PDF)
+                    Berkas Administrasi Guru (PDF)
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredDocs.map((doc) => (
@@ -350,7 +350,7 @@ export default function SilabusPage() {
                   <BookOpen size={44} className="text-slate-300 mb-3 " />
                   <h4 className="text-[16px] font-bold text-slate-800 mb-1">Materi Tidak Ditemukan</h4>
                   <p className="text-slate-500 text-[13px] max-w-sm">
-                    {activeSubject ? `Materi modul ajar untuk mata pelajaran "${activeSubject}" belum dipublikasikan.` : "Belum ada modul ajar yang dipublikasikan."}
+                    {activeSubject ? `Materi Administrasi Guru untuk mata pelajaran "${activeSubject}" belum dipublikasikan.` : "Belum ada Administrasi Guru yang dipublikasikan."}
                   </p>
                 </div>
               )}
@@ -374,7 +374,7 @@ export default function SilabusPage() {
             <div className="flex-1 bg-slate-800 p-2 relative flex items-center justify-center h-[70vh]">
               <iframe
                 src={previewDoc.url}
-                title="Pratinjau Modul Ajar"
+                title="Pratinjau Administrasi Guru"
                 className="w-full h-full border-none rounded-[var(--ui-radius-small)] bg-white"
               />
             </div>

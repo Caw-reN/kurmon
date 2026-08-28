@@ -198,8 +198,12 @@ export default function KepsekExecutiveDashboard({
     const hikLogs = dashLogs?.hikvisionStudentToday || [];
     const recentLogs = (dashLogs?.recentLogs || []).filter(r => String(r?.true_person_type || r?.device_type || '').toUpperCase().includes('SISWA'));
     const allLogs = hikLogs.length > 0 ? hikLogs : recentLogs;
+    // Dedup berdasarkan ID (employee_id/nis) — konsisten dengan SharedDashboardLogs
     const uniq = {};
-    allLogs.forEach(r => { const k = r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id; if (k && !uniq[k]) uniq[k] = r; });
+    allLogs.forEach(r => {
+      const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
+      if (k && !uniq[k]) uniq[k] = r;
+    });
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(uniq).forEach(r => {
       let st = String(r?.status || 'Hadir').toLowerCase();
@@ -211,11 +215,10 @@ export default function KepsekExecutiveDashboard({
       else if (st.includes('alpa')) s.Alpa++;
       else s.Hadir++;
     });
+    // CATATAN: Alpa TIDAK di-inflate otomatis dari totalStudents
+    // karena data mesin Hikvision hanya mencakup siswa yang tap — bukan semua siswa
+    // Alpa akan dihitung dari kedisiplinan_absensi di latestStudentLogs jika tersedia
     const totalSiswaInSchool = dashLogs?.totalStudents || 0;
-    if (new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19) > '08:00:00' && totalSiswaInSchool > 0) {
-      const recorded = s.Hadir + s.Terlambat + s.Izin + s.Sakit + s.Alpa;
-      s.Alpa += Math.max(0, totalSiswaInSchool - recorded);
-    }
     return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool };
   }, [dashLogs]);
 
@@ -410,7 +413,7 @@ export default function KepsekExecutiveDashboard({
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         {[
           { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen` },
-          { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Alpa} alpa` },
+          { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu` },
           { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmitted, sub: `/ ${todaySchedule.length} Slot`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${Math.max(0, todaySchedule.length - jurnalSubmitted)} slot belum terisi` },
           { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini` },
           { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif` },
@@ -773,8 +776,8 @@ export default function KepsekExecutiveDashboard({
                       <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center text-[10px] font-black text-rose-700 shrink-0 uppercase">{(s.name || s.studentName || 'S').charAt(0)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 truncate">{s.name || s.studentName || `Siswa ${i + 1}`}</p>
-                        <p className="text-[10px] text-slate-500 font-medium">{s.className || s.class || '—'}</p>
-                        <p className="text-[10px] text-rose-600 font-semibold mt-0.5 line-clamp-1">{s.note || s.violation || s.reason || 'Catatan pelanggaran'}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">{s.className || s.class_name || s.class || '—'}</p>
+                        <p className="text-[10px] text-rose-600 font-semibold mt-0.5 line-clamp-1">{s.total_alpha || s.note || s.violation || s.reason || 'Catatan pelanggaran'}</p>
                       </div>
                       <span className="text-[9px] font-black bg-rose-200 text-rose-800 px-1.5 py-1 rounded-full shrink-0 leading-none">{s.points || 0}P</span>
                     </div>
@@ -797,8 +800,8 @@ export default function KepsekExecutiveDashboard({
                       <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-black text-amber-700 shrink-0 uppercase">{(s.name || s.studentName || 'S').charAt(0)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 truncate">{s.name || s.studentName || `Siswa ${i + 1}`}</p>
-                        <p className="text-[10px] text-slate-500 font-medium">{s.className || s.class || '—'}</p>
-                        <p className="text-[10px] text-amber-700 font-semibold mt-0.5 line-clamp-1">{s.achievement || s.note || 'Capaian prestasi'}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">{s.className || s.class_name || s.class || '—'}</p>
+                        <p className="text-[10px] text-amber-700 font-semibold mt-0.5 line-clamp-1">{s.achievement || s.nama_prestasi || s.note || 'Capaian prestasi'}</p>
                       </div>
                       <Star size={12} className="text-amber-500 shrink-0 mt-1" />
                     </div>

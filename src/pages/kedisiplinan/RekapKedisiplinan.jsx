@@ -518,25 +518,21 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
         {/* Row 1: Quick Filter Sub-Tab Pills + Student Counter */}
         <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex bg-slate-100/80 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/80 gap-1 overflow-x-auto">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
             {[
               { id: 'siswa', label: 'Data Per Siswa', icon: User },
               { id: 'kelas', label: 'Data Per Kelas', icon: Users },
               { id: 'leaderboard', label: 'Peringkat Pelanggaran', icon: Trophy }
             ].map(tab => (
-              <button
+              <Button
                 key={tab.id}
-                type="button"
+                variant={activeSection === tab.id ? 'primary' : 'ghost'}
                 onClick={() => setActiveSection(tab.id)}
-                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none shrink-0 flex items-center gap-1.5 ${
-                  activeSection === tab.id
-                    ? 'bg-white text-[var(--ui-primary)] shadow-2xs font-black'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
+                className={`shrink-0 ${activeSection !== tab.id ? 'text-slate-500' : ''}`}
               >
-                <tab.icon size={14} className={activeSection === tab.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
+                <tab.icon size={15} />
                 <span>{tab.label}</span>
-              </button>
+              </Button>
             ))}
           </div>
 

@@ -1006,31 +1006,23 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       </div>
 
       {/* Mobile Tab Switcher */}
-      <div className="lg:hidden flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
-        <button
-          type="button"
+      <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+        <Button
+          variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
           onClick={() => setMobileTab('siswa')}
-          className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
-            mobileTab === 'siswa' 
-              ? 'bg-white text-emerald-700 shadow-xs font-black' 
-              : 'text-slate-600 hover:text-slate-900 bg-transparent'
-          }`}
+          className={`flex-1 shrink-0 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
         >
-          <Users size={14} />
+          <Users size={15} />
           <span>1. Siswa Binaan ({filteredStudents.length})</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={mobileTab === 'catatan' ? 'primary' : 'ghost'}
           onClick={() => setMobileTab('catatan')}
-          className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 ${
-            mobileTab === 'catatan' 
-              ? 'bg-white text-emerald-700 shadow-xs font-black' 
-              : 'text-slate-600 hover:text-slate-900 bg-transparent'
-          }`}
+          className={`flex-1 shrink-0 ${mobileTab !== 'catatan' ? 'text-slate-500' : ''}`}
         >
-          <MessageSquare size={14} />
+          <MessageSquare size={15} />
           <span>2. Catatan ({filteredCatatan.length})</span>
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">

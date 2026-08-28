@@ -10,6 +10,7 @@ import { saveAs } from 'file-saver';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import useAuthStore from '../../../store/monitoring/authStore.js';
+import { Button } from '../../../components/ui.jsx';
 
 export default function SiswaKeluar() {
   const [exitedStudents, setExitedStudents] = useState([]);
@@ -329,7 +330,7 @@ export default function SiswaKeluar() {
           </div>
 
           {/* Quick Filter Tabs */}
-          <div className="flex bg-slate-100/80 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/80 gap-1 overflow-x-auto">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 w-full pb-2">
             {[
               { id: 'SEMUA', label: 'Semua Data', count: exitedStudents.length },
               { id: 'Pindah Sekolah', label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'] },
@@ -337,23 +338,21 @@ export default function SiswaKeluar() {
               { id: 'Dikeluarkan', label: 'Dikeluarkan', count: reasonStats['Dikeluarkan'] },
               { id: 'Lainnya', label: 'Lainnya', count: reasonStats['Lainnya'] },
             ].map(tab => (
-              <button
+              <Button
                 key={tab.id}
-                type="button"
+                variant={activeTabReason === tab.id ? 'primary' : 'ghost'}
                 onClick={() => setActiveTabReason(tab.id)}
-                className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                  activeTabReason === tab.id
-                    ? 'bg-white text-emerald-950 shadow-xs border border-slate-200/80 font-black'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                className={`shrink-0 flex items-center gap-1.5 ${
+                  activeTabReason !== tab.id ? 'text-slate-600' : ''
                 }`}
               >
                 <span>{tab.label}</span>
                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                  activeTabReason === tab.id ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'
+                  activeTabReason === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-slate-600'
                 }`}>
                   {tab.count}
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
 

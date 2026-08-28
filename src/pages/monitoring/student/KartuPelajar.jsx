@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { StudentCard } from '../../admin/pengaturan/KartuPelajar.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
+import { Button } from '../../../components/ui.jsx';
 
 /**
  * KartuPelajar.jsx — Halaman Khusus Kartu Pelajar Siswa.
@@ -289,25 +290,21 @@ const KartuPelajarSiswa = () => {
             </h2>
 
             {/* Toggle Card Flip Side */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-[var(--ui-radius-control,16px)] border border-slate-200">
-              <button
-                type="button"
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+              <Button
+                variant={cardSide === 'front' ? 'primary' : 'ghost'}
                 onClick={() => setCardSide('front')}
-                className={`px-3 py-1 rounded-[var(--ui-radius-small,12px)] text-xs font-black transition-all border-none cursor-pointer ${
-                  cardSide === 'front' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`flex-1 shrink-0 ${cardSide !== 'front' ? 'text-slate-500' : ''}`}
               >
                 Sisi Depan
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={cardSide === 'back' ? 'primary' : 'ghost'}
                 onClick={() => setCardSide('back')}
-                className={`px-3 py-1 rounded-[var(--ui-radius-small,12px)] text-xs font-black transition-all border-none cursor-pointer ${
-                  cardSide === 'back' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`flex-1 shrink-0 ${cardSide !== 'back' ? 'text-slate-500' : ''}`}
               >
                 Sisi Belakang
-              </button>
+              </Button>
             </div>
           </div>
 

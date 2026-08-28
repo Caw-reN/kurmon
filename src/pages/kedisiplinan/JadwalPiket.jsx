@@ -187,13 +187,14 @@ export default function JadwalPiket({ teachers = [] }) {
          </div>
          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Pilih Kampus:</label>
-            <div className="flex bg-slate-100/90 p-1 rounded-[var(--ui-radius-small)] w-full sm:w-auto border border-slate-200/60">
+            <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0">
                {["Kampus A", "Kampus B"].map(k => (
-                  <Button variant="outline" 
+                  <Button
+                     variant={filterKampus === k ? 'primary' : 'ghost'}
                      key={k} 
                      type="button"
                      onClick={() => setFilterKampus(k)}
-                     className={`flex-1 sm:flex-initial text-xs font-black py-1.5 px-4 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none ${filterKampus === k ? 'bg-white text-[var(--ui-primary)] shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'}`}
+                     className={`flex-1 sm:flex-none shrink-0 ${filterKampus !== k ? 'text-slate-500' : ''}`}
                   >
                      {k}
                   </Button>

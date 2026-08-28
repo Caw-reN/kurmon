@@ -4,7 +4,7 @@ import {
   Edit2, Trash2, ChevronLeft, ChevronRight, X, 
   Tag, RotateCcw, CalendarCheck
 } from 'lucide-react';
-import { UISelect } from '../../../components/ui.jsx';
+import { UISelect, Button } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 
@@ -564,69 +564,46 @@ export default function TabAkademik(props) {
             </div>
 
             {/* View Mode Switcher (Desktop) */}
-            <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/60">
-              <button
-                type="button"
+            <div className="hidden lg:flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+              <Button
+                variant={viewMode === 'split' ? 'primary' : 'ghost'}
                 onClick={() => setViewMode("split")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
-                  viewMode === "split"
-                    ? "bg-white text-slate-800 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-                title="Tampilan Terpisah (Agenda & Kalender)"
+                className={`flex-1 shrink-0 ${viewMode !== 'split' ? 'text-slate-500' : ''}`}
               >
                 Split View
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={viewMode === 'cards' ? 'primary' : 'ghost'}
                 onClick={() => setViewMode("cards")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
-                  viewMode === "cards"
-                    ? "bg-white text-slate-800 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-                title="Tampilan Penuh Daftar Agenda"
+                className={`flex-1 shrink-0 ${viewMode !== 'cards' ? 'text-slate-500' : ''}`}
               >
                 Daftar Penuh
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'primary' : 'ghost'}
                 onClick={() => setViewMode("calendar")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
-                  viewMode === "calendar"
-                    ? "bg-white text-slate-800 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-                title="Tampilan Kalender Penuh"
+                className={`flex-1 shrink-0 ${viewMode !== 'calendar' ? 'text-slate-500' : ''}`}
               >
                 Kalender Penuh
-              </button>
+              </Button>
             </div>
 
             {/* Mobile Tab Switcher */}
-            <div className="flex lg:hidden items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/60">
-              <button
-                type="button"
+            <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+              <Button
+                variant={mobileTab === 'list' ? 'primary' : 'ghost'}
                 onClick={() => setMobileTab("list")}
-                className={`px-3 py-1 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
-                  mobileTab === "list"
-                    ? "bg-white text-slate-800 shadow-2xs"
-                    : "text-slate-500"
-                }`}
+                className={`flex-1 shrink-0 ${mobileTab !== 'list' ? 'text-slate-500' : ''}`}
               >
                 Agenda ({filteredCalendar.length})
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={mobileTab === 'calendar' ? 'primary' : 'ghost'}
                 onClick={() => setMobileTab("calendar")}
-                className={`px-3 py-1 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
-                  mobileTab === "calendar"
-                    ? "bg-white text-slate-800 shadow-2xs"
-                    : "text-slate-500"
-                }`}
+                className={`flex-1 shrink-0 ${mobileTab !== 'calendar' ? 'text-slate-500' : ''}`}
               >
                 Kalender
-              </button>
+              </Button>
             </div>
 
             {/* Clear Filter Button if active */}

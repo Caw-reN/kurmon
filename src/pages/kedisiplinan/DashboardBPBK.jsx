@@ -2154,23 +2154,21 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             </div>
 
             {/* Dossier Sub-Tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
               {[
                 { id: 'pelanggaran', label: `Pelanggaran (${dossierStudent.riwayat_list.length})` },
                 { id: 'konseling', label: `Sesi BK (${bkSessions.filter(s => String(s.student_nis) === String(dossierStudent.nis)).length})` },
                 { id: 'visit', label: `Home Visit (${homeVisits.filter(s => String(s.student_nis) === String(dossierStudent.nis)).length})` },
                 { id: 'surat', label: `Surat (${bkLetters.filter(s => String(s.student_nis) === String(dossierStudent.nis)).length})` },
               ].map(t => (
-                <button
+                <Button
                   key={t.id}
-                  type="button"
+                  variant={dossierTab === t.id ? 'primary' : 'ghost'}
                   onClick={() => setDossierTab(t.id)}
-                  className={`flex-1 py-1.5 text-[11px] font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer text-center ${
-                    dossierTab === t.id ? 'bg-white text-slate-800 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 bg-transparent'
-                  }`}
+                  className={`flex-1 shrink-0 ${dossierTab !== t.id ? 'text-slate-500' : ''}`}
                 >
                   {t.label}
-                </button>
+                </Button>
               ))}
             </div>
 

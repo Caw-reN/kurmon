@@ -2040,28 +2040,28 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           <div className="space-y-4 font-inherit">
             
             {/* Mode Switcher */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-[var(--ui-radius-control)] text-xs font-bold border border-slate-200/80">
-              <button
-                type="button"
+            <div className="flex items-center gap-2">
+              <Button
+                variant={massTtlMode === 'serentak' ? 'primary' : 'ghost'}
                 onClick={() => setMassTtlMode('serentak')}
-                className={`flex-1 py-1.5 px-3 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  massTtlMode === 'serentak' ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold ${
+                  massTtlMode !== 'serentak' ? 'text-slate-500' : ''
                 }`}
               >
                 <CheckSquare size={14} />
                 <span>Format Serentak (Sama)</span>
-              </button>
+              </Button>
 
-              <button
-                type="button"
+              <Button
+                variant={massTtlMode === 'tabel' ? 'primary' : 'ghost'}
                 onClick={() => setMassTtlMode('tabel')}
-                className={`flex-1 py-1.5 px-3 rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  massTtlMode === 'tabel' ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold ${
+                  massTtlMode !== 'tabel' ? 'text-slate-500' : ''
                 }`}
               >
                 <Edit2 size={14} />
                 <span>Tabel Editor per Siswa</span>
-              </button>
+              </Button>
             </div>
 
             {massTtlMode === 'serentak' ? (

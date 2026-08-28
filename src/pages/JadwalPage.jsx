@@ -129,34 +129,46 @@ export default function JadwalPage() {
   ];
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-fade-in print-landscape relative">
-      <div className="flex flex-col gap-6 w-full max-w-full">
-
-
-        {/* Tab Switcher */}
-        <div className="flex bg-white/60 backdrop-blur-xl border border-white/50 p-1.5 rounded-[var(--ui-radius-card)] self-start z-30 print-hidden shadow-sm">
-          <Button variant="outline" 
-            type="button"
-            onClick={() =>setActiveSubTab("pelajaran")}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${activeSubTab === "pelajaran" ? "text-white shadow-2xs" : "text-slate-600 hover:bg-slate-100"}`}
-            style={activeSubTab ==="pelajaran" ? { backgroundColor: primaryColor } : {}}
-          >
-            <Calendar size={14} />
-            <span>Jadwal Pelajaran</span></Button>
-          <Button variant="outline" 
-            type="button"
-            onClick={() =>setActiveSubTab("piket")}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${activeSubTab === "piket" ? "text-white shadow-2xs" : "text-slate-600 hover:bg-slate-100"}`}
-            style={activeSubTab ==="piket" ? { backgroundColor: primaryColor } : {}}
-          >
-            <Users size={14} />
-            <span>Jadwal Piket</span></Button>
+    <div className="w-full flex flex-col animate-fade-in print-landscape relative bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden z-10">
+      
+      {/* Header & Tab Switcher Area */}
+      <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 print-hidden">
+        <div>
+          <h2 className="text-lg font-black tracking-tight text-slate-800">
+            Jadwal Akademik
+          </h2>
+          <p className="text-xs font-semibold text-slate-500 mt-1">
+            Kelola jadwal pelajaran siswa dan jadwal piket guru mingguan.
+          </p>
         </div>
 
+        {/* Standard UI Segmented Control Tabs (No box-in-box) */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button 
+            variant={activeSubTab === "pelajaran" ? "primary" : "ghost"}
+            onClick={() => setActiveSubTab("pelajaran")}
+            className={activeSubTab !== "pelajaran" ? "text-slate-500" : ""}
+          >
+            <Calendar size={15} />
+            <span>Jadwal Pelajaran</span>
+          </Button>
+          
+          <Button 
+            variant={activeSubTab === "piket" ? "primary" : "ghost"}
+            onClick={() => setActiveSubTab("piket")}
+            className={activeSubTab !== "piket" ? "text-slate-500" : ""}
+          >
+            <Users size={15} />
+            <span>Jadwal Piket</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col w-full max-w-full">
         {activeSubTab ==="pelajaran" ? (
           <>
-            {/* Search & Filters Card */}
-            <div className="bg-white/60 backdrop-blur-xl rounded-[var(--ui-radius-control)] p-4 md:p-5 shadow-sm border border-white/50 flex flex-col xl:flex-row gap-3 z-30 print-hidden">
+            {/* Search & Filters Area */}
+            <div className="p-4 md:p-5 border-b border-slate-100 flex flex-col xl:flex-row gap-3 print-hidden bg-white">
                <div className="relative flex-1 min-w-[220px]">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input 
@@ -200,9 +212,9 @@ export default function JadwalPage() {
                </div>
             </div>
      
-            {/* Schedule Table Container Card */}
-            <div className="bg-white/60 backdrop-blur-xl rounded-[var(--ui-radius-small)] shadow-sm border border-white/50 z-10 print:border-none print:-none print:rounded-[var(--ui-radius-small)] shadow-none print:px-6 print:pt-4 print:pb-8 overflow-x-auto custom-scrollbar">
-              <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center print-hidden">
+            {/* Schedule Table Container */}
+            <div className="bg-white z-10 print:border-none print:-none shadow-none print:px-6 print:pt-4 print:pb-8 overflow-x-auto custom-scrollbar">
+              <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center print-hidden">
                 <h3 className="font-extrabold text-[17px] text-slate-800">
                   Jadwal Pelajaran {selectedGrade !=="Semua" ? `Tingkat ${selectedGrade}` :""} {selectedMajor !=="Semua" ? `| ${selectedMajor}` :""} {selectedClassEffective !=="Semua" ? `| ${selectedClassEffective}` :""}
                 </h3>
@@ -225,7 +237,7 @@ export default function JadwalPage() {
             </div>
           </>
         ) : (
-          <div className="z-10">
+          <div className="z-10 bg-white">
             <JadwalPiket teachers={teachers} />
           </div>
         )}

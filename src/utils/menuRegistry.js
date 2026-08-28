@@ -101,7 +101,7 @@ export const MENU_REGISTRY = [
   {
     id: 'modul_ajar',
     icon: FileText,
-    label: 'Modul Ajar',
+    label: 'Perangkat Ajar',
     section: 'Pembelajaran',
     adminGroup: 'Kurikulum',
     adminGroupIcon: BookOpen,

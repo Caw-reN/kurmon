@@ -537,37 +537,28 @@ export default function TatibSkorKredit() {
         <div className="p-4 sm:p-5 border-b border-slate-100 space-y-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Filter Tabs */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-[var(--ui-radius-small)] shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
-              <button
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 self-start sm:self-auto max-w-full">
+              <Button
+                variant={filterType === 'all' ? 'primary' : 'ghost'}
                 onClick={() => setFilterType('all')}
-                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
-                  filterType === 'all'
-                    ? 'bg-white text-slate-800 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
+                className={`shrink-0 ${filterType !== 'all' ? 'text-slate-500' : ''}`}
               >
                 Semua ({countTotal})
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={filterType === 'pelanggaran' ? 'primary' : 'ghost'}
                 onClick={() => setFilterType('pelanggaran')}
-                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
-                  filterType === 'pelanggaran'
-                    ? 'bg-rose-500 text-white shadow-xs'
-                    : 'text-slate-500 hover:text-rose-600'
-                }`}
+                className={`shrink-0 ${filterType === 'pelanggaran' ? '!bg-rose-600 !text-white !shadow-xs' : 'text-slate-500 hover:text-rose-600'}`}
               >
                 Pelanggaran ({countPelanggaran})
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={filterType === 'penghargaan' ? 'primary' : 'ghost'}
                 onClick={() => setFilterType('penghargaan')}
-                className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
-                  filterType === 'penghargaan'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-500 hover:text-emerald-700'
-                }`}
+                className={`shrink-0 ${filterType === 'penghargaan' ? '!bg-emerald-600 !text-white !shadow-xs' : 'text-slate-500 hover:text-emerald-600'}`}
               >
                 Prestasi ({countPrestasi})
-              </button>
+              </Button>
             </div>
 
             {/* Action Buttons */}

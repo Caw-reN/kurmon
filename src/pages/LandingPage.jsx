@@ -190,21 +190,18 @@ export default function LandingPage() {
                     />
                   </div>
                   
-                  <div className="flex gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-full md:w-auto">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 w-full md:w-auto">
                     {['all', 'pelanggaran', 'prestasi'].map((type) => (
-                      <button
+                      <Button
                         key={type}
-                        type="button"
+                        variant={rulesFilterType === type ? 'primary' : 'ghost'}
                         onClick={() => setRulesFilterType(type)}
-                        className={`flex-1 md:flex-none cursor-pointer px-4 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-black uppercase tracking-wider transition-all border-none ${
-                          rulesFilterType === type 
-                            ? 'bg-white shadow-xs' 
-                            : 'bg-transparent text-slate-500 hover:text-slate-700'
+                        className={`flex-1 md:flex-none shrink-0 text-[11px] font-black uppercase tracking-wider ${
+                          rulesFilterType !== type ? 'text-slate-500' : ''
                         }`}
-                        style={rulesFilterType === type ? { color: 'var(--ui-primary)' } : {}}
                       >
                         {type === 'all' ? 'Semua' : type}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>

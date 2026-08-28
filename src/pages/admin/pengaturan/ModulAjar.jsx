@@ -14,6 +14,20 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, Modal } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
+
+const PERANGKAT_AJAR_LIST = [
+  { id: 'Kalender Pendidikan', label: 'KALENDER', type: 'wajib' },
+  { id: 'PROTA dan PROMES', label: 'PROTA', type: 'wajib' },
+  { id: 'PROMES', label: 'PROMES', type: 'wajib' },
+  { id: 'CP, ATP dan TP', label: 'CP/ATP', type: 'wajib' },
+  { id: 'Modul Ajar', label: 'MODUL AJAR', type: 'wajib' },
+  { id: 'LKPD', label: 'LKPD', type: 'wajib' },
+  { id: 'Modul projek (P5) jika ada', label: 'P5', type: 'opsional' },
+  { id: 'Materi', label: 'MATERI', type: 'opsional' }
+];
+
+const WAJIB_COUNT = PERANGKAT_AJAR_LIST.filter(k => k.type === 'wajib').length;
+
 const TabSilabus = lazy(() => import('../tabs/TabSilabus.jsx'));
 const TabSilabusGuru = lazy(() => import('../tabs/TabSilabusGuru.jsx'));
 
@@ -48,6 +62,7 @@ export default function ModulAjar(props) {
   const [documents, setDocuments] = useState(EMPTY_ARRAY);
   const [materiList, setMateriList] = useState(EMPTY_ARRAY);
   const [apiTeachers, setApiTeachers] = useState(EMPTY_ARRAY);
+  
   const [isLoading, setIsLoading] = useState(true);
 
   // ── Unified Master Data with Store Fallback ──────────────────
@@ -88,6 +103,7 @@ export default function ModulAjar(props) {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   const [monitoringSearch, setMonitoringSearch] = useState('');
   const [monitoringStatusFilter, setMonitoringStatusFilter] = useState('all'); // 'all' | 'submitted' | 'pending'
+  const [monitoringSortType, setMonitoringSortType] = useState('nama-asc');
 
   // ── Modal states ─────────────────────────────────────────────
   const [isModulModalOpen, setIsModulModalOpen] = useState(false);
@@ -116,14 +132,14 @@ export default function ModulAjar(props) {
   const activeYear = useMemo(() => academicYears.find(y => y.is_active)?.nama || '', [academicYears]);
 
   // ── Tab state ────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState(isCurriculum ? 'rekap' : 'modul-materi');
+  const [activeTab, setActiveTab] = useState(isCurriculum ? 'rekap' : 'administrasi-materi');
 
-  // ── Form State: Upload Modul Ajar (RPP) ──────────────────────
+  // ── Form State: Upload Administrasi Guru ──────────────────────
   const [modulForm, setModulForm] = useState({
     nama_dokumen: '', file_url: '',
     tahun_ajaran: activeYear || '',
     mapel: '', semester: 'Ganjil', kelas: '-',
-    deskripsi: '',
+    deskripsi: '', kategori: 'Modul Ajar',
     file_size: null, original_size: null,
     saved_percent: 0, is_compressed: false
   });
@@ -243,14 +259,15 @@ export default function ModulAjar(props) {
   const unifiedList = useMemo(() => {
     const list = [];
     
-    // 1. Modul Ajar (RPP) items
+    // 1. Administrasi Guru items
     if (filterType === 'all' || filterType === 'modul') {
       myDocs.forEach(d => {
         list.push({
           id: `modul-${d.id}`,
           originalId: d.id,
           itemType: 'modul',
-          title: d.nama_dokumen || 'Modul Ajar (RPP)',
+          kategori: d.kategori,
+          title: d.nama_dokumen || 'Administrasi Guru',
           mapel: d.mapel || 'Umum',
           kelas: d.kelas && d.kelas !== '-' ? d.kelas : null,
           semester: d.semester || 'Ganjil',
@@ -300,6 +317,18 @@ export default function ModulAjar(props) {
       return matchSearch && matchMapel;
     });
   }, [myDocs, myMateris, filterType, filterMapel, searchTerm, activeYear]);
+  const [arsipCurrentPage, setArsipCurrentPage] = useState(1);
+  const arsipItemsPerPage = 12; // Allow 12 to fit nicely in 3 columns (grid-cols-3)
+  
+  const paginatedUnifiedList = useMemo(() => {
+    const start = (arsipCurrentPage - 1) * arsipItemsPerPage;
+    return unifiedList.slice(start, start + arsipItemsPerPage);
+  }, [unifiedList, arsipCurrentPage]);
+  
+  useEffect(() => {
+    setArsipCurrentPage(1);
+  }, [filterType, filterMapel, searchTerm]);
+
 
   // ── Derived Monitoring Stats (Kurikulum) ─────────────────────
   const monitoringData = useMemo(() => {
@@ -324,33 +353,55 @@ export default function ModulAjar(props) {
       );
       const uniqueSubjects = [...new Set(loads.map(l => l.subject).filter(Boolean))];
       const subjectStr = uniqueSubjects.length > 0 ? `Mapel: ${uniqueSubjects.join(', ')}` : '';
-      const combinedStr = [walasStr, subjectStr].filter(Boolean).join(' | ');
+      
+      const walasNames = walasClasses.map(c => c.name).join(', ');
+      const mapelNames = uniqueSubjects.join(', ');
+  
+
+      const uploadedWajibCount = PERANGKAT_AJAR_LIST.filter(kat => 
+          kat.type === 'wajib' && teacherDocs.some(doc => doc.kategori === kat.id)
+      ).length;
 
       return {
         code: t.code,
         name: t.name,
-        class_name: combinedStr || '-',
-        hasSubmitted: teacherDocs.length > 0,
-        documents: teacherDocs
+        walas: walasNames, mapel: mapelNames,
+        hasSubmitted: uploadedWajibCount >= WAJIB_COUNT,
+        documents: teacherDocs,
+        uploadedWajibCount,
+        progressPercent: Math.round((uploadedWajibCount / Math.max(WAJIB_COUNT, 1)) * 100)
       };
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [allTeachers, documents, allClasses, allTeachingLoads]);
 
   const stats = useMemo(() => {
     const total = monitoringData.length;
-    const submitted = monitoringData.filter(d => d.hasSubmitted).length;
+    const submitted = monitoringData.filter(d => {
+      const uploadedWajib = PERANGKAT_AJAR_LIST.filter(kat => kat.type === 'wajib' && d.documents.some(doc => doc.kategori === kat.id)).length;
+      return uploadedWajib >= WAJIB_COUNT;
+    }).length;
     const pending = total - submitted;
     const percentage = total > 0 ? Math.round((submitted / total) * 100) : 0;
     return { total, submitted, pending, percentage };
   }, [monitoringData]);
 
   // Filtered monitoring list
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const filteredMonitoringData = useMemo(() => {
-    return monitoringData.filter(t => {
+    let result = monitoringData.filter(t => {
+      const teacherName = String(t.name || '').toLowerCase();
+      const teacherCode = String(t.code || '').toLowerCase();
+      
+      const classStr = String(t.walas || '').toLowerCase();
+      const subjectStr = String(t.mapel || '').toLowerCase();
+  
+      
       const matchSearch = !monitoringSearch ||
-        (t.name || '').toLowerCase().includes(monitoringSearch.toLowerCase()) ||
-        (t.code || '').toLowerCase().includes(monitoringSearch.toLowerCase()) ||
-        (t.class_name || '').toLowerCase().includes(monitoringSearch.toLowerCase());
+        teacherName.includes(monitoringSearch.toLowerCase()) ||
+        teacherCode.includes(monitoringSearch.toLowerCase()) ||
+        classStr.includes(monitoringSearch.toLowerCase()) || subjectStr.includes(monitoringSearch.toLowerCase());
       
       const matchStatus = 
         monitoringStatusFilter === 'all' ||
@@ -359,18 +410,41 @@ export default function ModulAjar(props) {
 
       return matchSearch && matchStatus;
     });
-  }, [monitoringData, monitoringSearch, monitoringStatusFilter]);
+
+    result.sort((a, b) => {
+      if (monitoringSortType === 'nama-asc') {
+        return (a.name || '').localeCompare(b.name || '');
+      } else if (monitoringSortType === 'nama-desc') {
+        return (b.name || '').localeCompare(a.name || '');
+      } else if (monitoringSortType === 'progres-desc') {
+        return (b.progressPercent || 0) - (a.progressPercent || 0);
+      } else if (monitoringSortType === 'progres-asc') {
+        return (a.progressPercent || 0) - (b.progressPercent || 0);
+      }
+      return 0;
+    });
+
+    return result;
+  }, [monitoringData, monitoringSearch, monitoringStatusFilter, monitoringSortType]);
+
+  const paginatedMonitoringData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredMonitoringData.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredMonitoringData, currentPage]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [monitoringSearch, monitoringStatusFilter]);
+
 
   // ── Tabs Navigation ─────────────────────────────────────────
   const tabs = useMemo(() => {
     const list = [];
     if (isCurriculum) {
-      list.push({ id: 'rekap', label: 'Monitoring RPP', icon: BarChart3 });
-      list.push({ id: 'modul-materi', label: 'Arsip Modul & Materi', icon: LayoutList });
-      list.push({ id: 'silabus', label: 'Penyusunan RPP', icon: PenTool });
+      list.push({ id: 'rekap', label: 'Monitoring Administrasi', icon: BarChart3 });
+      list.push({ id: 'administrasi-materi', label: 'Arsip Modul & Materi', icon: LayoutList });
     } else {
-      list.push({ id: 'modul-materi', label: 'Modul & Materi Ajar', icon: BookOpenText });
-      list.push({ id: 'silabusguru', label: 'Penyusunan RPP', icon: PenTool });
+      list.push({ id: 'administrasi-materi', label: 'Administrasi & Perangkat Ajar', icon: BookOpenText });
     }
     return list;
   }, [isCurriculum]);
@@ -460,7 +534,7 @@ export default function ModulAjar(props) {
     }
   };
 
-  // ── Submit: Upload Modul Ajar (RPP) ─────────────────────────
+  // ── Submit: Upload Administrasi Guru ─────────────────────────
   const handleModulSubmit = async (e) => {
     e.preventDefault();
     setModulError('');
@@ -478,18 +552,18 @@ export default function ModulAjar(props) {
           nama_dokumen: modulForm.nama_dokumen, file_url: modulForm.file_url,
           tahun_ajaran: modulForm.tahun_ajaran || activeYear, 
           mapel: modulForm.mapel, kelas: modulForm.kelas || '-', semester: modulForm.semester,
-          deskripsi: modulForm.deskripsi
+          deskripsi: modulForm.deskripsi, kategori: modulForm.kategori
         })
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('Modul Ajar (RPP) berhasil diunggah!');
+        showToast('Administrasi Guru berhasil diunggah!');
         setIsModulModalOpen(false);
         setModulForm({
           nama_dokumen: '', file_url: '',
           tahun_ajaran: activeYear, kelas: '-',
           mapel: availableSubjects[0] || '',
-          semester: 'Ganjil', deskripsi: '',
+          semester: 'Ganjil', deskripsi: '', kategori: 'Modul Ajar',
           file_size: null, original_size: null,
           saved_percent: 0, is_compressed: false
         });
@@ -558,7 +632,7 @@ export default function ModulAjar(props) {
   // ── Delete Handlers ─────────────────────────────────────────
   const handleDeleteModul = async (id, code) => {
     if (typeof window !== 'undefined' && window.confirm) {
-      if (!window.confirm('Hapus berkas Modul Ajar (RPP) ini?')) return;
+      if (!window.confirm('Hapus berkas Administrasi Guru ini?')) return;
     }
     try {
       const res = await fetch('/api/modul-ajar-guru', {
@@ -659,57 +733,49 @@ export default function ModulAjar(props) {
     <div className="space-y-4 sm:space-y-5 relative animate-in fade-in duration-300 z-10 pb-20">
       {/* Top Header */}
       <PageHeader
-        title="Modul & Materi Ajar"
-        description="Kelola Modul Ajar (RPP Guru) dan Materi Pembelajaran Siswa dalam satu halaman praktis."
+        title="Administrasi & Perangkat Ajar"
+        description="Kelola Modul Ajar (Perangkat Administrasi Guru) dan Materi Pembelajaran Siswa dalam satu halaman praktis."
         icon={BookOpen}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
 
-      {/* ── TAB 1: Monitoring Pengumpulan RPP (Kurikulum View) ── */}
+      {/* ── TAB 1: Monitoring Pengumpulan Administrasi (Kurikulum View) ── */}
       {activeTab === 'rekap' && isCurriculum && (
         <div className="space-y-4 animate-in fade-in duration-200">
           
           {/* Quick Stat Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-              <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                <Users size={20} strokeWidth={2.5} />
-              </div>
+          <div className="flex flex-col md:flex-row gap-3 items-stretch">
+            <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
+              <div className="text-slate-400 shrink-0"><Users size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">{stats.total} Guru</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Total Guru Aktif</p>
+                <p className="text-xl font-black text-slate-800 leading-tight">{stats.total} Guru</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Total Guru Aktif</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-              <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <UserCheck size={20} strokeWidth={2.5} />
-              </div>
+            <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
+              <div className="text-emerald-500 shrink-0"><UserCheck size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-emerald-700 leading-tight">{stats.submitted} Guru</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Sudah Kumpul</p>
+                <p className="text-xl font-black text-emerald-700 leading-tight">{stats.submitted} Guru</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Sudah Lengkap</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-              <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                <UserX size={20} strokeWidth={2.5} />
-              </div>
+            <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
+              <div className="text-rose-400 shrink-0"><UserX size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-rose-700 leading-tight">{stats.pending} Guru</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Belum Kumpul</p>
+                <p className="text-xl font-black text-rose-700 leading-tight">{stats.pending} Guru</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Belum Lengkap</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-              <div className="w-11 h-11 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-                <Sparkles size={20} strokeWidth={2.5} />
-              </div>
+            <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
+              <div className="text-emerald-500 shrink-0"><Sparkles size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-[var(--ui-primary)] leading-tight">{stats.percentage}%</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Tingkat Kepatuhan</p>
+                <p className="text-xl font-black text-emerald-700 leading-tight">{stats.percentage}%</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Tingkat Kepatuhan</p>
               </div>
             </div>
           </div>
@@ -720,7 +786,10 @@ export default function ModulAjar(props) {
             {/* Header & Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-black text-slate-800 text-sm">Status Pengumpulan Modul Ajar (RPP)</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-black text-slate-800 text-sm">Status Pengumpulan Administrasi</h3>
+                  
+                </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Tahun Ajaran: <strong className="text-[var(--ui-primary)] font-black">{activeYear || 'Semua TA Aktif'}</strong>
                 </p>
@@ -770,24 +839,36 @@ export default function ModulAjar(props) {
                   </button>
                 </div>
 
-                {/* Search */}
-                <div className="relative flex-1 sm:w-60">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                  <input 
-                    value={monitoringSearch} 
-                    onChange={e => setMonitoringSearch(e.target.value)} 
-                    placeholder="Cari guru / kode / mapel..."
-                    className="w-full pl-8 pr-7 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]" 
-                  />
-                  {monitoringSearch && (
-                    <button 
-                      type="button" 
-                      onClick={() => setMonitoringSearch('')} 
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
+                {/* Sort & Search */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 w-full lg:w-auto">
+                  <select
+                    value={monitoringSortType}
+                    onChange={(e) => setMonitoringSortType(e.target.value)}
+                    className="px-3 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] text-slate-600 cursor-pointer"
+                  >
+                    <option value="nama-asc">Urut: Nama (A-Z)</option>
+                    <option value="nama-desc">Urut: Nama (Z-A)</option>
+                    <option value="progres-desc">Urut: Progres Tertinggi</option>
+                    <option value="progres-asc">Urut: Progres Terendah</option>
+                  </select>
+                  <div className="relative flex-1 sm:w-60">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <input 
+                      value={monitoringSearch} 
+                      onChange={e => setMonitoringSearch(e.target.value)} 
+                      placeholder="Cari guru / kode / mapel..."
+                      className="w-full pl-8 pr-7 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]" 
+                    />
+                    {monitoringSearch && (
+                      <button 
+                        type="button" 
+                        onClick={() => setMonitoringSearch('')} 
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </div>
@@ -806,140 +887,188 @@ export default function ModulAjar(props) {
                   <table className="w-full text-xs text-left">
                     <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase border-b border-slate-200">
                       <tr>
-                        <th className="px-4 py-3 font-black">Nama Guru</th>
-                        <th className="px-4 py-3 font-black">Kode</th>
-                        <th className="px-4 py-3 font-black">Tugas Mengajar / Walas</th>
-                        <th className="px-4 py-3 text-center font-black">Status</th>
-                        <th className="px-4 py-3 font-black">Berkas RPP Terunggah</th>
+                        <th className="px-4 py-3 font-black w-[50px] text-center">#</th>
+                        <th className="px-4 py-3 font-black w-[250px]">Nama Guru</th>
+                        <th className="px-4 py-3 font-black">Mata Pelajaran & Kelas</th>
+                        <th className="px-4 py-3 text-center font-black w-[150px]">Status Lengkap</th>
+                        <th className="px-4 py-3 font-black w-[350px]">Ceklis Perangkat Ajar</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
-                      {filteredMonitoringData.map(teacher => (
-                        <tr key={teacher.code} className="hover:bg-slate-50/70 transition-colors">
+                      {paginatedMonitoringData.map((t, index) => (
+                        <tr key={t.code || index} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="px-4 py-3.5 text-center text-slate-400 font-black">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
                           <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-xs flex items-center justify-center shrink-0">
-                                {(teacher.name || 'G')[0]}
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-xs flex items-center justify-center shrink-0">
+                                {(t.name || 'G')[0]}
                               </div>
-                              <span className="font-extrabold text-slate-900">{teacher.name}</span>
+                              <div className="flex flex-col">
+                                <span className="font-extrabold text-slate-900 leading-tight">{t.name}</span>
+                                <span className="text-[10px] font-mono font-black text-slate-400 mt-0.5">{t.code}</span>
+                              </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">{teacher.code}</td>
-                          <td className="px-4 py-3.5 text-slate-600 max-w-[220px] truncate" title={teacher.class_name}>
-                            {teacher.class_name}
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider ${
-                              teacher.hasSubmitted 
-                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                                : 'bg-rose-50 text-rose-800 border border-rose-200'
-                            }`}>
-                              {teacher.hasSubmitted ? <CheckCircle2 size={11} className="text-emerald-600" /> : <AlertCircle size={11} className="text-rose-600" />}
-                              <span>{teacher.hasSubmitted ? 'Sudah Kumpul' : 'Belum Kumpul'}</span>
-                            </span>
+                          <td className="px-4 py-3.5">
+                            <div className="flex flex-col gap-1.5">
+                              {t.mapel ? (
+                                <div className="text-[11px] font-bold text-slate-700 leading-tight">
+                                  <span className="text-[10px] font-black uppercase text-slate-400 mr-1.5 inline-block">Mapel:</span>
+                                  {t.mapel}
+                                </div>
+                              ) : null}
+                              {t.walas ? (
+                                <div className="text-[11px] font-bold text-slate-700 leading-tight mt-0.5">
+                                  <span className="text-[10px] font-black uppercase text-slate-400 mr-1.5 inline-block">Walas:</span>
+                                  {t.walas}
+                                </div>
+                              ) : null}
+                              {!t.mapel && !t.walas && <span className="text-slate-400 font-black text-[11px]">-</span>}
+                            </div>
                           </td>
                           <td className="px-4 py-3.5">
-                            {teacher.hasSubmitted ? (
-                              <div className="space-y-1.5 max-w-xs">
-                                {teacher.documents.map(d => (
-                                  <div key={d.id} className="flex items-center justify-between gap-2 p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200">
-                                    <span className="font-bold text-slate-700 truncate text-[11px]" title={d.nama_dokumen}>{d.nama_dokumen}</span>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      <button 
-                                        type="button" 
-                                        onClick={() => handlePreviewPdf(d)} 
-                                        className="p-1 rounded bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer" 
-                                        title="Pratinjau"
-                                      >
-                                        <Eye size={12} />
-                                      </button>
-                                      <button 
-                                        type="button" 
-                                        onClick={() => downloadFile(d.file_url, d.nama_dokumen)} 
-                                        className="p-1 bg-[var(--ui-primary)] text-white rounded cursor-pointer hover:opacity-90" 
-                                        title="Unduh"
-                                      >
-                                        <Download size={12} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
+                            <div className="flex flex-col gap-1.5 w-[120px] mx-auto">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-slate-500">Progres Wajib</span>
+                                <span className={`text-[11px] font-black ${t.hasSubmitted ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {t.progressPercent}%
+                                </span>
                               </div>
-                            ) : (
-                              <span className="text-slate-400 italic text-xs">Belum ada berkas</span>
-                            )}
+                              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className={`h-full ${t.hasSubmitted ? 'bg-emerald-500' : 'bg-[var(--ui-primary)]'}`} style={{ width: `${t.progressPercent}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <div className="flex flex-wrap items-center gap-2 w-full">
+                              {(PERANGKAT_AJAR_LIST || []).map(kat => {
+                                const hasKat = (t.documents || []).some(d => d.kategori === kat.id);
+                                let pillClass = "";
+                                if (hasKat) {
+                                  pillClass = "bg-emerald-50 text-emerald-600 border border-emerald-200";
+                                } else if (kat.type === 'wajib') {
+                                  pillClass = "bg-rose-50 text-rose-600 border border-rose-200";
+                                } else {
+                                  pillClass = "bg-slate-50 text-slate-400 border border-slate-200 border-dashed";
+                                }
+                                return (
+                                  <div key={kat.id} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black uppercase tracking-wider ${pillClass}`}>
+                                    {hasKat ? <Check size={10} className="shrink-0" strokeWidth={3} /> : <X size={10} className="shrink-0" strokeWidth={3} />}
+                                    <span className="whitespace-nowrap">{kat.label}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                
+                {/* Pagination Controls */}
+                {filteredMonitoringData.length > itemsPerPage && (
+                  <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-white rounded-b-[var(--ui-radius-control)]">
+                    <p className="text-[11px] font-bold text-slate-500">
+                      Menampilkan <span className="text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-slate-800">{Math.min(currentPage * itemsPerPage, filteredMonitoringData.length)}</span> dari <span className="text-slate-800">{filteredMonitoringData.length}</span> guru
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="h-7 px-2.5 text-[11px]"
+                      >
+                        Previous
+                      </Button>
+                      <div className="px-2 text-[11px] font-black text-slate-600">
+                        Halaman {currentPage} dari {Math.ceil(filteredMonitoringData.length / itemsPerPage)}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredMonitoringData.length / itemsPerPage), p + 1))}
+                        disabled={currentPage === Math.ceil(filteredMonitoringData.length / itemsPerPage)}
+                        className="h-7 px-2.5 text-[11px]"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+</div>
 
                 {/* Mobile View Cards */}
                 <div className="md:hidden space-y-3">
-                  {filteredMonitoringData.map(teacher => (
-                    <div 
-                      key={teacher.code} 
-                      className="p-3.5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200 shadow-2xs space-y-2.5"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-xs flex items-center justify-center shrink-0">
-                            {(teacher.name || 'G')[0]}
-                          </div>
-                          <div>
-                            <p className="text-xs font-black text-slate-800">{teacher.name}</p>
-                            <p className="text-[10px] font-mono text-slate-400">Kode: {teacher.code}</p>
-                          </div>
-                        </div>
-
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black uppercase ${
-                          teacher.hasSubmitted 
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                            : 'bg-rose-50 text-rose-800 border border-rose-200'
+                  {paginatedMonitoringData.map((t, index) => (
+                    <div key={t.code || index} className="p-4 rounded-[var(--ui-radius-card)] border border-slate-200 bg-white shadow-sm flex flex-col gap-3 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-2">
+                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[9px] font-black uppercase tracking-wider ${
+                          t.hasSubmitted 
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                            : 'bg-rose-50 text-rose-600 border border-rose-200 border-dashed'
                         }`}>
-                          {teacher.hasSubmitted ? <CheckCircle2 size={10} className="text-emerald-600" /> : <AlertCircle size={10} className="text-rose-600" />}
-                          <span>{teacher.hasSubmitted ? 'Sudah' : 'Belum'}</span>
+                          {t.hasSubmitted ? <CheckCircle2 size={10} /> : <AlertCircle size={10} />}
+                          <span>{t.progressPercent}%</span>
                         </span>
                       </div>
-
-                      {teacher.class_name && teacher.class_name !== '-' && (
-                        <p className="text-[11px] text-slate-500 font-medium bg-slate-50 p-2 rounded-[var(--ui-radius-small)]">
-                          {teacher.class_name}
-                        </p>
-                      )}
-
-                      {teacher.hasSubmitted && teacher.documents.length > 0 && (
-                        <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Berkas Terunggah ({teacher.documents.length}):</p>
-                          {teacher.documents.map(d => (
-                            <div key={d.id} className="flex items-center justify-between gap-2 p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200">
-                              <span className="font-bold text-slate-700 truncate text-[11px]" title={d.nama_dokumen}>{d.nama_dokumen}</span>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button 
-                                  type="button" 
-                                  onClick={() => handlePreviewPdf(d)} 
-                                  className="p-1.5 rounded bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer" 
-                                  title="Pratinjau"
-                                >
-                                  <Eye size={12} />
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={() => downloadFile(d.file_url, d.nama_dokumen)} 
-                                  className="p-1.5 bg-[var(--ui-primary)] text-white rounded cursor-pointer hover:opacity-90" 
-                                  title="Unduh"
-                                >
-                                  <Download size={12} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                      
+                      <div className="flex items-start gap-3 w-10/12">
+                        <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-sm flex items-center justify-center shrink-0">
+                          {(t.name || 'G')[0]}
                         </div>
-                      )}
+                        <div className="flex flex-col">
+                          <p className="font-extrabold text-slate-900 text-sm">{t.name}</p>
+                          <p className="text-[10px] font-mono font-black text-slate-400 mt-0.5">{t.code}</p>
+                          <div className="flex flex-col gap-1 mt-1.5">
+                            {t.mapel ? (
+                              <p className="text-[10px] font-bold text-slate-600 leading-tight"><span className="text-[9px] font-black uppercase text-slate-400 mr-1">Mapel:</span> {t.mapel}</p>
+                            ) : null}
+                            {t.walas ? (
+                              <p className="text-[10px] font-bold text-slate-600 leading-tight"><span className="text-[9px] font-black uppercase text-slate-400 mr-1">Walas:</span> {t.walas}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-3 border-t border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Kelengkapan Administrasi</p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {(PERANGKAT_AJAR_LIST || []).map(kat => {
+                            const hasKat = (t.documents || []).some(d => d.kategori === kat.id);
+                            let pillClass = "";
+                            if (hasKat) {
+                              pillClass = "bg-emerald-50 text-emerald-600 border border-emerald-200";
+                            } else if (kat.type === 'wajib') {
+                              pillClass = "bg-rose-50 text-rose-600 border border-rose-200";
+                            } else {
+                              pillClass = "bg-slate-50 text-slate-400 border border-slate-200 border-dashed";
+                            }
+                            return (
+                              <div key={kat.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wide ${pillClass}`}>
+                                {hasKat ? <Check size={8} strokeWidth={3} /> : <X size={8} strokeWidth={3} />}
+                                <span>{kat.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   ))}
+                  
+                  {/* Mobile Pagination Controls */}
+                  {filteredMonitoringData.length > itemsPerPage && (
+                    <div className="flex items-center justify-between pt-2">
+                      <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</Button>
+                      <span className="text-xs font-bold text-slate-500">{currentPage} / {Math.ceil(filteredMonitoringData.length / itemsPerPage)}</span>
+                      <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredMonitoringData.length / itemsPerPage), p + 1))} disabled={currentPage === Math.ceil(filteredMonitoringData.length / itemsPerPage)}>Next</Button>
+                    </div>
+                  )}
                 </div>
+              
               </>
             )}
 
@@ -948,7 +1077,7 @@ export default function ModulAjar(props) {
       )}
 
       {/* ── TAB 2: UNIFIED 1-PAGE: DAFTAR MODUL AJAR & MATERI ── */}
-      {activeTab === 'modul-materi' && (
+      {activeTab === 'administrasi-materi' && (
         <div className="space-y-4 animate-in fade-in duration-200">
           
           {/* Summary KPI Strip */}
@@ -969,7 +1098,7 @@ export default function ModulAjar(props) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-base font-black text-slate-800 leading-tight">{myDocs.length}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Modul Ajar (RPP)</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Administrasi Guru</p>
               </div>
             </div>
 
@@ -1001,10 +1130,10 @@ export default function ModulAjar(props) {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
               <div>
                 <h3 className="text-base font-black text-slate-800">
-                  {isCurriculum ? 'Daftar Semua Modul & Materi Ajar' : 'Modul & Materi Pembelajaran Saya'}
+                  {isCurriculum ? 'Daftar Semua Administrasi & Perangkat Ajar' : 'Modul & Materi Pembelajaran Saya'}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Kelola dokumen RPP guru dan publikasikan materi siswa langsung dalam satu tampilan.
+Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam satu tampilan.
                 </p>
               </div>
 
@@ -1018,7 +1147,7 @@ export default function ModulAjar(props) {
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 font-bold shadow-[var(--ui-shadow-control)] text-xs"
                 >
                   <UploadCloud size={14} />
-                  <span>+ Unggah Modul (RPP)</span>
+                  <span>+ Unggah Modul (Administrasi)</span>
                 </Button>
 
                 <Button
@@ -1038,44 +1167,32 @@ export default function ModulAjar(props) {
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-3 border-t border-slate-100">
               
               {/* Type Filter Pills (Semua / Modul / Materi) */}
-              <div className="flex items-center gap-1.5 p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] overflow-x-auto no-scrollbar">
-                <button
-                  type="button"
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+                <Button
+                  variant={filterType === 'all' ? 'primary' : 'ghost'}
                   onClick={() => setFilterType('all')}
-                  className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
-                    filterType === 'all' 
-                      ? 'bg-white text-slate-800 shadow-2xs' 
-                      : 'bg-transparent text-slate-500 hover:text-slate-800'
-                  }`}
+                  className={filterType !== 'all' ? 'text-slate-500' : ''}
                 >
                   Semua ({myDocs.length + myMateris.length})
-                </button>
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  variant={filterType === 'modul' ? 'primary' : 'ghost'}
                   onClick={() => setFilterType('modul')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
-                    filterType === 'modul' 
-                      ? 'bg-white text-emerald-700 shadow-2xs' 
-                      : 'bg-transparent text-slate-500 hover:text-slate-800'
-                  }`}
+                  className={filterType !== 'modul' ? 'text-slate-500' : ''}
                 >
-                  <FileText size={13} className="text-emerald-600 shrink-0" />
+                  <FileText size={15} />
                   <span>Modul Ajar ({myDocs.length})</span>
-                </button>
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  variant={filterType === 'materi' ? 'primary' : 'ghost'}
                   onClick={() => setFilterType('materi')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
-                    filterType === 'materi' 
-                      ? 'bg-white text-sky-700 shadow-2xs' 
-                      : 'bg-transparent text-slate-500 hover:text-slate-800'
-                  }`}
+                  className={filterType !== 'materi' ? 'text-slate-500' : ''}
                 >
-                  <BookOpenText size={13} className="text-sky-600 shrink-0" />
+                  <BookOpenText size={15} />
                   <span>Materi Siswa ({myMateris.length})</span>
-                </button>
+                </Button>
               </div>
 
               {/* Search, Mapel & View Mode */}
@@ -1109,7 +1226,7 @@ export default function ModulAjar(props) {
                       onChange={val => setFilterMapel(val)}
                       options={[
                         { value: 'all', label: 'Semua Mata Pelajaran' },
-                        ...availableSubjects.map(s => ({ value: s, label: s }))
+                        ...(availableSubjects || []).map(s => ({ value: s, label: s }))
                       ]}
                       searchable={true}
                       placeholder="Pilih Mapel"
@@ -1168,7 +1285,7 @@ export default function ModulAjar(props) {
                   className="flex items-center gap-1.5 font-bold"
                 >
                   <UploadCloud size={14} />
-                  <span>Unggah Modul (RPP)</span>
+                  <span>Unggah Modul (Administrasi)</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -1184,7 +1301,7 @@ export default function ModulAjar(props) {
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {unifiedList.map(item => {
+              {(paginatedUnifiedList || []).map(item => {
                 const isModul = item.itemType === 'modul';
                 const isLink = item.tipe === 'link';
                 const canDelete = isCurriculum || item.teacher_code === teacherCode;
@@ -1192,58 +1309,113 @@ export default function ModulAjar(props) {
                 return (
                   <div 
                     key={item.id} 
-                    className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 hover:border-[var(--ui-primary)]/40 hover:shadow-sm transition-all flex flex-col justify-between group"
+                    className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-[var(--ui-primary)]/40 hover:shadow-sm transition-all flex flex-col justify-between group"
                   >
-                    <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider ${
-                          isModul 
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                            : isLink 
-                              ? 'bg-purple-50 text-purple-800 border border-purple-200' 
-                              : 'bg-sky-50 text-sky-800 border border-sky-200'
-                        }`}>
-                          {isModul ? <FileText size={11} className="text-emerald-600 shrink-0" /> : isLink ? getLinkIcon(item.link_url) : <BookOpenText size={11} className="text-sky-600 shrink-0" />}
-                          <span>{isModul ? 'Modul Ajar (RPP)' : isLink ? 'Materi (Tautan)' : 'Materi (PDF Siswa)'}</span>
-                        </span>
+                    <div className="flex flex-col h-full">
+                      {/* Header row: Badges and Kelas */}
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100/60">
+                        {(() => {
+                          const kat = isModul ? (PERANGKAT_AJAR_LIST || []).find(k => k.id === item.kategori) : null;
+                          const katLabel = kat ? kat.label : 'Admin. Guru';
+                          const isWajib = kat ? kat.type === 'wajib' : false;
+                          
+                          let badgeClass = '';
+                          let iconClass = '';
+                          let IconCmp = null;
+                          let textLabel = '';
 
-                        <span className="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
-                          {item.kelas ? `Kelas ${item.kelas} • ` : ''}Sem. {item.semester}
-                        </span>
+                          if (isModul) {
+                            if (isWajib) {
+                              badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/50';
+                              iconClass = 'text-emerald-600';
+                            } else {
+                              badgeClass = 'bg-amber-50 text-amber-700 border-amber-200/50';
+                              iconClass = 'text-amber-600';
+                            }
+                            IconCmp = FileText;
+                            textLabel = katLabel;
+                          } else if (isLink) {
+                            badgeClass = 'bg-purple-50 text-purple-700 border-purple-200/50';
+                            textLabel = 'Materi (Tautan)';
+                          } else {
+                            badgeClass = 'bg-sky-50 text-sky-700 border-sky-200/50';
+                            IconCmp = BookOpenText;
+                            iconClass = 'text-sky-600';
+                            textLabel = 'Materi (PDF)';
+                          }
+
+                          return (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wide ${badgeClass}`}>
+                                {isModul ? <IconCmp size={10} className={`shrink-0 ${iconClass}`} /> : isLink ? getLinkIcon(item.link_url) : <IconCmp size={10} className={`shrink-0 ${iconClass}`} />}
+                                <span>{textLabel}</span>
+                              </span>
+                              {isModul && (
+                                <span className={`text-[8.5px] font-black uppercase tracking-wider ${isWajib ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                  {isWajib ? '✓ Wajib' : '• Opsional'}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 shrink-0">
+                          <span className="px-1.5 py-0.5 bg-slate-50 rounded">
+                            {item.kelas ? `Kls ${item.kelas}` : 'Semua Kls'}
+                          </span>
+                          <span>•</span>
+                          <span>Smt. {item.semester}</span>
+                        </div>
                       </div>
 
-                      {/* Title & Subject */}
-                      <div className="flex items-start gap-3 mt-1">
-                        <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs ${
-                          isModul ? 'bg-emerald-50 text-emerald-700' : isLink ? 'bg-purple-50 text-purple-700' : 'bg-sky-50 text-sky-700'
-                        }`}>
-                          {isModul ? <FileText size={18} strokeWidth={2.2} /> : isLink ? getLinkIcon(item.link_url) : <BookOpenText size={18} strokeWidth={2.2} />}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-[9.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] inline-block">
+                      {/* Main Title & Details */}
+                      <div className="flex-1 flex flex-col mb-2">
+                        <div className="flex items-start gap-1.5 mb-0.5">
+                          <span className="text-[9px] font-black uppercase shrink-0 mt-0.5 tracking-widest text-[var(--ui-primary)]">
                             {item.mapel}
                           </span>
-                          <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug line-clamp-2 mt-1" title={item.title}>
+                          <span className="text-slate-300 mx-0.5 mt-0.5 text-[9px]">|</span>
+                          <h4 className="text-xs font-black text-slate-800 leading-snug line-clamp-2 flex-1" title={item.title}>
                             {item.title}
                           </h4>
-                          {item.deskripsi && (
-                            <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mt-1">
-                              {item.deskripsi}
-                            </p>
+                        </div>
+                        
+                        {item.deskripsi && (
+                          <p className="text-[10.5px] text-slate-500 line-clamp-1 mt-0.5">
+                            {item.deskripsi}
+                          </p>
+                        )}
+
+                        <div className="mt-1.5 inline-flex items-center gap-1.5">
+                          {!isLink ? (
+                            <>
+                              <FileText size={11} className="text-slate-400 shrink-0" />
+                              <span className="text-[9px] text-slate-500 font-bold truncate" title={item.nama_dokumen || item.file_url}>
+                                {item.nama_dokumen || 'Berkas Dokumen'}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <ExternalLink size={11} className="text-slate-400 shrink-0" />
+                              <span className="text-[9px] text-slate-500 font-bold truncate" title={item.link_url}>
+                                {item.link_url}
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>
 
-                      {/* Subtitle / Teacher info */}
-                      <div className="flex items-center justify-between text-[10.5px] text-slate-400 font-bold mt-3.5 pt-2.5 border-t border-slate-100">
-                        <span className="truncate mr-2">Guru: <strong className="text-slate-700">{item.teacher_name}</strong></span>
-                        <span className="shrink-0 text-slate-500 font-mono text-[10px]">TA: {item.tahun_ajaran}</span>
+                      {/* Teacher Info */}
+                      <div className="mb-2">
+                        <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                          <span className="truncate">Guru: <strong className="text-slate-700">{item.teacher_name}</strong></span>
+                          <span className="shrink-0 font-mono text-[9px] text-slate-400">TA: {item.tahun_ajaran}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-slate-100">
+                    {/* Actions Footer */}
+                    <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100">
                       {isLink ? (
                         <a 
                           href={item.link_url} 
@@ -1320,7 +1492,7 @@ export default function ModulAjar(props) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
-                    {unifiedList.map(item => {
+                    {(paginatedUnifiedList || []).map(item => {
                       const isModul = item.itemType === 'modul';
                       const isLink = item.tipe === 'link';
                       const canDelete = isCurriculum || item.teacher_code === teacherCode;
@@ -1328,11 +1500,26 @@ export default function ModulAjar(props) {
                       return (
                         <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-black uppercase ${
-                              isModul ? 'bg-emerald-50 text-emerald-800' : isLink ? 'bg-purple-50 text-purple-800' : 'bg-sky-50 text-sky-800'
-                            }`}>
-                              {isModul ? 'RPP' : isLink ? 'Link' : 'Materi'}
-                            </span>
+                            {(() => {
+                              const kat = isModul ? (PERANGKAT_AJAR_LIST || []).find(k => k.id === item.kategori) : null;
+                              const katLabel = kat ? kat.label : 'Administrasi';
+                              const isWajib = kat ? kat.type === 'wajib' : false;
+                              
+                              if (isModul) {
+                                return (
+                                  <div className="flex flex-col gap-0.5 items-start">
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase ${isWajib ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50'}`}>
+                                      {katLabel}
+                                    </span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase ${isLink ? 'bg-purple-50 text-purple-800 border border-purple-200/50' : 'bg-sky-50 text-sky-800 border border-sky-200/50'}`}>
+                                  {isLink ? 'Materi Link' : 'Materi PDF'}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-3 font-extrabold text-slate-900">{item.mapel}</td>
                           <td className="px-4 py-3 max-w-[240px]">
@@ -1410,7 +1597,7 @@ export default function ModulAjar(props) {
         </div>
       )}
 
-      {/* ── TAB 3: Penyusunan RPP (Silabus) ── */}
+      {/* ── TAB 3: Penyusunan Administrasi (Silabus) ── */}
       {activeTab === 'silabus' && isCurriculum && (
         <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Modul Ajar...</div>}>
           <TabSilabus {...props} hideHeader={true} />
@@ -1431,12 +1618,12 @@ export default function ModulAjar(props) {
         </Suspense>
       )}
 
-      {/* ── MODAL 1: UNGGAH MODUL AJAR (RPP GURU) ── */}
+      {/* ── MODAL 1: UNGGAH MODUL AJAR (Administrasi GURU) ── */}
       {isModulModalOpen && (
         <Modal 
           isOpen={true} 
           onClose={() => !isUploadingModul && setIsModulModalOpen(false)} 
-          title="Unggah Modul Ajar (RPP)"
+          title="Unggah Administrasi Guru"
           maxWidth="max-w-lg"
         >
           <form onSubmit={handleModulSubmit} className="space-y-4 relative text-xs">
@@ -1467,6 +1654,21 @@ export default function ModulAjar(props) {
               </div>
             </div>
 
+                        {/* Kategori Administrasi */}
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                Kategori Administrasi <span className="text-rose-500">*</span>
+              </label>
+              <CustomSelect
+                value={modulForm.kategori || 'KALENDER'}
+                onChange={val => setModulForm(f => ({ ...f, kategori: val }))}
+                options={(PERANGKAT_AJAR_LIST || []).map(k => ({ value: k.id, label: k.label + (k.type === 'wajib' ? ' (Wajib)' : ' (Tidak Wajib)') }))}
+                searchable={false}
+                placeholder="Pilih Kategori"
+                disabled={isUploadingModul}
+              />
+            </div>
+
             {/* Mata Pelajaran */}
             <div>
               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
@@ -1475,7 +1677,7 @@ export default function ModulAjar(props) {
               <CustomSelect
                 value={modulForm.mapel}
                 onChange={val => setModulForm(f => ({ ...f, mapel: val }))}
-                options={availableSubjects.map(s => ({ value: s, label: s }))}
+                options={(availableSubjects || []).map(s => ({ value: s, label: s }))}
                 searchable={true}
                 placeholder="-- Pilih Mata Pelajaran --"
                 disabled={isUploadingModul}
@@ -1582,7 +1784,7 @@ export default function ModulAjar(props) {
                 >
                   <UploadCloud size={28} className="mx-auto text-emerald-600 mb-2" />
                   <p className="text-xs font-bold text-slate-700">Klik atau seret berkas PDF Modul Ajar ke sini</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Dokumen RPP yang diunggah akan otomatis terarsip</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Dokumen Administrasi yang diunggah akan otomatis terarsip</p>
                 </div>
               ) : (
                 <div className="p-3.5 rounded-[var(--ui-radius-control)] bg-emerald-50/60 border border-emerald-300 flex items-center justify-between gap-3">
@@ -1725,7 +1927,7 @@ export default function ModulAjar(props) {
                 <CustomSelect
                   value={materiForm.mapel}
                   onChange={val => setMateriForm(f => ({ ...f, mapel: val }))}
-                  options={availableSubjects.map(s => ({ value: s, label: s }))}
+                  options={(availableSubjects || []).map(s => ({ value: s, label: s }))}
                   searchable={true}
                   placeholder="Pilih Mapel"
                   disabled={isUploadingMateri}
@@ -1965,6 +2167,6 @@ export default function ModulAjar(props) {
           <span>{toast.message}</span>
         </div>
       )}
-    </div>
+          </div>
   );
 }

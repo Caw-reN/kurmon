@@ -231,7 +231,7 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] w-fit">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 w-full mb-6 border-b border-slate-100 pb-2">
         {[
           { key:'pengaturan', label:'Otomatisasi', icon: <Settings size={16} /> },
           { key:'kirim', label:'Kirim Pesan', icon: <Send size={16} /> },
@@ -239,8 +239,8 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
           { key:'log', label:'Riwayat & Log', icon: <History size={16} /> },
           { key:'walikelas', label:'Data Walikelas', icon: <UserCog size={16} /> }
         ].map(tab => (
-          <Button variant="outline" key={tab.key} onClick={() =>setActiveTab(tab.key)}
-            className={`flex items-center gap-2 ${activeTab === tab.key ?'bg-white  text-[var(--ui-primary)]' :'text-slate-500 hover:text-slate-700'}`}>
+          <Button variant={activeTab === tab.key ? 'primary' : 'ghost'} key={tab.key} onClick={() =>setActiveTab(tab.key)}
+            className={`flex items-center gap-2 shrink-0 ${activeTab !== tab.key ? 'text-slate-500' : ''}`}>
             {tab.icon} {tab.label}</Button>
         ))}
       </div>

@@ -7,6 +7,7 @@ import { handleDataRoutes } from "./routes/data.mjs";
 import { handleAuthRoutes } from "./routes/auth.mjs";
 import { handleSettingsRoutes } from "./routes/settings.mjs";
 import { handleJurnalRoutes } from "./routes/jurnal.mjs";
+import { handleAdministrasiRoutes } from "./routes/administrasi.mjs";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -2382,6 +2383,8 @@ const server = createServer(async (req, res) => {
           achievingStudentLogs = prestasiRes.rows.map(r => ({
             nis: r.nis,
             name: getStudentName(r.nis),
+            class_name: getStudentInfo(r.nis).class_name,
+            achievement: r.nama_prestasi,
             nama_prestasi: r.nama_prestasi,
             peringkat: r.peringkat,
             tingkat: r.tingkat,
@@ -2897,8 +2900,8 @@ const server = createServer(async (req, res) => {
     }
     // === API: POSTGRESQL BACKUP DUMP ===
     if (url.pathname === "/api/backup/postgresql" && req.method === "GET") {
-      // Keamanan: auth hanya via Bearer token (header), BUKAN query string
-      const session = getSession(req);
+      const queryToken = url.searchParams.get("token");
+      const session = getSession(req) || sessions.get(queryToken);
       if (!session || !isAdminRole(session?.role)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
@@ -2920,15 +2923,12 @@ const server = createServer(async (req, res) => {
         const tables = tblResult.rows.map(r => r.tablename);
         
         for (const table of tables) {
-          // Keamanan: escape nama tabel untuk cegah SQL injection
-          const safeTable = `"${table.replace(/"/g, '')}"`;
           dumpSql += `--\n-- Data for table: ${table}\n--\n\n`;
-          dumpSql += `TRUNCATE TABLE ${safeTable} RESTART IDENTITY CASCADE;\n\n`;
+          dumpSql += `TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE;\n\n`;
           
-          const { rows } = await dbPool.query(`SELECT * FROM ${safeTable}`);
+          const { rows } = await dbPool.query(`SELECT * FROM ${table}`);
           if (rows.length > 0) {
             const keys = Object.keys(rows[0]);
-            const safeCols = keys.map(k => `"${k.replace(/"/g, '')}"`).join(', ');
             
             for (const row of rows) {
               const values = keys.map(k => {
@@ -2945,7 +2945,7 @@ const server = createServer(async (req, res) => {
                 }
                 return val;
               });
-              dumpSql += `INSERT INTO ${safeTable} (${safeCols}) VALUES (${values.join(', ')});\n`;
+              dumpSql += `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${values.join(', ')});\n`;
             }
             dumpSql += `\n`;
           }
@@ -2965,7 +2965,8 @@ const server = createServer(async (req, res) => {
 
     // === API: EXCEL BACKUP DUMP ===
     if (url.pathname === "/api/backup/excel" && req.method === "GET") {
-      const session = getSession(req);
+      const queryToken = url.searchParams.get("token");
+      const session = getSession(req) || sessions.get(queryToken);
       if (!session || !isAdminRole(session?.role)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
@@ -2974,8 +2975,7 @@ const server = createServer(async (req, res) => {
         const wb = new ExcelJS.Workbook();
 
         const addMasterSheet = async (tableName, sheetName, defaultColumns, payloadToRow) => {
-          const safeTable = `"${tableName.replace(/"/g, '')}"`;
-          const { rows } = await dbPool.query(`SELECT payload FROM ${safeTable}`);
+          const { rows } = await dbPool.query(`SELECT payload FROM ${tableName}`);
           const sheetData = [defaultColumns];
           rows.forEach(r => {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
@@ -2986,7 +2986,7 @@ const server = createServer(async (req, res) => {
         };
 
         // 1_Jurusan
-        const { rows: majorRows } = await dbPool.query(`SELECT payload FROM "mst_majors"`);
+        const { rows: majorRows } = await dbPool.query(`SELECT payload FROM mst_majors`);
         const jurusanData = [["Nama Jurusan (wajib)"]];
         majorRows.forEach(r => {
           const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
@@ -3238,240 +3238,15 @@ const server = createServer(async (req, res) => {
           for (const table of tables) {
             const rows = backupData[table];
             if (rows.length === 0) continue;
-        syllabi.forEach(s => {
-          silabusData.push([s.subjectName || "", s.teacherCode || "", s.title || "", s.classSemester || "", s.objective || "", Array.isArray(s.materials) ? s.materials.join("\n") : (s.materials || ""), s.notes || ""]);
-        });
-        const wsSilabus = wb.addWorksheet("7_Silabus");
-        wsSilabus.addRows(silabusData);
-
-        // 8_Waktu
-        const { rows: settingsRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'time_slots' LIMIT 1`);
-        const settingsPayload = settingsRows.length > 0 ? (typeof settingsRows[0].payload === 'string' ? JSON.parse(settingsRows[0].payload) : settingsRows[0].payload) : [];
-        const timeSlots = Array.isArray(settingsPayload) ? settingsPayload : (settingsPayload?.slots || []);
-        const waktuData = [
-          ["Hari", "Jam", "Apakah Istirahat?", "Nama Istirahat", "Dihitung Berapa JP?"]
-        ];
-        timeSlots.forEach(slot => {
-          waktuData.push([slot.day || "", slot.timeStr || "", slot.isBreak ? "Ya" : "Tidak", slot.breakName || "", slot.jpCount !== undefined ? slot.jpCount : 1]);
-        });
-        const wsWaktu = wb.addWorksheet("8_Waktu");
-        wsWaktu.addRows(waktuData);
-
-        // 9_Ketersediaan
-        const { rows: availRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teacher_availability' LIMIT 1`);
-        const availPayload = availRows.length > 0 ? (typeof availRows[0].payload === 'string' ? JSON.parse(availRows[0].payload) : availRows[0].payload) : {};
-        const ketersediaanData = [
-          ["Kode Guru", "Mapel Kompetensi", "Hari Tersedia"]
-        ];
-        Object.entries(availPayload).forEach(([tCode, data]) => {
-          ketersediaanData.push([tCode, Array.isArray(data.subjects) ? data.subjects.join(", ") : "", Array.isArray(data.days) ? data.days.join(", ") : ""]);
-        });
-        const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
-        wsKetersediaan.addRows(ketersediaanData);
-
-        const excelBuffer = await wb.xlsx.writeBuffer();
-        
-        res.writeHead(200, {
-          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "Content-Disposition": `attachment; filename="kurmon_master_backup_${new Date().toISOString().slice(0,10)}.xlsx"`
-        });
-        res.end(excelBuffer);
-      } catch (err) {
-        console.error("Excel Dump Error:", err);
-        sendDatabaseError(req, res, err);
-      }
-      return;
-    }
-
-    // === API: GDRIVE MANUAL BACKUP ===
-    if (url.pathname === "/api/backup-gdrive" && req.method === "POST") {
-      if (!requireAdmin(req, res)) return;
-      try {
-        const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'google_drive' AND is_active = true LIMIT 1");
-        if (rows.length === 0 || !rows[0].api_key) {
-          send(req, res, 400, { ok: false, error: "Service Account Google Drive belum disetel/tidak aktif." });
-          return;
-        }
-        let credentials;
-        try {
-          credentials = JSON.parse(rows[0].api_key);
-        } catch (e) {
-          send(req, res, 400, { ok: false, error: "Format kredensial Google Drive bukan JSON yang valid." });
-          return;
-        }
-
-        const backupData = {};
-        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
-        const tables = tblResult.rows.map(r => r.tablename);
-        for (const table of tables) {
-          try {
-            // Keamanan: escape nama tabel
-            const safeTable = `"${table.replace(/"/g, '')}"`;
-            const result = await dbPool.query(`SELECT * FROM ${safeTable}`);
-            backupData[table] = result.rows;
-          } catch (err) {}
-        }
-
-        const backupJsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-        
-        const auth = new google.auth.GoogleAuth({
-          credentials,
-          scopes: ['https://www.googleapis.com/auth/drive.file']
-        });
-        const drive = google.drive({ version: 'v3', auth });
-        
-        const fileMetadata = { name: fileName };
-        if (rows[0].extra_config && rows[0].extra_config.folder_id) {
-          fileMetadata.parents = [rows[0].extra_config.folder_id];
-        }
-
-        const response = await drive.files.create({
-          requestBody: fileMetadata,
-          media: { mimeType: 'application/json', body: backupJsonStr },
-          fields: 'id, size',
-          supportsAllDrives: true
-        });
-
-        const session = getSession(req);
-        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-          [session?.id || 'system', session?.name || 'Admin', session?.role || 'admin', 'GDRIVE_BACKUP_MANUAL', 'database', `Backup manual sukses. ID: ${response.data.id}`]);
-        
-        send(req, res, 200, { ok: true, data: { id: response.data.id, filename: fileName, size: (backupJsonStr.length / 1024 / 1024).toFixed(2) + ' MB' } });
-      } catch (err) { 
-        console.error("Manual Backup Error:", err);
-        send(req, res, 500, { ok: false, error: err.message }); 
-      }
-      return;
-    }
-
-    // === API: TELEGRAM MANUAL BACKUP ===
-    if (req.method === "POST" && url.pathname === "/api/backup-telegram") {
-      const session = requireAuthenticated(req, res);
-      if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
-        send(req, res, 403, { ok: false, error: "Akses ditolak" });
-        return;
-      }
-      try {
-        const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-        if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
-          send(req, res, 400, { ok: false, error: "Telegram Backup belum dikonfigurasi atau tidak aktif (Bot Token & Chat ID wajib diisi)." });
-          return;
-        }
-
-        const botToken = rows[0].api_key;
-        const chatId = rows[0].extra_config.chat_id;
-
-        const backupData = {};
-        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
-        const tables = tblResult.rows.map(r => r.tablename);
-        
-        for (const table of tables) {
-          try {
-            // Keamanan: escape nama tabel
-            const safeTable = `"${table.replace(/"/g, '')}"`;
-            const result = await dbPool.query(`SELECT * FROM ${safeTable}`);
-            backupData[table] = result.rows;
-          } catch (err) {}
-        }
-
-        const backupJsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-        
-        const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
-        let multipartBody = "--" + boundary + "\r\n";
-        multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
-        multipartBody += "--" + boundary + "\r\n";
-        multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
-        multipartBody += "Content-Type: application/json\r\n\r\n";
-        multipartBody += backupJsonStr + "\r\n";
-        multipartBody += "--" + boundary + "--\r\n";
-
-        const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-          method: 'POST',
-          headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-          body: Buffer.from(multipartBody, 'utf-8')
-        });
-
-        const telegramData = await telegramRes.json();
-        
-        if (!telegramData.ok) {
-           throw new Error(telegramData.description || "Gagal mengirim ke Telegram");
-        }
-
-        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-          [session.id, session.name, session.role, 'TELEGRAM_BACKUP_MANUAL', 'database', `Backup manual sukses dikirim ke Telegram.`]);
-        
-        send(req, res, 200, { ok: true, data: { filename: fileName, size: (backupJsonStr.length / 1024 / 1024).toFixed(2) + ' MB' } });
-      } catch (err) { 
-        console.error("Manual Telegram Backup Error:", err);
-        send(req, res, 500, { ok: false, error: err.message }); 
-      }
-      return;
-    }
-
-    // === API: RESTORE BACKUP ===
-    if (req.method === "POST" && url.pathname === "/api/restore-backup") {
-      const session = requireAuthenticated(req, res);
-      if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
-        send(req, res, 403, { ok: false, error: "Akses ditolak" });
-        return;
-      }
-      // Keamanan: Batasi ukuran body maksimal 100MB untuk mencegah DoS
-      const contentLength = parseInt(req.headers['content-length'] || '0', 10);
-      const MAX_RESTORE_BYTES = 100 * 1024 * 1024; // 100MB
-      if (contentLength > MAX_RESTORE_BYTES) {
-        send(req, res, 413, { ok: false, error: `File backup terlalu besar (${(contentLength / 1024 / 1024).toFixed(1)}MB). Maksimum 100MB.` });
-        return;
-      }
-      try {
-        let bodyStr = "";
-        let totalBytes = 0;
-        for await (const chunk of req) {
-          totalBytes += chunk.length;
-          // Keamanan: stop stream jika melebihi 100MB meski Content-Length tidak dikirim
-          if (totalBytes > 100 * 1024 * 1024) {
-            send(req, res, 413, { ok: false, error: "Stream body melebihi batas 100MB." });
-            req.destroy();
-            return;
-          }
-          bodyStr += chunk;
-        }
-        const backupBody = JSON.parse(bodyStr);
-        const backupData = backupBody.tables || backupBody;
-
-        const client = await dbPool.connect();
-        try {
-          await client.query("BEGIN");
-          await client.query("SET session_replication_role = 'replica';"); // Disable triggers (FK constraints)
-
-          for (const [table, rows] of Object.entries(backupData)) {
-            if (!Array.isArray(rows) || rows.length === 0) continue;
-            
-            const checkTbl = await client.query("SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = $1", [table]);
-            if (checkTbl.rows.length === 0) continue;
-
-            try {
-              await client.query(`TRUNCATE TABLE "${table}" CASCADE`);
-            } catch (truncErr) {
-              await client.query(`DELETE FROM "${table}"`);
-            }
             
             const columns = Object.keys(rows[0]);
-            const colString = columns.map(c => `"${c}"`).join(', ');
+            const colString = columns.join(', ');
             
             for (let i = 0; i < rows.length; i++) {
                const row = rows[i];
-               const values = columns.map(c => {
-                 let val = row[c];
-                 if (val === undefined) return null;
-                 if (typeof val === 'object' && val !== null) return JSON.stringify(val);
-                 return val;
-               });
-               const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(', ');
-               await client.query(`INSERT INTO "${table}" (${colString}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`, values);
+               const values = columns.map(c => row[c] === undefined ? null : row[c]);
+               const placeholders = columns.map((_, idx) => `${idx + 1}`).join(', ');
+               await client.query(`INSERT INTO ${table} (${colString}) VALUES (${placeholders})`, values);
             }
           }
 
@@ -3481,7 +3256,7 @@ const server = createServer(async (req, res) => {
           await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
             [session.id, session.name, session.role, 'RESTORE_BACKUP', 'database', `Database berhasil dipulihkan dari file JSON.`]);
           
-          send(req, res, 200, { ok: true, message: "Database berhasil dipulihkan dari file backup." });
+          send(req, res, 200, { ok: true });
         } catch (dbErr) {
           await client.query("ROLLBACK");
           await client.query("SET session_replication_role = 'origin';");
@@ -3619,6 +3394,1315 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    // === API: CLOUDFLARE R2 MANUAL BACKUP ===
+    if (req.method === "POST" && url.pathname === "/api/backup-r2") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+        send(req, res, 403, { ok: false, error: "Akses ditolak" });
+        return;
+      }
+      try {
+        const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'cloudflare_r2' AND is_active = true LIMIT 1");
+        if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.endpoint || !rows[0].extra_config?.bucket) {
+          send(req, res, 400, { ok: false, error: "Cloudflare R2 Backup belum dikonfigurasi lengkap." });
+          return;
+        }
+
+        let credentials;
+        try {
+          credentials = JSON.parse(rows[0].api_key); // { accessKeyId, secretAccessKey }
+          if (!credentials.accessKeyId || !credentials.secretAccessKey) throw new Error("Missing keys");
+        } catch (err) {
+          send(req, res, 400, { ok: false, error: "Cloudflare R2 Backup gagal: Kredensial API Key tidak valid. Format harus JSON berisi accessKeyId dan secretAccessKey." });
+          return;
+        }
+        const endpoint = rows[0].extra_config.endpoint;
+        const bucket = rows[0].extra_config.bucket;
+
+        const backupData = {};
+        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
+        const tables = tblResult.rows.map(r => r.tablename);
+        
+        for (const table of tables) {
+          try {
+            const result = await dbPool.query(`SELECT * FROM ${table}`);
+            backupData[table] = result.rows;
+          } catch (err) {}
+        }
+
+        const backupJsonStr = JSON.stringify(backupData, null, 2);
+        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        
+        const s3 = new S3Client({
+          region: "auto",
+          endpoint: endpoint,
+          credentials: {
+            accessKeyId: credentials.accessKeyId,
+            secretAccessKey: credentials.secretAccessKey,
+          },
+        });
+
+        await s3.send(new PutObjectCommand({
+          Bucket: bucket,
+          Key: fileName,
+          Body: backupJsonStr,
+          ContentType: "application/json",
+        }));
+
+        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+          [session.id, session.name, session.role, 'R2_BACKUP_MANUAL', 'database', `Backup manual sukses dikirim ke Cloudflare R2.`]);
+        
+        send(req, res, 200, { ok: true, data: { filename: fileName, size: (backupJsonStr.length / 1024 / 1024).toFixed(2) + ' MB' } });
+      } catch (err) { 
+        console.error("Manual R2 Backup Error:", err);
+        send(req, res, 500, { ok: false, error: err.message }); 
+      }
+      return;
+    }
+
+    // === API: ARCHIVE & PURGE OLD DATA ===
+    if (req.method === "POST" && url.pathname === "/api/archive-data") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+        send(req, res, 403, { ok: false, error: "Akses ditolak" });
+        return;
+      }
+      
+      try {
+        let bodyStr = "";
+        for await (const chunk of req) bodyStr += chunk;
+        const payload = JSON.parse(bodyStr);
+        const { dateBefore } = payload;
+        
+        if (!dateBefore) {
+          send(req, res, 400, { ok: false, error: "Parameter dateBefore dibutuhkan" });
+          return;
+        }
+
+        const targetTables = [
+          { name: 'attendances', col: 'created_at' },
+          { name: 'hikvision_logs', col: 'created_at' },
+          { name: 'audit_logs', col: 'created_at' },
+          { name: 'whatsapp_logs', col: 'sent_at' },
+          { name: 'login_logs', col: 'created_at' }
+        ];
+        const archiveData = {};
+        
+        for (const table of targetTables) {
+          try {
+            const result = await dbPool.query(`SELECT * FROM ${table.name} WHERE ${table.col} < $1`, [dateBefore]);
+            archiveData[table.name] = result.rows;
+          } catch (err) {
+            console.error(`Skip archiving ${table.name}: `, err.message);
+          }
+        }
+
+        const totalArchivedRows = Object.values(archiveData).reduce((sum, arr) => sum + arr.length, 0);
+        if (totalArchivedRows === 0) {
+           send(req, res, 400, { ok: false, error: "Tidak ada data lawas yang perlu dibersihkan." });
+           return;
+        }
+
+        const archiveJsonStr = JSON.stringify(archiveData, null, 2);
+        const fileName = `Archive_Kurmon_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        
+        // 1. TRY UPLOAD TO R2 FIRST
+        let uploadSuccess = false;
+        let uploadedTo = "";
+
+        const { rows: r2Rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'cloudflare_r2' AND is_active = true LIMIT 1");
+        if (r2Rows.length > 0 && r2Rows[0].api_key) {
+           try {
+             const creds = JSON.parse(r2Rows[0].api_key);
+             const s3 = new S3Client({
+                region: "auto",
+                endpoint: r2Rows[0].extra_config.endpoint,
+                credentials: { accessKeyId: creds.accessKeyId, secretAccessKey: creds.secretAccessKey },
+             });
+             await s3.send(new PutObjectCommand({ Bucket: r2Rows[0].extra_config.bucket, Key: fileName, Body: archiveJsonStr, ContentType: "application/json" }));
+             uploadSuccess = true;
+             uploadedTo = "Cloudflare R2";
+           } catch(e) { console.error("R2 Upload failed:", e); }
+        }
+
+        // 2. TRY TELEGRAM IF R2 FAILS
+        if (!uploadSuccess) {
+           const { rows: tgRows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
+           if (tgRows.length > 0 && tgRows[0].api_key) {
+              try {
+                const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
+                let multipartBody = "--" + boundary + "\r\n";
+                multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${tgRows[0].extra_config?.chat_id || ''}\r\n`;
+                multipartBody += "--" + boundary + "\r\n";
+                multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
+                multipartBody += "Content-Type: application/json\r\n\r\n";
+                multipartBody += archiveJsonStr + "\r\n";
+                multipartBody += "--" + boundary + "--\r\n";
+
+                const tgRes = await fetch(`https://api.telegram.org/bot${tgRows[0].api_key}/sendDocument`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+                  body: Buffer.from(multipartBody, 'utf-8')
+                });
+                const tgData = await tgRes.json();
+                if (tgData.ok) { uploadSuccess = true; uploadedTo = "Telegram"; }
+              } catch(e) { console.error("TG Upload failed:", e); }
+           }
+        }
+
+        if (!uploadSuccess) {
+           send(req, res, 500, { ok: false, error: "Gagal mengunggah arsip ke Cloud (R2/Telegram tidak aktif atau error). Pembersihan dibatalkan untuk mencegah kehilangan data." });
+           return;
+        }
+
+        // DELETION PHASE (ONLY AFTER SAFE UPLOAD)
+        const client = await dbPool.connect();
+        try {
+          await client.query("BEGIN");
+          for (const table of targetTables) {
+             try {
+               await client.query(`DELETE FROM ${table.name} WHERE ${table.col} < $1`, [dateBefore]);
+             } catch (err) {}
+          }
+          await client.query("COMMIT");
+        } catch(e) {
+          await client.query("ROLLBACK");
+          throw e;
+        } finally {
+          client.release();
+        }
+
+        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+          [session.id, session.name, session.role, 'ARCHIVE_DATA', 'database', `Pembersihan berhasil. ${totalArchivedRows} baris dihapus & diamankan di ${uploadedTo}`]);
+        
+        send(req, res, 200, { ok: true, message: `${totalArchivedRows} data berhasil dibersihkan dan diarsipkan ke ${uploadedTo}!` });
+      } catch (err) { 
+        console.error("Archive Error:", err);
+        send(req, res, 500, { ok: false, error: err.message }); 
+      }
+      return;
+    }
+
+    // === API: AUDIT LOGS ===
+    if (url.pathname.startsWith("/api/audit-logs")) {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      
+      const isUserAdmin = ["admin", "superadmin"].includes(normalizeServerRole(session.role));
+      let isAllowed = isUserAdmin;
+      if (!isAllowed) {
+        try {
+          const payload = await readMainPayload();
+          const roleKey = session.role === "waka" ? `waka_${session.division || "kurikulum"}` : session.role;
+          const perms = payload?.rolePermissions?.[roleKey];
+          if (perms) {
+            if (Array.isArray(perms)) {
+              isAllowed = perms.includes("audit_log");
+            } else {
+              const level = perms["audit_log"];
+              isAllowed = level && level !== "none" && level !== "nonaktif";
+            }
+          }
+        } catch (e) { console.error("Error checking role permissions for audit_log:", e); }
+      }
+      if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+
+      if (req.method === "GET") {
+        try {
+          const page = parseInt(url.searchParams?.get("page") || "1");
+          const limit = parseInt(url.searchParams?.get("limit") || "50");
+          const offset = (page - 1) * limit;
+          
+          let query = "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2";
+          let countQuery = "SELECT COUNT(*) FROM audit_logs";
+          let params = [limit, offset];
+          let countParams = [];
+
+          if (!isUserAdmin) {
+            query = "SELECT * FROM audit_logs WHERE NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN') ORDER BY created_at DESC LIMIT $1 OFFSET $2";
+            countQuery = "SELECT COUNT(*) FROM audit_logs WHERE NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
+          }
+
+          const { rows } = await dbPool.query(query, params);
+          const countRes = await dbPool.query(countQuery, countParams);
+          send(req, res, 200, { ok: true, data: rows, total: parseInt(countRes.rows[0].count) });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          if (body.action === "clear") {
+            await dbPool.query("DELETE FROM audit_logs");
+            send(req, res, 200, { ok: true });
+            return;
+          }
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: KARTU PELAJAR TEMPLATES ===
+    if (url.pathname.startsWith("/api/student-cards")) {
+      if (!requireAuthenticated(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM student_card_templates ORDER BY is_default DESC, id ASC");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        if (!requireAdmin(req, res)) return;
+        try {
+          const body = await readJsonBody(req);
+          if (body.action === "delete") {
+            await dbPool.query("DELETE FROM student_card_templates WHERE id = $1", [body.id]);
+          } else if (body.id) {
+            await dbPool.query("UPDATE student_card_templates SET name=$1, config=$2, is_default=$3 WHERE id=$4",
+              [body.name, JSON.stringify(body.config || {}), body.is_default || false, body.id]);
+          } else {
+            await dbPool.query("INSERT INTO student_card_templates (name, config, is_default) VALUES ($1,$2,$3)",
+              [body.name, JSON.stringify(body.config || {}), body.is_default || false]);
+          }
+          send(req, res, 200, { ok: true });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: STUDENT CARD PRINT REQUESTS ===
+    if (url.pathname.startsWith("/api/student-card-requests")) {
+      if (!requireAuthenticated(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM student_card_requests ORDER BY created_at DESC");
+          const { rows: stats } = await dbPool.query(
+            "SELECT nis, COUNT(*) as count FROM student_card_requests WHERE status = 'selesai' GROUP BY nis"
+          );
+          send(req, res, 200, { ok: true, data: rows, stats });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          const session = getSession(req);
+          
+          if (body.action === "create") {
+            const { nis, nama, kelas, alasan, status } = body;
+            if (!nis || !nama || !kelas || !alasan) {
+              return send(req, res, 400, { ok: false, error: "Data pengajuan tidak lengkap." });
+            }
+            const defaultStatus = status || (alasan.includes("Tanpa Antrean") || alasan.includes("Langsung") ? "selesai" : "pending");
+            await dbPool.query(
+              "INSERT INTO student_card_requests (nis, nama, kelas, alasan, status, requested_by, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+              [nis, nama, kelas, alasan, defaultStatus, session?.name || "Admin / TU", defaultStatus === "selesai" ? new Date() : null]
+            );
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "approve") {
+            if (!requireAdminOrTu(req, res)) return;
+            await dbPool.query(
+              "UPDATE student_card_requests SET status = 'disetujui', processed_at = NOW() WHERE id = $1",
+              [body.id]
+            );
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "selesai") {
+            if (!requireAdminOrTu(req, res)) return;
+            await dbPool.query(
+              "UPDATE student_card_requests SET status = 'selesai', processed_at = NOW() WHERE id = $1",
+              [body.id]
+            );
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "reject") {
+            if (!requireAdminOrTu(req, res)) return;
+            await dbPool.query(
+              "UPDATE student_card_requests SET status = 'ditolak', processed_at = NOW() WHERE id = $1",
+              [body.id]
+            );
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "delete") {
+            if (!requireAdminOrTu(req, res)) return;
+            await dbPool.query("DELETE FROM student_card_requests WHERE id = $1", [body.id]);
+            send(req, res, 200, { ok: true });
+          } else {
+            send(req, res, 400, { ok: false, error: "Action tidak dikenal." });
+          }
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: SISWA KELUAR (PENDATAAN KELUAR) ===
+    if (url.pathname.startsWith("/api/siswa-keluar")) {
+      if (!requireAuthenticated(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM siswa_keluar ORDER BY created_at DESC");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        if (!requireAdmin(req, res)) return;
+        try {
+          const body = await readJsonBody(req);
+          const { action } = body;
+          
+          if (action === "keluar") {
+            const { nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan } = body;
+            if (!nis || !nama || !kelas_terakhir || !tanggal_keluar || !alasan) {
+              return send(req, res, 400, { ok: false, error: "Data pengeluaran siswa tidak lengkap." });
+            }
+            
+            // Get student payload first
+            const studentRes = await dbPool.query("SELECT payload FROM mst_students WHERE id = $1", [nis]);
+            const studentPayload = studentRes.rowCount > 0 ? studentRes.rows[0].payload : {};
+            
+            const client = await dbPool.connect();
+            try {
+              await client.query("BEGIN");
+              
+              // 1. Insert into siswa_keluar
+              await client.query(
+                "INSERT INTO siswa_keluar (nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan, student_payload) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (nis) DO UPDATE SET tanggal_keluar = EXCLUDED.tanggal_keluar, alasan = EXCLUDED.alasan, keterangan = EXCLUDED.keterangan",
+                [nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan || "", JSON.stringify(studentPayload)]
+              );
+              
+              // 2. Delete from mst_students to deactivate
+              await client.query("DELETE FROM mst_students WHERE id = $1", [nis]);
+              
+              await client.query("COMMIT");
+              send(req, res, 200, { ok: true });
+            } catch (e) {
+              await client.query("ROLLBACK");
+              throw e;
+            } finally {
+              client.release();
+            }
+          } else if (action === "batal") {
+            const { nis } = body;
+            if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi." });
+            
+            const keluarRes = await dbPool.query("SELECT student_payload FROM siswa_keluar WHERE nis = $1", [nis]);
+            if (keluarRes.rowCount === 0) {
+              return send(req, res, 400, { ok: false, error: "Data siswa keluar tidak ditemukan." });
+            }
+            const studentPayload = keluarRes.rows[0].student_payload || {};
+            
+            const client = await dbPool.connect();
+            try {
+              await client.query("BEGIN");
+              
+              // 1. Restore to mst_students
+              if (studentPayload.nis) {
+                await client.query(
+                  "INSERT INTO mst_students (id, payload) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload",
+                  [nis, JSON.stringify(studentPayload)]
+                );
+              }
+              
+              // 2. Delete from siswa_keluar
+              await client.query("DELETE FROM siswa_keluar WHERE nis = $1", [nis]);
+              
+              await client.query("COMMIT");
+              send(req, res, 200, { ok: true });
+            } catch (e) {
+              await client.query("ROLLBACK");
+              throw e;
+            } finally {
+              client.release();
+            }
+          } else {
+            send(req, res, 400, { ok: false, error: "Action tidak dikenal." });
+          }
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: MODUL AJAR GURU ===
+    if (url.pathname.startsWith("/api/modul-ajar-guru")) {
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM modul_ajar_guru ORDER BY uploaded_at DESC");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        if (!requireAuthenticated(req, res)) return;
+        try {
+          const body = await readJsonBody(req);
+          const session = getSession(req);
+          
+          if (body.action === "upload") {
+            const { teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi } = body;
+            if (!teacher_code || !teacher_name || !nama_dokumen || !file_url || !tahun_ajaran) {
+              return send(req, res, 400, { ok: false, error: "Data modul ajar tidak lengkap." });
+            }
+
+            // Backend Security Verification
+            // 1. File extension validation
+            const allowedExtensions = ['.pdf'];
+            const fileExtIndex = nama_dokumen.lastIndexOf('.');
+            if (fileExtIndex === -1) {
+              return send(req, res, 400, { ok: false, error: "Nama berkas tidak memiliki ekstensi." });
+            }
+            const ext = nama_dokumen.substring(fileExtIndex).toLowerCase();
+            if (!allowedExtensions.includes(ext)) {
+              return send(req, res, 400, { ok: false, error: `Ekstensi berkas ${ext} tidak diizinkan. Hanya berkas .pdf yang diperbolehkan.` });
+            }
+
+            // 2. MIME type check from base64 Data URL prefix
+            const mimeMatch = file_url.match(/^data:([^;]+);base64,/);
+            if (!mimeMatch) {
+              return send(req, res, 400, { ok: false, error: "Format data berkas tidak valid (harus Base64 Data URL)." });
+            }
+            const mimeType = mimeMatch[1].toLowerCase();
+            const allowedMimeTypes = ['application/pdf'];
+            if (!allowedMimeTypes.includes(mimeType)) {
+              return send(req, res, 400, { ok: false, error: `Tipe konten berkas (${mimeType}) tidak didukung. Hanya berkas PDF yang diperbolehkan.` });
+            }
+
+            // 3. File size limit check (approx 5MB base64 content limit)
+            const approxBytes = Math.round((file_url.length * 3) / 4);
+            if (approxBytes > 5 * 1024 * 1024) {
+              return send(req, res, 400, { ok: false, error: "Ukuran berkas melebihi batas maksimal 5MB." });
+            }
+
+            await dbPool.query(
+              "INSERT INTO modul_ajar_guru (teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+              [teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel || null, kelas || null, semester || null, deskripsi || null]
+            );
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "delete") {
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM modul_ajar_guru WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Dokumen modul ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin menghapus dokumen ini." });
+            }
+            await dbPool.query("DELETE FROM modul_ajar_guru WHERE id = $1", [body.id]);
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "rename") {
+            const { id, nama_dokumen } = body;
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM modul_ajar_guru WHERE id = $1", [id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Dokumen modul ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin mengubah dokumen ini." });
+            }
+            if (!nama_dokumen || !nama_dokumen.trim()) {
+              return send(req, res, 400, { ok: false, error: "Nama dokumen tidak boleh kosong." });
+            }
+            let newName = nama_dokumen.trim();
+            if (!newName.toLowerCase().endsWith('.pdf')) newName += '.pdf';
+            
+            await dbPool.query("UPDATE modul_ajar_guru SET nama_dokumen = $1 WHERE id = $2", [newName, id]);
+            send(req, res, 200, { ok: true });
+          } else {
+            send(req, res, 400, { ok: false, error: "Action tidak dikenal." });
+          }
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: MATERI AJAR (Public learning materials, visible to all students) ===
+    if (url.pathname.startsWith("/api/materi-ajar")) {
+      if (req.method === "GET") {
+        try {
+          // Ensure table exists
+          await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS materi_ajar (
+              id SERIAL PRIMARY KEY,
+              teacher_code VARCHAR(50) NOT NULL,
+              teacher_name VARCHAR(255) NOT NULL,
+              judul VARCHAR(500) NOT NULL,
+              deskripsi TEXT,
+              file_url TEXT,
+              nama_dokumen VARCHAR(255),
+              link_url TEXT,
+              tipe VARCHAR(20) DEFAULT 'file',
+              mapel VARCHAR(255),
+              kelas_target VARCHAR(255),
+              semester VARCHAR(20),
+              tahun_ajaran VARCHAR(50),
+              uploaded_at TIMESTAMPTZ DEFAULT NOW()
+            )
+          `);
+          const { rows } = await dbPool.query("SELECT id, teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran, uploaded_at FROM materi_ajar ORDER BY uploaded_at DESC");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        if (!requireAuthenticated(req, res)) return;
+        try {
+          // Ensure table exists
+          await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS materi_ajar (
+              id SERIAL PRIMARY KEY,
+              teacher_code VARCHAR(50) NOT NULL,
+              teacher_name VARCHAR(255) NOT NULL,
+              judul VARCHAR(500) NOT NULL,
+              deskripsi TEXT,
+              file_url TEXT,
+              nama_dokumen VARCHAR(255),
+              link_url TEXT,
+              tipe VARCHAR(20) DEFAULT 'file',
+              mapel VARCHAR(255),
+              kelas_target VARCHAR(255),
+              semester VARCHAR(20),
+              tahun_ajaran VARCHAR(50),
+              uploaded_at TIMESTAMPTZ DEFAULT NOW()
+            )
+          `);
+          const body = await readJsonBody(req);
+          const session = getSession(req);
+
+          if (body.action === "upload") {
+            const { teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran } = body;
+            if (!teacher_code || !teacher_name || !judul) {
+              return send(req, res, 400, { ok: false, error: "Data materi ajar tidak lengkap (teacher_code, teacher_name, judul wajib)." });
+            }
+            if (tipe === 'file' || !tipe) {
+              if (!file_url || !nama_dokumen) {
+                return send(req, res, 400, { ok: false, error: "File PDF wajib dipilih untuk tipe berkas." });
+              }
+              // Extension check
+              const ext = nama_dokumen.substring(nama_dokumen.lastIndexOf('.')).toLowerCase();
+              if (ext !== '.pdf') {
+                return send(req, res, 400, { ok: false, error: `Ekstensi ${ext} tidak diizinkan. Hanya .pdf.` });
+              }
+              // MIME check
+              const mimeMatch = file_url.match(/^data:([^;]+);base64,/);
+              if (!mimeMatch || mimeMatch[1].toLowerCase() !== 'application/pdf') {
+                return send(req, res, 400, { ok: false, error: "Format file tidak valid (harus PDF)." });
+              }
+              // Size check (5MB)
+              const approxBytes = Math.round((file_url.length * 3) / 4);
+              if (approxBytes > 5 * 1024 * 1024) {
+                return send(req, res, 400, { ok: false, error: "Ukuran file melebihi batas 5MB." });
+              }
+              await dbPool.query(
+                "INSERT INTO materi_ajar (teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, tipe, mapel, kelas_target, semester, tahun_ajaran) VALUES ($1,$2,$3,$4,$5,$6,'file',$7,$8,$9,$10)",
+                [teacher_code, teacher_name, judul, deskripsi || null, file_url, nama_dokumen, mapel || null, kelas_target || null, semester || null, tahun_ajaran || null]
+              );
+            } else if (tipe === 'link') {
+              if (!link_url) {
+                return send(req, res, 400, { ok: false, error: "URL link wajib diisi untuk tipe link." });
+              }
+              await dbPool.query(
+                "INSERT INTO materi_ajar (teacher_code, teacher_name, judul, deskripsi, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran) VALUES ($1,$2,$3,$4,$5,'link',$6,$7,$8,$9)",
+                [teacher_code, teacher_name, judul, deskripsi || null, link_url, mapel || null, kelas_target || null, semester || null, tahun_ajaran || null]
+              );
+            } else {
+              return send(req, res, 400, { ok: false, error: "Tipe tidak dikenal. Gunakan 'file' atau 'link'." });
+            }
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "delete") {
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM materi_ajar WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Materi ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak. Anda tidak memiliki izin menghapus materi ini." });
+            }
+            await dbPool.query("DELETE FROM materi_ajar WHERE id = $1", [body.id]);
+            send(req, res, 200, { ok: true });
+          } else if (body.action === "update") {
+            const docRes = await dbPool.query("SELECT teacher_code, teacher_name FROM materi_ajar WHERE id = $1", [body.id]);
+            if (docRes.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Materi ajar tidak ditemukan." });
+            }
+            const doc = docRes.rows[0];
+            const userCode = String(session?.code || session?.username || session?.id || '').trim().toLowerCase();
+            const docCode = String(doc.teacher_code || '').trim().toLowerCase();
+            const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
+            const userRole = String(session?.role || '').toLowerCase();
+            const userDiv = String(session?.division || '').toLowerCase();
+            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
+                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+                                (userCode && (userCode === docCode || userCode === bodyCode)) ||
+                                (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
+
+            if (!isAuthorized) return send(req, res, 403, { ok: false, error: "Akses ditolak." });
+            await dbPool.query(
+              "UPDATE materi_ajar SET judul=$1, deskripsi=$2, mapel=$3, kelas_target=$4, semester=$5, tahun_ajaran=$6 WHERE id=$7",
+              [body.judul, body.deskripsi || null, body.mapel || null, body.kelas_target || null, body.semester || null, body.tahun_ajaran || null, body.id]
+            );
+            send(req, res, 200, { ok: true });
+          } else {
+            send(req, res, 400, { ok: false, error: "Action tidak dikenal." });
+          }
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: WHATSAPP (Fonnte Gateway) ===
+
+    if (url.pathname === "/api/whatsapp/send") {
+      if (!requireAuthenticated(req, res)) return;
+      try {
+        const body = await readJsonBody(req);
+        const session = getSession(req);
+        if (session?.role === "siswa") return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan." });
+        const keyRes = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'whatsapp_fonnte' AND is_active = true");
+        if (keyRes.rowCount === 0) {
+          send(req, res, 400, { ok: false, error: "API Key WhatsApp belum dikonfigurasi atau tidak aktif. Masuk ke menu Manajemen API Key." });
+          return;
+        }
+        const token = keyRes.rows[0].api_key;
+        const phoneRaw = String(body.phone || "").replace(/\D/g, "");
+        const phone = phoneRaw.startsWith("0") ? "62" + phoneRaw.slice(1) : phoneRaw;
+        if (!phone || !body.message) {
+          send(req, res, 400, { ok: false, error: "Nomor HP dan pesan wajib diisi." });
+          return;
+        }
+        let responseData = {};
+        let status = "sent";
+        try {
+          const fonnteRes = await fetch("https://api.fonnte.com/send", {
+            method: "POST",
+            headers: { "Authorization": token, "Content-Type": "application/json" },
+            body: JSON.stringify({ target: phone, message: body.message, countryCode: "62" })
+          });
+          responseData = await fonnteRes.json();
+          if (!fonnteRes.ok || responseData.status === false) status = "failed";
+        } catch (e) {
+          status = "failed";
+          responseData = { error: e.message };
+        }
+        await dbPool.query("INSERT INTO whatsapp_logs (phone, recipient_name, message, status, trigger_type, response_data) VALUES ($1,$2,$3,$4,$5,$6)",
+          [phone, body.recipient_name || "", body.message, status, body.trigger_type || "manual", JSON.stringify(responseData)]);
+        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+          [session?.id || "system", session?.name || "System", session?.role || "admin", "SEND_WA", "whatsapp", `Kirim WA ke ${phone} (${body.recipient_name || ""}): ${status}`]);
+        send(req, res, 200, { ok: status === "sent", status, data: responseData });
+      } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+
+    // === API: WHATSAPP LOGS ===
+    if (url.pathname === "/api/whatsapp/logs") {
+      if (!requireAdmin(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM whatsapp_logs ORDER BY sent_at DESC LIMIT 200");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: WHATSAPP CANCEL LOG ===
+    if (url.pathname === "/api/whatsapp/cancel-log") {
+      if (!requireAdmin(req, res)) return;
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          if (!body.id) {
+            return send(req, res, 400, { ok: false, error: "ID log wajib diisi." });
+          }
+          await dbPool.query("UPDATE whatsapp_logs SET status = 'cancelled' WHERE id = $1 AND status = 'pending'", [body.id]);
+          
+          const session = getSession(req);
+          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+            [session?.id || "system", session?.name || "System", session?.role || "admin", "CANCEL_WA", "whatsapp", `Membatalkan log WA antrean ID: ${body.id}`]);
+            
+          send(req, res, 200, { ok: true, message: "Log berhasil dibatalkan." });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: WHATSAPP SEND REKAP (GURU & SISWA) ===
+    if (url.pathname === "/api/whatsapp/send-rekap") {
+      if (!requireAuthenticated(req, res)) return;
+      try {
+        const body = await readJsonBody(req);
+        const { target, type, month, year, date } = body;
+        const session = getSession(req);
+        if (session?.role === "siswa") return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan." });
+
+        const keyRes = await dbPool.query("SELECT api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' AND is_active = true");
+        if (keyRes.rowCount === 0) {
+          send(req, res, 400, { ok: false, error: "API Key WhatsApp belum dikonfigurasi atau tidak aktif. Masuk ke menu Manajemen API Key." });
+          return;
+        }
+        const token = keyRes.rows[0].api_key;
+
+        const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+        const mainData = mainRes.rowCount > 0 ? JSON.parse(mainRes.rows[0].data) : {};
+        const attendanceRecords = Array.isArray(mainData.attendanceRecords) ? mainData.attendanceRecords : [];
+
+        if (target === "guru") {
+          const conf = await getHikvisionConfig();
+          const notifyRole = conf.notify_role || "none";
+          let recipientPhone = "";
+          let recipientName = "Pengawas Absensi";
+
+          if (notifyRole === "custom" && conf.notify_custom_phone) {
+            recipientPhone = String(conf.notify_custom_phone).replace(/\D/g, "");
+          } else if (notifyRole !== "none") {
+            let roleQuery = "";
+            if (notifyRole === "kepsek") {
+              roleQuery = "SELECT payload FROM mst_teachers WHERE payload->>'role' = 'kepsek' LIMIT 1";
+            } else if (notifyRole === "waka_kurikulum") {
+              roleQuery = "SELECT payload FROM mst_teachers WHERE payload->>'role' = 'waka' AND payload->>'division' = 'kurikulum' LIMIT 1";
+            } else if (notifyRole === "waka_kesiswaan") {
+              roleQuery = "SELECT payload FROM mst_teachers WHERE payload->>'role' = 'waka' AND payload->>'division' = 'kesiswaan' LIMIT 1";
+            }
+
+            if (roleQuery) {
+              const roleRes = await dbPool.query(roleQuery);
+              if (roleRes.rowCount > 0) {
+                const targetTeacher = roleRes.rows[0].payload;
+                recipientPhone = String(targetTeacher.phone || "").replace(/\D/g, "");
+                recipientName = targetTeacher.name || "Pihak Sekolah";
+              }
+            }
+          }
+
+          if (!recipientPhone) {
+            send(req, res, 400, { ok: false, error: "Nomor WhatsApp Pengawas belum dikonfigurasi di Pengaturan Mesin." });
+            return;
+          }
+          const destPhone = recipientPhone.startsWith("0") ? "62" + recipientPhone.slice(1) : recipientPhone;
+
+          const teachersRes = await dbPool.query("SELECT id, payload FROM mst_teachers");
+          const teachers = teachersRes.rows.map(r => r.payload);
+
+          let message = "";
+
+          if (type === "daily") {
+            const targetDate = date || new Date().toISOString().split('T')[0];
+            const records = attendanceRecords.filter(r => r.date === targetDate);
+
+            const absentList = [];
+            let hadirCount = 0;
+            let telatCount = 0;
+
+            teachers.forEach(t => {
+              const code = t.code;
+              const recs = records.filter(r => r.teacherCode === code);
+              if (recs.length === 0) {
+                absentList.push({ name: t.name, status: "Alpa", note: "Tidak ada keterangan" });
+              } else {
+                const hasLate = recs.some(r => r.status === "Terlambat");
+                const hasIzin = recs.some(r => r.status === "Izin");
+                const hasSakit = recs.some(r => r.status === "Sakit");
+                const hasDinas = recs.some(r => r.status === "Dinas Luar");
+
+                if (hasIzin) absentList.push({ name: t.name, status: "Izin", note: recs.find(r => r.status === "Izin").note });
+                else if (hasSakit) absentList.push({ name: t.name, status: "Sakit", note: recs.find(r => r.status === "Sakit").note });
+                else if (hasDinas) absentList.push({ name: t.name, status: "Dinas Luar", note: recs.find(r => r.status === "Dinas Luar").note });
+                else if (hasLate) {
+                  telatCount++;
+                  hadirCount++;
+                } else {
+                  hadirCount++;
+                }
+              }
+            });
+
+            message = `📝 REKAP HARIAN KEHADIRAN GURU\n`;
+            message += `Tanggal: ${targetDate}\n\n`;
+            message += `✅ Hadir Tepat Waktu: ${hadirCount - telatCount} orang\n`;
+            message += `⏰ Terlambat: ${telatCount} orang\n`;
+            message += `❌ Tidak Hadir: ${absentList.length} orang\n\n`;
+            message += `Daftar Keterangan:\n`;
+            if (absentList.length === 0) {
+              message += `- Semua guru hadir/tercatat.\n`;
+            } else {
+              absentList.forEach((a, i) => {
+                message += `${i + 1}. ${a.name} (${a.status}) ${a.note ? ` - ${a.note}` : ''}\n`;
+              });
+            }
+            message += `\nNotifikasi otomatis Kurmon.`;
+          } else {
+            const targetMonth = parseInt(month || new Date().getMonth() + 1);
+            const targetYear = parseInt(year || new Date().getFullYear());
+            const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+            message = `📅 REKAP BULANAN KEHADIRAN GURU\n`;
+            message += `Bulan: ${targetMonth}/${targetYear}\n\n`;
+
+            teachers.slice(0, 15).forEach((t, idx) => {
+              const code = t.code;
+              let hadir = 0, sakit = 0, izin = 0, alpa = 0, telat = 0;
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const recs = attendanceRecords.filter(r => r.teacherCode === code && r.date === dateStr);
+                if (recs.length > 0) {
+                  if (recs.some(r => r.status === "Izin")) izin++;
+                  else if (recs.some(r => r.status === "Sakit")) sakit++;
+                  else if (recs.some(r => r.status === "Dinas Luar")) hadir++;
+                  else if (recs.some(r => r.status === "Terlambat")) { hadir++; telat++; }
+                  else hadir++;
+                } else {
+                  const dayOfWeek = new Date(targetYear, targetMonth - 1, d).getDay();
+                  if (dayOfWeek !== 0 && dayOfWeek !== 6) alpa++;
+                }
+              }
+              message += `${idx + 1}. ${t.name}:\n   Hadir: ${hadir} | Telat: ${telat} | Izin: ${izin} | Sakit: ${sakit} | Alpa: ${alpa}\n`;
+            });
+            if (teachers.length > 15) {
+              message += `... dan ${teachers.length - 15} guru lainnya.`;
+            }
+          }
+
+          const fonnteRes = await fetch("https://api.fonnte.com/send", {
+            method: "POST",
+            headers: { "Authorization": token, "Content-Type": "application/json" },
+            body: JSON.stringify({ target: destPhone, message: message, countryCode: "62" })
+          });
+          const resData = await fonnteRes.json();
+          const waStatus = (fonnteRes.ok && resData.status !== false) ? "sent" : "failed";
+
+          await dbPool.query("INSERT INTO whatsapp_logs (phone, recipient_name, message, status, trigger_type, response_data) VALUES ($1,$2,$3,$4,$5,$6)",
+            [destPhone, recipientName, message, waStatus, `rekap_guru_${type}`, JSON.stringify(resData)]);
+          
+          send(req, res, 200, { ok: waStatus === "sent", status: waStatus, message: `Rekap ${type} guru berhasil dikirim ke ${recipientName}` });
+          return;
+        } else {
+          // SISWA
+          if (type === "daily") {
+            const targetDate = date || new Date().toISOString().split('T')[0];
+            const walasRes = await dbPool.query("SELECT payload FROM mst_teachers WHERE payload->>'role' = 'walas' OR payload->>'isWalas' = 'true'");
+            const walasList = walasRes.rows.map(r => r.payload);
+
+            const studentsRes = await dbPool.query("SELECT payload FROM mst_students");
+            const students = studentsRes.rows.map(r => r.payload);
+
+            let sentCount = 0;
+
+            for (const walas of walasList) {
+              const className = walas.walasClass;
+              const walasPhoneRaw = String(walas.phone || "").replace(/\D/g, "");
+              if (!className || !walasPhoneRaw) continue;
+
+              const classStudents = students.filter(s => s.className === className || s.class_name === className);
+              const absentStudents = [];
+
+              classStudents.forEach(s => {
+                const recs = attendanceRecords.filter(r => r.siswaNis === s.nis && r.date === targetDate);
+                if (recs.length > 0) {
+                  const isAbsent = recs.some(r => ["Izin", "Sakit", "Alpa"].includes(r.status));
+                  if (isAbsent) {
+                    const rec = recs.find(r => ["Izin", "Sakit", "Alpa"].includes(r.status));
+                    absentStudents.push({ name: s.namaSiswa || s.name, status: rec.status, note: rec.note || "" });
+                  }
+                }
+              });
+
+              if (absentStudents.length > 0) {
+                const destPhone = walasPhoneRaw.startsWith("0") ? "62" + walasPhoneRaw.slice(1) : walasPhoneRaw;
+                let classMsg = `📝 REKAP HARIAN ABSENSI SISWA\n`;
+                classMsg += `Kelas: ${className}\n`;
+                classMsg += `Wali Kelas: ${walas.name}\n`;
+                classMsg += `Tanggal: ${targetDate}\n\n`;
+                classMsg += `Daftar Siswa Tidak Hadir:\n`;
+                absentStudents.forEach((st, i) => {
+                  classMsg += `${i + 1}. ${st.name} (${st.status})${st.note ? ` - ${st.note}` : ''}\n`;
+                });
+                classMsg += `\nMohon ditindaklanjuti. Terima kasih.`;
+
+                try {
+                  const fonnteRes = await fetch("https://api.fonnte.com/send", {
+                    method: "POST",
+                    headers: { "Authorization": token, "Content-Type": "application/json" },
+                    body: JSON.stringify({ target: destPhone, message: classMsg, countryCode: "62" })
+                  });
+                  const resData = await fonnteRes.json();
+                  const waStatus = (fonnteRes.ok && resData.status !== false) ? "sent" : "failed";
+                  if (waStatus === "sent") sentCount++;
+
+                  await dbPool.query("INSERT INTO whatsapp_logs (phone, recipient_name, message, status, trigger_type, response_data) VALUES ($1,$2,$3,$4,$5,$6)",
+                    [destPhone, walas.name, classMsg, waStatus, "rekap_siswa_harian", JSON.stringify(resData)]);
+                } catch (e) {
+                  console.error(`Gagal kirim rekap ke walas ${className}:`, e.message);
+                }
+              }
+            }
+
+            send(req, res, 200, { ok: true, message: `Rekap harian siswa selesai dikirim ke ${sentCount} wali kelas.` });
+            return;
+          } else {
+            const targetMonth = parseInt(month || new Date().getMonth() + 1);
+            const targetYear = parseInt(year || new Date().getFullYear());
+
+            const studentsRes = await dbPool.query("SELECT payload FROM mst_students");
+            const students = studentsRes.rows.map(r => r.payload);
+
+            let sentCount = 0;
+
+            for (const s of students.slice(0, 30)) {
+              const parentPhoneRaw = String(s.phone || s.wa_ortu || "").replace(/\D/g, "");
+              if (!parentPhoneRaw) continue;
+
+              const recs = attendanceRecords.filter(r => r.siswaNis === s.nis && r.date.startsWith(`${targetYear}-${String(targetMonth).padStart(2, '0')}`));
+              let hadir = 0, sakit = 0, izin = 0, alpa = 0;
+              recs.forEach(r => {
+                if (r.status === "Izin") izin++;
+                else if (r.status === "Sakit") sakit++;
+                else if (r.status === "Alpa") alpa++;
+                else hadir++;
+              });
+
+              const destPhone = parentPhoneRaw.startsWith("0") ? "62" + parentPhoneRaw.slice(1) : parentPhoneRaw;
+              const parentMsg = `📅 REKAP ABSENSI SISWA (BULANAN)\n` +
+                `Nama Siswa: ${s.namaSiswa || s.name}\n` +
+                `Kelas: ${s.class_name || s.className || "-"}\n` +
+                `Bulan: ${targetMonth}/${targetYear}\n\n` +
+                `Ringkasan Kehadiran:\n` +
+                `- Hadir: ${hadir} hari\n` +
+                `- Sakit: ${sakit} hari\n` +
+                `- Izin: ${izin} hari\n` +
+                `- Alpa: ${alpa} hari\n\n` +
+                `Terima kasih atas kerja samanya. - Pihak Sekolah`;
+
+              try {
+                const fonnteRes = await fetch("https://api.fonnte.com/send", {
+                  method: "POST",
+                  headers: { "Authorization": token, "Content-Type": "application/json" },
+                  body: JSON.stringify({ target: destPhone, message: parentMsg, countryCode: "62" })
+                });
+                const resData = await fonnteRes.json();
+                const waStatus = (fonnteRes.ok && resData.status !== false) ? "sent" : "failed";
+                if (waStatus === "sent") sentCount++;
+
+                await dbPool.query("INSERT INTO whatsapp_logs (phone, recipient_name, message, status, trigger_type, response_data) VALUES ($1,$2,$3,$4,$5,$6)",
+                  [destPhone, s.namaSiswa || s.name, parentMsg, waStatus, "rekap_siswa_bulanan", JSON.stringify(resData)]);
+              } catch (e) {
+                console.error(`Gagal kirim rekap bulanan ke ortu ${s.nis}:`, e.message);
+              }
+            }
+
+            send(req, res, 200, { ok: true, message: `Rekap bulanan siswa dikirim ke ${sentCount} nomor orang tua.` });
+            return;
+          }
+        }
+      } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+
+    // === API: E-SURAT TEMPLATES ===
+    if (url.pathname.startsWith("/api/esurat")) {
+      if (!requireAuthenticated(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM esurat_templates ORDER BY jenis ASC, id ASC");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        if (!requireAdmin(req, res)) return;
+        try {
+          const body = await readJsonBody(req);
+          if (body.action === "delete") {
+            await dbPool.query("DELETE FROM esurat_templates WHERE id = $1", [body.id]);
+          } else if (body.id) {
+            await dbPool.query("UPDATE esurat_templates SET jenis=$1, nama=$2, isi_template=$3 WHERE id=$4",
+              [body.jenis, body.nama, body.isi_template || "", body.id]);
+          } else {
+            await dbPool.query("INSERT INTO esurat_templates (jenis, nama, isi_template) VALUES ($1,$2,$3)",
+              [body.jenis, body.nama, body.isi_template || ""]);
+          }
+          send(req, res, 200, { ok: true });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === API: KENAIKAN KELAS ===
+    if (url.pathname.startsWith("/api/kenaikan-kelas")) {
+      if (!requireAdmin(req, res)) return;
+      if (req.method === "GET") {
+        try {
+          const { rows } = await dbPool.query("SELECT * FROM kenaikan_kelas_log ORDER BY tanggal_proses DESC LIMIT 20");
+          send(req, res, 200, { ok: true, data: rows });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          const session = getSession(req);
+          const detail = body.detail || [];
+          
+          const jumlahNaik = detail.filter(d => d.action === "naik").length;
+          const jumlahLulus = detail.filter(d => d.action === "lulus").length;
+          await dbPool.query(
+            "INSERT INTO kenaikan_kelas_log (tahun_ajaran, jumlah_naik, jumlah_lulus, detail, processed_by) VALUES ($1,$2,$3,$4,$5)",
+            [body.tahun_ajaran || "Unknown", jumlahNaik, jumlahLulus, JSON.stringify(detail), session?.name || "Admin"]
+          );
+          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+            [session?.id || "system", session?.name || "Admin", session?.role || "admin", "KENAIKAN_KELAS", "students", `Naik: ${jumlahNaik}, Lulus: ${jumlahLulus}, TA: ${body.tahun_ajaran}`]);
+
+          const payload = await readMainPayload();
+          let dbStudents = [];
+          try {
+            const res = await dbPool.query('SELECT payload FROM mst_students');
+            if (res.rows.length > 0) dbStudents = res.rows.map(r => r.payload);
+          } catch(e) {}
+          
+          const studentsToUse = dbStudents.length > 0 ? dbStudents : (payload ? (payload.students || []) : []);
+
+          if (Array.isArray(studentsToUse)) {
+            const getNextGrade = (g) => {
+              const GRADE_ORDER = ['X', 'XI', 'XII'];
+              const idx = GRADE_ORDER.indexOf(g.toUpperCase());
+              if (idx < 0 || idx >= GRADE_ORDER.length - 1) return null;
+              return GRADE_ORDER[idx + 1];
+            };
+            
+            // Create a lookup for O(1)
+            const detailMap = {};
+            for (const d of detail) detailMap[d.nis] = d.action;
+            
+            let changed = false;
+            const updatedStudents = studentsToUse.map(s => {
+              const action = detailMap[s.nis];
+              if (action === 'naik') {
+                const newClass = s.class_name.replace(/^(X{1,3}|XI|XII)/i, (m) => getNextGrade(m) || m);
+                s.class_name = newClass;
+                changed = true;
+              } else if (action === 'lulus') {
+                s.class_name = `LULUS ${body.tahun_ajaran}`;
+                changed = true;
+              }
+              return s;
+            });
+            
+            if (changed) {
+              if (dbStudents.length > 0) {
+                const client = await dbPool.connect();
+                try {
+                  await client.query('BEGIN');
+                  await client.query('DELETE FROM mst_students');
+                  for (const item of updatedStudents) {
+                    await client.query('INSERT INTO mst_students (id, payload) VALUES ($1, $2)', [String(item.nis || Math.random()), JSON.stringify(item)]);
+                    
+                    // Sync class name promotion/graduation to hikvision_students table
+                    const action = detailMap[item.nis];
+                    if (action === 'naik' || action === 'lulus') {
+                      await client.query('UPDATE hikvision_students SET class_name = $1 WHERE nis = $2', [item.class_name, String(item.nis)]);
+                    }
+                  }
+                  await client.query('COMMIT');
+                } catch(e) {
+                  await client.query('ROLLBACK');
+                } finally {
+                  client.release();
+                }
+              } else if (payload) {
+                payload.students = updatedStudents;
+                await dbPool.query(`
+                  INSERT INTO app_data (store_key, data) VALUES ('main_store', $1)
+                  ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
+                `, [JSON.stringify(payload)]);
+                
+                // Sync class name to hikvision_students for flat payload fallback
+                for (const item of updatedStudents) {
+                  const action = detailMap[item.nis];
+                  if (action === 'naik' || action === 'lulus') {
+                    await dbPool.query('UPDATE hikvision_students SET class_name = $1 WHERE nis = $2', [item.class_name, String(item.nis)]);
+                  }
+                }
+              }
+            }
+          }
+
+          send(req, res, 200, { ok: true });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
+
+    // === BACKUP & RESTORE DATA HANDLERS ===
+    if (req.method === "GET" && url.pathname.startsWith("/api/backup/")) {
+      const type = url.pathname.replace("/api/backup/", "").toLowerCase().trim();
+      const token = url.searchParams.get("token") || req.headers.authorization?.replace(/^Bearer\s+/i, '');
+      const session = getSession({ headers: { authorization: token ? `Bearer ${token}` : '' } });
+      if (!session || !isAdminRole(session.role)) {
+        send(req, res, 403, { ok: false, error: "Akses khusus Admin / Pengurus." });
+        return;
+      }
+
+      if (!dbPool) {
+        send(req, res, 503, { ok: false, error: dbStatus.message });
+        return;
+      }
+
+      try {
+        const backupData = {};
+        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
+        const tables = tblResult.rows.map(r => r.tablename);
+
+        for (const table of tables) {
+          try {
+            const result = await dbPool.query(`SELECT * FROM "${table}"`);
+            backupData[table] = result.rows;
+          } catch (err) {}
+        }
+
+        const dateStr = new Date().toISOString().slice(0, 10);
+
+        if (type === 'json') {
+          const jsonStr = JSON.stringify({
+            version: "1.0",
+            exported_at: new Date().toISOString(),
+            system: "Kurmon School System",
+            tables: backupData
+          }, null, 2);
+
+          res.writeHead(200, {
+            "Content-Type": "application/json; charset=utf-8",
+            "Content-Disposition": `attachment; filename="kurmon_full_backup_${dateStr}.json"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(jsonStr);
+          return;
+        }
+
+        if (type === 'sql' || type === 'postgresql') {
+          let sqlStr = `-- Kurmon Database SQL Dump Export\n-- Generated at: ${new Date().toISOString()}\n\n`;
+          for (const [tableName, rows] of Object.entries(backupData)) {
+            if (!Array.isArray(rows) || rows.length === 0) continue;
+            sqlStr += `-- Table: ${tableName}\n`;
+            for (const row of rows) {
+              const keys = Object.keys(row);
+              const cols = keys.map(k => `"${k}"`).join(', ');
+              const vals = keys.map(k => {
+                const val = row[k];
+                if (val === null || val === undefined) return 'NULL';
+                if (typeof val === 'number' || typeof val === 'boolean') return val;
+                if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+                return `'${String(val).replace(/'/g, "''")}'`;
+              }).join(', ');
+              sqlStr += `INSERT INTO "${tableName}" (${cols}) VALUES (${vals}) ON CONFLICT DO NOTHING;\n`;
+            }
+            sqlStr += `\n`;
+          }
+
+          res.writeHead(200, {
+            "Content-Type": "application/sql; charset=utf-8",
+            "Content-Disposition": `attachment; filename="kurmon_sql_dump_${dateStr}.sql"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(sqlStr);
+          return;
+        }
+
+        if (type === 'excel') {
+          const wb = new ExcelJS.Workbook();
+          for (const [tableName, rows] of Object.entries(backupData)) {
+            if (Array.isArray(rows) && rows.length > 0) {
+              const sheetName = tableName.substring(0, 31);
+              const ws = wb.addWorksheet(sheetName);
+              const keys = Object.keys(rows[0]);
+              ws.addRow(keys);
+              rows.forEach(r => ws.addRow(keys.map(k => r[k])));
+            }
+          }
+          const buf = await wb.xlsx.writeBuffer();
+          res.writeHead(200, {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="kurmon_excel_export_${dateStr}.xlsx"`,
+            "Access-Control-Allow-Origin": req.__corsOrigin || "*",
+            "Access-Control-Allow-Credentials": "true"
+          });
+          res.end(buf);
+          return;
+        }
+
+        send(req, res, 400, { ok: false, error: "Tipe backup tidak valid" });
+      } catch (err) {
+        console.error("Backup download error:", err);
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/restore-backup") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session.role)) {
+        send(req, res, 403, { ok: false, error: "Hanya Admin / Pengurus yang dapat memulihkan database." });
+        return;
+      }
+      if (!dbPool) {
+        send(req, res, 503, { ok: false, error: dbStatus.message });
+        return;
+      }
+
+      try {
+        const body = await readJsonBody(req);
+        const tables = body.tables || body;
+        if (typeof tables !== 'object') {
+          send(req, res, 400, { ok: false, error: "Format file JSON backup tidak valid." });
+          return;
+        }
+
+        const client = await dbPool.connect();
+        try {
+          await client.query('BEGIN');
+
+          for (const [tableName, rows] of Object.entries(tables)) {
+            if (!Array.isArray(rows) || rows.length === 0) continue;
+            const checkTbl = await client.query("SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = $1", [tableName]);
+            if (checkTbl.rows.length === 0) continue;
+
+            try {
+              await client.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
+            } catch (truncErr) {
+              await client.query(`DELETE FROM "${tableName}"`);
+            }
+
+            for (const row of rows) {
+              const keys = Object.keys(row);
               const cols = keys.map(k => `"${k}"`).join(', ');
               const params = keys.map((_, i) => `$${i + 1}`).join(', ');
               const values = keys.map(k => {
@@ -3649,6 +4733,10 @@ const server = createServer(async (req, res) => {
 
     // === JURNAL HARIAN GURU & CATATAN WALIKELAS ===
     const jurnalCtx = { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody };
+    // === ADMINISTRASI GURU & PERANGKAT AJAR ===
+    const adminHandled = await handleAdministrasiRoutes(req, res, url, jurnalCtx);
+    if (adminHandled !== false) return;
+
     const jurnalHandled = await handleJurnalRoutes(req, res, url, jurnalCtx);
     if (jurnalHandled !== false) return;
 

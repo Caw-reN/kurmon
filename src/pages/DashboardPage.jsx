@@ -328,7 +328,7 @@ export default function DashboardPage({
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
-        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "kedisiplinan_absensi" },
         { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "siswa" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-sky-50 text-sky-600", tab: "akademik" },
@@ -341,7 +341,7 @@ export default function DashboardPage({
         { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
         { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
-        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
@@ -350,7 +350,7 @@ export default function DashboardPage({
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
-        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
@@ -358,7 +358,7 @@ export default function DashboardPage({
       if (['sekretaris_kurikulum', 'anggota_kurikulum'].includes(teacherSubrole)) return [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Silabus Akademik", icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600", tab: "silabus" },
-        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
@@ -367,7 +367,7 @@ export default function DashboardPage({
       return [
         { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
         { label: "Jurnal", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
-        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "modul_ajar" },
+        { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
         { label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
         { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
@@ -454,35 +454,31 @@ export default function DashboardPage({
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                     Gaya TabBar Navigasi Mobile
                   </span>
-                  <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)]">
-                    <button
-                      type="button"
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={(localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating' ? 'primary' : 'ghost'}
                       onClick={() => {
                         localStorage.setItem('kurmon_tabbar_style', 'floating');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
-                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
-                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
-                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1 shrink-0 ${
+                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') !== 'floating' ? 'text-slate-500' : ''
                       }`}
                     >
                       <Layers size={13} strokeWidth={2.2} /> Mengambang
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant={localStorage.getItem('kurmon_tabbar_style') === 'stay' ? 'primary' : 'ghost'}
                       onClick={() => {
                         localStorage.setItem('kurmon_tabbar_style', 'stay');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
-                        localStorage.getItem('kurmon_tabbar_style') === 'stay'
-                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
-                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1.5 shrink-0 ${
+                        localStorage.getItem('kurmon_tabbar_style') !== 'stay' ? 'text-slate-500' : ''
                       }`}
                     >
                       <Pin size={13} strokeWidth={2.2} /> Menempel
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -1301,35 +1297,31 @@ export default function DashboardPage({
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                     Gaya TabBar Navigasi Mobile
                   </span>
-                  <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)]">
-                    <button
-                      type="button"
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={(localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating' ? 'primary' : 'ghost'}
                       onClick={() => {
                         localStorage.setItem('kurmon_tabbar_style', 'floating');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all border-none cursor-pointer ${
-                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating'
-                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
-                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1 shrink-0 ${
+                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') !== 'floating' ? 'text-slate-500' : ''
                       }`}
                     >
                       <Layers size={13} strokeWidth={2.2} /> Mengambang
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant={localStorage.getItem('kurmon_tabbar_style') === 'stay' ? 'primary' : 'ghost'}
                       onClick={() => {
                         localStorage.setItem('kurmon_tabbar_style', 'stay');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-all border-none cursor-pointer ${
-                        localStorage.getItem('kurmon_tabbar_style') === 'stay'
-                          ? 'bg-white text-[var(--ui-primary)] shadow-xs'
-                          : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1.5 shrink-0 ${
+                        localStorage.getItem('kurmon_tabbar_style') !== 'stay' ? 'text-slate-500' : ''
                       }`}
                     >
                       <Pin size={13} strokeWidth={2.2} /> Menempel
-                    </button>
+                    </Button>
                   </div>
                 </div>
 

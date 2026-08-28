@@ -1221,21 +1221,23 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         </div>
 
         {/* MOBILE TABS (Hidden on Desktop) */}
-        <div className="lg:hidden shrink-0 flex items-center bg-slate-100 p-1 rounded-2xl mx-3 mt-3 border border-slate-200">
-          <button 
-            type="button"
+        <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 mx-3 mt-3">
+          <Button 
+            variant={mobileTab === 'materi' ? 'primary' : 'ghost'}
             onClick={() => setMobileTab('materi')} 
-            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'materi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 ${mobileTab !== 'materi' ? 'text-slate-500' : ''}`}
           >
-            <BookOpen size={14} /> 1. Materi KBM
-          </button>
-          <button 
-            type="button"
+            <BookOpen size={15} />
+            <span>1. Materi KBM</span>
+          </Button>
+          <Button 
+            variant={mobileTab === 'presensi' ? 'primary' : 'ghost'}
             onClick={() => setMobileTab('presensi')} 
-            className={`flex-1 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all flex items-center justify-center gap-1.5 ${mobileTab === 'presensi' ? 'bg-white shadow-sm text-[var(--ui-primary)]' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 ${mobileTab !== 'presensi' ? 'text-slate-500' : ''}`}
           >
-            <Users size={14} /> 2. Presensi
-          </button>
+            <Users size={15} />
+            <span>2. Presensi</span>
+          </Button>
         </div>
 
         {/* MAIN 2-COLUMN CONTENT */}

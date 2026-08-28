@@ -246,43 +246,31 @@ export default function PanelPiket({ students = [], classes = [] }) {
       )}
 
       {/* MOBILE STEP TABS SWITCHER (< lg) */}
-      <div className="flex lg:hidden bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200 gap-1 shrink-0">
-        <button
-          type="button"
+      <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar shrink-0 mb-4">
+        <Button
+          variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
           onClick={() => setMobileTab('siswa')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
-            mobileTab === 'siswa'
-              ? 'bg-white text-[var(--ui-primary)] shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 bg-transparent'
-          }`}
+          className={`flex-1 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
         >
-          <User size={14} />
+          <User size={15} />
           <span>1. Pilih Siswa ({selectedStudents.length})</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={mobileTab === 'pelanggaran' ? 'primary' : 'ghost'}
           onClick={() => setMobileTab('pelanggaran')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
-            mobileTab === 'pelanggaran'
-              ? 'bg-white text-[var(--ui-primary)] shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 bg-transparent'
-          }`}
+          className={`flex-1 ${mobileTab !== 'pelanggaran' ? 'text-slate-500' : ''}`}
         >
-          <ShieldAlert size={14} />
+          <ShieldAlert size={15} />
           <span>2. Pelanggaran ({selectedViolations.length})</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={mobileTab === 'riwayat' ? 'primary' : 'ghost'}
           onClick={() => setMobileTab('riwayat')}
-          className={`flex-1 py-2 px-2 text-xs font-bold rounded-[var(--ui-radius-small)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none ${
-            mobileTab === 'riwayat'
-              ? 'bg-white text-[var(--ui-primary)] shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 bg-transparent'
-          }`}
+          className={`flex-1 ${mobileTab !== 'riwayat' ? 'text-slate-500' : ''}`}
         >
-          <History size={14} />
+          <History size={15} />
           <span>3. Riwayat</span>
-        </button>
+        </Button>
       </div>
 
       {/* MAIN CONTENT RESPONSIVE GRID */}

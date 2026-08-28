@@ -606,32 +606,24 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
 
       {/* Unified Tab Switcher Bar */}
       <div className="bg-white p-1.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] w-full sm:w-auto">
-          <button
-            type="button"
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 overflow-x-auto no-scrollbar">
+          <Button
+            variant={activeTab === 'cetak' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('cetak')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
-              activeTab === 'cetak'
-                ? 'bg-white text-slate-800 shadow-2xs'
-                : 'bg-transparent text-slate-500 hover:text-slate-800'
-            }`}
+            className={`flex-1 sm:flex-none ${activeTab !== 'cetak' ? 'text-slate-500' : ''}`}
           >
-            <Printer size={14} />
+            <Printer size={15} />
             <span>Cetak & Studio E-Surat</span>
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant={activeTab === 'template' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('template')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
-              activeTab === 'template'
-                ? 'bg-white text-slate-800 shadow-2xs'
-                : 'bg-transparent text-slate-500 hover:text-slate-800'
-            }`}
+            className={`flex-1 sm:flex-none ${activeTab !== 'template' ? 'text-slate-500' : ''}`}
           >
-            <FileText size={14} />
+            <FileText size={15} />
             <span>Kelola Template Surat ({templates.length})</span>
-          </button>
+          </Button>
         </div>
 
         {activeTab === 'template' && !readOnly && (
@@ -704,25 +696,21 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
       {activeTab === 'cetak' && (
         <div className="space-y-4">
           {/* Mobile Switcher between Form & Preview */}
-          <div className="xl:hidden flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)]">
-            <button
-              type="button"
+          <div className="xl:hidden flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+            <Button
+              variant={mobileStudioTab === 'form' ? 'primary' : 'ghost'}
               onClick={() => setMobileStudioTab('form')}
-              className={`flex-1 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
-                mobileStudioTab === 'form' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
-              }`}
+              className={`flex-1 ${mobileStudioTab !== 'form' ? 'text-slate-500' : ''}`}
             >
               📝 Form & Pengaturan
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={mobileStudioTab === 'preview' ? 'primary' : 'ghost'}
               onClick={() => setMobileStudioTab('preview')}
-              className={`flex-1 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all ${
-                mobileStudioTab === 'preview' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
-              }`}
+              className={`flex-1 ${mobileStudioTab !== 'preview' ? 'text-slate-500' : ''}`}
             >
               👁️ Pratinjau Dokumen A4
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">

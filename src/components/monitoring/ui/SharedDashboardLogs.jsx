@@ -119,26 +119,29 @@ export const SharedDashboardLogs = () => {
   }, []);
 
   const dedupeFront = (arr) => {
-    const seen = new Set();
+    const seenId = new Set();
     const seenName = new Set();
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
     
     for (const item of sorted) {
+      const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
       const rawName = String(item.student_name || item.name || '').trim().toLowerCase();
-      const rawNis = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
       const role = String(item.role_type || item.true_person_type || '').toLowerCase();
-      const idKey = `${role}_${rawNis || rawName}`;
+      const idKey = rawId ? `${role}_${rawId}` : null;
+      const nameKey = rawName ? `${role}_${rawName}` : null;
 
-      if (rawName && seenName.has(rawName)) continue;
-      if (idKey && seen.has(idKey)) continue;
+      // Prioritas dedup: ID dulu, baru nama (sama dengan KepsekExecutiveDashboard)
+      if (idKey && seenId.has(idKey)) continue;
+      if (!idKey && nameKey && seenName.has(nameKey)) continue;
 
-      if (rawName) seenName.add(rawName);
-      if (idKey) seen.add(idKey);
+      if (idKey) seenId.add(idKey);
+      if (nameKey) seenName.add(nameKey);
       result.push(item);
     }
     return result;
   };
+
 
   const uniqueSiswaOptions = useMemo(() => {
     const defaultOption = { label: 'Semua Jurusan', value: 'all' };

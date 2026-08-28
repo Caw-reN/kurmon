@@ -162,47 +162,41 @@ export default function PageHeader({
 
         {mappedTabs.length > 0 && (
           <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10">
-            <div className={cn(
-              "flex items-center gap-1.5 p-1.5 rounded-2xl w-max md:w-auto border",
-              headerStyle === 'primary' ? "bg-black/20 border-white/10" : "bg-slate-100/80 border-slate-200/60"
-            )}>
+            <div className="flex items-center gap-2 w-max md:w-auto shrink-0">
               
-              {mappedTabs.map((tab) => (
-                <button
-                  key={tab.id || tab.label}
-                  onClick={tab.onClick}
-                  className={cn(
-                    "flex-none flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold rounded-[var(--ui-radius-control)] transition-all duration-150 cursor-pointer border shrink-0 whitespace-nowrap",
-                    tab.isActive
-                      ? 'bg-white shadow-xs font-extrabold border-white'
-                      : headerStyle === 'primary'
-                      ? 'bg-transparent border-transparent hover:bg-white/15 font-semibold'
-                      : 'bg-transparent border-transparent hover:bg-white/60 font-semibold'
-                  )}
-                  style={
-                    tab.isActive
-                      ? { color: 'var(--ui-primary, #064e3b)', backgroundColor: '#ffffff' }
-                      : headerStyle === 'primary'
-                      ? { color: 'rgba(255, 255, 255, 0.95)' }
-                      : { color: 'var(--card-foreground, #334155)' }
-                  }
-                >
-                  {tab.icon && (
-                    <tab.icon 
-                      size={15} 
-                      className="shrink-0" 
-                      style={
-                        tab.isActive
-                          ? { color: 'var(--ui-primary, #064e3b)' }
-                          : headerStyle === 'primary'
-                          ? { color: 'rgba(255, 255, 255, 0.85)' }
-                          : { color: 'var(--card-muted, #94a3b8)' }
-                      }
-                    />
-                  )}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+              {mappedTabs.map((tab) => {
+                const isActive = tab.isActive;
+                const isPrimaryHeader = headerStyle === 'primary';
+                
+                // Determine button variant based on header style and active state
+                let variant = "ghost";
+                if (isActive) {
+                  variant = isPrimaryHeader ? "secondary" : "primary";
+                }
+
+                return (
+                  <Button
+                    key={tab.id || tab.label}
+                    variant={variant}
+                    onClick={tab.onClick}
+                    className={cn(
+                      "shrink-0",
+                      // Custom text colors for inactive state on primary header
+                      !isActive && isPrimaryHeader && "text-white/80 hover:text-white hover:bg-white/10",
+                      // Custom text colors for inactive state on default header
+                      !isActive && !isPrimaryHeader && "text-slate-500"
+                    )}
+                  >
+                    {tab.icon && (
+                      <tab.icon 
+                        size={15} 
+                        className={cn("shrink-0", isActive && isPrimaryHeader ? "text-slate-800" : "")} 
+                      />
+                    )}
+                    <span className={isActive && isPrimaryHeader ? "text-slate-800" : ""}>{tab.label}</span>
+                  </Button>
+                );
+              })}
 
               {onGuideClick && (
                 <Button
