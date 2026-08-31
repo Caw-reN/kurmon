@@ -512,27 +512,52 @@ export default function KepsekExecutiveDashboard({
       </div>
 
       {/* ═══════════════ TAB NAVIGATION ═══════════════ */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-2 p-2 overflow-x-auto hide-scrollbar sticky top-4 z-40">
-        <div className="flex items-center gap-1 min-w-max">
+      <div className="bg-slate-100/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center justify-between gap-2.5 sticky top-3 z-40 transition-all">
+        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto hide-scrollbar py-0.5">
           {TABS.map(t => {
             const active = tab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap
-                  ${active ? 'bg-[var(--ui-primary)] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap active:scale-95
+                  ${active 
+                    ? 'bg-[var(--ui-primary)] text-white shadow-sm shadow-emerald-700/20 ring-1 ring-white/20' 
+                    : 'bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 border border-slate-200/60 hover:border-slate-300 shadow-2xs'}`}
               >
-                <img src={t.icon} alt={t.label} className={`w-4 h-4 object-contain ${active ? 'invert brightness-0' : 'opacity-50'}`} />
-                {t.label}
+                <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 ${active ? 'bg-white/20' : 'bg-slate-100'}`}>
+                  <img 
+                    src={t.icon} 
+                    alt={t.label} 
+                    className={`w-3.5 h-3.5 object-contain ${active ? 'brightness-0 invert' : 'opacity-70 group-hover:opacity-100'}`} 
+                  />
+                </div>
+                <span>{t.label}</span>
+                {active && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse ml-0.5" />
+                )}
               </button>
             );
           })}
         </div>
-        <div className="hidden lg:flex items-center gap-2 shrink-0">
+        
+        <div className="hidden lg:flex items-center gap-2 shrink-0 pr-1">
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari di dashboard..." className="h-8 pl-8 pr-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] w-44 transition-all" />
+            <input 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Cari modul / data..." 
+              className="h-8.5 pl-8 pr-7 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)] w-48 shadow-2xs transition-all" 
+            />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
       </div>
