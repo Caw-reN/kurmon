@@ -2849,15 +2849,15 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-xs">
-                  <img src="/icons/045-account.svg" alt="Staff" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
+                  <img src="/icons/045-account.svg" alt="Karyawan" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
-                    Kehadiran Staff
+                    Kehadiran Karyawan
                     <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </h3>
                   <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
-                    {karyawanStats.totalMasuk}/{karyawanStats.totalKaryawan} staff terdata
+                    {karyawanStats.totalMasuk}/{karyawanStats.totalKaryawan} karyawan terdata
                   </p>
                 </div>
               </div>
