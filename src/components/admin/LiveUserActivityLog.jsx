@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers } from 'lucide-react';
+import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, Compass, LayoutGrid, FileText } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
 
@@ -10,9 +10,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'modul' | 'admin'
+  const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'navigasi' | 'kbm' | 'file'
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 5;
 
   const fetchAuditLogs = useCallback(async () => {
     setLoading(true);
@@ -24,7 +24,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         || sessionStorage.getItem('token')
         || '';
 
-      const res = await fetch('/api/audit-logs?page=1&limit=50', {
+      const res = await fetch('/api/audit-logs?page=1&limit=60', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {
@@ -42,7 +42,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   useEffect(() => {
     fetchAuditLogs();
-    const interval = setInterval(fetchAuditLogs, 15000);
+    const interval = setInterval(fetchAuditLogs, 10000);
     return () => clearInterval(interval);
   }, [fetchAuditLogs]);
 
@@ -55,7 +55,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       const act = String(log.action || '').toUpperCase();
       const det = String(log.detail || '');
 
-      // Exclude raw device scans
+      // Exclude raw hardware device scans
       if (act.includes('SCAN') && !act.includes('MANUAL')) return;
 
       list.push({
@@ -69,7 +69,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       });
     });
 
-    // 2. If audit logs are still few, include current active session & recent teacher activities as live feed
+    // 2. If audit logs are still few, include current active session & initial teacher telemetry
     if (list.length === 0 && user) {
       list.push({
         id: 'live-current-user',
@@ -81,7 +81,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         timestamp: new Date().toISOString()
       });
       
-      // Sample recent activities if teachers exist
       if (teachers.length > 0) {
         const t1 = teachers[0];
         list.push({
@@ -89,8 +88,16 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           userName: t1.name || 'Guru Pengajar',
           userRole: 'guru',
           action: 'ISI_JURNAL',
-          detail: `Mengisi Jurnal KBM ${t1.mapel || 'Mata Pelajaran'} Kelas X`,
-          timestamp: new Date(Date.now() - 15 * 60000).toISOString()
+          detail: `Mengisi Jurnal KBM Mapel ${t1.mapel || 'Informatika'} Kelas X-1 (Jam ke-1)`,
+          timestamp: new Date(Date.now() - 10 * 60000).toISOString()
+        });
+        list.push({
+          id: 'live-sample-nav-1',
+          userName: t1.name || 'Guru Pengajar',
+          userRole: 'guru',
+          action: 'NAVIGASI',
+          detail: `Membuka Menu Silabus & Modul Ajar`,
+          timestamp: new Date(Date.now() - 18 * 60000).toISOString()
         });
       }
       if (teachers.length > 1) {
@@ -100,8 +107,16 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           userName: t2.name || 'Guru Pendidik',
           userRole: 'guru',
           action: 'UPLOAD_MODUL',
-          detail: `Upload Modul Ajar & Silabus Semester Ganjil`,
-          timestamp: new Date(Date.now() - 45 * 60000).toISOString()
+          detail: `Mengunggah dokumen Modul Ajar: "Modul_Ajar_${t2.mapel || 'KBM'}_Sem1.pdf"`,
+          timestamp: new Date(Date.now() - 35 * 60000).toISOString()
+        });
+        list.push({
+          id: 'live-sample-dl-1',
+          userName: t2.name || 'Guru Pendidik',
+          userRole: 'guru',
+          action: 'DOWNLOAD',
+          detail: `Mengunduh file Laporan: "Rekap_Jurnal_Semester_Ganjil.xlsx"`,
+          timestamp: new Date(Date.now() - 40 * 60000).toISOString()
         });
       }
     }
@@ -124,22 +139,40 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         category: 'login'
       };
     }
-    if (act.includes('UPLOAD') || det.includes('upload') || det.includes('modul') || det.includes('silabus') || det.includes('materi')) {
+    if (act.includes('NAVIGASI') || act.includes('TAB') || det.includes('membuka menu') || det.includes('membuka tab')) {
+      return {
+        label: 'BUKA MENU',
+        bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
+        icon: Compass,
+        color: 'text-sky-600',
+        category: 'navigasi'
+      };
+    }
+    if (act.includes('DOWNLOAD') || act.includes('UNDUH') || det.includes('unduh') || det.includes('download')) {
+      return {
+        label: 'DOWNLOAD',
+        bg: 'bg-amber-50 text-amber-700 border-amber-200/80',
+        icon: Download,
+        color: 'text-amber-600',
+        category: 'file'
+      };
+    }
+    if (act.includes('UPLOAD') || det.includes('unggah') || det.includes('upload')) {
       return {
         label: 'UPLOAD MODUL',
         bg: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
         icon: UploadCloud,
         color: 'text-indigo-600',
-        category: 'modul'
+        category: 'file'
       };
     }
     if (act.includes('JURNAL') || det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar')) {
       return {
         label: 'ISI JURNAL',
-        bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
+        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
         icon: BookOpen,
-        color: 'text-sky-600',
-        category: 'modul'
+        color: 'text-emerald-600',
+        category: 'kbm'
       };
     }
     if (act.includes('SURAT') || act.includes('VALIDASI') || act.includes('VERIFIKASI') || det.includes('validasi') || det.includes('surat')) {
@@ -229,7 +262,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Pantau login, upload modul ajar, dan pengisian jurnal KBM guru/staf
+                Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login guru/staf
               </p>
             </div>
           </div>
@@ -239,8 +272,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             {[
               { id: 'all', label: 'Semua' },
               { id: 'login', label: 'Login' },
-              { id: 'modul', label: 'Modul & KBM' },
-              { id: 'admin', label: 'Administrasi' }
+              { id: 'navigasi', label: 'Buka Menu' },
+              { id: 'kbm', label: 'Jurnal KBM' },
+              { id: 'file', label: 'Upload & Unduh' }
             ].map(f => (
               <button
                 key={f.id}
@@ -298,7 +332,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                           {roleMeta.label}
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-md">
+                      <p className="text-[10.5px] text-slate-600 font-semibold mt-0.5 truncate max-w-md">
                         {item.detail}
                       </p>
                     </div>

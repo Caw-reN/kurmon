@@ -3590,26 +3590,28 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       
-      const isUserAdmin = ["admin", "superadmin"].includes(normalizeServerRole(session.role));
-      let isAllowed = isUserAdmin;
-      if (!isAllowed) {
+      const normalizedRole = normalizeServerRole(session.role);
+      const isUserAdmin = ["admin", "superadmin"].includes(normalizedRole);
+      const isLeadership = ["kepsek", "waka", "tu", "bk"].includes(normalizedRole);
+      let isAllowedToRead = isUserAdmin || isLeadership;
+      if (!isAllowedToRead) {
         try {
           const payload = await readMainPayload();
           const roleKey = session.role === "waka" ? `waka_${session.division || "kurikulum"}` : session.role;
           const perms = payload?.rolePermissions?.[roleKey];
           if (perms) {
             if (Array.isArray(perms)) {
-              isAllowed = perms.includes("audit_log");
+              isAllowedToRead = perms.includes("audit_log");
             } else {
               const level = perms["audit_log"];
-              isAllowed = level && level !== "none" && level !== "nonaktif";
+              isAllowedToRead = level && level !== "none" && level !== "nonaktif";
             }
           }
         } catch (e) { console.error("Error checking role permissions for audit_log:", e); }
       }
-      if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
 
       if (req.method === "GET") {
+        if (!isAllowedToRead) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
         try {
           const page = parseInt(url.searchParams?.get("page") || "1");
           const limit = parseInt(url.searchParams?.get("limit") || "50");

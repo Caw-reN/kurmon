@@ -32,6 +32,7 @@ import BulkEditModal from './components/admin/BulkEditModal.jsx';
 import DefaultPasswordModal from './components/admin/DefaultPasswordModal.jsx';
 import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
 import { SidebarNavItem, Modal } from './components/ui.jsx';
+import { logTabAccess, logFileDownload } from './utils/auditLogger.js';
 
 
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -211,6 +212,7 @@ export default function App() {
     sessionStorage.setItem("admin_active_tab", tab);
     // Use history.replaceState to avoid browser scroll-to-top on hash change
     history.replaceState(null, '', '#' + tab);
+    logTabAccess(tab);
   }, []);
   useEffect(() => {
     const handleHashChange = () => {
@@ -219,6 +221,7 @@ export default function App() {
         _setActiveTab(hash);
         setTablePage(1);
         sessionStorage.setItem("admin_active_tab", hash);
+        logTabAccess(hash);
       }
     };
     window.addEventListener("hashchange", handleHashChange);

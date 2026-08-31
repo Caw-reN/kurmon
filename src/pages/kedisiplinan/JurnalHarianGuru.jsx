@@ -12,6 +12,7 @@ import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
 import { Modal, Button } from '../../components/ui.jsx';
+import { logJournalEntry, logFileDownload } from '../../utils/auditLogger.js';
 
 
 const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -1151,6 +1152,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     if (result?.error) {
       setErrorMsg(result.error);
     } else {
+      logJournalEntry(form.mapel, form.kelas, form.jam_ke, form.materi_pokok);
       if (!jurnal?.id) {
         localStorage.removeItem(`draft_jurnal_${user?.code || 'guest'}`);
       }
