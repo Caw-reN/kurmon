@@ -432,7 +432,7 @@ export const SharedDashboardLogs = () => {
     const isGuru = user?.role === 'guru';
     
     if (!isKesiswaanOrAdmin && !isGuru) {
-      return all.filter(t => t.id !== 'siswa_bermasalah' && t.id !== 'analisa_absensi');
+      return all.filter(t => t.id !== 'siswa_bermasalah');
     }
     
     return all;
@@ -681,8 +681,8 @@ export const SharedDashboardLogs = () => {
         </div>
       </div>
       
-      {/* Navigation Tabs Bar - Box Grid Style */}
-      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
+      {/* Navigation Tabs Bar - Box Grid Style (6 Kolom Penuh) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
