@@ -374,7 +374,7 @@ export const SharedDashboardLogs = () => {
       { 
         id: 'guru_karyawan', 
         label: 'Guru/Karyawan',
-        labelShort: 'Guru',
+        labelShort: 'Guru/Staf',
         count: guruKaryawanLogs.length, 
         icon: '/icons/045-account.svg',
         badgeBg: 'bg-indigo-100/90 text-indigo-800'
@@ -382,15 +382,15 @@ export const SharedDashboardLogs = () => {
       { 
         id: 'guru_terlambat', 
         label: 'Guru/Karyawan Terlambat',
-        labelShort: 'Terlambat',
+        labelShort: 'Guru Telat',
         count: terlambatGuruLogs.length, 
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-orange-100/90 text-orange-800'
       },
       { 
         id: 'kehadiran_siswa', 
-        label: 'Siswa',
-        labelShort: 'Siswa',
+        label: 'Kehadiran Siswa',
+        labelShort: 'Siswa Hadir',
         count: kehadiranSiswaLogs.length, 
         icon: '/icons/066-education.svg',
         badgeBg: 'bg-purple-100/90 text-purple-800'
@@ -398,7 +398,7 @@ export const SharedDashboardLogs = () => {
       { 
         id: 'siswa_terlambat', 
         label: 'Siswa Terlambat',
-        labelShort: 'Terlambat',
+        labelShort: 'Siswa Telat',
         count: terlambatSiswaLogs.length, 
         icon: '/icons/039-time.svg',
         badgeBg: 'bg-amber-100/90 text-amber-800'
@@ -406,7 +406,7 @@ export const SharedDashboardLogs = () => {
       { 
         id: 'siswa_bermasalah', 
         label: 'Siswa Bermasalah',
-        labelShort: 'Masalah',
+        labelShort: 'Bermasalah',
         count: bermasalahLogs.length, 
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-rose-100/90 text-rose-800'
@@ -681,8 +681,8 @@ export const SharedDashboardLogs = () => {
         </div>
       </div>
       
-      {/* Navigation Tabs Bar - Responsive Mobile Scroll Strip / Desktop 6 Kolom Grid */}
-      <div className="flex md:grid overflow-x-auto md:overflow-x-visible custom-scrollbar md:grid-cols-6 gap-2 p-2.5 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] scroll-smooth select-none">
+      {/* Navigation Tabs Bar - Responsive Mobile 3-Column Grid / Desktop 6-Column Grid */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3.5 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -690,20 +690,33 @@ export const SharedDashboardLogs = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
-              className={`shrink-0 md:shrink py-2 px-3 sm:px-1 rounded-[var(--ui-radius-small)] border flex flex-row md:flex-col items-center justify-center gap-2 sm:gap-1.5 transition-all duration-200 cursor-pointer text-center min-w-[130px] md:min-w-0 md:w-full min-h-[44px] sm:min-h-[70px] relative touch-manipulation active:scale-95 ${
+              className={`py-2 px-1.5 sm:px-2 rounded-[var(--ui-radius-control)] border flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center w-full min-h-[56px] sm:min-h-[68px] relative touch-manipulation active:scale-95 ${
                 isActive
-                  ? 'bg-white border-[var(--ui-primary)] shadow-[var(--ui-shadow-float)] ring-1 ring-[var(--ui-primary)]/20'
-                  : 'bg-white border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)] hover:-translate-y-0.5 hover:shadow-[var(--ui-shadow-card)]'
+                  ? 'text-white shadow-md ring-2 ring-[var(--ui-primary)]/30'
+                  : 'bg-white border-[var(--ui-border-soft)] text-slate-700 shadow-xs hover:-translate-y-0.5 hover:border-slate-300'
               }`}
+              style={isActive ? {
+                backgroundColor: "var(--ui-primary)",
+                borderColor: "var(--ui-primary)",
+                color: "#ffffff"
+              } : {}}
             >
               <div className="relative shrink-0 flex items-center justify-center">
-                <img src={tab.icon} alt={tab.label} className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-80'}`} />
-                <span className={`absolute -top-1.5 -right-2.5 px-1 min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border border-white ${tab.badgeBg}`}>
+                <img 
+                  src={tab.icon} 
+                  alt={tab.label} 
+                  className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`} 
+                  style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
+                />
+                <span className={`absolute -top-1.5 -right-3 px-1 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border ${
+                  isActive ? 'bg-white text-slate-900 border-white' : `border-white ${tab.badgeBg}`
+                }`}>
                   {tab.count}
                 </span>
               </div>
-              <span className={`text-[10px] sm:text-[10px] font-bold leading-tight truncate ${isActive ? 'text-[var(--ui-primary)] font-black' : 'text-slate-600'}`}>
-                {tab.label}
+              <span className={`text-[9.5px] sm:text-[10px] leading-tight truncate max-w-full px-0.5 ${isActive ? 'text-white font-black' : 'text-slate-600 font-bold'}`}>
+                <span className="sm:hidden">{tab.labelShort || tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </span>
             </button>
           );
