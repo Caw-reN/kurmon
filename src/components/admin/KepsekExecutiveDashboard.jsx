@@ -624,36 +624,10 @@ export default function KepsekExecutiveDashboard({
               </div>
             </SectionCard>
 
-            {/* KBM Today */}
-            <SectionCard title="Status KBM & Jurnal Hari Ini" subtitle={`${todaySchedule.length} slot terjadwal`} icon="/icons/011-schedule.svg" action="Jadwal Penuh" onAction={() => gotoTab('generate')}>
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                {todaySchedule.length > 0 ? schedulePageData.map((row, i) => (
-                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${row.status === 'Selesai' ? 'bg-emerald-500' : row.status === 'Berlangsung' ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300'}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-black text-slate-800 truncate">{row.subject}</span>
-                        <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded-full shrink-0">{row.className}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-medium">{row.teacher} · {row.room}</span>
-                    </div>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border shrink-0
-                      ${row.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                        row.status === 'Berlangsung' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                          'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                      {row.status}
-                    </span>
-                  </div>
-                )) : (
-                  <EmptyState icon="/icons/011-schedule.svg" message="Belum ada jadwal hari ini" />
-                )}
-              </div>
-              <Pagination page={schedulePage} totalPages={scheduleTotalPages} total={todaySchedule.length} pageSize={PAGE_SIZE} setPage={setSchedulePage} />
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
-                <span>Slot Hari Ini: <strong className="text-slate-800">{todaySchedule.length}</strong></span>
-                <span>Jurnal: <strong className="text-emerald-700">{jurnalSubmitted}/{todaySchedule.length}</strong></span>
-              </div>
-            </SectionCard>
+            {/* Monitor & Aktivitas Live */}
+            <div className="w-full">
+              <SharedDashboardLogs />
+            </div>
           </div>
 
           {/* Quick Links */}
