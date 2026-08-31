@@ -17,6 +17,7 @@ import { useAdminImportExport } from './components/admin/useAdminImportExport.js
 import { useAdminScheduleGenerator } from './components/admin/useAdminScheduleGenerator.jsx';
 import { useAdminCRUD } from './components/admin/useAdminCRUD.jsx';
 import { useAdminDatabaseSync } from './hooks/useAdminDatabaseSync.js';
+import { applyDocumentBranding } from './utils/branding.js';
 import { Suspense } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Login from './pages/Login.jsx';
@@ -850,10 +851,17 @@ export default function App() {
     "--ui-bg": appSettings.bgColor || "#f8fafc",
     "--ui-surface": appSettings.surfaceColor || "#ffffff",
     "--ui-text": appSettings.textColor || "#0f172a",
-    "--ui-radius-card": appSettings.uiRadius === "lg" ? "24px" : appSettings.uiRadius === "md" ? "16px" : appSettings.uiRadius === "full" ? "32px" : "12px",
-    "--ui-radius-control": appSettings.uiRadius === "lg" ? "16px" : appSettings.uiRadius === "md" ? "12px" : appSettings.uiRadius === "full" ? "9999px" : "8px",
-    "--ui-radius-small": appSettings.uiRadius === "lg" ? "12px" : appSettings.uiRadius === "md" ? "8px" : appSettings.uiRadius === "full" ? "9999px" : "6px"
+    "--ui-radius-card": appSettings.uiRadius === "lg" ? "32px" : appSettings.uiRadius === "sm" ? "16px" : appSettings.uiRadius === "full" ? "32px" : "24px",
+    "--ui-radius-control": appSettings.uiRadius === "lg" ? "16px" : appSettings.uiRadius === "sm" ? "8px" : appSettings.uiRadius === "full" ? "9999px" : "12px",
+    "--ui-radius-small": appSettings.uiRadius === "lg" ? "16px" : appSettings.uiRadius === "sm" ? "8px" : appSettings.uiRadius === "full" ? "9999px" : "12px",
+    "--ui-card-bg": appSettings.cardStyle === "flat" ? "#f1f5f9" : "var(--ui-surface, #ffffff)",
+    "--ui-card-border": appSettings.cardStyle === "border" ? "1px solid var(--ui-border-soft, #d4dde9)" : "1px solid transparent",
+    "--ui-card-shadow": appSettings.cardStyle === "shadow-sm" ? "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)" : appSettings.cardStyle === "flat" ? "none" : "var(--ui-shadow-card)"
   };
+
+  useEffect(() => {
+    applyDocumentBranding(appSettings);
+  }, [appSettings]);
 
   useEffect(() => {
     const scale = appSettings.fontSizeScale;

@@ -387,7 +387,7 @@ export default function DashboardPage({
     ];
 
     return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-6">
+      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
         <div className="sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)]">
           <div className="relative flex-1 min-w-0">
@@ -536,7 +536,7 @@ export default function DashboardPage({
             </div>
 
             <div 
-              className="rounded-[22px] p-4 text-white shadow-xs relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
+              className="rounded-[var(--ui-radius-card)] p-4 text-white shadow-[var(--ui-shadow-card)] relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
               style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 68%, #000) 100%)" }}
             >
               <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
