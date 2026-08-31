@@ -669,8 +669,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         logsRes.rows.forEach(log => {
           const empId = String(log.employee_id || "").trim();
           const ts = new Date(log.timestamp);
-          const date = `${ts.getFullYear()}-${String(ts.getMonth() + 1).padStart(2, "0")}-${String(ts.getDate()).padStart(2, "0")}`;
-          const time = ts.toTimeString().substring(0, 5);
+          // Selalu gunakan Asia/Jakarta agar tanggal & jam tidak berantakan di server UTC
+          const date = ts.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+          const time = ts.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
           
           let personType = log.person_type || log.device_type || 'siswa';
           const empKey = empId.toLowerCase();

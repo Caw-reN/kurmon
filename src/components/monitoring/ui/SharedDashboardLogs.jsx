@@ -347,6 +347,26 @@ export const SharedDashboardLogs = () => {
     return logs.filter(item => (item.name || item.nis || item.nama_prestasi || '').toLowerCase().includes(q));
   }, [dashLogs, searchQuery, subFilter, studentLookupMap]);
 
+  const siswaRankingLogs = useMemo(() => {
+    let logs = [...(dashLogs?.studentAttendanceRankings || [])].filter(r => r.total_absen > 0);
+    if (subFilter !== 'all') {
+      logs = logs.filter(item => {
+        const className = String(item.class_name || '').toUpperCase();
+        return className.includes(subFilter.toUpperCase());
+      });
+    }
+    if (!searchQuery.trim()) return logs;
+    const q = searchQuery.toLowerCase();
+    return logs.filter(item => (item.name || item.nis || '').toLowerCase().includes(q));
+  }, [dashLogs, searchQuery, subFilter]);
+
+  const guruRankingLogs = useMemo(() => {
+    let logs = [...(dashLogs?.teacherAttendanceRankings || [])].filter(r => r.total_absen > 0);
+    if (!searchQuery.trim()) return logs;
+    const q = searchQuery.toLowerCase();
+    return logs.filter(item => (item.name || item.code || '').toLowerCase().includes(q));
+  }, [dashLogs, searchQuery]);
+
   const tabsConfig = useMemo(() => {
     const all = [
       { 
@@ -390,6 +410,13 @@ export const SharedDashboardLogs = () => {
         count: siswaPrestasiLogs.length, 
         icon: '/icons/063-follow.svg',
         badgeBg: 'bg-emerald-100/90 text-emerald-800'
+      },
+      {
+        id: 'analisa_absensi',
+        label: 'Analisa Absensi',
+        count: siswaRankingLogs.length,
+        icon: '/icons/031-monitor.svg',
+        badgeBg: 'bg-rose-100/90 text-rose-800'
       }
     ];
 
@@ -404,11 +431,11 @@ export const SharedDashboardLogs = () => {
     const isGuru = user?.role === 'guru';
     
     if (!isKesiswaanOrAdmin && !isGuru) {
-      return all.filter(t => t.id !== 'siswa_bermasalah');
+      return all.filter(t => t.id !== 'siswa_bermasalah' && t.id !== 'analisa_absensi');
     }
     
     return all;
-  }, [isSiswa, user, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length]);
+  }, [isSiswa, user, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length, siswaRankingLogs.length]);
 
   const renderListItem = (item, type, index) => {
     const absoluteIndex = (currentPage - 1) * itemsPerPage + index + 1;
@@ -613,7 +640,7 @@ export const SharedDashboardLogs = () => {
               />
             </div>
           )}
-          {activeLogTab.includes('siswa') && (
+          {(activeLogTab.includes('siswa') || activeLogTab === 'analisa_absensi') && (
             <div className="w-full sm:w-40 relative z-50">
               <CustomSelect
                 value={subFilter}
@@ -654,7 +681,7 @@ export const SharedDashboardLogs = () => {
       </div>
       
       {/* Navigation Tabs Bar - Box Grid Style */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
+      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -798,6 +825,133 @@ export const SharedDashboardLogs = () => {
                   {siswaPrestasiLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_prestasi', i))}
                 </div>
                 {renderPagination(siswaPrestasiLogs.length)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 7: Analisa Absensi — Ranking Banyak Absen */}
+        {activeLogTab === 'analisa_absensi' && (
+          <div className="animate-in fade-in duration-200 flex flex-col gap-4">
+            {/* Sub-header */}
+            <div className="flex items-center gap-2 px-1 pt-0.5">
+              <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-rose-500 to-rose-300 shrink-0" />
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Rekap Periode — Siapa yang Paling Sering Absen</p>
+            </div>
+
+            {/* Tabel Ranking Siswa */}
+            <div className="rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] overflow-hidden shadow-xs">
+              <div className="px-4 py-2.5 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-[var(--ui-border-muted)] flex items-center gap-2">
+                <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 opacity-70" />
+                <span className="text-xs font-black text-rose-800 uppercase tracking-wide">Siswa — Paling Banyak Tidak Hadir</span>
+                <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-700 border border-rose-200">{siswaRankingLogs.length} Siswa</span>
+              </div>
+              {siswaRankingLogs.length === 0 ? (
+                <div className="p-6 text-center">
+                  <img src="/icons/079-checklist.svg" alt="Aman" className="w-8 h-8 mx-auto opacity-25 mb-2" />
+                  <p className="text-xs font-bold text-slate-500">Tidak ada data absensi tercatat</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-[var(--ui-border-muted)]">
+                        <th className="px-3 py-2.5 text-left font-black text-slate-500 uppercase text-[9px] tracking-wider w-8">#</th>
+                        <th className="px-3 py-2.5 text-left font-black text-slate-500 uppercase text-[9px] tracking-wider">Nama</th>
+                        <th className="px-3 py-2.5 text-center font-black text-slate-500 uppercase text-[9px] tracking-wider hidden sm:table-cell">Kelas</th>
+                        <th className="px-3 py-2.5 text-center font-black text-rose-600 uppercase text-[9px] tracking-wider">Alpa</th>
+                        <th className="px-3 py-2.5 text-center font-black text-amber-600 uppercase text-[9px] tracking-wider hidden sm:table-cell">Terlambat</th>
+                        <th className="px-3 py-2.5 text-center font-black text-sky-600 uppercase text-[9px] tracking-wider hidden md:table-cell">Sakit</th>
+                        <th className="px-3 py-2.5 text-center font-black text-emerald-600 uppercase text-[9px] tracking-wider hidden md:table-cell">Izin</th>
+                        <th className="px-3 py-2.5 text-center font-black text-slate-700 uppercase text-[9px] tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--ui-border-muted)]">
+                      {siswaRankingLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => {
+                        const rank = (currentPage - 1) * itemsPerPage + i + 1;
+                        const rankColor = rank === 1 ? 'text-amber-500' : rank === 2 ? 'text-slate-400' : rank === 3 ? 'text-amber-700' : 'text-slate-400';
+                        return (
+                          <tr key={item.nis || i} className="hover:bg-rose-50/30 transition-colors">
+                            <td className={`px-3 py-2.5 font-black text-center ${rankColor}`}>{rank}</td>
+                            <td className="px-3 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full font-black text-xs flex items-center justify-center shrink-0 border shadow-xs bg-rose-50 text-rose-700 border-rose-200/60">
+                                  {String(item.name || item.nis || '?').charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-slate-800 truncate uppercase text-[11px]">{item.name || item.nis}</p>
+                                  <p className="text-[9px] text-slate-400 font-medium">{item.nis}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2.5 text-center hidden sm:table-cell">
+                              {item.class_name && item.class_name !== '-' ? (
+                                <span className={`px-1.5 py-0.5 rounded-[3px] text-[9px] font-black border ${getClassBadge(item.class_name)}`}>{item.class_name}</span>
+                              ) : <span className="text-slate-300 text-[9px]">—</span>}
+                            </td>
+                            <td className="px-3 py-2.5 text-center font-black text-rose-600">{item.alpha || 0}</td>
+                            <td className="px-3 py-2.5 text-center font-bold text-amber-600 hidden sm:table-cell">{item.terlambat || 0}</td>
+                            <td className="px-3 py-2.5 text-center font-bold text-sky-600 hidden md:table-cell">{item.sakit || 0}</td>
+                            <td className="px-3 py-2.5 text-center font-bold text-emerald-600 hidden md:table-cell">{item.izin || 0}</td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 border border-rose-200">{item.total_absen}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {renderPagination(siswaRankingLogs.length)}
+                </div>
+              )}
+            </div>
+
+            {/* Tabel Ranking Guru */}
+            {guruRankingLogs.length > 0 && (
+              <div className="rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] overflow-hidden shadow-xs">
+                <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-[var(--ui-border-muted)] flex items-center gap-2">
+                  <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 opacity-70" />
+                  <span className="text-xs font-black text-indigo-800 uppercase tracking-wide">Guru / Karyawan — Paling Banyak Tidak Hadir</span>
+                  <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200">{guruRankingLogs.length} Orang</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-[var(--ui-border-muted)]">
+                        <th className="px-3 py-2.5 text-left font-black text-slate-500 uppercase text-[9px] tracking-wider w-8">#</th>
+                        <th className="px-3 py-2.5 text-left font-black text-slate-500 uppercase text-[9px] tracking-wider">Nama</th>
+                        <th className="px-3 py-2.5 text-center font-black text-rose-600 uppercase text-[9px] tracking-wider">Alpa</th>
+                        <th className="px-3 py-2.5 text-center font-black text-sky-600 uppercase text-[9px] tracking-wider hidden sm:table-cell">Sakit</th>
+                        <th className="px-3 py-2.5 text-center font-black text-emerald-600 uppercase text-[9px] tracking-wider hidden sm:table-cell">Izin</th>
+                        <th className="px-3 py-2.5 text-center font-black text-slate-700 uppercase text-[9px] tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--ui-border-muted)]">
+                      {guruRankingLogs.slice(0, 5).map((item, i) => (
+                        <tr key={item.code || i} className="hover:bg-indigo-50/30 transition-colors">
+                          <td className="px-3 py-2.5 font-black text-center text-slate-400">{i + 1}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full font-black text-xs flex items-center justify-center shrink-0 border shadow-xs bg-indigo-50 text-indigo-700 border-indigo-200/60">
+                                {String(item.name || item.code || '?').charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-800 truncate uppercase text-[11px]">{item.name || item.code}</p>
+                                <p className="text-[9px] text-slate-400 font-medium">{item.type || 'Guru'}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-black text-rose-600">{item.alpa || 0}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-sky-600 hidden sm:table-cell">{item.sakit || 0}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-emerald-600 hidden sm:table-cell">{item.izin || 0}</td>
+                          <td className="px-3 py-2.5 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200">{item.total_absen}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

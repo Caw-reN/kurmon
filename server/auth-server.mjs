@@ -1959,7 +1959,8 @@ const server = createServer(async (req, res) => {
           const d = new Date(val);
           if (isNaN(d.getTime())) return "";
           if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-          return new Date(d.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+          // Gunakan toLocaleDateString dengan timezone WIB agar tidak berantakan di server UTC
+          return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         };
 
         const isDateHoliday = (dateVal) => {
@@ -2431,7 +2432,8 @@ const server = createServer(async (req, res) => {
 
         let hikvisionStudentToday = [];
         let teacherLogs = [];
-        const todayJktDate = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        // Selalu gunakan toLocaleDateString dengan timezone WIB agar konsisten
+        const todayJktDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         try {
           let hConfig = {};
           try {
@@ -2527,7 +2529,7 @@ const server = createServer(async (req, res) => {
               END as true_person_type
             FROM hikvision_logs l 
             JOIN hikvision_devices d ON l.device_id = d.id 
-            WHERE timestamp::date = $1::date
+            WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = $1::date
             ORDER BY l.timestamp DESC
           `, [todayJktDate]);
 
