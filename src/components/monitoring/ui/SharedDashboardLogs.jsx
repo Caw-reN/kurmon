@@ -543,12 +543,14 @@ export const SharedDashboardLogs = () => {
       
       {/* Dynamic Header */}
       <div className="px-4 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <img src="/icons/031-monitor.svg" alt="Monitor" className="w-5 h-5 opacity-90 shrink-0" />
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+            <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -570,7 +572,7 @@ export const SharedDashboardLogs = () => {
                   { label: 'Karyawan', value: 'karyawan' }
                 ]}
                 searchable={false}
-                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
+                className="[&>[data-slot=select-trigger]]:h-[34px] [&>[data-slot=select-trigger]]:min-h-[34px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
               />
             </div>
           )}
@@ -581,7 +583,7 @@ export const SharedDashboardLogs = () => {
                 onChange={setSubFilter}
                 options={uniqueSiswaOptions}
                 searchable={true}
-                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
+                className="[&>[data-slot=select-trigger]]:h-[34px] [&>[data-slot=select-trigger]]:min-h-[34px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
               />
             </div>
           )}
@@ -623,7 +625,7 @@ export const SharedDashboardLogs = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
-              className={`py-2 px-1 rounded-[var(--ui-radius-card)] border flex flex-col items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer text-center w-full min-h-[70px] relative ${
+              className={`py-2 px-1 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer text-center w-full min-h-[70px] relative ${
                 isActive
                   ? 'bg-white border-[var(--ui-primary)]/50 shadow-[var(--ui-shadow-float)] ring-1 ring-[var(--ui-primary)]/20'
                   : 'bg-white border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)] hover:-translate-y-0.5 hover:shadow-[var(--ui-shadow-card)]'

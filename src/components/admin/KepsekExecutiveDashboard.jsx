@@ -24,13 +24,13 @@ const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 6 }) 
 const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct, detail, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-2xl p-4 border cursor-pointer group transition-all hover:shadow-lg
+    className={`bg-white rounded-[var(--ui-radius-card)] p-4 border cursor-pointer group transition-all hover:shadow-lg
       ${active
         ? 'border-[var(--ui-primary)] shadow-md ring-2 ring-[var(--ui-primary)]/10'
         : 'border-slate-200 hover:border-slate-300 shadow-sm'}`}
   >
     <div className="flex items-start justify-between gap-2 mb-3">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105
+      <div className={`w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105
         ${active ? 'bg-[var(--ui-primary)] shadow-md' : 'bg-slate-50 border border-slate-200'}`}>
         <img src={icon} alt={label} className={`w-6 h-6 object-contain ${active ? 'invert brightness-0' : ''}`} />
       </div>
@@ -49,11 +49,11 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
 );
 
 const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
-  <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col ${accent ? 'border-[var(--ui-primary)]/20' : 'border-slate-200'} ${className}`}>
+  <div className={`bg-white rounded-[var(--ui-radius-card)] shadow-sm border overflow-hidden flex flex-col ${accent ? 'border-[var(--ui-primary)]/20' : 'border-slate-200'} ${className}`}>
     <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${accent ? 'bg-[var(--ui-primary)]/5 border-[var(--ui-primary)]/10' : 'border-slate-100 bg-slate-50/60'}`}>
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}
@@ -481,7 +481,7 @@ export default function KepsekExecutiveDashboard({
 
       {/* ═══════════════ HERO ═══════════════ */}
       <div
-        className="rounded-2xl text-white shadow-xl relative overflow-hidden border border-white/10"
+        className="rounded-[var(--ui-radius-card)] text-white shadow-xl relative overflow-hidden border border-white/10"
         style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 55%, #000) 100%)' }}
       >
         <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-40" />
@@ -554,7 +554,7 @@ export default function KepsekExecutiveDashboard({
                   { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                   { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
                 ].filter(row => row.total > 0).map(row => (
-                  <div key={row.label} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                  <div key={row.label} className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3.5 border border-slate-100">
                     <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
                       <span>{row.label} <span className="text-[10px] text-slate-400 font-medium ml-1">({row.total} orang)</span></span>
                       <span className="text-emerald-600 font-black">{pct(row.hadir + row.telat, row.total || 1)}% Hadir</span>
@@ -580,12 +580,12 @@ export default function KepsekExecutiveDashboard({
                           const gStat = siswaStats.gradeStats[g];
                           const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
                           return (
-                            <div key={g} className="flex-1 bg-white border border-slate-200 rounded-lg py-2 px-1 text-center shadow-xs">
+                            <div key={g} className="flex-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] py-2 px-1 text-center shadow-xs">
                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Kelas {g}</div>
                                <div className="flex items-baseline justify-center gap-1 mt-0.5">
                                  <span className="text-xs font-black text-slate-700">{pct(gPresent, gStat?.total || 1)}%</span>
                                  <span className="text-[9px] font-bold text-slate-400">({gPresent}/{gStat?.total || 0})</span>
-                               </div>
+                                </div>
                             </div>
                           );
                         })}
@@ -596,7 +596,7 @@ export default function KepsekExecutiveDashboard({
               </div>
 
               {/* Detail Ketepatan Waktu & Ringkasan Jurusan */}
-              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-2 mt-2">
+              <div className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 space-y-2 mt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500">Kedisiplinan & Ketepatan Pagi</span>
                   <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
@@ -604,15 +604,15 @@ export default function KepsekExecutiveDashboard({
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
                     <div className="text-[9px] font-bold text-slate-400 uppercase">Tepat Waktu</div>
                     <div className="text-xs font-black text-emerald-600 mt-0.5">{siswaStats.Hadir} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
                   </div>
-                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
                     <div className="text-[9px] font-bold text-slate-400 uppercase">Terlambat</div>
                     <div className="text-xs font-black text-amber-600 mt-0.5">{siswaStats.Terlambat} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
                   </div>
-                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
                     <div className="text-[9px] font-bold text-slate-400 uppercase">Total Scan</div>
                     <div className="text-xs font-black text-slate-800 mt-0.5">{(siswaStats.Hadir + siswaStats.Terlambat) + guruStats.totalMasuk + karyawanStats.totalMasuk} <span className="text-[9px] font-normal text-slate-400">Tap</span></div>
                   </div>
@@ -627,7 +627,7 @@ export default function KepsekExecutiveDashboard({
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                       {siswaStats.topMajors.map(m => (
-                        <div key={m.name} className="bg-white px-2 py-1.5 rounded-lg border border-slate-200 flex items-center justify-between shadow-2xs">
+                        <div key={m.name} className="bg-white px-2 py-1.5 rounded-[var(--ui-radius-small)] border border-slate-200 flex items-center justify-between shadow-2xs">
                           <span className="text-[10px] font-black text-slate-700 truncate">{m.name}</span>
                           <span className="text-[10px] font-bold text-emerald-600">{m.pct}%</span>
                         </div>
@@ -637,7 +637,7 @@ export default function KepsekExecutiveDashboard({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold mt-2">
+              <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-[var(--ui-radius-small)] text-xs text-emerald-800 font-semibold mt-2">
                 <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
                 Realtime — Gateway Mesin Hikvision & Gerbang Sekolah Terhubung
                 <span className="ml-auto text-[9px] font-black uppercase bg-emerald-200 px-2 py-0.5 rounded-full text-emerald-900 shrink-0">Live</span>
@@ -667,9 +667,9 @@ export default function KepsekExecutiveDashboard({
                 <button
                   key={m.tab}
                   onClick={() => gotoTab(m.tab)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer transition-all group text-left ${m.border} ${m.bg}`}
+                  className={`flex items-center gap-3 p-3 rounded-[var(--ui-radius-small)] border border-slate-200 cursor-pointer transition-all group text-left ${m.border} ${m.bg}`}
                 >
-                  <div className="w-9 h-9 bg-white rounded-lg shadow-xs border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 bg-white rounded-[var(--ui-radius-small)] shadow-xs border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     <img src={m.icon} alt={m.label} className="w-5 h-5 object-contain" />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
