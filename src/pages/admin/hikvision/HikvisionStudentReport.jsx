@@ -1151,7 +1151,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     return data.filter(student => {
       const dayData = student.days[todayNum];
       if (!dayData) return false;
-      return !["Sakit","Izin","Alpa"].includes(dayData.status) && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin";
+      // Hadir tepat waktu: punya scan, bukan Sakit/Izin/Alpa, dan TIDAK terlambat
+      return !["Sakit","Izin","Alpa"].includes(dayData.status) 
+        && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin"
+        && !dayData.isLate && dayData.status !== "Terlambat";
     });
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
@@ -1266,7 +1269,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-1">
-                      Siswa Masuk Hari Ini
+                      Hadir Tepat Waktu
                     </span>
                     <div className="flex items-baseline gap-1.5 sm:gap-2">
                       <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">

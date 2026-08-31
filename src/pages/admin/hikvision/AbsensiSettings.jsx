@@ -110,7 +110,7 @@ const AbsensiSettings = ({ readOnly }) => {
       showToast("Pengaturan absensi PKL berhasil disimpan ke server!");
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (e) {
-      showToast("Pengaturan tersimpan di sesi lokal.");
+      showToast("Gagal menyimpan ke server. Periksa koneksi dan coba lagi.", "error");
     }
     setLoading(false);
   };

@@ -145,9 +145,11 @@ export default function HikvisionDashboard() {
     setSavingConfig(false);
   };
 
-  const filteredLogs = (activeFilter ==='semua' 
+  const filteredLogs = (activeFilter === 'semua' 
     ? recentLogs 
-    : recentLogs.filter(log => (log.true_person_type || log.person_type || log.device_type) === activeFilter)
+    : activeFilter === 'staff'
+      ? recentLogs.filter(log => ['guru', 'karyawan', 'staff'].includes(log.true_person_type || log.person_type || log.device_type))
+      : recentLogs.filter(log => (log.true_person_type || log.person_type || log.device_type) === activeFilter)
   );
 
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);

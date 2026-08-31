@@ -221,6 +221,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const filteredItems = useMemo(() => {
     if (filterStatus === "all") return baseSuratItems;
     if (filterStatus === "pending") return baseSuratItems.filter(i => i.approval_status === "pending");
+    // Normalize Alpa/Alpha matching
+    if (filterStatus === "Alpa") return baseSuratItems.filter(i => i.status === "Alpa" || i.status === "Alpha");
     return baseSuratItems.filter(i => i.status === filterStatus);
   }, [baseSuratItems, filterStatus]);
 
@@ -230,7 +232,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       pending: baseSuratItems.filter(i => i.approval_status === "pending").length,
       Sakit: baseSuratItems.filter(i => i.status === "Sakit").length,
       Izin: baseSuratItems.filter(i => i.status === "Izin").length,
-      Alpha: baseSuratItems.filter(i => i.status === "Alpha").length,
+      // Normalize: Database bisa simpan sebagai "Alpa" atau "Alpha"
+      Alpa: baseSuratItems.filter(i => i.status === "Alpa" || i.status === "Alpha").length,
     };
   }, [baseSuratItems]);
 
@@ -322,23 +325,42 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     e.preventDefault();
     if (form.siswa_nis.length === 0 || !form.tanggal) return showToast('Pilih minimal 1 siswa dan tanggal absensi!','error');
     setIsLoading(true);
+    let successCount = 0;
+    let failCount = 0;
     try {
-      // Loop save for each selected student
+      // Loop save for each selected student, cek response per siswa
       for (const nis of form.siswa_nis) {
-        await fetch("/api/kedisiplinan/absensi", {
-          method:"POST",
-          headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json" },
-          body: JSON.stringify({ 
-            siswa_nis: nis, 
-            tanggal: form.tanggal, 
-            status: form.status, 
-            keterangan: form.keterangan,
-            fileData: form.fileData,
-            fileName: form.fileName
-          })
-        });
+        try {
+          const res = await fetch("/api/kedisiplinan/absensi", {
+            method:"POST",
+            headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json" },
+            body: JSON.stringify({ 
+              siswa_nis: nis, 
+              tanggal: form.tanggal, 
+              status: form.status, 
+              keterangan: form.keterangan,
+              fileData: form.fileData,
+              fileName: form.fileName
+            })
+          });
+          const json = await res.json();
+          if (json.ok) {
+            successCount++;
+          } else {
+            failCount++;
+            console.warn(`Gagal simpan NIS ${nis}:`, json.error);
+          }
+        } catch {
+          failCount++;
+        }
       }
-      showToast("Absensi berhasil dicatat");
+      if (failCount === 0) {
+        showToast(`Absensi berhasil dicatat untuk ${successCount} siswa`);
+      } else if (successCount > 0) {
+        showToast(`${successCount} berhasil, ${failCount} gagal disimpan`, "error");
+      } else {
+        showToast("Semua data gagal disimpan ke server", "error");
+      }
       setShowFormModal(false);
       setForm({ siswa_nis: [], tanggal: new Date().toISOString().split('T')[0], status:'Sakit', keterangan:'', fileData: null, fileName: null, fileSizeKB: null });
       fetchData();
@@ -467,7 +489,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
               { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
               { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-2xs" },
-              { id: "Alpha", label: "Alpha", count: statusCounts.Alpha, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
+              { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1043,7 +1065,9 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-emerald-600 text-white px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5">
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+          toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
+        }`}>
            <CheckCircle2 size={18} /> {toast.message}
         </div>
       )}
