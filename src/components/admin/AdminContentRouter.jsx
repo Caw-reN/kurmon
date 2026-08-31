@@ -267,8 +267,17 @@ export default function AdminContentRouter({ context }) {
 
       const commonRoleTabs = ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket"];
       if (commonRoleTabs.includes(activeTab)) return true;
-      if (role ==="kepsek") {
-        const kepsekAllowedTabs = [...commonRoleTabs, "siswa","guru","data_pegawai"];
+      if (role === "kepsek") {
+        const kepsekAllowedTabs = [
+          ...commonRoleTabs,
+          "siswa", "guru", "karyawan", "data_pegawai", "dataguru", "datasiswa", "dataperusahaan",
+          "laporan_absensi", "absensi", "absensiguru",
+          "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
+          "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan",
+          "kedisiplinan_absensi", "kedisiplinan_bpbk", "kedisiplinan_piket", "buku_konseling",
+          "jurnal_harian", "ruangan", "fasilitas", "silabus", "modul_ajar", "beban", "jadwal", "generate",
+          "keamanan", "audit_log", "activity_logs", "riwayat_prestasi", "pengumuman", "kalender", "kalender_akademik", "pesan"
+        ];
         if (kepsekAllowedTabs.includes(activeTab)) return true;
         return checkAllowed("kepsek");
       }
