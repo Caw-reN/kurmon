@@ -268,10 +268,14 @@ export default function KepsekExecutiveDashboard({
       'Unknown': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 }
     };
 
-    const studentMap = {};
+    const nisMap = {};
+    const nameMap = {};
+    
     (students || []).forEach(s => {
-      const k = String(s.employee_id || s.nis || s.code || '').trim().toLowerCase();
-      if (k) studentMap[k] = s;
+      const nis = String(s.nis || s.code || s.employee_id || '').trim().toLowerCase();
+      const name = String(s.name || s.nama || '').trim().toLowerCase();
+      if (nis) nisMap[nis] = s;
+      if (name) nameMap[name] = s;
       
       // Hitung total base per kelas
       const cls = String(s.class_name || s.kelas || '').toUpperCase();
@@ -279,13 +283,16 @@ export default function KepsekExecutiveDashboard({
       if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
       else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
       else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
-      gradeStats[grade].total++;
+      
+      if (gradeStats[grade]) gradeStats[grade].total++;
     });
 
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(uniq).forEach(r => {
-      const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
-      const sMaster = studentMap[k];
+      const idRaw = String(r?.employee_id || r?.nis || r?.id || '').trim().toLowerCase();
+      const nameRaw = String(r?.true_person_name || r?.name || '').trim().toLowerCase();
+      const sMaster = nisMap[idRaw] || nameMap[nameRaw] || nameMap[idRaw];
+      
       const cls = String(sMaster?.class_name || sMaster?.kelas || '').toUpperCase();
       let grade = 'Unknown';
       if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
@@ -480,30 +487,7 @@ export default function KepsekExecutiveDashboard({
                 </p>
               </div>
 
-              {/* Inline Live Rings */}
-              <div className="flex flex-wrap gap-3 mt-2">
-                {[
-                  { label: 'Guru Hadir', num: guruStats.totalMasuk, den: guruStats.total, p: guruPresentPct },
-                  { label: 'Staff Hadir', num: karyawanStats.totalMasuk, den: karyawanStats.total, p: karyawanPresentPct },
-                  { label: 'Siswa Hadir', num: siswaPresentTotal, den: siswaDenom, p: siswaPresentPct },
-                  { label: 'Jurnal KBM', num: jurnalSubmitted, den: todaySchedule.length, p: jurnalPct },
-                  { label: 'Kelas Aktif', num: totalClassesCount, den: totalClassesCount, p: 100 },
-                ].map(stat => (
-                  <div key={stat.label} className="flex items-center gap-2.5 bg-white/12 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/20">
-                    <svg viewBox="0 0 36 36" className="w-9 h-9 -rotate-90 shrink-0">
-                      <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
-                      <circle cx="18" cy="18" r="14" fill="none" stroke="white" strokeWidth="4"
-                        strokeDasharray={`${2 * Math.PI * 14}`}
-                        strokeDashoffset={`${2 * Math.PI * 14 * (1 - stat.p / 100)}`}
-                        strokeLinecap="round" className="transition-all duration-700" />
-                    </svg>
-                    <div>
-                      <div className="text-white text-xs font-black leading-none">{stat.num}<span className="font-semibold text-white/60">/{stat.den}</span></div>
-                      <div className="text-white/70 text-[10px] font-semibold mt-0.5">{stat.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+
             </div>
 
             {/* Action Buttons */}
