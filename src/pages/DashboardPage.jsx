@@ -750,127 +750,155 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* ======= TOP PARENT CONTAINER BOX (MATCHES ADMIN BOX STYLING) ======= */}
-        <div className="hidden sm:flex bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
-          {/* Dashboard Messages Carousel */}
-          {dashboardMessages?.length > 0 && (
-            <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
-          )}
+        {/* ======= DESKTOP GRID LAYOUT (GURU) ======= */}
+        <div className="hidden sm:grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          {/* KOLOM KIRI (col-span-3): Pengumuman */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            {/* Kehadiran Hari Ini (Penting untuk absensi guru) */}
+            <AttendanceTodaySection
+              attendanceRecords={attendanceRecords}
+              dashLogs={dashLogs}
+              teachers={teachers}
+              staffs={staffs}
+              currentUser={currentUser}
+              isSuperAdmin={isSuperAdmin}
+              isKepsek={isKepsek}
+              isWaka={isWaka}
+              isTU={isTU}
+              activeDivision={activeDivision}
+              setActiveTab={setActiveTab}
+            />
 
-          {/* ======= KEHADIRAN HARI INI ======= */}
-          <AttendanceTodaySection
-            attendanceRecords={attendanceRecords}
-            dashLogs={dashLogs}
-            teachers={teachers}
-            staffs={staffs}
-            currentUser={currentUser}
-            isSuperAdmin={isSuperAdmin}
-            isKepsek={isKepsek}
-            isWaka={isWaka}
-            isTU={isTU}
-            activeDivision={activeDivision}
-            setActiveTab={setActiveTab}
-          />
-
-          {/* MENU UTAMA Section */}
-          <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
-            <div className="flex items-center gap-2 ml-0.5">
-              <Zap size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
-            </div>
-            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
-              {teacherShortcuts.map((shortcut, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTab(shortcut.tab)}
-                  className="bg-slate-50/90 py-2 sm:py-3 px-1 sm:px-2 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-xs transition-all duration-200 cursor-pointer text-center w-full group min-h-[68px] sm:min-h-[82px]"
-                >
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
-                    <img src={shortcut.icon} className="w-5 h-5 sm:w-7 sm:h-7 object-contain" alt="" />
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
+                  <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
+                </h3>
+              </div>
+              <div className="flex flex-col gap-2 overflow-y-auto max-h-[400px] pr-1 custom-scrollbar">
+                {(!dashboardMessages || dashboardMessages.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)]">
+                    <span className="text-xs font-bold text-slate-400">Belum ada pengumuman</span>
                   </div>
-                  <div className="w-full">
-                    <p className="text-[9.5px] sm:text-[11px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* DATA & INFORMASI STATISTIK Section */}
-          <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
-            <div className="flex items-center gap-2 ml-0.5">
-              <Activity size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-              {teacherStatCards.map((stat, i) => (
-                <div key={i} className="bg-slate-50/90 p-3 sm:p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-3 hover:-translate-y-0.5 transition-all cursor-default w-full">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shrink-0">
-                    <img src={stat.icon} className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="" />
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
-                    <h2 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Teaching loads table */}
-        <div className="hidden sm:flex bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-            <div>
-              <h2 className="text-base font-black text-slate-800">Beban Mengajar Anda</h2>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Daftar mata pelajaran yang ditugaskan</p>
-            </div>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-              <Printer size={13} /> Export
-            </button>
-          </div>
-          {myTeachingLoads.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50/50">
-              <GraduationCap size={32} className="text-slate-300 mx-auto mb-3" />
-              <p className="text-sm font-bold text-slate-400">Belum ada beban mengajar ditugaskan oleh Admin.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="pb-3 pt-4 px-5 font-semibold text-slate-400 text-xs">Mata Pelajaran</th>
-                    <th className="pb-3 pt-4 px-3 font-semibold text-slate-400 text-xs">Target</th>
-                    <th className="pb-3 pt-4 px-3 font-semibold text-slate-400 text-xs">Maks. Kelas</th>
-                    <th className="pb-3 pt-4 px-5 font-semibold text-slate-400 text-xs text-right">Durasi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myTeachingLoads.map((load, i) => (
-                    <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3.5 px-5 font-bold text-slate-700">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-                            <BookOpen size={13} />
-                          </div>
-                          {load.subject}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold">
-                          {load.targetGrade !=="All" ? load.targetGrade :"Semua"} {load.targetMajor !=="All" ? load.targetMajor :""}
+                ) : (
+                  dashboardMessages.map((msg, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setActiveAnnouncementDetail(msg)}
+                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-100 shadow-2xs hover:bg-slate-100 hover:border-slate-200 cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                          {msg.priority === 'high' ? 'PENTING' : 'INFO'}
                         </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-slate-500 text-xs font-medium">
-                        {Number.parseInt(load.maxClasses, 10) > 0 ? `${load.maxClasses} kelas` :"Bebas"}
-                      </td>
-                      <td className="py-3.5 px-5 text-right font-black text-[var(--ui-primary)]">{load.duration} JP</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <span className="text-[9px] font-medium text-slate-400 truncate">{msg.date || 'Hari ini'}</span>
+                      </div>
+                      <h4 className="text-[11px] font-black text-slate-800 truncate leading-tight mb-0.5">{msg.title}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium line-clamp-2 leading-snug">{msg.content || msg.body}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* KOLOM TENGAH (col-span-5): Menu Utama & Statistik */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {/* MENU UTAMA Section */}
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+                <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {teacherShortcuts.map((shortcut, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveTab(shortcut.tab)}
+                    className="bg-slate-50/90 py-2.5 px-1 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
+                  >
+                    <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-700 leading-tight text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* DATA & INFORMASI STATISTIK Section */}
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex-1">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
+                <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {teacherStatCards.map((stat, i) => (
+                  <div key={i} className="bg-slate-50/90 p-3 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
+                    <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                      <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-[9px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
+                      <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* KOLOM KANAN (col-span-4): Beban Mengajar */}
+          <div className="lg:col-span-4 flex flex-col gap-4 h-full">
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                <div>
+                  <h2 className="text-base font-black text-slate-800">Beban Mengajar</h2>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Daftar jam mengajar Anda</p>
+                </div>
+                <button className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
+                  <Printer size={13} /> Export
+                </button>
+              </div>
+              {myTeachingLoads.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 py-10 bg-white">
+                  <GraduationCap size={32} className="text-slate-300 mx-auto mb-3" />
+                  <p className="text-xs font-bold text-slate-400 max-w-[200px] text-center">Belum ada beban mengajar ditugaskan oleh Admin.</p>
+                </div>
+              ) : (
+                <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
+                  <table className="w-full text-left text-sm">
+                    <thead className="sticky top-0 bg-white z-10 shadow-2xs">
+                      <tr className="border-b border-slate-100">
+                        <th className="py-2.5 px-4 font-semibold text-slate-400 text-[10px] uppercase tracking-wider">Pelajaran</th>
+                        <th className="py-2.5 px-3 font-semibold text-slate-400 text-[10px] uppercase tracking-wider text-right">Durasi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myTeachingLoads.map((load, i) => (
+                        <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-[11px] text-slate-700 leading-tight mb-0.5">{load.subject}</span>
+                              <div className="flex gap-1 items-center mt-0.5">
+                                <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                  {load.targetGrade !=="All" ? load.targetGrade :"Semua"} {load.targetMajor !=="All" ? load.targetMajor :""}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                             <span className="font-black text-xs text-[var(--ui-primary)]">{load.duration} JP</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         
         {/* ─────── Shared Activity Logs ─────── */}
