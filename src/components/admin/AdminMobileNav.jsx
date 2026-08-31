@@ -198,8 +198,8 @@ export default function AdminMobileNav({
   const isAnyDirectTabActive = allTabs.some(t => !t.isMenuTrigger && (activeTab === t.id || (t.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'))));
 
   const containerClasses = tabbarStyle === 'stay'
-    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/98 backdrop-blur-xl border-t border-slate-200/90 pt-1.5 px-2 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[0_-4px_24px_rgba(15,23,42,0.08)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation"
-    : "lg:hidden fixed bottom-[calc(10px+env(safe-area-inset-bottom,0px))] left-3 right-3 max-w-md mx-auto bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-[24px] p-1.5 shadow-[0_12px_36px_rgba(15,23,42,0.16),0_2px_8px_rgba(15,23,42,0.06)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation";
+    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-[var(--ui-surface-raised)] backdrop-blur-xl border-t border-[var(--ui-border-soft)] pt-1.5 px-2 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[var(--ui-shadow-float)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation"
+    : "lg:hidden fixed bottom-[calc(10px+env(safe-area-inset-bottom,0px))] left-3 right-3 max-w-md mx-auto bg-[var(--ui-surface-raised)] backdrop-blur-xl border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-card)] p-1.5 shadow-[var(--ui-shadow-float-hover)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation";
 
   return (
     <div className={containerClasses} role="navigation" aria-label="Mobile Navigation">
@@ -227,13 +227,13 @@ export default function AdminMobileNav({
                 }
               }
             }}
-            className={`relative flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-[16px] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-90 select-none ${
+            className={`relative flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-[var(--ui-radius-control)] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-90 select-none ${
               isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400 hover:text-slate-600'
             }`}
             style={{ minHeight: '50px' }}
           >
             {/* Pill Capsule Active Indicator */}
-            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+            <div className={`px-3 py-1 rounded-[var(--ui-radius-pill)] transition-all duration-200 flex items-center justify-center ${
               isActive ? 'bg-[var(--ui-primary)]/12 shadow-2xs' : 'group-active:bg-slate-100'
             }`}>
               <IconComponent

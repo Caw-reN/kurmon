@@ -389,7 +389,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-6">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)]">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -425,7 +425,7 @@ export default function DashboardPage({
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
               <div 
-                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/90 shadow-xl rounded-2xl p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-popover)] rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
@@ -439,7 +439,7 @@ export default function DashboardPage({
                   </button>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex items-center gap-3">
+                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-[var(--ui-border-soft)] flex items-center gap-3">
                   <div 
                     className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
@@ -449,14 +449,14 @@ export default function DashboardPage({
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>
                     <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-slate-600 mt-0.5 border border-slate-200/60">
+                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white text-slate-600 mt-0.5 border border-[var(--ui-border-soft)]">
                       {currentUser?.role || 'Guru / Pengajar'}
                     </span>
                   </div>
                 </div>
 
                 {/* TABBAR STYLE SELECTOR TOGGLE */}
-                <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60 flex flex-col gap-1.5">
+                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-2.5 border border-[var(--ui-border-soft)] flex flex-col gap-1.5">
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                     Gaya TabBar Navigasi Mobile
                   </span>
@@ -496,7 +496,7 @@ export default function DashboardPage({
                       if (onOpenProfile) onOpenProfile();
                       else if (setActiveTab) setActiveTab('profile');
                     }}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-2xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] shadow-2xs active:scale-98"
                   >
                     <User size={14} strokeWidth={2.2} /> Edit Profil & Kata Sandi
                   </button>
@@ -507,7 +507,7 @@ export default function DashboardPage({
                       setShowMobileProfileModal(false);
                       triggerLogout();
                     }}
-                    className="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-2xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-2xs active:scale-98"
                   >
                     <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
                   </button>
@@ -517,7 +517,7 @@ export default function DashboardPage({
           </div>
           
           <div className="shrink-0 flex items-center gap-1.5">
-            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-slate-200/80 px-2.5 py-1.5 rounded-xl shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)] shadow-2xs">
               {todayShort}
             </span>
           </div>
@@ -576,7 +576,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => setActiveTab(todayClasses.length > 0 ? 'jurnal_harian' : 'generate')}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-[var(--ui-primary)] font-black text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10 touch-manipulation select-none"
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-[var(--ui-primary)] font-black text-xs rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-control)] flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10 touch-manipulation select-none"
               >
                 <FileText size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
                 <span>{todayClasses.length > 0 ? "Isi Jurnal & Absen Kelas" : "Lihat Seluruh Jadwal Mengajar"}</span>
@@ -606,7 +606,7 @@ export default function DashboardPage({
                     onClick={() => setActiveTab(shortcut.tab)}
                     className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none"
                   >
-                    <div className={`w-12 h-12 rounded-2xl ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all`}>
+                    <div className={`w-12 h-12 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-[var(--ui-shadow-control)] group-active:shadow-none transition-all`}>
                       <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
                     <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
@@ -631,8 +631,8 @@ export default function DashboardPage({
                 ];
                 const bg = pastelBgs[idx % pastelBgs.length];
                 return (
-                  <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 active:scale-[0.98] transition-transform">
-                    <div className={`w-10 h-10 rounded-xl ${bg} border flex items-center justify-center shrink-0`}>
+                  <div key={idx} className="bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 active:scale-[0.98] transition-transform">
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -661,8 +661,8 @@ export default function DashboardPage({
             </div>
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-[var(--ui-border-soft)] flex items-center justify-center text-slate-400 shrink-0">
                   <Megaphone size={18} strokeWidth={2.2} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -678,9 +678,9 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
+                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -757,7 +757,7 @@ export default function DashboardPage({
               setActiveTab={setActiveTab}
             />
 
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
+            <div className="bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
                   <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
@@ -773,7 +773,7 @@ export default function DashboardPage({
                     <div 
                       key={idx} 
                       onClick={() => setActiveAnnouncementDetail(msg)}
-                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-100 shadow-2xs hover:bg-slate-100 hover:border-slate-200 cursor-pointer transition-all"
+                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-[var(--ui-border-soft)] shadow-2xs hover:bg-slate-100 hover:border-slate-200 cursor-pointer transition-all"
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
@@ -793,7 +793,7 @@ export default function DashboardPage({
           {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
           <div className="lg:col-span-6 flex flex-col gap-4">
             {/* MENU UTAMA Section */}
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
+            <div className="bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
               <div className="flex items-center gap-2 mb-2.5">
                 <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
@@ -803,7 +803,7 @@ export default function DashboardPage({
                   <button
                     key={i}
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="bg-slate-50/90 py-2 sm:py-2.5 px-1 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
+                    className="bg-slate-50/90 py-2 sm:py-2.5 px-1 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
                   >
                     <div className="w-7 h-7 flex items-center justify-center shrink-0">
                       <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
@@ -815,14 +815,14 @@ export default function DashboardPage({
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
+            <div className="bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
               <div className="flex items-center gap-2 mb-2.5">
                 <Activity size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 {teacherStatCards.map((stat, i) => (
-                  <div key={i} className="bg-slate-50/90 p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
+                  <div key={i} className="bg-slate-50/90 p-2.5 sm:p-3 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
                       <img src={stat.icon} className="w-5 h-5 sm:w-6 sm:h-6 object-contain" alt="" />
                     </div>
@@ -838,7 +838,7 @@ export default function DashboardPage({
 
           {/* KOLOM KANAN (col-span-3): Beban Mengajar (Lebih Diperkecil & Ramping) */}
           <div className="lg:col-span-3 flex flex-col gap-4 h-full">
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
+            <div className="bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>

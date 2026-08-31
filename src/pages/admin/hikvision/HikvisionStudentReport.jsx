@@ -1342,7 +1342,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 1: Siswa Hadir */}
               <div 
                 onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
@@ -1357,13 +1357,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <span className="text-[10px] sm:text-xs font-bold text-slate-400">/{data.length}</span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
                     <UserCheck size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
                 <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
                     {data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir
                   </span>
                   <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-emerald-700 items-center gap-1 transition-colors">
@@ -1375,7 +1375,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 2: Siswa Terlambat */}
               <div 
                 onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
@@ -1389,13 +1389,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
                     <Clock size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
                 <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-full border text-[9px] sm:text-[10px] truncate ${
+                  <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border text-[9px] sm:text-[10px] truncate ${
                     lateStudentsToday.length > 0 
                       ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
                       : 'text-slate-500 bg-slate-50 border-slate-200/60'
@@ -1411,7 +1411,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
               <div 
                 onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
@@ -1426,13 +1426,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
                     <UserX size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
                 <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className="font-bold text-rose-700 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-rose-200/60 text-[9px] sm:text-[10px] truncate">
+                  <span className="font-bold text-rose-700 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200/60 text-[9px] sm:text-[10px] truncate">
                     {absentStudentsToday.length > 0 ? `${absentStudentsToday.length} Siswa` : 'Nihil'}
                   </span>
                   <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-rose-600 items-center gap-1 transition-colors">
@@ -1443,32 +1443,35 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             </div>
           )}
 
-          {/* Banner Validasi Wali Kelas (In-Page, Rapi & Tidak Menutupi Layar) */}
+          {/* Banner Validasi Wali Kelas (In-Page, Rapi & Mengikuti Tema Kustomisasi) */}
           {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
             <div className="w-full">
               {isAttendanceValidated ? (
-                <div className="bg-emerald-50/90 border border-emerald-300/80 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-xs">
+                <div className="bg-emerald-50/90 border border-emerald-300/80 rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex items-center justify-between gap-3 shadow-[var(--ui-shadow-card)]">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <div 
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-[var(--ui-radius-control)] text-white flex items-center justify-center shrink-0 shadow-xs"
+                      style={{ backgroundColor: "var(--ui-primary)" }}
+                    >
                       <CheckCircle2 size={18} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs sm:text-sm font-black text-emerald-950 truncate leading-snug">
+                      <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate leading-snug">
                         Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
                       </h4>
-                      <p className="text-[10px] sm:text-[11px] text-emerald-700 font-medium truncate mt-0.5">
+                      <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
                         Diverifikasi hari ini ({attendanceValidatedTime || 'Hari ini'})
                       </p>
                     </div>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                  <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
                     Terverifikasi
                   </span>
                 </div>
               ) : (
-                <div className="bg-gradient-to-r from-amber-50/90 via-white to-amber-50/70 border border-amber-200/90 rounded-2xl p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="bg-gradient-to-r from-amber-50/90 via-white to-amber-50/70 border border-amber-200/90 rounded-[var(--ui-radius-card)] p-3 sm:p-4 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[var(--ui-radius-control)] bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                       <UserCheck size={18} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
@@ -1476,7 +1479,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                         <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate leading-snug">
                           Validasi Wali Kelas
                         </h4>
-                        <span className="text-[8.5px] sm:text-[9.5px] font-extrabold text-amber-700 bg-amber-100/90 border border-amber-200/80 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-[8.5px] sm:text-[9.5px] font-extrabold text-amber-700 bg-amber-100/90 border border-amber-200/80 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shrink-0">
                           Perlu Validasi
                         </span>
                       </div>
@@ -1489,7 +1492,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={handleConfirmWalasAttendance}
-                    className="w-full sm:w-auto shrink-0 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-black shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                    className="w-full sm:w-auto shrink-0 py-2.5 px-4 rounded-[var(--ui-radius-control)] text-white text-xs font-black shadow-[var(--ui-shadow-control)] hover:brightness-95 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                    style={{ backgroundColor: "var(--ui-primary)" }}
                   >
                     <CheckCircle2 size={16} strokeWidth={2.5} />
                     <span>Saya Sudah Memeriksa Absensi Hari Ini</span>
