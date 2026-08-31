@@ -511,34 +511,37 @@ export default function KepsekExecutiveDashboard({
             </div>
 
             {/* Right: Menu Pintasan Glassmorphic Grid */}
-            <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0">
+            <div className="flex flex-col gap-2.5 w-full lg:w-auto shrink-0">
               <div className="flex items-center gap-1.5 text-white/90">
-                <Sparkles size={12} className="text-amber-300" />
-                <span className="text-[11px] font-black uppercase tracking-wider">Menu Pintasan</span>
+                <Sparkles size={13} className="text-amber-300" />
+                <span className="text-xs font-black uppercase tracking-wider">Menu Pintasan</span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:max-w-2xl">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:max-w-3xl">
                 {[
-                  { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
-                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
-                  { tab: 'pesan', label: 'Pengumuman', icon: '/icons/013-chat.svg' },
-                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
-                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: '/icons/008-warehouse.svg' },
-                  { tab: 'dataguru', label: 'Data SDM Guru', icon: '/icons/045-account.svg' },
-                  { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
-                  { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
-                ].map(m => (
-                  <button
-                    key={m.tab}
-                    onClick={() => gotoTab(m.tab)}
-                    className="flex items-center gap-2 p-2 rounded-[var(--ui-radius-control)] bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md transition-all text-left group cursor-pointer shadow-2xs hover:scale-[1.02]"
-                  >
-                    <div className="w-6 h-6 rounded bg-white/90 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white transition-colors">
-                      <img src={m.icon} alt={m.label} className="w-3.5 h-3.5 object-contain" />
-                    </div>
-                    <span className="text-[11px] font-bold text-white truncate min-w-0 flex-1">{m.label}</span>
-                    <ChevronRight size={11} className="text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </button>
-                ))}
+                  { tab: 'generate', label: 'Jadwal & KBM', icon: Calendar, iconColor: 'text-indigo-600' },
+                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: ClipboardCheck, iconColor: 'text-emerald-600' },
+                  { tab: 'pesan', label: 'Pengumuman', icon: Megaphone, iconColor: 'text-rose-600' },
+                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: Award, iconColor: 'text-purple-600' },
+                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: Building2, iconColor: 'text-sky-600' },
+                  { tab: 'dataguru', label: 'Data Guru', icon: Users, iconColor: 'text-amber-600' },
+                  { tab: 'datasiswa', label: 'Data Siswa', icon: GraduationCap, iconColor: 'text-teal-600' },
+                  { tab: 'akademik', label: 'Kalender', icon: Clock, iconColor: 'text-orange-600' },
+                ].map(m => {
+                  const Icon = m.icon;
+                  return (
+                    <button
+                      key={m.tab}
+                      onClick={() => gotoTab(m.tab)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <div className="w-7 h-7 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                        <Icon size={15} className={m.iconColor} />
+                      </div>
+                      <span className="text-xs font-extrabold text-white whitespace-nowrap min-w-0 flex-1">{m.label}</span>
+                      <ChevronRight size={12} className="text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
