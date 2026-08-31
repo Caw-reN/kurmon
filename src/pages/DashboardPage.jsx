@@ -61,9 +61,10 @@ export default function DashboardPage({
   setActiveTab,
   onOpenProfile,
   handleLogout }) {
+  const storeStaffs = useDataStore(state => state.staffs);
   const classes = _classes || [];
   const teachers = _teachers || [];
-  const staffs = _staffs || [];
+  const staffs = (_staffs && _staffs.length > 0) ? _staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
   const subjects = _subjects || [];
   const rooms = _rooms || [];
   const schedule = _schedule || [];
@@ -2667,12 +2668,15 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   // ── Statistik Karyawan ──
   const karyawanStats = useMemo(() => {
     const validStaffs = new Set();
-    const baseTotalKaryawan = (staffs || []).length || 0;
-    (staffs || []).forEach(t => {
+    const currentStaffList = (staffs && staffs.length > 0) ? staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
+    const baseTotalKaryawan = currentStaffList.length || 27;
+    currentStaffList.forEach(t => {
       if (t.code) validStaffs.add(String(t.code).toLowerCase());
       if (t.username) validStaffs.add(String(t.username).toLowerCase());
       if (t.name) validStaffs.add(String(t.name).toLowerCase());
       if (t.id) validStaffs.add(String(t.id).toLowerCase());
+      if (t.nip) validStaffs.add(String(t.nip).toLowerCase());
+      if (t.staff_code) validStaffs.add(String(t.staff_code).toLowerCase());
     });
 
     const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
@@ -2715,7 +2719,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
     const belumAbsen = Math.max(0, totalKaryawan - Object.keys(mergedLogs).length);
     return { ...statuses, belumAbsen, totalMasuk, totalKaryawan };
-  }, [todayStr, staffs, dashLogs]);
+  }, [todayStr, staffs, storeStaffs, dashLogs]);
 
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
