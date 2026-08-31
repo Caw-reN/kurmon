@@ -580,8 +580,9 @@ export default function KepsekExecutiveDashboard({
                           return (
                             <div key={g} className="flex-1 bg-white border border-slate-200 rounded-lg py-2 px-1 text-center shadow-xs">
                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Kelas {g}</div>
-                               <div className="text-xs font-black text-slate-700 mt-0.5">
-                                 {pct(gPresent, gStat?.total || 1)}%
+                               <div className="flex items-baseline justify-center gap-1 mt-0.5">
+                                 <span className="text-xs font-black text-slate-700">{pct(gPresent, gStat?.total || 1)}%</span>
+                                 <span className="text-[9px] font-bold text-slate-400">({gPresent}/{gStat?.total || 0})</span>
                                </div>
                             </div>
                           );
