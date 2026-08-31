@@ -82,7 +82,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "view",
     walas_report: "view", catatan_walikelas: "view", riwayat_prestasi: "view",
     laporan_absensi: "view", hikvision_report_guru: "view",
-    hikvision_report_karyawan: "view", hikvision_report_siswa: "view"
+    hikvision_report_karyawan: "view", hikvision_report_siswa: "view",
+    dataguru: "view", datasiswa: "view", dataperusahaan: "view", guru: "view", siswa: "view",
+    keamanan: "view"
   },
 
   // ─── WAKA ───────────────────────────────────────────────────────────────────

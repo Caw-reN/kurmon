@@ -2696,7 +2696,7 @@ export default function App() {
         sekretaris_kesiswaan: ["dashboard","absensi","kedisiplinan_piket","kedisiplinan_absensi","catatan_walikelas","riwayat_prestasi","siswa","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
         anggota_kesiswaan: ["dashboard","kedisiplinan_piket","kedisiplinan_absensi","riwayat_prestasi","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
         waka_kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa","absensiguru"],
-        kepsek: ["dashboard","laporan_absensi","pesan"],
+        kepsek: ["dashboard","generate","laporan_absensi","pesan","kedisiplinan_bpbk","pkl_dashboard","akademik","dataguru","guru","data_pegawai","datasiswa","siswa","dataperusahaan","pkl_data_perusahaan","keamanan"],
         tu: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
         tata_usaha: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
         karyawan: ["dashboard","absensiguru","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","akademik","pesan"],

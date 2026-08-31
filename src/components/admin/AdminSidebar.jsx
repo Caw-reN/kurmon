@@ -1,7 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings } from 'lucide-react';
+import {
+  ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings,
+  LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity
+} from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
+import { normalizeUserRole } from '@/utils/constants';
 
 export default function AdminSidebar({
   isMobileMenuOpen, setIsMobileMenuOpen,
@@ -103,15 +107,55 @@ export default function AdminSidebar({
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // KEPSEK MENU RENDERER — Khusus Kepala Sekolah (Fokus pada Menu Pintasan & Eksekutif)
+  // ─────────────────────────────────────────────────────────────────────────────
+  const renderKepsekMenu = () => {
+    return (
+      <>
+        {/* UTAMA */}
+        {renderNavItem({
+          id: 'dashboard',
+          icon: LayoutDashboard,
+          label: 'Dashboard',
+        })}
+
+        {/* MONITORING & KBM */}
+        <SidebarSection label="MONITORING & KBM" />
+        {renderNavItem({ id: 'generate', icon: Calendar, label: 'Jadwal & KBM' })}
+        {renderNavItem({ id: 'laporan_absensi', icon: ClipboardList, label: 'Rekap Absensi' })}
+        {renderNavItem({ id: 'pesan', icon: MessageSquare, label: 'Pengumuman' })}
+        {renderNavItem({ id: 'kedisiplinan_bpbk', icon: Trophy, label: 'Buku BPBK' })}
+        {renderNavItem({ id: 'pkl_dashboard', icon: Briefcase, label: 'Dashboard PKL' })}
+        {renderNavItem({ id: 'akademik', icon: CalendarDays, label: 'Kalender' })}
+
+        {/* DATA UTAMA */}
+        <SidebarSection label="DATA UTAMA" />
+        {renderNavItem({ id: 'dataguru', icon: Users, label: 'Data Guru', activeIds: ['dataguru', 'guru', 'data_pegawai'] })}
+        {renderNavItem({ id: 'datasiswa', icon: GraduationCap, label: 'Data Siswa', activeIds: ['datasiswa', 'siswa'] })}
+        {renderNavItem({ id: 'dataperusahaan', icon: Building2, label: 'Mitra DUDI', activeIds: ['dataperusahaan', 'pkl_data_perusahaan'] })}
+
+        {/* LOG AKTIVITAS */}
+        <SidebarSection label="AKTIVITAS" />
+        {renderNavItem({ id: 'keamanan', icon: Activity, label: 'Log Aktivitas' })}
+      </>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // DYNAMIC MENU RENDERER — reads from MENU_REGISTRY
   // Groups items by section, renders renderNavItem for each
   // ─────────────────────────────────────────────────────────────────────────────
 
   const renderDynamicMenu = () => {
     const isAdmin = isSuperAdminRole(activeUserRole);
+    const isKepsek = normalizeUserRole(activeUserRole) === 'kepsek' || normalizeUserRole(currentUser?.role) === 'kepsek';
 
     if (isAdmin) {
       return renderAdminMenu();
+    }
+
+    if (isKepsek) {
+      return renderKepsekMenu();
     }
 
     // For non-admin users: group MENU_REGISTRY by section and render dynamically
