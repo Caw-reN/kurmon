@@ -2621,9 +2621,16 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
     });
 
-    const recentTeacherLogs = (dashLogs?.teacherLogs || dashLogs?.recentLogs || []).filter(r => {
+    const candidateTeacherLogs = [
+      ...(dashLogs?.teacherLogs || []),
+      ...(dashLogs?.recentLogs || [])
+    ];
+    const recentTeacherLogs = candidateTeacherLogs.filter(r => {
       const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
-      if (!type.includes('GURU')) return false; // HANYA GURU
+      const empId = String(r.employee_id || '').toLowerCase();
+      if (empId.startsWith('k') || type.includes('KARYAWAN')) return false;
+      const isTeacherMatch = validTeachers.has(empId) || type.includes('GURU');
+      if (!isTeacherMatch) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return true;
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
@@ -2681,10 +2688,18 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (t.staff_code) validStaffs.add(String(t.staff_code).toLowerCase());
     });
 
-    const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
+    const candidateStaffLogs = [
+      ...(dashLogs?.staffLogs || []),
+      ...(dashLogs?.recentLogs || []),
+      ...(dashLogs?.teacherLogs || [])
+    ];
+
+    const recentLogs = candidateStaffLogs.filter(r => {
       const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
-      if (type.includes('GURU')) return false;
-      if (!(type.includes('KARYAWAN') || type.includes('STAFF'))) return false;
+      const empId = String(r.employee_id || '').toLowerCase();
+      const isStaffMatch = validStaffs.has(empId) || empId.startsWith('k') || type.includes('KARYAWAN') || type.includes('STAFF');
+      if (!isStaffMatch) return false;
+      if (type.includes('GURU') && !empId.startsWith('k') && !validStaffs.has(empId)) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return true;
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });

@@ -163,7 +163,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             CASE 
               WHEN msf.id IS NOT NULL THEN 'karyawan'
               WHEN mst.id IS NOT NULL THEN 'guru'
-              WHEN d.device_type = 'karyawan' THEN 'karyawan'
+              WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
               WHEN d.device_type = 'guru' THEN 'guru'
               ELSE 'siswa'
             END as true_person_type
@@ -176,7 +176,37 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           ORDER BY l.timestamp DESC LIMIT 500
         `);
 
-        const processedRecentLogs = recentLogsRes.rows.map(r => {
+        // Query khusus karyawan hari ini agar tidak tertutup ribuan log siswa
+        const staffLogsRes = await dbPool.query(`
+          SELECT l.*, d.ip_address, d.device_type,
+            COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as student_name,
+            COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as name,
+            '-' as class_name,
+            'karyawan' as true_person_type
+          FROM hikvision_logs l
+          JOIN hikvision_devices d ON l.device_id = d.id
+          LEFT JOIN mst_staffs msf ON msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id
+          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
+            AND (msf.id IS NOT NULL OR l.employee_id ~* '^k')
+          ORDER BY l.timestamp DESC LIMIT 300
+        `);
+
+        // Query khusus guru hari ini
+        const teacherLogsRes = await dbPool.query(`
+          SELECT l.*, d.ip_address, d.device_type,
+            COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as student_name,
+            COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as name,
+            '-' as class_name,
+            'guru' as true_person_type
+          FROM hikvision_logs l
+          JOIN hikvision_devices d ON l.device_id = d.id
+          LEFT JOIN mst_teachers mst ON mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id
+          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
+            AND (mst.id IS NOT NULL OR (d.device_type = 'guru' AND l.employee_id !~* '^k'))
+          ORDER BY l.timestamp DESC LIMIT 300
+        `);
+
+        const mapLogStatus = (r) => {
           const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
           const personType = String(r.true_person_type).toLowerCase();
           
@@ -200,9 +230,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             status,
             role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA')
           };
-        });
+        };
 
-        const responseData = { ok: true, devices: devicesRows, recentLogs: processedRecentLogs };
+        const processedRecentLogs = recentLogsRes.rows.map(mapLogStatus);
+        const processedStaffLogs = staffLogsRes.rows.map(mapLogStatus);
+        const processedTeacherLogs = teacherLogsRes.rows.map(mapLogStatus);
+
+        const responseData = { 
+          ok: true, 
+          devices: devicesRows, 
+          recentLogs: processedRecentLogs,
+          staffLogs: processedStaffLogs,
+          teacherLogs: processedTeacherLogs
+        };
         global._hikvDashCache.time = Date.now();
         global._hikvDashCache.data = responseData;
         send(req, res, 200, responseData);
