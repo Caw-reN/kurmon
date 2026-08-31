@@ -490,30 +490,7 @@ export default function KepsekExecutiveDashboard({
 
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-2 shrink-0 lg:min-w-[200px]">
-              <p className="text-white/60 text-[10px] font-extrabold uppercase tracking-wider mb-1">Aksi Cepat</p>
-              {[
-                { label: 'Cetak Rekap Laporan', icon: FileText, tab: 'laporan_absensi', primary: true },
-                { label: 'Buat Pengumuman', icon: Megaphone, tab: 'pesan', primary: false },
-                { label: 'Kalender Akademik', icon: Calendar, tab: 'akademik', primary: false },
-                { label: 'Data Master Guru', icon: Users, tab: 'dataguru', primary: false },
-              ].map(btn => {
-                const Icon = btn.icon;
-                return (
-                  <button
-                    key={btn.tab}
-                    type="button"
-                    onClick={() => gotoTab(btn.tab)}
-                    className={`w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95
-                      ${btn.primary ? 'bg-white text-[var(--ui-primary)] shadow-md hover:bg-slate-50' : 'bg-white/15 hover:bg-white/25 text-white border border-white/20'}`}
-                  >
-                    <Icon size={14} strokeWidth={2.5} />
-                    {btn.label}
-                  </button>
-                );
-              })}
-            </div>
+
           </div>
         </div>
       </div>
@@ -645,6 +622,7 @@ export default function KepsekExecutiveDashboard({
               {[
                 { tab: 'generate', label: 'Jadwal & KBM', desc: 'Kelola jadwal pelajaran aktif', icon: '/icons/011-schedule.svg', border: 'hover:border-indigo-300', bg: 'hover:bg-indigo-50' },
                 { tab: 'laporan_absensi', label: 'Rekap Absensi', desc: 'Laporan kehadiran lengkap', icon: '/icons/046-report.svg', border: 'hover:border-emerald-300', bg: 'hover:bg-emerald-50' },
+                { tab: 'pesan', label: 'Pengumuman', desc: 'Buat pengumuman publik', icon: '/icons/013-chat.svg', border: 'hover:border-red-300', bg: 'hover:bg-red-50' },
                 { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', desc: 'Catatan kedisiplinan siswa', icon: '/icons/014-award.svg', border: 'hover:border-purple-300', bg: 'hover:bg-purple-50' },
                 { tab: 'pkl_dashboard', label: 'Dashboard PKL', desc: 'Monitor PKL dan DUDI', icon: '/icons/008-warehouse.svg', border: 'hover:border-sky-300', bg: 'hover:bg-sky-50' },
                 { tab: 'dataguru', label: 'Data SDM Guru', desc: 'Master data seluruh guru', icon: '/icons/045-account.svg', border: 'hover:border-amber-300', bg: 'hover:bg-amber-50' },
