@@ -364,6 +364,8 @@ export default function KepsekExecutiveDashboard({
       .sort((a, b) => b.pct - a.pct)
       .slice(0, 4);
     
+    const totalSiswaInSchool = dashLogs?.totalStudents || (students || []).length || 0;
+    
     // Auto-calculate Alpa for each grade if past cutoff
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
     if (currentTimeJkt > "08:00:00") {
