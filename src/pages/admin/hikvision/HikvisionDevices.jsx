@@ -1,10 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, Plus, HardDrive, Edit2, Trash2, Save, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { Plus, HardDrive, Edit2, Trash2, Save } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
 import { Modal } from'../../../components/ui.jsx';
 
 
@@ -45,6 +43,7 @@ export default function HikvisionDevices() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDevice, setCurrentDevice] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveStep, setSaveStep] = useState('');
   const authToken = useAuthStore(state => state.user?.authToken);
   const [toast, setToast] = useState(null);
 
@@ -86,54 +85,84 @@ export default function HikvisionDevices() {
 
   const handleOpenModal = (device = null) => {
     if (device) {
-      setFormData({ ...device, device_type: device.device_type ||'siswa' });
+      setFormData({ 
+        ...device, 
+        device_type: device.device_type || 'siswa',
+        encrypted_password: device.encrypted_password || '' 
+      });
       setCurrentDevice(device);
     } else {
-      setFormData({ ip_address:'', location:'', username:'admin', encrypted_password:'', iv_vector:'', class_id:'', device_type:'siswa' });
+      setFormData({ 
+        ip_address: '', 
+        location: '', 
+        username: 'admin', 
+        encrypted_password: '', 
+        iv_vector: '', 
+        class_id: '', 
+        device_type: 'siswa' 
+      });
       setCurrentDevice(null);
     }
+    setSaveStep('');
     setIsModalOpen(true);
   };
 
   const handleSave = async () => {
+    if (!formData.ip_address || !formData.location) {
+      showToast('Harap lengkapi lokasi dan IP address mesin', 'error');
+      return;
+    }
+
     setSaving(true);
+    setSaveStep('Menyambungkan ke perangkat...');
+
     try {
-      const method = currentDevice ?"PUT" :"POST";
-      const url = currentDevice ? `/api/hikvision/devices/${currentDevice.id}` :"/api/hikvision/devices";
+      const token = authToken || getAuthToken();
+      const method = currentDevice ? "PUT" : "POST";
+      const url = currentDevice ? `/api/hikvision/devices/${currentDevice.id}` : "/api/hikvision/devices";
       
+      setSaveStep('Menyimpan konfigurasi ke database server...');
+
       const res = await fetch(url, {
         method,
-        headers: { ...authHeaders(authToken),'Content-Type':'application/json' },
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       const data = await res.json();
+      
       if (data.ok) {
+        setSaveStep('Berhasil! Memperbarui data...');
+        showToast(currentDevice ? "Data mesin berhasil diperbarui!" : "Mesin baru berhasil ditambahkan!", "success");
         setIsModalOpen(false);
-        fetchData();
+        await fetchData();
       } else {
-        showToast(data.error ||"Gagal menyimpan data","error");
+        showToast(data.error || "Gagal menyimpan data mesin", "error");
       }
     } catch (err) {
-      showToast("Terjadi kesalahan:" + err.message,"error");
+      showToast("Terjadi kesalahan: " + err.message, "error");
+    } finally {
+      setSaving(false);
+      setSaveStep('');
     }
-    setSaving(false);
   };
 
   const handleDelete = async (id) => {
     if (!(await window.confirmAsync("Apakah Anda yakin ingin menghapus mesin ini?"))) return;
     try {
+      const token = authToken || getAuthToken();
       const res = await fetch(`/api/hikvision/devices/${id}`, {
-        method:"DELETE",
-        headers: authHeaders(authToken)
+        method: "DELETE",
+        headers: authHeaders(token)
       });
       const data = await res.json();
       if (data.ok) {
+        showToast("Perangkat berhasil dihapus", "success");
         fetchData();
       } else {
-        showToast(data.error ||"Gagal menghapus data","error");
+        showToast(data.error || "Gagal menghapus data", "error");
       }
     } catch (err) {
-      showToast("Terjadi kesalahan:" + err.message,"error");
+      showToast("Terjadi kesalahan: " + err.message, "error");
     }
   };
 
@@ -156,12 +185,24 @@ export default function HikvisionDevices() {
         description="Kelola perangkat absensi wajah untuk Siswa, Guru, dan Karyawan."
         icon={MonitorSmartphone}
       >
-        <Button 
-          onClick={() => handleOpenModal()} 
-          className="shrink-0"
-        >
-          <Plus size={14} className="mr-2" /> Tambah Mesin
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="shrink-0 flex items-center gap-1.5"
+            title="Segarkan Data Mesin"
+          >
+            <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
+            <span>Segarkan</span>
+          </Button>
+          <Button 
+            onClick={() => handleOpenModal()} 
+            className="shrink-0"
+          >
+            <Plus size={14} className="mr-2" /> Tambah Mesin
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Stat cards per type */}
@@ -298,11 +339,32 @@ export default function HikvisionDevices() {
               placeholder="Password alat (Digest Auth)"
             />
           </div>
+
+          {/* Progress Animation State */}
+          {saving && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-[var(--ui-radius-control)] flex items-center gap-3 animate-pulse text-emerald-950 shadow-2xs">
+              <RefreshCw size={18} className="text-emerald-600 animate-spin shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black leading-tight">{saveStep || 'Sedang memproses...'}</p>
+                <p className="text-[10.5px] font-medium text-emerald-700 mt-0.5">Mohon tunggu, konfigurasi mesin sedang disimpan ke sistem.</p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="ghost" onClick={() => setIsModalOpen(false)} >Batal</Button>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save size={16} className="mr-2" /> {saving ?'Menyimpan...' :'Simpan'}
+          <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={saving}>Batal</Button>
+          <Button onClick={handleSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm">
+            {saving ? (
+              <>
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Menyimpan...</span>
+              </>
+            ) : (
+              <>
+                <Save size={15} />
+                <span>{currentDevice ? 'Perbarui Mesin' : 'Simpan Mesin'}</span>
+              </>
+            )}
           </Button>
         </div>
       </Modal>

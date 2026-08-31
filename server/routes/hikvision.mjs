@@ -231,6 +231,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           "INSERT INTO hikvision_devices (ip_address, location, username, encrypted_password, iv_vector, class_id, device_type, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)",
           [ip_address, location, username, encrypted, iv, class_id || null, device_type || 'siswa']
         );
+        global._hikvDashCache = null;
         send(req, res, 200, { ok: true, message: "Perangkat berhasil ditambahkan" });
       } catch (err) {
         sendDatabaseError(req, res, err);
@@ -269,6 +270,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           "UPDATE hikvision_devices SET ip_address = $1, location = $2, username = $3, encrypted_password = $4, iv_vector = $5, class_id = $6, device_type = $7 WHERE id = $8",
           [ip_address, location, username, finalPass, finalIv, class_id || null, device_type || 'siswa', id]
         );
+        global._hikvDashCache = null;
         send(req, res, 200, { ok: true, message: "Perangkat berhasil diupdate" });
       } catch (err) {
         sendDatabaseError(req, res, err);
@@ -280,6 +282,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       try {
         const id = url.pathname.split("/").pop();
         await dbPool.query("DELETE FROM hikvision_devices WHERE id = $1", [id]);
+        global._hikvDashCache = null;
         send(req, res, 200, { ok: true, message: "Perangkat berhasil dihapus" });
       } catch (err) {
         sendDatabaseError(req, res, err);
