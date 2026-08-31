@@ -48,12 +48,12 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
   </div>
 );
 
-const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false }) => (
-  <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${accent ? 'border-[var(--ui-primary)]/20' : 'border-slate-200'}`}>
-    <div className={`flex items-center justify-between px-5 py-4 border-b ${accent ? 'bg-[var(--ui-primary)]/5 border-[var(--ui-primary)]/10' : 'border-slate-100 bg-slate-50/60'}`}>
+const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
+  <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col ${accent ? 'border-[var(--ui-primary)]/20' : 'border-slate-200'} ${className}`}>
+    <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${accent ? 'bg-[var(--ui-primary)]/5 border-[var(--ui-primary)]/10' : 'border-slate-100 bg-slate-50/60'}`}>
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}
@@ -71,7 +71,7 @@ const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent
         </button>
       )}
     </div>
-    <div className="p-5">{children}</div>
+    <div className="p-5 flex-1 flex flex-col justify-between gap-3">{children}</div>
   </div>
 );
 
@@ -338,7 +338,31 @@ export default function KepsekExecutiveDashboard({
       else { s.Hadir++; gradeStats[grade].hadir++; }
     });
 
-    const totalSiswaInSchool = dashLogs?.totalStudents || (students || []).length || 0;
+    const majorMap = {};
+    (students || []).forEach(s => {
+      let cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
+      let major = cls.replace(/^(X|XI|XII|XIII)\s+/i, '').replace(/\s+\d+$/i, '').trim();
+      if (!major || major === '-' || major === 'UNDEFINED') major = 'Umum';
+      if (!majorMap[major]) majorMap[major] = { total: 0, hadir: 0 };
+      majorMap[major].total++;
+    });
+
+    Object.values(uniq).forEach(r => {
+      const idRaw = String(r?.employee_id || r?.nis || r?.id || '').trim().toLowerCase();
+      const nameRaw = String(r?.true_person_name || r?.name || '').trim().toLowerCase();
+      const sMaster = nisMap[idRaw] || nameMap[nameRaw] || nameMap[idRaw];
+      if (sMaster) {
+        let cls = String(sMaster.class_name || sMaster.kelas || '').trim().toUpperCase();
+        let major = cls.replace(/^(X|XI|XII|XIII)\s+/i, '').replace(/\s+\d+$/i, '').trim();
+        if (!major || major === '-' || major === 'UNDEFINED') major = 'Umum';
+        if (majorMap[major]) majorMap[major].hadir++;
+      }
+    });
+
+    const topMajors = Object.entries(majorMap)
+      .map(([name, data]) => ({ name, ...data, pct: pct(data.hadir, data.total) }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 4);
     
     // Auto-calculate Alpa for each grade if past cutoff
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
@@ -352,7 +376,7 @@ export default function KepsekExecutiveDashboard({
       s.Alpa += Math.max(0, totalSiswaInSchool - totalRecorded);
     }
     
-    return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool, gradeStats };
+    return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool, gradeStats, topMajors };
   }, [dashLogs, students]);
 
   // ── Syllabus Stats ────────────────────────────────────────────────────────
@@ -512,9 +536,16 @@ export default function KepsekExecutiveDashboard({
       {/* ═══════════════ KONTEN UTAMA RINGKASAN ═══════════════ */}
       <div className="flex flex-col gap-4 animate-in fade-in duration-200">
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
             {/* Presensi Live */}
-            <SectionCard title="Presensi Live Hari Ini" subtitle="Data dari mesin absensi Hikvision" icon="/icons/084-fingerprint scan.svg" action="Detail Laporan" onAction={() => gotoTab('laporan_absensi')}>
+            <SectionCard 
+              title="Presensi Live Hari Ini" 
+              subtitle="Data terpadu mesin absensi Hikvision & gerbang" 
+              icon="/icons/084-fingerprint scan.svg" 
+              action="Detail Laporan" 
+              onAction={() => gotoTab('laporan_absensi')}
+              className="h-full"
+            >
               <div className="space-y-3">
                 {[
                   { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
@@ -560,16 +591,59 @@ export default function KepsekExecutiveDashboard({
                     )}
                   </div>
                 ))}
-                <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold">
-                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
-                  Realtime — mesin Hikvision sekolah
-                  <span className="ml-auto text-[9px] font-black uppercase bg-emerald-200 px-2 py-0.5 rounded-full text-emerald-900">Live</span>
+              </div>
+
+              {/* Detail Ketepatan Waktu & Ringkasan Jurusan */}
+              <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500">Kedisiplinan & Ketepatan Pagi</span>
+                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                    Tingkat Disiplin: {pct(siswaStats.Hadir, (siswaStats.Hadir + siswaStats.Terlambat) || 1)}%
+                  </span>
                 </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                    <div className="text-[9px] font-bold text-slate-400 uppercase">Tepat Waktu</div>
+                    <div className="text-xs font-black text-emerald-600 mt-0.5">{siswaStats.Hadir} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
+                  </div>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                    <div className="text-[9px] font-bold text-slate-400 uppercase">Terlambat</div>
+                    <div className="text-xs font-black text-amber-600 mt-0.5">{siswaStats.Terlambat} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
+                  </div>
+                  <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                    <div className="text-[9px] font-bold text-slate-400 uppercase">Total Scan</div>
+                    <div className="text-xs font-black text-slate-800 mt-0.5">{(siswaStats.Hadir + siswaStats.Terlambat) + guruStats.totalMasuk + karyawanStats.totalMasuk} <span className="text-[9px] font-normal text-slate-400">Tap</span></div>
+                  </div>
+                </div>
+                
+                {/* Top Jurusan Presensi */}
+                {siswaStats.topMajors && siswaStats.topMajors.length > 0 && (
+                  <div className="pt-2 border-t border-slate-200/60">
+                    <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                      <span>Presensi per Program Keahlian</span>
+                      <span className="font-semibold text-slate-400">Top Jurusan</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {siswaStats.topMajors.map(m => (
+                        <div key={m.name} className="bg-white px-2 py-1.5 rounded-lg border border-slate-200 flex items-center justify-between shadow-2xs">
+                          <span className="text-[10px] font-black text-slate-700 truncate">{m.name}</span>
+                          <span className="text-[10px] font-bold text-emerald-600">{m.pct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold mt-2">
+                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                Realtime — Gateway Mesin Hikvision & Gerbang Sekolah Terhubung
+                <span className="ml-auto text-[9px] font-black uppercase bg-emerald-200 px-2 py-0.5 rounded-full text-emerald-900 shrink-0">Live</span>
               </div>
             </SectionCard>
 
             {/* Monitor & Aktivitas Live */}
-            <div className="w-full">
+            <div className="w-full h-full flex flex-col">
               <SharedDashboardLogs />
             </div>
           </div>
