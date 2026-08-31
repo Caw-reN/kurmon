@@ -211,6 +211,16 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       }
       return;
     }
+    if (req.method === "GET" && url.pathname === "/api/hikvision/devices") {
+      if (!requireAuthenticated(req, res)) return;
+      try {
+        const { rows } = await dbPool.query("SELECT * FROM hikvision_devices ORDER BY device_type, location, id");
+        send(req, res, 200, { ok: true, data: rows, devices: rows });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
       if (!requireAuthenticated(req, res)) return;
       try {

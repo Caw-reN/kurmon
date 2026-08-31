@@ -8,7 +8,20 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
 
 
-const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
+const getAuthToken = () => {
+  try {
+    const raw = sessionStorage.getItem('school_schedule_session_v1') || localStorage.getItem('school_schedule_session_v1');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.authToken) return parsed.authToken;
+    }
+  } catch (e) {}
+  return localStorage.getItem('token') || '';
+};
+
+const authHeaders = (token) => ({
+  "Authorization": `Bearer ${token || getAuthToken()}`
+});
 
 const DEVICE_TYPES = [
   { value:'siswa', label:'Siswa', color:'bg-indigo-100 text-indigo-700 border-indigo-200', icon: Users },
@@ -48,13 +61,21 @@ export default function HikvisionDevices() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/hikvision/dashboard", { headers: authHeaders(authToken) });
-      const data = await res.json();
-      if (data.ok) {
-        setDevices(data.devices || []);
+      const token = authToken || getAuthToken();
+      let res = await fetch("/api/hikvision/devices", { headers: authHeaders(token) });
+      let data = await res.json();
+      if (data.ok && (data.data || data.devices)) {
+        setDevices(data.data || data.devices || []);
+      } else {
+        // Fallback to /api/hikvision/dashboard if needed
+        res = await fetch("/api/hikvision/dashboard", { headers: authHeaders(token) });
+        data = await res.json();
+        if (data.ok) {
+          setDevices(data.devices || []);
+        }
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error loading devices:', err);
     }
     setLoading(false);
   }, [authToken]);
