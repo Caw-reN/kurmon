@@ -2091,11 +2091,13 @@ const server = createServer(async (req, res) => {
         try {
           let hConfig = {};
           try {
-            const configRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_config' LIMIT 1");
-            if (configRes.rowCount > 0 && configRes.rows[0].data) hConfig = JSON.parse(configRes.rows[0].data);
+            const configRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' OR store_key = 'hikvision_config' ORDER BY id DESC LIMIT 1");
+            if (configRes.rowCount > 0 && configRes.rows[0].data) {
+              hConfig = typeof configRes.rows[0].data === 'string' ? JSON.parse(configRes.rows[0].data) : configRes.rows[0].data;
+            }
           } catch (e) {}
-          const masukLate = hConfig?.siswa?.masuk_late || "07:15";
-          const masukClose = hConfig?.siswa?.masuk_close || "12:00";
+          const masukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:15") + ":00";
+          const masukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
           const lateRes = await dbPool.query(`
             SELECT student_nis as nis, status, created_at
@@ -2105,13 +2107,17 @@ const server = createServer(async (req, res) => {
           `);
           
           const hLateRes = await dbPool.query(`
-            SELECT employee_id as nis, 'terlambat' as status, timestamp as created_at
-            FROM hikvision_logs
-            WHERE person_type = 'siswa'
-            AND CAST(timestamp AS TIME) > $1
-            AND CAST(timestamp AS TIME) <= $2
-            ORDER BY timestamp DESC LIMIT 50
-          `, [masukLate + ":00", masukClose + ":00"]);
+            SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
+            FROM hikvision_logs l
+            WHERE l.timestamp::date = CURRENT_DATE
+              AND l.employee_id !~* '^k'
+              AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
+              AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
+              AND l.employee_id !~* '^[0-9]{1,3}$'
+              AND CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS TIME) > $1::time
+              AND CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS TIME) <= $2::time
+            ORDER BY l.timestamp DESC LIMIT 50
+          `, [masukLate, masukClose]);
           
           const combined = [...lateRes.rows, ...hLateRes.rows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 

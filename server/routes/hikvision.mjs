@@ -168,8 +168,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             ) as class_name,
             CASE 
               WHEN msf.id IS NOT NULL OR l.employee_id ~* '^k' THEN 'karyawan'
-              WHEN mst.id IS NOT NULL THEN 'guru'
-              WHEN ms.id IS NOT NULL OR hs.id IS NOT NULL THEN 'siswa'
+              WHEN mst.id IS NOT NULL OR (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
+              WHEN ms.id IS NOT NULL OR (hs.id IS NOT NULL AND hs.class_name NOT IN ('guru', 'karyawan', 'staff')) THEN 'siswa'
               WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
               WHEN d.device_type = 'guru' THEN 'guru'
               ELSE 'siswa'
@@ -183,8 +183,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (ms.payload->>'nis')))
           )
           LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
-          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id) AND l.employee_id !~* '^k' AND ms.id IS NULL AND hs.id IS NULL
-          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id) AND ms.id IS NULL AND hs.id IS NULL
+          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id) AND l.employee_id !~* '^k' AND ms.id IS NULL
+          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id) AND ms.id IS NULL
           WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
           ORDER BY l.timestamp DESC LIMIT 500
         `);

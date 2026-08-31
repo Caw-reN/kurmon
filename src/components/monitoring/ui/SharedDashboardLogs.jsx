@@ -174,18 +174,19 @@ export const SharedDashboardLogs = () => {
 
   const guruKaryawanLogs = useMemo(() => {
     let logs = [];
-    if (dashLogs?.teacherLogs && dashLogs.teacherLogs.length > 0) {
-      logs = [...dashLogs.teacherLogs];
+    if ((dashLogs?.teacherLogs && dashLogs.teacherLogs.length > 0) || (dashLogs?.staffLogs && dashLogs.staffLogs.length > 0)) {
+      logs = [...(dashLogs.teacherLogs || []), ...(dashLogs.staffLogs || [])];
     } else {
       const recentGuruKaryawan = (dashLogs?.recentLogs || []).filter(item => {
         const type = String(item.true_person_type || item.role_type || item.person_type || '').toLowerCase();
-        return type.includes('guru') || type.includes('karyawan');
+        const empId = String(item.employee_id || item.username || item.nis || '');
+        return type.includes('guru') || type.includes('karyawan') || empId.toUpperCase().startsWith('K');
       });
       if (recentGuruKaryawan.length > 0) {
         logs = recentGuruKaryawan.map(r => ({
           name: r.student_name || r.name || r.employee_id,
           username: r.employee_id,
-          role_type: String(r.true_person_type || r.role_type || 'GURU').toUpperCase(),
+          role_type: String(r.true_person_type || r.role_type || (String(r.employee_id).toUpperCase().startsWith('K') ? 'KARYAWAN' : 'GURU')).toUpperCase(),
           status: r.status || 'hadir',
           date: r.timestamp || r.created_at,
           created_at: r.timestamp || r.created_at
@@ -236,13 +237,15 @@ export const SharedDashboardLogs = () => {
 
   const kehadiranSiswaLogs = useMemo(() => {
     // Prioritas: gunakan hikvisionStudentToday jika ada, fallback ke recentLogs HANYA siswa hari ini
-    let logs;
+    let logs = [];
     if (dashLogs?.hikvisionStudentToday && dashLogs.hikvisionStudentToday.length > 0) {
       logs = [...dashLogs.hikvisionStudentToday];
     } else {
       logs = (dashLogs?.recentLogs || []).filter(item => {
         const type = String(item.true_person_type || item.person_type || 'siswa').toLowerCase();
-        if (!type.includes('siswa')) return false;
+        const empId = String(item.employee_id || item.nis || item.username || '');
+        if (empId.toUpperCase().startsWith('K')) return false;
+        if (type.includes('guru') || type.includes('karyawan')) return false;
         // Pastikan log adalah hari ini (WIB)
         const logDate = item.timestamp || item.created_at || item.date || '';
         if (!logDate) return true; // Kalau tidak ada tanggal, tetap tampilkan
@@ -250,6 +253,16 @@ export const SharedDashboardLogs = () => {
         return logDateStr === todayStr;
       });
     }
+
+    // Filter ketat: Jangan biarkan kode guru (1-3 digit) atau staf (K...) masuk ke tab siswa
+    logs = logs.filter(item => {
+      const empId = String(item.employee_id || item.nis || item.username || '').trim();
+      if (!empId) return true;
+      if (empId.toUpperCase().startsWith('K')) return false;
+      const type = String(item.true_person_type || item.role_type || '').toLowerCase();
+      if (type === 'guru' || type === 'karyawan') return false;
+      return true;
+    });
 
     logs = dedupeFront(logs);
 
