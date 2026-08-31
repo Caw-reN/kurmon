@@ -219,8 +219,22 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           ORDER BY l.timestamp DESC LIMIT 300
         `);
 
+        // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
+        const firstScanMap = new Map();
+        const allFetchedRows = [...recentLogsRes.rows, ...staffLogsRes.rows, ...teacherLogsRes.rows];
+        allFetchedRows.forEach(r => {
+          const empId = String(r.employee_id || '').trim().toLowerCase();
+          if (!empId) return;
+          const curTime = new Date(r.timestamp).getTime();
+          if (!firstScanMap.has(empId) || curTime < firstScanMap.get(empId)) {
+            firstScanMap.set(empId, curTime);
+          }
+        });
+
         const mapLogStatus = (r) => {
-          const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+          const empId = String(r.employee_id || '').trim().toLowerCase();
+          const firstScanTs = firstScanMap.get(empId) || new Date(r.timestamp).getTime();
+          const firstScanTime = new Date(firstScanTs).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
           const personType = String(r.true_person_type).toLowerCase();
           
           let lateLimit = siswaMasukLate;
@@ -234,7 +248,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
 
           let status = 'hadir';
-          if (lateLimit && scanTime > lateLimit && scanTime <= closeLimit) {
+          if (lateLimit && firstScanTime > lateLimit && firstScanTime <= closeLimit) {
             status = 'terlambat';
           }
 

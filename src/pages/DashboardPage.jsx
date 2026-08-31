@@ -2637,7 +2637,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       return logDateStr === todayStr;
     });
 
-    // 2. Gabungkan log absensi dari Apps & Hikvision untuk menghindari duplikat
+    // 2. Gabungkan log absensi dari Apps & Hikvision untuk menghindari duplikat (ambil scan TERAWAL)
     const mergedLogs = {};
     recs.forEach(r => {
       const key = String(r.teacherCode || r.employee_id || r.true_person_name || r.name || r.id || '').toLowerCase();
@@ -2645,7 +2645,18 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     });
     recentTeacherLogs.forEach(r => {
       const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
-      if (key) mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
+      if (key) {
+        if (!mergedLogs[key]) {
+          mergedLogs[key] = { ...r, source: 'machine' };
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(mergedLogs[key].timestamp || mergedLogs[key].created_at || mergedLogs[key].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            mergedLogs[key] = { ...r, source: 'machine' };
+          }
+        }
+      }
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
@@ -2709,7 +2720,18 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     const mergedLogs = {};
     recentLogs.forEach(r => {
       const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
-      if (key) mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
+      if (key) {
+        if (!mergedLogs[key]) {
+          mergedLogs[key] = { ...r, source: 'machine' };
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(mergedLogs[key].timestamp || mergedLogs[key].created_at || mergedLogs[key].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            mergedLogs[key] = { ...r, source: 'machine' };
+          }
+        }
+      }
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
@@ -2757,8 +2779,19 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     const uniqueSiswa = {};
     allLogs.forEach(r => {
-      const key = r.employee_id || r.nis || r.true_person_name || r.name || r.id;
-      if (key && !uniqueSiswa[key]) uniqueSiswa[key] = r;
+      const key = String(r.employee_id || r.nis || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) {
+        if (!uniqueSiswa[key]) {
+          uniqueSiswa[key] = r;
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(uniqueSiswa[key].timestamp || uniqueSiswa[key].created_at || uniqueSiswa[key].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            uniqueSiswa[key] = r;
+          }
+        }
+      }
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };

@@ -2506,7 +2506,6 @@ const server = createServer(async (req, res) => {
                 WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id) THEN 'siswa'
                 WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
                 WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
-                WHEN d.device_type = 'guru' THEN 'guru'
                 ELSE 'siswa'
               END as true_person_type
             FROM hikvision_logs l 
@@ -2515,8 +2514,21 @@ const server = createServer(async (req, res) => {
             ORDER BY l.timestamp DESC
           `, [todayJktDate]);
 
+          // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
+          const firstScanMap = new Map();
+          todayLogsRes.rows.forEach(r => {
+            const empId = String(r.employee_id || '').trim().toLowerCase();
+            if (!empId) return;
+            const curTime = new Date(r.timestamp).getTime();
+            if (!firstScanMap.has(empId) || curTime < firstScanMap.get(empId)) {
+              firstScanMap.set(empId, curTime);
+            }
+          });
+
           const allTodayRows = todayLogsRes.rows.map(r => {
-            const scanTime = new Date(r.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+            const empId = String(r.employee_id || '').trim().toLowerCase();
+            const firstScanTs = firstScanMap.get(empId) || new Date(r.timestamp).getTime();
+            const firstScanTime = new Date(firstScanTs).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
             const personType = String(r.true_person_type).toLowerCase();
             
             let lateLimit = siswaMasukLate;
@@ -2530,9 +2542,9 @@ const server = createServer(async (req, res) => {
             }
 
             let status = 'hadir';
-            if (closeLimit && scanTime > closeLimit) {
+            if (closeLimit && firstScanTime > closeLimit) {
               status = 'alpa';
-            } else if (lateLimit && scanTime > lateLimit) {
+            } else if (lateLimit && firstScanTime > lateLimit) {
               status = 'terlambat';
             }
 

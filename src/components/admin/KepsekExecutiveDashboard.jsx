@@ -166,7 +166,21 @@ export default function KepsekExecutiveDashboard({
     });
     const merged = {};
     recs.forEach(r => { const k = String(r?.teacherCode || r?.employee_id || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); if (k) merged[k] = { ...r }; });
-    recentLogs.forEach(r => { const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); if (k) merged[k] = { ...(merged[k] || {}), ...r }; });
+    recentLogs.forEach(r => { 
+      const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); 
+      if (k) {
+        if (!merged[k]) {
+          merged[k] = { ...r };
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(merged[k].timestamp || merged[k].created_at || merged[k].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            merged[k] = { ...r };
+          }
+        }
+      }
+    });
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(merged).forEach(r => {
       let st = String(r?.status || 'Hadir').toLowerCase();
@@ -241,7 +255,18 @@ export default function KepsekExecutiveDashboard({
     const merged = {};
     karyawanLogs.forEach(r => {
       const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
-      if (k && !merged[k]) merged[k] = r;
+      if (k) {
+        if (!merged[k]) {
+          merged[k] = r;
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(merged[k].timestamp || merged[k].created_at || merged[k].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            merged[k] = r;
+          }
+        }
+      }
     });
 
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
@@ -287,7 +312,18 @@ export default function KepsekExecutiveDashboard({
     const uniq = {};
     allLogs.forEach(r => {
       const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
-      if (k && !uniq[k]) uniq[k] = r;
+      if (k) {
+        if (!uniq[k]) {
+          uniq[k] = r;
+        } else {
+          // Ambil scan TERAWAL
+          const curTime = new Date(uniq[k].timestamp || uniq[k].created_at || uniq[k].date || 0).getTime();
+          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+            uniq[k] = r;
+          }
+        }
+      }
     });
 
     const gradeStats = {
