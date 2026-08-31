@@ -488,34 +488,59 @@ export default function KepsekExecutiveDashboard({
         <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-40" />
         <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-black/15 rounded-full blur-[60px] pointer-events-none" />
 
-        <div className="relative z-10 p-6 sm:p-8">
-          {/* Top Row */}
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div className="flex flex-col gap-3 min-w-0 flex-1">
+        <div className="relative z-10 p-5 sm:p-7">
+          {/* Top Row: Greeting (Left) & Menu Pintasan (Right) */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Left: User greeting & overview info */}
+            <div className="flex flex-col gap-2 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-[10px] font-black tracking-widest text-white border border-white/30 uppercase">
-                  <Sparkles size={11} className="text-amber-300" />
-                  Executive Command Center
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 text-white/90 text-[10px] font-bold border border-white/10">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {todayLong}
                 </span>
               </div>
               <div>
-                <p className="text-white/70 text-sm font-semibold">{greeting},</p>
-                <h1 className="text-2xl sm:text-3xl font-black leading-tight mt-0.5">
+                <p className="text-white/75 text-xs font-semibold">{greeting},</p>
+                <h1 className="text-xl sm:text-2xl font-black leading-tight mt-0.5">
                   {currentUser?.name || 'Kepala Sekolah'}
                 </h1>
-                <p className="text-sm text-white/75 font-medium mt-1 max-w-lg">
+                <p className="text-xs text-white/70 font-medium mt-1 max-w-sm leading-relaxed">
                   Pusat pemantauan operasional sekolah — kehadiran, KBM, fasilitas, PKL, dan kesiswaan realtime.
                 </p>
               </div>
-
-
             </div>
 
-
+            {/* Right: Menu Pintasan Glassmorphic Grid */}
+            <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0">
+              <div className="flex items-center gap-1.5 text-white/90">
+                <Sparkles size={12} className="text-amber-300" />
+                <span className="text-[11px] font-black uppercase tracking-wider">Menu Pintasan</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:max-w-2xl">
+                {[
+                  { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
+                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
+                  { tab: 'pesan', label: 'Pengumuman', icon: '/icons/013-chat.svg' },
+                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
+                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: '/icons/008-warehouse.svg' },
+                  { tab: 'dataguru', label: 'Data SDM Guru', icon: '/icons/045-account.svg' },
+                  { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
+                  { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
+                ].map(m => (
+                  <button
+                    key={m.tab}
+                    onClick={() => gotoTab(m.tab)}
+                    className="flex items-center gap-2 p-2 rounded-[var(--ui-radius-control)] bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md transition-all text-left group cursor-pointer shadow-2xs hover:scale-[1.02]"
+                  >
+                    <div className="w-6 h-6 rounded bg-white/90 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white transition-colors">
+                      <img src={m.icon} alt={m.label} className="w-3.5 h-3.5 object-contain" />
+                    </div>
+                    <span className="text-[11px] font-bold text-white truncate min-w-0 flex-1">{m.label}</span>
+                    <ChevronRight size={11} className="text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -616,38 +641,6 @@ export default function KepsekExecutiveDashboard({
           <div className="w-full">
             <SharedDashboardLogs />
           </div>
-
-          {/* Quick Links */}
-          <SectionCard title="Menu Pintasan Eksekutif" subtitle="Navigasi cepat ke semua modul penting" icon="/icons/039-time.svg">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { tab: 'generate', label: 'Jadwal & KBM', desc: 'Kelola jadwal pelajaran aktif', icon: '/icons/011-schedule.svg', border: 'hover:border-indigo-300', bg: 'hover:bg-indigo-50' },
-                { tab: 'laporan_absensi', label: 'Rekap Absensi', desc: 'Laporan kehadiran lengkap', icon: '/icons/046-report.svg', border: 'hover:border-emerald-300', bg: 'hover:bg-emerald-50' },
-                { tab: 'pesan', label: 'Pengumuman', desc: 'Buat pengumuman publik', icon: '/icons/013-chat.svg', border: 'hover:border-red-300', bg: 'hover:bg-red-50' },
-                { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', desc: 'Catatan kedisiplinan siswa', icon: '/icons/014-award.svg', border: 'hover:border-purple-300', bg: 'hover:bg-purple-50' },
-                { tab: 'pkl_dashboard', label: 'Dashboard PKL', desc: 'Monitor PKL dan DUDI', icon: '/icons/008-warehouse.svg', border: 'hover:border-sky-300', bg: 'hover:bg-sky-50' },
-                { tab: 'dataguru', label: 'Data SDM Guru', desc: 'Master data seluruh guru', icon: '/icons/045-account.svg', border: 'hover:border-amber-300', bg: 'hover:bg-amber-50' },
-                { tab: 'datasiswa', label: 'Data Siswa', desc: 'Master data peserta didik', icon: '/icons/066-education.svg', border: 'hover:border-pink-300', bg: 'hover:bg-pink-50' },
-                { tab: 'dataperusahaan', label: 'Mitra DUDI', desc: 'Perusahaan mitra PKL', icon: '/icons/069-store.svg', border: 'hover:border-cyan-300', bg: 'hover:bg-cyan-50' },
-                { tab: 'akademik', label: 'Kalender', desc: 'Kalender akademik sekolah', icon: '/icons/060-calendar.svg', border: 'hover:border-orange-300', bg: 'hover:bg-orange-50' },
-              ].map(m => (
-                <button
-                  key={m.tab}
-                  onClick={() => gotoTab(m.tab)}
-                  className={`flex items-center gap-3 p-3 rounded-[var(--ui-radius-small)] border border-slate-200 cursor-pointer transition-all group text-left ${m.border} ${m.bg}`}
-                >
-                  <div className="w-9 h-9 bg-white rounded-[var(--ui-radius-small)] shadow-xs border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <img src={m.icon} alt={m.label} className="w-5 h-5 object-contain" />
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p className="text-[11px] font-black text-slate-800 truncate">{m.label}</p>
-                    <p className="text-[10px] font-medium text-slate-500 truncate">{m.desc}</p>
-                  </div>
-                  <ChevronRight size={12} className="text-slate-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              ))}
-            </div>
-          </SectionCard>
       </div>
 
     </div>
