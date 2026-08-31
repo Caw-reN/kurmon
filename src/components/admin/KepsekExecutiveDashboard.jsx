@@ -191,45 +191,84 @@ export default function KepsekExecutiveDashboard({
 
   // ── Karyawan Attendance ───────────────────────────────────────────────────
   const karyawanStats = useMemo(() => {
-    const baseTotalKaryawan = (staffs || []).length || 0;
-    const validKaryawan = new Set();
+    const baseTotalKaryawan = (staffs || []).length || 27;
+    const validKaryawanIds = new Set();
+    const validKaryawanNames = new Set();
+    
     (staffs || []).forEach(t => {
-      ['code', 'username', 'name', 'id'].forEach(k => { if (t?.[k]) validKaryawan.add(String(t[k]).toLowerCase()); });
+      ['code', 'username', 'employee_id', 'id', 'nip'].forEach(k => { 
+        if (t?.[k]) validKaryawanIds.add(String(t[k]).trim().toLowerCase()); 
+      });
+      const name = String(t?.name || t?.nama || '').trim().toLowerCase();
+      if (name) validKaryawanNames.add(name);
     });
-    // Log yang spesifik untuk karyawan (tanpa guru)
-    const recentLogs = ([...(dashLogs?.recentLogs || [])]).filter(r => {
-      const t = String(r?.true_person_type || r?.role_type || r?.device_type || '').toUpperCase();
-      if (t.includes('GURU')) return false; 
-      if (!(t.includes('KARYAWAN') || t.includes('STAFF'))) return false;
-      const logDate = r?.timestamp || r?.created_at || r?.date || '';
-      if (!logDate) return true;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStr;
+
+    const validTeacherIds = new Set();
+    const validTeacherNames = new Set();
+    (teachers || []).forEach(t => {
+      ['code', 'username', 'name', 'id', 'nip'].forEach(k => { 
+        if (t?.[k]) validTeacherIds.add(String(t[k]).trim().toLowerCase()); 
+      });
+      const name = String(t?.name || t?.nama || '').trim().toLowerCase();
+      if (name) validTeacherNames.add(name);
     });
+
+    const allRecentLogs = dashLogs?.recentLogs || [];
+    const teacherLogs = dashLogs?.teacherLogs || [];
+    const combinedLogs = [...allRecentLogs, ...teacherLogs];
+
+    const karyawanLogs = combinedLogs.filter(r => {
+      const type = String(r?.true_person_type || r?.role_type || r?.person_type || r?.device_type || '').toUpperCase();
+      const idRaw = String(r?.employee_id || r?.username || r?.id || '').trim().toLowerCase();
+      const nameRaw = String(r?.student_name || r?.true_person_name || r?.name || '').trim().toLowerCase();
+
+      // Abaikan jika terdaftar sebagai Guru atau Siswa
+      if (validTeacherIds.has(idRaw) || validTeacherNames.has(nameRaw) || type.includes('GURU') || type.includes('SISWA')) {
+        return false;
+      }
+
+      // Masukkan jika memang karyawan
+      if (validKaryawanIds.has(idRaw) || validKaryawanNames.has(nameRaw) || type.includes('KARYAWAN') || type.includes('STAFF') || type.includes('PEGAWAI') || type.includes('TU')) {
+        const logDate = r?.timestamp || r?.created_at || r?.date || '';
+        if (!logDate) return true;
+        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        return logDateStr === todayStr;
+      }
+      return false;
+    });
+
     const merged = {};
-    recentLogs.forEach(r => { const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); if (k) merged[k] = { ...r }; });
+    karyawanLogs.forEach(r => {
+      const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
+      if (k && !merged[k]) merged[k] = r;
+    });
+
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(merged).forEach(r => {
       let st = String(r?.status || 'Hadir').toLowerCase();
       if (st === 'late') st = 'terlambat';
-      if (st.includes('hadir')) s.Hadir++;
-      else if (st.includes('terlambat')) s.Terlambat++;
+      if (st.includes('terlambat')) s.Terlambat++;
       else if (st.includes('izin')) s.Izin++;
       else if (st.includes('sakit')) s.Sakit++;
       else if (st.includes('alpa')) s.Alpa++;
       else s.Hadir++;
     });
+
+    const totalMasuk = s.Hadir + s.Terlambat;
+    const totalKaryawan = baseTotalKaryawan;
     const currentTimeJkt = new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19);
-    let unknownCount = 0;
-    Object.keys(merged).forEach(k => { if (!validKaryawan.has(k)) unknownCount++; });
-    const dynamicTotal = baseTotalKaryawan + unknownCount;
 
     if (currentTimeJkt > '08:00:00') {
-      const recorded = Object.keys(merged).filter(k => validKaryawan.has(k)).length;
-      s.Alpa += Math.max(0, baseTotalKaryawan - recorded);
+      s.Alpa = Math.max(0, totalKaryawan - (totalMasuk + s.Izin + s.Sakit));
     }
-    return { ...s, totalMasuk: s.Hadir + s.Terlambat, belumAbsen: Math.max(0, dynamicTotal - Object.keys(merged).length), total: dynamicTotal };
-  }, [todayStr, staffs, dashLogs]);
+
+    return {
+      ...s,
+      totalMasuk,
+      belumAbsen: Math.max(0, totalKaryawan - totalMasuk),
+      total: totalKaryawan
+    };
+  }, [todayStr, staffs, teachers, dashLogs]);
 
   // ── Siswa Attendance ──────────────────────────────────────────────────────
   const siswaStats = useMemo(() => {
@@ -459,7 +498,7 @@ export default function KepsekExecutiveDashboard({
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
         {[
           { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
-          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Staff Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
+          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
           { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu`, onClick: () => gotoTab('laporan_absensi') },
           { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmitted, sub: `/ ${todaySchedule.length} Slot`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${Math.max(0, todaySchedule.length - jurnalSubmitted)} slot belum terisi`, onClick: () => gotoTab('generate') },
           { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini`, onClick: () => gotoTab('generate') },
@@ -479,7 +518,7 @@ export default function KepsekExecutiveDashboard({
               <div className="space-y-3">
                 {[
                   { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
-                  { label: 'Karyawan / Staff', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
+                  { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                   { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
                 ].filter(row => row.total > 0).map(row => (
                   <div key={row.label} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">

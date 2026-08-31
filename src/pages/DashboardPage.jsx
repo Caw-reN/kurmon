@@ -1202,16 +1202,17 @@ export default function DashboardPage({
                  : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
 
   // Remove dummy data references for PKL stats — use 0 defaults
-  const pklSiswaCount = 0;
-  const pklMitraCount = 0;
+  const staffsStore = useDataStore((state) => state.staffs) || [];
+  const studentsStore = useDataStore((state) => state.students) || [];
+
   if (isKepsek) {
     return (
       <KepsekExecutiveDashboard
         currentUser={currentUser}
         classes={classes}
         teachers={teachers}
-        staffs={useDataStore.getState().staffs || []}
-        students={useDataStore.getState().students || []}
+        staffs={staffsStore}
+        students={studentsStore}
         subjects={subjects}
         rooms={rooms}
         schedule={schedule}
