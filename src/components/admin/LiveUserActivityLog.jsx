@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LogIn, UploadCloud, BookOpen, CheckSquare, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight } from 'lucide-react';
+import { LogIn, UploadCloud, BookOpen, CheckSquare, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Fingerprint } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
+import { useDataStore } from '../../store/useDataStore';
 
 export default function LiveUserActivityLog({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
-  const [logs, setLogs] = useState([]);
+  const teachers = useDataStore(state => state.teachers) || [];
+  const staffs = useDataStore(state => state.staffs) || [];
+
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [recentMachineLogs, setRecentMachineLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'modul' | 'absensi'
-  const [lastRefreshed, setLastRefreshed] = useState(Date.now());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  const fetchAuditLogs = useCallback(async () => {
+  const fetchAllActivities = useCallback(async () => {
     try {
       const token = user?.authToken
         || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken
@@ -18,32 +24,89 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         || sessionStorage.getItem('token')
         || '';
 
-      const res = await fetch('/api/audit-logs?page=1&limit=25', {
-        headers: {
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.ok && Array.isArray(json.data)) {
-          setLogs(json.data);
-        }
+      // Parallel fetch audit logs and dashboard recent machine logs
+      const [auditRes, dashRes] = await Promise.all([
+        fetch('/api/audit-logs?page=1&limit=50', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        }).then(r => r.ok ? r.json() : { data: [] }).catch(() => ({ data: [] })),
+
+        fetch('/api/dashboard/logs', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        }).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+      ]);
+
+      if (auditRes?.ok && Array.isArray(auditRes.data)) {
+        setAuditLogs(auditRes.data);
+      }
+      if (dashRes?.recentLogs && Array.isArray(dashRes.recentLogs)) {
+        setRecentMachineLogs(dashRes.recentLogs);
       }
     } catch (e) {
-      console.warn('Failed to fetch audit logs:', e);
+      console.warn('Failed to fetch activity logs:', e);
     } finally {
       setLoading(false);
-      setLastRefreshed(Date.now());
     }
   }, [user]);
 
   useEffect(() => {
-    fetchAuditLogs();
-    const interval = setInterval(fetchAuditLogs, 15000); // Polling every 15s
+    fetchAllActivities();
+    const interval = setInterval(fetchAllActivities, 12000); // Polling every 12s
     return () => clearInterval(interval);
-  }, [fetchAuditLogs]);
+  }, [fetchAllActivities]);
 
-  // Format action badge styling and icon
+  // Merge and transform all activities into a unified timeline
+  const combinedLogs = useMemo(() => {
+    const list = [];
+    const seen = new Set();
+
+    // 1. Ingest Audit Logs (Logins, Uploads, Overrides, Settings)
+    (auditLogs || []).forEach(log => {
+      const id = `audit-${log.id || Math.random()}`;
+      list.push({
+        id,
+        userName: log.user_name || log.user_id || 'Pengguna',
+        userRole: log.user_role || 'guru',
+        action: log.action || 'ACTIVITY',
+        detail: log.detail || log.action || 'Mengakses sistem',
+        timestamp: log.created_at || new Date().toISOString(),
+        source: 'audit'
+      });
+    });
+
+    // 2. Ingest Machine Tap Scans (Guru & Karyawan Live Scans)
+    (recentMachineLogs || []).forEach((m, idx) => {
+      const type = String(m.true_person_type || m.role_type || m.device_type || '').toLowerCase();
+      const isGuru = type.includes('guru');
+      const isKaryawan = type.includes('karyawan') || type.includes('staff');
+      
+      // Only include guru & karyawan machine scans in this teacher/staff activity feed
+      if (isGuru || isKaryawan) {
+        const name = m.true_person_name || m.name || m.employee_id || 'Pegawai';
+        const role = isGuru ? 'guru' : 'karyawan';
+        const timeStr = m.time || (m.timestamp ? new Date(m.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
+        const statusStr = String(m.status || 'Hadir');
+        const key = `machine-${name}-${m.timestamp || idx}`;
+
+        if (!seen.has(key)) {
+          seen.add(key);
+          list.push({
+            id: key,
+            userName: name,
+            userRole: role,
+            action: 'SCAN_PRESENSI',
+            detail: `Scan kehadiran ${statusStr} di mesin gerbang (${timeStr} WIB)`,
+            timestamp: m.timestamp || m.created_at || new Date().toISOString(),
+            source: 'machine'
+          });
+        }
+      }
+    });
+
+    // Sort descending by timestamp
+    return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }, [auditLogs, recentMachineLogs]);
+
+  // Categorization & Action Meta
   const getActionMeta = (action, detail = '') => {
     const act = String(action || '').toUpperCase();
     const det = String(detail || '').toLowerCase();
@@ -75,11 +138,11 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         category: 'modul'
       };
     }
-    if (act.includes('ABSENSI') || act.includes('ATTENDANCE') || det.includes('absen') || det.includes('presensi')) {
+    if (act.includes('SCAN') || act.includes('ABSENSI') || det.includes('scan') || det.includes('presensi') || det.includes('absen')) {
       return {
-        label: 'ABSENSI',
+        label: act.includes('SCAN') ? 'TAP SCAN' : 'ABSENSI',
         bg: 'bg-teal-50 text-teal-700 border-teal-200/80',
-        icon: CheckSquare,
+        icon: Fingerprint,
         color: 'text-teal-600',
         category: 'absensi'
       };
@@ -132,134 +195,169 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   // Filtered list
   const filteredLogs = useMemo(() => {
-    if (filterType === 'all') return logs;
-    return logs.filter(item => {
+    if (filterType === 'all') return combinedLogs;
+    return combinedLogs.filter(item => {
       const meta = getActionMeta(item.action, item.detail);
       return meta.category === filterType;
     });
-  }, [logs, filterType]);
+  }, [combinedLogs, filterType]);
 
-  const displayLogs = filteredLogs.slice(0, 5);
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="bg-slate-50/90 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/80 space-y-2.5 mt-2.5">
-      {/* Header & Filter Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h4 className="text-[11px] sm:text-xs font-black text-slate-800 tracking-tight uppercase">
-            Log Aktivitas & Login Pengguna
-          </h4>
-          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-            Realtime
-          </span>
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1 flex-wrap">
-          {[
-            { id: 'all', label: 'Semua' },
-            { id: 'login', label: 'Login' },
-            { id: 'modul', label: 'Modul & KBM' },
-            { id: 'absensi', label: 'Presensi' }
-          ].map(f => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilterType(f.id)}
-              className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
-                filterType === f.id
-                  ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={fetchAuditLogs}
-            title="Muat Ulang Log"
-            className="p-1 rounded-[var(--ui-radius-control)] bg-white border border-slate-200 text-slate-400 hover:text-slate-700 cursor-pointer ml-0.5"
-          >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
-      </div>
-
-      {/* Log Feed Items */}
-      <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-0.5">
-        {loading && logs.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 font-semibold text-[11px] bg-white rounded-[var(--ui-radius-small)] border border-slate-100">
-            Memuat aktivitas login & modul...
-          </div>
-        ) : displayLogs.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 font-semibold text-[11px] bg-white rounded-[var(--ui-radius-small)] border border-slate-100">
-            Belum ada aktivitas {filterType !== 'all' ? filterType : ''} tercatat hari ini
-          </div>
-        ) : (
-          displayLogs.map((log, idx) => {
-            const meta = getActionMeta(log.action, log.detail);
-            const roleMeta = getRoleBadge(log.user_role);
-            const Icon = meta.icon;
-            const userName = log.user_name || log.user_id || 'Pengguna';
-            const userInitial = userName.charAt(0).toUpperCase();
-
-            return (
-              <div 
-                key={log.id || idx} 
-                className="bg-white p-2 sm:p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/90 hover:border-[var(--ui-primary)]/40 hover:shadow-2xs transition-all flex items-start justify-between gap-2"
-              >
-                <div className="flex items-start gap-2 min-w-0">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 mt-0.5 ${roleMeta.bg} border`}>
-                    {userInitial}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-[11px] font-black text-slate-800 truncate leading-none">
-                        {userName}
-                      </p>
-                      <span className={`text-[8.5px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
-                        {roleMeta.label}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 font-medium mt-1 leading-snug break-words">
-                      {log.detail || log.action || 'Mengakses sistem'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                  <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
-                    <Icon size={10} className={meta.color} />
-                    {meta.label}
-                  </span>
-                  <span className="text-[9.5px] font-mono font-bold text-slate-400">
-                    {formatLogTime(log.created_at || log.timestamp)}
-                  </span>
-                </div>
+    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-4 sm:p-5 flex flex-col justify-between">
+      {/* ── Header ── */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+              <Activity size={16} className="text-[var(--ui-primary)]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-slate-800 tracking-tight">
+                  Log Aktivitas & Login Pengguna
+                </h3>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  LIVE
+                </span>
               </div>
-            );
-          })
-        )}
+              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                Pantau login, upload modul, pengisian jurnal, dan scan absensi guru/karyawan
+              </p>
+            </div>
+          </div>
+
+          {/* Filter Pills & Refresh Button */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { id: 'all', label: 'Semua' },
+              { id: 'login', label: 'Login' },
+              { id: 'modul', label: 'Modul & KBM' },
+              { id: 'absensi', label: 'Presensi' }
+            ].map(f => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
+                  filterType === f.id
+                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={fetchAllActivities}
+              title="Perbarui data aktivitas"
+              className="p-1.5 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors"
+            >
+              <RefreshCw size={12} className={loading ? 'animate-spin text-[var(--ui-primary)]' : ''} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Feed List ── */}
+        <div className="divide-y divide-slate-100 my-2">
+          {loading && combinedLogs.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 font-bold text-xs">
+              Memuat log aktivitas pengguna...
+            </div>
+          ) : paginatedLogs.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 font-semibold text-xs">
+              Belum ada aktivitas {filterType !== 'all' ? filterType : ''} tercatat hari ini
+            </div>
+          ) : (
+            paginatedLogs.map((item, idx) => {
+              const meta = getActionMeta(item.action, item.detail);
+              const roleMeta = getRoleBadge(item.userRole);
+              const Icon = meta.icon;
+              const userName = item.userName || 'Pengguna';
+              const userInitial = userName.charAt(0).toUpperCase();
+
+              return (
+                <div 
+                  key={item.id || idx} 
+                  className="py-2.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
+                      {userInitial}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-xs font-black text-slate-800 truncate">
+                          {userName}
+                        </p>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
+                          {roleMeta.label}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-md">
+                        {item.detail}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
+                      <Icon size={11} className={meta.color} />
+                      {meta.label}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400">
+                      {formatLogTime(item.timestamp)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {/* Footer Info / Link to Full Audit Logs */}
-      <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[10px] text-slate-500 font-medium">
-        <span className="flex items-center gap-1">
-          <UserCheck size={12} className="text-[var(--ui-primary)]" />
-          Aktivitas guru & staff terpantau live
+      {/* ── Footer & Pagination ── */}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-[10px] text-slate-400 font-medium">
+          Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
         </span>
-        {onNavigateTab && (
-          <button
-            type="button"
-            onClick={() => onNavigateTab('keamanan')}
-            className="text-[var(--ui-primary)] hover:underline font-bold flex items-center gap-0.5 cursor-pointer"
-          >
-            Audit Log Lengkap
-            <ChevronRight size={12} />
-          </button>
-        )}
+
+        <div className="flex items-center gap-2">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="px-2 py-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-control)] disabled:opacity-40 cursor-pointer"
+              >
+                Prev
+              </button>
+              <span className="text-[10px] font-bold text-slate-600 px-1">{currentPage} / {totalPages}</span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="px-2 py-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-control)] disabled:opacity-40 cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          )}
+
+          {onNavigateTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateTab('keamanan')}
+              className="text-xs text-[var(--ui-primary)] hover:underline font-black flex items-center gap-0.5 cursor-pointer ml-1"
+            >
+              Audit Log Lengkap
+              <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
