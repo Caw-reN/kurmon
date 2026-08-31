@@ -1247,7 +1247,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-44 sm:pb-8">
       {/* Mobile Navigation Top Header */}
       <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
         <button
@@ -2451,20 +2451,20 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
        </>
       )}
 
-      {/* ─── Tombol Validasi Absensi Wali Kelas (Pojok Kanan Bawah) ─── */}
+      {/* ─── Tombol Validasi Absensi Wali Kelas (Pojok Kanan Bawah Desktop / Di Atas TabBar Mobile) ─── */}
       {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
-        <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-40 max-w-md sm:max-w-lg animate-in slide-in-from-bottom-4 duration-300">
           {isAttendanceValidated ? (
-            <div className="bg-white/95 backdrop-blur-md rounded-[var(--ui-radius-card)] p-3 shadow-xl border border-emerald-300 flex items-center gap-3 max-w-md ring-4 ring-emerald-500/10">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-emerald-300 flex items-center gap-3 ring-4 ring-emerald-500/10">
               <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
                 <CheckCircle2 size={18} className="text-emerald-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-black text-emerald-950 leading-tight">
+                <p className="text-xs font-black text-emerald-950 leading-tight truncate">
                   Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
                 </p>
-                <p className="text-[10px] font-medium text-emerald-700 mt-0.5">
-                  Telah diverifikasi hari ini pukul {attendanceValidatedTime || 'hari ini'}
+                <p className="text-[10px] font-medium text-emerald-700 mt-0.5 truncate">
+                  Diverifikasi hari ini ({attendanceValidatedTime || 'Hari ini'})
                 </p>
               </div>
               <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
@@ -2472,28 +2472,33 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               </span>
             </div>
           ) : (
-            <div className="bg-white/95 backdrop-blur-md rounded-[var(--ui-radius-card)] p-3.5 shadow-2xl border border-slate-200/90 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-lg ring-4 ring-[var(--ui-primary)]/10">
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
-                  <UserCheck size={17} className="text-amber-700" />
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-slate-200/90 flex flex-col gap-2.5 ring-4 ring-[var(--ui-primary)]/10">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                    <UserCheck size={15} className="text-amber-700" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-slate-800 leading-tight truncate">
+                      Validasi Wali Kelas
+                    </p>
+                    <p className="text-[10px] font-medium text-slate-500 truncate">
+                      Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span>
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-black text-slate-800 leading-tight">
-                    Validasi Wali Kelas
-                  </p>
-                  <p className="text-[10.5px] font-medium text-slate-500 truncate">
-                    Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span>
-                  </p>
-                </div>
+                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full shrink-0">
+                  Perlu Validasi
+                </span>
               </div>
 
               <button
                 type="button"
                 onClick={handleConfirmWalasAttendance}
-                className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-[var(--ui-radius-control)] bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer whitespace-nowrap"
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-black shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
               >
-                <CheckCircle2 size={15} />
-                <span>Saya sudah melihat dan mendata absensi hari ini</span>
+                <CheckCircle2 size={16} strokeWidth={2.5} />
+                <span>Saya Sudah Memeriksa Absensi Hari Ini</span>
               </button>
             </div>
           )}
