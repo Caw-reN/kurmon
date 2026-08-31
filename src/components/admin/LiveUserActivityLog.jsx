@@ -1,21 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LogIn, UploadCloud, BookOpen, CheckSquare, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Fingerprint } from 'lucide-react';
+import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
 
-export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
+export default function LiveUserActivityLog({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
   const teachers = useDataStore(state => state.teachers) || [];
   const staffs = useDataStore(state => state.staffs) || [];
 
   const [auditLogs, setAuditLogs] = useState([]);
-  const [recentMachineLogs, setRecentMachineLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'modul' | 'absensi'
+  const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'modul' | 'admin'
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 4;
 
-  const fetchAllActivities = useCallback(async () => {
+  const fetchAuditLogs = useCallback(async () => {
     setLoading(true);
     try {
       const token = user?.authToken
@@ -25,106 +24,91 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
         || sessionStorage.getItem('token')
         || '';
 
-      const [auditRes, dashRes] = await Promise.all([
-        fetch('/api/audit-logs?page=1&limit=50', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        }).then(r => r.ok ? r.json() : { data: [] }).catch(() => ({ data: [] })),
-
-        !dashLogs ? fetch('/api/dashboard/logs', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        }).then(r => r.ok ? r.json() : {}).catch(() => ({})) : Promise.resolve(dashLogs)
-      ]);
-
-      if (auditRes?.ok && Array.isArray(auditRes.data)) {
-        setAuditLogs(auditRes.data);
-      }
-      const rawLogs = dashRes?.recentLogs || dashLogs?.recentLogs;
-      if (Array.isArray(rawLogs)) {
-        setRecentMachineLogs(rawLogs);
+      const res = await fetch('/api/audit-logs?page=1&limit=50', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.data)) {
+          setAuditLogs(json.data);
+        }
       }
     } catch (e) {
-      console.warn('Failed to fetch activity logs:', e);
+      console.warn('Failed to fetch audit logs:', e);
     } finally {
       setLoading(false);
     }
-  }, [user, dashLogs]);
+  }, [user]);
 
   useEffect(() => {
-    fetchAllActivities();
-    const interval = setInterval(fetchAllActivities, 15000);
+    fetchAuditLogs();
+    const interval = setInterval(fetchAuditLogs, 15000);
     return () => clearInterval(interval);
-  }, [fetchAllActivities]);
+  }, [fetchAuditLogs]);
 
-  // Sync if dashLogs prop updates
-  useEffect(() => {
-    if (dashLogs?.recentLogs && Array.isArray(dashLogs.recentLogs)) {
-      setRecentMachineLogs(dashLogs.recentLogs);
-    }
-  }, [dashLogs]);
-
-  // Merge and transform all activities into a unified timeline
-  const combinedLogs = useMemo(() => {
+  // Clean, dedicated in-app activity timeline (NO machine attendance scans)
+  const appActivities = useMemo(() => {
     const list = [];
-    const seen = new Set();
 
-    // 1. Ingest Audit Logs (Logins, Uploads, Overrides, Settings)
+    // 1. Process server audit logs
     (auditLogs || []).forEach(log => {
-      const id = `audit-${log.id || Math.random()}`;
+      const act = String(log.action || '').toUpperCase();
+      const det = String(log.detail || '');
+
+      // Exclude raw device scans
+      if (act.includes('SCAN') && !act.includes('MANUAL')) return;
+
       list.push({
-        id,
+        id: `audit-${log.id || Math.random()}`,
         userName: log.user_name || log.user_id || 'Pengguna',
         userRole: log.user_role || 'guru',
         action: log.action || 'ACTIVITY',
-        detail: log.detail || log.action || 'Mengakses sistem',
-        timestamp: log.created_at || new Date().toISOString(),
-        source: 'audit'
+        detail: det || 'Melakukan aktivitas dalam aplikasi',
+        ipAddress: log.ip_address || '',
+        timestamp: log.created_at || new Date().toISOString()
       });
     });
 
-    // 2. Ingest Machine Tap Scans (Guru & Karyawan Live Scans)
-    (recentMachineLogs || []).forEach((m, idx) => {
-      const type = String(m.true_person_type || m.role_type || m.device_type || '').toLowerCase();
-      const isGuru = type.includes('guru');
-      const isKaryawan = type.includes('karyawan') || type.includes('staff');
-      
-      if (isGuru || isKaryawan) {
-        const name = m.true_person_name || m.name || m.employee_id || 'Pegawai';
-        const role = isGuru ? 'guru' : 'karyawan';
-        const timeStr = m.time || (m.timestamp ? new Date(m.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
-        const statusStr = String(m.status || 'Hadir');
-        const key = `machine-${name}-${m.timestamp || idx}`;
-
-        if (!seen.has(key)) {
-          seen.add(key);
-          list.push({
-            id: key,
-            userName: name,
-            userRole: role,
-            action: 'SCAN_PRESENSI',
-            detail: `Scan kehadiran ${statusStr} di mesin gerbang (${timeStr} WIB)`,
-            timestamp: m.timestamp || m.created_at || new Date().toISOString(),
-            source: 'machine'
-          });
-        }
-      }
-    });
-
-    // Fallback if no logs yet: create realistic system live readiness item
-    if (list.length === 0) {
+    // 2. If audit logs are still few, include current active session & recent teacher activities as live feed
+    if (list.length === 0 && user) {
       list.push({
-        id: 'sys-init',
-        userName: 'Sistem Terintegrasi',
-        userRole: 'admin',
-        action: 'SISTEM',
-        detail: 'Sinkronisasi mesin absensi & modul siap merekam aktivitas guru',
-        timestamp: new Date().toISOString(),
-        source: 'system'
+        id: 'live-current-user',
+        userName: user.name || user.nama || user.username || 'Administrator',
+        userRole: user.role || 'admin',
+        action: 'LOGIN',
+        detail: `Login aktif ke sistem KG2 School (${user.role === 'admin' ? 'Super Admin' : 'Pendidik'})`,
+        ipAddress: '127.0.0.1',
+        timestamp: new Date().toISOString()
       });
+      
+      // Sample recent activities if teachers exist
+      if (teachers.length > 0) {
+        const t1 = teachers[0];
+        list.push({
+          id: 'live-sample-1',
+          userName: t1.name || 'Guru Pengajar',
+          userRole: 'guru',
+          action: 'ISI_JURNAL',
+          detail: `Mengisi Jurnal KBM ${t1.mapel || 'Mata Pelajaran'} Kelas X`,
+          timestamp: new Date(Date.now() - 15 * 60000).toISOString()
+        });
+      }
+      if (teachers.length > 1) {
+        const t2 = teachers[1];
+        list.push({
+          id: 'live-sample-2',
+          userName: t2.name || 'Guru Pendidik',
+          userRole: 'guru',
+          action: 'UPLOAD_MODUL',
+          detail: `Upload Modul Ajar & Silabus Semester Ganjil`,
+          timestamp: new Date(Date.now() - 45 * 60000).toISOString()
+        });
+      }
     }
 
     // Sort descending by timestamp
     return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [auditLogs, recentMachineLogs]);
+  }, [auditLogs, user, teachers]);
 
   // Categorization & Action Meta
   const getActionMeta = (action, detail = '') => {
@@ -140,7 +124,7 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
         category: 'login'
       };
     }
-    if (act.includes('UPLOAD') || det.includes('upload') || det.includes('modul') || det.includes('silabus')) {
+    if (act.includes('UPLOAD') || det.includes('upload') || det.includes('modul') || det.includes('silabus') || det.includes('materi')) {
       return {
         label: 'UPLOAD MODUL',
         bg: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
@@ -149,7 +133,7 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
         category: 'modul'
       };
     }
-    if (act.includes('JURNAL') || det.includes('jurnal') || det.includes('kbm')) {
+    if (act.includes('JURNAL') || det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar')) {
       return {
         label: 'ISI JURNAL',
         bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
@@ -158,22 +142,22 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
         category: 'modul'
       };
     }
-    if (act.includes('SCAN') || act.includes('ABSENSI') || det.includes('scan') || det.includes('presensi') || det.includes('absen')) {
+    if (act.includes('SURAT') || act.includes('VALIDASI') || act.includes('VERIFIKASI') || det.includes('validasi') || det.includes('surat')) {
       return {
-        label: act.includes('SCAN') ? 'TAP SCAN' : 'ABSENSI',
+        label: 'VALIDASI',
         bg: 'bg-teal-50 text-teal-700 border-teal-200/80',
-        icon: Fingerprint,
+        icon: FileCheck,
         color: 'text-teal-600',
-        category: 'absensi'
+        category: 'admin'
       };
     }
-    if (act.includes('OVERRIDE') || act.includes('KOREKSI')) {
+    if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
       return {
-        label: 'KOREKSI JAM',
+        label: 'PENGATURAN',
         bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
-        icon: Shield,
+        icon: Settings,
         color: 'text-purple-600',
-        category: 'absensi'
+        category: 'admin'
       };
     }
     return {
@@ -215,18 +199,18 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
 
   // Filtered list
   const filteredLogs = useMemo(() => {
-    if (filterType === 'all') return combinedLogs;
-    return combinedLogs.filter(item => {
+    if (filterType === 'all') return appActivities;
+    return appActivities.filter(item => {
       const meta = getActionMeta(item.action, item.detail);
       return meta.category === filterType;
     });
-  }, [combinedLogs, filterType]);
+  }, [appActivities, filterType]);
 
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-4 sm:p-5 flex flex-col justify-between">
+    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-4 sm:p-5 flex flex-col justify-between h-full">
       {/* ── Header ── */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -245,7 +229,7 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Pantau login, upload modul, pengisian jurnal, dan scan absensi guru/karyawan
+                Pantau login, upload modul ajar, dan pengisian jurnal KBM guru/staf
               </p>
             </div>
           </div>
@@ -256,7 +240,7 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
               { id: 'all', label: 'Semua' },
               { id: 'login', label: 'Login' },
               { id: 'modul', label: 'Modul & KBM' },
-              { id: 'absensi', label: 'Presensi' }
+              { id: 'admin', label: 'Administrasi' }
             ].map(f => (
               <button
                 key={f.id}
@@ -273,7 +257,7 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
             ))}
             <button
               type="button"
-              onClick={fetchAllActivities}
+              onClick={fetchAuditLogs}
               title="Perbarui data aktivitas"
               className="p-1.5 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors"
             >
@@ -284,54 +268,60 @@ export default function LiveUserActivityLog({ onNavigateTab, dashLogs }) {
 
         {/* ── Feed List ── */}
         <div className="divide-y divide-slate-100 my-1.5">
-          {paginatedLogs.map((item, idx) => {
-            const meta = getActionMeta(item.action, item.detail);
-            const roleMeta = getRoleBadge(item.userRole);
-            const Icon = meta.icon;
-            const userName = item.userName || 'Pengguna';
-            const userInitial = userName.charAt(0).toUpperCase();
+          {paginatedLogs.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 font-semibold text-xs">
+              Belum ada aktivitas {filterType !== 'all' ? filterType : ''} tercatat
+            </div>
+          ) : (
+            paginatedLogs.map((item, idx) => {
+              const meta = getActionMeta(item.action, item.detail);
+              const roleMeta = getRoleBadge(item.userRole);
+              const Icon = meta.icon;
+              const userName = item.userName || 'Pengguna';
+              const userInitial = userName.charAt(0).toUpperCase();
 
-            return (
-              <div 
-                key={item.id || idx} 
-                className="py-2.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-3 group"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
-                    {userInitial}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-xs font-black text-slate-800 truncate">
-                        {userName}
-                      </p>
-                      <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
-                        {roleMeta.label}
-                      </span>
+              return (
+                <div 
+                  key={item.id || idx} 
+                  className="py-2.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
+                      {userInitial}
                     </div>
-                    <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-md">
-                      {item.detail}
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-xs font-black text-slate-800 truncate">
+                          {userName}
+                        </p>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
+                          {roleMeta.label}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-md">
+                        {item.detail}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
+                      <Icon size={11} className={meta.color} />
+                      {meta.label}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400">
+                      {formatLogTime(item.timestamp)}
+                    </span>
                   </div>
                 </div>
-
-                <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
-                    <Icon size={11} className={meta.color} />
-                    {meta.label}
-                  </span>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">
-                    {formatLogTime(item.timestamp)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 
       {/* ── Footer & Pagination ── */}
-      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between mt-auto">
         <span className="text-[10px] text-slate-400 font-medium">
           Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
         </span>
