@@ -1,6 +1,6 @@
 import { handlePklRoutes } from "./routes/pkl.mjs";
 import { handleBkRoutes, initBkTables } from "./routes/bk.mjs";
-import { handleHikvisionRoutes, autoLinkHikvisionStudents } from "./routes/hikvision.mjs";
+import { handleHikvisionRoutes, autoLinkHikvisionStudents, autoLinkHikvisionTeachersAndStaffs } from "./routes/hikvision.mjs";
 import { handlePushRoutes, initializeWebPush } from "./routes/push.mjs";
 import { handleKedisiplinanRoutes } from "./routes/kedisiplinan.mjs";
 import { handleDataRoutes } from "./routes/data.mjs";
@@ -1162,6 +1162,7 @@ const initDb = async () => {
     dbStatus = { ok: true, code: "DB_CONNECTED", message: "Database PostgreSQL tersambung." };
     console.log("PostgreSQL Database Initialized & Connected");
     autoLinkHikvisionStudents(dbPool).catch(() => {});
+    autoLinkHikvisionTeachersAndStaffs(dbPool).catch(() => {});
   } catch (err) {
     dbStatus = {
       ok: false,
