@@ -2589,7 +2589,9 @@ function DashboardMessageCarousel({ dashboardMessages }) {
 // Statistik kehadiran hari ini — guru & siswa
 // Warna mengikuti halaman absensi existing (MyAttendancePage, AbsensiKBM)
 // ============================================================
-function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], staffs = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
+function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], staffs: _staffs = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
+  const storeStaffs = useDataStore(state => state.staffs);
+  const staffs = (_staffs && _staffs.length > 0) ? _staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
   const todayStr = useMemo(() => {
     return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
   }, []);
