@@ -766,6 +766,114 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
 
+    // ── SUPER ADMIN EXCLUSIVE: OVERRIDE / KOREKSI JAM ABSENSI ──
+    if (req.method === "POST" && url.pathname === "/api/hikvision/super-admin-override") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (session.role !== "super_admin") {
+        send(req, res, 403, { ok: false, error: "Akses ditolak: Fitur ini khusus Super Admin" });
+        return;
+      }
+      try {
+        const body = await readJsonBody(req);
+        const { personType, personId, personName, date, time, outTime, status, note } = body;
+        
+        if (!personId || !date) {
+          send(req, res, 400, { ok: false, error: "Data personId dan tanggal wajib diisi" });
+          return;
+        }
+
+        const validTime = (time && time.trim()) ? (time.length === 5 ? `${time}:00` : time) : '06:45:00';
+        const formattedTimestamp = `${date} ${validTime}`;
+        const finalStatus = status || 'Hadir';
+
+        let deviceId = null;
+        try {
+          const devRes = await dbPool.query("SELECT id FROM hikvision_devices ORDER BY id ASC LIMIT 1");
+          if (devRes.rowCount > 0) {
+            deviceId = devRes.rows[0].id;
+          }
+        } catch(e) {}
+
+        if (!deviceId) {
+          try {
+            const devInsert = await dbPool.query("INSERT INTO hikvision_devices (ip_address, location, username, encrypted_password, iv_vector, device_type) VALUES ('127.0.0.1', 'Main Gate (Virtual)', 'admin', 'admin', 'iv', 'all') RETURNING id");
+            deviceId = devInsert.rows[0].id;
+          } catch(e) {}
+        }
+
+        if (personType === 'guru' || personType === 'karyawan') {
+          await dbPool.query("DELETE FROM guru_attendance_records WHERE teacher_code = $1 AND tanggal = $2", [personId, date]);
+          
+          const recId = `override-${personId}-${date}`;
+          await dbPool.query(
+            "INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (record_id) DO UPDATE SET waktu = EXCLUDED.waktu, status = EXCLUDED.status, note = EXCLUDED.note",
+            [recId, personId, date, validTime.substring(0, 5), 'SuperAdminOverride', finalStatus, 'override', note || 'Koreksi jam oleh Super Admin']
+          );
+
+          if (deviceId) {
+            try {
+              await dbPool.query(
+                `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type) 
+                 VALUES ($1, $2, $3, $4) 
+                 ON CONFLICT (device_id, employee_id, timestamp) DO UPDATE SET event_type = EXCLUDED.event_type`,
+                [deviceId, personId, formattedTimestamp, finalStatus]
+              );
+
+              if (outTime && outTime.trim()) {
+                const validOutTime = outTime.length === 5 ? `${outTime}:00` : outTime;
+                const outTimestamp = `${date} ${validOutTime}`;
+                await dbPool.query(
+                  `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type) 
+                   VALUES ($1, $2, $3, $4) 
+                   ON CONFLICT (device_id, employee_id, timestamp) DO UPDATE SET event_type = EXCLUDED.event_type`,
+                  [deviceId, personId, outTimestamp, 'Pulang']
+                );
+              }
+            } catch(e) {}
+          }
+        } else {
+          // Siswa
+          if (deviceId) {
+            try {
+              await dbPool.query(
+                `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type) 
+                 VALUES ($1, $2, $3, $4) 
+                 ON CONFLICT (device_id, employee_id, timestamp) DO UPDATE SET event_type = EXCLUDED.event_type`,
+                [deviceId, personId, formattedTimestamp, finalStatus]
+              );
+
+              if (outTime && outTime.trim()) {
+                const validOutTime = outTime.length === 5 ? `${outTime}:00` : outTime;
+                const outTimestamp = `${date} ${validOutTime}`;
+                await dbPool.query(
+                  `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type) 
+                   VALUES ($1, $2, $3, $4) 
+                   ON CONFLICT (device_id, employee_id, timestamp) DO UPDATE SET event_type = EXCLUDED.event_type`,
+                  [deviceId, personId, outTimestamp, 'Pulang']
+                );
+              }
+            } catch(e) {}
+          }
+
+          try {
+            await dbPool.query(
+              `INSERT INTO attendance_manual (user_type, user_id, date, status, reason, created_by) 
+               VALUES ('siswa', $1, $2, $3, $4, $5)`,
+              [personId, date, finalStatus, note || `Koreksi jam ${validTime} oleh Super Admin`, session.username || 'super_admin']
+            );
+          } catch(e) {}
+        }
+
+        global._dashLogsCache = { time: 0, data: null };
+
+        send(req, res, 200, { ok: true, message: `Koreksi jam absensi untuk ${personName || personId} berhasil disimpan.` });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
     if (req.method === "GET" && url.pathname === "/api/hikvision/students") {
       if (!requireAuthenticated(req, res)) return;
       try {

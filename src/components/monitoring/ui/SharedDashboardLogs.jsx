@@ -3,8 +3,9 @@ import { Loader2, ExternalLink, MessageCircle } from 'lucide-react';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
-import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { CustomSelect } from '../../CustomSelect.jsx';
+import { Shield } from 'lucide-react';
+import SuperAdminAttendanceOverrideModal from '../../admin/SuperAdminAttendanceOverrideModal.jsx';
 
 export const getClassBadge = (className) => {
   if (!className || className === '-') return 'bg-slate-100 text-slate-600 border-slate-200';
@@ -55,6 +56,7 @@ export const SharedDashboardLogs = () => {
   const itemsPerPage = 5;
 
   const [subFilter, setSubFilter] = useState('all');
+  const [showSuperAdminModal, setShowSuperAdminModal] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -113,34 +115,33 @@ export const SharedDashboardLogs = () => {
   };
 
   const todayStr = useMemo(() => {
-    const now = new Date();
-    const jkt = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-    return jkt.toISOString().slice(0, 10);
+    // Gunakan sv-SE locale dengan timezone Asia/Jakarta untuk format YYYY-MM-DD yang benar
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
   }, []);
+
 
   const dedupeFront = (arr) => {
     const seenId = new Set();
-    const seenName = new Set();
+    // Dedup HANYA berdasarkan ID (employee_id/nis), bukan nama
+    // karena nama bisa sama untuk orang berbeda
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
     
     for (const item of sorted) {
       const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
-      const rawName = String(item.student_name || item.name || '').trim().toLowerCase();
       const role = String(item.role_type || item.true_person_type || '').toLowerCase();
+      // Hanya dedup jika ada ID — jangan dedup berdasarkan nama
       const idKey = rawId ? `${role}_${rawId}` : null;
-      const nameKey = rawName ? `${role}_${rawName}` : null;
 
-      // Prioritas dedup: ID dulu, baru nama (sama dengan KepsekExecutiveDashboard)
-      if (idKey && seenId.has(idKey)) continue;
-      if (!idKey && nameKey && seenName.has(nameKey)) continue;
-
-      if (idKey) seenId.add(idKey);
-      if (nameKey) seenName.add(nameKey);
+      if (idKey) {
+        if (seenId.has(idKey)) continue;
+        seenId.add(idKey);
+      }
       result.push(item);
     }
     return result;
   };
+
 
 
   const uniqueSiswaOptions = useMemo(() => {
@@ -226,11 +227,21 @@ export const SharedDashboardLogs = () => {
   }, [guruKaryawanLogs]);
 
   const kehadiranSiswaLogs = useMemo(() => {
-    let logs = dashLogs?.hikvisionStudentToday || dashLogs?.recentLogs || [];
-    logs = logs.filter(item => {
-      const type = String(item.true_person_type || item.person_type || 'siswa').toLowerCase();
-      return type.includes('siswa');
-    });
+    // Prioritas: gunakan hikvisionStudentToday jika ada, fallback ke recentLogs HANYA siswa hari ini
+    let logs;
+    if (dashLogs?.hikvisionStudentToday && dashLogs.hikvisionStudentToday.length > 0) {
+      logs = [...dashLogs.hikvisionStudentToday];
+    } else {
+      logs = (dashLogs?.recentLogs || []).filter(item => {
+        const type = String(item.true_person_type || item.person_type || 'siswa').toLowerCase();
+        if (!type.includes('siswa')) return false;
+        // Pastikan log adalah hari ini (WIB)
+        const logDate = item.timestamp || item.created_at || item.date || '';
+        if (!logDate) return true; // Kalau tidak ada tanggal, tetap tampilkan
+        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        return logDateStr === todayStr;
+      });
+    }
 
     logs = dedupeFront(logs);
 
@@ -248,7 +259,8 @@ export const SharedDashboardLogs = () => {
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.student_name || item.name || item.employee_id || item.nis || '').toLowerCase().includes(q));
-  }, [dashLogs, searchQuery, subFilter, studentLookupMap]);
+  }, [dashLogs, todayStr, searchQuery, subFilter, studentLookupMap]);
+
 
   const terlambatSiswaLogs = useMemo(() => {
     let logs = kehadiranSiswaLogs.filter(item => {
@@ -586,6 +598,19 @@ export const SharedDashboardLogs = () => {
               <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-[var(--ui-primary)] font-bold border-none bg-transparent cursor-pointer transition-colors">×</button>
             )}
           </div>
+
+          {/* Super Admin Secret Override Button */}
+          {user?.role === 'super_admin' && (
+            <button
+              type="button"
+              onClick={() => setShowSuperAdminModal(true)}
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700"
+              title="Koreksi Jam Absensi (Khusus Super Admin)"
+            >
+              <Shield size={13} className="text-amber-400 shrink-0" />
+              <span className="hidden xl:inline font-bold">Koreksi Jam</span>
+            </button>
+          )}
         </div>
       </div>
       
@@ -740,6 +765,18 @@ export const SharedDashboardLogs = () => {
         )}
 
       </div>
+      {/* Super Admin Exclusive Attendance Override Modal */}
+      {showSuperAdminModal && (
+        <SuperAdminAttendanceOverrideModal
+          isOpen={showSuperAdminModal}
+          onClose={() => setShowSuperAdminModal(false)}
+          onSuccess={() => {
+            // Trigger background reload
+            window.location.reload();
+          }}
+          currentUser={user}
+        />
+      )}
     </div>
   );
 };

@@ -11,8 +11,9 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
 import { UISelect } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
-import { useAppStore } from '../../../store/useAppStore';
 import { compareTableValues } from '../../../utils/adminHelpers.js';
+import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
+import { Shield } from 'lucide-react';
 
 
 export default function HikvisionTeacherReport({ isNested = false }) {
@@ -72,15 +73,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     return list.reverse();
   }, [viewMode, selectedWeek, daysInMonth, filter.month, filter.year]);
 
-  // Manual entry form state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [teachers, setTeachers] = useState([]);
-  const [form, setForm] = useState({
-    teacherCode:"",
-    date: new Date().toISOString().split('T')[0],
-    status:"Izin",
-    note:""
-  });
+  const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sendingWA, setSendingWA] = useState(false);
   const [waDropdownOpen, setWaDropdownOpen] = useState(false);
@@ -1281,15 +1274,18 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               )}
             </div>
 
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer"
-            >
-              <Plus size={14} className="shrink-0 text-indigo-600" />
-              <span>Input Manual</span>
-            </Button>
+            {user?.role === 'super_admin' && (
+              <Button 
+                variant="outline"
+                type="button"
+                onClick={() => setIsSuperAdminModalOpen(true)}
+                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-2xs"
+                title="Koreksi Jam Absensi (Khusus Super Admin)"
+              >
+                <Shield size={14} className="shrink-0 text-amber-400" />
+                <span>Koreksi Jam</span>
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 shrink-0 justify-end">
@@ -1700,80 +1696,17 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         </div>
       )}
 
-      {/* Manual Input Modal */}
-      {isModalOpen && (
-        <Modal isOpen={true} onClose={() => setIsModalOpen(false)} title="Input Ketidakhadiran Guru">
-          <form onSubmit={handleManualSubmit} className="p-6 space-y-4">
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Pilih Guru</label>
-              <UISelect 
-                value={form.teacherCode}
-                onChange={e => setForm({ ...form, teacherCode: e.target.value })}
-                className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
-                required
-              >
-                <option value="">-- Pilih Guru --</option>
-                {teachers.map(t => (
-                  <option key={t.code} value={t.code}>{t.name} ({t.code})</option>
-                ))}
-              </UISelect>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Tanggal</label>
-                <input 
-                  type="date"
-                  value={form.date}
-                  onChange={e => setForm({ ...form, date: e.target.value })}
-                  className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Status Kehadiran</label>
-                <UISelect 
-                  value={form.status}
-                  onChange={e => setForm({ ...form, status: e.target.value })}
-                  className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
-                  required
-                >
-                  <option value="Izin">Izin</option>
-                  <option value="Sakit">Sakit</option>
-                  <option value="Dinas Luar">Dinas Luar</option>
-                  <option value="Alpa">Alpa</option>
-                  <option value="Hadir">Hadir (Manual)</option>
-                  <option value="Terlambat">Terlambat (Manual)</option>
-                </UISelect>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Catatan / Keterangan</label>
-              <textarea 
-                value={form.note}
-                onChange={e => setForm({ ...form, note: e.target.value })}
-                className="w-full border-none bg-slate-50 p-3 rounded-[var(--ui-radius-small)] text-xs font-medium focus:bg-white focus:outline-[var(--ui-primary)] resize-none"
-                placeholder="Contoh: Mengikuti MGMP / Sakit Demam"
-                rows={3}
-              />
-            </div>
-
-            <div className="bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] border-none flex items-start gap-2.5">
-              <input type="checkbox" defaultChecked disabled className="mt-1 w-4 h-4 accent-indigo-600" />
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">Kirim Notifikasi Otomatis WhatsApp</span>
-                <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Notifikasi izin/sakit akan otomatis dikirimkan ke nomor WA tujuan yang sudah ditentukan.</span>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <Button variant="outline" type="button" onClick={() =>setIsModalOpen(false)}>Batal</Button>
-              <Button variant="outline" type="submit" disabled={submitting} >{submitting ?"Menyimpan..." :"Simpan & Kirim"}</Button>
-            </div>
-          </form>
-        </Modal>
+      {/* Super Admin Exclusive Attendance Override Modal */}
+      {isSuperAdminModalOpen && (
+        <SuperAdminAttendanceOverrideModal
+          isOpen={isSuperAdminModalOpen}
+          onClose={() => setIsSuperAdminModalOpen(false)}
+          onSuccess={(msg) => {
+            showToast(msg || "Koreksi jam berhasil disimpan!");
+            fetchData();
+          }}
+          currentUser={user}
+        />
       )}
        {/* Modal Cetak Laporan Per Periode */}
        {showPrintModal && (
