@@ -1247,7 +1247,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-44 sm:pb-8">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
       {/* Mobile Navigation Top Header */}
       <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
         <button
@@ -1336,37 +1336,38 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />
       ) : (
         <>
-          {/* Daily Attendance KPI Summary Cards (Modern & Responsive) */}
+          {/* Daily Attendance KPI Summary Cards (Ramping & 3 Kolom Sejajar) */}
           {isCurrentMonthYear && !isHolidayOrWeekendToday && data.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {/* Card 1: Siswa Hadir */}
               <div 
                 onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-1">
-                      Hadir Tepat Waktu
+                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
+                      <span className="sm:hidden">Hadir</span>
+                      <span className="hidden sm:inline">Hadir Tepat Waktu</span>
                     </span>
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                    <div className="flex items-baseline gap-1">
+                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {presentStudentsToday.length}
                       </h3>
-                      <span className="text-xs font-bold text-slate-400">/ {data.length} Siswa</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">/{data.length}</span>
                     </div>
                   </div>
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
-                    <UserCheck size={20} strokeWidth={2.5} />
+                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                    <UserCheck size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60">
+                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
                     {data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir
                   </span>
-                  <span className="font-bold text-slate-400 group-hover:text-emerald-700 flex items-center gap-1 transition-colors">
-                    Lihat Daftar &rarr;
+                  <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-emerald-700 items-center gap-1 transition-colors">
+                    Lihat &rarr;
                   </span>
                 </div>
               </div>
@@ -1374,35 +1375,35 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 2: Siswa Terlambat */}
               <div 
                 onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-1">
-                      Siswa Terlambat
+                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
+                      Terlambat
                     </span>
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                    <div className="flex items-baseline gap-1">
+                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {lateStudentsToday.length}
                       </h3>
-                      <span className="text-xs font-bold text-slate-400">Siswa</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs">
-                    <Clock size={20} strokeWidth={2.5} />
+                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                    <Clock size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className={`font-bold px-2 py-0.5 rounded-[var(--ui-radius-pill)] border ${
+                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-full border text-[9px] sm:text-[10px] truncate ${
                     lateStudentsToday.length > 0 
                       ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
                       : 'text-slate-500 bg-slate-50 border-slate-200/60'
                   }`}>
-                    {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Siswa Terlambat` : 'Semua Tepat Waktu'}
+                    {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Telat` : 'Nihil'}
                   </span>
-                  <span className="font-bold text-slate-400 group-hover:text-amber-600 flex items-center gap-1 transition-colors">
-                    Lihat Daftar &rarr;
+                  <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-amber-600 items-center gap-1 transition-colors">
+                    Lihat &rarr;
                   </span>
                 </div>
               </div>
@@ -1410,34 +1411,91 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
               <div 
                 onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
+                className="group relative bg-white rounded-2xl sm:rounded-[var(--ui-radius-card)] p-2.5 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-1">
-                      Belum Hadir / Izin / Sakit
+                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-0.5 truncate">
+                      <span className="sm:hidden">Tidak Hadir</span>
+                      <span className="hidden sm:inline">Belum Hadir / Izin / Sakit</span>
                     </span>
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                    <div className="flex items-baseline gap-1">
+                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {absentStudentsToday.length}
                       </h3>
-                      <span className="text-xs font-bold text-slate-400">Siswa</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs">
-                    <UserX size={20} strokeWidth={2.5} />
+                  <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-xl sm:rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                    <UserX size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200/60">
-                    Kelola Surat / Alpa
+                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className="font-bold text-rose-700 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-rose-200/60 text-[9px] sm:text-[10px] truncate">
+                    {absentStudentsToday.length > 0 ? `${absentStudentsToday.length} Siswa` : 'Nihil'}
                   </span>
-                  <span className="font-bold text-slate-400 group-hover:text-rose-600 flex items-center gap-1 transition-colors">
+                  <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-rose-600 items-center gap-1 transition-colors">
                     Kelola &rarr;
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Banner Validasi Wali Kelas (In-Page, Rapi & Tidak Menutupi Layar) */}
+          {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
+            <div className="w-full">
+              {isAttendanceValidated ? (
+                <div className="bg-emerald-50/90 border border-emerald-300/80 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <CheckCircle2 size={18} strokeWidth={2.5} />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-black text-emerald-950 truncate leading-snug">
+                        Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
+                      </h4>
+                      <p className="text-[10px] sm:text-[11px] text-emerald-700 font-medium truncate mt-0.5">
+                        Diverifikasi hari ini ({attendanceValidatedTime || 'Hari ini'})
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                    Terverifikasi
+                  </span>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-amber-50/90 via-white to-amber-50/70 border border-amber-200/90 rounded-2xl p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <UserCheck size={18} strokeWidth={2.5} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate leading-snug">
+                          Validasi Wali Kelas
+                        </h4>
+                        <span className="text-[8.5px] sm:text-[9.5px] font-extrabold text-amber-700 bg-amber-100/90 border border-amber-200/80 px-2 py-0.5 rounded-full shrink-0">
+                          Perlu Validasi
+                        </span>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span> &bull; Konfirmasi Anda telah memeriksa absensi hari ini.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleConfirmWalasAttendance}
+                    className="w-full sm:w-auto shrink-0 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-black shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                  >
+                    <CheckCircle2 size={16} strokeWidth={2.5} />
+                    <span>Saya Sudah Memeriksa Absensi Hari Ini</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -2449,60 +2507,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
          </div>
        )}
        </>
-      )}
-
-      {/* ─── Tombol Validasi Absensi Wali Kelas (Pojok Kanan Bawah Desktop / Di Atas TabBar Mobile) ─── */}
-      {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
-        <div className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-40 max-w-md sm:max-w-lg animate-in slide-in-from-bottom-4 duration-300">
-          {isAttendanceValidated ? (
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-emerald-300 flex items-center gap-3 ring-4 ring-emerald-500/10">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
-                <CheckCircle2 size={18} className="text-emerald-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-black text-emerald-950 leading-tight truncate">
-                  Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
-                </p>
-                <p className="text-[10px] font-medium text-emerald-700 mt-0.5 truncate">
-                  Diverifikasi hari ini ({attendanceValidatedTime || 'Hari ini'})
-                </p>
-              </div>
-              <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                Terverifikasi
-              </span>
-            </div>
-          ) : (
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-slate-200/90 flex flex-col gap-2.5 ring-4 ring-[var(--ui-primary)]/10">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
-                    <UserCheck size={15} className="text-amber-700" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-slate-800 leading-tight truncate">
-                      Validasi Wali Kelas
-                    </p>
-                    <p className="text-[10px] font-medium text-slate-500 truncate">
-                      Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span>
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full shrink-0">
-                  Perlu Validasi
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleConfirmWalasAttendance}
-                className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-black shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
-              >
-                <CheckCircle2 size={16} strokeWidth={2.5} />
-                <span>Saya Sudah Memeriksa Absensi Hari Ini</span>
-              </button>
-            </div>
-          )}
-        </div>
       )}
 
       {toast && (
