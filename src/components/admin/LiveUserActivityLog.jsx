@@ -49,14 +49,24 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   // Clean, dedicated in-app activity timeline (NO machine attendance scans)
   const appActivities = useMemo(() => {
     const list = [];
+    const isUserSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) || String(user?.username || '').toLowerCase() === 'admin';
 
     // 1. Process server audit logs
     (auditLogs || []).forEach(log => {
       const act = String(log.action || '').toUpperCase();
       const det = String(log.detail || '');
+      const uRole = String(log.user_role || '').toLowerCase();
+      const uName = String(log.user_name || '').toLowerCase();
+      const uId = String(log.user_id || '').toLowerCase();
 
       // Exclude raw hardware device scans
       if (act.includes('SCAN') && !act.includes('MANUAL')) return;
+
+      // HANYA ADMIN YANG BISA MELIHAT LOG ADMIN
+      const isAdminLog = uRole.includes('admin') || uName.includes('admin') || uId.includes('admin') || uName.includes('radmin');
+      if (!isUserSuperAdmin && isAdminLog) {
+        return; // Sembunyikan log aktivitas admin untuk Kepsek / Guru / Karyawan
+      }
 
       list.push({
         id: `audit-${log.id || Math.random()}`,
@@ -71,15 +81,27 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
     // 2. If audit logs are still few, include current active session & initial teacher telemetry
     if (list.length === 0 && user) {
-      list.push({
-        id: 'live-current-user',
-        userName: user.name || user.nama || user.username || 'Administrator',
-        userRole: user.role || 'admin',
-        action: 'LOGIN',
-        detail: `Login aktif ke sistem KG2 School (${user.role === 'admin' ? 'Super Admin' : 'Pendidik'})`,
-        ipAddress: '127.0.0.1',
-        timestamp: new Date().toISOString()
-      });
+      if (isUserSuperAdmin) {
+        list.push({
+          id: 'live-current-user',
+          userName: user.name || user.nama || user.username || 'Administrator',
+          userRole: user.role || 'admin',
+          action: 'LOGIN',
+          detail: `Login aktif ke sistem KG2 School (Super Admin)`,
+          ipAddress: '127.0.0.1',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        list.push({
+          id: 'live-current-user',
+          userName: user.name || user.nama || user.username || 'Kepala Sekolah',
+          userRole: user.role || 'kepsek',
+          action: 'LOGIN',
+          detail: `Login aktif ke sistem KG2 School (Pendidik)`,
+          ipAddress: '127.0.0.1',
+          timestamp: new Date().toISOString()
+        });
+      }
       
       if (teachers.length > 0) {
         const t1 = teachers[0];
