@@ -3,6 +3,7 @@ import { Loader2, ExternalLink, MessageCircle } from 'lucide-react';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { useDataStore } from '../../../store/useDataStore.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { CustomSelect } from '../../CustomSelect.jsx';
 import { Shield } from 'lucide-react';
@@ -69,10 +70,11 @@ export const SharedDashboardLogs = () => {
 
   // Store fallbacks
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
-  const storeTeachers = useAppStore(state => state.teachers) || [];
+  const storeTeachers = useDataStore(state => state.teachers) || useAppStore(state => state.teachers) || [];
+  const dataStoreStudents = useDataStore(state => state.students) || [];
   const storeStudents = useAppStore(state => state.students) || [];
   const snapshotStudents = getDatabaseSnapshot()?.students || [];
-  const allStudents = storeStudents.length > 0 ? storeStudents : snapshotStudents;
+  const allStudents = dataStoreStudents.length > 0 ? dataStoreStudents : (storeStudents.length > 0 ? storeStudents : snapshotStudents);
 
   const studentLookupMap = useMemo(() => {
     const nisMap = new Map();
@@ -80,7 +82,12 @@ export const SharedDashboardLogs = () => {
     (allStudents || []).forEach(s => {
       const nis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
       const name = String(s.name || s.nama || '').trim().toLowerCase();
-      if (nis) nisMap.set(nis, s);
+      if (nis) {
+        nisMap.set(nis, s);
+        if (nis.length > 6) {
+          nisMap.set(nis.slice(-8), s);
+        }
+      }
       if (name) nameMap.set(name, s);
     });
     return { nisMap, nameMap };
@@ -398,7 +405,7 @@ export const SharedDashboardLogs = () => {
       }
     }
 
-    let name = item.student_name || item.name || resolvedStudent?.name || resolvedStudent?.nama || item.username || item.employee_id || item.nis || '-';
+    let name = resolvedStudent?.name || resolvedStudent?.nama || item.student_name || item.name || item.username || item.employee_id || item.nis || '-';
     let className = item.class_name && item.class_name !== '-' && item.class_name !== 'siswa' 
       ? item.class_name 
       : (resolvedStudent?.kelas || resolvedStudent?.class_name || '');

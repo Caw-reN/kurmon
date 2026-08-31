@@ -2449,16 +2449,16 @@ const server = createServer(async (req, res) => {
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
                     OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
                  LIMIT 1),
                 (SELECT name FROM hikvision_students 
                  WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
                  LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 l.employee_id
               ) as student_name,
 
@@ -2467,38 +2467,39 @@ const server = createServer(async (req, res) => {
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
                     OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
                  LIMIT 1),
                 (SELECT name FROM hikvision_students 
                  WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
                  LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id LIMIT 1),
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 l.employee_id
               ) as name,
 
               COALESCE(
-                (SELECT COALESCE(payload->>'kelas', payload->>'class_name') FROM mst_students 
+                (SELECT NULLIF(NULLIF(COALESCE(payload->>'kelas', payload->>'class_name'), 'siswa'), '-') FROM mst_students 
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
                     OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 4 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
                  LIMIT 1),
-                (SELECT class_name FROM hikvision_students 
-                 WHERE (nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 4 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis)))
-                   AND class_name IS NOT NULL AND class_name != 'siswa'
+                (SELECT NULLIF(NULLIF(class_name, 'siswa'), '-') FROM hikvision_students 
+                 WHERE (nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis)))
                  LIMIT 1),
                 '-'
               ) as class_name,
 
               l.employee_id as username,
               CASE 
-                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'karyawan'
-                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) THEN 'guru'
-                WHEN d.device_type = 'karyawan' THEN 'karyawan'
+                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) OR l.employee_id ~* '^k' THEN 'karyawan'
+                WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))) THEN 'siswa'
+                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id) THEN 'siswa'
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
+                WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
                 WHEN d.device_type = 'guru' THEN 'guru'
                 ELSE 'siswa'
               END as true_person_type
