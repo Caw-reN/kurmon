@@ -8,6 +8,7 @@ import {
   TrendingDown, Eye, Shield, Map, Phone, Star, Filter, X
 } from 'lucide-react';
 import { SharedDashboardLogs } from '../monitoring/ui/index.js';
+import LiveUserActivityLog from './LiveUserActivityLog.jsx';
 
 // ─── Mini Helpers ────────────────────────────────────────────────────────────
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
@@ -595,53 +596,8 @@ export default function KepsekExecutiveDashboard({
                 ))}
               </div>
 
-              {/* Detail Ketepatan Waktu & Ringkasan Jurusan */}
-              <div className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 space-y-2 mt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-500">Kedisiplinan & Ketepatan Pagi</span>
-                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                    Tingkat Disiplin: {pct(siswaStats.Hadir, (siswaStats.Hadir + siswaStats.Terlambat) || 1)}%
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase">Tepat Waktu</div>
-                    <div className="text-xs font-black text-emerald-600 mt-0.5">{siswaStats.Hadir} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
-                  </div>
-                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase">Terlambat</div>
-                    <div className="text-xs font-black text-amber-600 mt-0.5">{siswaStats.Terlambat} <span className="text-[9px] font-normal text-slate-400">Siswa</span></div>
-                  </div>
-                  <div className="bg-white p-2 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase">Total Scan</div>
-                    <div className="text-xs font-black text-slate-800 mt-0.5">{(siswaStats.Hadir + siswaStats.Terlambat) + guruStats.totalMasuk + karyawanStats.totalMasuk} <span className="text-[9px] font-normal text-slate-400">Tap</span></div>
-                  </div>
-                </div>
-                
-                {/* Top Jurusan Presensi */}
-                {siswaStats.topMajors && siswaStats.topMajors.length > 0 && (
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                      <span>Presensi per Program Keahlian</span>
-                      <span className="font-semibold text-slate-400">Top Jurusan</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      {siswaStats.topMajors.map(m => (
-                        <div key={m.name} className="bg-white px-2 py-1.5 rounded-[var(--ui-radius-small)] border border-slate-200 flex items-center justify-between shadow-2xs">
-                          <span className="text-[10px] font-black text-slate-700 truncate">{m.name}</span>
-                          <span className="text-[10px] font-bold text-emerald-600">{m.pct}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-[var(--ui-radius-small)] text-xs text-emerald-800 font-semibold mt-2">
-                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
-                Realtime — Gateway Mesin Hikvision & Gerbang Sekolah Terhubung
-                <span className="ml-auto text-[9px] font-black uppercase bg-emerald-200 px-2 py-0.5 rounded-full text-emerald-900 shrink-0">Live</span>
-              </div>
+              {/* Live Log Aktivitas & Login Pengguna / Guru */}
+              <LiveUserActivityLog onNavigateTab={gotoTab} />
             </SectionCard>
 
             {/* Monitor & Aktivitas Live */}
