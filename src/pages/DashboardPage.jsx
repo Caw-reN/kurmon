@@ -1928,16 +1928,16 @@ export default function DashboardPage({
 
 
       {/* ======= STATISTIK UTAMA (4 STAT CARDS) ======= */}
-      <div className="flex flex-col gap-2.5 text-left">
+      <div className="flex flex-col gap-2 text-left">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--ui-primary)] inline-block"></span>
+          <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] inline-block"></span>
             Statistik Utama
           </h2>
-          <span className="text-[10px] font-bold text-slate-400">Ringkasan Real-time</span>
+          <span className="text-[9px] font-bold text-slate-400">Ringkasan Real-time</span>
         </div>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {topCards.map((card, idx) => {
             const cardThemes = [
               { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/60' },
@@ -1952,31 +1952,31 @@ export default function DashboardPage({
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
+                className="bg-white px-3 py-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
               >
-                <div className="flex items-center justify-between w-full mb-3">
-                  <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
+                <div className="flex items-center justify-between w-full mb-1.5">
+                  <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
                     {typeof card.icon === 'string' ? (
-                      <img src={card.icon} className="w-5 h-5 object-contain" alt="" />
+                      <img src={card.icon} className="w-4 h-4 object-contain" alt="" />
                     ) : (
-                      <card.icon size={19} strokeWidth={2.2} />
+                      <card.icon size={14} strokeWidth={2.2} />
                     )}
                   </div>
-                  <div className="w-6 h-6 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-100">
-                    <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                  <div className="w-5 h-5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-100">
+                    <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
 
                 <div className="min-w-0 w-full flex flex-col">
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none mb-1">
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
                     {card.value}
                   </h3>
-                  <div className="flex items-center justify-between gap-1 mt-0.5">
-                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider truncate">
                       {card.label}
                     </p>
                     {card.sub && (
-                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border ${theme.badge}`}>
+                      <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border ${theme.badge}`}>
                         {card.sub}
                       </span>
                     )}
@@ -1990,46 +1990,46 @@ export default function DashboardPage({
 
 
       {/* ======= MIDDLE SECTION: UNIFIED RINGKASAN & STATISTIK ======= */}
-      <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-3">
         
         {/* Full-width Ringkasan & Grafik Card */}
-        <div className="w-full flex flex-col gap-4">
-          <div className="bg-white border border-slate-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-4 sm:p-5 flex flex-col flex-1 min-h-[440px]">
+        <div className="w-full flex flex-col gap-3">
+          <div className="bg-white border border-slate-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-3 flex flex-col flex-1 min-h-[300px]">
             
             {/* Header Bar: Tabs Navigation & Export Action */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-slate-100">
-              <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
                 <button
                   type="button"
                   onClick={() => setActiveMiddleTab('ringkasan')}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
                     activeMiddleTab === 'ringkasan'
                       ? 'bg-white text-slate-800 shadow-xs'
                       : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
                 >
-                  <img src="/icons/046-report.svg" alt="Ringkasan" className="w-4 h-4 opacity-85" />
+                  <img src="/icons/046-report.svg" alt="Ringkasan" className="w-3.5 h-3.5 opacity-85" />
                   <span>Ringkasan System</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveMiddleTab('statistik')}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
                     activeMiddleTab === 'statistik'
                       ? 'bg-white text-slate-800 shadow-xs'
                       : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
                 >
-                  <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-4 h-4 opacity-85" />
+                  <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-3.5 h-3.5 opacity-85" />
                   <span>Statistik & Visualisasi</span>
                 </button>
               </div>
 
               {activeMiddleTab === 'ringkasan' && (
-                <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95">
-                  <Printer size={14} className="text-slate-500" /> 
-                  <span>Export Ringkasan</span>
+                <button className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95">
+                  <Printer size={13} className="text-slate-500" /> 
+                  <span>Export</span>
                 </button>
               )}
             </div>
@@ -2038,7 +2038,7 @@ export default function DashboardPage({
             {activeMiddleTab === 'ringkasan' && (
               <div className="flex flex-col flex-1 animate-in fade-in duration-200">
                 {/* Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-2 mb-3.5">
+                <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
                   {[
                     { id:"semua", label:"Semua", count: summaryRows.length },
                     { id:"selesai", label:"Selesai", count: summaryRows.filter(r => r.statusLabel ==="Selesai").length },
@@ -2048,14 +2048,14 @@ export default function DashboardPage({
                     <button
                       key={tab.id}
                       onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
-                      className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 ${
+                      className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
                         activeDataTab === tab.id
                           ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs font-extrabold"
                           : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-800"
                       }`}
                     >
                       <span>{tab.label}</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-[var(--ui-radius-small)] ${
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] leading-none ${
                         activeDataTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                       }`}>
                         {tab.count}
@@ -2065,32 +2065,32 @@ export default function DashboardPage({
                 </div>
 
                 {/* Compact List View */}
-                <div className="flex flex-col gap-2 overflow-y-auto pr-1 pb-2 flex-1 min-h-[300px]">
+                <div className="flex flex-col gap-1.5 overflow-y-auto pr-1 pb-2 flex-1 min-h-[180px]">
                   {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-[var(--ui-radius-small)] hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200/70 transition-all group cursor-default bg-white">
+                    <div key={i} className="flex items-center gap-2.5 p-2 rounded-[var(--ui-radius-small)] hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200/70 transition-all group cursor-default bg-white">
                       {/* Icon Box */}
-                      <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
-                        <row.icon size={17} strokeWidth={2.2} />
+                      <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
+                        <row.icon size={14} strokeWidth={2.2} />
                       </div>
                       
                       {/* Title & Detail */}
-                      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 items-center">
+                      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-800 text-xs truncate">{row.label}</span>
-                          <span className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">{row.note}</span>
+                          <span className="font-bold text-slate-800 text-[11px] truncate">{row.label}</span>
+                          <span className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{row.note}</span>
                         </div>
 
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-sm font-black text-slate-900 leading-none">{row.count.split(" ")[0]}</span>
-                          <span className="text-[10px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-black text-slate-900 leading-none">{row.count.split(" ")[0]}</span>
+                          <span className="text-[9px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
                         </div>
 
-                        <div className="hidden sm:flex flex-col gap-1.5 w-full max-w-[140px]">
+                        <div className="hidden sm:flex flex-col gap-1 w-full max-w-[120px]">
                            <div className="flex justify-between items-center">
-                              <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
-                              <span className="text-[10px] font-black text-slate-700">{row.progress}%</span>
+                              <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
+                              <span className="text-[9px] font-black text-slate-700">{row.progress}%</span>
                            </div>
-                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                           <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                               <div
                                 className="h-full rounded-full transition-all duration-700"
                                 style={{ width: `${row.progress}%`, background: row.progress === 100 ? "#10b981" : row.progress > 0 ? "var(--ui-primary)" : "#cbd5e1" }}
@@ -2100,8 +2100,8 @@ export default function DashboardPage({
                       </div>
 
                       {/* Status Badge */}
-                      <div className="shrink-0 w-[90px] text-right flex flex-col items-end gap-1">
-                        <span className={`inline-flex items-center justify-center min-w-[76px] gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-black uppercase tracking-wider border ${
+                      <div className="shrink-0 w-[70px] text-right flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center justify-center min-w-[66px] gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9px] font-black uppercase tracking-wider border ${
                           row.statusLabel === 'Selesai' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' 
                             : row.statusLabel === 'In Progress' 
@@ -2110,7 +2110,7 @@ export default function DashboardPage({
                         }`}>
                           {row.statusLabel}
                         </span>
-                        <span className="text-[10px] font-medium text-slate-400 block md:hidden lg:hidden">{row.count}</span>
+                        <span className="text-[9px] font-medium text-slate-400 block md:hidden lg:hidden">{row.count}</span>
                       </div>
                     </div>
                   ))}
@@ -2124,18 +2124,18 @@ export default function DashboardPage({
 
                 {/* Pagination Controls */}
                 {filteredRows.length > 5 && (
-                  <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length} data</span>
+                  <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length}</span>
                     <div className="flex items-center gap-1.5">
                       <Button variant="outline" 
                         disabled={summaryPage === 0} 
                         onClick={() => setSummaryPage(p => p - 1)}
-                        className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                       >Sebelumnya</Button>
                       <Button variant="outline" 
                         disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
                         onClick={() => setSummaryPage(p => p + 1)}
-                        className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                       >Berikutnya</Button>
                     </div>
                   </div>
@@ -2170,25 +2170,23 @@ export default function DashboardPage({
 
           {/* Rekomendasi Aksi System */}
           {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
-            <div className="bg-amber-50/80 border border-amber-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-4 sm:p-4.5 flex items-start gap-3.5">
-              <div className="shrink-0 w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-2xs">
-                <AlertTriangle size={20} strokeWidth={2.2} />
+            <div className="bg-amber-50/80 border border-amber-200/80 shadow-2xs rounded-[var(--ui-radius-card)] px-3 py-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="shrink-0 w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-2xs">
+                <AlertTriangle size={14} strokeWidth={2.2} />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-xs font-black text-amber-950 tracking-tight uppercase">Rekomendasi Aksi Sistem</h3>
-                </div>
-                <ul className="text-xs text-amber-900 font-medium space-y-1 mt-1">
-                  {summaryRows.filter(r => r.statusLabel === "Belum Ada").slice(0, 2).map((r, i) => (
-                     <li key={i} className="flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Segera lengkapi data <strong className="font-extrabold text-amber-950">{r.label}</strong> agar sistem berjalan optimal.</span>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <h3 className="text-[10px] font-black text-amber-950 tracking-tight uppercase shrink-0">Rekomendasi Aksi:</h3>
+                <ul className="text-[10px] text-amber-900 font-medium flex flex-wrap gap-x-4 gap-y-1">
+                  {summaryRows.filter(r => r.statusLabel === "Belum Ada").slice(0, 1).map((r, i) => (
+                     <li key={i} className="flex items-center gap-1.5">
+                       <span className="w-1 h-1 rounded-full bg-amber-600 shrink-0"></span>
+                       <span>Lengkapi <strong className="font-extrabold text-amber-950">{r.label}</strong></span>
                      </li>
                   ))}
                   {summaryRows.filter(r => r.statusLabel === "In Progress").slice(0, 1).map((r, i) => (
-                     <li key={`p-${i}`} className="flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Lanjutkan pengisian <strong className="font-extrabold text-amber-950">{r.label}</strong> yang baru mencapai <span className="px-1.5 py-0.2 rounded bg-amber-200/80 font-black text-amber-950">{r.progress}%</span>.</span>
+                     <li key={`p-${i}`} className="flex items-center gap-1.5">
+                       <span className="w-1 h-1 rounded-full bg-amber-600 shrink-0"></span>
+                       <span>Lanjutkan <strong className="font-extrabold text-amber-950">{r.label}</strong> (<span className="px-1 py-0.5 rounded bg-amber-200/80 font-black text-amber-950">{r.progress}%</span>)</span>
                      </li>
                   ))}
                 </ul>
