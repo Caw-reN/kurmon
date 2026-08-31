@@ -770,8 +770,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "POST" && url.pathname === "/api/hikvision/super-admin-override") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (session.role !== "super_admin") {
-        send(req, res, 403, { ok: false, error: "Akses ditolak: Fitur ini khusus Super Admin" });
+      
+      const userRole = String(session.role || '').toLowerCase().trim();
+      const userName = String(session.username || '').toLowerCase().trim();
+      const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(userRole) || userName === 'admin';
+
+      if (!isSuperAdmin) {
+        send(req, res, 403, { ok: false, error: "Akses ditolak: Fitur ini khusus Admin / Super Admin" });
         return;
       }
       try {

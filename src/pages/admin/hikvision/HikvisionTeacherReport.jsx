@@ -1275,13 +1275,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               )}
             </div>
 
-            {user?.role === 'super_admin' && (
+            {(['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) || String(user?.username || '').toLowerCase() === 'admin') && (
               <Button 
                 variant="outline"
                 type="button"
                 onClick={() => setIsSuperAdminModalOpen(true)}
                 className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-2xs"
-                title="Koreksi Jam Absensi (Khusus Super Admin)"
+                title="Koreksi Jam Absensi (Khusus Admin / Super Admin)"
               >
                 <Shield size={14} className="shrink-0 text-amber-400" />
                 <span>Koreksi Jam</span>

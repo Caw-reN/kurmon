@@ -4,7 +4,9 @@ import { useDataStore } from '../../store/useDataStore';
 import { useAppStore } from '../../store/useAppStore';
 
 export default function SuperAdminAttendanceOverrideModal({ isOpen, onClose, onSuccess, currentUser }) {
-  const isSuperAdmin = currentUser?.role === 'super_admin' || currentUser?.isSuperAdmin;
+  const userRole = String(currentUser?.role || '').toLowerCase().trim();
+  const userName = String(currentUser?.username || '').toLowerCase().trim();
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(userRole) || userName === 'admin' || currentUser?.isSuperAdmin;
 
   const teachers = useDataStore(state => state.teachers) || [];
   const staffs = useDataStore(state => state.staffs) || [];
