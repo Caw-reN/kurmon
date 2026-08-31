@@ -681,8 +681,8 @@ export const SharedDashboardLogs = () => {
         </div>
       </div>
       
-      {/* Navigation Tabs Bar - Box Grid Style (6 Kolom Penuh) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 p-3 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)]">
+      {/* Navigation Tabs Bar - Responsive Mobile Scroll Strip / Desktop 6 Kolom Grid */}
+      <div className="flex md:grid overflow-x-auto md:overflow-x-visible custom-scrollbar md:grid-cols-6 gap-2 p-2.5 sm:p-4 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] scroll-smooth select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -690,21 +690,20 @@ export const SharedDashboardLogs = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
-              className={`py-2 px-1 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer text-center w-full min-h-[70px] relative ${
+              className={`shrink-0 md:shrink py-2 px-3 sm:px-1 rounded-[var(--ui-radius-small)] border flex flex-row md:flex-col items-center justify-center gap-2 sm:gap-1.5 transition-all duration-200 cursor-pointer text-center min-w-[130px] md:min-w-0 md:w-full min-h-[44px] sm:min-h-[70px] relative touch-manipulation active:scale-95 ${
                 isActive
-                  ? 'bg-white border-[var(--ui-primary)]/50 shadow-[var(--ui-shadow-float)] ring-1 ring-[var(--ui-primary)]/20'
+                  ? 'bg-white border-[var(--ui-primary)] shadow-[var(--ui-shadow-float)] ring-1 ring-[var(--ui-primary)]/20'
                   : 'bg-white border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-control)] hover:-translate-y-0.5 hover:shadow-[var(--ui-shadow-card)]'
               }`}
             >
-              <div className="relative mt-1">
+              <div className="relative shrink-0 flex items-center justify-center">
                 <img src={tab.icon} alt={tab.label} className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-80'}`} />
                 <span className={`absolute -top-1.5 -right-2.5 px-1 min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border border-white ${tab.badgeBg}`}>
                   {tab.count}
                 </span>
               </div>
-              <span className={`text-[8px] sm:text-[10px] font-bold leading-tight px-1 mt-0.5 w-full ${isActive ? 'text-[var(--ui-primary)]' : 'text-slate-600'}`}>
-                <span className="sm:hidden">{tab.labelShort || tab.label}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+              <span className={`text-[10px] sm:text-[10px] font-bold leading-tight truncate ${isActive ? 'text-[var(--ui-primary)] font-black' : 'text-slate-600'}`}>
+                {tab.label}
               </span>
             </button>
           );

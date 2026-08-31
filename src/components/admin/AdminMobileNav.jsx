@@ -9,7 +9,8 @@ import {
   FileText, 
   GraduationCap, 
   Briefcase, 
-  ClipboardList 
+  ClipboardList,
+  Menu
 } from 'lucide-react';
 import { isSuperAdminRole } from '../../utils/constants.js';
 
@@ -24,6 +25,9 @@ export default function AdminMobileNav({
   activeUserDivision,
   currentUser,
   hasFeature,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen,
+  hasPiket,
 }) {
   const [tabbarStyle, setTabbarStyle] = useState(() => {
     return localStorage.getItem('kurmon_tabbar_style') || 'floating';
@@ -182,19 +186,29 @@ export default function AdminMobileNav({
     ];
   };
 
+  const roleTabs = getRoleTabs();
+  const primaryRoleTabs = roleTabs.slice(0, 3);
+
   const allTabs = [
     { id: 'dashboard', icon: Home, label: 'Beranda' },
-    ...getRoleTabs(),
-  ].slice(0, 5); // Guarantee exactly 5 items
+    ...primaryRoleTabs,
+    { id: '__menu__', icon: Menu, label: 'Menu', isMenuTrigger: true },
+  ];
+
+  const isAnyDirectTabActive = allTabs.some(t => !t.isMenuTrigger && (activeTab === t.id || (t.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'))));
 
   const containerClasses = tabbarStyle === 'stay'
-    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200/90 py-1.5 px-2 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] z-40 flex items-center justify-around gap-1 text-center pb-[calc(8px+env(safe-area-inset-bottom))] transition-all duration-300"
-    : "lg:hidden fixed bottom-3 left-3 right-3 max-w-md mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-[26px] p-2 shadow-[0_12px_36px_rgba(15,23,42,0.14),0_2px_8px_rgba(15,23,42,0.04)] z-40 flex items-center justify-around gap-1 text-center transition-all duration-300";
+    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-white/98 backdrop-blur-xl border-t border-slate-200/90 pt-1.5 px-2 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[0_-4px_24px_rgba(15,23,42,0.08)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation"
+    : "lg:hidden fixed bottom-[calc(10px+env(safe-area-inset-bottom,0px))] left-3 right-3 max-w-md mx-auto bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-[24px] p-1.5 shadow-[0_12px_36px_rgba(15,23,42,0.16),0_2px_8px_rgba(15,23,42,0.06)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation";
 
   return (
-    <div className={containerClasses}>
+    <div className={containerClasses} role="navigation" aria-label="Mobile Navigation">
       {allTabs.map(tab => {
-        const isActive = activeTab === tab.id || (tab.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'));
+        const isMenuTrigger = tab.isMenuTrigger;
+        const isActive = isMenuTrigger
+          ? (isMobileMenuOpen || !isAnyDirectTabActive)
+          : (activeTab === tab.id || (tab.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard')));
+
         const IconComponent = tab.icon;
 
         return (
@@ -202,19 +216,30 @@ export default function AdminMobileNav({
             key={tab.id}
             type="button"
             onClick={() => {
-              setActiveTab(tab.id);
+              if (isMenuTrigger) {
+                if (setIsMobileMenuOpen) {
+                  setIsMobileMenuOpen(prev => !prev);
+                }
+              } else {
+                setActiveTab(tab.id);
+                if (setIsMobileMenuOpen) {
+                  setIsMobileMenuOpen(false);
+                }
+              }
             }}
-            className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-[var(--ui-radius-card)] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-95 ${
+            className={`relative flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-[16px] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-90 select-none ${
               isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400 hover:text-slate-600'
             }`}
+            style={{ minHeight: '50px' }}
           >
-            <div className={`p-1 flex items-center justify-center transition-transform duration-200 ${
-              isActive ? 'scale-110' : 'group-hover:scale-105'
+            {/* Pill Capsule Active Indicator */}
+            <div className={`px-3 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+              isActive ? 'bg-[var(--ui-primary)]/12 shadow-2xs' : 'group-active:bg-slate-100'
             }`}>
               <IconComponent
-                size={22}
+                size={21}
                 style={{ color: isActive ? 'var(--ui-primary)' : 'currentColor' }}
-                className={`shrink-0 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`}
+                className={`shrink-0 transition-transform duration-200 ${isActive ? 'scale-110 stroke-[2.5]' : 'stroke-[1.8]'}`}
               />
             </div>
             <span className={`text-[10px] tracking-tight truncate w-full text-center leading-tight mt-0.5 ${
