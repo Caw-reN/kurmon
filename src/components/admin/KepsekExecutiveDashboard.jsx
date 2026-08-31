@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import {
   Users, CheckCircle2, Calendar, BookOpen, FileText, TrendingUp,
   Award, Briefcase, Building2, ChevronRight, Sparkles, Search,
@@ -148,15 +149,13 @@ export default function KepsekExecutiveDashboard({
   const todayLong = useMemo(() =>
     new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), []);
   const todayStr = useMemo(() => {
-    const jkt = new Date(Date.now() + 7 * 3600000);
-    return jkt.toISOString().slice(0, 10);
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
   }, []);
   const currentHour = useMemo(() => {
     return new Date(Date.now() + 7 * 3600000).getHours();
   }, []);
   const greeting = currentHour < 11 ? 'Selamat Pagi' : currentHour < 15 ? 'Selamat Siang' : currentHour < 18 ? 'Selamat Sore' : 'Selamat Malam';
 
-  // ── Guru Attendance ───────────────────────────────────────────────────────
   const guruStats = useMemo(() => {
     const baseTotalGuru = (teachers || []).length || 52;
     const validTeachers = new Set();
@@ -169,7 +168,11 @@ export default function KepsekExecutiveDashboard({
     });
     const recentLogs = ([...(dashLogs?.teacherLogs || []), ...(dashLogs?.recentLogs || [])]).filter(r => {
       const t = String(r?.true_person_type || r?.role_type || r?.device_type || '').toUpperCase();
-      return t.includes('GURU') || t.includes('KARYAWAN');
+      if (!t.includes('GURU')) return false; // HANYA GURU
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return true;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStr;
     });
     const merged = {};
     recs.forEach(r => { const k = String(r?.teacherCode || r?.employee_id || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); if (k) merged[k] = { ...r }; });
@@ -186,17 +189,70 @@ export default function KepsekExecutiveDashboard({
       else s.Hadir++;
     });
     const currentTimeJkt = new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19);
+    let unknownCount = 0;
+    Object.keys(merged).forEach(k => { if (!validTeachers.has(k)) unknownCount++; });
+    const dynamicTotal = baseTotalGuru + unknownCount;
+
     if (currentTimeJkt > '08:00:00') {
       const recorded = Object.keys(merged).filter(k => validTeachers.has(k)).length;
       s.Alpa += Math.max(0, baseTotalGuru - recorded);
     }
-    return { ...s, totalMasuk: s.Hadir + s.Terlambat, belumAbsen: Math.max(0, baseTotalGuru - Object.keys(merged).length), total: baseTotalGuru };
+    return { ...s, totalMasuk: s.Hadir + s.Terlambat, belumAbsen: Math.max(0, dynamicTotal - Object.keys(merged).length), total: dynamicTotal };
   }, [attendanceRecords, todayStr, teachers, dashLogs]);
+
+  // ── Karyawan Attendance ───────────────────────────────────────────────────
+  const karyawanStats = useMemo(() => {
+    const baseTotalKaryawan = (staffs || []).length || 0;
+    const validKaryawan = new Set();
+    (staffs || []).forEach(t => {
+      ['code', 'username', 'name', 'id'].forEach(k => { if (t?.[k]) validKaryawan.add(String(t[k]).toLowerCase()); });
+    });
+    // Log yang spesifik untuk karyawan (tanpa guru)
+    const recentLogs = ([...(dashLogs?.recentLogs || [])]).filter(r => {
+      const t = String(r?.true_person_type || r?.role_type || r?.device_type || '').toUpperCase();
+      if (t.includes('GURU')) return false; 
+      if (!(t.includes('KARYAWAN') || t.includes('STAFF'))) return false;
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return true;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStr;
+    });
+    const merged = {};
+    recentLogs.forEach(r => { const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').toLowerCase(); if (k) merged[k] = { ...r }; });
+    const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+    Object.values(merged).forEach(r => {
+      let st = String(r?.status || 'Hadir').toLowerCase();
+      if (st === 'late') st = 'terlambat';
+      if (st.includes('hadir')) s.Hadir++;
+      else if (st.includes('terlambat')) s.Terlambat++;
+      else if (st.includes('izin')) s.Izin++;
+      else if (st.includes('sakit')) s.Sakit++;
+      else if (st.includes('alpa')) s.Alpa++;
+      else s.Hadir++;
+    });
+    const currentTimeJkt = new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19);
+    let unknownCount = 0;
+    Object.keys(merged).forEach(k => { if (!validKaryawan.has(k)) unknownCount++; });
+    const dynamicTotal = baseTotalKaryawan + unknownCount;
+
+    if (currentTimeJkt > '08:00:00') {
+      const recorded = Object.keys(merged).filter(k => validKaryawan.has(k)).length;
+      s.Alpa += Math.max(0, baseTotalKaryawan - recorded);
+    }
+    return { ...s, totalMasuk: s.Hadir + s.Terlambat, belumAbsen: Math.max(0, dynamicTotal - Object.keys(merged).length), total: dynamicTotal };
+  }, [todayStr, staffs, dashLogs]);
 
   // ── Siswa Attendance ──────────────────────────────────────────────────────
   const siswaStats = useMemo(() => {
     const hikLogs = dashLogs?.hikvisionStudentToday || [];
-    const recentLogs = (dashLogs?.recentLogs || []).filter(r => String(r?.true_person_type || r?.device_type || '').toUpperCase().includes('SISWA'));
+    const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
+      const t = String(r?.true_person_type || r?.device_type || '').toUpperCase();
+      if (!t.includes('SISWA')) return false;
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return true;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
+    });
     const allLogs = hikLogs.length > 0 ? hikLogs : recentLogs;
     // Dedup berdasarkan ID (employee_id/nis) — konsisten dengan SharedDashboardLogs
     const uniq = {};
@@ -215,10 +271,12 @@ export default function KepsekExecutiveDashboard({
       else if (st.includes('alpa')) s.Alpa++;
       else s.Hadir++;
     });
-    // CATATAN: Alpa TIDAK di-inflate otomatis dari totalStudents
-    // karena data mesin Hikvision hanya mencakup siswa yang tap — bukan semua siswa
-    // Alpa akan dihitung dari kedisiplinan_absensi di latestStudentLogs jika tersedia
+    // Hitung Alpa dari sisa siswa yang tidak absen
     const totalSiswaInSchool = dashLogs?.totalStudents || 0;
+    const totalRecorded = s.Hadir + s.Terlambat + s.Izin + s.Sakit;
+    if (totalSiswaInSchool > totalRecorded) {
+      s.Alpa = totalSiswaInSchool - totalRecorded;
+    }
     return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool };
   }, [dashLogs]);
 
@@ -268,14 +326,15 @@ export default function KepsekExecutiveDashboard({
   // ── Sarpras ───────────────────────────────────────────────────────────────
   const sarprasStats = useMemo(() => {
     const total = (rooms || []).length || 0;
-    const activeRooms = todaySchedule.filter(c => c.status === 'Berlangsung').map(c => c.room);
-    const terpakai = activeRooms.length || Math.floor(total * 0.6);
+    const activeRooms = [...new Set(todaySchedule.filter(c => c.status === 'Berlangsung').map(c => c.room))];
+    const terpakai = Math.min(activeRooms.length || Math.floor(total * 0.6), total);
     const kosong = Math.max(0, total - terpakai);
     return { total, terpakai, kosong, utilisasi: pct(terpakai, total || 1) };
   }, [rooms, todaySchedule]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const totalGuruCount = (teachers || []).length || guruStats.total || 52;
+  const totalKaryawanCount = (staffs || []).length || karyawanStats.total || 0;
   const totalSiswaCount = (students || []).length || dashLogs?.totalStudents || 0;
   const totalClassesCount = (classes || []).length || 0;
   const totalJP = useMemo(() => (teachingLoads || []).reduce((s, l) => s + (Number(l?.duration) || 0), 0), [teachingLoads]);
@@ -283,9 +342,35 @@ export default function KepsekExecutiveDashboard({
   const siswaPresentTotal = siswaStats.Hadir + siswaStats.Terlambat;
   const siswaPresentPct = pct(siswaPresentTotal, siswaDenom);
   const guruPresentPct = pct(guruStats.totalMasuk, guruStats.total);
+  const karyawanPresentPct = pct(karyawanStats.totalMasuk, karyawanStats.total);
   const pklCount = (dashLogs?.latestStudentLogs || []).length || 0;
-  const pklLocationCount = dashLogs?.totalLocations || 0;
+  const pklLocationCount = dashLogs?.totalLocations || Math.floor(pklCount / 4) || 0;
   const majorCount = useMemo(() => new Set((classes || []).map(c => c.major || c.jurusan || c.program).filter(Boolean)).size, [classes]);
+
+  const pieColors = { Hadir: '#10b981', Terlambat: '#f59e0b', Izin: '#6366f1', Sakit: '#38bdf8', Alpa: '#f43f5e' };
+  const guruPie = useMemo(() => [
+    { name: 'Hadir', value: guruStats.Hadir, color: pieColors.Hadir },
+    { name: 'Terlambat', value: guruStats.Terlambat, color: pieColors.Terlambat },
+    { name: 'Izin', value: guruStats.Izin, color: pieColors.Izin },
+    { name: 'Sakit', value: guruStats.Sakit, color: pieColors.Sakit },
+    { name: 'Alpa', value: guruStats.Alpa, color: pieColors.Alpa },
+  ].filter(d => d.value > 0), [guruStats]);
+
+  const karyawanPie = useMemo(() => [
+    { name: 'Hadir', value: karyawanStats.Hadir, color: pieColors.Hadir },
+    { name: 'Terlambat', value: karyawanStats.Terlambat, color: pieColors.Terlambat },
+    { name: 'Izin', value: karyawanStats.Izin, color: pieColors.Izin },
+    { name: 'Sakit', value: karyawanStats.Sakit, color: pieColors.Sakit },
+    { name: 'Alpa', value: karyawanStats.Alpa, color: pieColors.Alpa },
+  ].filter(d => d.value > 0), [karyawanStats]);
+
+  const siswaPie = useMemo(() => [
+    { name: 'Hadir', value: siswaStats.Hadir, color: pieColors.Hadir },
+    { name: 'Terlambat', value: siswaStats.Terlambat, color: pieColors.Terlambat },
+    { name: 'Izin', value: siswaStats.Izin, color: pieColors.Izin },
+    { name: 'Sakit', value: siswaStats.Sakit, color: pieColors.Sakit },
+    { name: 'Alpa', value: siswaStats.Alpa, color: pieColors.Alpa },
+  ].filter(d => d.value > 0), [siswaStats]);
 
   // ── Filtered Syllabus ─────────────────────────────────────────────────────
   const filteredSyllabus = useMemo(() => {
@@ -359,6 +444,7 @@ export default function KepsekExecutiveDashboard({
               <div className="flex flex-wrap gap-3 mt-2">
                 {[
                   { label: 'Guru Hadir', num: guruStats.totalMasuk, den: guruStats.total, p: guruPresentPct },
+                  { label: 'Staff Hadir', num: karyawanStats.totalMasuk, den: karyawanStats.total, p: karyawanPresentPct },
                   { label: 'Siswa Hadir', num: siswaPresentTotal, den: siswaDenom, p: siswaPresentPct },
                   { label: 'Jurnal KBM', num: jurnalSubmitted, den: todaySchedule.length, p: jurnalPct },
                   { label: 'Kelas Aktif', num: totalClassesCount, den: totalClassesCount, p: 100 },
@@ -409,17 +495,18 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ 6 KPI PILLARS ═══════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+      {/* ═══════════════ 7 KPI PILLARS ═══════════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
         {[
           { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen` },
+          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Staff Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen` },
           { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu` },
           { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmitted, sub: `/ ${todaySchedule.length} Slot`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${Math.max(0, todaySchedule.length - jurnalSubmitted)} slot belum terisi` },
           { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini` },
           { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif` },
-          { id: 'kesiswaan', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi` },
+          { id: 'kesiswaan_k', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi` },
         ].map((kpi, i) => (
-          <KPICard key={i} {...kpi} active={tab === kpi.id} onClick={() => setTab(kpi.id)} />
+          <KPICard key={i} {...kpi} active={tab === kpi.id} onClick={() => setTab(kpi.id.replace('_karyawan','').replace('_k',''))} />
         ))}
       </div>
 
@@ -460,7 +547,8 @@ export default function KepsekExecutiveDashboard({
             <SectionCard title="Presensi Live Hari Ini" subtitle="Data dari mesin absensi Hikvision" icon="/icons/084-fingerprint scan.svg" action="Detail Laporan" onAction={() => gotoTab('laporan_absensi')}>
               <div className="space-y-3">
                 {[
-                  { label: 'Guru & Karyawan', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
+                  { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
+                  { label: 'Karyawan / Staff', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                   { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa },
                 ].map(row => (
                   <div key={row.label} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
@@ -518,16 +606,108 @@ export default function KepsekExecutiveDashboard({
               </div>
               <Pagination page={schedulePage} totalPages={scheduleTotalPages} total={todaySchedule.length} pageSize={PAGE_SIZE} setPage={setSchedulePage} />
               <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
-                <span>Total JP: <strong className="text-slate-800">{totalJP}</strong></span>
+                <span>Slot Hari Ini: <strong className="text-slate-800">{todaySchedule.length}</strong></span>
                 <span>Jurnal: <strong className="text-emerald-700">{jurnalSubmitted}/{todaySchedule.length}</strong></span>
               </div>
             </SectionCard>
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Chart Analitik */}
+            <div className="lg:col-span-2">
+              <SectionCard title="Komposisi Kehadiran" subtitle="Persentase status absensi tiap kelompok" icon="/icons/035-graph bar.svg">
+                <div className="h-64 w-full flex items-center justify-around gap-2">
+                  {[
+                    { label: 'Guru', data: guruPie, total: guruStats.total },
+                    { label: 'Karyawan', data: karyawanPie, total: karyawanStats.total },
+                    { label: 'Siswa', data: siswaPie, total: siswaDenom }
+                  ].map((chart, i) => (
+                    <div key={i} className="flex-1 h-full flex flex-col items-center justify-center relative">
+                      <ResponsiveContainer width="100%" height="70%">
+                        <PieChart>
+                          <Pie
+                            data={chart.data}
+                            cx="50%" cy="50%"
+                            innerRadius={45} outerRadius={65}
+                            paddingAngle={3}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {chart.data.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                            itemStyle={{ color: '#334155' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute top-[35%] flex flex-col items-center justify-center pointer-events-none w-full text-center">
+                        <span className="text-sm font-black text-slate-800">{chart.total}</span>
+                      </div>
+                      <div className="mt-2 text-center">
+                        <span className="text-[11px] font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">{chart.label}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Custom Legend */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-2 border-t border-slate-100 pt-3">
+                  {[
+                    { name: 'Hadir', color: pieColors.Hadir },
+                    { name: 'Terlambat', color: pieColors.Terlambat },
+                    { name: 'Izin', color: pieColors.Izin },
+                    { name: 'Sakit', color: pieColors.Sakit },
+                    { name: 'Alpa', color: pieColors.Alpa },
+                  ].map(lg => (
+                    <div key={lg.name} className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: lg.color }} />
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">{lg.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            </div>
+
+            {/* Utilisasi Ruangan (Pie Chart) */}
+            <div className="lg:col-span-1">
+              <SectionCard title="Utilisasi Ruangan KBM" subtitle="Status pemakaian kelas hari ini" icon="/icons/031-monitor.svg">
+                <div className="h-64 w-full flex flex-col items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Terpakai', value: sarprasStats.terpakai, color: '#10b981' },
+                          { name: 'Kosong', value: sarprasStats.kosong, color: '#f1f5f9' },
+                        ]}
+                        cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value"
+                      >
+                        {[
+                          { name: 'Terpakai', value: sarprasStats.terpakai, color: '#10b981' },
+                          { name: 'Kosong', value: sarprasStats.kosong, color: '#e2e8f0' },
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                    <span className="text-3xl font-black text-slate-800">{sarprasStats.utilisasi}%</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Terpakai</span>
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+          </div>
+
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
               { label: 'Total Guru', value: totalGuruCount, sub: 'SDM Pengajar', icon: '/icons/045-account.svg', color: 'border-l-indigo-400' },
+              { label: 'Karyawan', value: totalKaryawanCount, sub: 'Staff & TU', icon: '/icons/045-account.svg', color: 'border-l-teal-400' },
               { label: 'Total Siswa', value: totalSiswaCount, sub: `${totalClassesCount} Kelas`, icon: '/icons/066-education.svg', color: 'border-l-emerald-400' },
               { label: 'Total Mapel', value: (subjects || []).length, sub: `${majorCount} Jurusan`, icon: '/icons/092-file.svg', color: 'border-l-sky-400' },
               { label: 'Slot Jadwal', value: (schedule || []).length, sub: `${totalJP} JP / Minggu`, icon: '/icons/086-calendar.svg', color: 'border-l-amber-400' },

@@ -57,11 +57,13 @@ export default function DashboardPage({
   schedule: _schedule,
   teachingLoads: _teachingLoads,
   subjectComposition: _subjectComposition,
+  staffs: _staffs,
   setActiveTab,
   onOpenProfile,
   handleLogout }) {
   const classes = _classes || [];
   const teachers = _teachers || [];
+  const staffs = _staffs || [];
   const subjects = _subjects || [];
   const rooms = _rooms || [];
   const schedule = _schedule || [];
@@ -759,6 +761,7 @@ export default function DashboardPage({
             attendanceRecords={attendanceRecords}
             dashLogs={dashLogs}
             teachers={teachers}
+            staffs={staffs}
             currentUser={currentUser}
             isSuperAdmin={isSuperAdmin}
             isKepsek={isKepsek}
@@ -1770,6 +1773,7 @@ export default function DashboardPage({
           attendanceRecords={attendanceRecords}
           dashLogs={dashLogs}
           teachers={teachers}
+          staffs={staffs}
           currentUser={currentUser}
           isSuperAdmin={isSuperAdmin}
           isKepsek={isKepsek}
@@ -2583,11 +2587,9 @@ function DashboardMessageCarousel({ dashboardMessages }) {
 // Statistik kehadiran hari ini — guru & siswa
 // Warna mengikuti halaman absensi existing (MyAttendancePage, AbsensiKBM)
 // ============================================================
-function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
+function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], staffs = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
   const todayStr = useMemo(() => {
-    const now = new Date();
-    const jkt = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-    return jkt.toISOString().slice(0, 10);
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
   }, []);
 
   // ── Role-guard ──
@@ -2617,40 +2619,31 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     const recentTeacherLogs = (dashLogs?.teacherLogs || dashLogs?.recentLogs || []).filter(r => {
       const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
-      return type.includes('GURU') || type.includes('KARYAWAN');
+      if (!type.includes('GURU')) return false; // HANYA GURU
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return true;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStr;
     });
 
     // 2. Gabungkan log absensi dari Apps & Hikvision untuk menghindari duplikat
     const mergedLogs = {};
-    
-    // - Dari Apps
     recs.forEach(r => {
       const key = String(r.teacherCode || r.employee_id || r.true_person_name || r.name || r.id || '').toLowerCase();
       if (key) mergedLogs[key] = { ...r, source: 'app' };
     });
-
-    // - Dari Hikvision (override status dari app jika ada)
     recentTeacherLogs.forEach(r => {
       const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
-      if (key) {
-        mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
-      }
+      if (key) mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
-    let unknownStaffCount = 0;
-
+    let unknownCount = 0;
     Object.entries(mergedLogs).forEach(([key, r]) => {
-      const isKnownTeacher = validTeachers.has(key);
-      if (!isKnownTeacher && baseTotalGuru > 0) {
-        // Ini adalah Karyawan / Staff yang tidak ada di master data guru
-        unknownStaffCount++;
-      }
-
+      if (!validTeachers.has(key)) unknownCount++;
       let s = String(r.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
       if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
-      
       if (s.includes('hadir')) statuses.Hadir++;
       else if (s.includes('terlambat')) statuses.Terlambat++;
       else if (s.includes('izin')) statuses.Izin++;
@@ -2659,23 +2652,69 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else if (s.includes('alpa')) statuses.Alpa++;
       else statuses.Hadir++;
     });
-    
-    // Dynamic total denominator (Guru Master + Karyawan Tambahan)
-    const totalGuru = baseTotalGuru + unknownStaffCount;
-    
-    // Auto-calculate Alpa untuk Guru Master yang tidak absen sama sekali (jika sudah jam 08:00)
+    const totalGuru = baseTotalGuru + unknownCount;
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
     if (currentTimeJkt > "08:00:00") {
       const recordedTeachers = Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length;
-      const unrecorded = Math.max(0, baseTotalGuru - recordedTeachers);
-      statuses.Alpa += unrecorded;
+      statuses.Alpa += Math.max(0, baseTotalGuru - recordedTeachers);
     }
-
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
-    const belumAbsen = Math.max(0, baseTotalGuru - Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length);
-    
+    const belumAbsen = Math.max(0, totalGuru - Object.keys(mergedLogs).length);
     return { ...statuses, belumAbsen, totalMasuk, totalGuru };
   }, [attendanceRecords, todayStr, teachers, dashLogs]);
+
+  // ── Statistik Karyawan ──
+  const karyawanStats = useMemo(() => {
+    const validStaffs = new Set();
+    const baseTotalKaryawan = (staffs || []).length || 0;
+    (staffs || []).forEach(t => {
+      if (t.code) validStaffs.add(String(t.code).toLowerCase());
+      if (t.username) validStaffs.add(String(t.username).toLowerCase());
+      if (t.name) validStaffs.add(String(t.name).toLowerCase());
+      if (t.id) validStaffs.add(String(t.id).toLowerCase());
+    });
+
+    const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
+      const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
+      if (type.includes('GURU')) return false;
+      if (!(type.includes('KARYAWAN') || type.includes('STAFF'))) return false;
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return true;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStr;
+    });
+
+    const mergedLogs = {};
+    recentLogs.forEach(r => {
+      const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
+      if (key) mergedLogs[key] = { ...mergedLogs[key], ...r, source: 'machine' };
+    });
+
+    const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
+    let unknownCount = 0;
+    Object.entries(mergedLogs).forEach(([key, r]) => {
+      if (!validStaffs.has(key)) unknownCount++;
+      let s = String(r.status || 'Hadir').toLowerCase();
+      if (s === 'late') s = 'terlambat';
+      if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
+      if (s.includes('hadir')) statuses.Hadir++;
+      else if (s.includes('terlambat')) statuses.Terlambat++;
+      else if (s.includes('izin')) statuses.Izin++;
+      else if (s.includes('sakit')) statuses.Sakit++;
+      else if (s.includes('dinas')) statuses['Dinas Luar']++;
+      else if (s.includes('alpa')) statuses.Alpa++;
+      else statuses.Hadir++;
+    });
+    const totalKaryawan = baseTotalKaryawan + unknownCount;
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00") {
+      const recorded = Object.keys(mergedLogs).filter(k => validStaffs.has(k)).length;
+      statuses.Alpa += Math.max(0, baseTotalKaryawan - recorded);
+    }
+    const totalMasuk = statuses.Hadir + statuses.Terlambat;
+    const belumAbsen = Math.max(0, totalKaryawan - Object.keys(mergedLogs).length);
+    return { ...statuses, belumAbsen, totalMasuk, totalKaryawan };
+  }, [todayStr, staffs, dashLogs]);
 
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
@@ -2685,9 +2724,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     // Combine logs
     let allLogs = [...hikLogs];
     if (allLogs.length === 0 && recentLogs.length > 0) {
-      allLogs = recentLogs.filter(r => 
-        String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')
-      );
+      allLogs = recentLogs.filter(r => {
+        if (!String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')) return false;
+        const logDate = r?.timestamp || r?.created_at || r?.date || '';
+        if (!logDate) return true;
+        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
+      });
     }
 
     const uniqueSiswa = {};
@@ -2734,7 +2777,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         <CheckCircle2 size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
         <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Kehadiran Hari Ini</h2>
       </div>
-      <div className={`grid gap-2 sm:gap-4 ${canSeeTeacherAttendance && canSeeStudentAttendance ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      <div className={`grid gap-2 sm:gap-4 ${canSeeTeacherAttendance && canSeeStudentAttendance ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
 
         {/* ── Panel Guru ── */}
         {canSeeTeacherAttendance && (
@@ -2791,6 +2834,57 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{guruStats.Alpa}</b>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* ── Panel Karyawan ── */}
+        {canSeeTeacherAttendance && (
+          <button
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
+            className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+          >
+            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-xs">
+                  <img src="/icons/045-account.svg" alt="Staff" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                    Kehadiran Staff
+                    <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </h3>
+                  <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                    {karyawanStats.totalMasuk}/{karyawanStats.totalKaryawan} staff terdata
+                  </p>
+                </div>
+              </div>
+              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-teal-100/80 whitespace-nowrap shrink-0 shadow-xs">
+                {karyawanStats.totalKaryawan > 0 ? Math.round(((karyawanStats.Hadir + karyawanStats.Terlambat) / karyawanStats.totalKaryawan) * 100) : 0}% Hadir
+              </span>
+            </div>
+
+            {/* Segmented Progress Bar */}
+            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+              <div style={{ width: `${(karyawanStats.Hadir / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
+              <div style={{ width: `${(karyawanStats.Terlambat / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
+              <div style={{ width: `${(karyawanStats.Izin / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
+              <div style={{ width: `${(karyawanStats.Sakit / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-sky-400 h-full" title="Sakit" />
+              <div style={{ width: `${(karyawanStats['Dinas Luar'] / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-purple-500 h-full" title="Dinas Luar" />
+              <div style={{ width: `${(karyawanStats.Alpa / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
+            </div>
+
+            {/* Micro Metric Chips */}
+            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{karyawanStats.Hadir}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{karyawanStats.Terlambat}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{karyawanStats.Alpa}</b>
               </div>
             </div>
           </button>
