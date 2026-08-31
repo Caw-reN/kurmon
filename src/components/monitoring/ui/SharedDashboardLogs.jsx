@@ -123,9 +123,11 @@ export const SharedDashboardLogs = () => {
   }, []);
 
   const fmtTime = (ts) => {
+    // A5 FIX: Selalu gunakan timezone WIB agar jam tidak bergeser di browser luar WIB
     try { 
       return new Intl.DateTimeFormat('id-ID', { 
-        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+        timeZone: 'Asia/Jakarta'
       }).format(new Date(ts)); 
     } catch { return '-'; }
   };
@@ -371,42 +373,48 @@ export const SharedDashboardLogs = () => {
     const all = [
       { 
         id: 'guru_karyawan', 
-        label: 'Guru/Karyawan', 
+        label: 'Guru/Karyawan',
+        labelShort: 'Guru',
         count: guruKaryawanLogs.length, 
         icon: '/icons/045-account.svg',
         badgeBg: 'bg-indigo-100/90 text-indigo-800'
       },
       { 
         id: 'guru_terlambat', 
-        label: 'Guru/Karyawan Terlambat', 
+        label: 'Guru/Karyawan Terlambat',
+        labelShort: 'Terlambat',
         count: terlambatGuruLogs.length, 
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-orange-100/90 text-orange-800'
       },
       { 
         id: 'kehadiran_siswa', 
-        label: 'Siswa', 
+        label: 'Siswa',
+        labelShort: 'Siswa',
         count: kehadiranSiswaLogs.length, 
         icon: '/icons/066-education.svg',
         badgeBg: 'bg-purple-100/90 text-purple-800'
       },
       { 
         id: 'siswa_terlambat', 
-        label: 'Siswa Terlambat', 
+        label: 'Siswa Terlambat',
+        labelShort: 'Terlambat',
         count: terlambatSiswaLogs.length, 
         icon: '/icons/039-time.svg',
         badgeBg: 'bg-amber-100/90 text-amber-800'
       },
       { 
         id: 'siswa_bermasalah', 
-        label: 'Siswa Bermasalah', 
+        label: 'Siswa Bermasalah',
+        labelShort: 'Masalah',
         count: bermasalahLogs.length, 
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-rose-100/90 text-rose-800'
       },
       { 
         id: 'siswa_prestasi', 
-        label: 'Siswa Berprestasi', 
+        label: 'Siswa Berprestasi',
+        labelShort: 'Prestasi',
         count: siswaPrestasiLogs.length, 
         icon: '/icons/063-follow.svg',
         badgeBg: 'bg-emerald-100/90 text-emerald-800'
@@ -414,8 +422,9 @@ export const SharedDashboardLogs = () => {
       {
         id: 'analisa_absensi',
         label: 'Analisa Absensi',
-        count: siswaRankingLogs.length,
+        labelShort: 'Analisa',
         icon: '/icons/031-monitor.svg',
+        count: siswaRankingLogs.length,
         badgeBg: 'bg-rose-100/90 text-rose-800'
       }
     ];
@@ -701,7 +710,10 @@ export const SharedDashboardLogs = () => {
                   {tab.count}
                 </span>
               </div>
-              <span className={`text-[9px] sm:text-[10px] font-bold leading-tight px-1 mt-0.5 w-full ${isActive ? 'text-[var(--ui-primary)]' : 'text-slate-600'}`}>{tab.label}</span>
+              <span className={`text-[8px] sm:text-[10px] font-bold leading-tight px-1 mt-0.5 w-full ${isActive ? 'text-[var(--ui-primary)]' : 'text-slate-600'}`}>
+                <span className="sm:hidden">{tab.labelShort || tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+              </span>
             </button>
           );
         })}

@@ -4,11 +4,17 @@ const activeCaptchas = new Map();
 const loginAttempts = new Map();     // keyed by username
 const loginAttemptsByIp = new Map(); // keyed by IP — prevents enumeration attacks
 
-// Helper: get real IP from request
+// S3 FIX: Hanya percaya X-Forwarded-For jika TRUST_PROXY=true (di balik Nginx/Caddy)
+// Jika tidak, gunakan IP TCP langsung yang tidak bisa di-spoof.
 const getClientIp = (req) => {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return String(forwarded).split(',')[0].trim();
-  return req.socket?.remoteAddress || 'unknown';
+  if (process.env.TRUST_PROXY === 'true') {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      const first = String(forwarded).split(',')[0].trim();
+      if (first && first !== 'unknown') return first;
+    }
+  }
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown';
 };
 
 export async function handleAuthRoutes(req, res, url, ctx) {

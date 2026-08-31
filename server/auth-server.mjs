@@ -138,7 +138,7 @@ async function syncAllUsersToModules() {
 }
 
 // Helper: konversi "HH:MM" ke menit (numerik) untuk perbandingan waktu yang aman
-import { isRateLimited } from './middlewares/rateLimiter.mjs';
+import { isRateLimited, isLoginRateLimited } from './middlewares/rateLimiter.mjs';
 
 function toMinutes(hhmm) {
   const [h, m] = String(hhmm || '00:00').split(':').map(Number);
@@ -314,11 +314,15 @@ async function autoSyncGuruAttendanceToAppData() {
       if (s.code) staffToCode[String(s.code).trim().toLowerCase()] = code;
     });
 
+    // A2 FIX: Batasi 3 hari terakhir agar tidak menarik seluruh histori (cegah duplikat & boros)
     const { rows: logs } = await dbPool.query(`
-      SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type, d.ip_address, d.location, d.device_type, l.person_type
+      SELECT l.employee_id,
+             TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str,
+             l.event_type, d.ip_address, d.location, d.device_type, l.person_type
       FROM hikvision_logs l
       JOIN hikvision_devices d ON l.device_id = d.id
-      WHERE l.person_type IN ('guru', 'karyawan') OR d.device_type IN ('guru', 'karyawan')
+      WHERE (l.person_type IN ('guru', 'karyawan') OR d.device_type IN ('guru', 'karyawan'))
+        AND l.timestamp >= NOW() - INTERVAL '3 days'
       ORDER BY l.timestamp ASC
     `);
     if (logs.length === 0) return;
@@ -398,7 +402,8 @@ async function autoSyncGuruAttendanceToAppData() {
 async function sendDailyClassSummary() {
   if (!dbPool) return;
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // A1 FIX: Selalu gunakan timezone WIB agar hari tidak maju/mundur 7 jam di server UTC
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }); // YYYY-MM-DD WIB
 
     const { rows: mstRows } = await dbPool.query("SELECT payload FROM mst_classes");
     const classes = mstRows.map(r => r.payload);
@@ -497,8 +502,13 @@ const initDb = async () => {
       database: "postgres",
     });
     
+    // S1: Validasi nama DB — hanya izinkan karakter alfanumerik + underscore (cegah SQL injection)
+    if (!/^[a-zA-Z0-9_]+$/.test(DB_CONFIG.database)) {
+      throw new Error(`Nama database tidak valid: "${DB_CONFIG.database}". Hanya huruf, angka, dan underscore diperbolehkan.`);
+    }
     const dbCheck = await adminPool.query("SELECT 1 FROM pg_database WHERE datname = $1", [DB_CONFIG.database]);
     if (dbCheck.rowCount === 0) {
+      // quote_ident sudah divalidasi di atas, aman untuk interpolasi
       await adminPool.query(`CREATE DATABASE "${DB_CONFIG.database}"`);
     }
     await adminPool.end();
