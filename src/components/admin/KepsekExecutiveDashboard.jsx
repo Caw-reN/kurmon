@@ -550,30 +550,44 @@ export default function KepsekExecutiveDashboard({
                 {[
                   { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
                   { label: 'Karyawan / Staff', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
-                  { label: 'Semua Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isParent: true },
-                  { label: '— Siswa Kelas X', total: siswaStats.gradeStats?.['X']?.total, hadir: siswaStats.gradeStats?.['X']?.hadir, telat: siswaStats.gradeStats?.['X']?.telat, izin: siswaStats.gradeStats?.['X']?.izin, sakit: siswaStats.gradeStats?.['X']?.sakit, alpa: siswaStats.gradeStats?.['X']?.alpa, isSub: true },
-                  { label: '— Siswa Kelas XI', total: siswaStats.gradeStats?.['XI']?.total, hadir: siswaStats.gradeStats?.['XI']?.hadir, telat: siswaStats.gradeStats?.['XI']?.telat, izin: siswaStats.gradeStats?.['XI']?.izin, sakit: siswaStats.gradeStats?.['XI']?.sakit, alpa: siswaStats.gradeStats?.['XI']?.alpa, isSub: true },
-                  { label: '— Siswa Kelas XII', total: siswaStats.gradeStats?.['XII']?.total, hadir: siswaStats.gradeStats?.['XII']?.hadir, telat: siswaStats.gradeStats?.['XII']?.telat, izin: siswaStats.gradeStats?.['XII']?.izin, sakit: siswaStats.gradeStats?.['XII']?.sakit, alpa: siswaStats.gradeStats?.['XII']?.alpa, isSub: true },
-                ].filter(row => row.total > 0 || !row.isSub).map(row => (
-                  <div key={row.label} className={`${row.isSub ? 'bg-slate-50/50 ml-4 py-2 px-3 border-l-2 border-slate-200' : 'bg-slate-50 rounded-xl p-3.5 border border-slate-100'} ${row.isParent ? 'mb-1' : ''}`}>
+                  { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
+                ].filter(row => row.total > 0).map(row => (
+                  <div key={row.label} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
                     <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
-                      <span className={row.isSub ? 'text-[10px] text-slate-500 font-semibold' : ''}>{row.label} {row.isSub && `(${row.total})`}</span>
-                      <span className={`${row.isSub ? 'text-[10px]' : ''} text-emerald-600 font-black`}>{pct(row.hadir + row.telat, row.total || 1)}% Hadir</span>
+                      <span>{row.label} <span className="text-[10px] text-slate-400 font-medium ml-1">({row.total} orang)</span></span>
+                      <span className="text-emerald-600 font-black">{pct(row.hadir + row.telat, row.total || 1)}% Hadir</span>
                     </div>
-                    <div className={`w-full ${row.isSub ? 'h-1.5' : 'h-3'} bg-slate-200 rounded-full overflow-hidden flex mb-2`}>
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex mb-2">
                       <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
                       <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
                       <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
                       <div className="h-full bg-blue-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
                       <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
                     </div>
-                    <div className={`grid grid-cols-5 gap-1 ${row.isSub ? 'text-[8px]' : 'text-[9px]'} font-bold`}>
+                    <div className="grid grid-cols-5 gap-1 text-[9px] font-bold mt-2">
                       <span className="text-emerald-700 truncate">● {row.hadir} Hadir</span>
                       <span className="text-amber-600 truncate">● {row.telat} Telat</span>
                       <span className="text-orange-600 truncate">● {row.izin} Izin</span>
                       <span className="text-blue-600 truncate">● {row.sakit} Sakit</span>
                       <span className="text-rose-600 truncate">● {row.alpa} Alpa</span>
                     </div>
+
+                    {row.isSiswa && siswaStats.gradeStats && (
+                      <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                        {['X', 'XI', 'XII'].map(g => {
+                          const gStat = siswaStats.gradeStats[g];
+                          const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
+                          return (
+                            <div key={g} className="flex-1 bg-white border border-slate-200 rounded-lg py-2 px-1 text-center shadow-xs">
+                               <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Kelas {g}</div>
+                               <div className="text-xs font-black text-slate-700 mt-0.5">
+                                 {pct(gPresent, gStat?.total || 1)}%
+                               </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold">
