@@ -2096,8 +2096,8 @@ const server = createServer(async (req, res) => {
               hConfig = typeof configRes.rows[0].data === 'string' ? JSON.parse(configRes.rows[0].data) : configRes.rows[0].data;
             }
           } catch (e) {}
-          const masukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:15") + ":00";
-          const masukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
+          const masukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
+          const masukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "12:00") + ":00";
 
           const lateRes = await dbPool.query(`
             SELECT student_nis as nis, status, created_at
@@ -2439,14 +2439,14 @@ const server = createServer(async (req, res) => {
               hConfig = typeof configRes.rows[0].data === 'string' ? JSON.parse(configRes.rows[0].data) : configRes.rows[0].data;
             }
           } catch (e) {}
-          const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
-          const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+          const siswaMasukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:15") + ":00";
+          const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
-          const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
-          const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+          const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
+          const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
-          const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
-          const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "08:00") + ":00";
+          const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
+          const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
           const todayLogsRes = await dbPool.query(`
             SELECT l.*, d.ip_address, d.device_type,
@@ -2469,20 +2469,35 @@ const server = createServer(async (req, res) => {
               ) as student_name,
 
               COALESCE(
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
-                    OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))
                  LIMIT 1),
                 (SELECT name FROM hikvision_students 
                  WHERE nis = l.employee_id 
                     OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
                  LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                NULL
+              ) as true_name,
+              COALESCE(
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
+                 WHERE payload->>'nis' = l.employee_id 
+                    OR payload->>'code' = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))
+                 LIMIT 1),
+                (SELECT name FROM hikvision_students 
+                 WHERE nis = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                 LIMIT 1),
                 l.employee_id
               ) as name,
 
@@ -2501,11 +2516,12 @@ const server = createServer(async (req, res) => {
 
               l.employee_id as username,
               CASE 
-                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) OR l.employee_id ~* '^k' THEN 'karyawan'
-                WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))) THEN 'siswa'
+                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) OR l.employee_id ~* '^k' THEN 'karyawan'
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
+                WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))) THEN 'siswa'
                 WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id) THEN 'siswa'
-                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
                 WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
+                WHEN d.device_type = 'guru' THEN 'guru'
                 ELSE 'siswa'
               END as true_person_type
             FROM hikvision_logs l 
@@ -2525,7 +2541,10 @@ const server = createServer(async (req, res) => {
             }
           });
 
-          const allTodayRows = todayLogsRes.rows.map(r => {
+          // Buang data yang true_name-nya NULL (berarti scan orang asing / belum terdaftar di master data)
+          const validTodayLogs = todayLogsRes.rows.filter(r => r.true_name != null);
+
+          const allTodayRows = validTodayLogs.map(r => {
             const empId = String(r.employee_id || '').trim().toLowerCase();
             const firstScanTs = firstScanMap.get(empId) || new Date(r.timestamp).getTime();
             const firstScanTime = new Date(firstScanTs).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });

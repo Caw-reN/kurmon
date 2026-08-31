@@ -145,19 +145,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const recentLogsRes = await dbPool.query(`
           SELECT l.*, d.ip_address, d.device_type,
             COALESCE(
+              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
+              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
               ms.payload->>'name',
               ms.payload->>'nama',
               hs.name,
-              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
-              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
               l.employee_id
             ) as student_name,
             COALESCE(
+              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
+              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
               ms.payload->>'name',
               ms.payload->>'nama',
               hs.name,
-              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
-              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
               l.employee_id
             ) as name,
             COALESCE(
@@ -176,16 +176,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             END as true_person_type
           FROM hikvision_logs l 
           JOIN hikvision_devices d ON l.device_id = d.id 
-          LEFT JOIN mst_students ms ON (
-            ms.payload->>'nis' = l.employee_id 
-            OR ms.payload->>'code' = l.employee_id 
-            OR ms.id = l.employee_id
-            OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (ms.payload->>'nis')))
-          )
-          LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
-          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id) AND l.employee_id !~* '^k' AND ms.id IS NULL
-          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id) AND ms.id IS NULL
-          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
+          LEFT JOIN mst_students ms ON ms.payload->>'nis' = l.employee_id OR ms.payload->>'code' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
+          LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (hs.nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || hs.nis))
+          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
+          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
+          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+            AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
           ORDER BY l.timestamp DESC LIMIT 500
         `);
 
@@ -198,9 +194,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             'karyawan' as true_person_type
           FROM hikvision_logs l
           JOIN hikvision_devices d ON l.device_id = d.id
-          LEFT JOIN mst_staffs msf ON msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id OR msf.id = l.employee_id
-          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
-            AND (msf.id IS NOT NULL OR l.employee_id ~* '^k')
+          LEFT JOIN mst_staffs msf ON msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id
+          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+            AND msf.id IS NOT NULL
           ORDER BY l.timestamp DESC LIMIT 300
         `);
 
@@ -213,18 +209,23 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             'guru' as true_person_type
           FROM hikvision_logs l
           JOIN hikvision_devices d ON l.device_id = d.id
-          LEFT JOIN mst_teachers mst ON mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id OR mst.id = l.employee_id
-          WHERE l.timestamp >= CURRENT_DATE - INTERVAL '1 day'
-            AND (mst.id IS NOT NULL OR (d.device_type = 'guru' AND l.employee_id !~* '^k'))
+          LEFT JOIN mst_teachers mst ON mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id
+          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+            AND mst.id IS NOT NULL
           ORDER BY l.timestamp DESC LIMIT 300
         `);
 
         // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
         const firstScanMap = new Map();
         const allFetchedRows = [...recentLogsRes.rows, ...staffLogsRes.rows, ...teacherLogsRes.rows];
+        const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        
         allFetchedRows.forEach(r => {
           const empId = String(r.employee_id || '').trim().toLowerCase();
           if (!empId) return;
+          const logDate = new Date(r.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+          if (logDate !== todayJkt) return; // Hanya kalkulasi untuk hari ini!
+          
           const curTime = new Date(r.timestamp).getTime();
           if (!firstScanMap.has(empId) || curTime < firstScanMap.get(empId)) {
             firstScanMap.set(empId, curTime);
@@ -248,7 +249,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
 
           let status = 'hadir';
-          if (lateLimit && firstScanTime > lateLimit && firstScanTime <= closeLimit) {
+          if (closeLimit && firstScanTime > closeLimit) {
+            status = 'alpa';
+          } else if (lateLimit && firstScanTime > lateLimit) {
             status = 'terlambat';
           }
 
@@ -1350,9 +1353,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
         
         let logsQueryStr = `
-          SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
+          SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
           FROM hikvision_logs l
-          WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
+          WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
           ORDER BY l.timestamp ASC
         `;
 

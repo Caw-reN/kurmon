@@ -107,7 +107,15 @@ export const SharedDashboardLogs = () => {
       .then(([d1, d2]) => {
         let combined = {};
         if (d1.ok) combined = { ...combined, ...d1.data };
-        if (d2.ok) combined.recentLogs = d2.recentLogs || [];
+        if (d2.ok) {
+          combined.recentLogs = d2.recentLogs || [];
+          if (d2.staffLogs) combined.staffLogs = d2.staffLogs;
+          if (d2.teacherLogs) {
+            combined.teacherLogs = combined.teacherLogs 
+              ? [...combined.teacherLogs, ...d2.teacherLogs] 
+              : d2.teacherLogs;
+          }
+        }
         setDashLogs(combined);
       })
       .catch(() => {})
@@ -175,7 +183,12 @@ export const SharedDashboardLogs = () => {
   const guruKaryawanLogs = useMemo(() => {
     let logs = [];
     if ((dashLogs?.teacherLogs && dashLogs.teacherLogs.length > 0) || (dashLogs?.staffLogs && dashLogs.staffLogs.length > 0)) {
-      logs = [...(dashLogs.teacherLogs || []), ...(dashLogs.staffLogs || [])];
+      logs = [...(dashLogs.teacherLogs || []), ...(dashLogs.staffLogs || [])].filter(item => {
+        if(item.name?.toLowerCase().includes('rosyidah')) console.log("ROSYIDAH FOUND IN teacherLogs:", item);
+        const logDate = item.timestamp || item.created_at || item.date || '';
+        if (!logDate) return true;
+        return new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) === todayStr;
+      });
     } else {
       const recentGuruKaryawan = (dashLogs?.recentLogs || []).filter(item => {
         const type = String(item.true_person_type || item.role_type || item.person_type || '').toLowerCase();
@@ -191,25 +204,28 @@ export const SharedDashboardLogs = () => {
           date: r.timestamp || r.created_at,
           created_at: r.timestamp || r.created_at
         }));
-      } else {
-        logs = storeAttendanceRecords
-          .filter(r => {
-            const d = r.date ? String(r.date).slice(0, 10) : '';
-            return d === todayStr;
-          })
-          .map(r => {
-            const teacher = storeTeachers.find(t => t.code === r.teacherCode || t.username === r.teacherCode);
-            return {
-              name: teacher?.name || r.teacherCode || 'Guru / Karyawan',
-              username: r.teacherCode,
-              role_type: 'GURU',
-              status: r.status || 'Hadir',
-              date: r.date,
-              created_at: r.date
-            };
-          });
       }
     }
+
+    // Selalu gabungkan dengan data manual (Piket/Aplikasi)
+    const manualLogs = storeAttendanceRecords
+      .filter(r => {
+        const d = r.date ? String(r.date).slice(0, 10) : '';
+        return d === todayStr;
+      })
+      .map(r => {
+        const teacher = storeTeachers.find(t => t.code === r.teacherCode || t.username === r.teacherCode);
+        return {
+          name: teacher?.name || r.teacherCode || 'Guru / Karyawan',
+          username: r.teacherCode,
+          role_type: 'GURU',
+          status: r.status || 'Hadir',
+          date: r.date,
+          created_at: r.date
+        };
+      });
+      
+    logs = [...logs, ...manualLogs];
 
     logs = dedupeFront(logs);
 
