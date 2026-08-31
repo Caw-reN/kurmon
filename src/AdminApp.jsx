@@ -3895,19 +3895,19 @@ export default function App() {
               Syarat & Ketentuan
             </button>
           </div>
-          <AdminMobileNav 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
-            activeUserRole={activeUserRole} 
-            activeUserDivision={activeUserDivision} 
-            currentUser={currentUser} 
-            hasFeature={hasFeature} 
-            isMobileMenuOpen={isMobileMenuOpen} 
-            setIsMobileMenuOpen={setIsMobileMenuOpen} 
-            hasPiket={hasPiket}
-          />
         </div>
       </div>
+      <AdminMobileNav 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        activeUserRole={activeUserRole} 
+        activeUserDivision={activeUserDivision} 
+        currentUser={currentUser} 
+        hasFeature={hasFeature} 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        hasPiket={hasPiket}
+      />
     </main>
 
     {/* ================= MODALS ================= */}

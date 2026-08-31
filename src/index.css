@@ -63,7 +63,13 @@
     font-family: var(--font-sans-family, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
     @apply font-sans;
+  }
+
+  .app-content {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   @media (max-width: 1440px) {

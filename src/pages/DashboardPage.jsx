@@ -388,45 +388,48 @@ export default function DashboardPage({
 
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-6">
-        {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
-        <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
-          <div className="relative">
+        {/* ======= MOBILE APP HERO GREETING CARD ======= */}
+        <div className="sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="relative flex-1 min-w-0">
             <button
               type="button"
               onClick={() => setShowMobileProfileModal(prev => !prev)}
-              className="flex items-center gap-3 min-w-0 text-left cursor-pointer group bg-transparent border-none p-0 focus:outline-none"
+              className="flex items-center gap-3 min-w-0 text-left cursor-pointer group bg-transparent border-none p-0 focus:outline-none w-full"
               title="Lihat Profil & Pengaturan"
             >
               <div className="relative shrink-0">
                 <div 
-                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white/30 group-active:scale-95 transition-transform"
-                  style={{ background: "var(--ui-primary)" }}
+                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white group-active:scale-95 transition-transform"
+                  style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 70%, #000) 100%)" }}
                 >
                   {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
                 </div>
                 <span 
-                  className="w-3.5 h-3.5 rounded-full border-2 border-white absolute bottom-0 right-0 shadow-xs"
-                  style={{ background: "color-mix(in srgb, var(--ui-primary) 80%, #fff)" }}
+                  className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500 shadow-2xs"
                 />
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1 truncate">
-                  Hai, {currentUser?.name || currentUser?.username || 'Guru'}!
-                </span>
-                <h1 className="text-sm font-black text-slate-800 tracking-tight leading-snug truncate group-hover:text-[var(--ui-primary)] transition-colors">
-                  Siap pantau hari ini?
+              <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Selamat Bertugas</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <h1 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight leading-snug truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                  {currentUser?.name || currentUser?.username || 'Bapak/Ibu Guru'}
                 </h1>
+                <span className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">
+                  {currentUser?.role || 'Guru / Pengajar'}
+                </span>
               </div>
             </button>
 
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
               <div 
-                className="absolute left-0 top-12 w-[calc(100vw-32px)] max-w-[320px] bg-slate-50 border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/90 shadow-xl rounded-2xl p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 shrink-0">
-                  <span className="font-black text-xs text-slate-800 tracking-tight">Profil Pengguna</span>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
+                  <span className="font-black text-xs text-slate-800 tracking-tight">Profil & Pengaturan</span>
                   <button 
                     type="button"
                     onClick={() => setShowMobileProfileModal(false)} 
@@ -436,9 +439,9 @@ export default function DashboardPage({
                   </button>
                 </div>
 
-                <div className="bg-white rounded-[var(--ui-radius-small)] p-3 border border-slate-200/60 flex items-center gap-3 shadow-xs">
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 flex items-center gap-3">
                   <div 
-                    className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white shrink-0"
+                    className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
                   >
                     {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
@@ -446,14 +449,14 @@ export default function DashboardPage({
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>
                     <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 mt-0.5 border border-slate-200/60">
+                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-slate-600 mt-0.5 border border-slate-200/60">
                       {currentUser?.role || 'Guru / Pengajar'}
                     </span>
                   </div>
                 </div>
 
                 {/* TABBAR STYLE SELECTOR TOGGLE */}
-                <div className="bg-white rounded-[var(--ui-radius-small)] p-2.5 border border-slate-200/60 flex flex-col gap-1.5 shadow-xs">
+                <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60 flex flex-col gap-1.5">
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                     Gaya TabBar Navigasi Mobile
                   </span>
@@ -493,9 +496,9 @@ export default function DashboardPage({
                       if (onOpenProfile) onOpenProfile();
                       else if (setActiveTab) setActiveTab('profile');
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-2xs active:scale-98"
                   >
-                    <User size={14} strokeWidth={2.2} /> Edit Profil &amp; Kata Sandi
+                    <User size={14} strokeWidth={2.2} /> Edit Profil & Kata Sandi
                   </button>
 
                   <button
@@ -504,7 +507,7 @@ export default function DashboardPage({
                       setShowMobileProfileModal(false);
                       triggerLogout();
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-small)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-2xs active:scale-98"
                   >
                     <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
                   </button>
@@ -513,26 +516,10 @@ export default function DashboardPage({
             )}
           </div>
           
-          <div className="flex items-center gap-1.5 shrink-0 relative">
-            <button 
-              type="button"
-              onClick={() => setShowMobileNotif(prev => !prev)}
-              className="w-10 h-10 rounded-full bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shadow-xs hover:bg-slate-200 transition-colors cursor-pointer shrink-0 relative active:scale-95"
-              title="Notifikasi & Informasi"
-            >
-              <Bell size={18} strokeWidth={2.2} />
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 border border-white" />
-            </button>
-            <button 
-              type="button"
-              onClick={triggerLogout}
-              className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-xs hover:bg-rose-100 transition-colors cursor-pointer shrink-0 active:scale-95"
-              title="Keluar / Logout"
-            >
-              <LogOut size={16} strokeWidth={2.2} />
-            </button>
-
-
+          <div className="shrink-0 flex items-center gap-1.5">
+            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-slate-200/80 px-2.5 py-1.5 rounded-xl shadow-2xs">
+              {todayShort}
+            </span>
           </div>
         </div>
 
@@ -589,7 +576,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => setActiveTab(todayClasses.length > 0 ? 'jurnal_harian' : 'generate')}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-98 text-[var(--ui-primary)] font-black text-xs rounded-[var(--ui-radius-small)] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10"
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-[var(--ui-primary)] font-black text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10 touch-manipulation select-none"
               >
                 <FileText size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
                 <span>{todayClasses.length > 0 ? "Isi Jurnal & Absen Kelas" : "Lihat Seluruh Jadwal Mengajar"}</span>
@@ -617,9 +604,9 @@ export default function DashboardPage({
                   <button
                     key={idx}
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
+                    className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none"
                   >
-                    <div className={`w-12 h-12 rounded-[var(--ui-radius-card)] ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
+                    <div className={`w-12 h-12 rounded-2xl ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all`}>
                       <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
                     <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
@@ -644,8 +631,8 @@ export default function DashboardPage({
                 ];
                 const bg = pastelBgs[idx % pastelBgs.length];
                 return (
-                  <div key={idx} className="bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] ${bg} border flex items-center justify-center shrink-0`}>
+                  <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 active:scale-[0.98] transition-transform">
+                    <div className={`w-10 h-10 rounded-xl ${bg} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -666,7 +653,7 @@ export default function DashboardPage({
                 <button 
                   type="button"
                   onClick={handleLihatSemuaPengumuman}
-                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
                 >
                   Lihat Semua
                 </button>
@@ -674,8 +661,8 @@ export default function DashboardPage({
             </div>
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+              <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
                   <Megaphone size={18} strokeWidth={2.2} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -691,9 +678,9 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10"
+                  className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
-                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0 flex-1">
