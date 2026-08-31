@@ -254,31 +254,71 @@ export default function KepsekExecutiveDashboard({
       return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
     });
     const allLogs = hikLogs.length > 0 ? hikLogs : recentLogs;
-    // Dedup berdasarkan ID (employee_id/nis) — konsisten dengan SharedDashboardLogs
+    
     const uniq = {};
     allLogs.forEach(r => {
       const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
       if (k && !uniq[k]) uniq[k] = r;
     });
+
+    const gradeStats = {
+      'X': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XI': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XII': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'Unknown': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 }
+    };
+
+    const studentMap = {};
+    (students || []).forEach(s => {
+      const k = String(s.employee_id || s.nis || s.code || '').trim().toLowerCase();
+      if (k) studentMap[k] = s;
+      
+      // Hitung total base per kelas
+      const cls = String(s.class_name || s.kelas || '').toUpperCase();
+      let grade = 'Unknown';
+      if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
+      else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
+      else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
+      gradeStats[grade].total++;
+    });
+
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(uniq).forEach(r => {
+      const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
+      const sMaster = studentMap[k];
+      const cls = String(sMaster?.class_name || sMaster?.kelas || '').toUpperCase();
+      let grade = 'Unknown';
+      if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
+      else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
+      else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
+
       let st = String(r?.status || 'Hadir').toLowerCase();
       if (st === 'late') st = 'terlambat';
-      if (st.includes('hadir')) s.Hadir++;
-      else if (st.includes('terlambat')) s.Terlambat++;
-      else if (st.includes('izin')) s.Izin++;
-      else if (st.includes('sakit')) s.Sakit++;
-      else if (st.includes('alpa')) s.Alpa++;
-      else s.Hadir++;
+      
+      if (st.includes('hadir')) { s.Hadir++; gradeStats[grade].hadir++; }
+      else if (st.includes('terlambat')) { s.Terlambat++; gradeStats[grade].telat++; }
+      else if (st.includes('izin')) { s.Izin++; gradeStats[grade].izin++; }
+      else if (st.includes('sakit')) { s.Sakit++; gradeStats[grade].sakit++; }
+      else if (st.includes('alpa')) { s.Alpa++; gradeStats[grade].alpa++; }
+      else { s.Hadir++; gradeStats[grade].hadir++; }
     });
-    // Hitung Alpa dari sisa siswa yang tidak absen
-    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
-    const totalRecorded = s.Hadir + s.Terlambat + s.Izin + s.Sakit;
-    if (totalSiswaInSchool > totalRecorded) {
-      s.Alpa = totalSiswaInSchool - totalRecorded;
+
+    const totalSiswaInSchool = dashLogs?.totalStudents || (students || []).length || 0;
+    
+    // Auto-calculate Alpa for each grade if past cutoff
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    if (currentTimeJkt > "08:00:00") {
+      ['X', 'XI', 'XII', 'Unknown'].forEach(g => {
+        const recorded = gradeStats[g].hadir + gradeStats[g].telat + gradeStats[g].izin + gradeStats[g].sakit + gradeStats[g].alpa;
+        const unrecorded = Math.max(0, gradeStats[g].total - recorded);
+        gradeStats[g].alpa += unrecorded;
+      });
+      const totalRecorded = s.Hadir + s.Terlambat + s.Izin + s.Sakit + s.Alpa;
+      s.Alpa += Math.max(0, totalSiswaInSchool - totalRecorded);
     }
-    return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool };
-  }, [dashLogs]);
+    
+    return { ...s, total: Object.keys(uniq).length, totalSiswaInSchool, gradeStats };
+  }, [dashLogs, students]);
 
   // ── Syllabus Stats ────────────────────────────────────────────────────────
   const syllabusStatsPerTeacher = useMemo(() => {
@@ -549,26 +589,29 @@ export default function KepsekExecutiveDashboard({
                 {[
                   { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
                   { label: 'Karyawan / Staff', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
-                  { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa },
-                ].map(row => (
-                  <div key={row.label} className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                  { label: 'Semua Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isParent: true },
+                  { label: '— Siswa Kelas X', total: siswaStats.gradeStats?.['X']?.total, hadir: siswaStats.gradeStats?.['X']?.hadir, telat: siswaStats.gradeStats?.['X']?.telat, izin: siswaStats.gradeStats?.['X']?.izin, sakit: siswaStats.gradeStats?.['X']?.sakit, alpa: siswaStats.gradeStats?.['X']?.alpa, isSub: true },
+                  { label: '— Siswa Kelas XI', total: siswaStats.gradeStats?.['XI']?.total, hadir: siswaStats.gradeStats?.['XI']?.hadir, telat: siswaStats.gradeStats?.['XI']?.telat, izin: siswaStats.gradeStats?.['XI']?.izin, sakit: siswaStats.gradeStats?.['XI']?.sakit, alpa: siswaStats.gradeStats?.['XI']?.alpa, isSub: true },
+                  { label: '— Siswa Kelas XII', total: siswaStats.gradeStats?.['XII']?.total, hadir: siswaStats.gradeStats?.['XII']?.hadir, telat: siswaStats.gradeStats?.['XII']?.telat, izin: siswaStats.gradeStats?.['XII']?.izin, sakit: siswaStats.gradeStats?.['XII']?.sakit, alpa: siswaStats.gradeStats?.['XII']?.alpa, isSub: true },
+                ].filter(row => row.total > 0 || !row.isSub).map(row => (
+                  <div key={row.label} className={`${row.isSub ? 'bg-slate-50/50 ml-4 py-2 px-3 border-l-2 border-slate-200' : 'bg-slate-50 rounded-xl p-3.5 border border-slate-100'} ${row.isParent ? 'mb-1' : ''}`}>
                     <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
-                      <span>{row.label}</span>
-                      <span className="text-emerald-600 font-black">{pct(row.hadir + row.telat, row.total || 1)}% Hadir</span>
+                      <span className={row.isSub ? 'text-[10px] text-slate-500 font-semibold' : ''}>{row.label} {row.isSub && `(${row.total})`}</span>
+                      <span className={`${row.isSub ? 'text-[10px]' : ''} text-emerald-600 font-black`}>{pct(row.hadir + row.telat, row.total || 1)}% Hadir</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex mb-2">
+                    <div className={`w-full ${row.isSub ? 'h-1.5' : 'h-3'} bg-slate-200 rounded-full overflow-hidden flex mb-2`}>
                       <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
                       <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
                       <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
                       <div className="h-full bg-blue-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
                       <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
                     </div>
-                    <div className="grid grid-cols-5 gap-1 text-[9px] font-bold">
-                      <span className="text-emerald-700">● {row.hadir} Hadir</span>
-                      <span className="text-amber-600">● {row.telat} Telat</span>
-                      <span className="text-orange-600">● {row.izin} Izin</span>
-                      <span className="text-blue-600">● {row.sakit} Sakit</span>
-                      <span className="text-rose-600">● {row.alpa} Alpa</span>
+                    <div className={`grid grid-cols-5 gap-1 ${row.isSub ? 'text-[8px]' : 'text-[9px]'} font-bold`}>
+                      <span className="text-emerald-700 truncate">● {row.hadir} Hadir</span>
+                      <span className="text-amber-600 truncate">● {row.telat} Telat</span>
+                      <span className="text-orange-600 truncate">● {row.izin} Izin</span>
+                      <span className="text-blue-600 truncate">● {row.sakit} Sakit</span>
+                      <span className="text-rose-600 truncate">● {row.alpa} Alpa</span>
                     </div>
                   </div>
                 ))}
@@ -610,119 +653,6 @@ export default function KepsekExecutiveDashboard({
                 <span>Jurnal: <strong className="text-emerald-700">{jurnalSubmitted}/{todaySchedule.length}</strong></span>
               </div>
             </SectionCard>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Chart Analitik */}
-            <div className="lg:col-span-2">
-              <SectionCard title="Komposisi Kehadiran" subtitle="Persentase status absensi tiap kelompok" icon="/icons/035-graph bar.svg">
-                <div className="h-64 w-full flex items-center justify-around gap-2">
-                  {[
-                    { label: 'Guru', data: guruPie, total: guruStats.total },
-                    { label: 'Karyawan', data: karyawanPie, total: karyawanStats.total },
-                    { label: 'Siswa', data: siswaPie, total: siswaDenom }
-                  ].map((chart, i) => (
-                    <div key={i} className="flex-1 h-full flex flex-col items-center justify-center relative">
-                      <ResponsiveContainer width="100%" height="70%">
-                        <PieChart>
-                          <Pie
-                            data={chart.data}
-                            cx="50%" cy="50%"
-                            innerRadius={45} outerRadius={65}
-                            paddingAngle={3}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {chart.data.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '11px', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                            itemStyle={{ color: '#334155' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="absolute top-[35%] flex flex-col items-center justify-center pointer-events-none w-full text-center">
-                        <span className="text-sm font-black text-slate-800">{chart.total}</span>
-                      </div>
-                      <div className="mt-2 text-center">
-                        <span className="text-[11px] font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">{chart.label}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Custom Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-3 mt-2 border-t border-slate-100 pt-3">
-                  {[
-                    { name: 'Hadir', color: pieColors.Hadir },
-                    { name: 'Terlambat', color: pieColors.Terlambat },
-                    { name: 'Izin', color: pieColors.Izin },
-                    { name: 'Sakit', color: pieColors.Sakit },
-                    { name: 'Alpa', color: pieColors.Alpa },
-                  ].map(lg => (
-                    <div key={lg.name} className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: lg.color }} />
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">{lg.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            </div>
-
-            {/* Utilisasi Ruangan (Pie Chart) */}
-            <div className="lg:col-span-1">
-              <SectionCard title="Utilisasi Ruangan KBM" subtitle="Status pemakaian kelas hari ini" icon="/icons/031-monitor.svg">
-                <div className="h-64 w-full flex flex-col items-center justify-center relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'Terpakai', value: sarprasStats.terpakai, color: '#10b981' },
-                          { name: 'Kosong', value: sarprasStats.kosong, color: '#f1f5f9' },
-                        ]}
-                        cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value"
-                      >
-                        {[
-                          { name: 'Terpakai', value: sarprasStats.terpakai, color: '#10b981' },
-                          { name: 'Kosong', value: sarprasStats.kosong, color: '#e2e8f0' },
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-                    <span className="text-3xl font-black text-slate-800">{sarprasStats.utilisasi}%</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Terpakai</span>
-                  </div>
-                </div>
-              </SectionCard>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {[
-              { label: 'Total Guru', value: totalGuruCount, sub: 'SDM Pengajar', icon: '/icons/045-account.svg', color: 'border-l-indigo-400' },
-              { label: 'Karyawan', value: totalKaryawanCount, sub: 'Staff & TU', icon: '/icons/045-account.svg', color: 'border-l-teal-400' },
-              { label: 'Total Siswa', value: totalSiswaCount, sub: `${totalClassesCount} Kelas`, icon: '/icons/066-education.svg', color: 'border-l-emerald-400' },
-              { label: 'Total Mapel', value: (subjects || []).length, sub: `${majorCount} Jurusan`, icon: '/icons/092-file.svg', color: 'border-l-sky-400' },
-              { label: 'Slot Jadwal', value: (schedule || []).length, sub: `${totalJP} JP / Minggu`, icon: '/icons/086-calendar.svg', color: 'border-l-amber-400' },
-            ].map(card => (
-              <div key={card.label} className={`bg-white rounded-2xl p-4 border border-slate-200 shadow-sm border-l-4 ${card.color} flex items-center gap-3`}>
-                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                  <img src={card.icon} alt={card.label} className="w-5 h-5 object-contain" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wide">{card.label}</p>
-                  <p className="text-2xl font-black text-slate-800 leading-none">{card.value}</p>
-                  <p className="text-[10px] text-slate-500 font-medium mt-0.5">{card.sub}</p>
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* Quick Links */}
