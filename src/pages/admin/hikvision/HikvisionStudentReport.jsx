@@ -2448,6 +2448,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            </div>
          </div>
        )}
+       </>
+      )}
 
       {/* ─── Tombol Validasi Absensi Wali Kelas (Pojok Kanan Bawah) ─── */}
       {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
