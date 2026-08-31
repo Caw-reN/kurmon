@@ -803,11 +803,11 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* KOLOM TENGAH (col-span-5): Menu Utama & Statistik */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
+          <div className="lg:col-span-6 flex flex-col gap-4">
             {/* MENU UTAMA Section */}
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-2.5">
                 <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
               </div>
@@ -816,32 +816,32 @@ export default function DashboardPage({
                   <button
                     key={i}
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="bg-slate-50/90 py-2.5 px-1 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
+                    className="bg-slate-50/90 py-2 sm:py-2.5 px-1 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
                   >
                     <div className="w-7 h-7 flex items-center justify-center shrink-0">
                       <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
-                    <p className="text-[9px] font-bold text-slate-700 leading-tight text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
+                    <p className="text-[9.5px] font-bold text-slate-700 leading-tight text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex-1">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
+              <div className="flex items-center gap-2 mb-2.5">
                 <Activity size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 {teacherStatCards.map((stat, i) => (
-                  <div key={i} className="bg-slate-50/90 p-3 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
-                    <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                      <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
+                  <div key={i} className="bg-slate-50/90 p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+                      <img src={stat.icon} className="w-5 h-5 sm:w-6 sm:h-6 object-contain" alt="" />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
-                      <p className="text-[9px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
-                      <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
+                      <p className="text-[8.5px] sm:text-[9.5px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
+                      <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
                     </div>
                   </div>
                 ))}
@@ -849,47 +849,47 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* KOLOM KANAN (col-span-4): Beban Mengajar */}
-          <div className="lg:col-span-4 flex flex-col gap-4 h-full">
+          {/* KOLOM KANAN (col-span-3): Beban Mengajar (Lebih Diperkecil & Ramping) */}
+          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
             <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
-              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                <div>
-                  <h2 className="text-base font-black text-slate-800">Beban Mengajar</h2>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Daftar jam mengajar Anda</p>
+              <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
+                  <p className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
                 </div>
-                <button className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
-                  <Printer size={13} /> Export
+                <button className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
+                  <Printer size={11} /> Export
                 </button>
               </div>
               {myTeachingLoads.length === 0 ? (
-                <div className="flex flex-col items-center justify-center flex-1 py-10 bg-white">
-                  <GraduationCap size={32} className="text-slate-300 mx-auto mb-3" />
-                  <p className="text-xs font-bold text-slate-400 max-w-[200px] text-center">Belum ada beban mengajar ditugaskan oleh Admin.</p>
+                <div className="flex flex-col items-center justify-center flex-1 py-8 bg-white">
+                  <GraduationCap size={26} className="text-slate-300 mx-auto mb-2" />
+                  <p className="text-[11px] font-bold text-slate-400 max-w-[160px] text-center">Belum ada beban mengajar ditugaskan.</p>
                 </div>
               ) : (
-                <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
-                  <table className="w-full text-left text-sm">
+                <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[380px]">
+                  <table className="w-full text-left">
                     <thead className="sticky top-0 bg-white z-10 shadow-2xs">
                       <tr className="border-b border-slate-100">
-                        <th className="py-2.5 px-4 font-semibold text-slate-400 text-[10px] uppercase tracking-wider">Pelajaran</th>
-                        <th className="py-2.5 px-3 font-semibold text-slate-400 text-[10px] uppercase tracking-wider text-right">Durasi</th>
+                        <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
+                        <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-50">
                       {myTeachingLoads.map((load, i) => (
-                        <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-[11px] text-slate-700 leading-tight mb-0.5">{load.subject}</span>
+                        <tr key={i} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-2 px-3">
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-[10.5px] text-slate-700 leading-tight truncate">{load.subject}</span>
                               <div className="flex gap-1 items-center mt-0.5">
-                                <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                                  {load.targetGrade !=="All" ? load.targetGrade :"Semua"} {load.targetMajor !=="All" ? load.targetMajor :""}
+                                <span className="bg-slate-100 text-slate-500 px-1 py-0.2 rounded text-[8.5px] font-bold">
+                                  {load.targetGrade !== "All" ? load.targetGrade : "Semua"} {load.targetMajor !== "All" ? load.targetMajor : ""}
                                 </span>
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 px-3 text-right">
-                             <span className="font-black text-xs text-[var(--ui-primary)]">{load.duration} JP</span>
+                          <td className="py-2 px-2.5 text-right whitespace-nowrap align-middle">
+                             <span className="font-black text-[11px] text-[var(--ui-primary)]">{load.duration} JP</span>
                           </td>
                         </tr>
                       ))}
