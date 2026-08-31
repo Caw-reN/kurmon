@@ -197,13 +197,13 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         category: 'kbm'
       };
     }
-    if (act.includes('SURAT') || act.includes('VALIDASI') || act.includes('VERIFIKASI') || det.includes('validasi') || det.includes('surat')) {
+    if (act.includes('VALIDASI') || act.includes('VERIFIKASI') || det.includes('validasi') || det.includes('mendata absensi') || det.includes('surat')) {
       return {
-        label: 'VALIDASI',
-        bg: 'bg-teal-50 text-teal-700 border-teal-200/80',
-        icon: FileCheck,
-        color: 'text-teal-600',
-        category: 'admin'
+        label: 'VALIDASI ABSENSI',
+        bg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        icon: CheckCircle2,
+        color: 'text-emerald-600',
+        category: 'kbm'
       };
     }
     if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
@@ -226,6 +226,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   const getRoleBadge = (role) => {
     const r = String(role || '').toLowerCase();
+    if (r.includes('walas') || r.includes('wali')) return { label: 'Wali Kelas', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     if (r.includes('guru')) return { label: 'Guru', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
     if (r.includes('karyawan') || r.includes('staff')) return { label: 'Karyawan', bg: 'bg-teal-50 text-teal-700 border-teal-100' };
     if (r.includes('tu') || r.includes('tata')) return { label: 'Staf TU', bg: 'bg-sky-50 text-sky-700 border-sky-100' };

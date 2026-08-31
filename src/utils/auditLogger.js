@@ -129,13 +129,18 @@ export const logJournalEntry = (mapel, kelas, jamKe, topik) => {
 };
 
 /**
- * Log E-Letter / Document Verification
+ * Log Walas Attendance Confirmation / Verification
  */
-export const logAdminAction = (actionName, detailText) => {
+export const logWalasAttendanceCheck = (className, dateStr = '', summaryStats = '') => {
+  const dateInfo = dateStr || new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const detail = summaryStats
+    ? `Wali Kelas telah melihat & memvalidasi absensi siswa kelas ${className} tanggal ${dateInfo} (${summaryStats})`
+    : `Wali Kelas telah melihat & memvalidasi data absensi siswa kelas ${className} hari ini (${dateInfo})`;
+
   recordAuditLog({
-    action: 'ADMINISTRASI',
-    detail: detailText || actionName,
-    targetType: 'ADMIN',
-    targetId: actionName
+    action: 'VALIDASI_ABSENSI',
+    detail,
+    targetType: 'ABSENSI_WALAS',
+    targetId: className
   });
 };

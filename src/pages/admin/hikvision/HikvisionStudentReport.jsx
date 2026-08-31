@@ -12,6 +12,7 @@ import { UISelect, Button, TablePagination, Modal } from'../../../components/ui.
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { compareTableValues } from '../../../utils/adminHelpers.js';
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
+import { logWalasAttendanceCheck } from '../../../utils/auditLogger.js';
 
 
 export default function HikvisionStudentReport({ classes = [], students = [], isNested = false, activeTab: routeTab = "" }) {
@@ -70,6 +71,83 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
+
+  // ─── Validasi Harian Absensi oleh Wali Kelas ───
+  const isWalasUser = Boolean(user?.isWalas || user?.walasClass || roleStr === 'walas' || roleStr === 'walikelas' || subroleStr === 'walikelas');
+  const activeWalasClass = user?.walasClass || (filter.class_name !== 'all' && filter.class_name !== 'none' ? filter.class_name : '');
+  const todayIsoKey = new Date().toISOString().slice(0, 10);
+  const walasValidationKey = `walas_attendance_validated_${user?.id || user?.username || 'user'}_${activeWalasClass}_${todayIsoKey}`;
+
+  const [isAttendanceValidated, setIsAttendanceValidated] = useState(() => {
+    try {
+      return localStorage.getItem(walasValidationKey) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [attendanceValidatedTime, setAttendanceValidatedTime] = useState(() => {
+    try {
+      return localStorage.getItem(`${walasValidationKey}_time`) || '';
+    } catch {
+      return '';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(walasValidationKey) === 'true';
+      setIsAttendanceValidated(saved);
+      if (saved) {
+        setAttendanceValidatedTime(localStorage.getItem(`${walasValidationKey}_time`) || '');
+      }
+    } catch {
+      setIsAttendanceValidated(false);
+    }
+  }, [walasValidationKey]);
+
+  const handleConfirmWalasAttendance = () => {
+    const targetClass = activeWalasClass || filter.class_name || 'Kelas';
+    if (!targetClass || targetClass === 'all' || targetClass === 'none') {
+      showToast('Silakan pilih kelas Anda terlebih dahulu untuk validasi absensi', 'error');
+      return;
+    }
+
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB';
+    const dateFormatted = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Calculate quick stats summary for detail
+    let statsDetail = '';
+    if (data && data.length > 0) {
+      const todayDay = now.getDate();
+      let h = 0, t = 0, i = 0, s = 0, a = 0;
+      data.forEach(st => {
+        const dStat = st.dates?.[todayDay]?.status;
+        if (dStat === 'H') h++;
+        else if (dStat === 'T') t++;
+        else if (dStat === 'I') i++;
+        else if (dStat === 'S') s++;
+        else if (dStat === 'A') a++;
+      });
+      statsDetail = `Total ${data.length} siswa: ${h} Hadir, ${t} Telat, ${i} Izin, ${s} Sakit, ${a} Alpa`;
+    }
+
+    try {
+      localStorage.setItem(walasValidationKey, 'true');
+      localStorage.setItem(`${walasValidationKey}_time`, timeFormatted);
+    } catch (err) {
+      console.warn('Error writing validation to localStorage:', err);
+    }
+
+    setIsAttendanceValidated(true);
+    setAttendanceValidatedTime(timeFormatted);
+
+    // Record into in-app telemetry audit log
+    logWalasAttendanceCheck(targetClass, dateFormatted, statsDetail);
+
+    showToast(`Validasi absensi kelas ${targetClass} berhasil dicatat ke sistem dan log aktivitas.`, 'success');
+  };
 
   const daysToRender = React.useMemo(() => {
     let list = [];
@@ -2370,10 +2448,58 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            </div>
          </div>
        )}
-        </>
+
+      {/* ─── Tombol Validasi Absensi Wali Kelas (Pojok Kanan Bawah) ─── */}
+      {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
+        <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300">
+          {isAttendanceValidated ? (
+            <div className="bg-white/95 backdrop-blur-md rounded-[var(--ui-radius-card)] p-3 shadow-xl border border-emerald-300 flex items-center gap-3 max-w-md ring-4 ring-emerald-500/10">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
+                <CheckCircle2 size={18} className="text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black text-emerald-950 leading-tight">
+                  Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
+                </p>
+                <p className="text-[10px] font-medium text-emerald-700 mt-0.5">
+                  Telah diverifikasi hari ini pukul {attendanceValidatedTime || 'hari ini'}
+                </p>
+              </div>
+              <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                Terverifikasi
+              </span>
+            </div>
+          ) : (
+            <div className="bg-white/95 backdrop-blur-md rounded-[var(--ui-radius-card)] p-3.5 shadow-2xl border border-slate-200/90 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-lg ring-4 ring-[var(--ui-primary)]/10">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                  <UserCheck size={17} className="text-amber-700" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-slate-800 leading-tight">
+                    Validasi Wali Kelas
+                  </p>
+                  <p className="text-[10.5px] font-medium text-slate-500 truncate">
+                    Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirmWalasAttendance}
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-[var(--ui-radius-control)] bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer whitespace-nowrap"
+              >
+                <CheckCircle2 size={15} />
+                <span>Saya sudah melihat dan mendata absensi hari ini</span>
+              </button>
+            </div>
+          )}
+        </div>
       )}
+
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-20 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}
