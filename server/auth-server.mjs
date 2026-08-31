@@ -1902,6 +1902,15 @@ const server = createServer(async (req, res) => {
         let teachers = [];
         let rawTeacherAbsenceLogs = [];
         let mainData = {};
+        let startDate = null;
+        try {
+          if (dbPool) {
+            const startRes = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
+            if (startRes.rows.length > 0 && startRes.rows[0].value) {
+              startDate = startRes.rows[0].value;
+            }
+          }
+        } catch (err) {}
         try {
           if (!dbPool) throw createDatabaseUnavailableError();
           const storeRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
@@ -1917,12 +1926,17 @@ const server = createServer(async (req, res) => {
              if (dbT.rows.length > 0) teachers = dbT.rows.map(r => r.payload);
           } catch(e) {}
           try {
-             const guruAbsenceRes = await dbPool.query(`
+             let q = `
                 SELECT record_id as id, teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as date, waktu::text as time, session_name as "sessionName", status, mode, note 
                 FROM guru_attendance_records 
-                ORDER BY tanggal DESC, waktu DESC 
-                LIMIT 50
-             `);
+             `;
+             let p = [];
+             if (startDate) {
+               q += ` WHERE tanggal >= $1 `;
+               p.push(startDate);
+             }
+             q += ` ORDER BY tanggal DESC, waktu DESC `;
+             const guruAbsenceRes = await dbPool.query(q, p);
              rawTeacherAbsenceLogs = guruAbsenceRes.rows;
           } catch(e) {}
         } catch (e) {
@@ -2111,12 +2125,18 @@ const server = createServer(async (req, res) => {
           const masukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
           const masukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "12:00") + ":00";
 
-          const lateRes = await dbPool.query(`
+          let lateQ = `
             SELECT student_nis as nis, status, created_at
             FROM attendances
             WHERE status = 'terlambat'
-            ORDER BY created_at DESC LIMIT 50
-          `);
+          `;
+          let lateP = [];
+          if (startDate) {
+            lateQ += ` AND created_at::date >= $1 `;
+            lateP.push(startDate);
+          }
+          lateQ += ` ORDER BY created_at DESC LIMIT 50 `;
+          const lateRes = await dbPool.query(lateQ, lateP);
           
           const hLateRes = await dbPool.query(`
             SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
@@ -2156,11 +2176,17 @@ const server = createServer(async (req, res) => {
         // 3.2 Student absence logs (Sakit, Izin, Alpa)
         let studentAbsenceLogs = [];
         try {
-          const sAbsRes = await dbPool.query(`
+          let sAbsQ = `
             SELECT siswa_nis as nis, status, tanggal as date, created_at, keterangan, pelapor_nama
             FROM kedisiplinan_absensi
-            ORDER BY tanggal DESC, id DESC LIMIT 100
-          `);
+          `;
+          let sAbsP = [];
+          if (startDate) {
+            sAbsQ += ` WHERE tanggal >= $1 `;
+            sAbsP.push(startDate);
+          }
+          sAbsQ += ` ORDER BY tanggal DESC, id DESC LIMIT 100 `;
+          const sAbsRes = await dbPool.query(sAbsQ, sAbsP);
           studentAbsenceLogs = sAbsRes.rows
             .map(r => ({
               nis: r.nis,
@@ -2180,15 +2206,6 @@ const server = createServer(async (req, res) => {
         // 3.3 Calculate student attendance rankings
         let studentAttendanceRankings = [];
         try {
-          let startDate = null;
-          try {
-            const startRes = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
-            if (startRes.rows.length > 0 && startRes.rows[0].value) {
-              startDate = startRes.rows[0].value;
-            }
-          } catch (err) {
-            console.warn("Gagal membaca tanggal mulai absensi:", err.message);
-          }
 
           // Get count of Sakit, Izin, Alpha for each student from kedisiplinan_absensi
           let absQuery = `
