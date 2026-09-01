@@ -373,6 +373,8 @@ export const normalizeUserRole = (role) => {
   const normalized = String(role).toLowerCase().trim();
   if (normalized === "superadmin") return "admin";
   if (normalized === "tata_usaha" || normalized === "tata usaha") return "tu";
+  if (normalized === "kepala sekolah") return "kepsek";
+  if (normalized === "wakil kepala sekolah") return "waka";
   return normalized;
 };
 

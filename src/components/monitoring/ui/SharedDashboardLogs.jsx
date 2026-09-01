@@ -284,6 +284,25 @@ export const SharedDashboardLogs = () => {
 
     logs = dedupeFront(logs);
 
+    // Merge manual attendances/absences
+    if (dashLogs?.studentAbsenceLogs) {
+      dashLogs.studentAbsenceLogs.forEach(a => {
+        const k = String(a.siswa_nis || '').trim().toLowerCase();
+        if (k) {
+          const existing = logs.find(l => String(l.employee_id || l.nis || '').trim().toLowerCase() === k);
+          if (!existing) {
+            logs.push({
+              employee_id: k,
+              status: a.status,
+              timestamp: a.tanggal,
+              true_person_type: 'siswa',
+              is_manual: true
+            });
+          }
+        }
+      });
+    }
+
     // Diurutkan dari jam absen tercepat (ASC)
     logs.sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
 

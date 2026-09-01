@@ -2632,6 +2632,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const siswaStats = useMemo(() => {
     const hikLogs = dashLogs?.hikvisionStudentToday || [];
     const recentLogs = dashLogs?.recentLogs || [];
+    const manualAbsenceLogs = dashLogs?.studentAbsenceLogs || [];
     
     // Combine logs
     let allLogs = [...hikLogs];
@@ -2644,19 +2645,26 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
       });
     }
+    
+    allLogs = [...allLogs, ...manualAbsenceLogs];
 
     const uniqueSiswa = {};
     allLogs.forEach(r => {
-      const key = String(r.employee_id || r.nis || r.true_person_name || r.name || r.id || '').toLowerCase();
+      const key = String(r.siswa_nis || r.employee_id || r.nis || r.true_person_name || r.name || r.id || '').toLowerCase();
       if (key) {
         if (!uniqueSiswa[key]) {
           uniqueSiswa[key] = r;
         } else {
-          // Ambil scan TERAWAL
-          const curTime = new Date(uniqueSiswa[key].timestamp || uniqueSiswa[key].created_at || uniqueSiswa[key].date || 0).getTime();
-          const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
-          if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+          // Prioritaskan log manual (yang memiliki field siswa_nis) di atas log mesin
+          if (r.siswa_nis && !uniqueSiswa[key].siswa_nis) {
             uniqueSiswa[key] = r;
+          } else if (!r.siswa_nis && !uniqueSiswa[key].siswa_nis) {
+            // Jika keduanya dari mesin, ambil scan TERAWAL
+            const curTime = new Date(uniqueSiswa[key].timestamp || uniqueSiswa[key].created_at || uniqueSiswa[key].date || 0).getTime();
+            const newTime = new Date(r.timestamp || r.created_at || r.date || 0).getTime();
+            if (newTime > 0 && (curTime === 0 || newTime < curTime)) {
+              uniqueSiswa[key] = r;
+            }
           }
         }
       }

@@ -1,1 +1,0 @@
-﻿fetch("http://localhost:4174/api/audit-logs?page=1&limit=5", { headers: { Authorization: "Bearer f8ce8676-382e-48ca-8e9e-88528101c45d" } }).then(r=>r.json()).then(d=>console.log(JSON.stringify(d, null, 2))).catch(e=>console.log(e));

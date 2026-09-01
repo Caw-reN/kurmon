@@ -237,18 +237,27 @@ export default function CrudModals({
                       </UISelect>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Bidang Waka</label>
-                      {normalizeUserRole(formData.role) === "waka" ? (
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">
+                        {normalizeUserRole(formData.role) === "waka" ? "Bidang Waka" : "Bidang / Divisi"}
+                      </label>
+                      {["waka", "guru", "tu"].includes(normalizeUserRole(formData.role)) ? (
                         <UISelect
-                          value={formData.division || WAKA_DIVISION_OPTIONS[0].value}
+                          value={formData.division || (normalizeUserRole(formData.role) === "waka" ? WAKA_DIVISION_OPTIONS[0].value : "")}
                           onChange={(e) => setFormData({ ...formData, division: e.target.value, subrole: "" })}
-                          className="w-full text-amber-700"
+                          className={`w-full ${normalizeUserRole(formData.role) === "waka" ? "text-amber-700" : ""}`}
                         >
-                          {WAKA_DIVISION_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {appSettings[`waka${option.value.charAt(0).toUpperCase() + option.value.slice(1)}Label`] || option.label}
-                            </option>
-                          ))}
+                          {normalizeUserRole(formData.role) !== "waka" && (
+                            <option value="">- Tanpa Bidang / Divisi -</option>
+                          )}
+                          {normalizeUserRole(formData.role) === "tu" ? (
+                            <option value="tu">Tata Usaha</option>
+                          ) : (
+                            WAKA_DIVISION_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {appSettings[`waka${option.value.charAt(0).toUpperCase() + option.value.slice(1)}Label`] || option.label}
+                              </option>
+                            ))
+                          )}
                         </UISelect>
                       ) : (
                         <UISelect

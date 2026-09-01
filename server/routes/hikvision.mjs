@@ -225,8 +225,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               '-'
             ) as class_name,
             CASE 
-              WHEN msf.id IS NOT NULL OR l.employee_id ~* '^k' THEN 'karyawan'
-              WHEN mst.id IS NOT NULL OR (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
+              WHEN msf.id IS NOT NULL THEN 'karyawan'
+              WHEN mst.id IS NOT NULL THEN 'guru'
+              WHEN l.employee_id ~* '^k' THEN 'karyawan'
+              WHEN (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
               WHEN ms.id IS NOT NULL OR (hs.id IS NOT NULL AND hs.class_name NOT IN ('guru', 'karyawan', 'staff')) THEN 'siswa'
               WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
               WHEN d.device_type = 'guru' THEN 'guru'

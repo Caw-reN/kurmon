@@ -326,6 +326,22 @@ export default function KepsekExecutiveDashboard({
       }
     });
 
+    // Merge manual absences from studentAbsenceLogs
+    if (dashLogs?.studentAbsenceLogs) {
+      dashLogs.studentAbsenceLogs.forEach(a => {
+        const k = String(a.siswa_nis || '').trim().toLowerCase();
+        if (k) {
+          // If already present in uniq (e.g. they scanned but also got an absence log for some reason), we overlay the manual status
+          if (!uniq[k]) {
+            uniq[k] = { employee_id: k, status: a.status, timestamp: a.tanggal };
+          } else if (a.status && String(a.status).toLowerCase() !== 'hadir') {
+            // Manual overrides scan
+            uniq[k].status = a.status;
+          }
+        }
+      });
+    }
+
     const gradeStats = {
       'X': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
       'XI': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },

@@ -31,9 +31,19 @@ const DEFAULT_ATTENDANCE_SETTINGS = {
 };
 
 
+
+const BASE_GURU_PERMISSIONS = {
+  dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
+  akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
+  walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
+  jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
+  modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
+  kedisiplinan_piket: "otomatis"
+};
+
 export const DEFAULT_ROLE_PERMISSIONS = {
   // ─── PENGAJAR ───────────────────────────────────────────────────────────────
-  guru: {
+  guru: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
     akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
@@ -41,7 +51,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
     kedisiplinan_piket: "otomatis"
   },
-  walikelas: {
+  walikelas: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
@@ -118,62 +128,62 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   },
 
   // ─── TIM KESISWAAN ──────────────────────────────────────────────────────────
-  bpbk: {
+  bpbk: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
     catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis"
   },
-  pembina_osis: {
+  pembina_osis: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", riwayat_prestasi: "otomatis",
     akademik: "view", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", pesan: "view"
   },
-  sekretaris_osis: {
+  sekretaris_osis: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", riwayat_prestasi: "view", akademik: "view",
     absensiguru: "otomatis", jurnal_harian: "otomatis", pesan: "view"
   },
-  sekretaris_kesiswaan: {
+  sekretaris_kesiswaan: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensi: "otomatis", kedisiplinan_piket: "otomatis",
     kedisiplinan_absensi: "otomatis", catatan_walikelas: "view",
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
-  anggota_kesiswaan: {
+  anggota_kesiswaan: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
 
   // ─── TIM KURIKULUM ──────────────────────────────────────────────────────────
-  sekretaris_kurikulum: {
+  sekretaris_kurikulum: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", generate: "view", ketersediaan: "otomatis", beban: "view",
     silabus: "otomatis", akademik: "otomatis", kelas: "view", jurnal_harian: "view",
     modul_ajar: "otomatis", absensiguru: "otomatis", pesan: "view"
   },
-  anggota_kurikulum: {
+  anggota_kurikulum: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", generate: "view", akademik: "view", silabus: "view",
     jurnal_harian: "view", absensiguru: "otomatis", modul_ajar: "view", pesan: "view"
   },
 
   // ─── TIM HUBIN & SARPRAS ────────────────────────────────────────────────────
-  sekretaris_hubin: {
+  sekretaris_hubin: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis",
     pkl_data_perusahaan: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "view",
     pkl_administrasi: "otomatis", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
-  anggota_hubin: {
+  anggota_hubin: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", pkl_dashboard: "view", pkl_data_siswa: "view",
     pkl_jurnal: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
-  sekretaris_sarpras: {
+  sekretaris_sarpras: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis",
     absensiguru: "otomatis", jurnal_harian: "otomatis", modul_ajar: "otomatis",
     akademik: "view", pesan: "view"
   },
-  anggota_sarpras: {
+  anggota_sarpras: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ruangan: "view", denah: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
