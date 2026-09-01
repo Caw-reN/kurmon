@@ -927,26 +927,13 @@ export default function LandingPage() {
         </div>
 
         {/* JURUSAN / PROGRAM (Colorful Flat Cards without Box in Box) */}
-        <div className="shrink-0 mt-7 mb-4 bottom-jurusan-section relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5 text-left">
-              <div 
-                className="w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white font-black shadow-xs"
-                style={{ backgroundColor: primaryColor || '#059669' }}
-              >
-                <GraduationCap size={16} strokeWidth={2.4} />
-              </div>
-              <div>
-                <h2 className="text-base lg:text-lg font-black text-slate-800 tracking-tight leading-none">
-                  {appSettings.trustedByText || "Program Keahlian Unggulan"}
-                </h2>
-                <p className="text-[11px] text-slate-400 font-semibold mt-1">Kompetensi keahlian terakreditasi berstandar industri</p>
-              </div>
-            </div>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100/90 text-slate-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
-              4 Pilihan Jurusan
-            </span>
+        <div className="shrink-0 mt-8 mb-6 bottom-jurusan-section relative z-10">
+          {/* Centered Title like Layanan Publik */}
+          <div className="flex flex-col items-center justify-center text-center mb-5">
+            <h2 className="text-base lg:text-lg font-black text-slate-800 tracking-tight leading-none">
+              {appSettings.trustedByText || "Program Keahlian Unggulan"}
+            </h2>
+            <p className="text-[11px] text-slate-400 font-semibold mt-1">Kompetensi keahlian terakreditasi berstandar industri</p>
           </div>
 
           {/* 4 Colorful Borderless Flat Cards */}
@@ -1019,7 +1006,7 @@ export default function LandingPage() {
 
         {/* MITRA & KERJASAMA (Clean Spacious Borderless Marquee) */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="shrink-0 my-5 mitra-kerjasama-section relative z-10">
+          <div className="shrink-0 mt-10 mb-8 mitra-kerjasama-section relative z-10">
             <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-3.5 px-6 md:px-8 w-full flex items-center gap-5">
               <span className="text-[10px] lg:text-[10.5px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
                 Mitra Industri & Kerjasama
@@ -1078,11 +1065,6 @@ export default function LandingPage() {
               <p className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
                 {appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
               </p>
-
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-black mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Sistem Operasional & Terhubung Real-Time</span>
-              </div>
             </div>
 
             {/* Column 2: Layanan Publik (4 cols) */}
