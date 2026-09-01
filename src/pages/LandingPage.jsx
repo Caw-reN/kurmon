@@ -498,84 +498,78 @@ export default function LandingPage() {
       </div>
 
       {/* MOBILE SCROLLABLE VIEW */}
-      <div className="md:hidden flex flex-col w-full pb-20">
+      <div className="md:hidden flex flex-col w-full pb-24 select-none">
 
-        {/* Curved Green Header Card (Matching Reference Image) */}
-        <div
-          className="w-full relative flex flex-col text-white select-none px-5 pb-6.5 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
-        >
-        {appSettings.heroImage && (
-          <img 
-            src={appSettings.heroImage} 
-            fetchpriority="high" 
-            loading="eager" 
-            className="absolute inset-0 w-full h-full object-cover object-center z-0" 
-            alt="Mobile Hero Background" 
+        {/* 1. App Header & Hero Card */}
+        <div className="w-full relative flex flex-col text-white px-5 pt-6 pb-9 rounded-b-[32px] overflow-hidden">
+          {appSettings.heroImage ? (
+            <img 
+              src={appSettings.heroImage} 
+              fetchpriority="high" 
+              loading="eager" 
+              className="absolute inset-0 w-full h-full object-cover object-center z-0" 
+              alt="Mobile Hero Background" 
+            />
+          ) : null}
+          <div 
+            className="absolute inset-0 z-0"
+            style={{
+              background: `linear-gradient(145deg, ${hexToRgba(primaryColor || '#059669', appSettings.heroImage ? 0.94 : 1)} 0%, ${hexToRgba(primaryColor || '#059669', appSettings.heroImage ? 0.88 : 0.88)} 100%)`
+            }}
           />
-        )}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            background: `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.94 : 1)} 0%, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.88 : 0.86)} 100%)`
-          }}
-        />
-        {/* Sparkles backdrop illustration */}
-        <Sparkles className="absolute left-6 top-16 text-white/10 animate-pulse z-10" size={16} />
-        <Sparkles className="absolute right-12 bottom-6 text-white/10 animate-pulse z-10" size={16} />
+          {/* Subtle Ambient Sparkles */}
+          <Sparkles className="absolute right-6 top-10 text-white/15 animate-pulse z-10" size={20} />
 
-        {/* Top Bar inside Green Card */}
-        <div className="flex items-center justify-between mb-5 w-full relative z-10">
-          <div className="flex items-center gap-2.5">
-            {appSettings.logoUrl ? (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1 shadow-sm">
-                <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-4 w-full relative z-10">
+            <div className="flex items-center gap-2.5">
+              {appSettings.logoImage ? (
+                <img src={appSettings.logoImage} alt="Logo" className="w-8.5 h-8.5 rounded-xl bg-white p-1 shadow-xs object-contain" />
+              ) : (
+                <div className="w-8.5 h-8.5 rounded-xl bg-white flex items-center justify-center text-[var(--ui-primary)] font-black text-xs shadow-xs">
+                  {appSettings.logoText || "TS"}
+                </div>
+              )}
+              <div className="flex flex-col text-left">
+                <span className="text-[7.5px] font-black text-white/75 tracking-wider uppercase leading-none">{appSettings.logoSmallText || "PORTAL AKADEMIK"}</span>
+                <span className="text-[13px] font-black text-white tracking-tight leading-none uppercase mt-0.5">{appSettings.appName || "KG2 SCHOOL"}</span>
               </div>
-            ) : (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-[var(--ui-primary)] font-black text-[11px] shadow-sm">
-                {logoText ||"TS"}
-              </div>
-            )}
-            <div className="flex flex-col text-left">
-              <span className="text-[7.5px] font-black text-white/80 tracking-wider leading-none uppercase">{appSettings.logoSmallText ||"PORTAL"}</span>
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none uppercase">{appSettings.appName ||"KG2 SCHOOL"}</span>
             </div>
-          </div>
 
-          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="h-8.5 px-3 rounded-[var(--ui-radius-small)] bg-slate-800 hover:bg-slate-900 active:scale-95 text-white border border-slate-700 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer select-none"
-              aria-label="Masuk Aplikasi"
-              title="Masuk ke Aplikasi"
+              className="h-8 px-3 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/25 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer text-xs font-black"
             >
-              <LogIn size={15} strokeWidth={2.5} className="text-white shrink-0" />
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none">Masuk</span>
+              <LogIn size={13} strokeWidth={2.6} />
+              <span>Masuk</span>
             </button>
           </div>
-        </div>
 
-        {/* Greetings */}
-        <div className="text-left mt-1.5 mb-3.5 relative z-10 pl-0">
-          <h2 className="text-[20px] font-normal opacity-90 leading-tight">Hello,</h2>
-          <h1 className="text-[28px] font-black leading-tight mt-0.5">Selamat Datang{appSettings.appName ? ` di ${appSettings.appName}` : ''}</h1>
-          <p className="text-[11px] opacity-80 font-medium leading-relaxed max-w-[280px] mt-2">
-            {cleanHeroSubtitle}
-          </p>
-        </div>
-      </div>
-
-        {/* Layanan Publik Bento Card */}
-        <div className="mx-4 mt-3 bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-3 select-none">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left">Layanan Publik</h3>
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200/60">
-              8 Menu
-            </span>
+          {/* Hero Greeting */}
+          <div className="text-left mt-1 relative z-10">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">Selamat Datang di</span>
+            <h1 className="text-[22px] font-black leading-tight tracking-tight mt-0.5 text-white">
+              {appSettings.appName || "Sistem Informasi Sekolah"}
+            </h1>
+            <p className="text-[11.5px] text-white/80 font-medium leading-relaxed max-w-[310px] mt-1.5 line-clamp-2">
+              {cleanHeroSubtitle}
+            </p>
           </div>
-          
-          {/* Grid of 8 Services (Flat, No Box-in-Box, No Inner Outlines) */}
-          <div className="grid grid-cols-4 gap-y-3 gap-x-2 w-full mt-1">
+        </div>
+
+        {/* 2. Layanan Utama (Clean Native Grid - No Box-in-Box) */}
+        <div className="mx-4 -mt-5 bg-white rounded-[24px] p-4.5 pt-5 shadow-[0_10px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/90 flex flex-col">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)]" />
+              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Layanan Utama</h3>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400">8 Menu Aktif</span>
+          </div>
+
+          {/* Grid 4 columns x 2 rows */}
+          <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 w-full mt-1">
             {(() => {
               const gridServices = [
                 ...publicServices,
@@ -595,19 +589,22 @@ export default function LandingPage() {
                         navigate(service.path);
                       }
                     }}
-                    className="flex flex-col items-center justify-center gap-1.5 p-1.5 cursor-pointer bg-transparent border-none group relative rounded-[14px] active:bg-slate-50/80 transition-all duration-200"
+                    className="flex flex-col items-center justify-center gap-1.5 p-1 cursor-pointer bg-transparent border-none active:scale-90 transition-transform group"
                   >
                     <div 
-                      className="w-11 h-11 rounded-[14px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-2xs"
-                      style={{ backgroundColor: hexToRgba(activeColor, 0.09) }}
+                      className="w-12 h-12 rounded-[16px] flex items-center justify-center transition-transform group-active:scale-95 shadow-2xs"
+                      style={{ 
+                        backgroundColor: hexToRgba(activeColor, 0.1),
+                        border: `1px solid ${hexToRgba(activeColor, 0.15)}`
+                      }}
                     >
                       {service.customIcon ? (
-                        <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
+                        <img src={service.customIcon} alt="" className="w-5.5 h-5.5 object-contain" />
                       ) : (
-                        <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
+                        <img src={`/icons/${service.svgIcon}`} className="w-5.5 h-5.5 object-contain" alt="" />
                       )}
                     </div>
-                    <span className="text-[9.5px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
+                    <span className="text-[10.5px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full">
                       {getShortLabel(service.label)}
                     </span>
                   </button>
@@ -617,105 +614,103 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* JURUSAN / PROGRAM Bento Card (Mobile View - Consistent Flat Design) */}
-        <div className="mx-4 mt-3 bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-2.5 select-none">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2 text-left">
-              <div 
-                className="w-6 h-6 rounded-[8px] flex items-center justify-center text-[var(--ui-primary)] font-black shadow-2xs"
-                style={{ backgroundColor: hexToRgba(primaryColor || '#059669', 0.1) }}
-              >
-                <GraduationCap size={13} strokeWidth={2.4} />
-              </div>
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest leading-none">
-                Program Keahlian
+        {/* 3. Program Keahlian (Horizontal Swipe Cards) */}
+        <section className="mt-5 w-full">
+          <div className="flex items-center justify-between px-5 mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)]" />
+              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+                {appSettings.trustedByText || "Program Keahlian"}
               </h3>
             </div>
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200/60">
-              0{(activeSlide % (partners.length || 1)) + 1} / 0{partners.length}
-            </span>
+            <span className="text-[10px] font-bold text-slate-400">Geser &rsaquo;</span>
           </div>
 
-          <div className="relative w-full h-[105px] overflow-hidden flex items-center justify-center">
-            {partners.map((partner, index) => {
-              const isActive = index === activeSlide % (partners.length || 1);
-              const imageSrc = partner.image;
-              const IconComponent = ICON_MAP[partner.icon] || HelpCircle;
+          {/* Horizontal Snap Scroll Cards */}
+          <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x px-4 pb-1">
+            {[1, 2, 3, 4].map((idx) => {
+              const name = appSettings[`partner${idx}`];
+              if (!name) return null;
+
+              const iconStr = appSettings[`partnerIcon${idx}`] || "book";
+              const IconComponent = ICON_MAP[iconStr] || HelpCircle;
+              const imageSrc = appSettings[`partnerImage${idx}`];
 
               return (
                 <div 
-                  key={index}
-                  className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-all duration-500 transform ${
-                    isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
-                  }`}
+                  key={idx}
+                  className="snap-start shrink-0 w-[225px] bg-white rounded-[18px] p-3.5 border border-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex items-center gap-3 active:scale-98 transition-all"
                 >
-                  {/* Flat Soft Icon Badge Container (No box-in-box) */}
-                  <div className="w-13 h-13 rounded-[16px] bg-slate-50 flex items-center justify-center p-2 shadow-2xs mb-2">
+                  <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0">
                     {imageSrc ? (
-                      <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
+                      <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <IconComponent size={24} strokeWidth={1.8} />
+                        <IconComponent size={22} strokeWidth={1.8} />
                       </div>
                     )}
                   </div>
 
-                  {/* Text Details */}
-                  <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
-                    Keahlian 0{index + 1}
-                  </span>
-                  <h4 className="text-[13px] font-black text-slate-800 tracking-tight leading-snug uppercase max-w-[260px]">
-                    {partner.name}
-                  </h4>
+                  <div className="flex flex-col justify-center text-left min-w-0 flex-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
+                      Keahlian 0{idx}
+                    </span>
+                    <h4 className="text-[12px] font-black text-slate-800 tracking-tight leading-snug line-clamp-2 uppercase">
+                      {name}
+                    </h4>
+                  </div>
                 </div>
               );
             })}
           </div>
+        </section>
 
-          {/* Dots indicators */}
-          <div className="flex justify-center gap-1.5 mt-1">
-            {partners.map((_, index) => {
-              const isActive = index === activeSlide % (partners.length || 1);
-              return (
-                <button
-                  key={index}
-                  onClick={() => setActiveSlide(index)}
-                  className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
-                    isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
-                  }`}
-                  style={{ borderRadius: '9999px' }}
-                  aria-label={`Ke slide ${index + 1}`}
-                />
-              );
-            })}
+        {/* 4. Quick Help / Panduan Banner */}
+        <div className="px-4 mt-4">
+          <div 
+            onClick={() => setShowPublicGuide(true)}
+            className="w-full bg-slate-900 text-white rounded-[20px] p-4 shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-98 transition-transform"
+          >
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                <BookOpenText size={18} className="text-emerald-400" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-white tracking-tight leading-tight">Panduan Penggunaan</h4>
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5">Panduan cek jadwal, materi & denah</p>
+              </div>
+            </div>
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+              <ArrowRight size={13} className="text-white" />
+            </div>
           </div>
         </div>
 
-        {/* MITRA & KERJASAMA Bento Card (Mobile View) */}
+        {/* 5. Mitra Industri Ticker */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="mx-4 mt-3 mb-6 bg-white rounded-[20px] py-3.5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-2.5 select-none">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
-              Mitra Industri & Sertifikasi
-            </span>
-
-            <div className="relative w-full overflow-hidden flex py-0.5">
-              <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-              <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-
-              <div className="flex w-max animate-marquee gap-8 items-center px-2 hover:[animation-play-state:paused]">
-                {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                  <div key={`${mitra.id || 'm'}-${idx}`} className="w-[65px] h-[28px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
-                    {mitra.image ? (
-                      <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" title={mitra.name} />
-                    ) : (
-                      <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
-                    )}
-                  </div>
-                ))}
+          <section className="mt-5 px-4">
+            <div className="bg-white rounded-[18px] border border-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.03)] py-3 px-4 flex items-center gap-3">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider shrink-0">
+                Mitra
+              </span>
+              <div className="h-3 w-px bg-slate-200 shrink-0" />
+              <div className="relative flex-1 overflow-hidden flex py-0.5">
+                <div className="flex w-max animate-marquee gap-8 items-center px-2">
+                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
+                    <div key={`${mitra.id || 'm'}-${idx}`} className="w-[60px] h-[26px] flex items-center justify-center shrink-0 grayscale opacity-45">
+                      {mitra.image ? (
+                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" />
+                      ) : (
+                        <span className="text-[9.5px] font-black text-slate-700 tracking-tight">{mitra.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         )}
+
       </div>
 
       {/* DESKTOP VIEW COMPACT WRAPPER */}
