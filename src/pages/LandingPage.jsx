@@ -565,107 +565,78 @@ export default function LandingPage() {
         </div>
       </div>
 
-        {/* Layanan Publik Overlapping Card (Matching Reference Image) */}
-        <div className="mx-4 mt-2.5 bg-white rounded-[24px] pt-6.5 pb-5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative z-20 border border-slate-100 flex flex-col gap-3 select-none">
-          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1 pt-1 mb-0.5">Layanan Publik</h3>
+        {/* Layanan Publik Bento Card */}
+        <div className="mx-4 mt-3 bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-3 select-none">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left">Layanan Publik</h3>
+            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200/60">
+              8 Menu
+            </span>
+          </div>
           
-          {/* Flex column enclosing rows of 4 buttons */}
-          <div className="flex flex-col gap-3.5 w-full mt-1.5">
-            {/* Row 1 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(0, 4).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
+          {/* Grid of 8 Services (Flat, No Box-in-Box, No Inner Outlines) */}
+          <div className="grid grid-cols-4 gap-y-3 gap-x-2 w-full mt-1">
+            {(() => {
+              const gridServices = [
+                ...publicServices,
+                { label: "Lainnya", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#64748b" }
+              ];
+              return gridServices.slice(0, 8).map((service, idx) => {
+                const activeColor = service.customColor || service.defaultColor;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      if (service.isLainnya) {
+                        setShowPublicGuide(true);
+                      } else if (service.isPdfRules) {
+                        setShowRulesModal(true);
+                      } else {
+                        navigate(service.path);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center gap-1.5 p-1.5 cursor-pointer bg-transparent border-none group relative rounded-[14px] active:bg-slate-50/80 transition-all duration-200"
+                  >
+                    <div 
+                      className="w-11 h-11 rounded-[14px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-2xs"
+                      style={{ backgroundColor: hexToRgba(activeColor, 0.09) }}
                     >
-                      <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
-            </div>
-
-            {/* Row 2 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(4, 8).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx + 4}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
-            </div>
+                      {service.customIcon ? (
+                        <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
+                      ) : (
+                        <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
+                      )}
+                    </div>
+                    <span className="text-[9.5px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
+                      {getShortLabel(service.label)}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
 
-        {/* JURUSAN / PROGRAM SLIDER (Mobile Only) */}
-        <section className="relative z-10 w-full px-4 mt-4 mb-4">
-          <div className="flex flex-col text-left mb-2.5">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/70 w-fit mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
-              <span>{appSettings.trustedByText || "Program Unggulan"}</span>
+        {/* JURUSAN / PROGRAM Bento Card (Mobile View - Consistent Flat Design) */}
+        <div className="mx-4 mt-3 bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-2.5 select-none">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2 text-left">
+              <div 
+                className="w-6 h-6 rounded-[8px] flex items-center justify-center text-[var(--ui-primary)] font-black shadow-2xs"
+                style={{ backgroundColor: hexToRgba(primaryColor || '#059669', 0.1) }}
+              >
+                <GraduationCap size={13} strokeWidth={2.4} />
+              </div>
+              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest leading-none">
+                Program Keahlian
+              </h3>
             </div>
-            <h2 className="text-base font-black text-slate-800 uppercase tracking-tight leading-none">JURUSAN / PROGRAM</h2>
+            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200/60">
+              0{(activeSlide % (partners.length || 1)) + 1} / 0{partners.length}
+            </span>
           </div>
 
-          <div className="relative w-full h-[110px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 bg-white/95 backdrop-blur-md">
+          <div className="relative w-full h-[105px] overflow-hidden flex items-center justify-center">
             {partners.map((partner, index) => {
               const isActive = index === activeSlide % (partners.length || 1);
               const imageSrc = partner.image;
@@ -674,83 +645,76 @@ export default function LandingPage() {
               return (
                 <div 
                   key={index}
-                  className={`absolute inset-0 p-3.5 flex items-center justify-between gap-3 transition-all duration-500 transform ${
+                  className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-all duration-500 transform ${
                     isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
                   }`}
                 >
-                  {/* Left Text */}
-                  <div className="flex flex-col justify-center text-left min-w-0 flex-1">
-                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-1">
-                      Keahlian 0{index + 1}
-                    </span>
-                    <h4 className="text-[14px] font-black text-slate-800 tracking-tight leading-tight line-clamp-2 uppercase">
-                      {partner.name}
-                    </h4>
-                  </div>
-
-                  {/* Right Logo Badge - perfectly nestled */}
-                  <div className="w-13 h-13 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 shadow-2xs p-2 flex items-center justify-center shrink-0">
+                  {/* Flat Soft Icon Badge Container (No box-in-box) */}
+                  <div className="w-13 h-13 rounded-[16px] bg-slate-50 flex items-center justify-center p-2 shadow-2xs mb-2">
                     {imageSrc ? (
                       <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <IconComponent size={26} strokeWidth={1.8} />
+                        <IconComponent size={24} strokeWidth={1.8} />
                       </div>
                     )}
                   </div>
 
-                  {/* Bottom Accent line */}
-                  <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent" />
+                  {/* Text Details */}
+                  <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
+                    Keahlian 0{index + 1}
+                  </span>
+                  <h4 className="text-[13px] font-black text-slate-800 tracking-tight leading-snug uppercase max-w-[260px]">
+                    {partner.name}
+                  </h4>
                 </div>
               );
             })}
+          </div>
 
-            {/* Dots indicators */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {partners.map((_, index) => {
-                const isActive = index === activeSlide % (partners.length || 1);
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
-                      isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
-                    }`}
-                    style={{ borderRadius: '9999px' }}
-                    aria-label={`Ke slide ${index + 1}`}
-                  />
-                );
-              })}
+          {/* Dots indicators */}
+          <div className="flex justify-center gap-1.5 mt-1">
+            {partners.map((_, index) => {
+              const isActive = index === activeSlide % (partners.length || 1);
+              return (
+                <button
+                  key={index}
+                  onClick={() => setActiveSlide(index)}
+                  className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
+                    isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
+                  }`}
+                  style={{ borderRadius: '9999px' }}
+                  aria-label={`Ke slide ${index + 1}`}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* MITRA & KERJASAMA Bento Card (Mobile View) */}
+        {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
+          <div className="mx-4 mt-3 mb-6 bg-white rounded-[20px] py-3.5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] relative z-20 border border-slate-100/80 flex flex-col gap-2.5 select-none">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+              Mitra Industri & Sertifikasi
+            </span>
+
+            <div className="relative w-full overflow-hidden flex py-0.5">
+              <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+              <div className="flex w-max animate-marquee gap-8 items-center px-2 hover:[animation-play-state:paused]">
+                {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
+                  <div key={`${mitra.id || 'm'}-${idx}`} className="w-[65px] h-[28px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                    {mitra.image ? (
+                      <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" title={mitra.name} />
+                    ) : (
+                      <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
-
-        {/* MITRA & KERJASAMA SLIDER */}
-        {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <section className="relative z-10 w-full overflow-hidden py-4 md:py-6">
-            <div className="w-full max-w-[1200px] mx-auto px-5 md:px-8">
-              <div className="w-full mb-3 text-center">
-                <h3 className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider inline-block">Telah Dipercaya & Bekerjasama Dengan</h3>
-              </div>
-
-              <div className="relative w-full overflow-hidden flex py-1">
-                <div className="absolute left-0 top-0 w-16 md:w-24 h-full bg-gradient-to-r from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 w-16 md:w-24 h-full bg-gradient-to-l from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-
-                <div className="flex w-max animate-marquee gap-8 md:gap-12 items-center px-4 hover:[animation-play-state:paused]">
-                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[80px] md:w-[110px] h-[35px] md:h-[45px] flex items-center justify-center shrink-0 group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
-                      {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
-                      ) : (
-                        <span className="text-xs md:text-sm font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
         )}
       </div>
 
