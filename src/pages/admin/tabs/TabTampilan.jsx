@@ -997,11 +997,11 @@ export default function TabTampilan(props) {
                             </UISelect>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Vibransi Warna & Efek</label>
-                            <UISelect value={appSettings.themeVibrancy ||"gradasi"} onChange={(e) => setAppSettings({ ...appSettings, themeVibrancy: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="soft">Lembut & Kalem (Soft Pastel)</option>
-                              <option value="vibrant">Sangat Berwarna (Vibrant Bright)</option>
-                              <option value="gradasi">Seni Gradasi (Elegant Gradient)</option>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Intensitas Bayangan (Shadow System)</label>
+                            <UISelect value={appSettings.shadowIntensity ||"default"} onChange={(e) => setAppSettings({ ...appSettings, shadowIntensity: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                              <option value="default">Premium Berlapis (Subtle Glass)</option>
+                              <option value="strong">Tegas & Menonjol (Strong Elevated)</option>
+                              <option value="flat">Datar / Tipis (Flat Minimalist)</option>
                             </UISelect>
                           </div>
                           <div>
@@ -1014,62 +1014,11 @@ export default function TabTampilan(props) {
                             </UISelect>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Animasi Transisi Halaman</label>
-                            <UISelect value={appSettings.pageTransition ||"smooth"} onChange={(e) => setAppSettings({ ...appSettings, pageTransition: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="smooth">Fade-In Lambat (Slow Smooth)</option>
-                              <option value="slide">Geser Halus (Slide In)</option>
-                              <option value="none">Tanpa Animasi (Fast Instant)</option>
-                            </UISelect>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Tombol (Button Style)</label>
-                            <UISelect value={appSettings.buttonStyle ||"solid"} onChange={(e) => setAppSettings({ ...appSettings, buttonStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="solid">Warna Padat (Solid Color)</option>
-                              <option value="flat">Datar Tanpa Bayangan (Flat No Shadow)</option>
-                              <option value="outline">Garis Tepi (Clean Outline)</option>
-                              <option value="shadow-sm">Bayangan Bersinar (Glow Shadow)</option>
-                              <option value="gradient">Seni Gradasi (Vibrant Gradient)</option>
-                            </UISelect>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Intensitas Bayangan (Shadow System)</label>
-                            <UISelect value={appSettings.shadowIntensity ||"default"} onChange={(e) => setAppSettings({ ...appSettings, shadowIntensity: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="default">Premium Berlapis (Subtle Glass)</option>
-                              <option value="strong">Tegas & Menonjol (Strong Elevated)</option>
-                              <option value="flat">Datar / Tipis (Flat Minimalist)</option>
-                            </UISelect>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ketebalan Ikon (Icon Stroke)</label>
-                            <UISelect value={appSettings.iconStroke ||"default"} onChange={(e) => setAppSettings({ ...appSettings, iconStroke: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="default">Standar Premium (2.2px)</option>
-                              <option value="thin">Tipis Elegan (1.5px)</option>
-                              <option value="medium">Sedang (2.0px)</option>
-                              <option value="thick">Sangat Tebal (2.8px)</option>
-                            </UISelect>
-                          </div>
-                          <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Form Input</label>
                             <UISelect value={appSettings.inputStyle ||"outline"} onChange={(e) => setAppSettings({ ...appSettings, inputStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
                               <option value="outline">Garis Luar (Outline - Default)</option>
                               <option value="filled">Warna Latar (Filled / Muted)</option>
                               <option value="underline">Garis Bawah (Underline Modern)</option>
-                            </UISelect>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Efek Kaca (Glassmorphism)</label>
-                            <UISelect value={appSettings.glassEffect ||"subtle"} onChange={(e) => setAppSettings({ ...appSettings, glassEffect: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="subtle">Halus (Subtle - Default)</option>
-                              <option value="strong">Tebal Kaca (Strong Blur)</option>
-                              <option value="solid">Solid (Tanpa Efek Kaca)</option>
-                            </UISelect>
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Scrollbar</label>
-                            <UISelect value={appSettings.scrollbarStyle ||"default"} onChange={(e) => setAppSettings({ ...appSettings, scrollbarStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
-                              <option value="default">Standar (Modern Default)</option>
-                              <option value="thin">Tipis (Mac Style)</option>
-                              <option value="hidden">Sembunyi (Hidden / Clean)</option>
                             </UISelect>
                           </div>
                         </div>

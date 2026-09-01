@@ -108,15 +108,15 @@ export const applyDocumentBranding = (settings = {}) => {
 
   // Card Style CSS variables mapping
   let cardBg = 'var(--ui-surface, #ffffff)';
-  let cardBorder = '1px solid rgba(0, 0, 0, 0.06)';
-  let cardShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.02)';
+  let cardBorder = '1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08))';
+  let cardShadow = 'var(--ui-shadow-card)';
 
   if (settings.cardStyle === 'shadow-sm') {
     cardBg = 'var(--ui-surface, #ffffff)';
     cardBorder = '1px solid transparent';
-    cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)';
+    cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)';
   } else if (settings.cardStyle === 'flat') {
-    cardBg = '#f1f5f9';
+    cardBg = 'var(--ui-surface-muted, #f8fafc)';
     cardBorder = '1px solid transparent';
     cardShadow = 'none';
   }
@@ -239,30 +239,6 @@ export const applyDocumentBranding = (settings = {}) => {
     root.classList.add("bg-grid-plain");
   } else {
     root.classList.add("bg-grid-lines");
-  }
-
-  // Page Transitions Classes
-  root.classList.remove("transition-smooth", "transition-slide", "transition-none");
-  if (settings.pageTransition === "slide") {
-    root.classList.add("transition-slide");
-  } else if (settings.pageTransition === "none") {
-    root.classList.add("transition-none");
-  } else {
-    root.classList.add("transition-smooth");
-  }
-
-  // Button Style Classes
-  root.classList.remove("btn-style-solid", "btn-style-outline", "btn-style-shadow", "btn-style-gradient", "btn-style-flat");
-  if (settings.buttonStyle === "outline") {
-    root.classList.add("btn-style-outline");
-  } else if (settings.buttonStyle === "shadow-sm") {
-    root.classList.add("btn-style-shadow");
-  } else if (settings.buttonStyle === "gradient") {
-    root.classList.add("btn-style-gradient");
-  } else if (settings.buttonStyle === "flat") {
-    root.classList.add("btn-style-flat");
-  } else {
-    root.classList.add("btn-style-solid");
   }
 
   // Layout Mode Classes

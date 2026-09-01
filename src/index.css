@@ -204,78 +204,26 @@
   background-color: var(--ui-bg-page) !important;
 }
 
-/* 5. Transisi Animasi */
-.transition-smooth * {
-  transition: all var(--ui-motion) !important;
-}
-.transition-slide * {
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out !important;
-}
-.transition-none * {
-  transition: none !important;
-  animation: none !important;
-}
-
-/* 6. Button Styles */
-.btn-style-outline button.bg-\[var\(--ui-primary\)\],
-.btn-style-outline .bg-\[var\(--ui-primary\)\] {
-  background-color: transparent !important;
-  border: 2px solid var(--ui-primary) !important;
-  color: var(--ui-primary) !important;
-}
-.btn-style-shadow button.bg-\[var\(--ui-primary\)\],
-.btn-style-shadow .bg-\[var\(--ui-primary\)\] {
-  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--ui-primary) 50%, transparent) !important;
-}
-.btn-style-gradient button.bg-\[var\(--ui-primary\)\],
-.btn-style-gradient .bg-\[var\(--ui-primary\)\] {
-  background: linear-gradient(135deg, var(--ui-primary) 0%, var(--ui-accent) 100%) !important;
-  border: none !important;
-}
-.btn-style-flat button.bg-\[var\(--ui-primary\)\],
-.btn-style-flat .bg-\[var\(--ui-primary\)\] {
-  box-shadow: none !important;
-}
-
-/* 7. Layout Mode (Boxed vs Full) */
+/* 5. Layout Mode (Boxed vs Full) */
 .layout-boxed #root > div > .flex-1,
 .layout-boxed .w-full.max-w-7xl {
-  max-width: 1440px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
   background-color: var(--ui-surface, #ffffff);
   border-left: 1px solid var(--ui-border-soft);
   border-right: 1px solid var(--ui-border-soft);
   box-shadow: var(--ui-shadow-modal);
 }
 
-/* 8. Card Styles (Bordered vs Elevated Shadow vs Flat) */
-.card-flat .bg-white:not(.border-none):not(.border-0),
-.card-flat .bg-card:not(.border-none):not(.border-0) {
-  background-color: var(--ui-surface-muted, #f1f5f9) !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-.card-elevated .bg-white:not(.border-none):not(.border-0),
-.card-elevated .bg-card:not(.border-none):not(.border-0) {
-  background-color: var(--ui-surface, #ffffff) !important;
-  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04) !important;
-  border-color: transparent !important;
-}
-.card-bordered .bg-white:not(.border-none):not(.border-0),
-.card-bordered .bg-card:not(.border-none):not(.border-0) {
-  border: 1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08)) !important;
-}
-
-/* 9. Vibransi Warna & Efek */
-.vibrancy-soft {
-  filter: saturate(85%) contrast(98%);
-}
-.vibrancy-bright {
-  filter: saturate(115%) contrast(102%);
-}
-.vibrancy-gradient .bg-\[var\(--ui-primary\)\] {
-  background-image: linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 70%, var(--ui-accent, #10b981)) 100%) !important;
+/* 6. Clean Semantic Card Utility */
+.ui-card,
+.card-panel {
+  background-color: var(--ui-card-bg, var(--ui-surface, #ffffff));
+  border: var(--ui-card-border, 1px solid var(--ui-border-soft));
+  box-shadow: var(--ui-card-shadow, var(--ui-shadow-card));
+  border-radius: var(--ui-radius-card, 1.25rem);
+  transition: all var(--ui-motion);
 }
 
 
