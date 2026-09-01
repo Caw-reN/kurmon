@@ -308,6 +308,22 @@
     transition: color var(--ui-motion), background-color var(--ui-motion), border-color var(--ui-motion), box-shadow var(--ui-motion), transform var(--ui-motion), opacity var(--ui-motion);
   }
 
+  /* ──────────────────────────────────────────────────────────────────
+     iOS SAFARI / PWA ANTI-ZOOM FIX
+     iOS Safari otomatis meng-zoom halaman ketika user focus pada
+     input dengan font-size < 16px. Di mode PWA (standalone / fullscreen),
+     user tidak bisa reset zoom karena tidak ada browser chrome.
+     Solusi: paksa font-size minimum 16px pada semua elemen interaktif
+     di perangkat mobile (iOS & Android).
+  ─────────────────────────────────────────────────────────────────── */
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

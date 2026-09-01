@@ -77,7 +77,7 @@ export default function Login({
     }
   };
 
-  const inputClass = "w-full border border-[var(--ui-border-soft)] bg-white py-2.5 px-3.5 text-[13px] font-semibold text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] hover:border-slate-300 shadow-[var(--ui-shadow-control)]";
+  const inputClass = "w-full border border-[var(--ui-border-soft)] bg-white py-2.5 px-3.5 text-base font-semibold text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] hover:border-slate-300 shadow-[var(--ui-shadow-control)]";
 
   return (
     <div
