@@ -336,7 +336,7 @@ async function autoSyncGuruAttendanceToAppData() {
     // A2 FIX: Batasi 3 hari terakhir agar tidak menarik seluruh histori (cegah duplikat & boros)
     const { rows: logs } = await dbPool.query(`
       SELECT l.employee_id,
-             TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str,
+             TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str,
              l.event_type, d.ip_address, d.location, d.device_type, l.person_type
       FROM hikvision_logs l
       JOIN hikvision_devices d ON l.device_id = d.id
@@ -533,6 +533,9 @@ const initDb = async () => {
     await adminPool.end();
     
     dbPool = new pg.Pool(DB_CONFIG);
+    dbPool.on('connect', (client) => {
+      client.query("SET TIME ZONE 'Asia/Jakarta'").catch(() => {});
+    });
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS app_data (
         id SERIAL PRIMARY KEY,
@@ -1750,16 +1753,16 @@ const server = createServer(async (req, res) => {
 
         // Ambil data hadir dari hikvision_logs (siswa tap mesin)
         const { rows: hikRows } = await dbPool.query(
-          `SELECT TO_CHAR(timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') as tanggal,
-                  TO_CHAR(MIN(timestamp AT TIME ZONE 'Asia/Jakarta'), 'HH24:MI') as time_in,
-                  TO_CHAR(MAX(timestamp AT TIME ZONE 'Asia/Jakarta'), 'HH24:MI') as time_out
+          `SELECT TO_CHAR(timestamp, 'YYYY-MM-DD') as tanggal,
+                  TO_CHAR(MIN(timestamp), 'HH24:MI') as time_in,
+                  TO_CHAR(MAX(timestamp), 'HH24:MI') as time_out
            FROM hikvision_logs hl
            JOIN hikvision_devices hd ON hl.device_id = hd.id
            WHERE hl.employee_id = $1
-             AND EXTRACT(MONTH FROM timestamp AT TIME ZONE 'Asia/Jakarta') = $2
-             AND EXTRACT(YEAR FROM timestamp AT TIME ZONE 'Asia/Jakarta') = $3
+             AND EXTRACT(MONTH FROM timestamp) = $2
+             AND EXTRACT(YEAR FROM timestamp) = $3
              AND hd.device_type = 'siswa'
-           GROUP BY TO_CHAR(timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD')`,
+           GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')`,
           [String(nis), month, year]
         );
 
@@ -2191,8 +2194,8 @@ const server = createServer(async (req, res) => {
               AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
               AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
               AND l.employee_id !~* '^[0-9]{1,3}$'
-              AND CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS TIME) > $1::time
-              AND CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS TIME) <= $2::time
+              AND CAST(l.timestamp AS TIME) > $1::time
+              AND CAST(l.timestamp AS TIME) <= $2::time
             ORDER BY l.timestamp DESC LIMIT 50
           `, [masukLate, masukClose]);
           
@@ -2601,7 +2604,7 @@ const server = createServer(async (req, res) => {
               END as true_person_type
             FROM hikvision_logs l 
             JOIN hikvision_devices d ON l.device_id = d.id 
-            WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = $1::date
+            WHERE CAST(l.timestamp AS DATE) = $1::date
             ORDER BY l.timestamp DESC
           `, [todayJktDate]);
 

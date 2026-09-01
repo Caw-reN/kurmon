@@ -240,7 +240,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
           LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
           AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
             AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
           ORDER BY l.timestamp DESC LIMIT 500
         `);
@@ -256,7 +256,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           JOIN hikvision_devices d ON l.device_id = d.id
           LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id)
           AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
             AND msf.id IS NOT NULL
           ORDER BY l.timestamp DESC LIMIT 300
         `);
@@ -272,7 +272,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           JOIN hikvision_devices d ON l.device_id = d.id
           LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id)
           AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AT TIME ZONE 'Asia/Jakarta' AS DATE) = CAST((NOW() AT TIME ZONE 'Asia/Jakarta') AS DATE)
+          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
             AND mst.id IS NOT NULL
           ORDER BY l.timestamp DESC LIMIT 300
         `);
@@ -1473,9 +1473,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
         
         let logsQueryStr = `
-          SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
+          SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
           FROM hikvision_logs l
-          WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
+          WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
           ORDER BY l.timestamp ASC
         `;
 
