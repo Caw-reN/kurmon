@@ -48,10 +48,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const defaultClassName = 
     (routeTab === "walas_report" && user?.walasClass) 
       ? user.walasClass 
-      : (user?.isWalas && user.walasClass) 
-        ? user.walasClass 
-        : isKesiswaanOrAdmin 
-          ? "all" 
+      : isKesiswaanOrAdmin 
+        ? "all" 
+        : (user?.isWalas && user.walasClass) 
+          ? user.walasClass 
           : "none";
 
   const [filter, setFilter] = useState({

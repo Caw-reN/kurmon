@@ -525,8 +525,8 @@ export default function AdminContentRouter({ context }) {
         return <TabKategoriSilabus {...tabProps} />;
 
       case "absensiguru":
-        // Guru/karyawan lihat kalender absensi pribadi; admin/waka/kepsek lihat rekap semua guru
-        if (currentUser?.role === "guru" || currentUser?.role === "karyawan") {
+        // Guru/karyawan/waka lihat kalender absensi pribadi; admin/kepsek lihat rekap semua guru
+        if (currentUser?.role === "guru" || currentUser?.role === "karyawan" || String(currentUser?.role).startsWith("waka") || String(currentUser?.role).includes("kesiswaan") || String(currentUser?.subrole).includes("kesiswaan")) {
           return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><MyAttendancePage setActiveTab={setActiveTab} /></Suspense>;
         }
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><HikvisionTeacherReport /></Suspense>;

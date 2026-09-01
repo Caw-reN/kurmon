@@ -1575,7 +1575,14 @@ export default function App() {
       };
 
       const defaultList = DEFAULTS[effectiveKey] || DEFAULTS[role] || [];
-      return defaultList.includes(tabId);
+      let isAllowed = defaultList.includes(tabId);
+      
+      // STRICT OVERRIDE: Waka Kesiswaan tidak boleh melihat absensi (Jadwal & Sesi) dan laporan_absensi
+      if ((tabId === 'absensi' || tabId === 'laporan_absensi') && (effectiveKey === 'waka_kesiswaan' || effectiveKey === 'kesiswaan')) {
+        isAllowed = false;
+      }
+      
+      return isAllowed;
     };
 
     const allowed = isTabPermitted(activeTab);
@@ -2715,6 +2722,11 @@ export default function App() {
       };
       const defaultList = DEFAULTS[effectiveKey] || DEFAULTS[activeRole] || [];
       isAllowed = defaultList.includes(id);
+    }
+    
+    // STRICT OVERRIDE: Waka Kesiswaan tidak boleh melihat absensi (Jadwal & Sesi) dan laporan_absensi
+    if ((id === 'absensi' || id === 'laporan_absensi') && (effectiveKey === 'waka_kesiswaan' || effectiveKey === 'kesiswaan')) {
+      isAllowed = false;
     }
 
     if (!isAllowed) return null;
