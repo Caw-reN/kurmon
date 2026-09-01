@@ -16,6 +16,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import pg from "pg";
+// Cegah Node-pg mengubah timestamp tanpa timezone ke UTC yang menyebabkan jam < 07:00 bergeser ke hari kemarin
+pg.types.setTypeParser(1114, str => str);
 import ExcelJS from "exceljs";
 import cron from "node-cron";
 import { google } from "googleapis";
@@ -2189,7 +2191,7 @@ const server = createServer(async (req, res) => {
           const hLateRes = await dbPool.query(`
             SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
             FROM hikvision_logs l
-            WHERE l.timestamp::date = CURRENT_DATE
+            WHERE l.timestamp::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
               AND l.employee_id !~* '^k'
               AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
               AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
@@ -2613,9 +2615,10 @@ const server = createServer(async (req, res) => {
           todayLogsRes.rows.forEach(r => {
             const empId = String(r.employee_id || '').trim().toLowerCase();
             if (!empId) return;
-            const curTime = new Date(r.timestamp).getTime();
-            if (!firstScanMap.has(empId) || curTime < firstScanMap.get(empId)) {
-              firstScanMap.set(empId, curTime);
+            const tsStr = String(r.timestamp || '').replace('T', ' ');
+            const curTimeStr = tsStr.substring(11, 19);
+            if (!firstScanMap.has(empId) || curTimeStr < firstScanMap.get(empId)) {
+              firstScanMap.set(empId, curTimeStr);
             }
           });
 
@@ -2624,8 +2627,8 @@ const server = createServer(async (req, res) => {
 
           const allTodayRows = validTodayLogs.map(r => {
             const empId = String(r.employee_id || '').trim().toLowerCase();
-            const firstScanTs = firstScanMap.get(empId) || new Date(r.timestamp).getTime();
-            const firstScanTime = new Date(firstScanTs).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+            const tsStr = String(r.timestamp || '').replace('T', ' ');
+            const firstScanTime = firstScanMap.get(empId) || tsStr.substring(11, 19);
             const personType = String(r.true_person_type).toLowerCase();
             
             let lateLimit = siswaMasukLate;

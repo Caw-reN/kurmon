@@ -285,19 +285,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         allFetchedRows.forEach(r => {
           const empId = String(r.employee_id || '').trim().toLowerCase();
           if (!empId) return;
-          const logDate = new Date(r.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+          const tsStr = String(r.timestamp || '').replace('T', ' ');
+          const logDate = tsStr.substring(0, 10);
           if (logDate !== todayJkt) return; // Hanya kalkulasi untuk hari ini!
           
-          const curTime = new Date(r.timestamp).getTime();
-          if (!firstScanMap.has(empId) || curTime < firstScanMap.get(empId)) {
-            firstScanMap.set(empId, curTime);
+          const curTimeStr = tsStr.substring(11, 19);
+          if (!firstScanMap.has(empId) || curTimeStr < firstScanMap.get(empId)) {
+            firstScanMap.set(empId, curTimeStr);
           }
         });
 
         const mapLogStatus = (r) => {
           const empId = String(r.employee_id || '').trim().toLowerCase();
-          const firstScanTs = firstScanMap.get(empId) || new Date(r.timestamp).getTime();
-          const firstScanTime = new Date(firstScanTs).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
+          const tsStr = String(r.timestamp || '').replace('T', ' ');
+          const firstScanTime = firstScanMap.get(empId) || tsStr.substring(11, 19);
           const personType = String(r.true_person_type).toLowerCase();
           
           let lateLimit = siswaMasukLate;
