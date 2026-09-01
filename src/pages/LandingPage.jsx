@@ -527,11 +527,11 @@ export default function LandingPage() {
         <div className="flex items-center justify-between mb-5 w-full relative z-10">
           <div className="flex items-center gap-2.5">
             {appSettings.logoUrl ? (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1 shadow-sm">
+              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/95 flex items-center justify-center p-1 shadow-xs backdrop-blur-sm">
                 <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-[var(--ui-primary)] font-black text-[11px] shadow-sm">
+              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/95 flex items-center justify-center text-[var(--ui-primary)] font-black text-[11px] shadow-xs backdrop-blur-sm">
                 {logoText ||"TS"}
               </div>
             )}
@@ -566,7 +566,7 @@ export default function LandingPage() {
       </div>
 
         {/* Layanan Publik Overlapping Card (Matching Reference Image) */}
-        <div className="mx-4 mt-2.5 bg-white rounded-[24px] pt-6.5 pb-5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative z-20 border border-slate-100 flex flex-col gap-3 select-none">
+        <div className="mx-4 mt-2.5 bg-white rounded-[var(--ui-radius-card)] pt-6.5 pb-5 px-4 shadow-[var(--ui-shadow-card)] relative z-20 border border-[var(--ui-border-muted)] flex flex-col gap-3 select-none">
           <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1 pt-1 mb-0.5">Layanan Publik</h3>
           
           {/* Flex column enclosing rows of 4 buttons */}
@@ -592,10 +592,10 @@ export default function LandingPage() {
                           navigate(service.path);
                         }
                       }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
+                      className="aspect-square bg-white border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-small)] shadow-xs flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative active:scale-95 transition-transform"
                     >
                       <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
+                        className="w-8 h-8 rounded-[var(--ui-radius-control)] flex items-center justify-center transition-all duration-300 shadow-xs"
                         style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
                       >
                         {service.customIcon ? (
@@ -633,10 +633,10 @@ export default function LandingPage() {
                           navigate(service.path);
                         }
                       }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
+                      className="aspect-square bg-white border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-small)] shadow-xs flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative active:scale-95 transition-transform"
                     >
                       <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
+                        className="w-8 h-8 rounded-[var(--ui-radius-control)] flex items-center justify-center transition-all duration-300 shadow-xs"
                         style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
                       >
                         {service.customIcon ? (
@@ -907,7 +907,7 @@ export default function LandingPage() {
 
         {/* MIDDLE SECTION: LAYANAN PUBLIK */}
         <div className="shrink-0 pt-3 pb-3 mt-3 middle-layanan-section relative z-10">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-4 md:py-5 px-4 md:px-8 w-full">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-card)] py-4 md:py-5 px-4 md:px-8 w-full">
             <h2 className="text-sm lg:text-base font-extrabold text-slate-800 mb-3 text-center">Layanan Publik</h2>
             <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
               {publicServices.map((service, idx) => {
@@ -925,7 +925,7 @@ export default function LandingPage() {
                     className="flex flex-col items-center justify-center gap-2.5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer bg-transparent border-none py-1 group w-full relative mx-auto"
                   >
                     <div 
-                      className="w-12 h-12 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
+                      className="w-12 h-12 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-xs"
                       style={{ 
                         backgroundColor: hexToRgba(activeColor, 0.08),
                         border: `1px solid ${hexToRgba(activeColor, 0.12)}`
@@ -1181,7 +1181,7 @@ export default function LandingPage() {
       </footer>
 
       {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-100 flex items-center justify-between z-[40] pb-safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-4 gap-3 select-none">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-[var(--ui-border-muted)] flex items-center justify-between z-[40] pb-safe-bottom shadow-[var(--ui-shadow-float)] px-4 gap-3 select-none">
         <button 
           onClick={() => setShowPublicHelp(true)} 
           className="flex flex-col items-center justify-center cursor-pointer border-none bg-transparent text-slate-600 hover:text-slate-900 active:scale-95 transition-all w-16 h-12"
