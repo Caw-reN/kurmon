@@ -1,7 +1,7 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -926,21 +926,32 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* BOTTOM SECTION: JURUSAN / PROGRAM */}
-        <div className="shrink-0 border-t border-slate-200/60 py-3.5 mt-2 bottom-jurusan-section">
-          <div className="flex flex-row items-center gap-5 lg:gap-7 w-full">
-            {/* Title section (left side) */}
-            <div className="flex flex-col justify-center shrink-0 w-44 lg:w-48 text-left">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200/80 w-fit mb-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
-                <span>{appSettings.trustedByText || "Program Unggulan"}</span>
+        {/* MIDDLE-2 SECTION: JURUSAN / PROGRAM (Bento Box Card Concept) */}
+        <div className="shrink-0 pt-0 pb-1.5 mt-2 bottom-jurusan-section relative z-10">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-4 md:py-5 px-4 md:px-8 w-full">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center gap-2 text-left">
+                <div 
+                  className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center text-[var(--ui-primary)] font-black shadow-2xs"
+                  style={{ backgroundColor: hexToRgba(primaryColor || '#059669', 0.1) }}
+                >
+                  <GraduationCap size={15} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h2 className="text-sm lg:text-base font-extrabold text-slate-800 tracking-tight leading-none">
+                    {appSettings.trustedByText || "Program Keahlian Unggulan"}
+                  </h2>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Kompetensi keahlian terakreditasi berstandar industri</p>
+                </div>
               </div>
-              <h2 className="text-lg lg:text-xl font-black text-slate-800 tracking-tight leading-none">JURUSAN / PROGRAM</h2>
-              <p className="text-[10px] text-slate-400 font-semibold mt-1">Kompetensi keahlian unggulan berstandar industri</p>
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-600 border border-slate-200/70">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
+                4 Pilihan Jurusan
+              </span>
             </div>
 
-            {/* Cards container */}
-            <div className="flex-1 grid grid-cols-4 gap-3 lg:gap-4 w-full">
+            {/* 4 Bento Tiles inside */}
+            <div className="grid grid-cols-4 gap-3 lg:gap-4 w-full">
               {[1, 2, 3, 4].map((idx) => {
                 const name = appSettings[`partner${idx}`];
                 if (!name) return null;
@@ -952,28 +963,22 @@ export default function LandingPage() {
                 return (
                   <div 
                     key={idx} 
-                    className="group relative bg-white rounded-[var(--ui-radius-card)] p-3.5 lg:p-4 border border-slate-200/85 shadow-xs hover:shadow-md hover:border-[var(--ui-primary)]/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-3 h-[94px] lg:h-[100px] w-full overflow-hidden"
+                    className="group relative bg-slate-50/70 hover:bg-white rounded-[var(--ui-radius-card)] p-3 lg:p-3.5 border border-slate-200/70 hover:border-[var(--ui-primary)]/40 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-3 h-[88px] lg:h-[94px] w-full overflow-hidden cursor-pointer select-none"
                   >
-                    {/* Ambient Glow Corner */}
-                    <div className="absolute -top-6 -right-6 w-16 h-16 bg-[var(--ui-primary)]/8 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
-                    
-                    {/* Bottom active accent line on hover */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    {/* Left text content - vertically centered and balanced */}
+                    {/* Left text content */}
                     <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors block mb-1">
+                      <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors block mb-1">
                         Keahlian 0{idx}
                       </span>
-                      <div className="min-h-[34px] flex items-center">
-                        <h4 className="text-[12.5px] lg:text-[13.5px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
+                      <div className="min-h-[32px] flex items-center">
+                        <h4 className="text-[12px] lg:text-[13px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
                           {name}
                         </h4>
                       </div>
                     </div>
 
-                    {/* Right logo container - perfectly aligned and centered */}
-                    <div className="relative z-10 w-11 h-11 lg:w-12 lg:h-12 rounded-[var(--ui-radius-control)] bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
+                    {/* Right logo badge container */}
+                    <div className="relative z-10 w-11 h-11 lg:w-12 lg:h-12 rounded-[var(--ui-radius-small)] bg-white border border-slate-200/80 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
@@ -989,27 +994,29 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* BOTTOM SECTION: MITRA & KERJASAMA SLIDER */}
+        {/* BOTTOM SECTION: MITRA & KERJASAMA (Bento Box Flat Card Concept) */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="shrink-0 border-t border-slate-200/50 py-3 mt-1 mitra-kerjasama-section">
-            <div className="w-full mb-3 text-center">
-              <h3 className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider inline-block">Telah Dipercaya & Bekerjasama Dengan</h3>
-            </div>
+          <div className="shrink-0 pt-0 pb-1 mt-2 mitra-kerjasama-section relative z-10">
+            <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-2.5 px-4 md:px-6 w-full flex items-center gap-4">
+              <span className="text-[9.5px] lg:text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
+                Mitra Industri & Sertifikasi
+              </span>
+              <div className="h-3.5 w-px bg-slate-200 shrink-0" />
+              <div className="relative flex-1 overflow-hidden flex py-0.5">
+                <div className="absolute left-0 top-0 w-10 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 w-10 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
-            <div className="relative w-full overflow-hidden flex py-0.5">
-              <div className="absolute left-0 top-0 w-16 h-full bg-gradient-to-r from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-              <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-
-              <div className="flex w-max animate-marquee gap-8 lg:gap-12 items-center px-4 hover:[animation-play-state:paused]">
-                {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                  <div key={`${mitra.id ||'m'}-${idx}`} className="w-[70px] lg:w-[90px] h-[30px] lg:h-[35px] flex items-center justify-center shrink-0 group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
-                    {mitra.image ? (
-                      <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
-                    ) : (
-                      <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
-                    )}
-                  </div>
-                ))}
+                <div className="flex w-max animate-marquee gap-8 lg:gap-12 items-center px-4 hover:[animation-play-state:paused]">
+                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
+                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[65px] lg:w-[85px] h-[28px] lg:h-[32px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                      {mitra.image ? (
+                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
+                      ) : (
+                        <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
