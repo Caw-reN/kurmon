@@ -553,7 +553,7 @@ export default function DashboardPage({
               </div>
 
               <div className="relative z-10">
-                <h2 className="text-lg font-black text-white leading-tight tracking-tight drop-shadow-xs">
+                <h2 className="text-lg font-black text-white leading-tight tracking-tight ">
                   {todayClasses[0]?.subject || "Tidak Ada KBM Berlangsung"}
                 </h2>
                 <p className="text-xs text-white/85 font-semibold mt-0.5">
@@ -711,7 +711,7 @@ export default function DashboardPage({
           
           <div className="relative z-10 flex flex-row items-center justify-between gap-3">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate drop-shadow-sm">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate ">
                 Selamat Datang, <span className="text-white/95">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
               </h1>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -1570,7 +1570,7 @@ export default function DashboardPage({
         
         <div className="relative z-10 flex flex-row items-center justify-between gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate drop-shadow-sm">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate ">
               Selamat Datang, <span className="text-white/95">{currentUser?.name || currentUser?.username ||"Pengguna"}</span>!
             </h1>
             <div className="flex items-center gap-1.5 shrink-0">
