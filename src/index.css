@@ -533,11 +533,14 @@
     radial-gradient(circle at 50% 100%, rgba(148, 163, 184, 0.06) 0, transparent 20rem);
 }
 
-.app-sidebar {
+.app-sidebar,
+aside.app-sidebar,
+aside {
   background: #ffffff;
   border-color: rgba(212, 221, 233, 0.7);
   box-shadow: 4px 0 30px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(255,255,255,0.8) inset;
   backdrop-filter: blur(24px);
+  border-radius: 0 !important;
 }
 
 .app-header {
@@ -1062,7 +1065,6 @@ a[class*="active:scale"]:active {
 
 
   /* Desain Card & Panel (Single Source of Truth) */
-  .bg-card,
   .ui-card,
   .card-panel,
   [data-slot="card"],

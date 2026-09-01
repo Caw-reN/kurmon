@@ -344,7 +344,7 @@ export default function AdminSidebar({
   return (
     <aside
       className={cn(
-        "app-sidebar border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 ease-in-out",
+        "app-sidebar border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none",
         isCollapsed ? "w-[68px]" : "w-[268px]",
         isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
