@@ -192,15 +192,16 @@ export default function AdminMobileNav({
       role="navigation"
       aria-label="Navigasi Mobile"
     >
+      {/* Glass bar */}
       <div
-        className="flex items-stretch justify-around px-1.5 pt-1.5"
+        className="flex items-center justify-around gap-0 px-2 pt-2"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-          background: 'color-mix(in srgb, var(--ui-card-bg, #ffffff) 95%, transparent)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          borderTop: '1px solid var(--ui-border-soft, rgba(0,0,0,0.07))',
-          boxShadow: '0 -2px 20px rgba(0,0,0,0.06)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
+          background: 'rgba(255,255,255,0.96)',
+          backdropFilter: 'blur(28px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          borderTop: '0.5px solid rgba(0,0,0,0.1)',
+          boxShadow: '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 32px rgba(0,0,0,0.07)',
         }}
       >
         {allTabs.map(tab => {
@@ -228,28 +229,38 @@ export default function AdminMobileNav({
                   if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
               }}
-              className="relative flex-1 flex flex-col items-center justify-center gap-[3px] border-none cursor-pointer bg-transparent min-w-0 active:scale-90 transition-transform duration-150 select-none touch-manipulation"
-              style={{ minHeight: '52px' }}
+              className="relative flex-1 flex flex-col items-center justify-center border-none cursor-pointer bg-transparent min-w-0 select-none touch-manipulation"
+              style={{
+                minHeight: '50px',
+                gap: '3px',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
-              {/* Solid pill active indicator */}
+              {/* Pill chip — icon container */}
               <div
-                className="flex items-center justify-center"
                 style={{
-                  width: '44px',
-                  height: '28px',
-                  borderRadius: 'var(--ui-radius-pill, 999px)',
-                  background: isActive ? 'var(--ui-primary)' : 'transparent',
-                  boxShadow: isActive ? '0 2px 10px color-mix(in srgb, var(--ui-primary) 40%, transparent)' : 'none',
-                  transform: isActive ? 'scale(1.04)' : 'scale(1)',
-                  transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: isActive ? '56px' : '40px',
+                  height: '30px',
+                  borderRadius: '999px',
+                  background: isActive
+                    ? 'var(--ui-primary, #059669)'
+                    : 'transparent',
+                  boxShadow: isActive
+                    ? '0 2px 12px color-mix(in srgb, var(--ui-primary, #059669) 38%, transparent)'
+                    : 'none',
+                  transition: 'width 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.2s, box-shadow 0.2s',
+                  willChange: 'width',
                 }}
               >
                 <IconComponent
-                  size={18}
-                  strokeWidth={isActive ? 2.6 : 1.9}
+                  size={isActive ? 19 : 22}
+                  strokeWidth={isActive ? 2.5 : 1.7}
                   style={{
-                    color: isActive ? '#ffffff' : 'var(--ui-text-muted, #94a3b8)',
-                    transition: 'color 0.18s',
+                    color: isActive ? '#ffffff' : '#9ca3af',
+                    transition: 'color 0.18s, size 0.18s',
                     flexShrink: 0,
                   }}
                 />
@@ -257,13 +268,21 @@ export default function AdminMobileNav({
 
               {/* Label */}
               <span
-                className="truncate w-full text-center leading-none"
                 style={{
-                  fontSize: '10px',
-                  fontWeight: isActive ? 800 : 500,
-                  color: isActive ? 'var(--ui-primary)' : 'var(--ui-text-muted, #94a3b8)',
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  fontSize: isActive ? '10.5px' : '10px',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--ui-primary, #059669)' : '#9ca3af',
                   letterSpacing: '-0.01em',
-                  transition: 'color 0.18s',
+                  lineHeight: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  paddingLeft: '2px',
+                  paddingRight: '2px',
+                  transition: 'color 0.18s, font-weight 0.18s',
                 }}
               >
                 {tab.label}
