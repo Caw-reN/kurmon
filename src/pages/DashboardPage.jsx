@@ -1246,211 +1246,66 @@ export default function DashboardPage({
   }
 
   return (
-      <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-8">
+    <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-8">
 
-      {/* ======= MOBILE HEADER BAR (AVATAR, GREETING, BELL NOTIF, LOGOUT) ======= */}
-      <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowMobileProfileModal(prev => !prev)}
-            className="flex items-center gap-3 min-w-0 text-left cursor-pointer group bg-transparent border-none p-0 focus:outline-none"
-            title="Lihat Profil & Pengaturan"
+      {/* ======= MOBILE REFINED GREETING BAR ======= */}
+      <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-0.5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div 
+            className="w-10 h-10 rounded-full text-white font-extrabold text-xs flex items-center justify-center shadow-xs shrink-0"
+            style={{ background: "var(--ui-primary)" }}
           >
-            <div className="relative shrink-0">
-              <div 
-                className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white/30 group-active:scale-95 transition-transform"
-                style={{ background: "var(--ui-primary)" }}
-              >
-                {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
-              </div>
-              <span 
-                className="w-3.5 h-3.5 rounded-full border-2 border-white absolute bottom-0 right-0 shadow-xs"
-                style={{ background: "color-mix(in srgb, var(--ui-primary) 80%, #fff)" }}
-              />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1 truncate">
-                Hai, {currentUser?.name || currentUser?.username || 'Pengguna'}!
-              </span>
-              <h1 className="text-sm font-black text-slate-800 tracking-tight leading-snug truncate group-hover:text-[var(--ui-primary)] transition-colors">
-                Siap pantau hari ini?
-              </h1>
-            </div>
-          </button>
-
-          {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
-          {showMobileProfileModal && (
-            <div 
-              className="absolute left-0 top-12 w-[calc(100vw-32px)] max-w-[320px] bg-slate-50 border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 shrink-0">
-                <span className="font-black text-xs text-slate-800 tracking-tight">Profil Pengguna</span>
-                <button 
-                  type="button"
-                  onClick={() => setShowMobileProfileModal(false)} 
-                  className="text-slate-400 hover:text-slate-600 text-[10px] font-black bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider"
-                >
-                  TUTUP
-                </button>
-              </div>
-
-              <div className="bg-white rounded-[var(--ui-radius-small)] p-3 border border-slate-200/60 flex items-center gap-3 shadow-xs">
-                <div 
-                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-sm border-2 border-white shrink-0"
-                  style={{ background: "var(--ui-primary)" }}
-                >
-                  {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Pengguna'}</h4>
-                  <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
-                  <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 mt-0.5 border border-slate-200/60">
-                    {currentUser?.role || 'Akses Sistem'}
-                  </span>
-                </div>
-              </div>
-
-                {/* TABBAR STYLE SELECTOR TOGGLE */}
-                <div className="bg-white rounded-[var(--ui-radius-small)] p-2.5 border border-slate-200/60 flex flex-col gap-1.5 shadow-xs">
-                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                    Gaya TabBar Navigasi Mobile
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={(localStorage.getItem('kurmon_tabbar_style') || 'floating') === 'floating' ? 'primary' : 'ghost'}
-                      onClick={() => {
-                        localStorage.setItem('kurmon_tabbar_style', 'floating');
-                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
-                      }}
-                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1 shrink-0 ${
-                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') !== 'floating' ? 'text-slate-500' : ''
-                      }`}
-                    >
-                      <Layers size={13} strokeWidth={2.2} /> Mengambang
-                    </Button>
-                    <Button
-                      variant={localStorage.getItem('kurmon_tabbar_style') === 'stay' ? 'primary' : 'ghost'}
-                      onClick={() => {
-                        localStorage.setItem('kurmon_tabbar_style', 'stay');
-                        window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
-                      }}
-                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1.5 shrink-0 ${
-                        localStorage.getItem('kurmon_tabbar_style') !== 'stay' ? 'text-slate-500' : ''
-                      }`}
-                    >
-                      <Pin size={13} strokeWidth={2.2} /> Menempel
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMobileProfileModal(false);
-                    if (onOpenProfile) onOpenProfile();
-                    else if (setActiveTab) setActiveTab('profile');
-                  }}
-                  className="w-full py-2.5 px-3 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200/70 shadow-xs active:scale-98"
-                >
-                  <User size={14} strokeWidth={2.2} /> Edit Profil &amp; Kata Sandi
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMobileProfileModal(false);
-                    triggerLogout();
-                  }}
-                  className="w-full py-2.5 px-3 rounded-[var(--ui-radius-small)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
-                >
-                  <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
-                </button>
-              </div>
-            </div>
-          )}
+            {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] text-slate-500 font-semibold truncate leading-tight">
+              Hai, {currentUser?.name || currentUser?.username || 'Pengguna'}!
+            </span>
+            <h1 className="text-sm font-extrabold text-slate-800 tracking-tight leading-snug truncate">
+              Siap pantau hari ini?
+            </h1>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0 relative">
-          <button 
-            type="button"
-            onClick={() => setShowMobileNotif(prev => !prev)}
-            className="w-10 h-10 rounded-full bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shadow-xs hover:bg-slate-200 transition-colors cursor-pointer shrink-0 relative active:scale-95"
-            title="Notifikasi & Informasi"
-          >
-            <Bell size={18} strokeWidth={2.2} />
-            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 border border-white" />
-          </button>
-          <button 
-            type="button"
-            onClick={triggerLogout}
-            className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-xs hover:bg-rose-100 transition-colors cursor-pointer shrink-0 active:scale-95"
-            title="Keluar / Logout"
-          >
-            <LogOut size={16} strokeWidth={2.2} />
-          </button>
-
-
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] shadow-2xs">
+            {todayShort}
+          </span>
         </div>
       </div>
 
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (ADMIN/MANAGEMENT) (< sm) ======= */}
-        <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
+        <div className="sm:hidden flex flex-col gap-3 text-left mb-2">
 
           {/* 1. STATUS PEMANTAAN / HERO CARD */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between px-0.5">
-              <h3 className="text-sm font-black text-slate-800 tracking-tight">Status Pemantauan</h3>
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-2xs">
-                Hari ini, {todayShort}
+          <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 shadow-xs border border-slate-200/80 bg-white rounded-[var(--ui-radius-card)]">
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span>Sistem Terpantau Aktif</span>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 border border-slate-200">
+                {activeRole}
               </span>
             </div>
 
-            <div 
-              className="rounded-[22px] p-4 text-white shadow-xs relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
-              style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 68%, #000) 100%)" }}
-            >
-              <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-base font-extrabold text-slate-800 tracking-tight leading-snug">
+                {dashboardMode.label || "Kurikulum & KBM Sekolah"}
+              </h2>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
+              </p>
+            </div>
 
-              <div className="flex items-center justify-between gap-2 relative z-10">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--ui-radius-pill)] bg-white/20 backdrop-blur-md text-[11px] font-black text-white border border-white/25 shadow-xs">
-                  <Clock3 size={13} strokeWidth={2.5} />
-                  <span>Aktif Pemantauan</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-semibold text-white/70 block uppercase tracking-wider">Akses Sistem</span>
-                  <span className="text-xs font-black text-white leading-tight block uppercase">{activeRole}</span>
-                </div>
-              </div>
-
-              <div className="relative z-10">
-                <h2 className="text-lg font-black text-white leading-tight tracking-tight drop-shadow-xs">
-                  {dashboardMode.label || "Kurikulum & KBM Sekolah"}
-                </h2>
-                <p className="text-xs text-white/85 font-semibold mt-0.5">
-                  {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1.5 relative z-10 pt-0.5">
-                <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-wider text-white/80">
-                  <span>PEMANTAUAN REALTIME</span>
-                  <span>SISTEM AKTIF</span>
-                </div>
-                <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/15">
-                  <div className="w-[85%] h-full bg-emerald-400 rounded-full shadow-xs animate-pulse" />
-                </div>
-              </div>
-
+            <div className="flex items-center gap-2 pt-0.5">
               <button
                 type="button"
                 onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-98 text-[var(--ui-primary)] font-black text-xs rounded-[var(--ui-radius-small)] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10"
+                className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
               >
-                <CheckCircle2 size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
-                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Absensi KBM Hari Ini"}</span>
+                <CheckCircle2 size={14} strokeWidth={2.5} />
+                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
               </button>
             </div>
           </div>
