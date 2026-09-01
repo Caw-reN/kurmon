@@ -53,9 +53,9 @@
 @layer base {
 
   :root {
-    --ui-radius-card: 24px;
-    --ui-radius-control: 12px; /* Disinkronkan dengan --ui-radius-small agar form sejajar dengan button */
-    --ui-radius-small: 12px;
+    --ui-radius-card: 16px;
+    --ui-radius-control: 10px;
+    --ui-radius-small: 8px;
     --ui-radius-pill: 999px;
 
     /* Background: sedikit kebiruan agar card putih murni terasa "mengambang" */
