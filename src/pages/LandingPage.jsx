@@ -926,32 +926,33 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* MIDDLE-2 SECTION: JURUSAN / PROGRAM (Bento Box Card Concept) */}
-        <div className="shrink-0 pt-0 pb-1.5 mt-2 bottom-jurusan-section relative z-10">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-4 md:py-5 px-4 md:px-8 w-full">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-2 text-left">
+        {/* MIDDLE-2 SECTION: JURUSAN / PROGRAM (Flat Clean Bento - No Box-in-Box, No Outline) */}
+        <div className="shrink-0 mt-6 lg:mt-8 bottom-jurusan-section relative z-10">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-6 px-6 md:px-10 w-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-100/60">
+              <div className="flex items-center gap-2.5 text-left">
                 <div 
-                  className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center text-[var(--ui-primary)] font-black shadow-2xs"
+                  className="w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-[var(--ui-primary)] font-black shadow-2xs"
                   style={{ backgroundColor: hexToRgba(primaryColor || '#059669', 0.1) }}
                 >
-                  <GraduationCap size={15} strokeWidth={2.4} />
+                  <GraduationCap size={17} strokeWidth={2.4} />
                 </div>
                 <div>
                   <h2 className="text-sm lg:text-base font-extrabold text-slate-800 tracking-tight leading-none">
                     {appSettings.trustedByText || "Program Keahlian Unggulan"}
                   </h2>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Kompetensi keahlian terakreditasi berstandar industri</p>
+                  <p className="text-[11px] text-slate-400 font-semibold mt-1">Kompetensi keahlian terakreditasi berstandar industri</p>
                 </div>
               </div>
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-600 border border-slate-200/70">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-50 text-slate-600 border border-slate-200/70">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
-                4 Pilihan Jurusan
+                4 Konsentrasi Keahlian
               </span>
             </div>
 
-            {/* 4 Bento Tiles inside */}
-            <div className="grid grid-cols-4 gap-3 lg:gap-4 w-full">
+            {/* 4 Flat Column Items (No box dalam box, no outlines) */}
+            <div className="grid grid-cols-4 gap-6 lg:gap-8 w-full items-start">
               {[1, 2, 3, 4].map((idx) => {
                 const name = appSettings[`partner${idx}`];
                 if (!name) return null;
@@ -963,30 +964,26 @@ export default function LandingPage() {
                 return (
                   <div 
                     key={idx} 
-                    className="group relative bg-slate-50/70 hover:bg-white rounded-[var(--ui-radius-card)] p-3 lg:p-3.5 border border-slate-200/70 hover:border-[var(--ui-primary)]/40 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-3 h-[88px] lg:h-[94px] w-full overflow-hidden cursor-pointer select-none"
+                    className="group flex flex-col items-center justify-center text-center cursor-pointer select-none p-2 rounded-[var(--ui-radius-card)] hover:bg-slate-50/80 transition-all duration-300"
                   >
-                    {/* Left text content */}
-                    <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
-                      <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors block mb-1">
-                        Keahlian 0{idx}
-                      </span>
-                      <div className="min-h-[32px] flex items-center">
-                        <h4 className="text-[12px] lg:text-[13px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
-                          {name}
-                        </h4>
-                      </div>
-                    </div>
-
-                    {/* Right logo badge container */}
-                    <div className="relative z-10 w-11 h-11 lg:w-12 lg:h-12 rounded-[var(--ui-radius-small)] bg-white border border-slate-200/80 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
+                    {/* Logo/Icon Container - Flat Soft Badge */}
+                    <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-[var(--ui-radius-card)] bg-slate-50 flex items-center justify-center p-2.5 shadow-2xs group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all duration-300 mb-3">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-600 group-hover:text-[var(--ui-primary)] transition-colors">
-                          <IconComponent size={22} strokeWidth={1.8} />
+                          <IconComponent size={26} strokeWidth={1.8} />
                         </div>
                       )}
                     </div>
+
+                    {/* Text Label */}
+                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors mb-1">
+                      Keahlian 0{idx}
+                    </span>
+                    <h4 className="text-[12.5px] lg:text-[13.5px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase max-w-[190px]">
+                      {name}
+                    </h4>
                   </div>
                 );
               })}
@@ -994,25 +991,25 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* BOTTOM SECTION: MITRA & KERJASAMA (Bento Box Flat Card Concept) */}
+        {/* BOTTOM SECTION: MITRA & KERJASAMA */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="shrink-0 pt-0 pb-1 mt-2 mitra-kerjasama-section relative z-10">
-            <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-2.5 px-4 md:px-6 w-full flex items-center gap-4">
-              <span className="text-[9.5px] lg:text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
+          <div className="shrink-0 mt-6 lg:mt-8 mb-8 mitra-kerjasama-section relative z-10">
+            <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] py-4 px-6 md:px-8 w-full flex items-center gap-6">
+              <span className="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
                 Mitra Industri & Sertifikasi
               </span>
-              <div className="h-3.5 w-px bg-slate-200 shrink-0" />
+              <div className="h-4 w-px bg-slate-200 shrink-0" />
               <div className="relative flex-1 overflow-hidden flex py-0.5">
-                <div className="absolute left-0 top-0 w-10 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 w-10 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute left-0 top-0 w-12 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 w-12 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
-                <div className="flex w-max animate-marquee gap-8 lg:gap-12 items-center px-4 hover:[animation-play-state:paused]">
+                <div className="flex w-max animate-marquee gap-10 lg:gap-14 items-center px-4 hover:[animation-play-state:paused]">
                   {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[65px] lg:w-[85px] h-[28px] lg:h-[32px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[70px] lg:w-[95px] h-[32px] lg:h-[36px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
                       {mitra.image ? (
                         <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
                       ) : (
-                        <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
+                        <span className="text-[10.5px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
                       )}
                     </div>
                   ))}
@@ -1025,8 +1022,8 @@ export default function LandingPage() {
       </div>
 
       {/* DESKTOP FOOTER */}
-      <footer className="hidden md:block w-full bg-white/85 backdrop-blur-xl border-t border-slate-200/90 relative z-20 mt-auto print:hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
+      <footer className="hidden md:block w-full bg-white/90 backdrop-blur-xl border-t border-slate-200/90 relative z-20 mt-12 lg:mt-16 print:hidden">
+        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-12">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
             
             {/* Column 1: Brand Profile & Status (5 cols) */}
