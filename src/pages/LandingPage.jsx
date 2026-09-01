@@ -545,7 +545,7 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="h-8.5 px-3.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/25 shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer select-none"
+              className="h-8.5 px-3.5 rounded-[var(--ui-radius-control)] bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/25 shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer select-none"
               aria-label="Masuk Aplikasi"
               title="Masuk ke Aplikasi"
             >
@@ -1194,7 +1194,7 @@ export default function LandingPage() {
           onClick={() => setIsLoginModalOpen(true)} 
           data-slot="button"
           data-variant="primary"
-          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
+          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-control)] font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
           style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
         >
           Masuk Sekarang
