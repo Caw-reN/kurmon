@@ -17,10 +17,20 @@
   --color-accent: var(--ui-accent, #10b981);
   --color-card: var(--ui-card-bg, #ffffff);
 
-  /* Otomatis sinkronkan kelas legacy emerald dengan warna tema yang aktif */
+  /* Otomatis sinkronkan kelas legacy emerald & teal dengan warna tema yang aktif */
+  --color-emerald-50: color-mix(in srgb, var(--ui-primary, #059669) 8%, #ffffff);
+  --color-emerald-100: color-mix(in srgb, var(--ui-primary, #059669) 15%, #ffffff);
+  --color-emerald-200: color-mix(in srgb, var(--ui-primary, #059669) 25%, #ffffff);
+  --color-emerald-500: var(--ui-primary, #10b981);
   --color-emerald-600: var(--ui-primary, #059669);
   --color-emerald-700: var(--ui-primary-hover, #047857);
-  --color-emerald-500: var(--ui-primary, #10b981);
+  --color-emerald-800: color-mix(in srgb, var(--ui-primary, #059669) 80%, #000000);
+
+  --color-teal-50: color-mix(in srgb, var(--ui-primary, #059669) 8%, #ffffff);
+  --color-teal-100: color-mix(in srgb, var(--ui-primary, #059669) 15%, #ffffff);
+  --color-teal-500: var(--ui-primary, #14b8a6);
+  --color-teal-600: var(--ui-primary, #0d9488);
+  --color-teal-700: var(--ui-primary-hover, #0f766e);
 
   /* Sistem radius seragam dan proporsional */
   --radius-sm: var(--ui-radius-small, 8px);

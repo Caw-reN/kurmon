@@ -58,20 +58,35 @@ export default function PageHeader({
       {/* Mobile Hero Header Card (Shown on Mobile screens when not plain) */}
       {!isPlain && (
         <div 
-          className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-4 bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5 relative overflow-hidden mb-1"
+          className={cn(
+            "sm:hidden w-full rounded-[var(--ui-radius-card)] p-4 flex items-center gap-3.5 relative overflow-hidden mb-1 transition-all",
+            headerStyle === 'primary'
+              ? "bg-[var(--ui-primary)] text-white shadow-sm"
+              : headerStyle === 'glass'
+              ? "border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 shadow-xs"
+              : "bg-white border border-slate-200/80 shadow-xs text-slate-900"
+          )}
+          style={headerStyle === 'primary' ? { backgroundColor: 'var(--ui-primary, #064e3b)' } : undefined}
         >
           {Icon && (
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--ui-primary,#064e3b)] to-[color-mix(in_srgb,var(--ui-primary,#064e3b)_80%,#0f172a)] text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div 
+              className={cn(
+                "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border",
+                headerStyle === 'primary'
+                  ? "bg-white/20 border-white/30 text-white"
+                  : "bg-gradient-to-br from-[var(--ui-primary,#064e3b)] to-[color-mix(in_srgb,var(--ui-primary,#064e3b)_80%,#0f172a)] text-white"
+              )}
+            >
               <Icon size={20} strokeWidth={2.2} />
             </div>
           )}
           <div className="flex-1 min-w-0">
             {description ? (
-              <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+              <p className={cn("text-xs font-semibold leading-relaxed", headerStyle === 'primary' ? "text-white/90" : "text-slate-600")}>
                 {description}
               </p>
             ) : (
-              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+              <p className={cn("text-xs font-semibold leading-relaxed", headerStyle === 'primary' ? "text-white/80" : "text-slate-500")}>
                 Kelola &amp; pantau informasi modul sekolah secara real-time.
               </p>
             )}
