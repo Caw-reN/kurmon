@@ -928,15 +928,15 @@ export default function LandingPage() {
 
         {/* BOTTOM SECTION: JURUSAN / PROGRAM */}
         <div className="shrink-0 border-t border-slate-200/60 py-3.5 mt-2 bottom-jurusan-section">
-          <div className="flex flex-row items-center gap-6 md:gap-8 w-full">
+          <div className="flex flex-row items-center gap-5 lg:gap-7 w-full">
             {/* Title section (left side) */}
-            <div className="flex flex-col justify-center shrink-0 w-44 text-left">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100/80 text-slate-600 border border-slate-200/70 w-fit mb-1">
+            <div className="flex flex-col justify-center shrink-0 w-44 lg:w-48 text-left">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200/80 w-fit mb-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
                 <span>{appSettings.trustedByText || "Program Unggulan"}</span>
               </div>
               <h2 className="text-lg lg:text-xl font-black text-slate-800 tracking-tight leading-none">JURUSAN / PROGRAM</h2>
-              <p className="text-[10px] text-slate-400 font-medium mt-1">Kompetensi keahlian unggulan berstandar industri</p>
+              <p className="text-[10px] text-slate-400 font-semibold mt-1">Kompetensi keahlian unggulan berstandar industri</p>
             </div>
 
             {/* Cards container */}
@@ -952,31 +952,33 @@ export default function LandingPage() {
                 return (
                   <div 
                     key={idx} 
-                    className="group relative bg-white/95 rounded-[var(--ui-radius-card)] p-3.5 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-[var(--ui-primary)]/40 transition-all duration-300 flex items-center justify-between gap-2.5 min-h-[96px] lg:min-h-[104px] w-full overflow-hidden"
+                    className="group relative bg-white rounded-[var(--ui-radius-card)] p-3.5 lg:p-4 border border-slate-200/85 shadow-xs hover:shadow-md hover:border-[var(--ui-primary)]/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-3 h-[94px] lg:h-[100px] w-full overflow-hidden"
                   >
-                    {/* Ambient Glow */}
-                    <div className="absolute -top-8 -right-8 w-20 h-20 bg-[var(--ui-primary)]/8 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                    {/* Ambient Glow Corner */}
+                    <div className="absolute -top-6 -right-6 w-16 h-16 bg-[var(--ui-primary)]/8 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
                     
                     {/* Bottom active accent line on hover */}
                     <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    {/* Left text content */}
+                    {/* Left text content - vertically centered and balanced */}
                     <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
-                      <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors mb-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors block mb-1">
                         Keahlian 0{idx}
                       </span>
-                      <h4 className="text-[12.5px] lg:text-[13.5px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
-                        {name}
-                      </h4>
+                      <div className="min-h-[34px] flex items-center">
+                        <h4 className="text-[12.5px] lg:text-[13.5px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
+                          {name}
+                        </h4>
+                      </div>
                     </div>
 
-                    {/* Right logo container - perfectly nestled inside card */}
-                    <div className="relative z-10 w-12 h-12 lg:w-13 lg:h-13 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
+                    {/* Right logo container - perfectly aligned and centered */}
+                    <div className="relative z-10 w-11 h-11 lg:w-12 lg:h-12 rounded-[var(--ui-radius-control)] bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-600 group-hover:text-[var(--ui-primary)] transition-colors">
-                          <IconComponent size={24} strokeWidth={1.8} />
+                          <IconComponent size={22} strokeWidth={1.8} />
                         </div>
                       )}
                     </div>
