@@ -1209,6 +1209,10 @@ const initDb = async () => {
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_emp_time ON hikvision_logs (employee_id, timestamp);
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_device_time ON hikvision_logs (device_id, timestamp DESC);
         CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_tanggal ON kedisiplinan_absensi (tanggal);
+        CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_nis_tanggal ON kedisiplinan_absensi (siswa_nis, tanggal);
+        CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_status ON kedisiplinan_absensi (tanggal, approval_status);
+        CREATE INDEX IF NOT EXISTS idx_guru_attendance_teacher_date ON guru_attendance_records (teacher_code, tanggal DESC);
+        CREATE INDEX IF NOT EXISTS idx_guru_attendance_tanggal ON guru_attendance_records (tanggal DESC);
         CREATE INDEX IF NOT EXISTS idx_jurnal_guru_code_date ON jurnal_harian_guru (teacher_code, tanggal DESC);
         CREATE INDEX IF NOT EXISTS idx_catatan_wk_teacher_date ON catatan_walikelas (teacher_code, tanggal DESC);
         CREATE INDEX IF NOT EXISTS idx_catatan_wk_siswa ON catatan_walikelas (siswa_nis);

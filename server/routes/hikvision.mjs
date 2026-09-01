@@ -772,6 +772,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             INSERT INTO kedisiplinan_absensi 
             (siswa_nis, tanggal, status, keterangan, pelapor_nama, approval_status) 
             VALUES ${values.join(', ')}
+            ON CONFLICT (siswa_nis, tanggal) DO NOTHING
           `;
           await dbPool.query(insertQuery, params);
         }
@@ -1476,9 +1477,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
         
         let logsQueryStr = `
-          SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
+          SELECT l.employee_id, TO_CHAR(l.timestamp AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
           FROM hikvision_logs l
-          WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
+          WHERE EXTRACT(MONTH FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM l.timestamp AT TIME ZONE 'Asia/Jakarta') = $2
           ORDER BY l.timestamp ASC
         `;
 
@@ -1595,7 +1596,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const attendanceRes = await dbPool.query(`
           SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note 
           FROM guru_attendance_records 
-          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
+          WHERE EXTRACT(MONTH FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $2
         `, [month, year]);
         const attendanceRecords = attendanceRes.rows;
 
@@ -1659,7 +1660,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const sAbsRes = await dbPool.query(`
             SELECT id, siswa_nis, tanggal, status, keterangan, gdrive_url, approval_status
             FROM kedisiplinan_absensi 
-            WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
+            WHERE EXTRACT(MONTH FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $2
             AND (approval_status = 'approved' OR approval_status IS NULL OR approval_status = 'pending')
           `, [month, year]);
 
@@ -1780,7 +1781,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const pklLogbooksRes = await dbPool.query(`
           SELECT student_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as date_str, status, kegiatan as activity
           FROM pkl_logbooks
-          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
+          WHERE EXTRACT(MONTH FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $1 AND EXTRACT(YEAR FROM tanggal AT TIME ZONE 'Asia/Jakarta') = $2
         `, [month, year]).catch(() => ({ rows: [] }));
 
         const pklLogbookMap = {};

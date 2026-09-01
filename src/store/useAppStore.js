@@ -108,11 +108,12 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     hikvision_report_guru: "view"
   },
   waka_kesiswaan: {
-    dashboard: "otomatis", absensi: "otomatis", akademik: "view", pesan: "otomatis",
+    dashboard: "otomatis", absensi: "nonaktif", akademik: "view", pesan: "otomatis",
+    absensiguru: "otomatis",
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
-    siswa: "otomatis", laporan_absensi: "view", hikvision_report_siswa: "view"
+    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view"
   },
   waka_sarpras: {
     dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", kelas: "view",
