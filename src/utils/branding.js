@@ -94,13 +94,31 @@ export const applyDocumentBranding = (settings = {}) => {
   const cardMuted = cardIsDark ? 'rgba(248, 250, 252, 0.75)' : 'rgba(15, 23, 42, 0.65)';
   root.style.setProperty('--card-foreground', cardText);
   root.style.setProperty('--card-muted', cardMuted);
-  let radiusControl = '12px';
-  let radiusSmall = '12px';
-  let radiusCard = '24px';
+  let radiusControl = '10px';
+  let radiusSmall = '8px';
+  let radiusCard = '16px';
   let radiusVal = "0.75rem";
-  if (settings.uiRadius === 'sm') { radiusControl = '8px'; radiusSmall = '8px'; radiusCard = '16px'; radiusVal = "0.5rem"; }
-  if (settings.uiRadius === 'lg') { radiusControl = '16px'; radiusSmall = '16px'; radiusCard = '32px'; radiusVal = "1rem"; }
-  if (settings.uiRadius === 'full') { radiusControl = '999px'; radiusSmall = '999px'; radiusCard = '32px'; radiusVal = "9999px"; }
+  if (settings.uiRadius === 'none') {
+    radiusControl = '4px';
+    radiusSmall = '4px';
+    radiusCard = '6px';
+    radiusVal = "0.25rem";
+  } else if (settings.uiRadius === 'sm') {
+    radiusControl = '8px';
+    radiusSmall = '6px';
+    radiusCard = '12px';
+    radiusVal = "0.5rem";
+  } else if (settings.uiRadius === 'lg') {
+    radiusControl = '14px';
+    radiusSmall = '10px';
+    radiusCard = '22px';
+    radiusVal = "1rem";
+  } else if (settings.uiRadius === 'full') {
+    radiusControl = '999px';
+    radiusSmall = '12px';
+    radiusCard = '24px';
+    radiusVal = "1.25rem";
+  }
   root.style.setProperty('--ui-radius-control', radiusControl);
   root.style.setProperty('--ui-radius-small', radiusSmall);
   root.style.setProperty('--ui-radius-card', radiusCard);

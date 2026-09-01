@@ -12,13 +12,23 @@
 
 @theme {
   --font-sans: var(--font-sans-family, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --radius: var(--ui-radius-small);
-  --radius-sm: var(--ui-radius-small);
-  --radius-md: var(--ui-radius-small);
-  --radius-lg: var(--ui-radius-control);
-  --radius-xl: var(--ui-radius-card);
-  --radius-2xl: calc(var(--ui-radius-card) + 4px);
-  --radius-3xl: calc(var(--ui-radius-card) + 8px);
+  --color-primary: var(--ui-primary, #059669);
+  --color-primary-hover: var(--ui-primary-hover, #047857);
+  --color-accent: var(--ui-accent, #10b981);
+  --color-card: var(--ui-card-bg, #ffffff);
+
+  /* Otomatis sinkronkan kelas legacy emerald dengan warna tema yang aktif */
+  --color-emerald-600: var(--ui-primary, #059669);
+  --color-emerald-700: var(--ui-primary-hover, #047857);
+  --color-emerald-500: var(--ui-primary, #10b981);
+
+  /* Sistem radius seragam dan proporsional */
+  --radius-sm: var(--ui-radius-small, 8px);
+  --radius-md: var(--ui-radius-control, 10px);
+  --radius-lg: var(--ui-radius-control, 12px);
+  --radius-xl: var(--ui-radius-card, 16px);
+  --radius-2xl: var(--ui-radius-card, 18px);
+  --radius-3xl: calc(var(--ui-radius-card, 18px) + 4px);
 }
 
 @layer base {
@@ -147,38 +157,38 @@
 .sidebar-white aside .bg-card,
 .sidebar-white aside.bg-white { background-color: #ffffff !important; border-right: 1px solid var(--ui-border-soft); }
 
-/* 3. Header Styles */
-.header-solid header { 
-  background-color: var(--ui-surface-raised) !important; 
+/* 3. Header Styles (Unified System) */
+.header-solid header,
+.header-solid .app-header { 
+  background-color: var(--ui-surface, #ffffff) !important; 
   backdrop-filter: none !important;
   border-bottom: 1px solid var(--ui-border-soft) !important;
+  box-shadow: var(--ui-shadow-control) !important;
 }
-.header-glass header {
-  background-color: rgba(255, 255, 255, 0.7) !important;
+.header-glass header,
+.header-glass .app-header {
+  background-color: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.3) !important;
+  border-bottom: 1px solid var(--ui-border-soft) !important;
+  box-shadow: var(--ui-shadow-control) !important;
 }
-.header-primary header {
-  background-color: var(--ui-primary) !important;
-  color: white !important;
-  border-bottom: none !important;
+.header-primary header,
+.header-primary .app-header {
+  background-color: var(--ui-primary, #059669) !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
 }
-.header-primary header > nav,
-.header-primary header > div > h1,
-.header-primary header > div > p,
-.header-primary header > .text-foreground,
-.header-primary header > .text-muted-foreground {
-  color: white !important;
+.header-primary header h1,
+.header-primary header p,
+.header-primary header span:not(.bg-white *):not(.bg-card *),
+.header-primary .app-header h1,
+.header-primary .app-header p,
+.header-primary .app-header span:not(.bg-white *):not(.bg-card *) {
+  color: #ffffff !important;
 }
-.header-primary header button.bg-white,
-.header-primary header button.bg-white *,
-.header-primary header .bg-white,
-.header-primary header .bg-white *,
-.header-primary header .bg-card,
-.header-primary header .bg-card * {
-  color: #334155 !important;
-}
-.header-minimal header {
+.header-minimal header,
+.header-minimal .app-header {
   background-color: transparent !important;
   border-bottom: none !important;
   backdrop-filter: none !important;
@@ -1040,89 +1050,17 @@ a[class*="active:scale"]:active {
     border-color: rgba(255, 255, 255, 0.15) !important;
   }
 
-  /* Gaya Header Atas (Header Styles) */
-  .header-solid .app-header {
-    background-color: var(--background, #ffffff) !important;
-    backdrop-filter: none !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-  }
-  .header-glass .app-header {
-    background-color: rgba(255, 255, 255, 0.72) !important;
-    backdrop-filter: blur(14px) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
-  }
-  .header-minimal .app-header {
-    background-color: transparent !important;
-    backdrop-filter: none !important;
-    border-bottom: none !important;
-    box-shadow: none !important;
-  }
-  .header-primary .app-header {
-    background-color: var(--ui-primary, #064e3b) !important;
-    backdrop-filter: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  }
-  .header-primary .app-header *:not(.bg-card):not(.bg-card *):not(.bg-white):not(.bg-white *):not(.bg-slate-50):not(.bg-slate-50 *) {
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-  .header-primary .app-header .text-primary {
-    color: var(--ui-accent, #a3e635) !important;
-  }
-
-  /* Desain Card & Panel */
-  .card-elevated [data-slot="card"],
-  .card-elevated .ui-style-card,
-  .card-elevated .bg-card,
-  .card-elevated .card {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
-    border: none !important;
-  }
-  .card-flat [data-slot="card"],
-  .card-flat .ui-style-card,
-  .card-flat .bg-card,
-  .card-flat .card {
-    background-color: #f1f5f9 !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Vibransi Warna & Efek */
-  /* Vibransi Warna & Efek */
-  .vibrancy-bright .bg-card,
-  .vibrancy-bright .card {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--ui-primary, #3b82f6) 10%, #ffffff) 0%, color-mix(in srgb, var(--ui-primary, #3b82f6) 15%, #ffffff) 100%) !important;
-    border: 1px solid color-mix(in srgb, var(--ui-primary, #3b82f6) 25%, transparent) !important;
-  }
-
-  .vibrancy-gradient .bg-card,
-  .vibrancy-gradient .card {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--ui-primary, #3b82f6) 12%, #ffffff) 0%, color-mix(in srgb, var(--ui-accent, #10b981) 12%, #ffffff) 100%) !important;
-    border: 1px solid color-mix(in srgb, var(--ui-primary, #3b82f6) 25%, transparent) !important;
-  }
-
-  /* Efek hover dinamis & interaktif tanpa pergeseran layout */
-  .vibrancy-bright .bg-card,
-  .vibrancy-bright .card,
-  .vibrancy-gradient .bg-card,
-  .vibrancy-gradient .card {
-    transition: all 0.2s ease-in-out !important;
-  }
-
-  .vibrancy-bright .bg-card:hover,
-  .vibrancy-bright .card:hover,
-  .vibrancy-gradient .bg-card:hover,
-  .vibrancy-gradient .card:hover {
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08) !important;
-  }
-
-  /* Gradasi Dinamis Premium pada Tombol Utama */
-  .vibrancy-gradient button[data-slot="button"][data-variant="default"],
-  .vibrancy-gradient .bg-primary {
-    background: linear-gradient(135deg, var(--ui-primary, #3b82f6) 0%, color-mix(in srgb, var(--ui-primary, #3b82f6) 80%, var(--ui-accent, #10b981)) 100%) !important;
-    border: none !important;
+  /* Desain Card & Panel (Single Source of Truth) */
+  .bg-card,
+  .ui-card,
+  .card-panel,
+  [data-slot="card"],
+  .card {
+    background-color: var(--ui-card-bg, #ffffff) !important;
+    border: var(--ui-card-border, 1px solid var(--ui-border-soft)) !important;
+    box-shadow: var(--ui-card-shadow, var(--ui-shadow-card)) !important;
+    border-radius: var(--ui-radius-card, 16px) !important;
+    transition: box-shadow var(--ui-motion), border-color var(--ui-motion);
   }
 
   /* Sidebar subgroup border */
