@@ -210,20 +210,38 @@
   border-bottom: 1px solid var(--ui-border-soft) !important;
   box-shadow: var(--ui-shadow-control) !important;
 }
-.header-primary header,
-.header-primary .app-header {
-  background-color: var(--ui-primary, #059669) !important;
-  color: #ffffff !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
+/* Mode header-primary: Berwarna pada desktop (>=640px), putih bersih & netral pada mobile (<640px) */
+@media (min-width: 640px) {
+  .header-primary header,
+  .header-primary .app-header {
+    background-color: var(--ui-primary, #059669) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
+  }
+  .header-primary header h1,
+  .header-primary header p,
+  .header-primary header span:not(.bg-white *):not(.bg-card *),
+  .header-primary .app-header h1,
+  .header-primary .app-header p,
+  .header-primary .app-header span:not(.bg-white *):not(.bg-card *) {
+    color: #ffffff !important;
+  }
 }
-.header-primary header h1,
-.header-primary header p,
-.header-primary header span:not(.bg-white *):not(.bg-card *),
-.header-primary .app-header h1,
-.header-primary .app-header p,
-.header-primary .app-header span:not(.bg-white *):not(.bg-card *) {
-  color: #ffffff !important;
+@media (max-width: 639px) {
+  .header-primary header,
+  .header-primary .app-header {
+    background-color: var(--ui-card-bg, #ffffff) !important;
+    color: var(--ui-text, #0f172a) !important;
+    border-bottom: 1px solid var(--ui-border-soft, #e2e8f0) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  }
+  .header-primary header h1,
+  .header-primary header p,
+  .header-primary .app-header h1,
+  .header-primary .app-header p {
+    color: var(--ui-text, #0f172a) !important;
+  }
 }
 .header-minimal header,
 .header-minimal .app-header {
