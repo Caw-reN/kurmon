@@ -124,7 +124,7 @@
   #root {
     min-height: 100vh;
     background-color: var(--ui-bg-page, #eef2f7);
-    width: var(--radix-select-trigger-width);
+    width: 100%;
   }
 }
 
@@ -150,22 +150,41 @@
   font-size: 105% !important;
 }
 
-/* 2. Sidebar Styles (overrides standard shadcn colors for sidebar specific areas) */
-.sidebar-gray aside .bg-card,
-.sidebar-gray aside.bg-white { background-color: var(--ui-surface-muted, #f5f8fb) !important; }
-.sidebar-primary aside .bg-card,
-.sidebar-primary aside.bg-white { 
-  background-color: var(--ui-primary) !important; 
+/* 2. Sidebar Styles (Unified System) */
+.sidebar-white aside,
+.sidebar-white .app-sidebar { 
+  background-color: #ffffff !important; 
+  border-right: 1px solid var(--ui-border-soft) !important; 
+}
+.sidebar-gray aside,
+.sidebar-gray .app-sidebar { 
+  background-color: var(--ui-surface-muted, #f8fafc) !important; 
+  border-right: 1px solid var(--ui-border-soft) !important; 
+}
+.sidebar-primary aside,
+.sidebar-primary .app-sidebar { 
+  background: linear-gradient(180deg, var(--ui-primary, #059669) 0%, color-mix(in srgb, var(--ui-primary, #059669) 85%, #000000) 100%) !important; 
+  border-right: none !important;
+}
+.sidebar-primary aside h1,
+.sidebar-primary aside h2,
+.sidebar-primary aside p,
+.sidebar-primary aside span:not(.bg-white *):not(.bg-primary *),
+.sidebar-primary .app-sidebar h1,
+.sidebar-primary .app-sidebar h2,
+.sidebar-primary .app-sidebar p,
+.sidebar-primary .app-sidebar span:not(.bg-white *):not(.bg-primary *) { 
+  color: rgba(255, 255, 255, 0.9) !important; 
+}
+.sidebar-primary aside button:hover,
+.sidebar-primary .app-sidebar button:hover { 
+  background-color: rgba(255, 255, 255, 0.12) !important; 
   color: #ffffff !important; 
 }
-.sidebar-primary aside .text-foreground,
-.sidebar-primary aside .text-muted-foreground,
-.sidebar-primary aside p,
-.sidebar-primary aside span { color: rgba(255,255,255,0.9) !important; }
-.sidebar-primary aside .hover\:bg-muted:hover { background-color: rgba(255,255,255,0.15) !important; }
-.sidebar-primary aside svg { stroke: rgba(255,255,255,0.9); }
-.sidebar-white aside .bg-card,
-.sidebar-white aside.bg-white { background-color: #ffffff !important; border-right: 1px solid var(--ui-border-soft); }
+.sidebar-primary aside .text-primary,
+.sidebar-primary .app-sidebar .text-primary { 
+  color: var(--ui-accent, #a3e635) !important; 
+}
 
 /* 3. Header Styles (Unified System) */
 .header-solid header,
@@ -418,13 +437,11 @@
 
 
 .ui-card {
-  background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: var(--ui-radius-card);
-  box-shadow: var(--ui-shadow-card);
-  backdrop-filter: blur(10px);
-  /* Ring putih di dalam untuk efek kaca/float */
-  outline: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: var(--ui-card-bg, #ffffff);
+  border: var(--ui-card-border, 1px solid var(--ui-border-soft));
+  border-radius: var(--ui-radius-card, 16px);
+  box-shadow: var(--ui-card-shadow, var(--ui-shadow-card));
+  transition: box-shadow var(--ui-motion), border-color var(--ui-motion);
 }
 
 /* Glassmorphism Solid (Off) */
@@ -1011,54 +1028,7 @@ a[class*="active:scale"]:active {
     padding-bottom: 0.85rem !important;
   }
 
-  /* Gaya Sidebar Kiri (Sidebar Styles) */
-  .sidebar-white .app-sidebar,
-  .sidebar-white aside {
-    background-color: #ffffff !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
-  }
-  .sidebar-gray .app-sidebar,
-  .sidebar-gray aside {
-    background-color: #f8fafc !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
-  }
-  .sidebar-primary .app-sidebar,
-  .sidebar-primary aside {
-    background: linear-gradient(180deg, var(--ui-primary, #064e3b) 0%, color-mix(in srgb, var(--ui-primary, #064e3b) 85%, black) 100%) !important;
-    border-right: none !important;
-  }
-  .sidebar-primary .app-sidebar *,
-  .sidebar-primary aside * {
-    color: rgba(255, 255, 255, 0.85) !important;
-  }
-  .sidebar-primary .app-sidebar .text-foreground,
-  .sidebar-primary aside .text-foreground,
-  .sidebar-primary .app-sidebar .font-extrabold,
-  .sidebar-primary aside .font-extrabold {
-    color: #ffffff !important;
-  }
-  .sidebar-primary .app-sidebar button:hover,
-  .sidebar-primary aside button:hover {
-    background-color: rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
-  }
-  .sidebar-primary .app-sidebar .bg-primary\/10,
-  .sidebar-primary aside .bg-primary\/10 {
-    background-color: rgba(255, 255, 255, 0.18) !important;
-    color: #ffffff !important;
-  }
-  .sidebar-primary .app-sidebar .text-primary,
-  .sidebar-primary aside .text-primary {
-    color: var(--ui-accent, #a3e635) !important;
-  }
-  .sidebar-primary .app-sidebar .text-muted-foreground,
-  .sidebar-primary aside .text-muted-foreground {
-    color: rgba(255, 255, 255, 0.55) !important;
-  }
-  .sidebar-primary .app-sidebar .border-l,
-  .sidebar-primary aside .border-l {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-  }
+
 
   /* Desain Card & Panel (Single Source of Truth) */
   .bg-card,
