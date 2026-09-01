@@ -604,12 +604,12 @@ export default function DashboardPage({
                   <button
                     key={idx}
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none"
+                    className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none"
                   >
-                    <div className={`w-12 h-12 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-[var(--ui-shadow-control)] group-active:shadow-none transition-all`}>
-                      <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all`}>
+                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
-                    <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                    <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
                       {shortcut.label}
                     </span>
                   </button>
@@ -1443,12 +1443,12 @@ export default function DashboardPage({
                       key={idx}
                       type="button"
                       onClick={() => setActiveTab(shortcut.tab)}
-                      className="flex flex-col items-center gap-1.5 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
+                      className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
                     >
-                      <div className={`w-12 h-12 rounded-[var(--ui-radius-card)] ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
-                        <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
+                      <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
+                        <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                      <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
                         {shortcut.label}
                       </span>
                     </button>
@@ -1771,19 +1771,19 @@ export default function DashboardPage({
               <button
                 key={i}
                 onClick={() => setActiveTab(shortcut.tab)}
-                className="bg-slate-50/90 py-2 sm:py-3 px-1 sm:px-2 rounded-[var(--ui-radius-card)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-xs transition-all duration-200 cursor-pointer text-center w-full group min-h-[68px] sm:min-h-[82px]"
+                className="bg-slate-50/90 py-2 px-1 rounded-[var(--ui-radius-control)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-sm transition-all duration-200 cursor-pointer text-center w-full group min-h-[60px] sm:min-h-[70px]"
               >
-                <div className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 flex items-center justify-center shrink-0">
                   {typeof shortcut.icon === 'string' ? (
-                    <img src={shortcut.icon} className="w-5 h-5 sm:w-7 sm:h-7 object-contain" alt="" />
+                    <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
                   ) : (
-                    <div className={`w-5 h-5 sm:w-7 sm:h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${shortcut.color}`}>
-                      <shortcut.icon size={14} strokeWidth={2.2} />
+                    <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${shortcut.color}`}>
+                      <shortcut.icon size={13} strokeWidth={2.2} />
                     </div>
                   )}
                 </div>
                 <div className="w-full">
-                  <p className="text-[9.5px] sm:text-[11px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
                 </div>
               </button>
             ))}
