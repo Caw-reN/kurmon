@@ -414,6 +414,7 @@ export default function HikvisionDashboard() {
               <table className="w-full text-left text-xs whitespace-nowrap">
                 <thead className="bg-white border-b border-slate-100 text-slate-400 uppercase tracking-wider font-bold">
                   <tr>
+                    <th className="px-3 py-3.5 w-12 text-center">No</th>
                     <th className="px-5 py-3.5">Waktu</th>
                     <th className="px-5 py-3.5">Nama / ID</th>
                     <th className="px-5 py-3.5">Mesin</th>
@@ -422,9 +423,12 @@ export default function HikvisionDashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
                   {loading ? (
-                    <tr><td colSpan={4} className="p-8 text-center text-slate-400">Memuat log...</td></tr>
-                  ) : paginatedLogs.map(log => (
+                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">Memuat log...</td></tr>
+                  ) : paginatedLogs.map((log, idx) => (
                     <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-3 py-3.5 text-center text-slate-400 font-bold">
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
+                      </td>
                       <td className="px-5 py-3.5">
                         {new Date(log.timestamp).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })}
                       </td>
@@ -439,7 +443,7 @@ export default function HikvisionDashboard() {
                     </tr>
                   ))}
                   {!loading && paginatedLogs.length === 0 && (
-                    <tr><td colSpan={4} className="p-8 text-center text-slate-400 font-medium">Tidak ada data log.</td></tr>
+                    <tr><td colSpan={5} className="p-8 text-center text-slate-400 font-medium">Tidak ada data log.</td></tr>
                   )}
                 </tbody>
               </table>

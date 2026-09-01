@@ -2034,6 +2034,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            <table className="w-full text-left border-collapse min-w-max">
              <thead>
                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider">
+                 <th className="px-2.5 py-3 w-12 font-black text-center border-r border-slate-200">NO</th>
                  <th className="px-4 py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200">NAMA SISWA</th>
                  <th className="px-3 py-3 font-black text-center border-r border-slate-200">HDR</th>
                  <th className="px-3 py-3 font-black text-center border-r border-slate-200">TLT</th>
@@ -2050,20 +2051,23 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <tbody className="text-sm font-medium text-slate-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
+                    <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
                   </tr>
                 ) : paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={6 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
+                    <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
                   </tr>
                 ) : (
-                  paginatedData.map(d => {
+                  paginatedData.map((d, idx) => {
                     const v = checkViolation(d, daysToRender);
                     return (
                       <tr 
                         key={d.nis} 
                         className={`border-b transition-colors ${v.bgClass}`}
                       >
+                         <td className="px-2.5 py-2.5 text-center text-slate-400 font-bold text-xs border-r border-slate-200">
+                            {(currentPage - 1) * itemsPerPage + idx + 1}
+                         </td>
                          <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[190px] ${v.stickyBgClass}`}>
                             <div className="flex items-center gap-1.5 min-w-0">
                               <span className={`font-bold text-xs truncate max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>

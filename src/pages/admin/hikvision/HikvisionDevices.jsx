@@ -228,6 +228,7 @@ export default function HikvisionDevices() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500">
               <tr>
+                <th className="px-3 py-2.5 font-bold text-center w-12">No</th>
                 <th className="px-4 py-2.5 font-bold">Lokasi</th>
                 <th className="px-4 py-2.5 font-bold">IP Address</th>
                 <th className="px-4 py-2.5 font-bold">Username</th>
@@ -237,9 +238,10 @@ export default function HikvisionDevices() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Memuat data mesin...</td></tr>
-              ) : devices.map(device => (
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Memuat data mesin...</td></tr>
+              ) : devices.map((device, idx) => (
                 <tr key={device.id} className="hover:bg-slate-50">
+                  <td className="px-3 py-2.5 text-center text-slate-400 font-bold text-xs">{idx + 1}</td>
                   <td className="px-4 py-2.5">
                     <div className="font-bold text-slate-800 flex items-center gap-2">
                       <HardDrive size={16} className="text-slate-400" /> {device.location}
@@ -273,7 +275,7 @@ export default function HikvisionDevices() {
                 </tr>
               ))}
               {!loading && devices.length === 0 && (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Belum ada perangkat yang terdaftar.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada perangkat terdaftar.</td></tr>
               )}
             </tbody>
           </table>
