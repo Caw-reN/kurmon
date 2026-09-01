@@ -1021,6 +1021,22 @@ export default function TabTampilan(props) {
                               <option value="underline">Garis Bawah (Underline Modern)</option>
                             </UISelect>
                           </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya TabBar Mobile (Bawah)</label>
+                            <UISelect 
+                              value={appSettings.tabbarStyle || "top_line"} 
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setAppSettings({ ...appSettings, tabbarStyle: val });
+                                localStorage.setItem('kurmon_tabbar_nav_style', val);
+                                window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
+                              }} 
+                              className="w-full"
+                            >
+                              <option value="top_line">Gaya 2: Garis Indikator Atas (Top Indicator Line)</option>
+                              <option value="minimal">Gaya 1: Minimalis Bersih (Clean Minimal)</option>
+                            </UISelect>
+                          </div>
                         </div>
                       </div>
                       <div className="pt-4 border-t border-slate-200/60 mt-4 space-y-4">

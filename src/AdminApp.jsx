@@ -3914,6 +3914,7 @@ export default function App() {
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen} 
         hasPiket={hasPiket}
+        appSettings={appSettings}
       />
     </main>
 

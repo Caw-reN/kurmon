@@ -28,9 +28,20 @@ export default function AdminMobileNav({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   hasPiket,
+  appSettings,
 }) {
+  const [navStyle, setNavStyle] = React.useState(() => {
+    return localStorage.getItem('kurmon_tabbar_nav_style') || appSettings?.tabbarStyle || 'top_line';
+  });
 
-
+  React.useEffect(() => {
+    const handleStyleChange = () => {
+      const saved = localStorage.getItem('kurmon_tabbar_nav_style') || appSettings?.tabbarStyle || 'top_line';
+      setNavStyle(saved);
+    };
+    window.addEventListener('kurmon_tabbar_style_changed', handleStyleChange);
+    return () => window.removeEventListener('kurmon_tabbar_style_changed', handleStyleChange);
+  }, [appSettings?.tabbarStyle]);
   const getRoleTabs = () => {
     const role = (activeUserRole || currentUser?.role || '').toLowerCase();
     const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
@@ -186,6 +197,8 @@ export default function AdminMobileNav({
     )
   );
 
+  const isTopLineStyle = navStyle !== 'minimal';
+
   return (
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 w-full z-50 print:hidden"
@@ -193,12 +206,12 @@ export default function AdminMobileNav({
       aria-label="Navigasi Mobile"
     >
       <div
-        className="flex items-center justify-around px-1 pt-2"
+        className="flex items-stretch justify-around px-1"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
           backgroundColor: 'var(--ui-card-bg, #ffffff)',
           borderTop: '1px solid var(--ui-border-soft, #e2e8f0)',
-          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 -2px 16px rgba(0, 0, 0, 0.05)',
         }}
       >
         {allTabs.map(tab => {
@@ -226,13 +239,30 @@ export default function AdminMobileNav({
                   if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
               }}
-              className="relative flex-1 flex flex-col items-center justify-center border-none cursor-pointer bg-transparent min-w-0 py-1 select-none touch-manipulation active:opacity-70 transition-opacity"
+              className="relative flex-1 flex flex-col items-center justify-between border-none cursor-pointer bg-transparent min-w-0 pb-1 select-none touch-manipulation active:opacity-70 transition-opacity"
               style={{
-                minHeight: '48px',
-                gap: '4px',
+                minHeight: '52px',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
+              {/* Gaya 2: Top Line Active Indicator */}
+              {isTopLineStyle ? (
+                <div className="w-full flex justify-center h-[3px] mb-1">
+                  <div
+                    style={{
+                      height: '3px',
+                      width: isActive ? '36px' : '0px',
+                      backgroundColor: isActive ? 'var(--ui-primary, #059669)' : 'transparent',
+                      borderRadius: '999px',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: isActive ? '0 1px 4px color-mix(in srgb, var(--ui-primary, #059669) 50%, transparent)' : 'none',
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="h-1.5" />
+              )}
+
               {/* Icon */}
               <div className="flex items-center justify-center">
                 <IconComponent
@@ -242,7 +272,7 @@ export default function AdminMobileNav({
                   style={{
                     color: isActive ? 'var(--ui-primary, #059669)' : '#64748b',
                     transition: 'color 0.15s ease, transform 0.15s ease',
-                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                    transform: isActive ? 'scale(1.06)' : 'scale(1)',
                     flexShrink: 0,
                   }}
                 />
@@ -256,7 +286,9 @@ export default function AdminMobileNav({
                   textAlign: 'center',
                   fontSize: '11px',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? 'var(--ui-primary, #059669)' : '#64748b',
+                  color: isActive
+                    ? (isTopLineStyle ? 'var(--ui-primary, #059669)' : 'var(--ui-text-main, #0f172a)')
+                    : '#64748b',
                   letterSpacing: '-0.01em',
                   lineHeight: 1.1,
                   overflow: 'hidden',
