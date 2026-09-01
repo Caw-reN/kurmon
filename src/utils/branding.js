@@ -97,25 +97,25 @@ export const applyDocumentBranding = (settings = {}) => {
   let radiusControl = '10px';
   let radiusSmall = '8px';
   let radiusCard = '16px';
-  let radiusVal = "0.75rem";
+  let radiusVal = "0.625rem";
   if (settings.uiRadius === 'none') {
-    radiusControl = '4px';
-    radiusSmall = '4px';
-    radiusCard = '6px';
-    radiusVal = "0.25rem";
+    radiusControl = '2px';
+    radiusSmall = '2px';
+    radiusCard = '4px';
+    radiusVal = "0.125rem";
   } else if (settings.uiRadius === 'sm') {
-    radiusControl = '8px';
-    radiusSmall = '6px';
-    radiusCard = '12px';
-    radiusVal = "0.5rem";
+    radiusControl = '6px';
+    radiusSmall = '4px';
+    radiusCard = '8px';
+    radiusVal = "0.375rem";
   } else if (settings.uiRadius === 'lg') {
     radiusControl = '14px';
     radiusSmall = '10px';
-    radiusCard = '22px';
-    radiusVal = "1rem";
+    radiusCard = '20px';
+    radiusVal = "0.875rem";
   } else if (settings.uiRadius === 'full') {
     radiusControl = '999px';
-    radiusSmall = '12px';
+    radiusSmall = '10px';
     radiusCard = '24px';
     radiusVal = "1.25rem";
   }

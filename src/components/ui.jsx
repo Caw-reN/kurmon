@@ -283,11 +283,11 @@ export const Button = ({ children, variant = "primary", size = "default", classN
   };
 
   const sizeStyles = {
-    default: 'h-10 px-4 py-2 text-sm font-bold rounded-[var(--ui-radius-small,12px)] gap-1.5',
-    sm: 'h-8 px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-small,10px)] gap-1.5',
-    xs: 'h-6 px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-small,8px)] gap-1',
-    lg: 'h-11 px-5 py-2.5 text-base font-extrabold rounded-[var(--ui-radius-small,14px)] gap-2',
-    icon: 'w-10 h-10 p-2 flex-shrink-0 rounded-[var(--ui-radius-small,12px)] flex items-center justify-center',
+    default: 'h-10 px-4 py-2 text-sm font-bold rounded-[var(--ui-radius-control)] gap-1.5',
+    sm: 'h-8 px-3 py-1.5 text-xs font-bold rounded-[var(--ui-radius-control)] gap-1.5',
+    xs: 'h-6 px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-small)] gap-1',
+    lg: 'h-11 px-5 py-2.5 text-base font-extrabold rounded-[var(--ui-radius-control)] gap-2',
+    icon: 'w-10 h-10 p-2 flex-shrink-0 rounded-[var(--ui-radius-control)] flex items-center justify-center',
   };
 
   const baseStyles = 'inline-flex items-center justify-center transition-all duration-200 outline-none select-none disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap cursor-pointer';

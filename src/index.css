@@ -1260,7 +1260,7 @@ input::-ms-clear {
   background: var(--ui-primary-btn, var(--ui-primary, #3b82f6)) !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: var(--ui-radius-small, 12px) !important;
+  border-radius: var(--ui-radius-control, 10px) !important;
 }
 
 /* FLAT (No Shadow) */
@@ -1276,7 +1276,7 @@ input::-ms-clear {
   background: var(--ui-primary-btn, var(--ui-primary, #3b82f6)) !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: var(--ui-radius-small, 12px) !important;
+  border-radius: var(--ui-radius-control, 10px) !important;
 }
 
 /* OUTLINE */
@@ -1292,7 +1292,7 @@ input::-ms-clear {
   background: transparent !important;
   color: var(--ui-primary-btn, var(--ui-primary, #3b82f6)) !important;
   border: 2px solid var(--ui-primary-btn, var(--ui-primary, #3b82f6)) !important;
-  border-radius: var(--ui-radius-small, 12px) !important;
+  border-radius: var(--ui-radius-control, 10px) !important;
 }
 .btn-style-outline [data-slot="button"][data-variant="primary"]:hover,
 .btn-style-outline [data-slot="button"][data-variant="default"]:hover,
@@ -1311,7 +1311,7 @@ input::-ms-clear {
   color: #ffffff !important;
   border: none !important;
   box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--ui-primary-btn, var(--ui-primary, #3b82f6)) 45%, transparent) !important;
-  border-radius: var(--ui-radius-small, 12px) !important;
+  border-radius: var(--ui-radius-control, 10px) !important;
   transition: box-shadow 0.2s ease, transform 0.15s ease !important;
 }
 .btn-style-shadow [data-slot="button"][data-variant="primary"]:hover,
@@ -1330,7 +1330,7 @@ input::-ms-clear {
   color: #ffffff !important;
   border: none !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
-  border-radius: var(--ui-radius-small, 12px) !important;
+  border-radius: var(--ui-radius-control, 10px) !important;
   transition: filter 0.2s ease, transform 0.15s ease !important;
 }
 .btn-style-gradient [data-slot="button"][data-variant="primary"]:hover,
