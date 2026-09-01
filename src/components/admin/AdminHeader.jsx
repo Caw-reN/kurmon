@@ -274,18 +274,8 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
   return (
     <header className="app-header flex h-14 bg-background px-3 sm:px-5 md:px-8 items-center justify-between shrink-0 relative z-[60] border-none shadow-none !border-none !shadow-none print:hidden">
       
-      {/* Left: Mobile Menu Button & Desktop Sidebar Toggle & Brand/Keterangan */}
+      {/* Left: Desktop Sidebar Toggle & Brand/Keterangan */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
-        <button
-          type="button"
-          onClick={onOpenMobileMenu}
-          className="flex lg:hidden p-2 text-foreground hover:bg-muted active:translate-y-[1px] border border-border rounded-[var(--ui-radius-small)] items-center justify-center cursor-pointer transition-all shrink-0"
-          title="Buka Menu Mobile"
-        >
-          <Menu size={18} strokeWidth={2.5} />
-        </button>
-
-
         
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {IconComponent && (

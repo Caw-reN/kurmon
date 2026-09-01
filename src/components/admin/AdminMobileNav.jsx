@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Home, 
   Calendar, 
@@ -10,7 +10,7 @@ import {
   GraduationCap, 
   Briefcase, 
   ClipboardList,
-  Menu
+  MoreHorizontal
 } from 'lucide-react';
 import { isSuperAdminRole } from '../../utils/constants.js';
 
@@ -29,18 +29,7 @@ export default function AdminMobileNav({
   setIsMobileMenuOpen,
   hasPiket,
 }) {
-  const [tabbarStyle, setTabbarStyle] = useState(() => {
-    return localStorage.getItem('kurmon_tabbar_style') || 'floating';
-  });
 
-  useEffect(() => {
-    const handleStyleChange = () => {
-      const saved = localStorage.getItem('kurmon_tabbar_style') || 'floating';
-      setTabbarStyle(saved);
-    };
-    window.addEventListener('kurmon_tabbar_style_changed', handleStyleChange);
-    return () => window.removeEventListener('kurmon_tabbar_style_changed', handleStyleChange);
-  }, []);
 
   const getRoleTabs = () => {
     const role = (activeUserRole || currentUser?.role || '').toLowerCase();
@@ -169,87 +158,120 @@ export default function AdminMobileNav({
       ];
     }
 
-    if (isSuperAdminRole(role)) {
-      return [
-        { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
-        { id: 'generate', icon: Calendar, label: 'Jadwal' },
-        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'hak_akses', icon: FileText, label: 'Akses' },
-      ];
-    }
+    if (isSuperAdminRole(role)) return [
+      { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
+      { id: 'generate', icon: Calendar, label: 'Jadwal' },
+      { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+    ];
 
     return [
       { id: 'generate', icon: Calendar, label: 'Jadwal' },
       { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
       { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
-      { id: 'walas_report', icon: PieChart, label: 'Laporan' },
     ];
   };
 
-  const roleTabs = getRoleTabs();
-  const primaryRoleTabs = roleTabs.slice(0, 3);
+  const primaryRoleTabs = getRoleTabs().slice(0, 3);
 
   const allTabs = [
     { id: 'dashboard', icon: Home, label: 'Beranda' },
     ...primaryRoleTabs,
-    { id: '__menu__', icon: Menu, label: 'Menu', isMenuTrigger: true },
+    { id: '__menu__', icon: MoreHorizontal, label: 'Menu', isMenuTrigger: true },
   ];
 
-  const isAnyDirectTabActive = allTabs.some(t => !t.isMenuTrigger && (activeTab === t.id || (t.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'))));
-
-  const containerClasses = tabbarStyle === 'stay'
-    ? "lg:hidden fixed bottom-0 left-0 right-0 w-full bg-[var(--ui-surface-raised)] backdrop-blur-xl border-t border-[var(--ui-border-soft)] pt-1.5 px-2 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[var(--ui-shadow-float)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation"
-    : "lg:hidden fixed bottom-[calc(10px+env(safe-area-inset-bottom,0px))] left-3 right-3 max-w-md mx-auto bg-[var(--ui-surface-raised)] backdrop-blur-xl border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-card)] p-1.5 shadow-[var(--ui-shadow-float-hover)] z-50 flex items-center justify-around gap-1 text-center transition-all duration-300 pointer-events-auto select-none touch-manipulation";
+  const isAnyDirectTabActive = allTabs.some(
+    t => !t.isMenuTrigger && (
+      activeTab === t.id ||
+      (t.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'))
+    )
+  );
 
   return (
-    <div className={containerClasses} role="navigation" aria-label="Mobile Navigation">
-      {allTabs.map(tab => {
-        const isMenuTrigger = tab.isMenuTrigger;
-        const isActive = isMenuTrigger
-          ? (isMobileMenuOpen || !isAnyDirectTabActive)
-          : (activeTab === tab.id || (tab.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard')));
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 w-full z-50 print:hidden"
+      role="navigation"
+      aria-label="Navigasi Mobile"
+    >
+      <div
+        className="flex items-stretch justify-around px-1.5 pt-1.5"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+          background: 'color-mix(in srgb, var(--ui-card-bg, #ffffff) 95%, transparent)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          borderTop: '1px solid var(--ui-border-soft, rgba(0,0,0,0.07))',
+          boxShadow: '0 -2px 20px rgba(0,0,0,0.06)',
+        }}
+      >
+        {allTabs.map(tab => {
+          const isMenuTrigger = tab.isMenuTrigger;
+          const isActive = isMenuTrigger
+            ? (isMobileMenuOpen || !isAnyDirectTabActive)
+            : (
+                activeTab === tab.id ||
+                (tab.id === 'dashboard' && (activeTab === 'overview' || activeTab === 'dashboard'))
+              );
 
-        const IconComponent = tab.icon;
+          const IconComponent = tab.icon;
 
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => {
-              if (isMenuTrigger) {
-                if (setIsMobileMenuOpen) {
-                  setIsMobileMenuOpen(prev => !prev);
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              aria-label={tab.label}
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => {
+                if (isMenuTrigger) {
+                  if (setIsMobileMenuOpen) setIsMobileMenuOpen(prev => !prev);
+                } else {
+                  setActiveTab(tab.id);
+                  if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
-              } else {
-                setActiveTab(tab.id);
-                if (setIsMobileMenuOpen) {
-                  setIsMobileMenuOpen(false);
-                }
-              }
-            }}
-            className={`relative flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-[var(--ui-radius-control)] transition-all duration-200 border-none cursor-pointer bg-transparent min-w-0 group active:scale-90 select-none ${
-              isActive ? 'text-[var(--ui-primary)]' : 'text-slate-400 hover:text-slate-600'
-            }`}
-            style={{ minHeight: '50px' }}
-          >
-            {/* Pill Capsule Active Indicator */}
-            <div className={`px-3 py-1 rounded-[var(--ui-radius-pill)] transition-all duration-200 flex items-center justify-center ${
-              isActive ? 'bg-[var(--ui-primary)]/12 shadow-2xs' : 'group-active:bg-slate-100'
-            }`}>
-              <IconComponent
-                size={21}
-                style={{ color: isActive ? 'var(--ui-primary)' : 'currentColor' }}
-                className={`shrink-0 transition-transform duration-200 ${isActive ? 'scale-110 stroke-[2.5]' : 'stroke-[1.8]'}`}
-              />
-            </div>
-            <span className={`text-[10px] tracking-tight truncate w-full text-center leading-tight mt-0.5 ${
-              isActive ? 'text-[var(--ui-primary)] font-black' : 'text-slate-500 font-semibold'
-            }`}>
-              {tab.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+              }}
+              className="relative flex-1 flex flex-col items-center justify-center gap-[3px] border-none cursor-pointer bg-transparent min-w-0 active:scale-90 transition-transform duration-150 select-none touch-manipulation"
+              style={{ minHeight: '52px' }}
+            >
+              {/* Solid pill active indicator */}
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '44px',
+                  height: '28px',
+                  borderRadius: 'var(--ui-radius-pill, 999px)',
+                  background: isActive ? 'var(--ui-primary)' : 'transparent',
+                  boxShadow: isActive ? '0 2px 10px color-mix(in srgb, var(--ui-primary) 40%, transparent)' : 'none',
+                  transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                  transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
+                }}
+              >
+                <IconComponent
+                  size={18}
+                  strokeWidth={isActive ? 2.6 : 1.9}
+                  style={{
+                    color: isActive ? '#ffffff' : 'var(--ui-text-muted, #94a3b8)',
+                    transition: 'color 0.18s',
+                    flexShrink: 0,
+                  }}
+                />
+              </div>
+
+              {/* Label */}
+              <span
+                className="truncate w-full text-center leading-none"
+                style={{
+                  fontSize: '10px',
+                  fontWeight: isActive ? 800 : 500,
+                  color: isActive ? 'var(--ui-primary)' : 'var(--ui-text-muted, #94a3b8)',
+                  letterSpacing: '-0.01em',
+                  transition: 'color 0.18s',
+                }}
+              >
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

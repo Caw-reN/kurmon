@@ -3852,7 +3852,7 @@ export default function App() {
     <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
       <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} toggleSidebar={toggleSidebar} isSidebarCollapsed={isSidebarCollapsed} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
 
-      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-4 pb-28 md:px-6 md:pb-6 pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
+      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-4 pb-[calc(72px+env(safe-area-inset-bottom,0px))] md:px-6 md:pb-6 pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
         <div className="flex-1 flex flex-col w-full min-w-0">
 
           {databaseHydrated ? (
