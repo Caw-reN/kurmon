@@ -206,12 +206,12 @@ export default function AdminMobileNav({
       aria-label="Navigasi Mobile"
     >
       <div
-        className="flex items-stretch justify-around px-1"
+        className="flex items-stretch justify-around px-2 rounded-t-[20px]"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
           backgroundColor: 'var(--ui-card-bg, #ffffff)',
           borderTop: '1px solid var(--ui-border-soft, #e2e8f0)',
-          boxShadow: '0 -2px 16px rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 -4px 25px rgba(0, 0, 0, 0.06)',
         }}
       >
         {allTabs.map(tab => {
@@ -239,40 +239,42 @@ export default function AdminMobileNav({
                   if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
               }}
-              className="relative flex-1 flex flex-col items-center justify-between border-none cursor-pointer bg-transparent min-w-0 pb-1 select-none touch-manipulation active:opacity-70 transition-opacity"
+              className="relative flex-1 flex flex-col items-center justify-start border-none cursor-pointer bg-transparent min-w-0 select-none touch-manipulation active:opacity-70 transition-opacity"
               style={{
-                minHeight: '52px',
+                minHeight: '58px',
+                paddingTop: '0px',
+                paddingBottom: '4px',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
               {/* Gaya 2: Top Line Active Indicator */}
               {isTopLineStyle ? (
-                <div className="w-full flex justify-center h-[3px] mb-1">
+                <div className="w-full flex justify-center h-[3px] mb-2">
                   <div
                     style={{
                       height: '3px',
-                      width: isActive ? '36px' : '0px',
+                      width: isActive ? '32px' : '0px',
                       backgroundColor: isActive ? 'var(--ui-primary, #059669)' : 'transparent',
                       borderRadius: '999px',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: isActive ? '0 1px 4px color-mix(in srgb, var(--ui-primary, #059669) 50%, transparent)' : 'none',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: isActive ? '0 1px 6px color-mix(in srgb, var(--ui-primary, #059669) 50%, transparent)' : 'none',
                     }}
                   />
                 </div>
               ) : (
-                <div className="h-1.5" />
+                <div className="h-[7px] w-full" />
               )}
 
-              {/* Icon */}
-              <div className="flex items-center justify-center">
+              {/* Icon Container with spacious margins */}
+              <div className="flex items-center justify-center mb-1.5 mt-0.5">
                 <IconComponent
-                  size={22}
-                  strokeWidth={isActive ? 2.4 : 1.8}
+                  size={21}
+                  strokeWidth={isActive ? 2.3 : 1.75}
                   fill={isActive ? 'currentColor' : 'none'}
                   style={{
                     color: isActive ? 'var(--ui-primary, #059669)' : '#64748b',
                     transition: 'color 0.15s ease, transform 0.15s ease',
-                    transform: isActive ? 'scale(1.06)' : 'scale(1)',
+                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
                     flexShrink: 0,
                   }}
                 />
@@ -284,13 +286,13 @@ export default function AdminMobileNav({
                   display: 'block',
                   width: '100%',
                   textAlign: 'center',
-                  fontSize: '11px',
+                  fontSize: '10.5px',
                   fontWeight: isActive ? 700 : 500,
                   color: isActive
                     ? (isTopLineStyle ? 'var(--ui-primary, #059669)' : 'var(--ui-text-main, #0f172a)')
                     : '#64748b',
                   letterSpacing: '-0.01em',
-                  lineHeight: 1.1,
+                  lineHeight: 1.15,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
