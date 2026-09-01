@@ -26,8 +26,8 @@ import { AdminHeader } from "./components/admin/AdminHeader.jsx";
 import AdminContentRouter from "./components/admin/AdminContentRouter.jsx";
 import { WorkspaceGuidePanel } from "./components/WorkspaceGuidePanel.jsx";
 import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
-import SystemModals from './components/admin/SystemModals.jsx';
-import CrudModals from './components/admin/CrudModals.jsx';
+const SystemModals = lazy(() => import('./components/admin/SystemModals.jsx'));
+const CrudModals = lazy(() => import('./components/admin/CrudModals.jsx'));
 const BulkEditModal = lazy(() => import('./components/admin/BulkEditModal.jsx'));
 const DefaultPasswordModal = lazy(() => import('./components/admin/DefaultPasswordModal.jsx'));
 import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
@@ -3922,7 +3922,9 @@ export default function App() {
     {/* ================= MODALS ================= */}
 
     {/* Modal Auto-Generate Waktu */}
-    <SystemModals modalConfig={modalConfig} closeModal={closeModal} formData={formData} setFormData={setFormData} isSavingModal={isSavingModal} selectedDaySetting={selectedDaySetting} handleGenerateSlots={handleGenerateSlots} handleSave={handleSave} footerInfoModal={footerInfoModal} closeFooterInfo={closeFooterInfo} currentUser={currentUser} showNotification={showNotification} adminUser={adminUser} teachers={teachers} staffs={staffs} />
+    <Suspense fallback={null}>
+      <SystemModals modalConfig={modalConfig} closeModal={closeModal} formData={formData} setFormData={setFormData} isSavingModal={isSavingModal} selectedDaySetting={selectedDaySetting} handleGenerateSlots={handleGenerateSlots} handleSave={handleSave} footerInfoModal={footerInfoModal} closeFooterInfo={closeFooterInfo} currentUser={currentUser} showNotification={showNotification} adminUser={adminUser} teachers={teachers} staffs={staffs} />
+    </Suspense>
 
 
 
@@ -3948,7 +3950,9 @@ export default function App() {
       <SyllabusBatchModal isOpen={modalConfig.isOpen && modalConfig.type === "silabus_batch"} onClose={closeModal} subjects={subjects} teachers={teachers} formData={formData} setFormData={setFormData} onSubmit={handleSyllabusBatchSave} />
     </Suspense>
 
-    <CrudModals modalConfig={modalConfig} closeModal={closeModal} handleSave={handleSave} formData={formData} setFormData={setFormData} classes={classes} majors={majors} teachers={teachers} subjects={subjects} currentUser={currentUser} isSavingModal={isSavingModal} GRADES={GRADES} isAllLike={isAllLike} isSuperAdminRole={isSuperAdminRole} appSettings={appSettings} rooms={rooms} parseCsvList={parseCsvList} serializeCsvList={serializeCsvList} days={days} selectedDaySetting={selectedDaySetting} teacherAvailability={teacherAvailability} csvValuesIntersect={csvValuesIntersect} setBulkConflictMode={setBulkConflictMode} bulkConflictMode={bulkConflictMode} setBulkLoadGrades={setBulkLoadGrades} bulkLoadGrades={bulkLoadGrades} setBulkLoadMajors={setBulkLoadMajors} bulkLoadMajors={bulkLoadMajors} handleBulkAddLoads={handleBulkAddLoads} calendarCategories={calendarCategories} syllabuses={syllabuses} sameText={sameText} syllabusCategories={syllabusCategories} />
+    <Suspense fallback={null}>
+      <CrudModals modalConfig={modalConfig} closeModal={closeModal} handleSave={handleSave} formData={formData} setFormData={setFormData} classes={classes} majors={majors} teachers={teachers} subjects={subjects} currentUser={currentUser} isSavingModal={isSavingModal} GRADES={GRADES} isAllLike={isAllLike} isSuperAdminRole={isSuperAdminRole} appSettings={appSettings} rooms={rooms} parseCsvList={parseCsvList} serializeCsvList={serializeCsvList} days={days} selectedDaySetting={selectedDaySetting} teacherAvailability={teacherAvailability} csvValuesIntersect={csvValuesIntersect} setBulkConflictMode={setBulkConflictMode} bulkConflictMode={bulkConflictMode} setBulkLoadGrades={setBulkLoadGrades} bulkLoadGrades={bulkLoadGrades} setBulkLoadMajors={setBulkLoadMajors} bulkLoadMajors={bulkLoadMajors} handleBulkAddLoads={handleBulkAddLoads} calendarCategories={calendarCategories} syllabuses={syllabuses} sameText={sameText} syllabusCategories={syllabusCategories} />
+    </Suspense>
     <Suspense fallback={null}>
       <BulkEditModal 
         isOpen={modalConfig.isOpen && modalConfig.type === "bulk_edit"} 
