@@ -548,6 +548,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
             const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
             
+            // Auto-sync jam mesin ke waktu server (WIB) agar tidak ada pergeseran waktu
+            try {
+              const nowUtc = new Date();
+              const jktTime = new Date(nowUtc.getTime() + (7 * 60 * 60 * 1000));
+              const isoJkt = jktTime.toISOString().replace(/\.\d{3}Z$/, '+07:00');
+              const timeXml = `<Time version="2.0" xmlns="http://www.hikvision.com/ver20/XMLSchema"><timeMode>manual</timeMode><localTime>${isoJkt}</localTime><timeZone>CST-7:00:00</timeZone></Time>`;
+              await api.request('/ISAPI/System/time', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/xml' },
+                body: timeXml
+              });
+            } catch { /* abaikan error waktu agar sync log tetap lanjut */ }
+            
             // Sync Wajah
             const users = await api.getUsers();
             if (users && users.length > 0) {
@@ -772,6 +785,45 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         sendDatabaseError(req, res, err);
       }
       return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/hikvision/sync-time") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+
+      try {
+        const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices ORDER BY id");
+        const results = [];
+
+        const nowUtc = new Date();
+        const jktTime = new Date(nowUtc.getTime() + (7 * 60 * 60 * 1000));
+        const isoJkt = jktTime.toISOString().replace(/\.\d{3}Z$/, '+07:00');
+        const xmlBody = `<Time version="2.0" xmlns="http://www.hikvision.com/ver20/XMLSchema"><timeMode>manual</timeMode><localTime>${isoJkt}</localTime><timeZone>CST-7:00:00</timeZone></Time>`;
+
+        for (const dev of devices) {
+          try {
+            const plainPass = decryptPassword(dev.encrypted_password, dev.iv_vector);
+            const api = new HikvisionAPI(dev.ip_address, dev.username, plainPass);
+            const putRes = await api.request('/ISAPI/System/time', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/xml' },
+              body: xmlBody
+            });
+            if (putRes.ok) {
+              results.push({ id: dev.id, ip: dev.ip_address, location: dev.location, status: 'success', syncedTime: isoJkt });
+            } else {
+              results.push({ id: dev.id, ip: dev.ip_address, location: dev.location, status: 'error', message: `HTTP ${putRes.status}` });
+            }
+          } catch (e) {
+            results.push({ id: dev.id, ip: dev.ip_address, location: dev.location, status: 'error', message: e.message });
+          }
+        }
+
+        return send(req, res, 200, { ok: true, message: "Sinkronisasi waktu seluruh mesin berhasil.", results });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
     }
 
     if (req.method === "GET" && url.pathname === "/api/hikvision/config") {
