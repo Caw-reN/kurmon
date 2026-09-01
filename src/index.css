@@ -429,20 +429,23 @@
   /* Form Input Styles */
   .input-style-filled input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only),
   .input-style-filled textarea,
-  .input-style-filled select {
+  .input-style-filled select,
+  .input-style-filled [data-slot="select-trigger"] {
     background-color: var(--ui-surface-muted, #f1f5f9) !important;
     border-color: transparent !important;
   }
   .input-style-filled input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only):focus,
   .input-style-filled textarea:focus,
-  .input-style-filled select:focus {
+  .input-style-filled select:focus,
+  .input-style-filled [data-slot="select-trigger"]:focus {
     background-color: #ffffff !important;
     border-color: var(--ui-primary) !important;
   }
 
   .input-style-underline input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only),
   .input-style-underline textarea,
-  .input-style-underline select {
+  .input-style-underline select,
+  .input-style-underline [data-slot="select-trigger"] {
     border-radius: 0 !important;
     border-top: none !important;
     border-left: none !important;
@@ -455,7 +458,8 @@
   }
   .input-style-underline input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(.sr-only):focus,
   .input-style-underline textarea:focus,
-  .input-style-underline select:focus {
+  .input-style-underline select:focus,
+  .input-style-underline [data-slot="select-trigger"]:focus {
     border-bottom-color: var(--ui-primary) !important;
     box-shadow: none !important;
   }

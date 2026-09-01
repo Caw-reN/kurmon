@@ -291,34 +291,34 @@ export default function TabTampilan(props) {
                           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                             <div className="sm:col-span-4">
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Aplikasi</label>
-                              <input type="text" value={appSettings.appName} onChange={(e) => setAppSettings({ ...appSettings, appName: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                              <input type="text" value={appSettings.appName} onChange={(e) => setAppSettings({ ...appSettings, appName: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                             </div>
                             <div className="sm:col-span-3">
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Tagline (Atas Logo)</label>
-                              <input type="text" placeholder="PORTAL" value={appSettings.logoSmallText !== undefined ? appSettings.logoSmallText :"PORTAL"} onChange={(e) => setAppSettings({ ...appSettings, logoSmallText: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                              <input type="text" placeholder="PORTAL" value={appSettings.logoSmallText !== undefined ? appSettings.logoSmallText :"PORTAL"} onChange={(e) => setAppSettings({ ...appSettings, logoSmallText: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                             </div>
                             <div className="sm:col-span-3">
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Subjudul / Versi</label>
-                              <input type="text" value={appSettings.appSubtitle ||""} placeholder="Contoh: v0.5.15" onChange={(e) => setAppSettings({ ...appSettings, appSubtitle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                              <input type="text" value={appSettings.appSubtitle ||""} placeholder="Contoh: v0.5.15" onChange={(e) => setAppSettings({ ...appSettings, appSubtitle: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                             </div>
                             <div className="sm:col-span-2">
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Logo Singkat</label>
-                              <input type="text" maxLength={4} value={appSettings.logoText ||"TS"} onChange={(e) => setAppSettings({ ...appSettings, logoText: e.target.value.toUpperCase() })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm text-center" />
+                              <input type="text" maxLength={4} value={appSettings.logoText ||"TS"} onChange={(e) => setAppSettings({ ...appSettings, logoText: e.target.value.toUpperCase() })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs text-center" />
                             </div>
                           </div>
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Tampilan Web (Browser Title)</label>
-                              <input type="text" placeholder="Contoh: KG2 School | Jadwal & Denah" value={appSettings.siteTitle ||""} onChange={(e) => setAppSettings({ ...appSettings, siteTitle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                              <input type="text" placeholder="Contoh: KG2 School | Jadwal & Denah" value={appSettings.siteTitle ||""} onChange={(e) => setAppSettings({ ...appSettings, siteTitle: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                             </div>
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Deskripsi Web (Meta Description)</label>
-                              <textarea placeholder="Deskripsi ringkas website untuk pencarian Google / SEO..." value={appSettings.siteDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, siteDescription: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm h-11 resize-none" />
+                              <textarea placeholder="Deskripsi ringkas website untuk pencarian Google / SEO..." value={appSettings.siteDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, siteDescription: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs h-11 resize-none" />
                             </div>
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Ukuran Kertas Default (PDF/Cetak)</label>
-                              <UISelect value={appSettings.defaultPaperSize ||"A4"} onChange={(e) => setAppSettings({ ...appSettings, defaultPaperSize: e.target.value })} className="w-full border-none bg-white p-2.5 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm h-11">
+                              <UISelect value={appSettings.defaultPaperSize ||"A4"} onChange={(e) => setAppSettings({ ...appSettings, defaultPaperSize: e.target.value })} className="w-full">
                                 <option value="A4">A4 (Standar)</option>
                                 <option value="F4">F4 (Folio/HVS)</option>
                               </UISelect>
@@ -368,24 +368,24 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Headline Utama</label>
-                            <input type="text" value={appSettings.heroTitle} onChange={(e) => setAppSettings({ ...appSettings, heroTitle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                            <input type="text" value={appSettings.heroTitle} onChange={(e) => setAppSettings({ ...appSettings, heroTitle: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Subjudul Penjelasan</label>
-                            <textarea value={appSettings.heroSubtitle} onChange={(e) => setAppSettings({ ...appSettings, heroSubtitle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm h-24 resize-none"></textarea>
+                            <textarea value={appSettings.heroSubtitle} onChange={(e) => setAppSettings({ ...appSettings, heroSubtitle: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs h-24 resize-none"></textarea>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Warna Teks Headline</label>
-                              <input type="color" value={appSettings.heroTitleColor ||"#1e293b"} onChange={(e) => setAppSettings({ ...appSettings, heroTitleColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-sm" />
+                              <input type="color" value={appSettings.heroTitleColor ||"#1e293b"} onChange={(e) => setAppSettings({ ...appSettings, heroTitleColor: e.target.value })} className="w-full h-8 border border-slate-200 bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-xs" />
                             </div>
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Warna Teks Subjudul</label>
-                              <input type="color" value={appSettings.heroSubtitleColor ||"#64748b"} onChange={(e) => setAppSettings({ ...appSettings, heroSubtitleColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-sm" />
+                              <input type="color" value={appSettings.heroSubtitleColor ||"#64748b"} onChange={(e) => setAppSettings({ ...appSettings, heroSubtitleColor: e.target.value })} className="w-full h-8 border border-slate-200 bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-xs" />
                             </div>
                             <div>
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Warna Garis Coretan</label>
-                              <input type="color" value={appSettings.heroHighlightColor || appSettings.primaryColor ||"#00bfa5"} onChange={(e) => setAppSettings({ ...appSettings, heroHighlightColor: e.target.value })} className="w-full h-8 border-none bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-sm" />
+                              <input type="color" value={appSettings.heroHighlightColor || appSettings.primaryColor ||"#00bfa5"} onChange={(e) => setAppSettings({ ...appSettings, heroHighlightColor: e.target.value })} className="w-full h-8 border border-slate-200 bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-xs" />
                             </div>
                           </div>
                           <div>
@@ -414,7 +414,7 @@ export default function TabTampilan(props) {
                                     }
                                   }
                                 }} 
-                                className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-sm font-medium focus:outline-[var(--ui-primary)] shadow-sm file:mr-3 file:py-1.5 file:px-4 file:rounded-[var(--ui-radius-card)] file:border-0 file:text-xs file:font-bold file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 file:cursor-pointer" 
+                                className="flex-1 border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-sm font-medium focus:outline-[var(--ui-primary)] shadow-xs file:mr-3 file:py-1.5 file:px-4 file:rounded-[var(--ui-radius-control)] file:border-0 file:text-xs file:font-bold file:bg-[var(--ui-primary)] file:text-white hover:file:opacity-90 file:cursor-pointer" 
                               />
                               {appSettings.heroImage && (
                                 <Button variant="outline" 
@@ -433,7 +433,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Deskripsi Footer</label>
-                            <textarea value={appSettings.footerDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, footerDescription: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-sm h-24 resize-none"></textarea>
+                            <textarea value={appSettings.footerDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, footerDescription: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs h-24 resize-none"></textarea>
                           </div>
                           
                           <div>
@@ -753,21 +753,21 @@ export default function TabTampilan(props) {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Kontak</label>
-                          <input type="email" value={appSettings.contactEmail ||""} onChange={(e) => setAppSettings({ ...appSettings, contactEmail: e.target.value })} placeholder="admin@school.sch.id" className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                          <input type="email" value={appSettings.contactEmail ||""} onChange={(e) => setAppSettings({ ...appSettings, contactEmail: e.target.value })} placeholder="admin@school.sch.id" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Telepon</label>
-                          <input type="text" value={appSettings.contactPhone ||""} onChange={(e) => setAppSettings({ ...appSettings, contactPhone: e.target.value })} placeholder="+62 123-456-789" className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                          <input type="text" value={appSettings.contactPhone ||""} onChange={(e) => setAppSettings({ ...appSettings, contactPhone: e.target.value })} placeholder="+62 123-456-789" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Instansi / Sekolah (Footer)</label>
-                          <input type="text" value={appSettings.instansiName ||""} onChange={(e) => setAppSettings({ ...appSettings, instansiName: e.target.value })} placeholder="Institusi Pendidikan Terpadu" className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                          <input type="text" value={appSettings.instansiName ||""} onChange={(e) => setAppSettings({ ...appSettings, instansiName: e.target.value })} placeholder="Institusi Pendidikan Terpadu" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Footer (Copyright)</label>
-                          <input type="text" value={appSettings.footerText ||""} onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value })} placeholder="© 2026..." className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                          <input type="text" value={appSettings.footerText ||""} onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value })} placeholder="© 2026..." className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                       </div>
 
@@ -776,19 +776,19 @@ export default function TabTampilan(props) {
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-pink-100 text-pink-500 flex items-center justify-center shrink-0"><Instagram size={14} /></div>
-                            <input type="text" placeholder="https://instagram.com/..." value={appSettings.socialInstagram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialInstagram: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                            <input type="text" placeholder="https://instagram.com/..." value={appSettings.socialInstagram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialInstagram: e.target.value })} className="flex-1 border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-500 flex items-center justify-center shrink-0"><Send size={14} /></div>
-                            <input type="text" placeholder="https://t.me/..." value={appSettings.socialTelegram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialTelegram: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                            <input type="text" placeholder="https://t.me/..." value={appSettings.socialTelegram ||""} onChange={(e) => setAppSettings({ ...appSettings, socialTelegram: e.target.value })} className="flex-1 border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0"><Facebook size={14} /></div>
-                            <input type="text" placeholder="https://facebook.com/..." value={appSettings.socialFacebook ||""} onChange={(e) => setAppSettings({ ...appSettings, socialFacebook: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                            <input type="text" placeholder="https://facebook.com/..." value={appSettings.socialFacebook ||""} onChange={(e) => setAppSettings({ ...appSettings, socialFacebook: e.target.value })} className="flex-1 border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><Youtube size={14} /></div>
-                            <input type="text" placeholder="https://youtube.com/..." value={appSettings.socialYoutube ||""} onChange={(e) => setAppSettings({ ...appSettings, socialYoutube: e.target.value })} className="flex-1 border-none bg-white p-2 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                            <input type="text" placeholder="https://youtube.com/..." value={appSettings.socialYoutube ||""} onChange={(e) => setAppSettings({ ...appSettings, socialYoutube: e.target.value })} className="flex-1 border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
                         </div>
                       </div>
@@ -938,13 +938,13 @@ export default function TabTampilan(props) {
                       <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Font Family</label>
-                          <UISelect value={appSettings.fontFamily ||"Lexend"} onChange={(e) => setAppSettings({ ...appSettings, fontFamily: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                          <UISelect value={appSettings.fontFamily ||"Lexend"} onChange={(e) => setAppSettings({ ...appSettings, fontFamily: e.target.value })} className="w-full">
                             <option value="Lexend">Lexend</option><option value="Poppins">Poppins</option><option value="Nunito">Nunito</option>
                           </UISelect>
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Sudut (Radius)</label>
-                          <UISelect value={appSettings.uiRadius ||"md"} onChange={(e) => setAppSettings({ ...appSettings, uiRadius: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                          <UISelect value={appSettings.uiRadius ||"md"} onChange={(e) => setAppSettings({ ...appSettings, uiRadius: e.target.value })} className="w-full">
                             <option value="sm">Kotak Halus (Small)</option>
                             <option value="md">Modern (Medium)</option>
                             <option value="lg">Melengkung (Large)</option>
@@ -958,14 +958,14 @@ export default function TabTampilan(props) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Lebar Konten Layar (Layout Mode)</label>
-                            <UISelect value={appSettings.layoutMode ||"full"} onChange={(e) => setAppSettings({ ...appSettings, layoutMode: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.layoutMode ||"full"} onChange={(e) => setAppSettings({ ...appSettings, layoutMode: e.target.value })} className="w-full">
                               <option value="full">Layar Penuh (Full Width)</option>
                               <option value="boxed">Terkotak di Tengah (Boxed Container)</option>
                             </UISelect>
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Sidebar Kiri</label>
-                            <UISelect value={appSettings.sidebarStyle ||"putih"} onChange={(e) => setAppSettings({ ...appSettings, sidebarStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.sidebarStyle ||"putih"} onChange={(e) => setAppSettings({ ...appSettings, sidebarStyle: e.target.value })} className="w-full">
                               <option value="putih">Putih Bersih (Clean White)</option>
                               <option value="abu-abu">Abu-abu Lembut (Slate Soft)</option>
                               <option value="tema-utama">Berwarna (Primary Gradient)</option>
@@ -973,7 +973,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Logo & Teks Sidebar</label>
-                            <UISelect value={appSettings.sidebarLogoMode ||"both"} onChange={(e) => setAppSettings({ ...appSettings, sidebarLogoMode: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.sidebarLogoMode ||"both"} onChange={(e) => setAppSettings({ ...appSettings, sidebarLogoMode: e.target.value })} className="w-full">
                               <option value="both">Tampilkan Logo & Nama Instansi</option>
                               <option value="logo">Hanya Logo (Logo Only)</option>
                               <option value="text">Hanya Teks (Text Only)</option>
@@ -981,7 +981,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Header Atas</label>
-                            <UISelect value={appSettings.headerStyle ||"primary"} onChange={(e) => setAppSettings({ ...appSettings, headerStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.headerStyle ||"primary"} onChange={(e) => setAppSettings({ ...appSettings, headerStyle: e.target.value })} className="w-full">
                               <option value="primary">Berwarna Utama (Primary Brand)</option>
                               <option value="glass">Efek Transparan (Glassmorphism)</option>
                               <option value="solid">Putih Solid (Classic Card)</option>
@@ -990,7 +990,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Desain Card / Panel</label>
-                            <UISelect value={appSettings.cardStyle ||"border"} onChange={(e) => setAppSettings({ ...appSettings, cardStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.cardStyle ||"border"} onChange={(e) => setAppSettings({ ...appSettings, cardStyle: e.target.value })} className="w-full">
                               <option value="border">Garis Batas Halus (Clean Border)</option>
                               <option value="shadow-sm">Bayangan Mengambang (Elevated Shadow)</option>
                               <option value="flat">Warna Datar Padat (Flat Filled)</option>
@@ -998,7 +998,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Intensitas Bayangan (Shadow System)</label>
-                            <UISelect value={appSettings.shadowIntensity ||"default"} onChange={(e) => setAppSettings({ ...appSettings, shadowIntensity: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.shadowIntensity ||"default"} onChange={(e) => setAppSettings({ ...appSettings, shadowIntensity: e.target.value })} className="w-full">
                               <option value="default">Premium Berlapis (Subtle Glass)</option>
                               <option value="strong">Tegas & Menonjol (Strong Elevated)</option>
                               <option value="flat">Datar / Tipis (Flat Minimalist)</option>
@@ -1006,7 +1006,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Latar Belakang</label>
-                            <UISelect value={appSettings.bgGridType ||"grid"} onChange={(e) => setAppSettings({ ...appSettings, bgGridType: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.bgGridType ||"grid"} onChange={(e) => setAppSettings({ ...appSettings, bgGridType: e.target.value })} className="w-full">
                               <option value="grid">Garis Grid Modern (Modern Grid)</option>
                               <option value="dots">Titik Polkadot Lembut (Soft Polka Dots)</option>
                               <option value="gradient">Warna Radial Kalem (Radial Gradients)</option>
@@ -1015,7 +1015,7 @@ export default function TabTampilan(props) {
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Gaya Form Input</label>
-                            <UISelect value={appSettings.inputStyle ||"outline"} onChange={(e) => setAppSettings({ ...appSettings, inputStyle: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm">
+                            <UISelect value={appSettings.inputStyle ||"outline"} onChange={(e) => setAppSettings({ ...appSettings, inputStyle: e.target.value })} className="w-full">
                               <option value="outline">Garis Luar (Outline - Default)</option>
                               <option value="filled">Warna Latar (Filled / Muted)</option>
                               <option value="underline">Garis Bawah (Underline Modern)</option>
