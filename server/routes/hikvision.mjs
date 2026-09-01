@@ -594,9 +594,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
             let startTime = new Date();
             if (lastLogRes.rows[0]?.last_ts) {
-               startTime = new Date(new Date(lastLogRes.rows[0].last_ts).getTime() - 24 * 60 * 60 * 1000); // 24 hours lookback buffer
+              const lastTsDate = new Date(lastLogRes.rows[0].last_ts);
+              if (lastTsDate.getTime() > Date.now() + 2 * 60 * 60 * 1000) {
+                startTime = new Date(Date.now() - 48 * 60 * 60 * 1000);
+              } else {
+                startTime = new Date(lastTsDate.getTime() - 24 * 60 * 60 * 1000);
+              }
             } else {
-               startTime.setDate(startTime.getDate() - 7); // Tarik 7 hari terakhir jika belum ada log
+              startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
             }
             // Tambahkan 24 jam ke endTime untuk mengantisipasi jika jam mesin lebih cepat (fast clock skew)
             const endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);

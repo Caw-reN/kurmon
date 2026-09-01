@@ -151,14 +151,17 @@ async function pullHikvisionLogs(force = false) {
   let totalSaved = 0;
   let totalFound = 0;
   try {
-    const nowLocal = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-    const nowMinutes = toMinutes(nowLocal);
+    // Robust Jakarta UTC+7 calculation (independen dari locale/ICU OS)
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const jakartaDate = new Date(utc + (3600000 * 7));
+    const nowMinutes = jakartaDate.getHours() * 60 + jakartaDate.getMinutes();
 
-    // Active attendance sync window: 05:00 to 21:00 (covers all morning, midday, afternoon, and evening staff taps)
-    const isWithinDailyWindow = nowMinutes >= toMinutes("05:00") && nowMinutes <= toMinutes("21:00");
+    // Active attendance sync window: 04:00 to 23:00 WIB
+    const isWithinDailyWindow = nowMinutes >= toMinutes("04:00") && nowMinutes <= toMinutes("23:00");
 
     if (!isWithinDailyWindow && !force) {
-      console.log(`[Hikvision] Cron job skipped because ${nowLocal} is outside active daily attendance window (05:00 - 21:00).`);
+      console.log(`[Hikvision] Cron job skipped outside active daily attendance window (04:00 - 23:00 WIB).`);
       return { logs_found: 0, logs_saved: 0 };
     }
 
@@ -206,75 +209,83 @@ async function pullHikvisionLogs(force = false) {
         const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);
         let startTime = new Date();
         if (lastLogRes.rows[0]?.last_ts) {
-          // Lookback 6 hours to prevent any gaps from network lag or clock adjustments
-          startTime = new Date(new Date(lastLogRes.rows[0].last_ts).getTime() - 6 * 60 * 60 * 1000);
+          const lastTsDate = new Date(lastLogRes.rows[0].last_ts);
+          // Jika timestamp terakhir ada di masa depan karena salah jam, fallback ke 48 jam yang lalu
+          if (lastTsDate.getTime() > Date.now() + 2 * 60 * 60 * 1000) {
+            startTime = new Date(Date.now() - 48 * 60 * 60 * 1000);
+          } else {
+            startTime = new Date(lastTsDate.getTime() - 24 * 60 * 60 * 1000);
+          }
         } else {
-          startTime.setDate(startTime.getDate() - 3);
+          startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         }
 
-        const endTime = new Date();
+        // Tambahkan toleransi 24 jam ke endTime untuk mengantisipasi fast clock skew / beda jam mesin
+        const endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
         const logs = await api.searchEvents(startTime, endTime);
-        totalFound += logs.length;
+        totalFound += (logs ? logs.length : 0);
 
-        for (const log of logs) {
-          const employeeNo = log.employeeNoString;
-          if (!employeeNo) continue;
-          
-          // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
-          if (log.minor !== 75 && log.minor !== 38 && log.minor !== 1 && log.minor !== 104) {
-            continue;
-          }
+        if (logs && logs.length > 0) {
+          for (const log of logs) {
+            const employeeNo = log.employeeNoString;
+            if (!employeeNo) continue;
+            
+            // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
+            if (log.minor !== 75 && log.minor !== 38 && log.minor !== 1 && log.minor !== 104) {
+              continue;
+            }
 
-          const eventType = `${log.major}-${log.minor}`;
-          const logTime = (log.time || '').replace('T', ' ').substring(0, 19);
-          const logHhmm = logTime.substring(11, 16);
-          const logMin  = toMinutes(logHhmm);
+            const eventType = `${log.major}-${log.minor}`;
+            const logTime = (log.time || '').replace('T', ' ').substring(0, 19);
+            const logHhmm = logTime.substring(11, 16);
+            const logMin  = toMinutes(logHhmm);
 
-          // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
-          const empKey = String(employeeNo).toLowerCase();
-          let personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
-          let userName   = log.name || 'Unknown';
+            // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
+            const empKey = String(employeeNo).toLowerCase();
+            let personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
+            let userName   = log.name || 'Unknown';
 
-          const hikStu = hikStudentMap.get(empKey);
-          if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
-            personType = 'siswa';
-            userName   = hikStu.name || userName;
-          } else if (hikStu && (hikStu.class_name === 'guru' || hikStu.class_name === 'karyawan')) {
-            personType = hikStu.class_name;
-            userName   = hikStu.name || userName;
-          } else if (teacherMap.has(empKey)) {
-            personType = 'guru';
-            userName   = teacherMap.get(empKey).name || userName;
-          } else if (staffMap.has(empKey)) {
-            personType = 'karyawan';
-            userName   = staffMap.get(empKey).name || userName;
-          }
+            const hikStu = hikStudentMap.get(empKey);
+            if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
+              personType = 'siswa';
+              userName   = hikStu.name || userName;
+            } else if (hikStu && (hikStu.class_name === 'guru' || hikStu.class_name === 'karyawan')) {
+              personType = hikStu.class_name;
+              userName   = hikStu.name || userName;
+            } else if (teacherMap.has(empKey)) {
+              personType = 'guru';
+              userName   = teacherMap.get(empKey).name || userName;
+            } else if (staffMap.has(empKey)) {
+              personType = 'karyawan';
+              userName   = staffMap.get(empKey).name || userName;
+            }
 
-          // Insert raw attendance tap without dropping - all taps must be retained for report aggregation
-          const insRes = await dbPool.query(
-            "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
-            [device.id, employeeNo, logTime, eventType, personType]
-          );
-          if (insRes.rowCount > 0) totalSaved++;
-
-          // ── Late notification (only for morning check-in taps) ──
-          let lateLimit  = null;
-          let roleTarget = null;
-          if (personType === 'siswa')     { lateLimit = config.siswa?.masuk_late;     roleTarget = 'parent';    }
-          else if (personType === 'guru')     { lateLimit = config.guru?.masuk_late;      roleTarget = 'kurikulum'; }
-          else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late;  roleTarget = 'tu';        }
-
-          if (lateLimit && (log.minor === 75 || log.minor === 38)) {
-            const closeLimit = toMinutes(
-              (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
+            // Insert raw attendance tap without dropping - all taps must be retained for report aggregation
+            const insRes = await dbPool.query(
+              "INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING",
+              [device.id, employeeNo, logTime, eventType, personType]
             );
-            if (logMin > toMinutes(lateLimit) && logMin <= closeLimit) {
-              if (featureSettings.wa_auto_terlambat !== false) {
-                const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmm} (terlambat, batas: ${lateLimit}).`;
-                await dbPool.query(
-                  "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-                  [roleTarget, message, `late_${personType}`]
-                );
+            if (insRes.rowCount > 0) totalSaved++;
+
+            // ── Late notification (only for morning check-in taps) ──
+            let lateLimit  = null;
+            let roleTarget = null;
+            if (personType === 'siswa')     { lateLimit = config.siswa?.masuk_late;     roleTarget = 'parent';    }
+            else if (personType === 'guru')     { lateLimit = config.guru?.masuk_late;      roleTarget = 'kurikulum'; }
+            else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late;  roleTarget = 'tu';        }
+
+            if (lateLimit && (log.minor === 75 || log.minor === 38)) {
+              const closeLimit = toMinutes(
+                (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
+              );
+              if (logMin > toMinutes(lateLimit) && logMin <= closeLimit) {
+                if (featureSettings.wa_auto_terlambat !== false) {
+                  const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmm} (terlambat, batas: ${lateLimit}).`;
+                  await dbPool.query(
+                    "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
+                    [roleTarget, message, `late_${personType}`]
+                  );
+                }
               }
             }
           }
@@ -282,6 +293,14 @@ async function pullHikvisionLogs(force = false) {
       } catch (e) {
         console.error(`Gagal pull log device ${device.ip_address}:`, e.message);
       }
+    }
+
+    // Auto-link newly pulled logs to students, classes, and teachers
+    try {
+      await autoLinkHikvisionStudents(dbPool);
+      await autoLinkHikvisionTeachersAndStaffs(dbPool);
+    } catch (linkErr) {
+      console.warn("[Hikvision] autoLink warning:", linkErr.message);
     }
   } catch (err) {
     console.error("Error in pullHikvisionLogs:", err);
@@ -669,6 +688,32 @@ const initDb = async () => {
 
     // Kolom person_type di log untuk membedakan siswa/guru/karyawan
     await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
+
+    // Auto-seed default Hikvision devices if table is empty in post-production
+    try {
+      const devCountRes = await dbPool.query("SELECT COUNT(*) as count FROM hikvision_devices");
+      if (parseInt(devCountRes.rows[0]?.count || 0) === 0) {
+        const defaultDevices = [
+          { ip: '192.168.111.101', loc: 'Absensi Guru', user: 'admin', enc: 'JDkcin3/ez7wfSPN+5bQEQ==', iv: 'LLFmqL5GVgMJGRT0galrxw==', type: 'staff' },
+          { ip: '192.168.111.251', loc: 'Absensi MP Kampus A', user: 'admin', enc: 'FiAf293VAZgH+y8mbEXxYQ==', iv: '2KuQPRu3klAaKm9KOwzc9g==', type: 'siswa' },
+          { ip: '192.168.101.250', loc: 'Absensi TKR Kampus B', user: 'admin', enc: 'ryU1YtKp1spRRQoQOLMvjg==', iv: 'L3o4aJ43Wq9s1PRznhbnwA==', type: 'siswa' },
+          { ip: '192.168.102.98', loc: 'Absensi TKJ Kampus B', user: 'admin', enc: '3KzWs86/s+DnUqa5dQeZ9A==', iv: 'UryNZLIDMzBQ6W1XPGdNsg==', type: 'siswa' },
+          { ip: '192.168.111.250', loc: 'Absensi TKR Kampus A', user: 'admin', enc: '7DJJ9zitTqIw+eIdI98lMw==', iv: '9pUFafkQWRte5b+Y85+U+Q==', type: 'siswa' },
+          { ip: '192.168.111.253', loc: 'Absensi TKJ Kampus A', user: 'admin', enc: 'eYvzKd4nVZXYhOgb90wo7w==', iv: 'XbH40t7O6nhrv1jEZqQMkQ==', type: 'siswa' },
+          { ip: '192.168.111.252', loc: 'Abensi AK Kampus A', user: 'admin', enc: 'dJGFCkn+LsJ5z/URSS2YEQ==', iv: 'KnjeFz/rfUqQkpy6onN8sQ==', type: 'siswa' },
+          { ip: '192.168.101.215', loc: 'Absensi AK & MP Kampus B', user: 'admin', enc: '/yqKM79z3JPJXnMmxwrfmQ==', iv: 'O4ByQzCTY893l2muxeQhLQ==', type: 'siswa' }
+        ];
+        for (const d of defaultDevices) {
+          await dbPool.query(
+            "INSERT INTO hikvision_devices (ip_address, location, username, encrypted_password, iv_vector, device_type, created_at) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)",
+            [d.ip, d.loc, d.user, d.enc, d.iv, d.type]
+          );
+        }
+        console.log(`[InitDB] 8 perangkat default Hikvision berhasil didaftarkan secara otomatis.`);
+      }
+    } catch (devSeedErr) {
+      console.warn("[InitDB] Gagal auto-seed devices:", devSeedErr.message);
+    }
 
 
     await dbPool.query(`

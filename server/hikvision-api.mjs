@@ -9,20 +9,31 @@ function md5(str) {
 
 export function decryptPassword(encryptedBase64, ivBase64) {
   if (!ivBase64) return encryptedBase64;
-  try {
-    const appKey = process.env.APP_KEY || 'default_key_should_be_replaced_immediately!';
-    const key = crypto.createHash('sha256').update(appKey).digest();
-    const iv = Buffer.from(ivBase64, 'base64');
-    const encrypted = Buffer.from(encryptedBase64, 'base64');
-    
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decrypted = decipher.update(encrypted);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString('utf8');
-  } catch (err) {
-    console.error("Gagal mendeskripsi password perangkat:", err.message);
-    return encryptedBase64;
+  
+  const candidateKeys = [
+    process.env.APP_KEY,
+    'def0000021ba0fc5fde8db4db19c4b7b2de135d0e2e9bb084fc0db917c0df6174a8963cd94c4897ed206f4773de291bc31abfc5d1ea8be0',
+    'default_key_should_be_replaced_immediately!'
+  ].filter(Boolean);
+
+  for (const appKey of candidateKeys) {
+    try {
+      const key = crypto.createHash('sha256').update(appKey).digest();
+      const iv = Buffer.from(ivBase64, 'base64');
+      const encrypted = Buffer.from(encryptedBase64, 'base64');
+      
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      let decrypted = decipher.update(encrypted);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      const result = decrypted.toString('utf8');
+      if (result) return result;
+    } catch {
+      // Coba kunci berikutnya
+    }
   }
+  
+  console.error("Gagal mendeskripsi password perangkat: Semua candidate keys gagal.");
+  return encryptedBase64;
 }
 
 export function encryptPassword(plainText) {
