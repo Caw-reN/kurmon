@@ -65,6 +65,43 @@ export default function AdminSidebar({
 
   const SidebarGroup = ({ label, icon: Icon, groupKey, children }) => {
     const isOpen = expandedGroups?.[groupKey] !== false;
+
+    // Cek apakah ada menu anak yang sedang aktif
+    const hasActiveChild = React.Children.toArray(children).some(child => {
+      if (!React.isValidElement(child)) return false;
+      const childId = child.props?.id;
+      const childActiveIds = child.props?.activeIds;
+      return childId === activeTab || (Array.isArray(childActiveIds) && childActiveIds.includes(activeTab));
+    });
+
+    if (isCollapsed) {
+      return (
+        <div className="mb-1.5 w-full flex justify-center">
+          <button
+            onClick={() => {
+              toggleSidebar();
+              if (!isOpen) toggleGroup(groupKey);
+            }}
+            type="button"
+            title={label}
+            className={cn(
+              "group relative flex items-center justify-center rounded-[var(--ui-radius-small)] border-none transition-all cursor-pointer",
+              "w-10 h-10 hover:bg-muted hover:text-foreground",
+              hasActiveChild ? "bg-primary/10 text-primary font-bold shadow-xs" : "text-muted-foreground"
+            )}
+          >
+            {Icon && (
+              <Icon 
+                size={18} 
+                strokeWidth={hasActiveChild ? 2.5 : 2}
+                className={cn(hasActiveChild ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors")} 
+              />
+            )}
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="mb-1 w-full">
         <button
@@ -72,17 +109,23 @@ export default function AdminSidebar({
           type="button"
           className={cn(
             "group relative mb-1 flex w-full items-center justify-between rounded-[var(--ui-radius-small)] border-none",
-            "px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all cursor-pointer",
-            "hover:bg-muted hover:text-foreground"
+            "px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+            hasActiveChild ? "text-primary font-bold bg-primary/5" : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
-          <div className="flex items-center gap-2.5">
-            {Icon && <Icon size={15} className="text-muted-foreground group-hover:text-foreground transition-colors" />}
-            <span>{label}</span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            {Icon && (
+              <Icon 
+                size={15} 
+                strokeWidth={hasActiveChild ? 2.5 : 2}
+                className={cn(hasActiveChild ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors")} 
+              />
+            )}
+            <span className="truncate">{label}</span>
           </div>
           <ChevronDown
             size={14}
-            className={cn("text-muted-foreground group-hover:text-foreground transition-transform duration-200", isOpen ? "rotate-0" : "-rotate-90")}
+            className={cn("text-muted-foreground group-hover:text-foreground transition-transform duration-200 shrink-0", isOpen ? "rotate-0" : "-rotate-90")}
           />
         </button>
         <div
@@ -307,7 +350,7 @@ export default function AdminSidebar({
       )}
     >
       {/* Header / Logo */}
-      <div className={cn("flex items-center shrink-0 relative z-10 bg-transparent transition-all h-[80px] border-none px-[18px]", isCollapsed && "justify-center px-4")}>
+      <div className={cn("flex items-center shrink-0 relative z-10 bg-transparent transition-all border-none", isCollapsed ? "h-[85px] justify-center px-2 py-2" : "h-[80px] px-[18px]")}>
         {!isCollapsed ? (
           <div className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity min-w-0 w-full justify-between">
             <div className="flex items-center gap-3 min-w-0">
@@ -379,7 +422,7 @@ export default function AdminSidebar({
           posToUse.current = scrollTop;
           sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
         }}
-        className="flex-1 px-[18px] overflow-y-auto hide-scrollbar pt-3 pb-6 relative z-10 transition-all"
+        className={cn("flex-1 overflow-y-auto hide-scrollbar pt-3 pb-6 relative z-10 transition-all", isCollapsed ? "px-2" : "px-[18px]")}
       >
         {renderDynamicMenu()}
 
