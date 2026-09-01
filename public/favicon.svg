@@ -1,37 +1,97 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    <!-- Background Gradient: Hijau Muda (Top-Left) ke Hijau Tua (Bottom-Right) -->
+    <linearGradient id="kg2_bg_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="25%" stop-color="#10b981" />
+      <stop offset="70%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064e3b" />
     </linearGradient>
-    <clipPath id="squircle">
-      <rect rx="120" ry="120" width="512" height="512"/>
-    </clipPath>
+
+    <!-- Inner Radial Glow -->
+    <radialGradient id="kg2_glow" cx="30%" cy="25%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Card Ribbon Gradient -->
+    <linearGradient id="kg2_ribbon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#064e3b" stop-opacity="0.75" />
+      <stop offset="50%" stop-color="#047857" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.75" />
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for Text & Badge -->
+    <filter id="kg2_shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#022c22" flood-opacity="0.5" />
+    </filter>
+    <filter id="kg2_text_shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#022c22" flood-opacity="0.45" />
+    </filter>
   </defs>
-  <!-- Background -->
-  <rect width="512" height="512" rx="120" ry="120" fill="url(#bg)"/>
-  <!-- Number "2" -->
+
+  <!-- Base Squircle with Gradient Background (Hijau Muda ke Hijau Tua) -->
+  <rect width="512" height="512" rx="120" ry="120" fill="url(#kg2_bg_gradient)" />
+  <!-- Glass/Lighting Overlay -->
+  <rect width="512" height="512" rx="120" ry="120" fill="url(#kg2_glow)" />
+
+  <!-- Subtle Border Highlight -->
+  <rect x="6" y="6" width="500" height="500" rx="114" ry="114" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4" />
+
+  <!-- Top Decorative Badge "KG" -->
+  <g filter="url(#kg2_shadow)">
+    <rect x="186" y="48" width="140" height="44" rx="22" ry="22" fill="rgba(255, 255, 255, 0.22)" stroke="rgba(255, 255, 255, 0.45)" stroke-width="2" />
+    <text
+      x="256"
+      y="78"
+      text-anchor="middle"
+      font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif"
+      font-size="26"
+      font-weight="800"
+      fill="#ffffff"
+      letter-spacing="4"
+    >KG</text>
+  </g>
+
+  <!-- Main Center Number "2" (Extra Bold dengan Shadow 3D) -->
+  <!-- Shadow Underlayer for Extra Depth -->
+  <text
+    x="256"
+    y="336"
+    text-anchor="middle"
+    font-family="'Plus Jakarta Sans', 'Inter', 'Arial Black', sans-serif"
+    font-size="280"
+    font-weight="900"
+    fill="#022c22"
+    opacity="0.4"
+    letter-spacing="-6"
+  >2</text>
+
+  <!-- Foreground Bold 2 -->
   <text
     x="256"
     y="330"
     text-anchor="middle"
-    dominant-baseline="auto"
-    font-family="'Plus Jakarta Sans', 'Inter', 'Helvetica Neue', Arial, sans-serif"
-    font-size="290"
+    font-family="'Plus Jakarta Sans', 'Inter', 'Arial Black', sans-serif"
+    font-size="280"
     font-weight="900"
-    fill="white"
-    letter-spacing="-5"
+    fill="#ffffff"
+    filter="url(#kg2_text_shadow)"
+    letter-spacing="-6"
   >2</text>
-  <!-- "KG" label below -->
-  <text
-    x="256"
-    y="440"
-    text-anchor="middle"
-    dominant-baseline="auto"
-    font-family="'Plus Jakarta Sans', 'Inter', 'Helvetica Neue', Arial, sans-serif"
-    font-size="72"
-    font-weight="700"
-    fill="rgba(255,255,255,0.85)"
-    letter-spacing="12"
-  >KG</text>
+
+  <!-- Bottom Badge: "SCHOOL" -->
+  <g filter="url(#kg2_shadow)">
+    <rect x="116" y="396" width="280" height="58" rx="29" ry="29" fill="url(#kg2_ribbon)" stroke="rgba(255, 255, 255, 0.35)" stroke-width="2.5" />
+    <text
+      x="256"
+      y="436"
+      text-anchor="middle"
+      font-family="'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif"
+      font-size="28"
+      font-weight="900"
+      fill="#ffffff"
+      letter-spacing="6"
+    >SCHOOL</text>
+  </g>
 </svg>

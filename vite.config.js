@@ -50,10 +50,10 @@ export default defineConfig({
       },
       manifest: {
         name: 'KG2 School',
-        short_name: 'KG2',
-        description: 'Sistem Informasi Akademik dan Monitoring Kehadiran Sekolah',
-        theme_color: '#059669',
-        background_color: '#ffffff',
+        short_name: 'KG2 School',
+        description: 'Aplikasi KG2 School — Sistem Informasi Akademik dan Monitoring Kehadiran Sekolah',
+        theme_color: '#047857',
+        background_color: '#064e3b',
         display: 'standalone',
         orientation: 'portrait-primary',
         start_url: '/',
@@ -95,17 +95,34 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1000,
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react';
+          // Core React runtime — most cached chunk
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) return 'react';
+          // React Router
+          if (id.includes('node_modules/react-router')) return 'router';
+          // Zustand state management
+          if (id.includes('node_modules/zustand')) return 'zustand';
+          // Chart library
           if (id.includes('node_modules/recharts')) return 'charts';
+          // Icon library
           if (id.includes('node_modules/lucide-react')) return 'icons';
-          if (id.includes('node_modules/xlsx') || id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) return 'fileHelper';
+          // Heavy Excel/file libs — split into 2 to reduce individual chunk size
+          if (id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) return 'fileHelper-excel';
+          if (id.includes('node_modules/xlsx')) return 'fileHelper-xlsx';
+          // PDF generation
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) return 'pdf';
+          // Map libraries
           if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) return 'maps';
+          // TanStack virtual list
           if (id.includes('node_modules/@tanstack')) return 'tanstack';
+          // DOMPurify for sanitization
+          if (id.includes('node_modules/dompurify') || id.includes('node_modules/purify')) return 'dompurify';
+          // QR code
+          if (id.includes('node_modules/qrcode')) return 'qrcode';
         },
       },
     },
@@ -126,3 +143,4 @@ export default defineConfig({
     },
   },
 })
+

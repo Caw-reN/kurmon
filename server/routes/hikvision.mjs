@@ -162,190 +162,135 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       if (!requireAuthenticated(req, res)) return;
       try {
         global._hikvDashCache = global._hikvDashCache || { time: 0, data: null };
-        if (Date.now() - global._hikvDashCache.time < 30000 && global._hikvDashCache.data) {
+        if (Date.now() - global._hikvDashCache.time < 60000 && global._hikvDashCache.data) {
           return send(req, res, 200, global._hikvDashCache.data);
         }
-        const devicesResult = await dbPool.query(`
-          SELECT d.*
-          FROM hikvision_devices d
-          ORDER BY d.device_type, d.location
-        `);
+
+        const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+        // Run devices query + attendance config + all log queries IN PARALLEL
+        const [devicesResult, hConfig, recentLogsRes, staffLogsRes, teacherLogsRes] = await Promise.all([
+          dbPool.query(`SELECT d.* FROM hikvision_devices d ORDER BY d.device_type, d.location`),
+          getHikvisionConfig(),
+          // Siswa logs: use precomputed first-scan via subquery in SQL (avoid full table scan in JS)
+          dbPool.query(`
+            SELECT DISTINCT ON (l.employee_id)
+              l.*, d.ip_address, d.device_type,
+              COALESCE(
+                COALESCE(mst.payload->>'name', mst.payload->>'nama'),
+                COALESCE(msf.payload->>'name', msf.payload->>'nama'),
+                ms.payload->>'name', ms.payload->>'nama', hs.name, l.employee_id
+              ) as student_name,
+              COALESCE(
+                COALESCE(mst.payload->>'name', mst.payload->>'nama'),
+                COALESCE(msf.payload->>'name', msf.payload->>'nama'),
+                ms.payload->>'name', ms.payload->>'nama', hs.name, l.employee_id
+              ) as name,
+              COALESCE(
+                NULLIF(NULLIF(ms.payload->>'class_name','siswa'),'-'),
+                NULLIF(NULLIF(ms.payload->>'kelas','siswa'),'-'),
+                NULLIF(NULLIF(hs.class_name,'siswa'),'-'),'-'
+              ) as class_name,
+              CASE
+                WHEN msf.id IS NOT NULL THEN 'karyawan'
+                WHEN mst.id IS NOT NULL THEN 'guru'
+                WHEN l.employee_id ~* '^k' THEN 'karyawan'
+                WHEN (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
+                WHEN ms.id IS NOT NULL OR (hs.id IS NOT NULL AND hs.class_name NOT IN ('guru','karyawan','staff')) THEN 'siswa'
+                WHEN d.device_type IN ('karyawan','staff') THEN 'karyawan'
+                WHEN d.device_type = 'guru' THEN 'guru'
+                ELSE 'siswa'
+              END as true_person_type
+            FROM hikvision_logs l
+            JOIN hikvision_devices d ON l.device_id = d.id
+            LEFT JOIN mst_students ms ON ms.payload->>'nis' = l.employee_id OR ms.payload->>'code' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
+            LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (hs.nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || hs.nis))
+            LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
+              AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
+            LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
+              AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
+            WHERE CAST(l.timestamp AS DATE) = $1
+              AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
+            ORDER BY l.employee_id, l.timestamp ASC
+          `, [todayJkt]),
+          // Staff logs: dedicated query
+          dbPool.query(`
+            SELECT DISTINCT ON (l.employee_id)
+              l.*, d.ip_address, d.device_type,
+              COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as student_name,
+              COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as name,
+              '-' as class_name, 'karyawan' as true_person_type
+            FROM hikvision_logs l
+            JOIN hikvision_devices d ON l.device_id = d.id
+            LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id)
+              AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
+            WHERE CAST(l.timestamp AS DATE) = $1 AND msf.id IS NOT NULL
+            ORDER BY l.employee_id, l.timestamp ASC
+          `, [todayJkt]),
+          // Teacher logs: dedicated query
+          dbPool.query(`
+            SELECT DISTINCT ON (l.employee_id)
+              l.*, d.ip_address, d.device_type,
+              COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as student_name,
+              COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as name,
+              '-' as class_name, 'guru' as true_person_type
+            FROM hikvision_logs l
+            JOIN hikvision_devices d ON l.device_id = d.id
+            LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id)
+              AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
+            WHERE CAST(l.timestamp AS DATE) = $1 AND mst.id IS NOT NULL
+            ORDER BY l.employee_id, l.timestamp ASC
+          `, [todayJkt])
+        ]);
+
         const devicesRows = devicesResult.rows;
 
-        // Cek status online secara paralel dengan timeout 2.5 detik
-        await Promise.all(devicesRows.map(async (dev) => {
+        // Check device online status IN PARALLEL (don't block main response)
+        Promise.all(devicesRows.map(async (dev) => {
           try {
-            // Cukup pancing fetch ke HTTP port 80. 
-            // 401/403 berarti device merespon (hidup).
-            const res = await fetch(`http://${dev.ip_address}`, { signal: AbortSignal.timeout(2500) });
-            dev.is_online = res.status < 500 || res.status === 401 || res.status === 403;
+            const r = await fetch(`http://${dev.ip_address}`, { signal: AbortSignal.timeout(2000) });
+            dev.is_online = r.status < 500 || r.status === 401 || r.status === 403;
           } catch (e) {
             const errCode = e.cause?.code || e.code || '';
-            // Jika error berkaitan dengan sertifikat SSL, berarti mesin merespon redirect HTTPS (Mesin Hidup)
-            if (errCode.includes('CERT') || errCode === 'ECONNRESET' || errCode === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-              dev.is_online = true;
-            } else {
-              dev.is_online = false;
-            }
+            dev.is_online = errCode.includes('CERT') || errCode === 'ECONNRESET' || errCode === 'DEPTH_ZERO_SELF_SIGNED_CERT';
           }
-        }));
+        })).then(() => { global._hikvDashCache.data.devices = devicesRows; }).catch(() => {});
 
-        const hConfig = await getHikvisionConfig();
         const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
         const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
-
         const guruMasukLate = (hConfig?.guru?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
         const guruMasukClose = (hConfig?.guru?.masuk_end || hConfig?.guru?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
-
         const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
         const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
-        const recentLogsRes = await dbPool.query(`
-          SELECT l.*, d.ip_address, d.device_type,
-            COALESCE(
-              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
-              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
-              ms.payload->>'name',
-              ms.payload->>'nama',
-              hs.name,
-              l.employee_id
-            ) as student_name,
-            COALESCE(
-              COALESCE(mst.payload->>'name', mst.payload->>'nama'),
-              COALESCE(msf.payload->>'name', msf.payload->>'nama'),
-              ms.payload->>'name',
-              ms.payload->>'nama',
-              hs.name,
-              l.employee_id
-            ) as name,
-            COALESCE(
-              NULLIF(NULLIF(ms.payload->>'class_name', 'siswa'), '-'),
-              NULLIF(NULLIF(ms.payload->>'kelas', 'siswa'), '-'),
-              NULLIF(NULLIF(hs.class_name, 'siswa'), '-'),
-              '-'
-            ) as class_name,
-            CASE 
-              WHEN msf.id IS NOT NULL THEN 'karyawan'
-              WHEN mst.id IS NOT NULL THEN 'guru'
-              WHEN l.employee_id ~* '^k' THEN 'karyawan'
-              WHEN (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
-              WHEN ms.id IS NOT NULL OR (hs.id IS NOT NULL AND hs.class_name NOT IN ('guru', 'karyawan', 'staff')) THEN 'siswa'
-              WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
-              WHEN d.device_type = 'guru' THEN 'guru'
-              ELSE 'siswa'
-            END as true_person_type
-          FROM hikvision_logs l 
-          JOIN hikvision_devices d ON l.device_id = d.id 
-          LEFT JOIN mst_students ms ON ms.payload->>'nis' = l.employee_id OR ms.payload->>'code' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
-          LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (hs.nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || hs.nis))
-          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
-          AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
-          AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
-            AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
-          ORDER BY l.timestamp DESC LIMIT 500
-        `);
-
-        // Query khusus karyawan hari ini agar tidak tertutup ribuan log siswa
-        const staffLogsRes = await dbPool.query(`
-          SELECT l.*, d.ip_address, d.device_type,
-            COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as student_name,
-            COALESCE(msf.payload->>'name', msf.payload->>'nama', l.employee_id) as name,
-            '-' as class_name,
-            'karyawan' as true_person_type
-          FROM hikvision_logs l
-          JOIN hikvision_devices d ON l.device_id = d.id
-          LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id)
-          AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
-            AND msf.id IS NOT NULL
-          ORDER BY l.timestamp DESC LIMIT 300
-        `);
-
-        // Query khusus guru hari ini
-        const teacherLogsRes = await dbPool.query(`
-          SELECT l.*, d.ip_address, d.device_type,
-            COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as student_name,
-            COALESCE(mst.payload->>'name', mst.payload->>'nama', l.employee_id) as name,
-            '-' as class_name,
-            'guru' as true_person_type
-          FROM hikvision_logs l
-          JOIN hikvision_devices d ON l.device_id = d.id
-          LEFT JOIN mst_teachers mst ON (mst.payload->>'code' = l.employee_id OR mst.payload->>'nip' = l.employee_id)
-          AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
-          WHERE CAST(l.timestamp AS DATE) = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
-            AND mst.id IS NOT NULL
-          ORDER BY l.timestamp DESC LIMIT 300
-        `);
-
-        // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
-        const firstScanMap = new Map();
-        const allFetchedRows = [...recentLogsRes.rows, ...staffLogsRes.rows, ...teacherLogsRes.rows];
-        const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
-        
-        allFetchedRows.forEach(r => {
-          const empId = String(r.employee_id || '').trim().toLowerCase();
-          if (!empId) return;
-          const tsStr = String(r.timestamp || '').replace('T', ' ');
-          const logDate = tsStr.substring(0, 10);
-          if (logDate !== todayJkt) return; // Hanya kalkulasi untuk hari ini!
-          
-          const curTimeStr = tsStr.substring(11, 19);
-          if (!firstScanMap.has(empId) || curTimeStr < firstScanMap.get(empId)) {
-            firstScanMap.set(empId, curTimeStr);
-          }
-        });
-
+        // Since we use DISTINCT ON (employee_id) ORDER BY employee_id, timestamp ASC,
+        // each row is already the FIRST scan — no JS dedup loop needed
         const mapLogStatus = (r) => {
-          const empId = String(r.employee_id || '').trim().toLowerCase();
           const tsStr = String(r.timestamp || '').replace('T', ' ');
-          const firstScanTime = firstScanMap.get(empId) || tsStr.substring(11, 19);
+          const scanTime = tsStr.substring(11, 19);
           const personType = String(r.true_person_type).toLowerCase();
-          
-          let lateLimit = siswaMasukLate;
-          let closeLimit = siswaMasukClose;
-          if (personType === 'karyawan') {
-            lateLimit = karyawanMasukLate;
-            closeLimit = karyawanMasukClose;
-          } else if (personType === 'guru') {
-            lateLimit = guruMasukLate;
-            closeLimit = guruMasukClose;
-          }
-
-          let status = 'hadir';
-          if (closeLimit && firstScanTime > closeLimit) {
-            status = 'alpa';
-          } else if (lateLimit && firstScanTime > lateLimit) {
-            status = 'terlambat';
-          }
-
-          return {
-            ...r,
-            status,
-            role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA')
-          };
+          let lateLimit = siswaMasukLate, closeLimit = siswaMasukClose;
+          if (personType === 'karyawan') { lateLimit = karyawanMasukLate; closeLimit = karyawanMasukClose; }
+          else if (personType === 'guru') { lateLimit = guruMasukLate; closeLimit = guruMasukClose; }
+          const status = (closeLimit && scanTime > closeLimit) ? 'alpa' : (lateLimit && scanTime > lateLimit) ? 'terlambat' : 'hadir';
+          return { ...r, status, role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA') };
         };
 
-        const processedRecentLogs = recentLogsRes.rows.map(mapLogStatus);
-        const processedStaffLogs = staffLogsRes.rows.map(mapLogStatus);
-        const processedTeacherLogs = teacherLogsRes.rows.map(mapLogStatus);
-
-        const responseData = { 
-          ok: true, 
-          devices: devicesRows, 
-          recentLogs: processedRecentLogs,
-          staffLogs: processedStaffLogs,
-          teacherLogs: processedTeacherLogs
+        const responseData = {
+          ok: true,
+          devices: devicesRows,
+          recentLogs: recentLogsRes.rows.map(mapLogStatus),
+          staffLogs: staffLogsRes.rows.map(mapLogStatus),
+          teacherLogs: teacherLogsRes.rows.map(mapLogStatus)
         };
-        global._hikvDashCache.time = Date.now();
-        global._hikvDashCache.data = responseData;
+        global._hikvDashCache = { time: Date.now(), data: responseData };
         send(req, res, 200, responseData);
       } catch (err) {
         sendDatabaseError(req, res, err);
       }
       return;
     }
+
     if (req.method === "GET" && url.pathname === "/api/hikvision/devices") {
       if (!requireAuthenticated(req, res)) return;
       try {

@@ -267,30 +267,8 @@ export default function DashboardPage({
     }
   };
 
-  React.useEffect(() => {
-    const fetchRealtimeLogs = () => {
-      const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1'))?.authToken;
-      if (!token) return;
-
-      Promise.all([
-        fetch('/api/dashboard/logs', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
-        fetch('/api/hikvision/dashboard', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({}))
-      ])
-        .then(([d1, d2]) => {
-          let combined = {};
-          if (d1?.ok) combined = { ...combined, ...d1.data };
-          if (d2?.ok) {
-            combined.recentLogs = d2.recentLogs || [];
-          }
-          setDashLogs(combined);
-        })
-        .finally(() => setLogsLoading(false));
-    };
-
-    fetchRealtimeLogs();
-    const interval = setInterval(fetchRealtimeLogs, 60000); // ⚡ Realtime 60s polling (diturunkan dari 5s untuk hemat CPU/RAM server)
-    return () => clearInterval(interval);
-  }, []);
+  // NOTE: Dashboard logs are fetched by SharedDashboardLogs component — no duplicate polling needed here.
+  React.useEffect(() => { setLogsLoading(false); }, []);
 
   const mySyllabuses = useMemo(() => {
     if (!isTeacher) return 0;
