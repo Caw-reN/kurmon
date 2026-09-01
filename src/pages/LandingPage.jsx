@@ -656,68 +656,57 @@ export default function LandingPage() {
         </div>
 
         {/* JURUSAN / PROGRAM SLIDER (Mobile Only) */}
-        <section className="relative z-10 w-full px-5 mt-4 mb-4">
-          <div className="flex flex-col text-left mb-3">
-            <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: primaryColor }}>{appSettings.trustedByText ||"Program Keahlian Unggulan"}</span>
-            <h2 className="text-lg font-extrabold text-slate-800 uppercase tracking-tight mt-0.5">JURUSAN / PROGRAM</h2>
+        <section className="relative z-10 w-full px-4 mt-4 mb-4">
+          <div className="flex flex-col text-left mb-2.5">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/70 w-fit mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
+              <span>{appSettings.trustedByText || "Program Unggulan"}</span>
+            </div>
+            <h2 className="text-base font-black text-slate-800 uppercase tracking-tight leading-none">JURUSAN / PROGRAM</h2>
           </div>
 
-          <div className="relative w-full h-[115px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-xs border border-slate-100 bg-white">
+          <div className="relative w-full h-[110px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 bg-white/95 backdrop-blur-md">
             {partners.map((partner, index) => {
               const isActive = index === activeSlide % (partners.length || 1);
-              const rawColor = partner.color ||"blue";
-              const colorMap = {
-                red:"bg-rose-500",
-                blue:"bg-indigo-600",
-                emerald:"bg-emerald-500",
-                purple:"bg-purple-600",
-                orange:"bg-orange-500",
-                cyan:"bg-cyan-500",
-                pink:"bg-pink-500"
-              };
-              const isHexColor = rawColor.startsWith('#');
-              const bgColorClass = isHexColor ?"" : (colorMap[rawColor] ||"bg-gradient-to-br from-blue-600 to-blue-700");
               const imageSrc = partner.image;
               const IconComponent = ICON_MAP[partner.icon] || HelpCircle;
 
               return (
                 <div 
                   key={index}
-                  className={`absolute inset-0 p-4 flex flex-col justify-between transition-all duration-700 transform rounded-[var(--ui-radius-card)] ${isActive ?'opacity-100 translate-x-0 scale-100 z-10' :'opacity-0 translate-x-full scale-95 z-0'}`}
-                  style={isHexColor ? { backgroundColor: rawColor } : {}}
+                  className={`absolute inset-0 p-3.5 flex items-center justify-between gap-3 transition-all duration-500 transform ${
+                    isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
+                  }`}
                 >
-                  {/* Background gradient if not hex */}
-                  {!isHexColor && <div className={`absolute inset-0 -z-10 ${bgColorClass}`}></div>}
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                  {/* Left Text */}
+                  <div className="flex flex-col justify-center text-left min-w-0 flex-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                      Keahlian 0{index + 1}
+                    </span>
+                    <h4 className="text-[14px] font-black text-slate-800 tracking-tight leading-tight line-clamp-2 uppercase">
+                      {partner.name}
+                    </h4>
+                  </div>
 
-                  {/* Logo/Icon overlapping right bottom */}
-                  <div className="absolute right-3.5 bottom-3.5 pointer-events-none z-20 drop-shadow-xs">
+                  {/* Right Logo Badge - perfectly nestled */}
+                  <div className="w-13 h-13 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 shadow-2xs p-2 flex items-center justify-center shrink-0">
                     {imageSrc ? (
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1.5 shadow-xs">
-                        <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain rounded-[var(--ui-radius-small)]" />
-                      </div>
+                      <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
                     ) : (
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-slate-800 p-2 shadow-xs">
-                        <IconComponent className="w-full h-full opacity-90" strokeWidth={1.5} />
+                      <div className="w-full h-full flex items-center justify-center text-slate-700">
+                        <IconComponent size={26} strokeWidth={1.8} />
                       </div>
                     )}
                   </div>
 
-                  {/* Content text */}
-                  <div className="text-white text-left pr-20 flex flex-col justify-center h-full">
-                    <span className="text-[9px] font-black uppercase tracking-wider opacity-75 mb-1.5 shrink-0">Keahlian</span>
-                    <div className="flex flex-col font-black tracking-tight text-[15px] uppercase">
-                      {partner.name.split(' ').map((word, wIdx) => (
-                        <span key={wIdx} className="block leading-[1.05] drop-shadow-sm">{word}</span>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Bottom Accent line */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent" />
                 </div>
               );
             })}
 
             {/* Dots indicators */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
               {partners.map((_, index) => {
                 const isActive = index === activeSlide % (partners.length || 1);
                 return (
@@ -725,7 +714,7 @@ export default function LandingPage() {
                     key={index}
                     onClick={() => setActiveSlide(index)}
                     className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
-                      isActive ? 'w-4 bg-white' : 'w-1.5 bg-white/40'
+                      isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
                     }`}
                     style={{ borderRadius: '9999px' }}
                     aria-label={`Ke slide ${index + 1}`}
@@ -938,12 +927,16 @@ export default function LandingPage() {
         </div>
 
         {/* BOTTOM SECTION: JURUSAN / PROGRAM */}
-        <div className="shrink-0 border-t border-slate-200/50 py-3.5 mt-2 bottom-jurusan-section">
+        <div className="shrink-0 border-t border-slate-200/60 py-3.5 mt-2 bottom-jurusan-section">
           <div className="flex flex-row items-center gap-6 md:gap-8 w-full">
             {/* Title section (left side) */}
             <div className="flex flex-col justify-center shrink-0 w-44 text-left">
-              <p className="text-[9px] lg:text-[10px] font-bold mb-0.5" style={{ color: primaryColor }}>{appSettings.trustedByText ||"Program Keahlian Unggulan"}</p>
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100/80 text-slate-600 border border-slate-200/70 w-fit mb-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
+                <span>{appSettings.trustedByText || "Program Unggulan"}</span>
+              </div>
               <h2 className="text-lg lg:text-xl font-black text-slate-800 tracking-tight leading-none">JURUSAN / PROGRAM</h2>
+              <p className="text-[10px] text-slate-400 font-medium mt-1">Kompetensi keahlian unggulan berstandar industri</p>
             </div>
 
             {/* Cards container */}
@@ -952,52 +945,38 @@ export default function LandingPage() {
                 const name = appSettings[`partner${idx}`];
                 if (!name) return null;
 
-                const desc = appSettings[`partnerDesc${idx}`] ||"Pelajari selengkapnya tentang program ini.";
-                const iconStr = appSettings[`partnerIcon${idx}`] ||"book";
+                const iconStr = appSettings[`partnerIcon${idx}`] || "book";
                 const IconComponent = ICON_MAP[iconStr] || HelpCircle;
-
-                const rawColor = appSettings[`partnerColor${idx}`] || ["orange","blue","emerald","pink"][idx - 1] ||"blue";
-                const colorMap = {
-                  red:"bg-rose-500",
-                  blue:"bg-indigo-600",
-                  emerald:"bg-emerald-500",
-                  purple:"bg-purple-600",
-                  orange:"bg-orange-500",
-                  cyan:"bg-cyan-500",
-                  pink:"bg-pink-500"
-                };
-                const isHexColor = rawColor.startsWith('#');
-                const bgColorClass = isHexColor ?"" : (colorMap[rawColor] ||"bg-gradient-to-br from-blue-600 to-blue-700");
                 const imageSrc = appSettings[`partnerImage${idx}`];
 
                 return (
-                  <div key={idx} className="group relative rounded-[var(--ui-radius-small)] p-3 lg:p-4 shadow-sm hover:shadow-xs transition-all duration-300 flex flex-col justify-between h-24 lg:h-28 w-full z-10">
+                  <div 
+                    key={idx} 
+                    className="group relative bg-white/95 rounded-[var(--ui-radius-card)] p-3.5 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-[var(--ui-primary)]/40 transition-all duration-300 flex items-center justify-between gap-2.5 min-h-[96px] lg:min-h-[104px] w-full overflow-hidden"
+                  >
+                    {/* Ambient Glow */}
+                    <div className="absolute -top-8 -right-8 w-20 h-20 bg-[var(--ui-primary)]/8 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                    
+                    {/* Bottom active accent line on hover */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    <div 
-                      className={`absolute inset-0 rounded-[var(--ui-radius-small)] overflow-hidden shadow-inner -z-10 ${bgColorClass}`}
-                      style={isHexColor ? { backgroundColor: rawColor } : {}}
-                    >
-                      <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none w-24 h-24 transform group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700">
-                        {imageSrc ? (
-                          <img src={imageSrc} alt="" loading="lazy" className="w-full h-full object-contain grayscale brightness-0 invert" />
-                        ) : (
-                          <IconComponent className="w-full h-full text-white" strokeWidth={1.5} />
-                        )}
-                      </div>
-                      <div className="absolute -right-8 -top-8 w-20 h-20 bg-white/20 rounded-full blur-xl pointer-events-none transition-all group-hover:bg-white/30"></div>
+                    {/* Left text content */}
+                    <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
+                      <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 group-hover:text-[var(--ui-primary)] transition-colors mb-0.5">
+                        Keahlian 0{idx}
+                      </span>
+                      <h4 className="text-[12.5px] lg:text-[13.5px] font-black text-slate-800 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2 uppercase">
+                        {name}
+                      </h4>
                     </div>
 
-                    <div className="relative z-10 pr-10 text-white flex flex-col text-left">
-                      <span className="text-[8px] font-black uppercase tracking-wider opacity-85 mb-0.5">Keahlian</span>
-                      <h4 className="text-[12px] lg:text-[13px] font-black leading-tight drop-shadow-xs group-hover:-translate-y-0.5 transition-transform">{name}</h4>
-                    </div>
-
-                    <div className="absolute -right-3 -bottom-4 lg:-right-4 lg:-bottom-5 pointer-events-none z-20 group-hover:-translate-y-3 group-hover:scale-110 transition-transform duration-500 drop-shadow-xs">
+                    {/* Right logo container - perfectly nestled inside card */}
+                    <div className="relative z-10 w-12 h-12 lg:w-13 lg:h-13 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:border-[var(--ui-primary)]/30 transition-all duration-300">
                       {imageSrc ? (
-                        <img src={imageSrc} alt={name} loading="lazy" className="w-16 h-16 lg:w-20 lg:h-20 object-contain" />
+                        <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
-                        <div className="w-16 h-16 lg:w-20 lg:h-20 flex items-center justify-center rotate-[-5deg] group-hover:rotate-0 transition-all duration-300 text-slate-800">
-                          <IconComponent className="w-full h-full opacity-90" strokeWidth={1.5} />
+                        <div className="w-full h-full flex items-center justify-center text-slate-600 group-hover:text-[var(--ui-primary)] transition-colors">
+                          <IconComponent size={24} strokeWidth={1.8} />
                         </div>
                       )}
                     </div>
