@@ -1,7 +1,7 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, ArrowUpRight } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -497,261 +497,274 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW */}
-      <div className="md:hidden flex flex-col w-full pb-20">
+      {/* MOBILE SCROLLABLE VIEW (3-Layer Sheet Modern Architecture) */}
+      <div className="md:hidden flex flex-col w-full pb-20 select-none">
 
-        {/* Curved Green Header Card (Matching Reference Image) */}
-        <div
-          className="w-full relative flex flex-col text-white select-none px-5 pb-6.5 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
-        >
-        {appSettings.heroImage && (
-          <img 
-            src={appSettings.heroImage} 
-            fetchpriority="high" 
-            loading="eager" 
-            className="absolute inset-0 w-full h-full object-cover object-center z-0" 
-            alt="Mobile Hero Background" 
-          />
-        )}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            background: `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.94 : 1)} 0%, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.88 : 0.86)} 100%)`
-          }}
-        />
-        {/* Sparkles backdrop illustration */}
-        <Sparkles className="absolute left-6 top-16 text-white/10 animate-pulse z-10" size={16} />
-        <Sparkles className="absolute right-12 bottom-6 text-white/10 animate-pulse z-10" size={16} />
-
-        {/* Top Bar inside Green Card */}
-        <div className="flex items-center justify-between mb-5 w-full relative z-10">
-          <div className="flex items-center gap-2.5">
-            {appSettings.logoUrl ? (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center p-1 shadow-sm">
-                <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-              </div>
-            ) : (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white flex items-center justify-center text-[var(--ui-primary)] font-black text-[11px] shadow-sm">
-                {logoText ||"TS"}
-              </div>
-            )}
-            <div className="flex flex-col text-left">
-              <span className="text-[7.5px] font-black text-white/80 tracking-wider leading-none uppercase">{appSettings.logoSmallText ||"PORTAL"}</span>
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none uppercase">{appSettings.appName ||"KG2 SCHOOL"}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsLoginModalOpen(true)}
-              className="h-8.5 px-3 rounded-[var(--ui-radius-small)] bg-slate-800 hover:bg-slate-900 active:scale-95 text-white border border-slate-700 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer select-none"
-              aria-label="Masuk Aplikasi"
-              title="Masuk ke Aplikasi"
-            >
-              <LogIn size={15} strokeWidth={2.5} className="text-white shrink-0" />
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none">Masuk</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Greetings */}
-        <div className="text-left mt-1.5 mb-3.5 relative z-10 pl-0">
-          <h2 className="text-[20px] font-normal opacity-90 leading-tight">Hello,</h2>
-          <h1 className="text-[28px] font-black leading-tight mt-0.5">Selamat Datang{appSettings.appName ? ` di ${appSettings.appName}` : ''}</h1>
-          <p className="text-[11px] opacity-80 font-medium leading-relaxed max-w-[280px] mt-2">
-            {cleanHeroSubtitle}
-          </p>
-        </div>
-      </div>
-
-        {/* Layanan Publik Overlapping Card (Matching Reference Image) */}
-        <div className="mx-4 mt-2.5 bg-white rounded-[24px] pt-6.5 pb-5 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] relative z-20 border border-slate-100 flex flex-col gap-3 select-none">
-          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1 pt-1 mb-0.5">Layanan Publik</h3>
-          
-          {/* Flex column enclosing rows of 4 buttons */}
-          <div className="flex flex-col gap-3.5 w-full mt-1.5">
-            {/* Row 1 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(0, 4).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
-            </div>
-
-            {/* Row 2 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(4, 8).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx + 4}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-slate-100 rounded-[18px] shadow-sm flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative"
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-[12px] flex items-center justify-center transition-all duration-300 group-active:scale-95 shadow-xs border border-slate-50/50"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-        </div>
-
-        {/* JURUSAN / PROGRAM SLIDER (Mobile Only) */}
-        <section className="relative z-10 w-full px-4 mt-4 mb-4">
-          <div className="flex flex-col text-left mb-2.5">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/70 w-fit mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] animate-pulse" />
-              <span>{appSettings.trustedByText || "Program Unggulan"}</span>
-            </div>
-            <h2 className="text-base font-black text-slate-800 uppercase tracking-tight leading-none">JURUSAN / PROGRAM</h2>
-          </div>
-
-          <div className="relative w-full h-[110px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 bg-white/95 backdrop-blur-md">
-            {partners.map((partner, index) => {
-              const isActive = index === activeSlide % (partners.length || 1);
-              const imageSrc = partner.image;
-              const IconComponent = ICON_MAP[partner.icon] || HelpCircle;
-
-              return (
+        {/* LAYER 1: CLEAN LIGHT HERO & SCHOOL IDENTITY */}
+        <div className="w-full relative px-5 pt-5 pb-6 text-left overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100">
+          {/* Top Floating Buttons */}
+          <div className="flex items-center justify-between w-full relative z-10 mb-4">
+            {/* Left: School Logo Pill */}
+            <div className="flex items-center gap-2.5">
+              {appSettings.logoUrl ? (
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center p-1.5 shadow-xs border border-slate-200/80">
+                  <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                </div>
+              ) : (
                 <div 
-                  key={index}
-                  className={`absolute inset-0 p-3.5 flex items-center justify-between gap-3 transition-all duration-500 transform ${
-                    isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
-                  }`}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-xs shadow-xs"
+                  style={{ backgroundColor: primaryColor || '#059669' }}
                 >
-                  {/* Left Text */}
-                  <div className="flex flex-col justify-center text-left min-w-0 flex-1">
-                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-1">
-                      Keahlian 0{index + 1}
-                    </span>
-                    <h4 className="text-[14px] font-black text-slate-800 tracking-tight leading-tight line-clamp-2 uppercase">
-                      {partner.name}
+                  {logoText || "TS"}
+                </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-[8px] font-black text-slate-400 tracking-wider uppercase leading-none">PORTAL AKADEMIK</span>
+                <span className="text-[13px] font-black text-slate-800 uppercase tracking-tight leading-tight mt-0.5">
+                  {appSettings.appName || "KG2 SCHOOL"}
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Quick Action Circle Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPublicGuide(true)}
+                className="w-10 h-10 rounded-full bg-white shadow-xs border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-95 transition-all cursor-pointer"
+                title="Panduan"
+                aria-label="Panduan"
+              >
+                <HelpCircle size={18} strokeWidth={2.2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="h-10 px-3.5 rounded-full bg-slate-900 active:scale-95 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer border-none font-black text-xs uppercase tracking-wider"
+                title="Masuk Portal"
+                aria-label="Masuk Portal"
+              >
+                <LogIn size={14} strokeWidth={2.5} />
+                <span>Masuk</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Date Stamp */}
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-3">
+            {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+
+          {/* Headline Title */}
+          <h1 className="text-[24px] font-black text-slate-900 tracking-tight leading-tight uppercase mt-1">
+            {appSettings.appName || "SMK KARYA GUNA 2"}
+          </h1>
+          <p className="text-[12px] font-medium text-slate-500 leading-relaxed mt-1 max-w-[320px]">
+            {appSettings.instansiName || cleanHeroSubtitle}
+          </p>
+
+          {/* Status Badges Row */}
+          <div className="flex items-center gap-2 mt-3.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200/90 text-[10px] font-black text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{appSettings.akreditasi ? `Akreditasi ${appSettings.akreditasi}` : "Terakreditasi A"}</span>
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white border border-slate-200/90 text-[10px] font-black text-slate-500 shadow-2xs">
+              NPSN: {appSettings.npsn || "20107890"}
+            </span>
+          </div>
+        </div>
+
+        {/* LAYER 2: INTERMEDIATE SOFT CARD (STATUS & AGENDA TRACKER) */}
+        <div className="w-full rounded-t-[32px] bg-slate-100/95 border-t border-slate-200/80 pt-5 pb-8 px-5 -mt-3 relative z-10 shadow-xs text-left">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
+              Status & Informasi Terpadu
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200/80">
+              KBM Aktif
+            </span>
+          </div>
+
+          {/* Quick Metrics Tracker Bar */}
+          <div className="grid grid-cols-3 gap-2 w-full">
+            <div className="bg-white/85 rounded-[16px] p-2.5 border border-slate-200/60 shadow-2xs flex flex-col items-center text-center">
+              <span className="text-[14px] font-black text-slate-800 leading-none">32</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase mt-1">Rombel</span>
+            </div>
+            <div className="bg-white/85 rounded-[16px] p-2.5 border border-slate-200/60 shadow-2xs flex flex-col items-center text-center">
+              <span className="text-[14px] font-black text-slate-800 leading-none">100%</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase mt-1">Sinkron</span>
+            </div>
+            <div className="bg-white/85 rounded-[16px] p-2.5 border border-slate-200/60 shadow-2xs flex flex-col items-center text-center">
+              <span className="text-[14px] font-black text-slate-800 leading-none">Online</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase mt-1">Presensi</span>
+            </div>
+          </div>
+        </div>
+
+        {/* LAYER 3: VIBRANT ACCENT BOTTOM SHEET (SIGNATURE STYLE) */}
+        <div 
+          className="w-full rounded-t-[36px] text-white pt-4 pb-8 px-5 -mt-5 relative z-20 shadow-xl"
+          style={{ backgroundColor: primaryColor || '#059669' }}
+        >
+          {/* Top Notch Indicator Pill */}
+          <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-4" />
+
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-black tracking-tight text-white uppercase">Layanan Utama</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPublicHelp(true)}
+                className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center text-white border-none cursor-pointer transition-all"
+                title="Bantuan FAQ"
+              >
+                <HelpCircle size={15} />
+              </button>
+            </div>
+          </div>
+
+          {/* 2-Column Bento Action Cards with Circular Arrow Buttons */}
+          <div className="grid grid-cols-2 gap-3 w-full mb-5">
+            {publicServices.map((service, idx) => {
+              const IconComp = service.icon;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    if (service.isPdfRules) {
+                      setShowRulesModal(true);
+                    } else {
+                      navigate(service.path);
+                    }
+                  }}
+                  className="bg-white/15 hover:bg-white/20 active:scale-[0.98] transition-all rounded-[22px] p-3.5 flex flex-col justify-between min-h-[118px] cursor-pointer relative overflow-hidden backdrop-blur-md border border-white/10 text-left group"
+                >
+                  {/* Top content */}
+                  <div>
+                    <div className="w-7 h-7 rounded-[10px] bg-white/20 flex items-center justify-center mb-2 shadow-2xs">
+                      {service.customIcon ? (
+                        <img src={service.customIcon} alt="" className="w-4 h-4 object-contain" />
+                      ) : (
+                        <IconComp size={14} className="text-white" strokeWidth={2.2} />
+                      )}
+                    </div>
+                    <h4 className="text-[12.5px] font-black text-white leading-tight uppercase line-clamp-1">
+                      {service.label}
                     </h4>
+                    <span className="text-[9.5px] font-medium text-white/75 block mt-0.5 truncate">
+                      {service.subtitle || "Akses Informasi"}
+                    </span>
                   </div>
 
-                  {/* Right Logo Badge - perfectly nestled */}
-                  <div className="w-13 h-13 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 shadow-2xs p-2 flex items-center justify-center shrink-0">
-                    {imageSrc ? (
-                      <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <IconComponent size={26} strokeWidth={1.8} />
-                      </div>
-                    )}
+                  {/* Bottom Row with White Round Arrow Button */}
+                  <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-white/15">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-white/80">Buka</span>
+                    <div className="w-7.5 h-7.5 rounded-full bg-white text-slate-900 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                      <ArrowUpRight size={14} strokeWidth={2.5} />
+                    </div>
                   </div>
-
-                  {/* Bottom Accent line */}
-                  <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent" />
                 </div>
               );
             })}
+          </div>
 
-            {/* Dots indicators */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {partners.map((_, index) => {
+          {/* Program Keahlian Slider inside Sheet */}
+          <div className="mt-4 mb-4 text-left">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/80">
+                {appSettings.trustedByText || "Program Keahlian Unggulan"}
+              </span>
+              <span className="text-[9px] font-bold text-white/60">Geser Otomatis</span>
+            </div>
+
+            <div className="relative w-full h-[105px] overflow-hidden rounded-[20px] shadow-sm bg-white text-slate-800">
+              {partners.map((partner, index) => {
                 const isActive = index === activeSlide % (partners.length || 1);
+                const imageSrc = partner.image;
+                const IconComponent = ICON_MAP[partner.icon] || HelpCircle;
+
                 return (
-                  <button
+                  <div 
                     key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
-                      isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
+                    className={`absolute inset-0 p-3.5 flex items-center justify-between gap-3 transition-all duration-500 transform ${
+                      isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
                     }`}
-                    style={{ borderRadius: '9999px' }}
-                    aria-label={`Ke slide ${index + 1}`}
-                  />
+                  >
+                    {/* Left Text */}
+                    <div className="flex flex-col justify-center text-left min-w-0 flex-1">
+                      <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                        Keahlian 0{index + 1}
+                      </span>
+                      <h4 className="text-[13px] font-black text-slate-800 tracking-tight leading-tight line-clamp-2 uppercase">
+                        {partner.name}
+                      </h4>
+                    </div>
+
+                    {/* Right Logo Badge */}
+                    <div className="w-12 h-12 rounded-[12px] bg-slate-50 border border-slate-100 shadow-2xs p-1.5 flex items-center justify-center shrink-0">
+                      {imageSrc ? (
+                        <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-700">
+                          <IconComponent size={24} strokeWidth={1.8} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Accent line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[var(--ui-primary)] to-transparent" />
+                  </div>
                 );
               })}
+
+              {/* Dots indicators */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {partners.map((_, index) => {
+                  const isActive = index === activeSlide % (partners.length || 1);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setActiveSlide(index)}
+                      className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
+                        isActive ? 'w-4 bg-[var(--ui-primary)]' : 'w-1.5 bg-slate-200'
+                      }`}
+                      style={{ borderRadius: '9999px' }}
+                      aria-label={`Ke slide ${index + 1}`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* MITRA & KERJASAMA SLIDER */}
-        {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <section className="relative z-10 w-full overflow-hidden py-4 md:py-6">
-            <div className="w-full max-w-[1200px] mx-auto px-5 md:px-8">
-              <div className="w-full mb-3 text-center">
-                <h3 className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider inline-block">Telah Dipercaya & Bekerjasama Dengan</h3>
-              </div>
-
-              <div className="relative w-full overflow-hidden flex py-1">
-                <div className="absolute left-0 top-0 w-16 md:w-24 h-full bg-gradient-to-r from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 w-16 md:w-24 h-full bg-gradient-to-l from-[var(--ui-bg)] to-transparent z-10 pointer-events-none"></div>
-
-                <div className="flex w-max animate-marquee gap-8 md:gap-12 items-center px-4 hover:[animation-play-state:paused]">
+          {/* Mitra Industri Marquee inside Layer 3 */}
+          {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-white/15">
+              <span className="text-[9px] font-black uppercase tracking-wider text-white/70 block mb-2 text-center">
+                Mitra Industri & Sertifikasi
+              </span>
+              <div className="relative w-full overflow-hidden flex py-1 bg-white/10 rounded-full px-3">
+                <div className="flex w-max animate-marquee gap-6 items-center hover:[animation-play-state:paused]">
                   {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[80px] md:w-[110px] h-[35px] md:h-[45px] flex items-center justify-center shrink-0 group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[60px] h-[24px] flex items-center justify-center shrink-0 brightness-0 invert opacity-70">
                       {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
+                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" />
                       ) : (
-                        <span className="text-xs md:text-sm font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
+                        <span className="text-[9px] font-black text-white tracking-tight text-center">{mitra.name}</span>
                       )}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </section>
-        )}
+          )}
+        </div>
+
       </div>
 
       {/* DESKTOP VIEW COMPACT WRAPPER */}
