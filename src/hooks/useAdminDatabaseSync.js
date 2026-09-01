@@ -194,51 +194,56 @@ export function useAdminDatabaseSync({
     return () => { cancelled = true; };
   }, [applyDatabasePayload, currentUser?.authToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Auto-save: debounced setiap kali data berubah ───────────────────────
+  // ─── Auto-save: debounced 1000ms agar CPU/browser bebas lag saat mengetik & navigasi ───
   useEffect(() => {
     if (!authHydrated) return;
-    try {
-      const fullPayload = buildDatabasePayload();
-      const serializedPayload = JSON.stringify(fullPayload);
 
-      if (serializedPayload !== lastPersistedPayloadRef.current) {
-        lastPersistedPayloadRef.current = serializedPayload;
-        setDatabaseSnapshot(fullPayload);
+    const timer = setTimeout(() => {
+      try {
+        const fullPayload = buildDatabasePayload();
+        const serializedPayload = JSON.stringify(fullPayload);
+
+        if (serializedPayload !== lastPersistedPayloadRef.current) {
+          lastPersistedPayloadRef.current = serializedPayload;
+          setDatabaseSnapshot(fullPayload);
+        }
+
+        if (currentUser?.authToken && (!databaseHydrated || databaseHydrationFailedRef.current)) return;
+
+        if (
+          currentUser?.authToken &&
+          serializedPayload !== lastSavedServerPayloadRef.current &&
+          serializedPayload !== pendingServerPayloadRef.current
+        ) {
+          pendingServerPayloadRef.current = serializedPayload;
+          saveToServer(fullPayload, currentUser.authToken, {
+            onSuccess: () => {
+              if (pendingServerPayloadRef.current === serializedPayload) {
+                lastSavedServerPayloadRef.current = serializedPayload;
+                pendingServerPayloadRef.current = '';
+              }
+            },
+            onError: error => {
+              if (pendingServerPayloadRef.current === serializedPayload) {
+                pendingServerPayloadRef.current = '';
+              }
+              const message = getDatabaseSaveErrorMessage(error);
+              if (error?.status === 403) {
+                writeSessionUser(null);
+                setCurrentUser(null);
+                setLoginError(message);
+              }
+              setNotification(message);
+              setTimeout(() => setNotification(''), 3500);
+            },
+          });
+        }
+      } catch (e) {
+        console.error('Gagal menyiapkan payload database', e);
       }
+    }, 1000);
 
-      if (currentUser?.authToken && (!databaseHydrated || databaseHydrationFailedRef.current)) return;
-
-      if (
-        currentUser?.authToken &&
-        serializedPayload !== lastSavedServerPayloadRef.current &&
-        serializedPayload !== pendingServerPayloadRef.current
-      ) {
-        pendingServerPayloadRef.current = serializedPayload;
-        saveToServer(fullPayload, currentUser.authToken, {
-          onSuccess: () => {
-            if (pendingServerPayloadRef.current === serializedPayload) {
-              lastSavedServerPayloadRef.current = serializedPayload;
-              pendingServerPayloadRef.current = '';
-            }
-          },
-          onError: error => {
-            if (pendingServerPayloadRef.current === serializedPayload) {
-              pendingServerPayloadRef.current = '';
-            }
-            const message = getDatabaseSaveErrorMessage(error);
-            if (error?.status === 403) {
-              writeSessionUser(null);
-              setCurrentUser(null);
-              setLoginError(message);
-            }
-            setNotification(message);
-            setTimeout(() => setNotification(''), 3500);
-          },
-        });
-      }
-    } catch (e) {
-      console.error('Gagal menyiapkan payload database', e);
-    }
+    return () => clearTimeout(timer);
   }, [authHydrated, buildDatabasePayload, currentUser, databaseHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {

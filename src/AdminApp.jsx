@@ -25,12 +25,11 @@ import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import { AdminHeader } from "./components/admin/AdminHeader.jsx";
 import AdminContentRouter from "./components/admin/AdminContentRouter.jsx";
 import { WorkspaceGuidePanel } from "./components/WorkspaceGuidePanel.jsx";
-import CustomRolesModal from "./components/admin/CustomRolesModal.jsx";
 import AdminMobileNav from './components/admin/AdminMobileNav.jsx';
 import SystemModals from './components/admin/SystemModals.jsx';
 import CrudModals from './components/admin/CrudModals.jsx';
-import BulkEditModal from './components/admin/BulkEditModal.jsx';
-import DefaultPasswordModal from './components/admin/DefaultPasswordModal.jsx';
+const BulkEditModal = lazy(() => import('./components/admin/BulkEditModal.jsx'));
+const DefaultPasswordModal = lazy(() => import('./components/admin/DefaultPasswordModal.jsx'));
 import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
 import { SidebarNavItem, Modal } from './components/ui.jsx';
 import { logTabAccess, logFileDownload } from './utils/auditLogger.js';
@@ -3948,23 +3947,27 @@ export default function App() {
     </Suspense>
 
     <CrudModals modalConfig={modalConfig} closeModal={closeModal} handleSave={handleSave} formData={formData} setFormData={setFormData} classes={classes} majors={majors} teachers={teachers} subjects={subjects} currentUser={currentUser} isSavingModal={isSavingModal} GRADES={GRADES} isAllLike={isAllLike} isSuperAdminRole={isSuperAdminRole} appSettings={appSettings} rooms={rooms} parseCsvList={parseCsvList} serializeCsvList={serializeCsvList} days={days} selectedDaySetting={selectedDaySetting} teacherAvailability={teacherAvailability} csvValuesIntersect={csvValuesIntersect} setBulkConflictMode={setBulkConflictMode} bulkConflictMode={bulkConflictMode} setBulkLoadGrades={setBulkLoadGrades} bulkLoadGrades={bulkLoadGrades} setBulkLoadMajors={setBulkLoadMajors} bulkLoadMajors={bulkLoadMajors} handleBulkAddLoads={handleBulkAddLoads} calendarCategories={calendarCategories} syllabuses={syllabuses} sameText={sameText} syllabusCategories={syllabusCategories} />
-    <BulkEditModal 
-      isOpen={modalConfig.isOpen && modalConfig.type === "bulk_edit"} 
-      onClose={closeModal} 
-      tabKey={modalConfig.data?.tabKey || activeTab} 
-      selectedIds={modalConfig.data?.ids || selectedRows[modalConfig.data?.tabKey || activeTab] || []} 
-      students={students} setStudents={setStudents} 
-      classes={classes} setClasses={setClasses} 
-      teachers={teachers} setTeachers={setTeachers} 
-      staffs={staffs} setStaffs={setStaffs} 
-      majors={majors} setMajors={setMajors} 
-      subjects={subjects} setSubjects={setSubjects} 
-      rooms={rooms} setRooms={setRooms} 
-      saveDatabaseNow={saveDatabaseNow} 
-      showNotification={showNotification} 
-      updateSelectionForTab={updateSelectionForTab} 
-    />
-    <DefaultPasswordModal currentUser={currentUser} setCurrentUser={setCurrentUser} showNotification={showNotification} />
+    <Suspense fallback={null}>
+      <BulkEditModal 
+        isOpen={modalConfig.isOpen && modalConfig.type === "bulk_edit"} 
+        onClose={closeModal} 
+        tabKey={modalConfig.data?.tabKey || activeTab} 
+        selectedIds={modalConfig.data?.ids || selectedRows[modalConfig.data?.tabKey || activeTab] || []} 
+        students={students} setStudents={setStudents} 
+        classes={classes} setClasses={setClasses} 
+        teachers={teachers} setTeachers={setTeachers} 
+        staffs={staffs} setStaffs={setStaffs} 
+        majors={majors} setMajors={setMajors} 
+        subjects={subjects} setSubjects={setSubjects} 
+        rooms={rooms} setRooms={setRooms} 
+        saveDatabaseNow={saveDatabaseNow} 
+        showNotification={showNotification} 
+        updateSelectionForTab={updateSelectionForTab} 
+      />
+    </Suspense>
+    <Suspense fallback={null}>
+      <DefaultPasswordModal currentUser={currentUser} setCurrentUser={setCurrentUser} showNotification={showNotification} />
+    </Suspense>
     <GlobalAdminUI 
       notification={notification} setNotification={setNotification} 
       confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} 

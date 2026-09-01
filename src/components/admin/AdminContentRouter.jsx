@@ -4,12 +4,13 @@ import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parse
 import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
 import { Suspense } from'react';
 import { Shield, Edit2, Lock, Trash2 } from'lucide-react';
-import AbsensiSiswa from'../../pages/kedisiplinan/AbsensiSiswa.jsx';
-import ManajemenPiket from'../../pages/kedisiplinan/ManajemenPiket.jsx';
-import BKDashboard from'../../pages/kedisiplinan/BKDashboard.jsx';
-import JurnalHarianGuru from'../../pages/kedisiplinan/JurnalHarianGuru.jsx';
-import CatatanWaliKelas from'../../pages/kedisiplinan/CatatanWaliKelas.jsx';
 import { PageHeader } from'../monitoring/ui/index.js';
+
+const AbsensiSiswa = lazy(() => import('../../pages/kedisiplinan/AbsensiSiswa.jsx'));
+const ManajemenPiket = lazy(() => import('../../pages/kedisiplinan/ManajemenPiket.jsx'));
+const BKDashboard = lazy(() => import('../../pages/kedisiplinan/BKDashboard.jsx'));
+const JurnalHarianGuru = lazy(() => import('../../pages/kedisiplinan/JurnalHarianGuru.jsx'));
+const CatatanWaliKelas = lazy(() => import('../../pages/kedisiplinan/CatatanWaliKelas.jsx'));
 
 
 const TabSilabus = lazy(() => import("../../pages/admin/tabs/TabSilabus.jsx"));
@@ -624,13 +625,21 @@ export default function AdminContentRouter({ context }) {
 
 
       case"kedisiplinan_piket":
-        return <ManajemenPiket teachers={teachers} students={students} classes={classes} currentUser={currentUser} />;
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat data piket...</div>}>
+          <ManajemenPiket teachers={teachers} students={students} classes={classes} currentUser={currentUser} />
+        </Suspense>;
       case"kedisiplinan_bpbk":
-        return <BKDashboard teachers={teachers} students={students} classes={classes} />;
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat layanan BK...</div>}>
+          <BKDashboard teachers={teachers} students={students} classes={classes} />
+        </Suspense>;
       case"jurnal_harian":
-        return <JurnalHarianGuru classes={classes} teachers={teachers} schedule={schedule} onBack={() => setActiveTab('dashboard')} />;
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat jurnal harian...</div>}>
+          <JurnalHarianGuru classes={classes} teachers={teachers} schedule={schedule} onBack={() => setActiveTab('dashboard')} />
+        </Suspense>;
       case"catatan_walikelas":
-        return <CatatanWaliKelas students={students} classes={classes} onBack={() => setActiveTab('dashboard')} />;
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat catatan walas...</div>}>
+          <CatatanWaliKelas students={students} classes={classes} onBack={() => setActiveTab('dashboard')} />
+        </Suspense>;
 
       case"riwayat_prestasi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Riwayat Prestasi...</div>}>
