@@ -184,6 +184,7 @@ export default function TabPengaturanUser(props) {
         const nextRequests = passwordResetRequests.map(r => r.id === request.id ? { ...r, status: "approved" } : r);
         updatePasswordResetRequest(request.id, { status: "approved" });
         await saveDatabaseNow({ staffs: nextStaffs, passwordResetRequests: nextRequests }, "reset password karyawan");
+        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, "sinkronisasi reset password karyawan");
         success = true;
       }
     }
@@ -241,13 +242,14 @@ export default function TabPengaturanUser(props) {
         );
         if (setTeachers) setTeachers(nextTeachers);
         await saveDatabaseNow({ teachers: nextTeachers }, 'admin ganti password guru');
-        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, nextTeachers, 'sync password change');
+        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, nextTeachers, staffs, 'sync password change guru');
       } else {
         const nextStaffs = (staffs || []).map(s => 
           sameText(s.code || s.staff_code || s.id, resetModalUser.code) ? { ...s, password: nextHash } : s
         );
         if (setStaffs) setStaffs(nextStaffs);
         await saveDatabaseNow({ staffs: nextStaffs }, 'admin ganti password staff');
+        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, 'sync password change staff');
       }
 
       showNotification(`Password untuk ${resetModalUser.name} berhasil diubah menjadi "${cleanPass}".`, 'success');
