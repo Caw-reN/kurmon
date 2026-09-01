@@ -192,16 +192,13 @@ export default function AdminMobileNav({
       role="navigation"
       aria-label="Navigasi Mobile"
     >
-      {/* Glass bar */}
       <div
-        className="flex items-center justify-around gap-0 px-2 pt-2"
+        className="flex items-center justify-around px-1 pt-2"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)',
-          background: 'rgba(255,255,255,0.96)',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-          borderTop: '0.5px solid rgba(0,0,0,0.1)',
-          boxShadow: '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 32px rgba(0,0,0,0.07)',
+          backgroundColor: 'var(--ui-card-bg, #ffffff)',
+          borderTop: '1px solid var(--ui-border-soft, #e2e8f0)',
+          boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.04)',
         }}
       >
         {allTabs.map(tab => {
@@ -229,38 +226,23 @@ export default function AdminMobileNav({
                   if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
               }}
-              className="relative flex-1 flex flex-col items-center justify-center border-none cursor-pointer bg-transparent min-w-0 select-none touch-manipulation"
+              className="relative flex-1 flex flex-col items-center justify-center border-none cursor-pointer bg-transparent min-w-0 py-1 select-none touch-manipulation active:opacity-70 transition-opacity"
               style={{
-                minHeight: '50px',
-                gap: '3px',
+                minHeight: '48px',
+                gap: '4px',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
-              {/* Pill chip — icon container */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: isActive ? '56px' : '40px',
-                  height: '30px',
-                  borderRadius: '999px',
-                  background: isActive
-                    ? 'var(--ui-primary, #059669)'
-                    : 'transparent',
-                  boxShadow: isActive
-                    ? '0 2px 12px color-mix(in srgb, var(--ui-primary, #059669) 38%, transparent)'
-                    : 'none',
-                  transition: 'width 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.2s, box-shadow 0.2s',
-                  willChange: 'width',
-                }}
-              >
+              {/* Icon */}
+              <div className="flex items-center justify-center">
                 <IconComponent
-                  size={isActive ? 19 : 22}
-                  strokeWidth={isActive ? 2.5 : 1.7}
+                  size={22}
+                  strokeWidth={isActive ? 2.4 : 1.8}
+                  fill={isActive ? 'currentColor' : 'none'}
                   style={{
-                    color: isActive ? '#ffffff' : '#9ca3af',
-                    transition: 'color 0.18s, size 0.18s',
+                    color: isActive ? 'var(--ui-primary, #059669)' : '#64748b',
+                    transition: 'color 0.15s ease, transform 0.15s ease',
+                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
                     flexShrink: 0,
                   }}
                 />
@@ -272,17 +254,17 @@ export default function AdminMobileNav({
                   display: 'block',
                   width: '100%',
                   textAlign: 'center',
-                  fontSize: isActive ? '10.5px' : '10px',
+                  fontSize: '11px',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? 'var(--ui-primary, #059669)' : '#9ca3af',
+                  color: isActive ? 'var(--ui-primary, #059669)' : '#64748b',
                   letterSpacing: '-0.01em',
-                  lineHeight: 1,
+                  lineHeight: 1.1,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   paddingLeft: '2px',
                   paddingRight: '2px',
-                  transition: 'color 0.18s, font-weight 0.18s',
+                  transition: 'color 0.15s ease',
                 }}
               >
                 {tab.label}
