@@ -500,9 +500,9 @@ export default function LandingPage() {
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
       <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-[#F5F6FA] overflow-hidden select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - MEMAKAN SEKITAR 45% TINGGI LAYAR DENGAN WARNA HIJAU DESKTOP) */}
+        {/* 1. AREA HEADER (ATAS - SEKITAR 54% TINGGI LAYAR AGAR SEIMBANG DENGAN KONTEN DI BAWAH) */}
         <div 
-          className="relative w-full h-[45%] min-h-[270px] max-h-[360px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
+          className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
           style={{
             background: `linear-gradient(165deg, ${primaryColor || '#064e3b'} 0%, #054031 42%, #033126 80%, #021f18 100%)`
           }}
@@ -611,13 +611,13 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - DIPOSISIKAN LEBIH DEKAT KE TOMBOL MASUK, BG #F5F6FA) */}
-        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-2 pb-[96px] sm:pb-[106px] flex flex-col justify-end items-center z-30">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEIMBANG & PROPORSIONAL TANPA SPACE KOSONG BERLEBIH, BG #F5F6FA) */}
+        <div className="relative w-full h-[46%] flex-1 bg-[#F5F6FA] px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30">
           
-          <div className="w-full max-w-md mx-auto flex flex-col items-center mb-3 sm:mb-4">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
             {/* Judul: Layanan Publik + Ikon Info */}
-            <div className="flex items-center justify-center gap-1.5 mb-4">
+            <div className="flex items-center justify-center gap-1.5 mb-2.5 sm:mb-3">
               <span 
                 className="text-xs sm:text-sm font-black uppercase tracking-wider"
                 style={{ color: primaryColor || '#064e3b' }}
@@ -1096,14 +1096,14 @@ export default function LandingPage() {
       {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-5 pt-3.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
-          {/* Tombol Pertama: Login (Hijau desktop solid, flex-1, teks putih tebal, rounded-xl) */}
+          {/* Tombol Pertama: Masuk Sekarang (Hijau desktop solid, flex-1, teks putih tebal, rounded-xl) */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
             style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
             className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
           >
-            Login
+            Masuk Sekarang
           </button>
 
           {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau desktop sama, ikon Bantuan (Membuka Bottom Sheet) */}
