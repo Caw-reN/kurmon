@@ -638,20 +638,21 @@ export default function TabAkademik(props) {
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Category Dropdown Filter right in Box Header */}
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs focus:outline-none focus:border-[var(--ui-primary)] cursor-pointer"
-                  title="Filter berdasarkan kategori kegiatan"
-                >
-                  <option value="all">Semua Kategori</option>
-                  {calendarCategories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                {/* Custom UISelect Filter (No default browser CSS) */}
+                <div className="w-40 sm:w-48">
+                  <UISelect
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    placeholder="Semua Kategori"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    {calendarCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </UISelect>
+                </div>
                 
                 <span className="text-[11px] font-semibold text-slate-400 hidden sm:inline">
                   Urutan tanggal
@@ -707,7 +708,7 @@ export default function TabAkademik(props) {
                   return (
                     <div
                       key={evt.id}
-                      className={`p-3 sm:px-4 sm:py-3 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group ${isPast ? 'bg-slate-50/30' : ''}`}
+                      className={`p-3 sm:px-4 sm:py-3 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group ${isPast ? 'bg-slate-50/20' : ''}`}
                     >
                       <div className="flex items-start gap-2.5 flex-1 min-w-0">
                         <div className={`text-[12.5px] font-black shrink-0 min-w-[20px] pt-[2px] ${isPast ? 'text-slate-300' : 'text-slate-400'}`}>
@@ -715,25 +716,25 @@ export default function TabAkademik(props) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
-                            <h3 className={`text-[13px] font-black truncate transition-colors ${isPast ? 'text-slate-600' : 'text-slate-800 group-hover:text-[var(--ui-primary)]'}`}>
+                            <h3 className={`text-[13px] font-black truncate transition-colors ${isPast ? 'text-slate-700' : 'text-slate-800 group-hover:text-[var(--ui-primary)]'}`}>
                               {evt.title}
                             </h3>
 
-                            {/* Status Penanda: Terlaksana / Hari Ini / Mendatang */}
+                            {/* Status Penanda: Terlaksana (Hijau) / Hari Ini / Mendatang */}
                             {isPast && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200/80 shrink-0">
-                                <Check size={10} className="stroke-[3] text-slate-400" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/90 shrink-0 shadow-2xs">
+                                <Check size={10} className="stroke-[3] text-emerald-600" />
                                 Terlaksana
                               </span>
                             )}
                             {status.isToday && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Hari Ini
                               </span>
                             )}
                             {!isPast && !status.isToday && status.type === 'upcoming' && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80 shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80 shrink-0">
                                 <Clock size={10} className="text-sky-500" />
                                 {status.label}
                               </span>
