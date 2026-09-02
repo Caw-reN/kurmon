@@ -868,7 +868,7 @@ export default function DashboardPage({
         
         {/* ─────── Shared Activity Logs ─────── */}
         <div className="w-full">
-          <SharedDashboardLogs />
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
 
         {/* Mobile Notification Modal (Desktop Style) */}
@@ -1771,7 +1771,7 @@ export default function DashboardPage({
 
       {/* Shared Activity Logs */}
       <div className="w-full">
-        <SharedDashboardLogs />
+        <SharedDashboardLogs onLogsFetched={setDashLogs} />
       </div>
 
 

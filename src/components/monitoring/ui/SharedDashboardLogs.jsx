@@ -44,7 +44,7 @@ export const getClassBadge = (className) => {
   return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-2xs';
 };
 
-export const SharedDashboardLogs = () => {
+export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const { isFiturAktif } = useFiturStore();
   const { user } = useAuthStore();
   const isSiswa = user?.role === 'siswa';
@@ -117,6 +117,7 @@ export const SharedDashboardLogs = () => {
           }
         }
         setDashLogs(combined);
+        if (onLogsFetched) onLogsFetched(combined);
       })
       .catch(() => {})
       .finally(() => setLogsLoading(false));
