@@ -1,12 +1,24 @@
-import { Button, Modal } from '../components/ui.jsx';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { subscribeDatabaseSnapshot } from '../utils/dataSource.js';
 import { loadInitialState } from '../utils/state.js';
 import { 
-  CalendarDays, Search, BookOpen, Calendar, 
-  ChevronLeft, ChevronRight, X 
+  CalendarDays, 
+  Search, 
+  BookOpen, 
+  Calendar, 
+  ChevronLeft, 
+  ChevronRight, 
+  X, 
+  Filter,
+  Layers,
+  Grid,
+  Clock,
+  Sparkles,
+  Info
 } from 'lucide-react';
+import { Button, Modal } from '../components/ui.jsx';
+import { CustomSelect } from '../components/CustomSelect.jsx';
 
 export default function KalenderPage() {
   const academicCalendarRaw = useAppStore((state) => state.academicCalendar);
@@ -60,7 +72,7 @@ export default function KalenderPage() {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  // -- TONES CONFIGURATION --
+  // -- TONES CONFIGURATION (Konsisten dengan tema kustomisasi web) --
   const categoryTones = {
     blue: { text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200", dot: "bg-indigo-500" },
     emerald: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
@@ -149,16 +161,20 @@ export default function KalenderPage() {
       }
 
       // 2. Category
-      if (selectedCategory !== 'all' && event.categoryId !== selectedCategory) {
-        return false;
+      if (selectedCategory !== 'all') {
+        if (selectedCategory === 'holiday') {
+          if (event.type !== 'holiday') return false;
+        } else if (event.categoryId !== selectedCategory) {
+          return false;
+        }
       }
 
       // 3. Time Filter
       const isPast = event.end < today;
-      const isCurrentMonth = event.start.getMonth() === currentMonth && event.start.getFullYear() === currentYear;
+      const isCurrentMonth = e => e.start.getMonth() === currentMonth && e.start.getFullYear() === currentYear;
       
-      if (timeFilter === 'month' && !isCurrentMonth) return false;
-      if (timeFilter === 'upcoming' && (isPast || isCurrentMonth)) return false; 
+      if (timeFilter === 'month' && !isCurrentMonth(event)) return false;
+      if (timeFilter === 'upcoming' && (isPast || isCurrentMonth(event))) return false; 
       if (timeFilter === 'past' && !isPast) return false;
 
       // 4. Selected Date (from mini calendar)
@@ -176,6 +192,25 @@ export default function KalenderPage() {
     });
   }, [allEvents, searchQuery, selectedCategory, timeFilter, selectedDate, today, currentMonth, currentYear]);
 
+  // De-duplicate category options for CustomSelect (Mencegah duplikasi Libur Nasional)
+  const categoryOptions = useMemo(() => {
+    const opts = [{ value: 'all', label: 'Semua Kategori' }];
+    const seenNames = new Set(['semua kategori']);
+    
+    calendarCategories.forEach(cat => {
+      const lower = String(cat.name).toLowerCase().trim();
+      if (!seenNames.has(lower)) {
+        seenNames.add(lower);
+        opts.push({ value: cat.id, label: cat.name });
+      }
+    });
+
+    if (!seenNames.has('libur nasional')) {
+      opts.push({ value: 'holiday', label: 'Libur Nasional' });
+    }
+    return opts;
+  }, [calendarCategories]);
+
   // Utilities
   const formatShortDate = (date) => date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   const formatDateRange = (start, end) => {
@@ -184,9 +219,9 @@ export default function KalenderPage() {
     return `${formatShortDate(start)} - ${formatShortDate(end)}`;
   };
   const getStatus = (start, end) => {
-    if (end < today) return { label: 'Selesai', class: 'bg-slate-100 text-slate-500' };
-    if (start <= today && end >= today) return { label: 'Sedang Berjalan', class: 'bg-emerald-100 text-emerald-700' };
-    return { label: 'Mendatang', class: 'bg-indigo-100 text-indigo-700' };
+    if (end < today) return { label: 'Selesai', class: 'bg-slate-100 text-slate-500 font-extrabold' };
+    if (start <= today && end >= today) return { label: 'Sedang Berjalan', class: 'bg-emerald-100 text-emerald-700 font-extrabold' };
+    return { label: 'Mendatang', class: 'bg-indigo-100 text-indigo-700 font-extrabold' };
   };
 
   // -- MINI CALENDAR LOGIC --
@@ -214,192 +249,328 @@ export default function KalenderPage() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 animate-fade-in pb-10">
+    <div className="w-full flex flex-col gap-6 select-none animate-in fade-in duration-300 pb-12">
       
-      {/* 1. HEADER SECTION */}
-      <div className="bg-white rounded-[var(--ui-radius-card)] p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
-            <CalendarDays size={24} className="text-white" />
+      {/* ── 1. HERO HEADER CARD (SEJAJAR DENGAN NAVBAR & KONSISTEN) ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        {/* Subtle Ambient Glow */}
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3DAA37]/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          
+          {/* Header Title & Subtitle */}
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-black uppercase tracking-wider mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#3DAA37] animate-pulse" />
+              Layanan Publik • Kalender Akademik
+            </div>
+            
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              Kalender Akademik & Agenda
+            </h1>
+            
+            <p className="text-sm sm:text-base text-slate-600 font-medium mt-2 leading-relaxed">
+              Pusat informasi resmi jadwal kegiatan akademik, agenda sekolah, penilaian semester, dan hari libur nasional resmi.
+            </p>
           </div>
-          <div>
-            <h1 className="text-lg md:text-xl font-black text-slate-800">Kalender Akademik</h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">Jadwal kegiatan akademik, agenda sekolah, dan informasi hari libur resmi.</p>
+
+          {/* KPI Mini Stat Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
+            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-[#3DAA37] mb-1">
+                <CalendarDays size={16} strokeWidth={2.5} />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Total Agenda</span>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
+                {allEvents.length}
+              </span>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-amber-600 mb-1">
+                <Clock size={16} strokeWidth={2.5} />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Bulan Ini</span>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
+                {monthCount} <span className="text-xs font-bold text-slate-500">Agenda</span>
+              </span>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-sky-600 mb-1">
+                <Sparkles size={16} strokeWidth={2.5} />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Mendatang</span>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
+                {upcomingCount} <span className="text-xs font-bold text-slate-500">Agenda</span>
+              </span>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-rose-600 mb-1">
+                <Calendar size={16} strokeWidth={2.5} />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Hari Libur</span>
+              </div>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
+                {nationalHolidays.length || 15} <span className="text-xs font-bold text-slate-500">Hari</span>
+              </span>
+            </div>
           </div>
-        </div>
-        
-        {/* Desktop Badges */}
-        <div className="hidden md:flex flex-wrap gap-2">
-          <div className="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 flex items-center gap-2">
-            <span className="text-[10px] font-black text-amber-600 tracking-wider">BULAN INI:</span>
-            <span className="text-[10px] font-black text-white bg-amber-500 px-2 rounded-full">{monthCount}</span>
-          </div>
-          <div className="px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
-            <span className="text-[10px] font-black text-emerald-600 tracking-wider">MENDATANG:</span>
-            <span className="text-[10px] font-black text-white bg-emerald-500 px-2 rounded-full">{upcomingCount}</span>
-          </div>
+
         </div>
       </div>
 
-      {/* 2. FILTER & TOOLBAR SECTION */}
-      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 border border-slate-200 shadow-sm flex flex-col gap-4">
+      {/* ── 2. FILTER & TOOLBAR SECTION (MENGGUNAKAN CUSTOMSELECT & TOKEN WEB) ── */}
+      <div className="flex flex-col gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 border border-slate-200/80 shadow-xs">
         
-        <div className="flex flex-col md:flex-row gap-3">
-          {/* Search Bar */}
+        {/* Row 1: Search Bar & Tombol Panduan */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          
+          {/* Search Bar with clear button */}
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input 
               type="text" 
               placeholder="Cari judul agenda, kategori, atau tanggal kegiatan..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3DAA37] focus:bg-white focus:ring-3 focus:ring-emerald-500/10 transition-all"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
+                title="Hapus pencarian"
+              >
+                <X size={15} strokeWidth={2.5} />
+              </button>
+            )}
           </div>
           
-          <Button variant="outline" onClick={() => setShowGuide(true)} className="shrink-0 text-xs font-bold gap-2 text-slate-600 border-slate-200">
-            <BookOpen size={14} /> Panduan
-          </Button>
+          {/* Tombol Panduan */}
+          <button 
+            type="button"
+            onClick={() => setShowGuide(true)} 
+            className="h-11 px-4 rounded-[var(--ui-radius-control,12px)] bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0 active:scale-95 shadow-2xs"
+          >
+            <BookOpen size={15} className="text-slate-500" />
+            <span>Panduan</span>
+          </button>
         </div>
 
+        {/* Row 2: Waktu Filter, Category Dropdown (CustomSelect), & View Mode Switcher */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-t border-slate-100 pt-3">
           
-          {/* Time Filters */}
+          {/* Time Filters Chips */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-black tracking-widest text-slate-400 mr-2">FILTER:</span>
+            <div className="flex items-center gap-1.5 text-xs font-black text-slate-400 uppercase tracking-wider mr-1">
+              <Filter size={13} strokeWidth={2.5} />
+              <span>Waktu:</span>
+            </div>
             
             <button 
+              type="button"
               onClick={() => { setTimeFilter('all'); setSelectedDate(null); }}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'all' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              className={`px-3.5 py-1 rounded-full font-bold text-xs cursor-pointer transition-all border ${
+                timeFilter === 'all' && !selectedDate 
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               Semua ({allEvents.length})
             </button>
+            
             <button 
+              type="button"
               onClick={() => { setTimeFilter('month'); setSelectedDate(null); }}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'month' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              className={`px-3.5 py-1 rounded-full font-bold text-xs cursor-pointer transition-all border ${
+                timeFilter === 'month' && !selectedDate 
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               Bulan Ini ({monthCount})
             </button>
+            
             <button 
+              type="button"
               onClick={() => { setTimeFilter('upcoming'); setSelectedDate(null); }}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'upcoming' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              className={`px-3.5 py-1 rounded-full font-bold text-xs cursor-pointer transition-all border ${
+                timeFilter === 'upcoming' && !selectedDate 
+                  ? 'bg-sky-600 text-white border-sky-600 shadow-2xs' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               Mendatang ({upcomingCount})
             </button>
+            
             <button 
+              type="button"
               onClick={() => { setTimeFilter('past'); setSelectedDate(null); }}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all ${timeFilter === 'past' && !selectedDate ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+              className={`px-3.5 py-1 rounded-full font-bold text-xs cursor-pointer transition-all border ${
+                timeFilter === 'past' && !selectedDate 
+                  ? 'bg-slate-700 text-white border-slate-700 shadow-2xs' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               Sudah Lewat
             </button>
             
             {/* If date is selected from mini calendar */}
             {selectedDate && (
-              <div className="px-3 py-1.5 rounded-[var(--ui-radius-small)] text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-2">
-                Tanggal: {formatShortDate(selectedDate)}
-                <button onClick={() => setSelectedDate(null)} className="hover:bg-amber-200 rounded-full p-0.5"><X size={12} /></button>
+              <div className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                <span>Tanggal: {formatShortDate(selectedDate)}</span>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedDate(null)} 
+                  className="hover:bg-amber-200 rounded-full p-0.5 cursor-pointer border-none bg-transparent"
+                  title="Hapus filter tanggal"
+                >
+                  <X size={12} />
+                </button>
               </div>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Category Dropdown */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none cursor-pointer"
-            >
-              <option value="all">Semua Kategori</option>
-              {calendarCategories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-              <option value="holiday">Libur Nasional</option>
-            </select>
+          {/* Category Dropdown (CustomSelect Resmi Web) & View Mode Toggles */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full xl:w-auto">
+            
+            {/* CustomSelect Component (100% Mengikuti CSS Variabel Web) */}
+            <div className="w-full sm:w-[220px]">
+              <CustomSelect
+                value={selectedCategory}
+                onChange={(val) => setSelectedCategory(val)}
+                options={categoryOptions}
+                placeholder="Pilih Kategori..."
+                searchable={false}
+                className="w-full"
+              />
+            </div>
 
-            {/* View Mode Toggles */}
-            <div className="flex bg-slate-50 p-1 rounded-[var(--ui-radius-small)] border border-slate-100">
+            {/* View Mode Segmented Toggles */}
+            <div className="flex bg-slate-100 p-1 rounded-[var(--ui-radius-control,12px)] border border-slate-200/60 shrink-0 self-start sm:self-auto">
               <button 
+                type="button"
                 onClick={() => setViewMode('split')}
-                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'split' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-3.5 h-8 rounded-[var(--ui-radius-small,8px)] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1.5 ${
+                  viewMode === 'split' 
+                    ? 'bg-white shadow-xs text-slate-900' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Split View
+                <Layers size={13} strokeWidth={2.4} />
+                <span>Split View</span>
               </button>
+              
               <button 
+                type="button"
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'list' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-3.5 h-8 rounded-[var(--ui-radius-small,8px)] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1.5 ${
+                  viewMode === 'list' 
+                    ? 'bg-white shadow-xs text-slate-900' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Daftar Penuh
+                <Grid size={13} strokeWidth={2.4} />
+                <span>Daftar Penuh</span>
               </button>
+              
               <button 
+                type="button"
                 onClick={() => setViewMode('calendar')}
-                className={`px-3 py-1.5 rounded text-[11px] font-bold transition-all ${viewMode === 'calendar' ? 'bg-white shadow-xs text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-3.5 h-8 rounded-[var(--ui-radius-small,8px)] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1.5 ${
+                  viewMode === 'calendar' 
+                    ? 'bg-white shadow-xs text-slate-900' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Kalender Penuh
+                <Calendar size={13} strokeWidth={2.4} />
+                <span>Kalender Penuh</span>
               </button>
             </div>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* 3. MAIN CONTENT (Split, List, or Calendar) */}
-      <div className={`grid grid-cols-1 ${viewMode === 'split' ? 'lg:grid-cols-[1fr_360px]' : ''} gap-5 items-start`}>
+      {/* ── 3. MAIN CONTENT (SPLIT, LIST, ATAU CALENDAR) ── */}
+      <div className={`grid grid-cols-1 ${viewMode === 'split' ? 'lg:grid-cols-[1fr_360px]' : ''} gap-6 items-start`}>
         
         {/* EVENT CARDS LIST */}
         {(viewMode === 'split' || viewMode === 'list') && (
           <div className="flex flex-col gap-4">
             
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                DAFTAR KEGIATAN ({filteredEvents.length})
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span>Daftar Kegiatan</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">
+                  {filteredEvents.length}
+                </span>
               </h2>
-              <span className="text-[10px] font-bold text-slate-400">Urutan berdasarkan tanggal</span>
+              <span className="text-[11px] font-bold text-slate-400">Urutan berdasarkan tanggal</span>
             </div>
 
             {filteredEvents.length === 0 ? (
-              <div className="bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-card)] p-12 text-center flex flex-col items-center">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                  <Calendar size={28} className="text-slate-300" />
+              <div className="bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-card,24px)] p-12 text-center flex flex-col items-center shadow-xs">
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-3 shadow-2xs">
+                  <Calendar size={28} className="text-slate-400" />
                 </div>
-                <h3 className="text-sm font-black text-slate-700">Tidak ada agenda ditemukan</h3>
-                <p className="text-xs text-slate-400 mt-1">Ubah filter pencarian atau tanggal untuk melihat agenda lainnya.</p>
+                <h3 className="text-base font-black text-slate-800">Tidak ada agenda ditemukan</h3>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-sm leading-relaxed">
+                  Ubah kata kunci pencarian, filter waktu, atau klik tanggal lain untuk menemukan agenda kegiatan.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setSearchQuery(''); setTimeFilter('all'); setSelectedCategory('all'); setSelectedDate(null); }}
+                  className="mt-4 px-4 py-2 rounded-[var(--ui-radius-control,10px)] bg-slate-900 text-white text-xs font-bold cursor-pointer border-none shadow-xs hover:bg-slate-800 transition-colors"
+                >
+                  Reset Semua Filter
+                </button>
               </div>
             ) : (
-              <div className={`grid grid-cols-1 ${viewMode === 'list' ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+              <div className={`grid grid-cols-1 ${viewMode === 'list' ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'} gap-4 sm:gap-5`}>
                 {filteredEvents.map(event => {
                   const tone = getTone(event.color);
                   const status = getStatus(event.start, event.end);
                   
                   return (
-                    <div key={event.id} className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-4 shadow-xs hover:shadow-sm transition-shadow flex flex-col group">
-                      
-                      <div className="flex items-start justify-between mb-3">
-                        {/* Category Badge */}
-                        <div className={`px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${tone.bg} ${tone.border}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}></div>
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${tone.text}`}>
-                            {event.categoryName}
+                    <div 
+                      key={event.id} 
+                      className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card,20px)] p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between group select-none"
+                    >
+                      <div>
+                        {/* Category & Status Badges */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 ${tone.bg} ${tone.border} border`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                            <span className={tone.text}>{event.categoryName}</span>
+                          </span>
+
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${status.class}`}>
+                            {status.label}
                           </span>
                         </div>
+
+                        {/* Title & Description */}
+                        <h3 className="font-black text-base text-slate-900 tracking-tight leading-snug mb-1.5 group-hover:text-[var(--ui-primary,#059669)] transition-colors line-clamp-2">
+                          {event.title}
+                        </h3>
                         
-                        {/* Status Badge */}
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${status.class}`}>
-                          {status.label}
-                        </span>
+                        <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed mb-4">
+                          {event.description}
+                        </p>
                       </div>
 
-                      <h3 className="text-sm font-black text-slate-800 mb-1 group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2">
-                        {event.title}
-                      </h3>
-                      
-                      <p className="text-xs font-medium text-slate-500 mb-4 line-clamp-2 flex-1">
-                        {event.description}
-                      </p>
-
-                      <div className="mt-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)] px-3 py-2 w-fit">
-                        <Calendar size={14} className="text-slate-400" />
-                        <span className="text-[11px] font-bold text-slate-600">
-                          {formatDateRange(event.start, event.end)}
-                        </span>
+                      {/* Date range footer */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100/80 rounded-[var(--ui-radius-control,10px)] px-3 py-1.5 text-xs font-bold text-slate-600 w-full sm:w-auto">
+                          <Calendar size={13} className="text-slate-400 shrink-0" />
+                          <span>{formatDateRange(event.start, event.end)}</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -409,46 +580,51 @@ export default function KalenderPage() {
           </div>
         )}
 
-        {/* SIDEBAR CALENDAR WIDGET */}
+        {/* ── SIDEBAR CALENDAR WIDGET ── */}
         {(viewMode === 'split' || viewMode === 'calendar') && (
-          <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-4 md:p-5 shadow-sm sticky top-6">
+          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card,20px)] p-5 shadow-sm sticky top-24 select-none">
             
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-slate-800 tracking-wider">
+                <h3 className="text-sm font-black text-slate-900 tracking-wider">
                   {monthNames[calMonth]} {calYear}
                 </h3>
                 {isCurrentMonthView && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9.5px] font-black uppercase">
                     Bulan Ini
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button 
+                  type="button"
                   onClick={goToToday}
-                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-[10px] font-black transition-colors"
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small,8px)] text-[10.5px] font-black transition-colors cursor-pointer border-none"
                 >
                   Hari Ini
                 </button>
-                <div className="flex items-center bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200 overflow-hidden">
-                  <button onClick={prevMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors"><ChevronLeft size={16} /></button>
+                <div className="flex items-center bg-slate-50 rounded-[var(--ui-radius-small,8px)] border border-slate-200 overflow-hidden">
+                  <button type="button" onClick={prevMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer border-none bg-transparent">
+                    <ChevronLeft size={16} />
+                  </button>
                   <div className="w-px h-4 bg-slate-200"></div>
-                  <button onClick={nextMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors"><ChevronRight size={16} /></button>
+                  <button type="button" onClick={nextMonth} className="p-1 hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer border-none bg-transparent">
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               </div>
             </div>
 
-            <p className="text-[10px] font-medium text-slate-500 mb-4 flex items-center gap-1.5">
-              <CalendarDays size={12} />
-              Klik tanggal untuk memfilter agenda kegiatan.
+            <p className="text-[11px] font-medium text-slate-400 mb-3.5 flex items-center gap-1.5">
+              <Info size={12} className="shrink-0" />
+              <span>Klik tanggal pada kalender untuk memfilter agenda.</span>
             </p>
 
             {/* Calendar Grid */}
-            <div className="border border-slate-200 rounded-[var(--ui-radius-small)] overflow-hidden">
+            <div className="border border-slate-200 rounded-[var(--ui-radius-control,12px)] overflow-hidden shadow-2xs">
               <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
                 {["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"].map((day, i) => (
-                  <div key={day} className={`py-2 text-center text-[10px] font-black ${i === 0 ? 'text-rose-600' : 'text-slate-600'}`}>
+                  <div key={day} className={`py-2 text-center text-[10px] font-black tracking-wider ${i === 0 ? 'text-rose-600' : 'text-slate-600'}`}>
                     {day}
                   </div>
                 ))}
@@ -457,7 +633,7 @@ export default function KalenderPage() {
               <div className="grid grid-cols-7">
                 {/* Empty cells before month starts */}
                 {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                  <div key={`empty-${i}`} className="h-12 border-b border-r border-slate-100 bg-slate-50/50"></div>
+                  <div key={`empty-${i}`} className="h-11 border-b border-r border-slate-100 bg-slate-50/50"></div>
                 ))}
 
                 {/* Days of month */}
@@ -469,33 +645,32 @@ export default function KalenderPage() {
                   const dayEvents = getEventsForDay(day);
                   
                   const isSelected = selectedDate && dateObj.toDateString() === selectedDate.toDateString();
-                  
-                  // Filter valid tone events
                   const validEvents = dayEvents.filter(e => e.color);
                   
                   return (
                     <div 
                       key={day} 
                       onClick={() => setSelectedDate(isSelected ? null : dateObj)}
-                      className={`h-12 border-b border-r border-slate-100 p-1 flex flex-col items-center justify-start cursor-pointer hover:bg-slate-50 transition-colors relative
-                        ${isSelected ? 'bg-amber-50 ring-inset ring-2 ring-amber-400' : ''}
-                      `}
+                      className={`h-11 border-b border-r border-slate-100 p-1 flex flex-col items-center justify-start cursor-pointer hover:bg-slate-50 transition-colors relative ${
+                        isSelected ? 'bg-amber-50 ring-inset ring-2 ring-amber-400' : ''
+                      }`}
                     >
-                      <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full mt-0.5 z-10
-                        ${isToday ? 'bg-emerald-600 text-white' : (isSunday ? 'text-rose-600' : 'text-slate-700')}
-                      `}>
+                      <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full mt-0.5 z-10 transition-transform ${
+                        isToday 
+                          ? 'bg-[#3DAA37] text-white shadow-xs scale-105' 
+                          : (isSunday ? 'text-rose-600' : 'text-slate-700')
+                      }`}>
                         {day}
                       </span>
                       
                       {validEvents.length > 0 && (
-                        <div className="flex flex-wrap items-center justify-center gap-0.5 mt-1">
-                          {validEvents.slice(0,3).map((e, idx) => {
+                        <div className="flex flex-wrap items-center justify-center gap-0.5 mt-0.5">
+                          {validEvents.slice(0, 3).map((e, idx) => {
                             const t = getTone(e.color);
-                            // Multi-day ribbon look
                             const isMulti = e.start.toDateString() !== e.end.toDateString();
                             
                             if (isMulti) {
-                              return <div key={idx} className={`w-full h-1 mt-0.5 rounded-[var(--ui-radius-small)] ${t.bg} border-y ${t.border}`} title={e.title}></div>;
+                              return <div key={idx} className={`w-full h-1 mt-0.5 rounded-[var(--ui-radius-small,6px)] ${t.bg} border-y ${t.border}`} title={e.title}></div>;
                             }
                             return <div key={idx} className={`w-1.5 h-1.5 rounded-full ${t.dot}`} title={e.title}></div>;
                           })}
@@ -507,55 +682,59 @@ export default function KalenderPage() {
                 
                 {/* Empty cells after month ends */}
                 {Array.from({ length: (7 - ((firstDayOfMonth + daysInMonth) % 7)) % 7 }).map((_, i) => (
-                  <div key={`empty-end-${i}`} className="h-12 border-b border-r border-slate-100 bg-slate-50/50"></div>
+                  <div key={`empty-end-${i}`} className="h-11 border-b border-r border-slate-100 bg-slate-50/50"></div>
                 ))}
               </div>
             </div>
 
             {/* Legend */}
             <div className="mt-5 border-t border-slate-100 pt-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1">
-                <BookOpen size={12} /> LEGENDA KATEGORI
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2.5 flex items-center gap-1.5">
+                <BookOpen size={12} />
+                <span>Legenda Kategori</span>
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {calendarCategories.map(cat => {
                   const t = getTone(cat.color);
                   return (
-                    <div key={cat.id} className={`px-2 py-1 rounded-full border flex items-center gap-1.5 ${t.bg} ${t.border}`}>
+                    <div key={cat.id} className={`px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${t.bg} ${t.border}`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${t.dot}`}></div>
-                      <span className={`text-[9px] font-bold ${t.text}`}>{cat.name}</span>
+                      <span className={`text-[10px] font-bold ${t.text}`}>{cat.name}</span>
                     </div>
                   );
                 })}
-                <div className="px-2 py-1 rounded-full border flex items-center gap-1.5 bg-rose-50 border-rose-200">
+                <div className="px-2.5 py-1 rounded-full border flex items-center gap-1.5 bg-rose-50 border-rose-200">
                   <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
-                  <span className="text-[9px] font-bold text-rose-700">Libur Nasional</span>
+                  <span className="text-[10px] font-bold text-rose-700">Libur Nasional</span>
                 </div>
               </div>
             </div>
+
           </div>
         )}
       </div>
 
-      {/* MODAL PANDUAN */}
+      {/* ── MODAL PANDUAN ── */}
       {showGuide && (
         <Modal isOpen={true} onClose={() => setShowGuide(false)} title="Panduan Kalender Akademik" maxWidth="max-w-2xl">
-          <div className="p-5 space-y-4 text-sm text-slate-600 font-medium leading-relaxed">
+          <div className="p-6 space-y-4 text-sm text-slate-600 font-medium leading-relaxed">
             <p>
               Kalender Akademik merupakan pusat informasi terkait jadwal kegiatan, hari libur, dan agenda penting sekolah selama satu tahun ajaran.
             </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Gunakan <strong>kolom pencarian</strong> untuk menemukan agenda berdasarkan judul.</li>
-              <li>Pilih <strong>Filter Waktu</strong> (Bulan Ini / Mendatang) untuk melihat kegiatan spesifik.</li>
-              <li>Klik pada tanggal di <strong>Kalender Mini</strong> untuk melihat kegiatan pada tanggal tersebut secara spesifik.</li>
-              <li>Toggle tipe tampilan: <strong className="text-slate-800">Split View</strong> (standar), <strong className="text-slate-800">Daftar Penuh</strong> (menyembunyikan kalender mini), atau <strong className="text-slate-800">Kalender Penuh</strong>.</li>
+            <ul className="list-disc pl-5 space-y-2 text-xs sm:text-sm">
+              <li>Gunakan <strong>kolom pencarian</strong> untuk menemukan agenda berdasarkan judul kegiatan atau topik.</li>
+              <li>Pilih <strong>Filter Waktu</strong> (Bulan Ini / Mendatang / Sudah Lewat) untuk menyaring kegiatan berdasarkan linimasa.</li>
+              <li>Gunakan <strong>Filter Kategori</strong> untuk menampilkan kegiatan bidang tertentu (Kesiswaan, Kurikulum, Hubin, Libur Resmi, dll).</li>
+              <li>Klik tanggal pada <strong>Kalender Mini</strong> untuk melihat kegiatan pada tanggal tersebut secara spesifik.</li>
+              <li>Ganti tipe tampilan: <strong>Split View</strong> (standar), <strong>Daftar Penuh</strong>, atau <strong>Kalender Penuh</strong>.</li>
             </ul>
-            <p className="pt-2 border-t border-slate-100 mt-4 text-xs">
-              Libur Nasional ditarik secara otomatis menggunakan API hari libur pemerintah yang berlaku.
-            </p>
+            <div className="pt-3 border-t border-slate-100 text-xs text-slate-400">
+              Informasi hari libur nasional disinkronkan secara otomatis dengan data resmi pemerintah yang berlaku.
+            </div>
           </div>
         </Modal>
       )}
+
     </div>
   );
 }
