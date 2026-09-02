@@ -2517,6 +2517,7 @@ export default function App() {
   
   const {
     downloadMasterTemplate,
+    downloadScheduleTemplate,
     exportAllDataToExcel,
     handleFileUpload,
     handlePreviewImport,
@@ -2535,7 +2536,8 @@ export default function App() {
     getTeacherName, syllabuses, setSyllabuses, syllabusCategories, setSyllabusCategories,
     attendanceRecords, setAttendanceRecords,
     setBulkText, handleBulkTextChange, openAcademicCalendarGuide, openTeacherGuide, openImportGuide, setIsImportGuideOpen, fileInputRef, bulkText,
-    downloadAcademicCalendarTemplate, downloadTeacherTemplate, teachingLoads, teacherAvailability
+    downloadAcademicCalendarTemplate, downloadTeacherTemplate, teachingLoads, teacherAvailability,
+    schedule, setSchedule
   });
 
   const { renderKampusA, renderKampusB, renderScheduleTable } = useAdminRenderers({
@@ -3281,6 +3283,8 @@ export default function App() {
 
     ensureDatabaseReadyForWrite: typeof ensureDatabaseReadyForWrite !== "undefined" ? ensureDatabaseReadyForWrite : undefined,
     downloadMasterTemplate: typeof downloadMasterTemplate !== "undefined" ? downloadMasterTemplate : undefined,
+    downloadScheduleTemplate: typeof downloadScheduleTemplate !== "undefined" ? downloadScheduleTemplate : undefined,
+    openModal: typeof openModal !== "undefined" ? openModal : undefined,
 
 
     exportAllDataToExcel: typeof exportAllDataToExcel !== "undefined" ? exportAllDataToExcel : undefined,
@@ -3940,7 +3944,7 @@ export default function App() {
 
 
     <Suspense fallback={null}>
-      <BulkImportModal isOpen={modalConfig.isOpen && modalConfig.type === "bulk"} onClose={closeModal} activeTab={activeTab} fileInputRef={fileInputRef} handleFileUpload={handleFileUpload} previewData={bulkImportPreview} handlePreviewImport={handlePreviewImport} handleProcessImport={handleProcessImport} downloadMasterTemplate={downloadMasterTemplate} openImportGuide={activeTab === "akademik" ? openAcademicCalendarGuide : activeTab === "silabus" || activeTab === "silabusguru" || activeTab === "modul_ajar" ? openTeacherGuide : openImportGuide} bulkText={bulkText} setBulkText={handleBulkTextChange} exportAllDataToExcel={exportAllDataToExcel} />
+      <BulkImportModal isOpen={modalConfig.isOpen && modalConfig.type === "bulk"} onClose={closeModal} activeTab={activeTab} fileInputRef={fileInputRef} handleFileUpload={handleFileUpload} previewData={bulkImportPreview} handlePreviewImport={handlePreviewImport} handleProcessImport={handleProcessImport} downloadMasterTemplate={activeTab === "generate" || activeTab === "jadwal" ? downloadScheduleTemplate : downloadMasterTemplate} openImportGuide={activeTab === "akademik" ? openAcademicCalendarGuide : activeTab === "silabus" || activeTab === "silabusguru" || activeTab === "modul_ajar" ? openTeacherGuide : openImportGuide} bulkText={bulkText} setBulkText={handleBulkTextChange} exportAllDataToExcel={exportAllDataToExcel} />
     </Suspense>
 
     <Suspense fallback={null}>

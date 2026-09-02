@@ -1,5 +1,5 @@
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
-import { Trash2, Settings, Info, AlertCircle, Printer, Search, ChevronLeft, Calendar, Wand2, Edit3, Plus, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Trash2, Settings, Info, AlertCircle, Printer, Search, ChevronLeft, Calendar, Wand2, Edit3, Plus, Sparkles, CheckCircle2, Download, Upload } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -26,6 +26,8 @@ export default function TabGenerate(props) {
     closeManualSlotModal,
     saveManualSlot,
     deleteManualSlot,
+    downloadScheduleTemplate,
+    openModal,
     ui, radius, card, between, accent, primary, size, generate, area, kerja, control, setGenerateWorkspaceTab, generateWorkspaceTab, panduan, currentUser, waka, division, kurikulum, generator, berdasarkan, master, beban, mengajar, checkbox, checked, strictCompetency, setStrictCompetency, target, tempatkan, kompetensinya, specialWednesdayConstraint, setSpecialWednesdayConstraint, setelah, praktik, oleh, handleResetSchedule, variant, secondary, colors, handleGenerate, timeSlots, slots, isArray, slot, isBreak, teachers = [], code, teachingLoads = [], flatMap, load, teacherCode, has, item, teacherAvailability, days = [], subjects = [], classes = [], rooms = [], generationReadiness, canGenerate, complete, number, title, icon, detail, mata, pelajaran, ruangan, lab, sync, harus, sesuai, actions, label, tab, belajar, aktif, minimal, istirahat, tidak, dihitung, sebagai, memakai, pengaturan, tingkat, batas, diperlukan, ditemukan, ketersediaan, dikuasai, mendapat, memiliki, kompetensi, dapat, dibaca, aturan, siap, harian, khusus, teori, kuning, sebelum, mengeksekusi, wajib, perlu, ditinjau, rapi, blockers, masih, dilengkapi, advanced_rules, isGenerated, pratinjau, per, denah, dicetak, dibagikan, action, persiapan, description, dasar, sinkronisasi, eksekusi, generateGuideTab, overflow, urutan, selesai, setGenerateGuideTab, grid, cols, step, dicek, sinkron, setActiveTab, aman, isi, terlebih, dahulu, atur, penting, memerlukan, bawah, mengecek, memastikan, masuk, akal, besar, besaran, menghalangi, blocker, saja, warnings, warning, swapWarning, string, calculate, filtered, view, scheduleFilterGrade, name, startsWith, scheduleFilterMajor, major, scheduleFilterClass, majors, scheduleSearchQuery, schedule = [], subject, roomId, d, visible, whitespace, nowrap, active, backgroundColor, stroke, setScheduleSearchQuery, tw, color, setScheduleFilterGrade, options, accentColor, primaryColor, setScheduleFilterMajor, setScheduleFilterClass, appSettings, kopSuratLogo, object, contain, kopSuratBaris1, kopSuratBaris2, kopSuratBaris3, wide, opacity, getFullYear, bull, toLocaleDateString, calc, renderScheduleTable, scheduleFilterDay, setScheduleFilterDay
   } = props;
 
@@ -153,7 +155,17 @@ export default function TabGenerate(props) {
                   <strong>Mode Penataan Manual Aktif.</strong> Anda dapat mengklik langsung cell mana saja pada tabel jadwal di bawah atau menggeser (*drag & drop*) untuk menata slot mapel, guru, dan ruangan.
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {downloadScheduleTemplate && (
+                  <Button variant="outline" size="sm" onClick={downloadScheduleTemplate} className="flex items-center gap-1.5 cursor-pointer text-slate-700 hover:text-emerald-700 bg-white" title="Unduh Format Template Excel Jadwal">
+                    <Download size={14} className="text-emerald-600" /> Template Excel
+                  </Button>
+                )}
+                {openModal && (
+                  <Button variant="outline" size="sm" onClick={() => openModal("bulk", "add")} className="flex items-center gap-1.5 cursor-pointer text-slate-700 hover:text-emerald-700 bg-white" title="Import File Excel / Teks Jadwal Pelajaran">
+                    <Upload size={14} className="text-emerald-600" /> Import Excel
+                  </Button>
+                )}
                 <Button variant="danger" size="sm" onClick={handleResetSchedule} className="flex items-center gap-1.5 cursor-pointer">
                   <Trash2 size={14} /> Kosongkan
                 </Button>

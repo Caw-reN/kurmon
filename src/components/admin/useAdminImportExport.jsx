@@ -48,8 +48,254 @@ export function useAdminImportExport(props) {
     downloadAcademicCalendarTemplate,
     downloadTeacherTemplate,
     teachingLoads,
-    teacherAvailability
+    teacherAvailability,
+    schedule,
+    setSchedule
   } = props || {};
+
+  const resolveTeacher = (input) => {
+    if (!input && input !== 0) return "";
+    const raw = String(input).trim();
+    if (!raw) return "";
+    const byCode = (teachers || []).find(t => String(t.code || '').trim().toLowerCase() === raw.toLowerCase());
+    if (byCode) return byCode.code;
+    const byName = (teachers || []).find(t => String(t.name || '').trim().toLowerCase() === raw.toLowerCase());
+    if (byName) return byName.code;
+    const codeCandidate = raw.split(/[-|:–]/)[0].trim();
+    const bySplit = (teachers || []).find(t => String(t.code || '').trim().toLowerCase() === codeCandidate.toLowerCase());
+    if (bySplit) return bySplit.code;
+    const byNameFuzzy = (teachers || []).find(t => String(t.name || '').toLowerCase().includes(raw.toLowerCase()) || raw.toLowerCase().includes(String(t.name || '').toLowerCase()));
+    if (byNameFuzzy) return byNameFuzzy.code;
+    return raw;
+  };
+
+  const resolveSubject = (input) => {
+    if (!input) return "";
+    const raw = String(input).trim();
+    if (!raw) return "";
+    const exact = (subjects || []).find(s => String(s.name || '').trim().toLowerCase() === raw.toLowerCase() || String(s.code || '').trim().toLowerCase() === raw.toLowerCase());
+    if (exact) return exact.name;
+    const commonMap = {
+      "mtk": "Matematika",
+      "mat": "Matematika",
+      "matematika": "Matematika",
+      "indo": "Bahasa Indonesia",
+      "bind": "Bahasa Indonesia",
+      "bindo": "Bahasa Indonesia",
+      "b.indo": "Bahasa Indonesia",
+      "b. ind": "Bahasa Indonesia",
+      "bahasaindonesia": "Bahasa Indonesia",
+      "ing": "Bahasa Inggris",
+      "bing": "Bahasa Inggris",
+      "binggris": "Bahasa Inggris",
+      "b.ing": "Bahasa Inggris",
+      "b. ing": "Bahasa Inggris",
+      "bahasainggris": "Bahasa Inggris",
+      "pabp": "Pendidikan Agama dan Budi Pekerti",
+      "pai": "Pendidikan Agama Islam",
+      "agama": "Pendidikan Agama dan Budi Pekerti",
+      "pjok": "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      "penjas": "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      "penjaskes": "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      "olahraga": "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      "pkn": "Pendidikan Pancasila dan Kewarganegaraan",
+      "ppkn": "Pendidikan Pancasila dan Kewarganegaraan",
+      "pancasila": "Pendidikan Pancasila",
+      "sej": "Sejarah",
+      "sejarah": "Sejarah",
+      "sbk": "Seni Budaya",
+      "seni": "Seni Budaya",
+      "senibudaya": "Seni Budaya",
+      "ipa": "Ilmu Pengetahuan Alam",
+      "ips": "Ilmu Pengetahuan Sosial",
+      "kjd": "Komputer dan Jaringan Dasar",
+      "pkk": "Produk Kreatif dan Kewirausahaan",
+      "kwu": "Kewirausahaan",
+      "bk": "Bimbingan Konseling",
+      "simdig": "Simulasi Digital",
+      "fis": "Fisika",
+      "fisika": "Fisika",
+      "kim": "Kimia",
+      "kimia": "Kimia",
+      "bio": "Biologi",
+      "biologi": "Biologi"
+    };
+    const cleanKey = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const mappedName = commonMap[cleanKey] || commonMap[raw.toLowerCase()];
+    if (mappedName) {
+      const foundMapped = (subjects || []).find(s => s.name?.toLowerCase().includes(mappedName.toLowerCase()) || mappedName.toLowerCase().includes(s.name?.toLowerCase()));
+      if (foundMapped) return foundMapped.name;
+      return mappedName;
+    }
+    const partial = (subjects || []).find(s => s.name?.toLowerCase().includes(raw.toLowerCase()) || raw.toLowerCase().includes(s.name?.toLowerCase()));
+    if (partial) return partial.name;
+    return raw;
+  };
+
+  const resolveClass = (input) => {
+    if (!input) return "";
+    const raw = String(input).trim();
+    if (!raw) return "";
+    const exact = (classes || []).find(c => String(c.name || '').trim().toLowerCase() === raw.toLowerCase());
+    if (exact) return exact.name;
+    const compact = (classes || []).find(c => String(c.name || '').replace(/\s+/g, '').toLowerCase() === raw.replace(/\s+/g, '').toLowerCase());
+    if (compact) return compact.name;
+    return raw;
+  };
+
+  const resolveDay = (input) => {
+    if (!input) return days?.[0] || "Senin";
+    const raw = String(input).trim().toLowerCase();
+    const matched = (days || []).find(d => d.toLowerCase() === raw || d.toLowerCase().startsWith(raw.slice(0, 3)));
+    return matched || String(input).trim();
+  };
+
+  const resolveSlots = (input, dayName) => {
+    const daySlots = (timeSlots && timeSlots[dayName]) || [];
+    const raw = String(input || '').trim();
+    if (!raw) return [];
+    
+    if (raw.includes('-') || raw.includes('–')) {
+      const parts = raw.split(/[-–]/).map(p => parseInt(p.trim(), 10)).filter(n => !isNaN(n));
+      if (parts.length === 2 && parts[0] <= parts[1]) {
+        const res = [];
+        for (let i = parts[0]; i <= parts[1]; i++) {
+          const slotObj = daySlots[i - 1] || daySlots.find(s => String(s.id) === String(i));
+          res.push(slotObj ? slotObj.id : String(i));
+        }
+        return res;
+      }
+    }
+    if (raw.includes(',')) {
+      const parts = raw.split(',').map(p => p.trim()).filter(Boolean);
+      const res = [];
+      parts.forEach(p => {
+        const n = parseInt(p, 10);
+        if (!isNaN(n)) {
+          const slotObj = daySlots[n - 1] || daySlots.find(s => String(s.id) === String(n));
+          res.push(slotObj ? slotObj.id : String(n));
+        } else {
+          res.push(p);
+        }
+      });
+      return res;
+    }
+    
+    const num = parseInt(raw, 10);
+    if (!isNaN(num) && num > 0) {
+      const slotObj = daySlots[num - 1] || daySlots.find(s => String(s.id) === String(num));
+      return [slotObj ? slotObj.id : String(num)];
+    }
+    
+    const byId = daySlots.find(s => String(s.id).toLowerCase() === raw.toLowerCase() || String(s.label || '').toLowerCase().includes(raw.toLowerCase()));
+    if (byId) return [byId.id];
+    return [raw];
+  };
+
+  const resolveRoom = (input) => {
+    if (!input) return "";
+    const raw = String(input).trim();
+    if (!raw) return "";
+    const exact = (rooms || []).find(r => String(r.id || '').trim().toLowerCase() === raw.toLowerCase() || String(r.name || '').trim().toLowerCase() === raw.toLowerCase());
+    if (exact) return exact.id;
+    return raw;
+  };
+
+  const downloadScheduleTemplate = async () => {
+    const ExcelJS = (await import("exceljs")).default;
+    const { saveAs } = await import("file-saver");
+    const wb = new ExcelJS.Workbook();
+
+    const styleHeaderRow = (ws) => {
+      const row = ws.getRow(1);
+      row.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF064E3B' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+      row.height = 28;
+    };
+
+    // Sheet 1: 16_Jadwal (Data Jadwal Pelajaran)
+    const wsJadwal = wb.addWorksheet("16_Jadwal");
+    wsJadwal.addRow([
+      "HARI (Wajib: Senin/Selasa/dst)",
+      "JAM KE / SLOT (Wajib: 1, 2, atau 1-2)",
+      "KELAS (Wajib)",
+      "KODE / NAMA GURU (Wajib: misal 1 atau G01)",
+      "MATA PELAJARAN (Wajib: misal MTK / Matematika)",
+      "RUANGAN (Opsional)"
+    ]);
+    styleHeaderRow(wsJadwal);
+
+    if (schedule && schedule.length > 0) {
+      schedule.forEach(item => {
+        wsJadwal.addRow([
+          item.day || '',
+          item.slotId || '',
+          item.className || '',
+          item.teacherCode || '',
+          item.subject || '',
+          item.roomId || ''
+        ]);
+      });
+    } else {
+      const sampleDay = days?.[0] || "Senin";
+      const sampleClass = classes?.[0]?.name || "X TKJ 1";
+      const sampleTeacher = teachers?.[0]?.code || "1";
+      const sampleSubject = subjects?.[0]?.name || "MTK";
+      const sampleRoom = rooms?.[0]?.id || "R01";
+      wsJadwal.addRow([sampleDay, "1", sampleClass, sampleTeacher, sampleSubject, sampleRoom]);
+      wsJadwal.addRow([sampleDay, "2", sampleClass, sampleTeacher, sampleSubject, sampleRoom]);
+    }
+    [28, 32, 25, 34, 40, 25].forEach((w, i) => { wsJadwal.getColumn(i + 1).width = w; });
+
+    // Sheet 2: Referensi_Guru
+    const wsRefGuru = wb.addWorksheet("Referensi_Guru");
+    wsRefGuru.addRow(["KODE GURU", "NAMA LENGKAP GURU"]);
+    styleHeaderRow(wsRefGuru);
+    (teachers || []).forEach(t => wsRefGuru.addRow([t.code || '', t.name || '']));
+    [20, 45].forEach((w, i) => { wsRefGuru.getColumn(i + 1).width = w; });
+
+    // Sheet 3: Referensi_Mapel
+    const wsRefMapel = wb.addWorksheet("Referensi_Mapel");
+    wsRefMapel.addRow(["NAMA MATA PELAJARAN", "SINGKATAN / KODE"]);
+    styleHeaderRow(wsRefMapel);
+    (subjects || []).forEach(s => wsRefMapel.addRow([s.name || '', s.code || '']));
+    [45, 25].forEach((w, i) => { wsRefMapel.getColumn(i + 1).width = w; });
+
+    // Sheet 4: Referensi_Kelas
+    const wsRefKelas = wb.addWorksheet("Referensi_Kelas");
+    wsRefKelas.addRow(["NAMA KELAS", "JURUSAN"]);
+    styleHeaderRow(wsRefKelas);
+    (classes || []).forEach(c => wsRefKelas.addRow([c.name || '', c.major || '']));
+    [30, 35].forEach((w, i) => { wsRefKelas.getColumn(i + 1).width = w; });
+
+    // Sheet 5: Referensi_Waktu
+    const wsRefWaktu = wb.addWorksheet("Referensi_Waktu");
+    wsRefWaktu.addRow(["HARI", "JAM KE (ID SLOT)", "WAKTU", "KETERANGAN"]);
+    styleHeaderRow(wsRefWaktu);
+    Object.entries(timeSlots || {}).forEach(([dayName, slots]) => {
+      (slots || []).forEach((slot, idx) => {
+        wsRefWaktu.addRow([
+          dayName,
+          slot.id || (idx + 1),
+          slot.label || '',
+          slot.isBreak ? 'Istirahat' : 'KBM'
+        ]);
+      });
+    });
+    [20, 20, 25, 20].forEach((w, i) => { wsRefWaktu.getColumn(i + 1).width = w; });
+
+    const tgl = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `Template_Jadwal_Pelajaran_${appSettings?.appName || 'TimeSchedule'}_${tgl}.xlsx`);
+    showNotification("Template Jadwal Pelajaran berhasil diunduh.", "success");
+  };
 
   const downloadMasterTemplate = async () => {
     const ExcelJS = (await import("exceljs")).default;
@@ -99,6 +345,7 @@ export function useAdminImportExport(props) {
       ["- Sheet 13_Absensi_Guru  : Data absensi guru (read-only, tidak bisa diimpor)."],
       ["- Sheet 14_Karyawan      : Data karyawan/staf aktif."],
       ["- Sheet 15_Siswa         : Data siswa aktif."],
+      ["- Sheet 16_Jadwal        : Data jadwal pelajaran aktif (Hari, Jam, Kelas, Guru, Mapel, Ruang)."],
     ].forEach(row => wsPanduan.addRow(row));
     wsPanduan.getColumn(1).width = 120;
 
@@ -255,13 +502,47 @@ export function useAdminImportExport(props) {
     });
     [25, 45, 35, 25, 25].forEach((w, i) => { wsSiswa.getColumn(i + 1).width = w; });
 
+    // 16_Jadwal — data aktual
+    const wsJadwal = wb.addWorksheet("16_Jadwal");
+    wsJadwal.addRow([
+      "HARI (Wajib: Senin/Selasa/dst)",
+      "JAM KE / SLOT (Wajib: 1, 2, atau 1-2)",
+      "KELAS (Wajib)",
+      "KODE / NAMA GURU (Wajib)",
+      "MATA PELAJARAN (Wajib)",
+      "RUANGAN (Opsional)"
+    ]);
+    styleHeaderRow(wsJadwal);
+    if (schedule && schedule.length > 0) {
+      schedule.forEach(item => {
+        wsJadwal.addRow([
+          item.day || '',
+          item.slotId || '',
+          item.className || '',
+          item.teacherCode || '',
+          item.subject || '',
+          item.roomId || ''
+        ]);
+      });
+    } else {
+      const sampleDay = days?.[0] || "Senin";
+      const sampleClass = classes?.[0]?.name || "X TKJ 1";
+      const sampleTeacher = teachers?.[0]?.code || "1";
+      const sampleSubject = subjects?.[0]?.name || "MTK";
+      const sampleRoom = rooms?.[0]?.id || "R01";
+      wsJadwal.addRow([sampleDay, "1", sampleClass, sampleTeacher, sampleSubject, sampleRoom]);
+      wsJadwal.addRow([sampleDay, "2", sampleClass, sampleTeacher, sampleSubject, sampleRoom]);
+    }
+    [28, 32, 25, 34, 40, 25].forEach((w, i) => { wsJadwal.getColumn(i + 1).width = w; });
+
     const tgl = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
     const buf = await wb.xlsx.writeBuffer();
     saveAs(new Blob([buf]), `Template_Data_${appSettings.appName || 'TimeSchedule'}_${tgl}.xlsx`);
     const siswaCount = (students || []).length;
     const guruCount = (teachers || []).length;
     const karyawanCount = (staffs || []).length;
-    showNotification(`Template berhasil diunduh — ${guruCount} guru, ${siswaCount} siswa, ${karyawanCount} karyawan.`, 'success');
+    const jadwalCount = (schedule || []).length;
+    showNotification(`Template berhasil diunduh — ${guruCount} guru, ${siswaCount} siswa, ${jadwalCount} slot jadwal.`, 'success');
   };
 
 
@@ -384,6 +665,18 @@ export function useAdminImportExport(props) {
     styleHeaderRow(wsSiswa);
     var cols = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
     cols.forEach((col, idx) => { if(col.wch) wsSiswa.getColumn(idx + 1).width = col.wch; });
+
+    const wsJadwal = wb.addWorksheet("16_Jadwal");
+    const jadwalData = [
+      ["HARI (Wajib)", "JAM KE / SLOT (Wajib)", "KELAS (Wajib)", "KODE / NAMA GURU (Wajib)", "MATA PELAJARAN (Wajib)", "RUANGAN (Opsional)"],
+      ...(schedule || []).map(item => [
+        item.day || '', item.slotId || '', item.className || '', item.teacherCode || '', item.subject || '', item.roomId || ''
+      ])
+    ];
+    jadwalData.forEach(row => wsJadwal.addRow(row));
+    styleHeaderRow(wsJadwal);
+    var cols = [{ wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 28 }, { wch: 35 }, { wch: 22 }];
+    cols.forEach((col, idx) => { if(col.wch) wsJadwal.getColumn(idx + 1).width = col.wch; });
 
     const buf = await wb.xlsx.writeBuffer();
     saveAs(new Blob([buf]), `Export Data ${appSettings.appName ||"TimeSchedule"}.xlsx`);
@@ -878,6 +1171,42 @@ export function useAdminImportExport(props) {
         existing.add(key);
         summary.inserted++;
         pushSample(`${name} | ${color}`);
+      });
+    } else if (activeTab === "generate" || activeTab === "jadwal") {
+      const existing = new Set((schedule || []).map(item => `${item.day}__${item.slotId}__${item.className}`));
+      rows.forEach((row, index) => {
+        const lineNumber = index + 1;
+        if (row.length < requiredColumns) {
+          pushIssue(lineNumber, "invalid", "kolom jadwal tidak lengkap (butuh: Hari, Jam Ke, Kelas, Kode/Nama Guru, Mapel)");
+          return;
+        }
+        const [dayRaw, slotRaw, classRaw, teacherRaw, subjectRaw, roomRaw] = row;
+        const day = resolveDay(dayRaw);
+        const slots = resolveSlots(slotRaw, day);
+        const className = resolveClass(classRaw);
+        const teacherCode = resolveTeacher(teacherRaw);
+        const subject = resolveSubject(subjectRaw);
+        const roomId = resolveRoom(roomRaw);
+
+        if (!day || slots.length === 0 || !className || !teacherCode || !subject) {
+          pushIssue(lineNumber, "invalid", `Data belum lengkap pada baris ini (Hari: ${day || '-'}, Jam: ${slotRaw || '-'}, Kelas: ${className || '-'}, Guru: ${teacherCode || '-'}, Mapel: ${subject || '-'})`);
+          return;
+        }
+
+        slots.forEach(slotId => {
+          summary.valid++;
+          const key = `${day}__${slotId}__${className}`;
+          const teacherObj = (teachers || []).find(t => t.code === teacherCode);
+          const teacherLabel = teacherObj ? `${teacherObj.code} (${teacherObj.name})` : teacherCode;
+          if (existing.has(key)) {
+            summary.updated++;
+            pushSample(`${day} [Jam ${slotId}] ${className} | Guru: ${teacherLabel} | ${subject} (Update)`);
+          } else {
+            existing.add(key);
+            summary.inserted++;
+            pushSample(`${day} [Jam ${slotId}] ${className} | Guru: ${teacherLabel} | ${subject}`);
+          }
+        });
       });
     }
     setBulkImportPreview(summary);
@@ -1513,6 +1842,52 @@ export function useAdminImportExport(props) {
         });
         updated = updatedCount;
         inserted = 0;
+      } else if (activeTab === "generate" || activeTab === "jadwal") {
+        let insertedCount = 0;
+        let updatedCount = 0;
+        setSchedule(prev => {
+          const map = new Map((prev || []).map(item => [`${item.day}__${item.slotId}__${item.className}`, item]));
+          rows.forEach(row => {
+            if (row.length < requiredColumns) {
+              skipped++;
+              return;
+            }
+            const [dayRaw, slotRaw, classRaw, teacherRaw, subjectRaw, roomRaw] = row;
+            const day = resolveDay(dayRaw);
+            const slots = resolveSlots(slotRaw, day);
+            const className = resolveClass(classRaw);
+            const teacherCode = resolveTeacher(teacherRaw);
+            const subject = resolveSubject(subjectRaw);
+            const roomId = resolveRoom(roomRaw);
+
+            if (!day || slots.length === 0 || !className || !teacherCode || !subject) {
+              skipped++;
+              return;
+            }
+
+            slots.forEach(slotId => {
+              const item = {
+                day,
+                slotId: String(slotId),
+                className,
+                teacherCode,
+                subject,
+                roomId: roomId || ""
+              };
+              const key = `${day}__${slotId}__${className}`;
+              if (map.has(key)) {
+                map.set(key, item);
+                updatedCount++;
+              } else {
+                map.set(key, item);
+                insertedCount++;
+              }
+            });
+          });
+          return Array.from(map.values());
+        });
+        inserted = insertedCount;
+        updated = updatedCount;
       }
       showNotification(`Import selesai: +${inserted} ditambahkan, ${updated} diperbarui${skipped ? `, ${skipped} dilewati` :""}.`,"success");
       setBulkImportPreview(null);
@@ -1532,8 +1907,9 @@ export function useAdminImportExport(props) {
     }
   };
 
-return {
+  return {
     downloadMasterTemplate,
+    downloadScheduleTemplate,
     exportAllDataToExcel,
     exportAbsensiGuruToExcel,
     handleFileUpload,

@@ -112,6 +112,28 @@ export const BULK_IMPORT_CONFIG = {
       ["nis", "nama", "kelas", "gender"]
     ],
   },
+  generate: {
+    sheet: "16_Jadwal",
+    alternateSheets: ["Jadwal", "Jadwal_Pelajaran", "16_Jadwal_Pelajaran", "Schedule"],
+    requiredColumns: 4,
+    headerHints: [
+      ["hari", "jam ke", "kelas", "kode guru", "mata pelajaran", "ruangan"],
+      ["hari", "jam", "kelas", "guru", "mapel", "ruang"],
+      ["hari", "slot", "kelas", "guru", "mapel"],
+      ["day", "slot", "class", "teacher", "subject", "room"]
+    ],
+  },
+  jadwal: {
+    sheet: "16_Jadwal",
+    alternateSheets: ["Jadwal", "Jadwal_Pelajaran", "16_Jadwal_Pelajaran", "Schedule"],
+    requiredColumns: 4,
+    headerHints: [
+      ["hari", "jam ke", "kelas", "kode guru", "mata pelajaran", "ruangan"],
+      ["hari", "jam", "kelas", "guru", "mapel", "ruang"],
+      ["hari", "slot", "kelas", "guru", "mapel"],
+      ["day", "slot", "class", "teacher", "subject", "room"]
+    ],
+  },
 };
 
 export const splitBulkColumns = (line) => {

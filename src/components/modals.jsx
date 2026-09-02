@@ -23,26 +23,43 @@ export function BulkImportModal({
 }) {
   const isAcademicCalendar = activeTab ==="akademik";
   const isSyllabusImport = activeTab ==="silabus" || activeTab ==="silabusguru";
-  const importTitle = isAcademicCalendar ?"Import Kalender Akademik" : isSyllabusImport ?"Import Silabus" : `Import Data ${activeTab.toUpperCase()}`;
+  const isScheduleImport = activeTab === "generate" || activeTab === "jadwal";
+  const importTitle = isAcademicCalendar 
+    ? "Import Kalender Akademik" 
+    : isSyllabusImport 
+      ? "Import Silabus" 
+      : isScheduleImport 
+        ? "Import Jadwal Pelajaran (Excel / Teks)" 
+        : `Import Data ${activeTab.toUpperCase()}`;
   const primaryFileLabel = isAcademicCalendar
-    ?"Pilih File Kalender .xlsx / .csv / .txt"
+    ? "Pilih File Kalender .xlsx / .csv / .txt"
     : isSyllabusImport
-      ?"Pilih File Silabus .xlsx / .csv / .txt"
-      :"Pilih File .xlsx / .csv / .txt";
+      ? "Pilih File Silabus .xlsx / .csv / .txt"
+      : isScheduleImport
+        ? "Pilih File Excel Jadwal .xlsx / .csv / .txt"
+        : "Pilih File .xlsx / .csv / .txt";
   const guideLabel = isAcademicCalendar ?"Buka Panduan Kalender" : isSyllabusImport ?"Buka Panduan Silabus" :"Buka Panduan";
-  const templateLabel = isAcademicCalendar ?"Unduh Template Kalender" : isSyllabusImport ?"Unduh Template Modul" :"Unduh Template Excel";
+  const templateLabel = isAcademicCalendar 
+    ? "Unduh Template Kalender" 
+    : isSyllabusImport 
+      ? "Unduh Template Modul" 
+      : isScheduleImport 
+        ? "Unduh Template Excel Jadwal" 
+        : "Unduh Template Excel";
   const exportLabel ="Export Data Saat Ini";
   const textPlaceholder = isAcademicCalendar
     ?"Contoh: UTS Ganjil\t2026-09-15\t2026-09-19\tKurikulum\tPelaksanaan ujian tengah semester"
     : isSyllabusImport
       ?"Contoh: Dasar-Dasar Desain Grafis\tG01\tPertemuan 1: Pengenalan Vektor\tX / Ganjil\tSiswa memahami perbedaan vektor dan bitmap\tKonsep grafis vektor\nKonsep grafis bitmap"
-    :"Teks dipisahkan dengan Tab, koma, atau titik koma. Bisa juga upload file Excel template...";
+      : isScheduleImport
+        ? "Format: Hari\tJam Ke\tKelas\tKode/Nama Guru\tMapel\tRuang\nContoh:\nSenin\t1\tX TKJ 1\t1\tMTK\tR01\nSenin\t2\tX TKJ 1\t1\tMTK\tR01\nSenin\t3-4\tX TKJ 1\tG02\tBahasa Indonesia\tR01"
+        : "Teks dipisahkan dengan Tab, koma, atau titik koma. Bisa juga upload file Excel template...";
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={importTitle}>
       <div className="space-y-6">
         <div className="bg-slate-50 p-6 border-none rounded-[var(--ui-radius-small)]">
           <h4 className="text-xs font-black mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-wider">
-            <FileSpreadsheet className="text-emerald-600" /> 1. Upload File {isAcademicCalendar ?"Kalender" : isSyllabusImport ?"Modul" :"(Excel/CSV/TXT)"}
+            <FileSpreadsheet className="text-emerald-600" /> 1. Upload File {isAcademicCalendar ?"Kalender" : isSyllabusImport ?"Modul" : isScheduleImport ? "Jadwal" : "(Excel/CSV/TXT)"}
           </h4>
           <div className="flex gap-3 mb-3">
             <input type="file" accept=".csv,.txt,.xlsx,.xls,.xlsm" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
@@ -57,7 +74,7 @@ export function BulkImportModal({
 
         <div className="bg-slate-50 p-6 border-none rounded-[var(--ui-radius-small)]">
           <h4 className="text-xs font-black mb-4 flex items-center gap-2 text-slate-800 uppercase tracking-wider">
-            <FileText className="text-emerald-600" /> 2. Paste Teks Bebas {isAcademicCalendar ?"Kalender" : isSyllabusImport ?"Modul" :""}
+            <FileText className="text-emerald-600" /> 2. Paste Teks Bebas {isAcademicCalendar ?"Kalender" : isSyllabusImport ?"Modul" : isScheduleImport ? "Jadwal" : ""}
           </h4>
           <textarea
             className="w-full h-32 border-none rounded-[var(--ui-radius-small)] p-4 text-xs focus:outline-[var(--ui-primary)] mb-4 font-mono font-medium"
