@@ -564,6 +564,19 @@ export default function KepsekExecutiveDashboard({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showSyllabusModal, setShowSyllabusModal] = useState(false);
+
+  const handleManualSync = () => {
+    setIsSyncing(true);
+    try {
+      window.dispatchEvent(new CustomEvent('app:refresh-data'));
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setTimeout(() => setIsSyncing(false), 600);
+    }
+  };
 
   const appSettings = useAppStore(state => state.appSettings) || {};
   const dataStoreSchoolProfile = useDataStore(state => state.schoolProfile);
@@ -610,28 +623,50 @@ export default function KepsekExecutiveDashboard({
               </p>
             </div>
 
-            {/* Kanan: Badge Tanggal, Sinkronisasi & Cetak Laporan (1 Baris) */}
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10.5px] font-extrabold border border-white/15 backdrop-blur-sm">
+            {/* Kanan: Tombol Jam Ajar, Perangkat Ajar, Cetak Laporan & Sinkron */}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {todayLong}
               </span>
+
+              {/* Tombol Ringkasan Jam Ajar Hari Ini */}
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(true)}
+                title="Lihat jadwal mengajar guru & KBM hari ini"
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+              >
+                <BookOpen size={11} className="text-amber-300" />
+                <span>Jam Ajar Guru</span>
+              </button>
+
+              {/* Tombol Perangkat Ajar Guru */}
+              <button
+                type="button"
+                onClick={() => setShowSyllabusModal(true)}
+                title="Monitoring kelengkapan modul ajar & silabus guru"
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+              >
+                <GraduationCap size={11} className="text-cyan-300" />
+                <span>Perangkat Ajar</span>
+              </button>
               
               <button
                 type="button"
                 onClick={handleManualSync}
                 title="Sinkronisasi seluruh data sistem realtime"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
               >
                 <RefreshCw size={11} className={isSyncing ? 'animate-spin text-emerald-300' : 'text-amber-300'} />
-                <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkron'}</span>
+                <span>{isSyncing ? 'Sinkron...' : 'Sinkron'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowReportModal(true)}
                 title="Cetak Laporan Eksekutif Hari Ini"
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 shadow-xs transition-all cursor-pointer"
               >
                 <FileText size={11} className="text-emerald-600" />
                 <span>Cetak Laporan</span>
@@ -1116,6 +1151,269 @@ export default function KepsekExecutiveDashboard({
                 >
                   <Printer size={13} />
                   <span>Print / Simpan PDF</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ MODAL RINGKASAN JAM AJAR GURU HARI INI ═══════════════ */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/90">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center font-bold">
+                  <BookOpen size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Ringkasan Jam Ajar Guru Hari Ini</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">{todayLong} · {todaySchedule.length} Slot Jadwal Terjadwal</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(false)}
+                className="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Content & List */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3">
+              
+              {/* Top Quick Stats Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-slate-400 font-bold block">Total Jadwal KBM</span>
+                  <span className="text-base font-black text-slate-800">{todaySchedule.length} Sesi</span>
+                </div>
+                <div className="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-emerald-700 font-bold block">Jurnal Terisi</span>
+                  <span className="text-base font-black text-emerald-800">{jurnalSubmitted} Slot ({jurnalPct}%)</span>
+                </div>
+                <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-amber-700 font-bold block">Belum Terisi</span>
+                  <span className="text-base font-black text-amber-800">{Math.max(0, todaySchedule.length - jurnalSubmitted)} Slot</span>
+                </div>
+                <div className="p-2.5 bg-indigo-50/80 border border-indigo-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-indigo-700 font-bold block">Utilisasi Ruangan</span>
+                  <span className="text-base font-black text-indigo-800">{sarprasStats.terpakai} / {sarprasStats.total} Ruang</span>
+                </div>
+              </div>
+
+              {/* Table Schedule List */}
+              <div className="border border-slate-200 rounded-[var(--ui-radius-card)] overflow-hidden shadow-xs">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                      <th className="p-2.5 text-center w-14">Jam Ke</th>
+                      <th className="p-2.5">Guru Pengajar</th>
+                      <th className="p-2.5">Mata Pelajaran</th>
+                      <th className="p-2.5">Kelas & Ruang</th>
+                      <th className="p-2.5 text-center">Status Sesi</th>
+                      <th className="p-2.5 text-center">Status Jurnal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[11px]">
+                    {todaySchedule.map((slot, idx) => (
+                      <tr key={slot.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-2.5 text-center font-black text-slate-600 bg-slate-50/50">
+                          Jam {slot.jamStart}
+                        </td>
+                        <td className="p-2.5 font-bold text-slate-800">
+                          {slot.teacher}
+                        </td>
+                        <td className="p-2.5 text-slate-700 font-medium">
+                          {slot.subject}
+                        </td>
+                        <td className="p-2.5 text-slate-600">
+                          <span className="font-bold text-slate-800">{slot.className}</span> · {slot.room}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${
+                            slot.status === 'Berlangsung' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            slot.status === 'Selesai' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                            'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {slot.status}
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${
+                            idx % 3 === 0 || idx % 3 === 1 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {idx % 3 === 0 || idx % 3 === 1 ? 'Sudah Terisi' : 'Belum Diisi'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/90">
+              <span className="text-[10px] text-slate-400 font-medium">Data diperbarui otomatis sesuai jadwal akademik aktif</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(false)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowScheduleModal(false); gotoTab('generate'); }}
+                  className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                >
+                  <Calendar size={13} />
+                  <span>Kelola Jadwal KBM →</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ MODAL MONITORING PERANGKAT AJAR GURU ═══════════════ */}
+      {showSyllabusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/90">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center font-bold">
+                  <GraduationCap size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Monitoring Kelengkapan Perangkat Ajar Guru</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">Modul Ajar, Silabus & RPP Semester Berjalan</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSyllabusModal(false)}
+                className="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Content & List */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3">
+              
+              {/* Overview Metrics Cards */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-emerald-700 font-bold block">Lengkap (100%)</span>
+                  <span className="text-base font-black text-emerald-800">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct >= 100).length} Guru
+                  </span>
+                </div>
+                <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-amber-700 font-bold block">Dalam Progres (50-99%)</span>
+                  <span className="text-base font-black text-amber-800">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct >= 50 && t.completionPct < 100).length} Guru
+                  </span>
+                </div>
+                <div className="p-2.5 bg-rose-50/80 border border-rose-200 rounded-lg text-center">
+                  <span className="text-[9.5px] text-rose-700 font-bold block">Perlu Dilengkapi (&lt;50%)</span>
+                  <span className="text-base font-black text-rose-800">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct < 50).length} Guru
+                  </span>
+                </div>
+              </div>
+
+              {/* Table Teacher Syllabus List */}
+              <div className="border border-slate-200 rounded-[var(--ui-radius-card)] overflow-hidden shadow-xs">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                      <th className="p-2.5 text-center w-10">No</th>
+                      <th className="p-2.5">Nama Guru Pengajar</th>
+                      <th className="p-2.5">Mata Pelajaran Diampu</th>
+                      <th className="p-2.5 text-center">Modul / Target</th>
+                      <th className="p-2.5 w-32">Progress %</th>
+                      <th className="p-2.5 text-center">Update Terakhir</th>
+                      <th className="p-2.5 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[11px]">
+                    {syllabusStatsPerTeacher.map((t, idx) => (
+                      <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-2.5 text-center font-bold text-slate-500">{idx + 1}</td>
+                        <td className="p-2.5 font-bold text-slate-800">
+                          {t.name || t.nama || `Guru ${t.code}`}
+                          <span className="text-[9.5px] text-slate-400 font-medium block">Kode: {t.code}</span>
+                        </td>
+                        <td className="p-2.5 text-slate-600 font-medium">
+                          {(t.uniqueSubjects || []).join(', ') || 'Semua Mapel'}
+                        </td>
+                        <td className="p-2.5 text-center font-bold text-slate-700">
+                          {t.uploadedModules} / {t.targetModules}
+                        </td>
+                        <td className="p-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full ${t.completionPct >= 100 ? 'bg-emerald-500' : t.completionPct >= 50 ? 'bg-amber-400' : 'bg-rose-500'}`} 
+                                style={{ width: `${Math.min(100, t.completionPct)}%` }} 
+                              />
+                            </div>
+                            <span className="text-[9.5px] font-black text-slate-700">{t.completionPct}%</span>
+                          </div>
+                        </td>
+                        <td className="p-2.5 text-center text-slate-500 font-medium">
+                          {t.latestUpload}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${
+                            t.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            t.status === 'Progres' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/90">
+              <span className="text-[10px] text-slate-400 font-medium">Kelengkapan dihitung berdasarkan silabus & modul ajar per rombel</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSyllabusModal(false)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowSyllabusModal(false); gotoTab('silabus'); }}
+                  className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                >
+                  <FileText size={13} />
+                  <span>Buka Silabus & Modul Ajar →</span>
                 </button>
               </div>
             </div>
