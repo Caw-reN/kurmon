@@ -1223,6 +1223,31 @@ const initDb = async () => {
       console.warn("Failed to create database indexes:", idxErr.message);
     }
 
+    // Auto-migrate unique constraint for kedisiplinan_absensi
+    try {
+      // 1. Bersihkan duplikat dulu sebelum pasang constraint
+      await dbPool.query(`
+        DELETE FROM kedisiplinan_absensi 
+        WHERE id NOT IN (
+          SELECT MAX(id) FROM kedisiplinan_absensi GROUP BY siswa_nis, tanggal
+        );
+      `);
+      // 2. Tambahkan constraint (jika belum ada)
+      await dbPool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'unique_siswa_tanggal'
+          ) THEN
+            ALTER TABLE kedisiplinan_absensi ADD CONSTRAINT unique_siswa_tanggal UNIQUE (siswa_nis, tanggal);
+          END IF;
+        END $$;
+      `);
+      console.log("Database unique constraints verified/created.");
+    } catch (uniqueErr) {
+      console.warn("Failed to create unique constraints:", uniqueErr.message);
+    }
+
     dbStatus = { ok: true, code: "DB_CONNECTED", message: "Database PostgreSQL tersambung." };
     console.log("PostgreSQL Database Initialized & Connected");
     autoLinkHikvisionStudents(dbPool).catch(() => {});
