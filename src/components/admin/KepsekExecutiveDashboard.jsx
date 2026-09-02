@@ -574,16 +574,16 @@ export default function KepsekExecutiveDashboard({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:max-w-3xl">
                 {[
-                  { tab: 'generate', label: 'Jadwal & KBM', icon: Calendar, iconColor: 'text-indigo-600' },
-                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: ClipboardCheck, iconColor: 'text-emerald-600' },
-                  { tab: 'pesan', label: 'Pengumuman', icon: Megaphone, iconColor: 'text-rose-600' },
-                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: Award, iconColor: 'text-purple-600' },
-                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: Building2, iconColor: 'text-sky-600' },
-                  { tab: 'dataguru', label: 'Data Guru', icon: Users, iconColor: 'text-amber-600' },
-                  { tab: 'datasiswa', label: 'Data Siswa', icon: GraduationCap, iconColor: 'text-teal-600' },
-                  { tab: 'akademik', label: 'Kalender', icon: Clock, iconColor: 'text-orange-600' },
+                  { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
+                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
+                  { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
+                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
+                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: '/icons/008-warehouse.svg' },
+                  { tab: 'dataguru', label: 'Data Guru', icon: '/icons/045-account.svg' },
+                  { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
+                  { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
                 ].map(m => {
-                  const Icon = m.icon;
+
                   return (
                     <button
                       key={m.tab}
@@ -591,7 +591,7 @@ export default function KepsekExecutiveDashboard({
                       className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <div className="w-7 h-7 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                        <Icon size={15} className={m.iconColor} />
+                        <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
                       </div>
                       <span className="text-xs font-extrabold text-white whitespace-nowrap min-w-0 flex-1">{m.label}</span>
                       <ChevronRight size={12} className="text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
