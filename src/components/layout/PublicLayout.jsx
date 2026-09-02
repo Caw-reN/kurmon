@@ -190,46 +190,52 @@ export default function PublicLayout() {
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      {location.pathname !=='/' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/50 z-50 flex justify-around items-center pt-2 pb-5 px-1 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] print:hidden">
-          {publicLinks.map((l) => {
-            const IconComponent = l.icon;
-            const isActive = location.pathname === l.to;
-            return (
-              <Link 
-                key={l.to} 
-                to={l.to} 
-                className="flex flex-col items-center justify-center gap-1.5 flex-1 py-1 cursor-pointer active:translate-y-[1px] transition-all select-none"
-              >
-                <div 
-                  className="transition-colors duration-300 relative flex items-center justify-center"
-                  style={{ color: isActive ? primaryColor :'#94a3b8' }}
+      {/* MOBILE BOTTOM NAVIGATION BAR (Sesuai 100% Desain Tabbar Setelah Login) */}
+      {location.pathname !== '/' && (
+        <nav 
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 py-2 px-2 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] print:hidden transition-all"
+          style={{
+            paddingBottom: 'max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem))'
+          }}
+          role="navigation"
+          aria-label="Navigasi Layanan Publik"
+        >
+          <div className="flex items-center justify-around gap-1">
+            {publicLinks.map((l) => {
+              const IconComponent = l.icon;
+              const isActive = location.pathname === l.to;
+              const shortLabel = l.label === 'Tempat PKL' ? 'PKL' :
+                                 l.label === 'Materi Ajar' ? 'Materi' :
+                                 l.label === 'Modul Ajar' ? 'Ajar' : l.label;
+
+              return (
+                <Link 
+                  key={l.to} 
+                  to={l.to} 
+                  className={`flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1 no-underline select-none active:scale-95 ${
+                    isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
+                  }`}
                 >
-                  <IconComponent size={20} strokeWidth={isActive ? 2.5 : 2} />
-                  {isActive && (
-                    <span 
-                      className="absolute -bottom-1.5 w-1 h-1 rounded-full" 
-                      style={{ backgroundColor: primaryColor }}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                    isActive 
+                      ? 'bg-emerald-100/80 text-emerald-600 scale-105' 
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}>
+                    <IconComponent 
+                      size={20} 
+                      className={isActive ? 'text-emerald-600' : 'text-slate-400'} 
                     />
-                  )}
-                </div>
-                <span 
-                  className="text-[9.5px] font-black tracking-tight transition-colors duration-300"
-                  style={{ color: isActive ? primaryColor :'#64748b' }}
-                >
-                  {l.label ==='Beranda' ?'Beranda' :
-                   l.label ==='Jadwal' ?'Jadwal' :
-                   l.label ==='Denah' ?'Denah' :
-                   l.label ==='Modul Ajar' ?'Ajar' :
-                   l.label ==='Materi Ajar' ?'Materi' :
-                   l.label ==='Kalender' ?'Kalender' :
-                   l.label ==='Tempat PKL' ?'PKL' : l.label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+                  </div>
+                  <span className={`text-[11px] leading-none text-center truncate w-full ${
+                    isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
+                  }`}>
+                    {shortLabel}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       )}
 
       {/* CTA BANNER (Hidden on homepage) */}
