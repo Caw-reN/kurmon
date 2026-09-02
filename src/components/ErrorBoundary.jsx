@@ -1,5 +1,6 @@
 import React from"react";
 import { getDatabaseSnapshot } from"../utils/dataSource.js";
+import { AlertTriangle, Rocket } from "lucide-react";
 
 /**
  * ErrorBoundary - Mencegah seluruh app blank saat komponen crash.
@@ -85,7 +86,7 @@ export default class ErrorBoundary extends React.Component {
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%)", fontFamily: '"Plus Jakarta Sans",sans-serif', padding: 24 }}>
         <div style={{ maxWidth: 480, width: "100%", background: "#fff", borderRadius: 24, padding: "40px 32px", boxShadow: "0 20px 60px -10px rgba(0,0,0,.10)", border: "1px solid #f1f5f9", textAlign: "center" }}>
           <div style={{ width: 64, height: 64, borderRadius: "50%", background: isChunkError ? "#ecfdf5" : "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 28 }}>
-            {isChunkError ? "🚀" : "⚠️"}
+            {isChunkError ? <Rocket size={28} color="#10b981" /> : <AlertTriangle size={28} color="#f43f5e" />}
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 900, color: "#1e293b", marginBottom: 8, letterSpacing: "-0.5px" }}>
             {isChunkError ? "Pembaruan Aplikasi Tersedia" : "Halaman Mengalami Kesalahan"}

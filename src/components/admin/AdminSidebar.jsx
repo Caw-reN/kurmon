@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
-  ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings,
+  ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
