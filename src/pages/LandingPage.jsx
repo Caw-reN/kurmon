@@ -526,95 +526,13 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Efek Embun Air (Water Drops) Transparan di Area Hijau */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-            <div className="absolute top-[8%] left-[10%] w-3.5 h-5 rounded-full bg-white/20 blur-[0.3px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.08)] rotate-[-12deg]" />
-            <div className="absolute top-[15%] right-[16%] w-4 h-6 rounded-full bg-white/15 blur-[0.3px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.7)] rotate-[15deg]" />
-            <div className="absolute top-[22%] left-[26%] w-2.5 h-3.5 rounded-full bg-white/15 blur-[0.2px] rotate-[-5deg]" />
-            <div className="absolute top-[12%] right-[38%] w-2 h-3 rounded-full bg-white/20 blur-[0.2px] rotate-[8deg]" />
-            <div className="absolute top-[34%] left-[8%] w-3 h-4.5 rounded-full bg-white/15 blur-[0.3px] rotate-[-20deg]" />
-            <div className="absolute top-[50%] right-[14%] w-4 h-5.5 rounded-full bg-white/15 blur-[0.3px] rotate-[18deg]" />
-            <div className="absolute top-[62%] left-[20%] w-3 h-4 rounded-full bg-white/15 blur-[0.2px] rotate-[-10deg]" />
-            <div className="absolute top-[42%] right-[28%] w-2.5 h-3.5 rounded-full bg-white/15 blur-[0.2px]" />
-          </div>
-
-          {/* Floating Decorative Elements: Bintang, Tas Sekolah, Kartu Identitas */}
-          {/* Sparkling Stars */}
-          <div className="absolute top-[14%] left-[8%] text-amber-300/80 animate-pulse pointer-events-none z-10">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" />
-            </svg>
-          </div>
-          <div className="absolute top-[20%] right-[9%] text-amber-400 drop-shadow-md pointer-events-none transform rotate-12 z-10">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-            </svg>
-          </div>
-          <div className="absolute top-[28%] left-[26%] text-white/50 pointer-events-none animate-pulse z-10">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0l2 8.5L22 12l-8 2L12 22l-2-8-8-2 8-2z" />
-            </svg>
-          </div>
-          <div className="absolute top-[36%] right-[24%] text-amber-300/80 pointer-events-none z-10">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0l2 8.5L22 12l-8 2L12 22l-2-8-8-2 8-2z" />
-            </svg>
-          </div>
-          <div className="absolute bottom-[20%] right-[12%] text-amber-300/70 pointer-events-none z-10 animate-pulse">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" />
-            </svg>
-          </div>
-
-          {/* Floating Tas Sekolah */}
-          <div className="absolute top-[18%] left-[7%] w-12 h-12 sm:w-14 sm:h-14 pointer-events-none z-10 transform -rotate-12 drop-shadow-xl">
-            <div className="w-full h-full rounded-2xl bg-white/95 p-2 shadow-lg border border-white/60 flex items-center justify-center">
-              <img 
-                src="/icons/038-school bag.svg" 
-                alt="Tas" 
-                className="w-full h-full object-contain" 
-                onError={(e) => { e.currentTarget.src = "/icons/008-warehouse.svg"; }} 
-              />
-            </div>
-          </div>
-
-          {/* Floating Kartu Identitas Pelajar */}
-          <div className="absolute top-[16%] right-[8%] w-14 h-10 sm:w-15 sm:h-11 pointer-events-none z-10 transform rotate-6 drop-shadow-xl">
-            <div className="w-full h-full rounded-xl bg-white/95 p-1.5 shadow-lg border border-white/60 flex items-center gap-1.5">
-              <div 
-                className="w-5 h-6.5 rounded border flex items-center justify-center shrink-0"
-                style={{ 
-                  backgroundColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 15%, #ffffff)',
-                  borderColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 30%, transparent)'
-                }}
-              >
-                <User size={12} style={{ color: 'var(--ui-primary, #064e3b)' }} />
-              </div>
-              <div className="flex flex-col gap-1 w-full">
-                <div className="w-full h-1 rounded-full" style={{ backgroundColor: 'var(--ui-primary, #064e3b)', opacity: 0.5 }} />
-                <div className="w-3/4 h-1 rounded-full" style={{ backgroundColor: 'var(--ui-primary, #064e3b)', opacity: 0.35 }} />
-                <div className="w-1/2 h-0.5 rounded-full" style={{ backgroundColor: 'var(--ui-primary, #064e3b)', opacity: 0.2 }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Konten Teks Header: Judul & Sapaan (Centered & Balanced) */}
-          <div className="px-6 text-center z-20 relative my-auto pt-2 pb-6">
-            <h1 className="text-[28px] sm:text-[34px] font-black tracking-tight text-white leading-none drop-shadow-lg">
-              {appSettings.appName || 'KG2 School'}
-            </h1>
-            <p className="text-[10px] sm:text-[11.5px] font-black tracking-[0.28em] text-emerald-100 uppercase opacity-90 mt-2 drop-shadow-sm">
-              MOBILE
-            </p>
-
-            <div className="mt-4 text-center">
-              <p className="text-sm sm:text-base font-bold text-white/90 leading-tight drop-shadow-md">
-                Halo, {userName === 'Pengunjung' ? '[Nama Pengguna]' : userName}
-              </p>
-              <p className="text-lg sm:text-xl font-black text-white leading-tight drop-shadow-md mt-1">
-                Selamat Datang!
-              </p>
-            </div>
+          {/* Logo Sekolah di Tengah Header (Menggantikan Elemen Bertanda Silang Merah) */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-6">
+            <img 
+              src="/mobile_header_logo.png" 
+              alt={appSettings.appName || "School Logo"} 
+              className="w-44 sm:w-52 max-h-32 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
+            />
           </div>
 
           {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
