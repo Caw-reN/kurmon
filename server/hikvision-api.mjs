@@ -86,7 +86,7 @@ export class HikvisionAPI {
     const url = `${this.baseUrl}${path}`;
     const method = options.method || 'GET';
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
     
     let res;
     try {
@@ -124,7 +124,7 @@ export class HikvisionAPI {
         newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
         
         const controller2 = new AbortController();
-        const timeout2 = setTimeout(() => controller2.abort(), 8000);
+        const timeout2 = setTimeout(() => controller2.abort(), 30000);
         try {
           res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal });
         } finally {

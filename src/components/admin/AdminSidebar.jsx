@@ -465,12 +465,12 @@ export default function AdminSidebar({
       )}
 
       {/* Footer Logout Button */}
-      <div className={cn("p-3 pt-2 border-t border-border/40 bg-card/80 shrink-0", isSidebarCollapsed ? "flex justify-center" : "")}>
+      <div className={cn("p-3 pt-2 flex flex-col gap-2 border-t border-border/40 bg-card/80 shrink-0", isSidebarCollapsed ? "items-center" : "")}>
         {isSidebarCollapsed ? (
           <button
             onClick={handleLogout}
             type="button"
-            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition-all cursor-pointer bg-rose-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none"
+            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition-all cursor-pointer bg-rose-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none shrink-0"
             title="Keluar Sistem"
           >
             <LogOut size={16} />
@@ -479,11 +479,22 @@ export default function AdminSidebar({
           <button
             onClick={handleLogout}
             type="button"
-            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-rose-100 hover:text-rose-700 transition-all cursor-pointer bg-rose-50 rounded-[var(--ui-radius-small)] border-none"
+            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-rose-100 hover:text-rose-700 transition-all cursor-pointer bg-rose-50 rounded-[var(--ui-radius-small)] border-none shrink-0"
           >
             <LogOut size={15} strokeWidth={2.5} />
             <span>Keluar Sistem</span>
           </button>
+        )}
+        
+        {/* App Version Info */}
+        {!isSidebarCollapsed ? (
+          <div className="text-[10px] text-center font-semibold text-slate-400/80 cursor-default">
+            v2.0.1 (Update 2 Sep)
+          </div>
+        ) : (
+          <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title="v2.0.1 (Update 2 Sep)">
+            v2.0.1
+          </div>
         )}
       </div>
     </aside>
