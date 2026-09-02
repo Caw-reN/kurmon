@@ -52,6 +52,55 @@ export default function LandingPage() {
   const [rulesFilterType, setRulesFilterType] = useState("all");
   const [loadingRules, setLoadingRules] = useState(false);
   const [hasPdf, setHasPdf] = useState(false);
+  const [activeProgramIdx, setActiveProgramIdx] = useState(0);
+
+  const availablePrograms = useMemo(() => {
+    const progs = [];
+    for (let i = 1; i <= 4; i++) {
+      const name = appSettings[`partner${i}`];
+      if (name) {
+        progs.push({
+          index: i,
+          name: name,
+          image: appSettings[`partnerImage${i}`],
+          icon: appSettings[`partnerIcon${i}`] || "book",
+          color: appSettings[`partnerColor${i}`] || "#3DAA37"
+        });
+      }
+    }
+    if (progs.length === 0) {
+      progs.push(
+        { index: 1, name: "Teknik Kendaraan Ringan", color: "#3DAA37", image: "/mobile_header_logo.png", icon: "monitor" },
+        { index: 2, name: "Teknik Komputer & Jaringan", color: "#0284C7", icon: "wifi" },
+        { index: 3, name: "Teknik Bisnis Sepeda Motor", color: "#D97706", icon: "book" },
+        { index: 4, name: "Akuntansi & Keuangan", color: "#7C3AED", icon: "users" }
+      );
+    }
+    return progs;
+  }, [appSettings]);
+
+  useEffect(() => {
+    if (availablePrograms.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [availablePrograms.length]);
+
+  const mitraList = useMemo(() => {
+    const custom = appSettings.mitraKerjasama;
+    if (custom && custom.length > 0) {
+      return [...custom, ...custom, ...custom, ...custom];
+    }
+    const defaults = [
+      { name: "Fibernet", image: "" },
+      { name: "MikroTik", image: "" },
+      { name: "Cisco", image: "" },
+      { name: "AWS Academy", image: "" },
+      { name: "by.U", image: "" }
+    ];
+    return [...defaults, ...defaults, ...defaults, ...defaults];
+  }, [appSettings.mitraKerjasama]);
 
   const getWaLink = () => {
     const contactPhone = appSettings?.contactPhone ||'+62 123-456-789';
@@ -497,12 +546,12 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
-      <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-white overflow-hidden select-none relative font-sans">
+      {/* MOBILE APP LANDING VIEW (Scrollable App Screen) */}
+      <div className="md:hidden flex flex-col min-h-screen w-full bg-white overflow-y-auto select-none relative font-sans">
         
         {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
-          className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
+          className="relative w-full h-[42vh] min-h-[280px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
         >
           {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
           <img 
@@ -518,31 +567,21 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Transparent Green Gradient Overlay: Menambahkan gradien hijau transparan elegan pada background sekolah */}
+          {/* Scrim Overlay Lembut: Melindungi keterbacaan teks tanpa menutupi gambar gedung sekolah */}
           <div 
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(180deg, rgba(15, 60, 20, 0.62) 0%, rgba(40, 130, 36, 0.42) 36%, rgba(61, 170, 55, 0.52) 70%, rgba(6, 50, 20, 0.88) 100%)'
+              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
             }}
           />
 
-          {/* Logo Sekolah & Teks Singkat Penjelasan Aplikasi di Tengah Header (Proporsional, Bernapas & Rapi) */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-2 pb-7">
+          {/* Logo Sekolah di Tengah Header */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-6">
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
-              className="w-28 sm:w-32 max-h-20 object-contain drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:scale-105 active:scale-95" 
+              className="w-44 sm:w-52 max-h-32 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
             />
-
-            {/* Teks Singkat Penjelasan Aplikasi (Ringkas & Proporsional, Maksimal 2 Baris Bersih) */}
-            <div className="flex flex-col items-center text-center mt-3 max-w-[270px]">
-              <span className="text-xs sm:text-[13px] font-black text-white tracking-wide leading-tight drop-shadow-md">
-                Sistem Informasi Sekolah Terpadu
-              </span>
-              <span className="text-[10.5px] sm:text-[11px] font-semibold text-emerald-100/90 leading-snug drop-shadow-sm mt-1">
-                Jadwal KBM, denah ruang, kalender & materi ajar
-              </span>
-            </div>
           </div>
 
           {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
@@ -559,24 +598,20 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEJAJAR PERSIS DENGAN TOMBOL AKSI DI BAWAH) */}
-        <div className="relative w-full h-[46%] flex-1 bg-white px-5 pt-1 pb-[84px] sm:pb-[92px] flex flex-col justify-center items-center z-30 -mt-[1px]">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA */}
+        <div className="relative w-full flex-1 bg-white px-5 pt-3 pb-[115px] flex flex-col items-center z-30 -mt-[1px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
-            {/* Judul: Layanan Publik + Ikon Info */}
-            <div className="flex items-center justify-center gap-1.5 mb-3 sm:mb-4">
-              <span 
-                className="text-xs sm:text-sm font-black uppercase tracking-wider"
-                style={{ color: '#2b8726' }}
-              >
+            {/* Judul: Layanan Publik (Warna Hitam, Nyaman & Tidak Mepet) */}
+            <div className="flex items-center justify-center gap-1.5 pt-4 pb-1 mb-4">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
                 Layanan Publik
               </span>
               <button
                 type="button"
                 onClick={() => setShowPublicGuide(true)}
-                className="hover:opacity-80 cursor-pointer transition-opacity p-0.5"
-                style={{ color: '#2b8726' }}
+                className="hover:opacity-80 cursor-pointer transition-opacity p-0.5 text-slate-400 hover:text-slate-700"
                 title="Informasi Layanan"
               >
                 <Info size={14} strokeWidth={2.3} />
@@ -638,6 +673,97 @@ export default function LandingPage() {
                 </div>
               );
             })()}
+
+            {/* 3. PROGRAM KEAHLIAN UNGGULAN (CAROUSEL BANNER HIJAU SESUAI GAMBAR USER) */}
+            <div className="w-full mt-7 flex flex-col items-center">
+              <div className="flex flex-col items-center justify-center text-center mb-3">
+                <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-wider uppercase">
+                  {appSettings.trustedByText || "Program Keahlian Unggulan"}
+                </h2>
+                <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-0.5">
+                  Kompetensi keahlian terakreditasi berstandar industri
+                </p>
+              </div>
+
+              {/* Banner Card Hijau Solid #3DAA37 dengan Slider Dots */}
+              {(() => {
+                const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
+                const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
+                return (
+                  <div 
+                    className="w-full rounded-2xl sm:rounded-3xl p-5 shadow-sm text-white relative overflow-hidden transition-all duration-500"
+                    style={{
+                      backgroundColor: cardColor,
+                      boxShadow: `0 8px 24px ${hexToRgba(cardColor, 0.22)}`
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Info Kiri */}
+                      <div className="flex flex-col text-left min-w-0 flex-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/80 block mb-1">
+                          Keahlian 0{activeProgram.index}
+                        </span>
+                        <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-snug drop-shadow-xs line-clamp-2">
+                          {activeProgram.name}
+                        </h3>
+                      </div>
+
+                      {/* Badge Logo Putih Kanan */}
+                      <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-md p-2 flex items-center justify-center shrink-0">
+                        {activeProgram.image ? (
+                          <img src={activeProgram.image} alt={activeProgram.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <img src="/mobile_header_logo.png" alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.src = "/icons/066-education.svg"; }} />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Indikator Titik Carousel (Dots) */}
+                    <div className="flex items-center justify-center gap-1.5 mt-4 pt-1">
+                      {availablePrograms.map((prog, pIdx) => {
+                        const isActive = activeProgramIdx === pIdx;
+                        return (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => setActiveProgramIdx(pIdx)}
+                            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                              isActive ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                            }`}
+                            title={`Keahlian 0${prog.index}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN (MITRA KERJASAMA CARD) */}
+            <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs border border-slate-100 flex flex-col items-center mt-4">
+              <span className="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-3">
+                Telah Dipercaya & Bekerjasama Dengan
+              </span>
+
+              <div className="relative w-full overflow-hidden flex items-center justify-center py-1">
+                <div className="flex w-max animate-marquee gap-8 sm:gap-10 items-center px-4">
+                  {mitraList.map((mitra, idx) => (
+                    <div 
+                      key={idx} 
+                      className="h-7 sm:h-8 flex items-center justify-center shrink-0 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer"
+                      title={mitra.name}
+                    >
+                      {mitra.image ? (
+                        <img src={mitra.image} alt={mitra.name} className="max-h-full max-w-[90px] object-contain" />
+                      ) : (
+                        <span className="text-xs font-black text-slate-600 tracking-tight">{mitra.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
           </div>
 
