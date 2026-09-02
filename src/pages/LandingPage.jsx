@@ -629,38 +629,75 @@ export default function LandingPage() {
   return (
     <div className="relative flex flex-col min-h-screen w-full bg-[var(--ui-bg)] overflow-x-hidden font-sans" style={{'--accent-color': accentColor ||'#a3e635','--ui-primary': primaryColor ||'#4B7BE5' }}>
 
-      {/* GLOBAL DECORATIVE BACKGROUND */}
-      {appSettings.heroImage ? (
+      {/* GLOBAL DECORATIVE BACKGROUND (DESKTOP) */}
+      <div className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 overflow-hidden select-none">
+        {/* Background Image Sekolah (Dari Kustomisasi Web atau Default) */}
         <img
-          src={appSettings.heroImage}
+          src={appSettings?.heroImage || '/hero_illustration.jpg'}
           fetchpriority="high"
           loading="eager"
-          className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 opacity-100 transition-all duration-700 object-cover object-center"
+          className="w-full h-full pointer-events-none opacity-100 transition-all duration-700 object-cover object-center"
           alt="Hero Background"
+          onError={(e) => {
+            if (e.currentTarget.src !== window.location.origin + '/hero_illustration.jpg') {
+              e.currentTarget.src = '/hero_illustration.jpg';
+            }
+          }}
         />
-      ) : (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Soft Wash Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-slate-100"></div>
-          {/* Glowing Blobs */}
-          <div className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: primaryColor }}></div>
-          <div className="absolute bottom-[-10%] left-[-5%] w-[700px] h-[700px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: accentColor ||'#a3e635' }}></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] opacity-[0.03] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: primaryColor }}></div>
 
-          {/* Floating Accents */}
-          <div className="absolute top-[15%] right-[12%] opacity-30" style={{ color: primaryColor }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" /></svg>
+        {/* Scrim Gradasi Lembut Menghubungkan Gambar ke Konten Putih */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.08) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+          }}
+        />
+
+        {/* ── LAPISAN ANIMASI AWAN BERGERAK DESKTOP (LEBIH TIPIS, HALUS & ELEGAN) ── */}
+        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-45">
+          {/* Ambient High-Altitude Haze */}
+          <div className="absolute inset-0 animate-aerial-haze">
+            <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/15 via-white/5 to-transparent blur-3xl" />
           </div>
-          <div className="absolute bottom-[20%] left-[8%] opacity-30" style={{ color: accentColor ||'#a3e635' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" /></svg>
+
+          {/* Gugusan Awan Desktop 1 (Lebar, Sangat Halus, Melayang Santai) */}
+          <div className="absolute top-4 -left-24 w-[620px] h-[220px] animate-aerial-cloud-1">
+            {/* Bayangan Tipis Jatuh ke Gedung */}
+            <div className="absolute top-16 left-16 w-[85%] h-[75%] bg-black/10 rounded-full blur-3xl transform scale-y-70" />
+            {/* Badan Awan Tipis Transparan */}
+            <div className="relative w-full h-full">
+              <div className="absolute inset-0 bg-white/30 rounded-full blur-2xl" />
+              <div className="absolute top-3 left-10 w-3/5 h-4/5 bg-white/45 rounded-full blur-xl" />
+              <div className="absolute top-6 right-12 w-1/2 h-3/4 bg-white/40 rounded-full blur-xl" />
+              <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/50 rounded-full blur-lg" />
+            </div>
           </div>
-          <div className="absolute top-[40%] left-[5%] w-3 h-3 rounded-full opacity-30" style={{ backgroundColor: accentColor ||'#a3e635' }}></div>
-          <div className="absolute bottom-[30%] right-[8%] w-4 h-4 rounded-full opacity-30" style={{ backgroundColor: primaryColor }}></div>
-          <div className="absolute top-[60%] right-[5%] opacity-20 rotate-45" style={{ color: primaryColor }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+
+          {/* Gugusan Awan Desktop 2 (Ketinggian Menengah, Lebih Tipis) */}
+          <div className="absolute top-1/3 -left-32 w-[540px] h-[190px] animate-aerial-cloud-2">
+            {/* Bayangan Sangat Halus */}
+            <div className="absolute top-14 left-12 w-[80%] h-[70%] bg-black/8 rounded-full blur-2xl transform scale-y-70" />
+            {/* Badan Awan */}
+            <div className="relative w-full h-full">
+              <div className="absolute inset-0 bg-white/25 rounded-full blur-xl" />
+              <div className="absolute top-3 left-12 w-1/2 h-4/5 bg-white/35 rounded-full blur-lg" />
+              <div className="absolute top-4 right-8 w-2/5 h-3/5 bg-white/30 rounded-full blur-lg" />
+            </div>
+          </div>
+
+          {/* Gugusan Awan Desktop 3 (Gumpalan Halus Latar Depan) */}
+          <div className="absolute -top-12 -left-28 w-[720px] h-[260px] animate-aerial-cloud-3">
+            {/* Bayangan Sangat Halus */}
+            <div className="absolute top-20 left-16 w-[90%] h-[80%] bg-black/8 rounded-full blur-3xl transform scale-y-70" />
+            {/* Badan Awan Tipis */}
+            <div className="relative w-full h-full">
+              <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl" />
+              <div className="absolute top-6 left-16 w-2/3 h-3/4 bg-white/30 rounded-full blur-2xl" />
+              <div className="absolute top-3 right-16 w-1/2 h-2/3 bg-white/25 rounded-full blur-2xl" />
+            </div>
           </div>
         </div>
-      )}
+      </div>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
         
