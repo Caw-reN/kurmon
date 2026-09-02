@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { subscribeDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -38,23 +39,23 @@ L.Icon.Default.mergeOptions({
 // Color mapping for jurusan / bidang
 const JURUSAN_COLORS = {
   RPL: '#0284C7', // Sky Blue
-  TKJ: '#3DAA37', // Vivid Green
+  TKJ: 'var(--ui-primary, #059669)',
   TKR: '#D97706', // Amber
   TBSM: '#E11D48', // Rose
   Akuntansi: '#7C3AED', // Purple
   DKV: '#DB2777', // Pink
-  Umum: '#059669', // Emerald
+  Umum: 'var(--ui-primary, #059669)',
 };
 
-const getJurusanColor = (jurusanStr = '') => {
+const getJurusanColor = (jurusanStr = '', fallback = 'var(--ui-primary, #059669)') => {
   const upper = String(jurusanStr).toUpperCase();
   if (upper.includes('RPL') || upper.includes('SOFTWARE') || upper.includes('IT')) return JURUSAN_COLORS.RPL;
-  if (upper.includes('TKJ') || upper.includes('JARINGAN')) return JURUSAN_COLORS.TKJ;
+  if (upper.includes('TKJ') || upper.includes('JARINGAN')) return fallback;
   if (upper.includes('TKR') || upper.includes('OTOMOTIF') || upper.includes('KENDARAAN')) return JURUSAN_COLORS.TKR;
   if (upper.includes('TBSM') || upper.includes('MOTOR')) return JURUSAN_COLORS.TBSM;
   if (upper.includes('AKUNTANSI') || upper.includes('KEUANGAN')) return JURUSAN_COLORS.Akuntansi;
   if (upper.includes('DKV') || upper.includes('DESAIN')) return JURUSAN_COLORS.DKV;
-  return JURUSAN_COLORS.Umum;
+  return fallback;
 };
 
 // Custom modern SVG pin icon generator
@@ -72,7 +73,7 @@ const createModernIcon = (color, isSelected = false) => L.divIcon({
         width: 100%;
         height: 100%;
         border-radius: 50% 50% 50% 0;
-        background: ${color || '#3DAA37'};
+        background: ${color || 'var(--ui-primary, #059669)'};
         transform: rotate(-45deg);
         border: 2.5px solid #ffffff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -93,7 +94,7 @@ const createModernIcon = (color, isSelected = false) => L.divIcon({
           position: absolute;
           inset: -4px;
           border-radius: 50%;
-          border: 2px solid ${color || '#3DAA37'};
+          border: 2px solid ${color || 'var(--ui-primary, #059669)'};
           animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
           opacity: 0.7;
         "></div>
@@ -133,6 +134,9 @@ export default function PklLocationsPublicPage() {
 
   useEffect(() => subscribeDatabaseSnapshot(() => setDataVersion((v) => v + 1)), []);
 
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
+
   const appSettings = useMemo(() => {
     void dataVersion;
     const defaults = {
@@ -140,8 +144,10 @@ export default function PklLocationsPublicPage() {
       accentColor: '#3DAA37',
       appName: 'SMK Karya Guna 2',
     };
-    return { ...defaults, ...loadInitialState('appSettings', defaults) };
-  }, [dataVersion]);
+    return { ...defaults, ...loadInitialState('appSettings', defaults), ...(outletAppSettings || {}) };
+  }, [outletAppSettings, dataVersion]);
+
+  const primaryColor = appSettings.primaryColor || 'var(--ui-primary, #064e3b)';
 
   // Fetch verified & active PKL locations from API
   useEffect(() => {
@@ -250,15 +256,28 @@ export default function PklLocationsPublicPage() {
       {/* ── HERO HEADER CARD (SEJAJAR PERSIS DENGAN NAVBAR) ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/80 shadow-sm">
         {/* Subtle Ambient Glow */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3DAA37]/10 blur-3xl pointer-events-none" />
+        <div 
+          className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-20" 
+          style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+        />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
           {/* Header Title & Subtitle */}
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-black uppercase tracking-wider mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#3DAA37] animate-pulse" />
+            <div 
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 border shadow-2xs"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
+                color: 'var(--ui-primary, #059669)'
+              }}
+            >
+              <span 
+                className="w-2 h-2 rounded-full animate-pulse" 
+                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+              />
               Layanan Publik • Hubungan Industri
             </div>
             
@@ -274,7 +293,7 @@ export default function PklLocationsPublicPage() {
           {/* KPI Mini Stat Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
             <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-[#3DAA37] mb-1">
+              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
                 <Building2 size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Mitra DUDI</span>
               </div>
@@ -331,7 +350,7 @@ export default function PklLocationsPublicPage() {
               placeholder="Cari nama perusahaan, bidang, keahlian, atau alamat..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3DAA37] focus:bg-white focus:ring-3 focus:ring-emerald-500/10 transition-all"
+              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--ui-primary,#059669)] focus:bg-white focus:ring-3 focus:ring-[var(--ui-primary,#059669)]/10 transition-all"
             />
             {search && (
               <button
@@ -568,7 +587,8 @@ export default function PklLocationsPublicPage() {
                                 href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 h-7 rounded-lg bg-[#3DAA37] text-white font-bold text-[10.5px] uppercase tracking-wider flex items-center justify-center gap-1 no-underline"
+                                className="flex-1 h-7 rounded-lg text-white font-bold text-[10.5px] uppercase tracking-wider flex items-center justify-center gap-1 no-underline hover:opacity-95 shadow-2xs"
+                                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
                               >
                                 <Navigation size={11} />
                                 <span>Rute</span>
@@ -632,7 +652,8 @@ export default function PklLocationsPublicPage() {
                         href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 h-9 rounded-xl bg-[#3DAA37] hover:bg-[#34942f] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs no-underline active:scale-95 transition-transform"
+                        className="flex-1 h-9 rounded-xl text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs no-underline active:scale-95 transition-all hover:opacity-95"
+                        style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
                       >
                         <Navigation size={13} strokeWidth={2.5} />
                         <span>Buka Petunjuk Arah</span>
@@ -706,9 +727,14 @@ function PklCardItem({ loc, isSelected, onSelect }) {
     <div 
       className={`rounded-[var(--ui-radius-card,20px)] p-5 border transition-all duration-300 flex flex-col justify-between select-none ${
         isSelected
-          ? 'bg-emerald-50/70 border-[#3DAA37] shadow-md ring-2 ring-[#3DAA37]/20'
+          ? 'shadow-md ring-2'
           : 'bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-0.5'
       }`}
+      style={isSelected ? {
+        borderColor: 'var(--ui-primary, #059669)',
+        backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 5%, #ffffff)',
+        boxShadow: '0 4px 14px color-mix(in srgb, var(--ui-primary, #059669) 20%, transparent)'
+      } : {}}
     >
       <div>
         {/* Top Badges & Status */}
@@ -785,7 +811,12 @@ function PklCardItem({ loc, isSelected, onSelect }) {
             href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-9 px-3 rounded-[var(--ui-radius-control,10px)] bg-emerald-50 hover:bg-emerald-100 text-[#3DAA37] font-extrabold text-xs flex items-center justify-center gap-1 no-underline active:scale-95 transition-all"
+            className="h-9 px-3 rounded-[var(--ui-radius-control,10px)] font-extrabold text-xs flex items-center justify-center gap-1 no-underline active:scale-95 transition-all shadow-2xs border"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, #ffffff)',
+              borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 20%, transparent)',
+              color: 'var(--ui-primary, #059669)'
+            }}
             title="Buka rute di Google Maps"
           >
             <Navigation size={13} strokeWidth={2.4} />

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { subscribeDatabaseSnapshot } from '../utils/dataSource.js';
 import { loadInitialState } from '../utils/state.js';
@@ -72,11 +73,26 @@ export default function KalenderPage() {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
+
+  const appSettings = useMemo(() => {
+    void dataVersion;
+    const defaults = {
+      primaryColor: '#064e3b',
+      accentColor: '#3DAA37',
+      appName: 'Sistem Sekolah',
+    };
+    return { ...defaults, ...loadInitialState('appSettings', defaults), ...(outletAppSettings || {}) };
+  }, [outletAppSettings, dataVersion]);
+
+  const primaryColor = appSettings.primaryColor || 'var(--ui-primary, #064e3b)';
+
   // -- TONES CONFIGURATION (Konsisten dengan tema kustomisasi web) --
   const categoryTones = {
     blue: { text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200", dot: "bg-indigo-500" },
-    emerald: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
-    green: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
+    emerald: { text: "text-[var(--ui-primary,#059669)]", bg: "bg-[var(--ui-primary,#059669)]/10", border: "border-[var(--ui-primary,#059669)]/20", dot: "bg-[var(--ui-primary,#059669)]" },
+    green: { text: "text-[var(--ui-primary,#059669)]", bg: "bg-[var(--ui-primary,#059669)]/10", border: "border-[var(--ui-primary,#059669)]/20", dot: "bg-[var(--ui-primary,#059669)]" },
     red: { text: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },
     rose: { text: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },
     amber: { text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
@@ -220,7 +236,16 @@ export default function KalenderPage() {
   };
   const getStatus = (start, end) => {
     if (end < today) return { label: 'Selesai', class: 'bg-slate-100 text-slate-500 font-extrabold' };
-    if (start <= today && end >= today) return { label: 'Sedang Berjalan', class: 'bg-emerald-100 text-emerald-700 font-extrabold' };
+    if (start <= today && end >= today) {
+      return { 
+        label: 'Sedang Berjalan', 
+        class: 'font-extrabold',
+        style: {
+          backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 12%, transparent)',
+          color: 'var(--ui-primary, #059669)'
+        }
+      };
+    }
     return { label: 'Mendatang', class: 'bg-indigo-100 text-indigo-700 font-extrabold' };
   };
 
@@ -254,15 +279,28 @@ export default function KalenderPage() {
       {/* ── 1. HERO HEADER CARD (SEJAJAR DENGAN NAVBAR & KONSISTEN) ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/80 shadow-sm">
         {/* Subtle Ambient Glow */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3DAA37]/10 blur-3xl pointer-events-none" />
+        <div 
+          className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-20" 
+          style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+        />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
           {/* Header Title & Subtitle */}
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-black uppercase tracking-wider mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#3DAA37] animate-pulse" />
+            <div 
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 border shadow-2xs"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
+                color: 'var(--ui-primary, #059669)'
+              }}
+            >
+              <span 
+                className="w-2 h-2 rounded-full animate-pulse" 
+                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+              />
               Layanan Publik • Kalender Akademik
             </div>
             
@@ -278,7 +316,7 @@ export default function KalenderPage() {
           {/* KPI Mini Stat Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
             <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-[#3DAA37] mb-1">
+              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
                 <CalendarDays size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Total Agenda</span>
               </div>
@@ -335,7 +373,7 @@ export default function KalenderPage() {
               placeholder="Cari judul agenda, kategori, atau tanggal kegiatan..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3DAA37] focus:bg-white focus:ring-3 focus:ring-emerald-500/10 transition-all"
+              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--ui-primary,#059669)] focus:bg-white focus:ring-3 focus:ring-[var(--ui-primary,#059669)]/10 transition-all"
             />
             {searchQuery && (
               <button
@@ -387,9 +425,13 @@ export default function KalenderPage() {
               onClick={() => { setTimeFilter('month'); setSelectedDate(null); }}
               className={`px-3.5 py-1 rounded-full font-bold text-xs cursor-pointer transition-all border ${
                 timeFilter === 'month' && !selectedDate 
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                  ? 'text-white shadow-2xs' 
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
+              style={timeFilter === 'month' && !selectedDate ? {
+                backgroundColor: 'var(--ui-primary, #059669)',
+                borderColor: 'var(--ui-primary, #059669)'
+              } : {}}
             >
               Bulan Ini ({monthCount})
             </button>
@@ -590,7 +632,13 @@ export default function KalenderPage() {
                   {monthNames[calMonth]} {calYear}
                 </h3>
                 {isCurrentMonthView && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9.5px] font-black uppercase">
+                  <span 
+                    className="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 12%, transparent)',
+                      color: 'var(--ui-primary, #059669)'
+                    }}
+                  >
                     Bulan Ini
                   </span>
                 )}
@@ -655,11 +703,14 @@ export default function KalenderPage() {
                         isSelected ? 'bg-amber-50 ring-inset ring-2 ring-amber-400' : ''
                       }`}
                     >
-                      <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full mt-0.5 z-10 transition-transform ${
-                        isToday 
-                          ? 'bg-[#3DAA37] text-white shadow-xs scale-105' 
-                          : (isSunday ? 'text-rose-600' : 'text-slate-700')
-                      }`}>
+                      <span 
+                        className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full mt-0.5 z-10 transition-transform ${
+                          isToday 
+                            ? 'text-white shadow-xs scale-105' 
+                            : (isSunday ? 'text-rose-600' : 'text-slate-700')
+                        }`}
+                        style={isToday ? { backgroundColor: 'var(--ui-primary, #059669)' } : {}}
+                      >
                         {day}
                       </span>
                       
