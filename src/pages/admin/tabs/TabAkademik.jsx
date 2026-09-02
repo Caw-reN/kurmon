@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   CalendarDays, Search, BookOpen, FileDown, Upload, List, Plus, Calendar, 
   Edit2, Trash2, ChevronLeft, ChevronRight, X, 
-  Tag, RotateCcw, CalendarCheck
+  Tag, RotateCcw, CalendarCheck, Check, Clock
 } from 'lucide-react';
 import { UISelect, Button } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -540,25 +540,8 @@ export default function TabAkademik(props) {
             </button>
           </div>
 
-          {/* Right Controls: Category Filter & Clear Filter */}
+          {/* Right Controls: Mobile Switcher & Clear Filter */}
           <div className="flex flex-wrap items-center gap-2">
-            
-            {/* Category Select */}
-            <div className="w-44">
-              <UISelect
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                placeholder="Semua Kategori"
-              >
-                <option value="all">Semua Kategori</option>
-                {calendarCategories.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </UISelect>
-            </div>
-
             {/* Mobile Tab Switcher */}
             <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
               <Button
@@ -641,8 +624,8 @@ export default function TabAkademik(props) {
         `}>
           <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
             
-            {/* Unified Box Header */}
-            <div className="p-3.5 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between">
+            {/* Unified Box Header with Integrated Category Filter */}
+            <div className="p-3 sm:px-4 sm:py-3 bg-slate-50/80 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
                   Daftar Kegiatan ({filteredCalendar.length})
@@ -654,9 +637,26 @@ export default function TabAkademik(props) {
                 )}
               </div>
               
-              <span className="text-[11px] font-semibold text-slate-400">
-                Urutan berdasarkan tanggal
-              </span>
+              <div className="flex items-center gap-2">
+                {/* Category Dropdown Filter right in Box Header */}
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs focus:outline-none focus:border-[var(--ui-primary)] cursor-pointer"
+                  title="Filter berdasarkan kategori kegiatan"
+                >
+                  <option value="all">Semua Kategori</option>
+                  {calendarCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                
+                <span className="text-[11px] font-semibold text-slate-400 hidden sm:inline">
+                  Urutan tanggal
+                </span>
+              </div>
             </div>
 
             {/* Agenda List Items Container (1 Unified Box) */}
@@ -702,34 +702,51 @@ export default function TabAkademik(props) {
                   const cat = calendarCategories.find((c) => c.id === evt.categoryId);
                   const colors = getCategoryColor(cat?.color);
                   const status = getEventStatus(evt.dateStart, evt.dateEnd);
+                  const isPast = status.type === 'past';
 
                   return (
                     <div
                       key={evt.id}
-                      className="p-3 sm:px-4 sm:py-3 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group"
+                      className={`p-3 sm:px-4 sm:py-3 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group ${isPast ? 'bg-slate-50/30' : ''}`}
                     >
                       <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                        <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[20px] pt-[2px]">
+                        <div className={`text-[12.5px] font-black shrink-0 min-w-[20px] pt-[2px] ${isPast ? 'text-slate-300' : 'text-slate-400'}`}>
                           {index + 1}.
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
-                            <h3 className="text-[13px] font-black text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                            <h3 className={`text-[13px] font-black truncate transition-colors ${isPast ? 'text-slate-600' : 'text-slate-800 group-hover:text-[var(--ui-primary)]'}`}>
                               {evt.title}
                             </h3>
+
+                            {/* Status Penanda: Terlaksana / Hari Ini / Mendatang */}
+                            {isPast && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200/80 shrink-0">
+                                <Check size={10} className="stroke-[3] text-slate-400" />
+                                Terlaksana
+                              </span>
+                            )}
                             {status.isToday && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700 shrink-0">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Hari Ini
                               </span>
                             )}
+                            {!isPast && !status.isToday && status.type === 'upcoming' && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80 shrink-0">
+                                <Clock size={10} className="text-sky-500" />
+                                {status.label}
+                              </span>
+                            )}
+
+                            {/* Tanggal Badge */}
                             <div className="flex items-center gap-1 text-[9.5px] font-bold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200/60 w-fit shrink-0">
                               <Calendar size={10} className="text-slate-400 shrink-0" />
                               <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
                             </div>
                           </div>
                           {evt.description && (
-                            <p className="text-[11px] font-medium text-slate-500 line-clamp-1 leading-relaxed">
+                            <p className={`text-[11px] font-medium line-clamp-1 leading-relaxed ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
                               {evt.description}
                             </p>
                           )}
