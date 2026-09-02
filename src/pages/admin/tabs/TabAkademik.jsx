@@ -395,43 +395,43 @@ export default function TabAkademik(props) {
       </PageHeader>
 
       {/* ── 2. Unified Control Toolbar (Search, Filter, Actions, View Switcher) ── */}
-      <div className="ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-4">
+      <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
         
         {/* Top Row: Search Bar & Primary Actions */}
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+        <div className="flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between">
           
           {/* Search Box */}
           <div className="relative flex-1 max-w-xl">
-            <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={localSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200/80 pl-10 pr-9 py-2.5 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/10 shadow-xs transition-all"
+              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 pl-9 pr-8 py-2 text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/10 shadow-2xs transition-all"
               placeholder="Cari judul agenda, kategori, atau tanggal kegiatan..."
             />
             {localSearch && (
               <button
                 type="button"
                 onClick={() => handleSearchChange("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full hover:bg-slate-200 transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full hover:bg-slate-200 transition-colors"
                 title="Hapus pencarian"
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             )}
           </div>
 
           {/* Action Buttons Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 justify-end">
+          <div className="flex flex-wrap items-center gap-1.5 justify-end">
             {openAcademicCalendarGuide && (
               <button
                 type="button"
                 onClick={openAcademicCalendarGuide}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 title="Petunjuk Penggunaan Kalender"
               >
-                <BookOpen size={14} className="text-slate-500" />
+                <BookOpen size={13} className="text-slate-500" />
                 <span className="hidden sm:inline">Panduan</span>
               </button>
             )}
@@ -440,10 +440,10 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={downloadMasterTemplate}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 title="Unduh Template Excel"
               >
-                <FileDown size={14} className="text-slate-500" />
+                <FileDown size={13} className="text-slate-500" />
                 <span className="hidden sm:inline">Template</span>
               </button>
             )}
@@ -452,10 +452,10 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => openModal("bulk", "add")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 title="Import Agenda dari Excel"
               >
-                <Upload size={14} className="text-slate-500" />
+                <Upload size={13} className="text-slate-500" />
                 <span className="hidden sm:inline">Import</span>
               </button>
             )}
@@ -464,10 +464,10 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => setActiveTab("kategori_kalender")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 title="Kelola Kategori Agenda"
               >
-                <List size={14} className="text-slate-500" />
+                <List size={13} className="text-slate-500" />
                 <span className="hidden sm:inline">Kategori</span>
               </button>
             )}
@@ -477,9 +477,9 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => handleAddNewOnDate(selectedDate || todayStr)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
               >
-                <Plus size={15} strokeWidth={2.5} />
+                <Plus size={14} strokeWidth={2.5} />
                 <span>Tambah Agenda</span>
               </button>
             )}
@@ -487,21 +487,17 @@ export default function TabAkademik(props) {
         </div>
 
         {/* Bottom Row: Time Filter Pills, Category Dropdown & View Mode Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100">
           
-          {/* Time Scope Quick Filters */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">
-              Filter:
-            </span>
-            
+          {/* Time Scope Quick Filters (Segmented Control style) */}
+          <div className="inline-flex p-0.5 rounded-[var(--ui-radius-small)] bg-slate-100/90 border border-slate-200/60 items-center">
             <button
               type="button"
               onClick={() => setTimeFilter("all")}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
                 timeFilter === "all"
-                  ? "bg-[var(--ui-primary)] text-white shadow-xs"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                  ? "bg-white text-slate-800 shadow-xs font-black"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Semua ({stats.total})
@@ -510,10 +506,10 @@ export default function TabAkademik(props) {
             <button
               type="button"
               onClick={() => setTimeFilter("month")}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
                 timeFilter === "month"
-                  ? "bg-[var(--ui-primary)] text-white shadow-xs"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                  ? "bg-white text-slate-800 shadow-xs font-black"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Bulan Ini ({stats.thisMonth})
@@ -522,10 +518,10 @@ export default function TabAkademik(props) {
             <button
               type="button"
               onClick={() => setTimeFilter("upcoming")}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
                 timeFilter === "upcoming"
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                  ? "bg-white text-emerald-700 shadow-xs font-black"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Mendatang ({stats.upcoming})
@@ -534,10 +530,10 @@ export default function TabAkademik(props) {
             <button
               type="button"
               onClick={() => setTimeFilter("past")}
-              className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
                 timeFilter === "past"
-                  ? "bg-slate-700 text-white shadow-xs"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                  ? "bg-white text-slate-800 shadow-xs font-black"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Sudah Lewat
@@ -548,7 +544,7 @@ export default function TabAkademik(props) {
           <div className="flex flex-wrap items-center gap-2">
             
             {/* Category Select */}
-            <div className="w-44">
+            <div className="w-40">
               <UISelect
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -564,43 +560,55 @@ export default function TabAkademik(props) {
             </div>
 
             {/* View Mode Switcher (Desktop) */}
-            <div className="hidden lg:flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-              <Button
-                variant={viewMode === 'split' ? 'primary' : 'ghost'}
+            <div className="hidden lg:inline-flex p-0.5 rounded-[var(--ui-radius-small)] bg-slate-100/90 border border-slate-200/60 items-center">
+              <button
+                type="button"
                 onClick={() => setViewMode("split")}
-                className={`flex-1 shrink-0 ${viewMode !== 'split' ? 'text-slate-500' : ''}`}
+                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
+                  viewMode === 'split'
+                    ? "bg-white text-slate-800 shadow-xs font-black"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
                 Split View
-              </Button>
-              <Button
-                variant={viewMode === 'cards' ? 'primary' : 'ghost'}
+              </button>
+              <button
+                type="button"
                 onClick={() => setViewMode("cards")}
-                className={`flex-1 shrink-0 ${viewMode !== 'cards' ? 'text-slate-500' : ''}`}
+                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
+                  viewMode === 'cards'
+                    ? "bg-white text-slate-800 shadow-xs font-black"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
                 Daftar Penuh
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'primary' : 'ghost'}
+              </button>
+              <button
+                type="button"
                 onClick={() => setViewMode("calendar")}
-                className={`flex-1 shrink-0 ${viewMode !== 'calendar' ? 'text-slate-500' : ''}`}
+                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
+                  viewMode === 'calendar'
+                    ? "bg-white text-slate-800 shadow-xs font-black"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
                 Kalender Penuh
-              </Button>
+              </button>
             </div>
 
             {/* Mobile Tab Switcher */}
-            <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+            <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
               <Button
                 variant={mobileTab === 'list' ? 'primary' : 'ghost'}
                 onClick={() => setMobileTab("list")}
-                className={`flex-1 shrink-0 ${mobileTab !== 'list' ? 'text-slate-500' : ''}`}
+                className={`flex-1 shrink-0 text-xs py-1.5 px-2.5 ${mobileTab !== 'list' ? 'text-slate-500' : ''}`}
               >
                 Agenda ({filteredCalendar.length})
               </Button>
               <Button
                 variant={mobileTab === 'calendar' ? 'primary' : 'ghost'}
                 onClick={() => setMobileTab("calendar")}
-                className={`flex-1 shrink-0 ${mobileTab !== 'calendar' ? 'text-slate-500' : ''}`}
+                className={`flex-1 shrink-0 text-xs py-1.5 px-2.5 ${mobileTab !== 'calendar' ? 'text-slate-500' : ''}`}
               >
                 Kalender
               </Button>
@@ -611,10 +619,10 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[var(--ui-radius-small)] border border-rose-200 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[var(--ui-radius-small)] border border-rose-200 transition-all cursor-pointer"
                 title="Reset Semua Filter"
               >
-                <RotateCcw size={12} />
+                <RotateCcw size={11} />
                 <span>Reset ({activeFiltersCount})</span>
               </button>
             )}
@@ -624,11 +632,11 @@ export default function TabAkademik(props) {
 
       {/* ── 3. Active Date Selection Filter Banner ── */}
       {selectedDate && (
-        <div className="ui-card p-3 sm:p-4 rounded-[var(--ui-radius-small)] bg-emerald-50/90 border border-emerald-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+        <div className="ui-card p-3 sm:p-3.5 rounded-[var(--ui-radius-card)] bg-emerald-50/90 border border-emerald-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
             <div>
-              <p className="text-xs sm:text-sm font-black text-emerald-900">
+              <p className="text-xs sm:text-sm font-black text-emerald-950">
                 Menampilkan agenda pada: {formatDateRangeText(selectedDate, selectedDate)}
               </p>
               <p className="text-[11px] font-semibold text-emerald-700">
@@ -642,7 +650,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => handleAddNewOnDate(selectedDate)}
-                className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-[var(--ui-radius-small)] text-xs font-extrabold shadow-xs cursor-pointer inline-flex items-center gap-1.5 transition-all"
+                className="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-2xs cursor-pointer inline-flex items-center gap-1.5 transition-all"
               >
                 <Plus size={13} strokeWidth={2.5} />
                 <span>Tambah di Tanggal Ini</span>
@@ -651,7 +659,7 @@ export default function TabAkademik(props) {
             <button
               type="button"
               onClick={() => setSelectedDate(null)}
-              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1 transition-all"
+              className="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold shadow-2xs cursor-pointer inline-flex items-center gap-1 transition-all"
             >
               <X size={13} />
               <span>Tutup Filter</span>
@@ -667,12 +675,12 @@ export default function TabAkademik(props) {
         <div className={`
           ${viewMode === 'cards' ? 'lg:col-span-12' : viewMode === 'calendar' ? 'hidden' : 'lg:col-span-7 xl:col-span-8'}
           ${mobileTab === 'calendar' ? 'hidden lg:block' : 'block'}
-          flex flex-col gap-4
+          flex flex-col gap-3
         `}>
           {/* Subheader info */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+              <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
                 Daftar Kegiatan ({filteredCalendar.length})
               </span>
               {selectedCategory !== "all" && (
@@ -682,7 +690,7 @@ export default function TabAkademik(props) {
               )}
             </div>
             
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-[11px] font-semibold text-slate-400">
               Urutan berdasarkan tanggal
             </span>
           </div>
@@ -690,24 +698,24 @@ export default function TabAkademik(props) {
           {/* Agenda Cards Container */}
           {filteredCalendar.length === 0 ? (
             <div className="ui-card p-10 sm:p-14 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/70 shadow-xs flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mb-4 shadow-inner">
-                <CalendarDays size={32} />
+              <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
+                <CalendarDays size={28} />
               </div>
-              <h3 className="text-base font-black text-slate-700">
+              <h3 className="text-sm font-black text-slate-700">
                 Tidak ada agenda yang cocok
               </h3>
-              <p className="text-xs font-medium text-slate-500 mt-1.5 max-w-sm">
+              <p className="text-xs font-medium text-slate-500 mt-1 max-w-sm">
                 {activeFiltersCount > 0
                   ? "Coba sesuaikan kata kunci pencarian atau bersihkan filter tanggal/kategori yang aktif."
                   : "Belum ada agenda akademik yang terdaftar. Anda dapat menambahkan agenda baru sekarang."}
               </p>
               
-              <div className="flex items-center gap-2 mt-5">
+              <div className="flex items-center gap-2 mt-4">
                 {activeFiltersCount > 0 && (
                   <button
                     type="button"
                     onClick={clearAllFilters}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer"
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer"
                   >
                     Reset Filter
                   </button>
@@ -716,16 +724,16 @@ export default function TabAkademik(props) {
                   <button
                     type="button"
                     onClick={() => handleAddNewOnDate(selectedDate || todayStr)}
-                    className="px-4 py-2 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    <Plus size={14} strokeWidth={2.5} />
+                    <Plus size={13} strokeWidth={2.5} />
                     <span>Tambah Agenda Baru</span>
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            <div className={`grid gap-3 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+            <div className={`grid gap-2 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
               {filteredCalendar.map((evt, index) => {
                 const cat = calendarCategories.find((c) => c.id === evt.categoryId);
                 const colors = getCategoryColor(cat?.color);
@@ -734,33 +742,38 @@ export default function TabAkademik(props) {
                 return (
                   <div
                     key={evt.id}
-                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] px-3 py-2 shadow-xs hover:shadow-sm transition-all flex flex-col gap-1`}
+                    className="group relative bg-white hover:bg-slate-50/70 border border-slate-200/80 hover:border-slate-300/90 rounded-[var(--ui-radius-card)] p-3 shadow-xs hover:shadow-sm transition-all flex flex-col gap-1"
                   >
                     <div className="flex items-start justify-between gap-2.5">
-                      <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[20px] pt-[2px]">
+                      <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[22px] pt-[2px]">
                         {index + 1}.
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
-                          <h3 className="text-[12.5px] font-bold text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                          <h3 className="text-[13px] font-black text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
                             {evt.title}
                           </h3>
-                          {status.isToday && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
-                          <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 w-fit">
+                          {status.isToday && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              Hari Ini
+                            </span>
+                          )}
+                          <div className="flex items-center gap-1 text-[9.5px] font-bold text-slate-500 bg-slate-100/70 px-2 py-0.5 rounded border border-slate-200/60 w-fit">
                             <Calendar size={10} className="text-slate-400 shrink-0" />
                             <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
                           </div>
                         </div>
                         {evt.description && (
-                          <p className="text-[10px] font-medium text-slate-500 line-clamp-1 leading-relaxed truncate">
+                          <p className="text-[11px] font-medium text-slate-500 line-clamp-1 leading-relaxed">
                             {evt.description}
                           </p>
                         )}
                       </div>
                       
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[8.5px] font-bold uppercase tracking-wide ${colors.lightBg}`}>
-                          <span className={`w-1 h-1 rounded-full ${colors.dot}`}></span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${colors.lightBg}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}></span>
                           {cat?.name || "Umum"}
                         </span>
                         {canEdit && (
@@ -798,12 +811,12 @@ export default function TabAkademik(props) {
           ${mobileTab === 'list' ? 'hidden lg:block' : 'block'}
           flex flex-col gap-4 sticky top-4
         `}>
-          <div className="ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-4">
+          <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
             
             {/* Calendar Navigation Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider">
                   {monthNames[currentMonth]} {currentYear}
                 </span>
                 {currentMonth === new Date().getMonth() && currentYear === new Date().getFullYear() && (
@@ -817,7 +830,7 @@ export default function TabAkademik(props) {
                 <button
                   type="button"
                   onClick={handleJumpToToday}
-                  className="px-2.5 py-1 text-[11px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all cursor-pointer mr-1"
+                  className="px-2 py-1 text-[10px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all cursor-pointer mr-0.5"
                   title="Kembali ke Hari Ini"
                 >
                   Hari Ini
@@ -826,34 +839,34 @@ export default function TabAkademik(props) {
                 <button
                   type="button"
                   onClick={handlePrevMonth}
-                  className="p-1.5 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 transition-all cursor-pointer"
+                  className="p-1 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 transition-all cursor-pointer"
                   title="Bulan Sebelumnya"
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={14} />
                 </button>
 
                 <button
                   type="button"
                   onClick={handleNextMonth}
-                  className="p-1.5 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 transition-all cursor-pointer"
+                  className="p-1 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 transition-all cursor-pointer"
                   title="Bulan Berikutnya"
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight size={14} />
                 </button>
               </div>
             </div>
 
             {/* Quick helper tip */}
-            <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5">
-              <CalendarCheck size={13} className="text-slate-400 shrink-0" />
+            <p className="text-[10.5px] font-medium text-slate-400 flex items-center gap-1.5">
+              <CalendarCheck size={12} className="text-slate-400 shrink-0" />
               <span>Klik tanggal untuk memfilter agenda kegiatan.</span>
             </p>
 
             {/* Calendar Table Grid */}
-            <div className="overflow-hidden border border-slate-200/90 rounded-[var(--ui-radius-small)] bg-white shadow-xs">
+            <div className="overflow-hidden border border-slate-200/80 rounded-[var(--ui-radius-small)] bg-white shadow-2xs">
               
               {/* Day Name Headers */}
-              <div className="grid grid-cols-7 border-b border-slate-200/90 bg-slate-50/80 text-center font-black text-[10px] py-2 uppercase tracking-wider">
+              <div className="grid grid-cols-7 border-b border-slate-200/80 bg-slate-50/90 text-center font-black text-[9.5px] py-1.5 uppercase tracking-wider">
                 <div className="text-rose-500">Min</div>
                 <div className="text-slate-600">Sen</div>
                 <div className="text-slate-600">Sel</div>
@@ -864,10 +877,10 @@ export default function TabAkademik(props) {
               </div>
 
               {/* Day Number Cells */}
-              <div className="grid grid-cols-7 bg-slate-200/60 gap-[1px]">
+              <div className="grid grid-cols-7 bg-slate-200/50 gap-[1px]">
                 {calendarCells.map((dayNum, idx) => {
                   if (dayNum === null) {
-                    return <div key={`empty-${idx}`} className="bg-slate-50/40 p-1 min-h-[50px] sm:min-h-[56px]"></div>;
+                    return <div key={`empty-${idx}`} className="bg-slate-50/40 p-1 min-h-[46px] sm:min-h-[50px]"></div>;
                   }
 
                   const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
@@ -907,7 +920,7 @@ export default function TabAkademik(props) {
                         }
                       }}
                       className={`
-                        p-1 sm:p-1.5 min-h-[50px] sm:min-h-[56px] flex flex-col justify-between cursor-pointer transition-all select-none relative
+                        p-1 sm:p-1.5 min-h-[46px] sm:min-h-[50px] flex flex-col justify-between cursor-pointer transition-all select-none relative
                         ${cellBg}
                         ${isSelectedCell ? 'ring-2 ring-[var(--ui-primary)] ring-inset z-20 font-black' : 'hover:bg-slate-100/80'}
                       `}
@@ -919,25 +932,25 @@ export default function TabAkademik(props) {
                       {/* Day Header with Today Badge */}
                       <div className="flex items-center justify-between">
                         <span className={`
-                          text-xs font-extrabold inline-flex items-center justify-center
+                          text-[11px] font-extrabold inline-flex items-center justify-center
                           ${isTodayCell 
-                            ? 'w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white shadow-xs font-black text-[11px]' 
+                            ? 'w-4.5 h-4.5 rounded-full bg-[var(--ui-primary)] text-white shadow-xs font-black text-[10px]' 
                             : isSunday ? 'text-rose-600' : 'text-slate-800'}
                         `}>
                           {dayNum}
                         </span>
 
                         {dayEvents.length > 1 && (
-                          <span className="text-[8.5px] font-black text-slate-500 bg-white/80 px-1 rounded-full border border-slate-200/60">
-                            +${dayEvents.length}
+                          <span className="text-[8px] font-black text-slate-500 bg-white/80 px-1 rounded-full border border-slate-200/60">
+                            +{dayEvents.length}
                           </span>
                         )}
                       </div>
 
                       {/* Event Snippet Preview in Cell */}
                       {dayEvents.length > 0 && (
-                        <div className="mt-1 flex flex-col gap-0.5">
-                          <div className={`text-[7.5px] font-black uppercase tracking-tight truncate px-1 py-0.5 rounded-[var(--ui-radius-small)] ${eventBadgeColor} shadow-xs`}>
+                        <div className="mt-0.5 flex flex-col gap-0.5">
+                          <div className={`text-[7px] font-black uppercase tracking-tight truncate px-1 py-0.5 rounded-[var(--ui-radius-small)] ${eventBadgeColor} shadow-2xs`}>
                             {dayEvents[0].title}
                           </div>
                         </div>
@@ -949,24 +962,24 @@ export default function TabAkademik(props) {
             </div>
 
             {/* ── 5. Interactive Category Legend (Clickable!) ── */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Tag size={12} />
+                <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <Tag size={11} />
                   Legenda Kategori
                 </span>
                 {selectedCategory !== "all" && (
                   <button
                     type="button"
                     onClick={() => setSelectedCategory("all")}
-                    className="text-[10px] font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                    className="text-[9.5px] font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
                     Tampilkan Semua
                   </button>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {calendarCategories.map(cat => {
                   const colors = getCategoryColor(cat.color);
                   const isSelected = selectedCategory === cat.id;
@@ -977,7 +990,7 @@ export default function TabAkademik(props) {
                       type="button"
                       onClick={() => setSelectedCategory(prev => prev === cat.id ? "all" : cat.id)}
                       className={`
-                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold border transition-all cursor-pointer
+                        inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold border transition-all cursor-pointer
                         ${isSelected 
                           ? `${colors.bg} shadow-xs ring-2 ring-offset-1 ring-slate-400` 
                           : `${colors.lightBg} hover:opacity-80`}
