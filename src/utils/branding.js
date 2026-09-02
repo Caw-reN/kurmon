@@ -1,6 +1,6 @@
 
 
-const DEFAULT_TITLE = "TimeSchedule | Jadwal, Denah & Modul Ajar Sekolah";
+const DEFAULT_TITLE = "KG2 School — Sistem Informasi Akademik";
 const DEFAULT_FAVICON = "/favicon.svg";
 
 const ensureMetaTag = (name) => {
@@ -40,8 +40,8 @@ export const applyDocumentBranding = (settings = {}) => {
     settings = window.__THEME_PREVIEW_SETTINGS__;
   }
 
-  const appName = settings.appName || "TimeSchedule";
-  document.title = settings.siteTitle || `${appName} | Jadwal, Denah & Modul Ajar Sekolah`;
+  const appName = settings.appName || "KG2 School";
+  document.title = settings.siteTitle || `${appName} — Sistem Informasi Akademik`;
 
   const favicon = ensureFaviconTag();
   const faviconHref = settings.faviconImage || DEFAULT_FAVICON;
@@ -57,37 +57,40 @@ export const applyDocumentBranding = (settings = {}) => {
 
   // INJECT DYNAMIC PWA MANIFEST
   if (faviconHref !== DEFAULT_FAVICON) {
-    const manifestTag = document.querySelector('link[rel="manifest"]');
-    if (manifestTag) {
-      const manifestData = {
-        name: settings.siteTitle || appName,
-        short_name: appName,
-        description: settings.siteDescription || settings.heroSubtitle || "TimeSchedule",
-        theme_color: settings.primaryColor || "#064e3b",
-        background_color: settings.bgColor || "#052e16",
-        display: "standalone",
-        orientation: "portrait-primary",
-        start_url: "/",
-        scope: "/",
-        icons: [
-          {
-            src: faviconHref,
-            sizes: "192x192",
-            type: faviconMime,
-            purpose: "any"
-          },
-          {
-            src: faviconHref,
-            sizes: "512x512",
-            type: faviconMime,
-            purpose: "any maskable"
-          }
-        ]
-      };
-      
-      const blob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
-      manifestTag.setAttribute("href", URL.createObjectURL(blob));
+    let manifestTag = document.querySelector('link[rel="manifest"]');
+    if (!manifestTag) {
+      manifestTag = document.createElement("link");
+      manifestTag.setAttribute("rel", "manifest");
+      document.head.appendChild(manifestTag);
     }
+    const manifestData = {
+      name: settings.siteTitle || appName,
+      short_name: appName,
+      description: settings.siteDescription || settings.heroSubtitle || "KG2 School — Sistem Informasi Akademik",
+      theme_color: settings.primaryColor || "#064e3b",
+      background_color: settings.bgColor || "#052e16",
+      display: "standalone",
+      orientation: "portrait-primary",
+      start_url: "/",
+      scope: "/",
+      icons: [
+        {
+          src: faviconHref,
+          sizes: "192x192",
+          type: faviconMime,
+          purpose: "any"
+        },
+        {
+          src: faviconHref,
+          sizes: "512x512",
+          type: faviconMime,
+          purpose: "any maskable"
+        }
+      ]
+    };
+    
+    const blob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+    manifestTag.setAttribute("href", URL.createObjectURL(blob));
   }
 
   // INJECT CSS VARIABLES GLOBALLY

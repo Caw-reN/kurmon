@@ -18,7 +18,8 @@ export const useDataStore = create((set) => ({
   })(),
   setCurrentUser: (user) => set({ currentUser: user }),
   appSettings: loadInitialState("appSettings", {
-    appName: "TimeSchedule",
+    appName: "KG2 School",
+    siteTitle: "KG2 School — Sistem Informasi Akademik",
     schoolName: "SMK Negeri 1",
     theme: "blue",
     faviconImage: "/favicon.svg",
