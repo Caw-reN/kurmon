@@ -311,7 +311,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-4 sm:p-5 flex flex-col justify-between h-full">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
       {/* â”€â”€ Header â”€â”€ */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -334,7 +334,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login
                 </p>
                 {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded border border-slate-200 shadow-2xs whitespace-nowrap">
+                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded border border-slate-200 shadow-xs whitespace-nowrap">
                     <span className="text-indigo-600">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
                   </span>
                 )}
@@ -357,7 +357,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
                 className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
                   filterType === f.id
-                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
+                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
                 }`}
               >
@@ -412,7 +412,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   className="py-1.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-2 group"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-xs`}>
                       {userInitial}
                     </div>
                     <div className="min-w-0">
@@ -424,7 +424,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                           {roleMeta.label}
                         </span>
                         {isWaliKelas && (
-                          <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border bg-amber-100/80 text-amber-700 border-amber-200/60 shadow-2xs`}>
+                          <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border bg-amber-100/80 text-amber-700 border-amber-200/60 shadow-xs`}>
                             {waliKelasLabel}
                           </span>
                         )}
@@ -436,7 +436,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   </div>
 
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-xs ${meta.bg}`}>
                       <Icon size={11} className={meta.color} />
                       {meta.label}
                     </span>
