@@ -314,36 +314,34 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
       {/* â”€â”€ Header â”€â”€ */}
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border,theme(colors.slate.200))] shadow-xs flex items-center justify-center shrink-0">
               <Activity size={16} className="text-[var(--ui-primary)]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">
-                  Log Aktivitas & Login Pengguna
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">
+                  Log Aktivitas & Login
                 </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                   LIVE
                 </span>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-[10px] text-slate-400 font-medium">
-                  Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login
-                </p>
                 {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded border border-slate-200 shadow-xs whitespace-nowrap">
+                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs whitespace-nowrap shrink-0">
                     <span className="text-indigo-600">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
                   </span>
                 )}
               </div>
+              <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+                Pantau aktivitas navigasi, file, jurnal, dan sesi login
+              </p>
             </div>
           </div>
 
           {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar sm:justify-end max-w-full pb-1 sm:pb-0 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar lg:justify-end pb-1 lg:pb-0 shrink-0">
             {[
               { id: 'all', label: 'Semua' },
               { id: 'login', label: 'Login' },
