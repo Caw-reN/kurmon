@@ -4,7 +4,7 @@ import { Home, CalendarDays, Map, BookOpen, Calendar, Building2 } from'lucide-re
 import { subscribeDatabaseSnapshot } from'../../utils/dataSource.js';
 import { loadInitialState } from'../../utils/state.js';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ChevronLeft, MessageSquare, HelpCircle, X, Info, Mail } from 'lucide-react';
+import { ChevronLeft, MessageSquare, HelpCircle, X, Info, Mail, LogIn } from 'lucide-react';
 import HeaderNavbar from'./HeaderNavbar.jsx';
 
 
@@ -183,7 +183,19 @@ export default function PublicLayout() {
                 </h1>
               </div>
               
-              <div className="w-10 h-10 shrink-0" />
+              {/* Tombol Masuk di Pojok Kanan Atas */}
+              <button 
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                style={{ 
+                  backgroundColor: appSettings.primaryColor || '#3DAA37',
+                }}
+                className="h-9 px-3 rounded-xl text-white font-extrabold text-xs tracking-wide shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border-none shrink-0"
+                title="Masuk ke Aplikasi"
+              >
+                <LogIn size={14} strokeWidth={2.5} />
+                <span>Masuk</span>
+              </button>
             </header>
           </>
         );
