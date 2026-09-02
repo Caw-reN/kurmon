@@ -734,39 +734,44 @@ export default function TabAkademik(props) {
                 return (
                   <div
                     key={evt.id}
-                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-xs hover:shadow-sm transition-all flex flex-col gap-2`}
+                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] px-3 py-2 shadow-xs hover:shadow-sm transition-all flex flex-col gap-1`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-[13px] font-black text-slate-400 shrink-0 min-w-[20px] pt-0.5">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[20px] pt-[2px]">
                         {index + 1}.
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <h3 className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
+                          <h3 className="text-[12.5px] font-bold text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
                             {evt.title}
                           </h3>
                           {status.isToday && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
+                          <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 w-fit">
+                            <Calendar size={10} className="text-slate-400 shrink-0" />
+                            <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60 w-fit shadow-xs">
-                          <Calendar size={11} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
-                        </div>
+                        {evt.description && (
+                          <p className="text-[10px] font-medium text-slate-500 line-clamp-1 leading-relaxed truncate">
+                            {evt.description}
+                          </p>
+                        )}
                       </div>
                       
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wide ${colors.lightBg}`}>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[8.5px] font-bold uppercase tracking-wide ${colors.lightBg}`}>
                           <span className={`w-1 h-1 rounded-full ${colors.dot}`}></span>
                           {cat?.name || "Umum"}
                         </span>
                         {canEdit && (
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               type="button"
                               onClick={() => openModal("event_kalender", "edit", evt)}
                               className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-all cursor-pointer"
                               title="Edit Agenda"
                             >
-                              <Edit2 size={13} />
+                              <Edit2 size={12} />
                             </button>
                             <button
                               type="button"
@@ -774,18 +779,12 @@ export default function TabAkademik(props) {
                               className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
                               title="Hapus Agenda"
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={12} />
                             </button>
                           </div>
                         )}
                       </div>
                     </div>
-                    
-                    {evt.description && (
-                      <p className="text-[11px] font-medium text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
-                        {evt.description}
-                      </p>
-                    )}
                   </div>
                 );
               })}
