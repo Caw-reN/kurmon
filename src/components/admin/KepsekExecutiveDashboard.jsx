@@ -5,7 +5,7 @@ import {
   Award, Briefcase, Building2, ChevronRight, Sparkles, Search,
   AlertTriangle, Clock, Megaphone, BarChart3, GraduationCap,
   ClipboardCheck, Zap, XCircle, Timer, RefreshCw, Bell,
-  TrendingDown, Eye, Shield, Map, Phone, Star, Filter, X, Printer
+  TrendingDown, Eye, Shield, Phone, Star, Filter, X, Printer
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { useDataStore } from '../../store/useDataStore.js';
@@ -893,11 +893,11 @@ export default function KepsekExecutiveDashboard({
         ))}
       </div>
 
-      {/* ═══════════════ BARIS 1: GRAFIK TREN (LEBAR 8-KOLOM) + PERSENTASE & PRESENSI LIVE TERPADU (4-KOLOM) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+      {/* ═══════════════ BARIS 1: 3 BOX SEIMBANG & FULL HEIGHT ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
         
-        {/* Box Kiri (8 Kolom - Lebar & Penuh): Grafik Tren & Jam Kehadiran */}
-        <div className="lg:col-span-8 flex flex-col h-full">
+        {/* Box 1 (5 Kolom): Grafik Tren Live & Jam Kehadiran */}
+        <div className="lg:col-span-5 flex flex-col h-full">
           <AttendanceTrendChartCard 
             dashLogs={dashLogs} 
             siswaStats={siswaStats} 
@@ -905,7 +905,7 @@ export default function KepsekExecutiveDashboard({
           />
         </div>
 
-        {/* Box Kanan (4 Kolom - Padat & Terpadu): Persentase Donut + Presensi Live */}
+        {/* Box 2 (4 Kolom): Persentase Donut + Presensi Live */}
         <div className="lg:col-span-4 flex flex-col h-full">
           <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
             
@@ -1003,6 +1003,98 @@ export default function KepsekExecutiveDashboard({
               <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
               Gateway Hikvision Terhubung
               <span className="ml-auto text-[7.5px] font-black uppercase bg-emerald-200 px-1 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Box 3 (3 Kolom): Jam Ajar Guru & KBM Hari Ini (Live Jam 1 - 7) */}
+        <div className="lg:col-span-3 flex flex-col h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+            
+            {/* Header */}
+            <div>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+                    <BookOpen size={14} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-800 leading-tight">Jam Ajar & KBM Live</h4>
+                    <p className="text-[9px] text-slate-400 font-medium">Monitoring KBM (Maks. Jam 1-7)</p>
+                  </div>
+                </div>
+                <span className="text-[9px] font-black text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80 shrink-0 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {currentActiveJam > 0 && currentActiveJam <= 7 ? `Jam Ke-${currentActiveJam}` : 'KBM Aktif'}
+                </span>
+              </div>
+
+              {/* 3 KPI Compact Badges */}
+              <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+                <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-200/70 text-center">
+                  <span className="text-[8.5px] text-slate-400 font-bold block uppercase">Guru Aktif</span>
+                  <span className="text-xs font-black text-slate-800 leading-tight block">{totalGuruMengajarHariIni}</span>
+                </div>
+                <div className="p-1.5 bg-emerald-50/70 rounded-lg border border-emerald-200/60 text-center">
+                  <span className="text-[8.5px] text-emerald-600 font-bold block uppercase">Jurnal KBM</span>
+                  <span className="text-xs font-black text-emerald-700 leading-tight block">{jurnalPct}%</span>
+                </div>
+                <div className="p-1.5 bg-indigo-50/70 rounded-lg border border-indigo-200/60 text-center">
+                  <span className="text-[8.5px] text-indigo-600 font-bold block uppercase">Ruang/Lab</span>
+                  <span className="text-xs font-black text-indigo-700 leading-tight block">{sarprasStats.utilisasi}%</span>
+                </div>
+              </div>
+
+              {/* Timeline Mini Jam 1-7 Bar */}
+              <div className="space-y-1 mb-2">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Timeline Jam Belajar (1-7):</span>
+                <div className="grid grid-cols-7 gap-1">
+                  {JAM_SLOTS.map(s => {
+                    const isNow = currentActiveJam === s.num;
+                    return (
+                      <div 
+                        key={s.num} 
+                        className={`text-center py-1 rounded text-[9px] font-black border transition-all ${
+                          isNow 
+                            ? 'bg-amber-500 text-white border-amber-600 shadow-xs' 
+                            : 'bg-slate-50 text-slate-600 border-slate-200/70'
+                        }`}
+                        title={`${s.label}: ${s.time}`}
+                      >
+                        J-{s.num}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Action Shortcuts */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(true)}
+                className="w-full py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-98"
+              >
+                <div className="flex items-center gap-1.5">
+                  <BookOpen size={12} className="text-amber-600" />
+                  <span>Lihat Jam Ajar Guru (1-7)</span>
+                </div>
+                <ChevronRight size={12} className="text-amber-500" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowSyllabusModal(true)}
+                className="w-full py-1.5 px-2.5 rounded-lg bg-teal-50 hover:bg-teal-100/80 border border-teal-200/80 text-teal-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-98"
+              >
+                <div className="flex items-center gap-1.5">
+                  <GraduationCap size={12} className="text-teal-600" />
+                  <span>Monitoring Perangkat Ajar</span>
+                </div>
+                <ChevronRight size={12} className="text-teal-500" />
+              </button>
             </div>
 
           </div>
