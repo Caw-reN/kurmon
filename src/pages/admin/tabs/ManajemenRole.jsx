@@ -1,22 +1,22 @@
 import { useState, useMemo } from 'react';
 import { 
   Shield, Users, UserCog, Search, ChevronDown, ChevronRight, Edit2, 
-  Save, X, Building2, AlertCircle, Briefcase, Sparkles, UserPlus, 
-  CheckCircle2, RotateCcw, Info, UserCheck, BookOpen, GraduationCap, 
-  HeartHandshake, Landmark, ArrowRight, ShieldCheck, Trash2
+  Building2, AlertCircle, Sparkles, UserPlus, 
+  RotateCcw, Info, BookOpen, GraduationCap, 
+  HeartHandshake, Landmark, ShieldCheck
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
-import { getRoleKeyLabel } from '../../../utils/constants.js';
 
 // ─── DEFINISI ORGANOGRAM STRUKTUR SEKOLAH ──────────────────────────────────────
 const ORGANOGRAM = [
   {
     key: 'kepsek',
     title: 'Kepala Sekolah',
-    color: 'from-sky-600 to-indigo-600',
-    headerBg: 'bg-[var(--ui-primary)] text-white',
-    badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    icon: Landmark,
+    gradient: 'from-slate-900 via-indigo-950 to-slate-900',
+    badgeTone: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    avatarTone: 'bg-indigo-600 text-white',
     description: 'Pimpinan sekolah & monitoring seluruh data dan kebijakan akademik.',
     defaultAssignValue: 'kepsek',
     children: []
@@ -24,9 +24,10 @@ const ORGANOGRAM = [
   {
     key: 'tu',
     title: 'Tata Usaha (TU) & Keuangan',
-    color: 'from-cyan-600 to-teal-600',
-    headerBg: 'bg-cyan-600 text-white',
-    badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    icon: Building2,
+    gradient: 'from-teal-900 via-emerald-950 to-slate-900',
+    badgeTone: 'bg-teal-50 text-teal-700 border-teal-200',
+    avatarTone: 'bg-teal-700 text-white',
     description: 'Administrasi kepegawaian, surat-menyurat, cetak kartu, dan keuangan.',
     defaultAssignValue: 'tu',
     children: [
@@ -38,9 +39,10 @@ const ORGANOGRAM = [
   {
     key: 'waka_kurikulum',
     title: 'Waka Kurikulum',
-    color: 'from-amber-500 to-orange-500',
-    headerBg: 'bg-amber-600 text-white',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    icon: BookOpen,
+    gradient: 'from-blue-900 via-sky-950 to-slate-900',
+    badgeTone: 'bg-sky-50 text-sky-700 border-sky-200',
+    avatarTone: 'bg-sky-700 text-white',
     description: 'Jadwal Mengajar (KBM), Mata Pelajaran, Beban Jam (JP), & Silabus.',
     defaultAssignValue: 'waka_kurikulum',
     children: [
@@ -51,9 +53,10 @@ const ORGANOGRAM = [
   {
     key: 'waka_kesiswaan',
     title: 'Waka Kesiswaan & Kedisiplinan',
-    color: 'from-orange-500 to-rose-500',
-    headerBg: 'bg-orange-600 text-white',
-    badgeColor: 'bg-orange-50 text-orange-700 border-orange-200',
+    icon: ShieldCheck,
+    gradient: 'from-rose-900 via-red-950 to-slate-900',
+    badgeTone: 'bg-rose-50 text-rose-700 border-rose-200',
+    avatarTone: 'bg-rose-700 text-white',
     description: 'Presensi siswa, tatib & skor pelanggaran, BP/BK, dan Pembina OSIS.',
     defaultAssignValue: 'waka_kesiswaan',
     children: [
@@ -67,9 +70,10 @@ const ORGANOGRAM = [
   {
     key: 'waka_hubin',
     title: 'Waka Hubungan Industri (Hubin / PKL)',
-    color: 'from-rose-500 to-pink-500',
-    headerBg: 'bg-rose-600 text-white',
-    badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
+    icon: HeartHandshake,
+    gradient: 'from-amber-900 via-orange-950 to-slate-900',
+    badgeTone: 'bg-amber-50 text-amber-700 border-amber-200',
+    avatarTone: 'bg-amber-700 text-white',
     description: 'Praktek Kerja Lapangan (PKL/Prakerin), Mitra Industri DUDI, & Jurnal PKL.',
     defaultAssignValue: 'waka_hubin',
     children: [
@@ -80,9 +84,10 @@ const ORGANOGRAM = [
   {
     key: 'waka_sarpras',
     title: 'Waka Sarana & Prasarana',
-    color: 'from-purple-500 to-violet-500',
-    headerBg: 'bg-purple-600 text-white',
-    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+    icon: GraduationCap,
+    gradient: 'from-purple-900 via-violet-950 to-slate-900',
+    badgeTone: 'bg-purple-50 text-purple-700 border-purple-200',
+    avatarTone: 'bg-purple-700 text-white',
     description: 'Pengelolaan inventaris ruang teori, laboratorium praktik, dan denah sekolah.',
     defaultAssignValue: 'waka_sarpras',
     children: [
@@ -193,6 +198,7 @@ function getStaffForRoleKey(teachers, staffs, roleKey, classes = []) {
 // ─── CARD BAGAN ORGANOGRAM ───────────────────────────────────────────────────
 function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPerson, onResetPerson }) {
   const [expanded, setExpanded] = useState(true);
+  const IconComponent = node.icon || Building2;
   const headStaff = getStaffForRoleKey(teachers, staffs, node.key, classes);
   
   const subRolesStaff = node.children.map(child => ({
@@ -204,21 +210,25 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
   const totalAll = headStaff.length + totalSubStaff;
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col hover:shadow-sm transition-all w-full">
-      {/* Header Banner */}
-      <div className={`bg-gradient-to-r ${node.color} p-4 text-white flex items-start justify-between gap-3`}>
-        <div>
-          <div className="flex items-center gap-2">
-            <Building2 size={16} className="opacity-90 shrink-0" />
-            <h4 className="font-extrabold text-sm tracking-wide leading-tight">{node.title}</h4>
+    <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col hover:shadow-md transition-all w-full">
+      {/* Header Banner - Elegant Gradient Top Bar */}
+      <div className={`bg-gradient-to-r ${node.gradient} p-4 text-white flex items-start justify-between gap-3 relative`}>
+        <div className="min-w-0 flex-1 pr-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/15 backdrop-blur-xs flex items-center justify-center font-bold text-white shrink-0 shadow-2xs border border-white/20">
+              <IconComponent size={16} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="font-extrabold text-sm tracking-wide leading-tight truncate text-white">{node.title}</h4>
+              <p className="text-[11px] text-white/80 font-medium mt-0.5 leading-snug line-clamp-2">{node.description}</p>
+            </div>
           </div>
-          <p className="text-[11px] text-white/90 font-medium mt-1 leading-snug">{node.description}</p>
         </div>
 
         <button
           type="button"
           onClick={() => onQuickAssign(node.defaultAssignValue)}
-          className="shrink-0 bg-white/20 hover:bg-white/30 text-white text-[11px] font-black px-2.5 py-1.5 rounded-[var(--ui-radius-small)] border border-white/30 backdrop-blur-xs transition-all flex items-center gap-1 cursor-pointer"
+          className="shrink-0 bg-white/20 hover:bg-white/30 text-white text-[11px] font-black px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-white/30 backdrop-blur-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
           title={`Tugaskan Staf di ${node.title}`}
         >
           <UserPlus size={12} />
@@ -228,53 +238,59 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
 
       {/* Main Role Personnel List */}
       <div className="p-4 space-y-3 bg-white flex-1">
-        <div className="flex items-center justify-between">
-          <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-400">Pejabat Utama ({headStaff.length})</span>
+        <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+          <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[var(--ui-primary)] inline-block"></span>
+            Pejabat Utama ({headStaff.length})
+          </span>
           {node.children.length > 0 && (
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="text-[10.5px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer bg-indigo-50 px-2 py-0.5 rounded-[var(--ui-radius-small)]"
+              className="text-[11px] font-bold text-[var(--ui-primary)] hover:opacity-80 flex items-center gap-1 cursor-pointer bg-slate-100 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] transition-all"
             >
-              {expanded ? 'Sembunyikan Tim' : `Lihat Tim (${totalSubStaff})`}
+              {expanded ? 'Tutup Tim' : `Buka Tim (${totalSubStaff})`}
               {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             </button>
           )}
         </div>
 
         {headStaff.length === 0 ? (
-          <div className="p-3 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200 text-center bg-slate-50/50">
+          <div className="p-3.5 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200 text-center bg-slate-50/50">
             <p className="text-xs text-slate-400 font-semibold italic">Belum ada pejabat yang ditugaskan</p>
             <button
               type="button"
               onClick={() => onQuickAssign(node.defaultAssignValue)}
-              className="mt-1 text-[11px] text-indigo-600 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+              className="mt-1 text-[11px] text-[var(--ui-primary)] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              <UserPlus size={11} /> Klik untuk Menugaskan
+              <UserPlus size={12} /> Klik untuk Menugaskan
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar pr-1">
             {headStaff.map(person => (
               <div
                 key={getPersonId(person)}
-                className="flex items-center justify-between p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/80 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all group"
+                className="flex items-center justify-between p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/70 hover:bg-slate-100/80 hover:border-slate-300/80 transition-all group"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                  <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] ${node.avatarTone} font-black text-xs flex items-center justify-center shrink-0 shadow-2xs`}>
                     {(person.name || person.nama || '?')[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-black text-slate-800 truncate">{person.name || person.nama}</p>
-                    <p className="text-[10px] text-slate-400 font-mono font-semibold">Kode: {getPersonId(person)}</p>
+                    <p className="text-[10px] text-slate-500 font-mono font-semibold flex items-center gap-1">
+                      <span>Kode:</span>
+                      <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200/80 text-slate-700 font-bold">{getPersonId(person)}</span>
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => onEditPerson(person)}
-                    className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-white rounded transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-500 hover:text-[var(--ui-primary)] hover:bg-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-2xs"
                     title="Ubah Jabatan"
                   >
                     <Edit2 size={13} />
@@ -282,7 +298,7 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
                   <button
                     type="button"
                     onClick={() => onResetPerson(person)}
-                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border border-transparent hover:border-rose-200"
                     title="Lepas dari Jabatan Ini"
                   >
                     <RotateCcw size={13} />
@@ -295,21 +311,21 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
 
         {/* Sub-Roles / Team Members (Expandable) */}
         {expanded && node.children.length > 0 && (
-          <div className="pt-3 border-t border-slate-100 space-y-3 mt-3">
+          <div className="pt-2 border-t border-slate-100 space-y-2.5 mt-2">
             <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-400 block">Tim & Anggota Divisi</span>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               {subRolesStaff.map(sub => (
-                <div key={sub.key} className="space-y-1.5 bg-slate-50/50 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100">
+                <div key={sub.key} className="bg-slate-50/70 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/70 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)]"></span>
                       {sub.title}
                     </span>
                     <button
                       type="button"
                       onClick={() => onQuickAssign(sub.assignValue)}
-                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                      className="text-[10.5px] font-bold text-[var(--ui-primary)] hover:opacity-80 cursor-pointer bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/80 shadow-2xs hover:bg-slate-50 transition-all"
                     >
                       + Tambah
                     </button>
@@ -318,15 +334,15 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
                   {sub.staffList.length === 0 ? (
                     <p className="text-[10.5px] text-slate-400 italic pl-3">Belum ada anggota</p>
                   ) : (
-                    <div className="space-y-1 pl-3">
+                    <div className="space-y-1 pl-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
                       {sub.staffList.map(person => (
-                        <div key={getPersonId(person)} className="flex items-center justify-between text-xs py-1 border-b border-slate-100/80 last:border-none">
-                          <span className="font-bold text-slate-800 truncate pr-2">{person.name || person.nama}</span>
+                        <div key={getPersonId(person)} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-none">
+                          <span className="font-bold text-slate-800 truncate pr-2 text-[11.5px]">{person.name || person.nama}</span>
                           <div className="flex items-center gap-1 shrink-0">
                             <button
                               type="button"
                               onClick={() => onEditPerson(person)}
-                              className="text-slate-400 hover:text-indigo-600 p-0.5 cursor-pointer"
+                              className="text-slate-400 hover:text-[var(--ui-primary)] p-1 rounded hover:bg-white transition-colors cursor-pointer"
                               title="Ubah Jabatan"
                             >
                               <Edit2 size={12} />
@@ -334,7 +350,7 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
                             <button
                               type="button"
                               onClick={() => onResetPerson(person)}
-                              className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer"
+                              className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors cursor-pointer"
                               title="Lepas Jabatan"
                             >
                               <RotateCcw size={12} />
@@ -352,9 +368,11 @@ function OrgCard({ node, teachers, staffs, classes = [], onQuickAssign, onEditPe
       </div>
 
       {/* Footer Summary */}
-      <div className="bg-slate-50/80 px-4 py-2 border-t border-slate-100 flex items-center justify-between text-[10.5px] font-bold text-slate-500">
+      <div className="bg-slate-50/90 px-4 py-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
         <span>Total Personel Divisi</span>
-        <span className="px-2 py-0.5 bg-white border border-slate-200 rounded-full font-black text-slate-700">{totalAll} Orang</span>
+        <span className="px-2.5 py-0.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-pill)] font-black text-slate-800 shadow-2xs text-[10.5px]">
+          {totalAll} Orang
+        </span>
       </div>
     </div>
   );
@@ -387,15 +405,13 @@ export default function ManajemenRole(props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('guru');
-
-  // Confirmation modal for resetting position
   const [resetConfirmPerson, setResetConfirmPerson] = useState(null);
 
-  // Build position options with clean optgroups
+  // Structured Position Hierarchy
   const positionGroups = useMemo(() => {
     const groups = [
       {
-        groupLabel: 'Pimpinan & Tata Usaha',
+        groupLabel: 'Pimpinan & Manajemen Utama',
         options: [
           { value: 'kepsek', label: 'Kepala Sekolah', role: 'kepsek', division: '', subrole: '', desc: 'Akses monitoring penuh semua modul' },
           { value: 'tu', label: 'Kepala Tata Usaha (Admin TU)', role: 'tu', division: 'tu', subrole: '', desc: 'Administrasi data, surat, dan karyawan' },
@@ -419,6 +435,7 @@ export default function ManajemenRole(props) {
           { value: 'pembina_osis', label: 'Pembina OSIS', role: 'guru', division: 'kesiswaan', subrole: 'pembina_osis', desc: 'Kegiatan kesiswaan & ekstrakurikuler' },
           { value: 'sekretaris_osis', label: 'Sekretaris OSIS', role: 'guru', division: 'kesiswaan', subrole: 'sekretaris_osis', desc: 'Administrasi OSIS' },
           { value: 'sekretaris_kesiswaan', label: 'Sekretaris Kesiswaan', role: 'guru', division: 'kesiswaan', subrole: 'sekretaris_kesiswaan', desc: 'Rekap tatib & pelanggaran' },
+          { value: 'anggota_kesiswaan', label: 'Anggota Kesiswaan', role: 'guru', division: 'kesiswaan', subrole: 'anggota_kesiswaan', desc: 'Pendukung aktivitas kesiswaan' },
         ]
       },
       {
@@ -617,7 +634,7 @@ export default function ManajemenRole(props) {
 
       showNotification(`Jabatan ${resetConfirmPerson.name || resetConfirmPerson.nama} telah dilepas (dikembalikan ke Guru/Staf biasa).`, 'success');
       setResetConfirmPerson(null);
-    } catch (err) {
+    } catch {
       showNotification('Gagal melepas jabatan.', 'error');
     } finally {
       setIsSaving(false);
@@ -654,7 +671,7 @@ export default function ManajemenRole(props) {
           <Button
             type="button"
             onClick={() => handleQuickAssignFromOrg('waka_kurikulum')}
-            className="text-xs font-bold gap-1.5 shadow-xs"
+            className="text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
           >
             <UserPlus size={14} /> + Tugaskan Jabatan Baru
           </Button>
@@ -662,14 +679,14 @@ export default function ManajemenRole(props) {
       />
 
       {/* Guide Banner */}
-      <div className="p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-sky-50 via-indigo-50/40 to-slate-50 border border-indigo-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)] text-white flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
             <Info size={18} />
           </div>
           <div>
-            <h4 className="text-xs font-black text-indigo-900 uppercase tracking-wider">Panduan Cepat Struktur Jabatan</h4>
-            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+            <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Panduan Cepat Struktur Jabatan</h4>
+            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed font-medium">
               Tunjuk guru atau karyawan ke dalam struktur sekolah (Kepsek, Waka, Bendahara, Pembina OSIS). 
               <strong> Hak akses menu aplikasi akan otomatis terbuka</strong> sesuai dengan jabatan yang Anda berikan.
             </p>
@@ -677,8 +694,8 @@ export default function ManajemenRole(props) {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <div className="text-[11px] font-bold text-slate-500 bg-white/80 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-slate-200">
-            Total Personel: <b className="text-slate-800">{allPeople.length} Orang</b>
+          <div className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1.5 rounded-[var(--ui-radius-pill)] border border-slate-200/80 shadow-2xs">
+            Total Personel: <b className="text-slate-900">{allPeople.length} Orang</b>
           </div>
         </div>
       </div>
@@ -714,7 +731,7 @@ export default function ManajemenRole(props) {
                 placeholder="Cari nama atau kode guru/staf..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all text-slate-800"
               />
             </div>
 
@@ -742,7 +759,7 @@ export default function ManajemenRole(props) {
               <Button
                 type="button"
                 onClick={() => handleQuickAssignFromOrg('guru')}
-                className="text-xs font-bold gap-1.5 shrink-0"
+                className="text-xs font-bold gap-1.5 shrink-0 cursor-pointer"
               >
                 <UserPlus size={13} /> + Tugaskan
               </Button>
@@ -782,12 +799,12 @@ export default function ManajemenRole(props) {
                       <tr key={`${person._source}_${getPersonId(person)}`} className="hover:bg-slate-50/70 transition-colors">
                         <td className="px-3 py-2.5 text-center text-slate-400 font-bold">{idx + 1}</td>
                         <td className="px-3 py-2.5 text-center font-mono font-black text-slate-700">
-                          <span className="px-2 py-0.5 bg-slate-100 rounded text-[11px]">{getPersonId(person)}</span>
+                          <span className="px-2 py-0.5 bg-slate-100 rounded text-[11px] border border-slate-200/60">{getPersonId(person)}</span>
                         </td>
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
-                              isStaff ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-800'
+                            <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center font-black text-xs shrink-0 ${
+                              isStaff ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-800'
                             }`}>
                               {(person.name || person.nama || '?')[0].toUpperCase()}
                             </div>
@@ -795,19 +812,19 @@ export default function ManajemenRole(props) {
                           </div>
                         </td>
                         <td className="px-3 py-2.5 text-center">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            isStaff ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                          <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-bold ${
+                            isStaff ? 'bg-teal-50 text-teal-700 border border-teal-200' : 'bg-slate-100 text-slate-700 border border-slate-200'
                           }`}>
                             {isStaff ? 'Karyawan' : 'Guru'}
                           </span>
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border ${
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[11px] font-black border ${
                             hasSpecialPosition 
-                              ? 'bg-indigo-50 text-indigo-800 border-indigo-200/80' 
+                              ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-[var(--ui-primary)]/30' 
                               : 'bg-slate-100 text-slate-600 border-slate-200/60'
                           }`}>
-                            {hasSpecialPosition && <Sparkles size={11} className="text-indigo-600 shrink-0" />}
+                            {hasSpecialPosition && <Sparkles size={11} className="text-[var(--ui-primary)] shrink-0" />}
                             <span>{currentOpt.label}</span>
                           </span>
                         </td>
@@ -817,7 +834,7 @@ export default function ManajemenRole(props) {
                               size="sm"
                               variant="outline"
                               onClick={() => handleOpenEditRole(person)}
-                              className="h-7 px-2 text-xs font-bold gap-1"
+                              className="h-7 px-2 text-xs font-bold gap-1 cursor-pointer"
                               title="Ubah Jabatan"
                             >
                               <Edit2 size={12} /> Ubah
@@ -827,7 +844,7 @@ export default function ManajemenRole(props) {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setResetConfirmPerson(person)}
-                                className="h-7 px-2 text-xs font-bold text-rose-600 hover:bg-rose-50"
+                                className="h-7 px-2 text-xs font-bold text-rose-600 hover:bg-rose-50 cursor-pointer"
                                 title="Lepas Jabatan (Kembali ke Biasa)"
                               >
                                 <RotateCcw size={12} /> Lepas
@@ -874,7 +891,7 @@ export default function ManajemenRole(props) {
                   <button
                     type="button"
                     onClick={() => setEditingPerson(null)}
-                    className="text-[11px] font-bold text-indigo-600 hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[var(--ui-primary)] hover:underline cursor-pointer"
                   >
                     Ganti Orang
                   </button>
@@ -927,12 +944,12 @@ export default function ManajemenRole(props) {
             </div>
 
             {/* Position Preview Card */}
-            <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-indigo-900 space-y-1">
-              <p className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles size={13} className="text-indigo-600" />
+            <div className="p-3.5 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 text-slate-800 space-y-1">
+              <p className="text-[11px] font-bold text-[var(--ui-primary)] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles size={13} className="text-[var(--ui-primary)]" />
                 <span>Jabatan Terpilih: <b>{selectedOptPreview.label}</b></span>
               </p>
-              <p className="text-xs text-indigo-800 leading-relaxed font-medium">
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
                 {selectedOptPreview.desc || "Personel akan mendapatkan akses menu sesuai dengan jabatan ini."}
               </p>
             </div>
@@ -944,7 +961,7 @@ export default function ManajemenRole(props) {
                 variant="ghost"
                 onClick={() => { setModalOpen(false); setEditingPerson(null); }}
                 disabled={isSaving}
-                className="text-xs"
+                className="text-xs cursor-pointer"
               >
                 Batal
               </Button>
@@ -952,7 +969,7 @@ export default function ManajemenRole(props) {
                 type="button"
                 onClick={handleSaveRole}
                 disabled={isSaving}
-                className="text-xs font-black gap-1.5"
+                className="text-xs font-black gap-1.5 cursor-pointer"
               >
                 {isSaving ? "Menyimpan..." : "Simpan Penugasan"}
               </Button>
@@ -970,7 +987,7 @@ export default function ManajemenRole(props) {
           title="Konfirmasi Lepas Jabatan"
         >
           <div className="p-5 space-y-4 max-w-sm w-full text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
               <RotateCcw size={22} />
             </div>
             
@@ -987,7 +1004,7 @@ export default function ManajemenRole(props) {
                 variant="ghost"
                 onClick={() => setResetConfirmPerson(null)}
                 disabled={isSaving}
-                className="text-xs"
+                className="text-xs cursor-pointer"
               >
                 Batal
               </Button>
@@ -996,7 +1013,7 @@ export default function ManajemenRole(props) {
                 variant="outline"
                 onClick={handleExecuteResetPosition}
                 disabled={isSaving}
-                className="text-xs font-bold text-rose-600 border-rose-300 hover:bg-rose-50"
+                className="text-xs font-bold text-rose-600 border-rose-300 hover:bg-rose-50 cursor-pointer"
               >
                 {isSaving ? "Memproses..." : "Ya, Lepas Jabatan"}
               </Button>
