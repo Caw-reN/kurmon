@@ -662,7 +662,92 @@ export default function LandingPage() {
         </div>
       )}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');`}</style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+        
+        @keyframes aerialCloudDrift1 {
+          0% {
+            transform: translate3d(-100%, -20%, 0) scale(0.92);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.72;
+          }
+          85% {
+            opacity: 0.72;
+          }
+          100% {
+            transform: translate3d(145%, 35%, 0) scale(1.08);
+            opacity: 0;
+          }
+        }
+
+        @keyframes aerialCloudDrift2 {
+          0% {
+            transform: translate3d(-130%, 15%, 0) scale(0.78);
+            opacity: 0;
+          }
+          20% {
+            opacity: 0.60;
+          }
+          80% {
+            opacity: 0.60;
+          }
+          100% {
+            transform: translate3d(135%, -15%, 0) scale(0.88);
+            opacity: 0;
+          }
+        }
+
+        @keyframes aerialCloudDrift3 {
+          0% {
+            transform: translate3d(-115%, -10%, 0) scale(1.18);
+            opacity: 0;
+          }
+          12% {
+            opacity: 0.50;
+          }
+          88% {
+            opacity: 0.50;
+          }
+          100% {
+            transform: translate3d(155%, 25%, 0) scale(1.28);
+            opacity: 0;
+          }
+        }
+
+        @keyframes aerialHazeSlow {
+          0%, 100% {
+            transform: translate3d(0, 0, 0) scale(1);
+            opacity: 0.15;
+          }
+          50% {
+            transform: translate3d(4%, 3%, 0) scale(1.05);
+            opacity: 0.30;
+          }
+        }
+
+        .animate-aerial-cloud-1 {
+          animation: aerialCloudDrift1 28s linear infinite;
+          will-change: transform, opacity;
+        }
+
+        .animate-aerial-cloud-2 {
+          animation: aerialCloudDrift2 38s linear infinite;
+          animation-delay: -15s;
+          will-change: transform, opacity;
+        }
+
+        .animate-aerial-cloud-3 {
+          animation: aerialCloudDrift3 48s linear infinite;
+          animation-delay: -28s;
+          will-change: transform, opacity;
+        }
+
+        .animate-aerial-haze {
+          animation: aerialHazeSlow 20s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+      `}</style>
 
       {/* DESKTOP FULL-WIDTH HEADER */}
       <div className="hidden md:block">
@@ -697,6 +782,53 @@ export default function LandingPage() {
               background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
             }}
           />
+
+          {/* ── LAPISAN ANIMASI AWAN BERGERAK (POV DARI ATAS / BIRD'S EYE VIEW) ── */}
+          <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none">
+            {/* Ambient High-Altitude Haze / Kabut Tipis Atmosferik */}
+            <div className="absolute inset-0 animate-aerial-haze">
+              <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/20 via-white/5 to-transparent blur-3xl" />
+            </div>
+
+            {/* Gugusan Awan 1: Awan Kumulus Utama + Bayangan Awan di Atas Gedung */}
+            <div className="absolute -top-4 -left-10 w-[360px] sm:w-[440px] h-[170px] animate-aerial-cloud-1">
+              {/* Bayangan Awan jatuh ke atap & lapangan (POV dari atas) */}
+              <div className="absolute top-14 left-10 w-[85%] h-[75%] bg-black/25 rounded-full blur-2xl transform scale-y-70" />
+              {/* Badan Awan Putih Fluffy */}
+              <div className="relative w-full h-full">
+                <div className="absolute inset-0 bg-white/55 rounded-full blur-xl" />
+                <div className="absolute top-2 left-6 w-3/5 h-4/5 bg-white/75 rounded-full blur-lg" />
+                <div className="absolute top-4 right-8 w-1/2 h-3/4 bg-white/70 rounded-full blur-lg" />
+                <div className="absolute -top-3 left-1/4 w-2/5 h-3/5 bg-white/85 rounded-full blur-md" />
+                <div className="absolute bottom-1 left-1/3 w-1/2 h-2/3 bg-white/55 rounded-full blur-xl" />
+              </div>
+            </div>
+
+            {/* Gugusan Awan 2: Awan Menengah Lebih Kecil Bergerak Santai */}
+            <div className="absolute top-1/4 -left-16 w-[300px] sm:w-[380px] h-[140px] animate-aerial-cloud-2">
+              {/* Bayangan Awan */}
+              <div className="absolute top-12 left-8 w-[80%] h-[70%] bg-black/20 rounded-full blur-xl transform scale-y-70" />
+              {/* Badan Awan */}
+              <div className="relative w-full h-full">
+                <div className="absolute inset-0 bg-white/50 rounded-full blur-lg" />
+                <div className="absolute top-2 left-8 w-1/2 h-4/5 bg-white/65 rounded-full blur-md" />
+                <div className="absolute top-3 right-5 w-2/5 h-3/5 bg-white/60 rounded-full blur-md" />
+                <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/75 rounded-full blur-md" />
+              </div>
+            </div>
+
+            {/* Gugusan Awan 3: Gumpalan Awan Lembut Melintas di Latar Depan */}
+            <div className="absolute -top-8 -left-20 w-[440px] sm:w-[560px] h-[210px] animate-aerial-cloud-3">
+              {/* Bayangan Halus */}
+              <div className="absolute top-16 left-12 w-[90%] h-[80%] bg-black/15 rounded-full blur-3xl transform scale-y-70" />
+              {/* Badan Awan Halus */}
+              <div className="relative w-full h-full">
+                <div className="absolute inset-0 bg-white/45 rounded-full blur-2xl" />
+                <div className="absolute top-4 left-10 w-2/3 h-3/4 bg-white/55 rounded-full blur-xl" />
+                <div className="absolute top-2 right-12 w-1/2 h-2/3 bg-white/50 rounded-full blur-xl" />
+              </div>
+            </div>
+          </div>
 
           {/* Logo Sekolah di Tengah Header */}
           <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-6">
