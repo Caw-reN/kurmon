@@ -10,6 +10,7 @@ import {
 import { SharedDashboardLogs } from '../monitoring/ui/index.js';
 import LiveUserActivityLog from './LiveUserActivityLog.jsx';
 import UserLoginSessionTracker from './UserLoginSessionTracker.jsx';
+import AttendanceByMajorAndClass from './AttendanceByMajorAndClass.jsx';
 
 // ─── Mini Helpers ────────────────────────────────────────────────────────────
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
@@ -823,21 +824,23 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ 3 KOLOM SEJAJAR: LOG AKTIVITAS, SESI LOGIN, & MONITOR AKTIVITAS ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-        {/* Box 1 (Kiri): Live Log Aktivitas Pengguna */}
+      {/* ═══════════════ PERSENTASE KEHADIRAN PER JURUSAN & PER KELAS ═══════════════ */}
+      <AttendanceByMajorAndClass 
+        students={students} 
+        dashLogs={dashLogs} 
+        onNavigateTab={gotoTab} 
+      />
+
+      {/* ═══════════════ 2 KOLOM SEJAJAR: LOG AKTIVITAS (KIRI) & LOG SESI DAN DURASI (KANAN) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        {/* Box Kiri: Live Log Aktivitas Pengguna */}
         <div className="h-full flex flex-col">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
         </div>
 
-        {/* Box 2 (Tengah): Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
+        {/* Box Kanan: Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
         <div className="h-full flex flex-col">
           <UserLoginSessionTracker onNavigateTab={gotoTab} />
-        </div>
-
-        {/* Box 3 (Kanan): Monitor & Aktivitas Pemantauan Sekolah */}
-        <div className="h-full flex flex-col">
-          <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
       </div>
 
