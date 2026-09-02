@@ -653,47 +653,43 @@ export default function LandingPage() {
           }}
         />
 
-        {/* ── LAPISAN ANIMASI AWAN BERGERAK DESKTOP (LEBIH TIPIS, HALUS & ELEGAN) ── */}
-        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-45">
+        {/* ── LAPISAN ANIMASI AWAN BERGERAK DESKTOP (SANGAT TIPIS, HALUS & WISPY) ── */}
+        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-25">
           {/* Ambient High-Altitude Haze */}
           <div className="absolute inset-0 animate-aerial-haze">
-            <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/15 via-white/5 to-transparent blur-3xl" />
+            <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/10 via-white/5 to-transparent blur-3xl" />
           </div>
 
-          {/* Gugusan Awan Desktop 1 (Lebar, Sangat Halus, Melayang Santai) */}
+          {/* Gugusan Awan Desktop 1 (Lebar, Sangat Tipis & Halus) */}
           <div className="absolute top-4 -left-24 w-[620px] h-[220px] animate-aerial-cloud-1">
             {/* Bayangan Tipis Jatuh ke Gedung */}
-            <div className="absolute top-16 left-16 w-[85%] h-[75%] bg-black/10 rounded-full blur-3xl transform scale-y-70" />
-            {/* Badan Awan Tipis Transparan */}
+            <div className="absolute top-16 left-16 w-[85%] h-[75%] bg-black/6 rounded-full blur-3xl transform scale-y-70" />
+            {/* Badan Awan Sangat Tipis */}
             <div className="relative w-full h-full">
-              <div className="absolute inset-0 bg-white/30 rounded-full blur-2xl" />
-              <div className="absolute top-3 left-10 w-3/5 h-4/5 bg-white/45 rounded-full blur-xl" />
-              <div className="absolute top-6 right-12 w-1/2 h-3/4 bg-white/40 rounded-full blur-xl" />
-              <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/50 rounded-full blur-lg" />
+              <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl" />
+              <div className="absolute top-3 left-10 w-3/5 h-4/5 bg-white/28 rounded-full blur-xl" />
+              <div className="absolute top-6 right-12 w-1/2 h-3/4 bg-white/24 rounded-full blur-xl" />
+              <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/32 rounded-full blur-lg" />
             </div>
           </div>
 
-          {/* Gugusan Awan Desktop 2 (Ketinggian Menengah, Lebih Tipis) */}
+          {/* Gugusan Awan Desktop 2 */}
           <div className="absolute top-1/3 -left-32 w-[540px] h-[190px] animate-aerial-cloud-2">
-            {/* Bayangan Sangat Halus */}
-            <div className="absolute top-14 left-12 w-[80%] h-[70%] bg-black/8 rounded-full blur-2xl transform scale-y-70" />
-            {/* Badan Awan */}
+            <div className="absolute top-14 left-12 w-[80%] h-[70%] bg-black/5 rounded-full blur-2xl transform scale-y-70" />
             <div className="relative w-full h-full">
-              <div className="absolute inset-0 bg-white/25 rounded-full blur-xl" />
-              <div className="absolute top-3 left-12 w-1/2 h-4/5 bg-white/35 rounded-full blur-lg" />
-              <div className="absolute top-4 right-8 w-2/5 h-3/5 bg-white/30 rounded-full blur-lg" />
+              <div className="absolute inset-0 bg-white/16 rounded-full blur-xl" />
+              <div className="absolute top-3 left-12 w-1/2 h-4/5 bg-white/24 rounded-full blur-lg" />
+              <div className="absolute top-4 right-8 w-2/5 h-3/5 bg-white/20 rounded-full blur-lg" />
             </div>
           </div>
 
-          {/* Gugusan Awan Desktop 3 (Gumpalan Halus Latar Depan) */}
+          {/* Gugusan Awan Desktop 3 */}
           <div className="absolute -top-12 -left-28 w-[720px] h-[260px] animate-aerial-cloud-3">
-            {/* Bayangan Sangat Halus */}
-            <div className="absolute top-20 left-16 w-[90%] h-[80%] bg-black/8 rounded-full blur-3xl transform scale-y-70" />
-            {/* Badan Awan Tipis */}
+            <div className="absolute top-20 left-16 w-[90%] h-[80%] bg-black/5 rounded-full blur-3xl transform scale-y-70" />
             <div className="relative w-full h-full">
-              <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl" />
-              <div className="absolute top-6 left-16 w-2/3 h-3/4 bg-white/30 rounded-full blur-2xl" />
-              <div className="absolute top-3 right-16 w-1/2 h-2/3 bg-white/25 rounded-full blur-2xl" />
+              <div className="absolute inset-0 bg-white/14 rounded-full blur-3xl" />
+              <div className="absolute top-6 left-16 w-2/3 h-3/4 bg-white/20 rounded-full blur-2xl" />
+              <div className="absolute top-3 right-16 w-1/2 h-2/3 bg-white/16 rounded-full blur-2xl" />
             </div>
           </div>
         </div>
@@ -707,10 +703,10 @@ export default function LandingPage() {
             opacity: 0;
           }
           15% {
-            opacity: 0.72;
+            opacity: 0.38;
           }
           85% {
-            opacity: 0.72;
+            opacity: 0.38;
           }
           100% {
             transform: translate3d(145%, 35%, 0) scale(1.08);
@@ -724,10 +720,10 @@ export default function LandingPage() {
             opacity: 0;
           }
           20% {
-            opacity: 0.60;
+            opacity: 0.32;
           }
           80% {
-            opacity: 0.60;
+            opacity: 0.32;
           }
           100% {
             transform: translate3d(135%, -15%, 0) scale(0.88);
@@ -741,10 +737,10 @@ export default function LandingPage() {
             opacity: 0;
           }
           12% {
-            opacity: 0.50;
+            opacity: 0.28;
           }
           88% {
-            opacity: 0.50;
+            opacity: 0.28;
           }
           100% {
             transform: translate3d(155%, 25%, 0) scale(1.28);
@@ -755,11 +751,11 @@ export default function LandingPage() {
         @keyframes aerialHazeSlow {
           0%, 100% {
             transform: translate3d(0, 0, 0) scale(1);
-            opacity: 0.15;
+            opacity: 0.08;
           }
           50% {
             transform: translate3d(4%, 3%, 0) scale(1.05);
-            opacity: 0.30;
+            opacity: 0.16;
           }
         }
 
@@ -820,49 +816,45 @@ export default function LandingPage() {
             }}
           />
 
-          {/* ── LAPISAN ANIMASI AWAN BERGERAK (POV DARI ATAS / BIRD'S EYE VIEW) ── */}
-          <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none">
+          {/* ── LAPISAN ANIMASI AWAN BERGERAK (POV DARI ATAS / SANGAT TIPIS & HALUS) ── */}
+          <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-50">
             {/* Ambient High-Altitude Haze / Kabut Tipis Atmosferik */}
             <div className="absolute inset-0 animate-aerial-haze">
-              <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/20 via-white/5 to-transparent blur-3xl" />
+              <div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-white/12 via-white/5 to-transparent blur-3xl" />
             </div>
 
-            {/* Gugusan Awan 1: Awan Kumulus Utama + Bayangan Awan di Atas Gedung */}
+            {/* Gugusan Awan 1: Awan Tipis & Bayangan Halus */}
             <div className="absolute -top-4 -left-10 w-[360px] sm:w-[440px] h-[170px] animate-aerial-cloud-1">
-              {/* Bayangan Awan jatuh ke atap & lapangan (POV dari atas) */}
-              <div className="absolute top-14 left-10 w-[85%] h-[75%] bg-black/25 rounded-full blur-2xl transform scale-y-70" />
-              {/* Badan Awan Putih Fluffy */}
+              {/* Bayangan Awan Sangat Halus di Atas Gedung */}
+              <div className="absolute top-14 left-10 w-[85%] h-[75%] bg-black/10 rounded-full blur-3xl transform scale-y-70" />
+              {/* Badan Awan Putih Tipis Transparan */}
               <div className="relative w-full h-full">
-                <div className="absolute inset-0 bg-white/55 rounded-full blur-xl" />
-                <div className="absolute top-2 left-6 w-3/5 h-4/5 bg-white/75 rounded-full blur-lg" />
-                <div className="absolute top-4 right-8 w-1/2 h-3/4 bg-white/70 rounded-full blur-lg" />
-                <div className="absolute -top-3 left-1/4 w-2/5 h-3/5 bg-white/85 rounded-full blur-md" />
-                <div className="absolute bottom-1 left-1/3 w-1/2 h-2/3 bg-white/55 rounded-full blur-xl" />
+                <div className="absolute inset-0 bg-white/30 rounded-full blur-xl" />
+                <div className="absolute top-2 left-6 w-3/5 h-4/5 bg-white/45 rounded-full blur-lg" />
+                <div className="absolute top-4 right-8 w-1/2 h-3/4 bg-white/40 rounded-full blur-lg" />
+                <div className="absolute -top-3 left-1/4 w-2/5 h-3/5 bg-white/55 rounded-full blur-md" />
+                <div className="absolute bottom-1 left-1/3 w-1/2 h-2/3 bg-white/30 rounded-full blur-xl" />
               </div>
             </div>
 
-            {/* Gugusan Awan 2: Awan Menengah Lebih Kecil Bergerak Santai */}
+            {/* Gugusan Awan 2: Awan Menengah Lebih Tipis */}
             <div className="absolute top-1/4 -left-16 w-[300px] sm:w-[380px] h-[140px] animate-aerial-cloud-2">
-              {/* Bayangan Awan */}
-              <div className="absolute top-12 left-8 w-[80%] h-[70%] bg-black/20 rounded-full blur-xl transform scale-y-70" />
-              {/* Badan Awan */}
+              <div className="absolute top-12 left-8 w-[80%] h-[70%] bg-black/8 rounded-full blur-2xl transform scale-y-70" />
               <div className="relative w-full h-full">
-                <div className="absolute inset-0 bg-white/50 rounded-full blur-lg" />
-                <div className="absolute top-2 left-8 w-1/2 h-4/5 bg-white/65 rounded-full blur-md" />
-                <div className="absolute top-3 right-5 w-2/5 h-3/5 bg-white/60 rounded-full blur-md" />
-                <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/75 rounded-full blur-md" />
+                <div className="absolute inset-0 bg-white/25 rounded-full blur-lg" />
+                <div className="absolute top-2 left-8 w-1/2 h-4/5 bg-white/35 rounded-full blur-md" />
+                <div className="absolute top-3 right-5 w-2/5 h-3/5 bg-white/30 rounded-full blur-md" />
+                <div className="absolute -top-2 left-1/3 w-1/3 h-1/2 bg-white/45 rounded-full blur-md" />
               </div>
             </div>
 
-            {/* Gugusan Awan 3: Gumpalan Awan Lembut Melintas di Latar Depan */}
+            {/* Gugusan Awan 3: Gumpalan Awan Halus Latar Depan */}
             <div className="absolute -top-8 -left-20 w-[440px] sm:w-[560px] h-[210px] animate-aerial-cloud-3">
-              {/* Bayangan Halus */}
-              <div className="absolute top-16 left-12 w-[90%] h-[80%] bg-black/15 rounded-full blur-3xl transform scale-y-70" />
-              {/* Badan Awan Halus */}
+              <div className="absolute top-16 left-12 w-[90%] h-[80%] bg-black/6 rounded-full blur-3xl transform scale-y-70" />
               <div className="relative w-full h-full">
-                <div className="absolute inset-0 bg-white/45 rounded-full blur-2xl" />
-                <div className="absolute top-4 left-10 w-2/3 h-3/4 bg-white/55 rounded-full blur-xl" />
-                <div className="absolute top-2 right-12 w-1/2 h-2/3 bg-white/50 rounded-full blur-xl" />
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl" />
+                <div className="absolute top-4 left-10 w-2/3 h-3/4 bg-white/30 rounded-full blur-xl" />
+                <div className="absolute top-2 right-12 w-1/2 h-2/3 bg-white/25 rounded-full blur-xl" />
               </div>
             </div>
           </div>
