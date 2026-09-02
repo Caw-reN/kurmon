@@ -307,7 +307,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   // Filtered list & Category Counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: appActivities.length, login: 0, navigasi: 0, kbm: 0, file: 0 };
+    const counts = { all: appActivities.length, navigasi: 0, kbm: 0, file: 0, admin: 0 };
     appActivities.forEach(item => {
       const meta = getActionMeta(item.action, item.detail);
       if (meta.category && counts[meta.category] !== undefined) {
@@ -340,7 +340,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">
-                  Log Aktivitas & Login
+                  Log Aktivitas Pengguna
                 </h3>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -353,7 +353,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 )}
               </div>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
-                Pantau aktivitas navigasi, file, jurnal, dan sesi login
+                Pantau riwayat aksi navigasi, isi jurnal, dan berkas guru/staf
               </p>
             </div>
           </div>
@@ -362,7 +362,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 shrink-0 w-full">
             {[
               { id: 'all', label: 'Semua', count: categoryCounts.all },
-              { id: 'login', label: 'Login', count: categoryCounts.login },
               { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
               { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
               { id: 'file', label: 'Upload & Unduh', count: categoryCounts.file }

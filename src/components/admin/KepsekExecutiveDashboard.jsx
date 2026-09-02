@@ -823,22 +823,22 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ LOG AKTIVITAS (KIRI) & LOG SESI LOGIN (KANAN) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {/* Box Kiri: Live Log Aktivitas Pengguna (Buka Menu, Jurnal KBM, File Upload/Download) */}
+      {/* ═══════════════ 3 KOLOM SEJAJAR: LOG AKTIVITAS, SESI LOGIN, & MONITOR AKTIVITAS ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Box 1 (Kiri): Live Log Aktivitas Pengguna */}
         <div className="h-full flex flex-col">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
         </div>
 
-        {/* Box Kanan: Log Siapa Saja yang Login, Frekuensi, Jam Login & Durasi Aktif */}
+        {/* Box 2 (Tengah): Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
         <div className="h-full flex flex-col">
           <UserLoginSessionTracker onNavigateTab={gotoTab} />
         </div>
-      </div>
 
-      {/* ═══════════════ MONITOR & AKTIVITAS PEMANTAUAN SEKOLAH ═══════════════ */}
-      <div className="w-full">
-        <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        {/* Box 3 (Kanan): Monitor & Aktivitas Pemantauan Sekolah */}
+        <div className="h-full flex flex-col">
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        </div>
       </div>
 
     </div>
