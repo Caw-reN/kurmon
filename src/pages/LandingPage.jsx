@@ -1,7 +1,7 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText, Sun, CloudRain, Moon, CloudSun } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -579,6 +579,56 @@ export default function LandingPage() {
     window.open(waUrl,"_blank");
   };
 
+  // ── SISTEM CUACA DINAMIS BEKASI (MALAM, HUJAN, PANAS TERIK, CERAH BERAWAN) ──
+  const [weatherCondition, setWeatherCondition] = useState(() => {
+    try {
+      const now = new Date();
+      const jktHour = parseInt(
+        new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }).format(now),
+        10
+      );
+      if (jktHour >= 18 || jktHour < 6) return 'night';
+      if (jktHour >= 11 && jktHour <= 14) return 'hot';
+      return 'cloudy';
+    } catch {
+      return 'cloudy';
+    }
+  });
+  const [weatherTemp, setWeatherTemp] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    // Koordinat Bekasi: Lat -6.2383, Lon 106.9756
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2383&longitude=106.9756&current=temperature_2m,is_day,precipitation,rain,weather_code&timezone=Asia%2FJakarta')
+      .then(res => res.json())
+      .then(data => {
+        if (!isMounted || !data?.current) return;
+        const { is_day, rain, precipitation, weather_code, temperature_2m } = data.current;
+        if (temperature_2m !== undefined) setWeatherTemp(Math.round(temperature_2m));
+        
+        // Prioritas deteksi: Hujan > Malam > Panas Terik > Berawan/Cerah
+        if (rain > 0.1 || precipitation > 0.1 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(weather_code)) {
+          setWeatherCondition('rain');
+        } else if (is_day === 0) {
+          setWeatherCondition('night');
+        } else if (temperature_2m >= 31 || [0, 1].includes(weather_code)) {
+          setWeatherCondition('hot');
+        } else {
+          setWeatherCondition('cloudy');
+        }
+      })
+      .catch(() => {
+        // Fallback otomatis berdasarkan jam Jakarta
+      });
+    return () => { isMounted = false; };
+  }, []);
+
+  const handleCycleWeather = () => {
+    const cycle = ['night', 'rain', 'hot', 'cloudy'];
+    const nextIdx = (cycle.indexOf(weatherCondition) + 1) % cycle.length;
+    setWeatherCondition(cycle[nextIdx]);
+  };
+
   const handleExtraFeatureClick = (label) => {
     const phone = appSettings.contactPhone ||"+62123456789";
     const cleanPhone = phone.replace(/[^0-9+]/g,"");
@@ -631,7 +681,7 @@ export default function LandingPage() {
 
       {/* GLOBAL DECORATIVE BACKGROUND (DESKTOP) */}
       <div className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 overflow-hidden select-none">
-        {/* Background Image Sekolah (Dari Kustomisasi Web atau Default) */}
+        {/* Background Image Sekolah */}
         <img
           src={appSettings?.heroImage || '/hero_illustration.jpg'}
           fetchpriority="high"
@@ -645,13 +695,75 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Scrim Gradasi Lembut Menghubungkan Gambar ke Konten Putih */}
+        {/* Scrim Gradasi Lembut Dinamis sesuai Cuaca Bekasi */}
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none transition-all duration-700"
           style={{
-            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.08) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+            background: weatherCondition === 'night' 
+              ? 'linear-gradient(180deg, rgba(8, 15, 33, 0.88) 0%, rgba(15, 23, 42, 0.72) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+              : weatherCondition === 'rain'
+              ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.80) 0%, rgba(30, 41, 59, 0.65) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+              : weatherCondition === 'hot'
+              ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.32) 0%, rgba(245, 158, 11, 0.12) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.08) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
           }}
         />
+
+        {/* Efek Spesifik Cuaca Desktop */}
+        {weatherCondition === 'night' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            <div className="absolute top-6 right-24 w-36 h-36 rounded-full bg-radial from-sky-100/35 via-sky-200/10 to-transparent blur-2xl" />
+            {[
+              { t: '15%', l: '10%', s: 2, d: '0s' },
+              { t: '25%', l: '24%', s: 2.5, d: '1.4s' },
+              { t: '12%', l: '40%', s: 1.8, d: '0.8s' },
+              { t: '20%', l: '55%', s: 3, d: '2.2s' },
+              { t: '30%', l: '70%', s: 2, d: '1.1s' },
+              { t: '14%', l: '85%', s: 2.4, d: '0.5s' },
+              { t: '28%', l: '92%', s: 1.6, d: '2.6s' },
+              { t: '8%', l: '72%', s: 2.2, d: '1.9s' }
+            ].map((star, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-white animate-star-twinkle"
+                style={{
+                  top: star.t,
+                  left: star.l,
+                  width: star.s,
+                  height: star.s,
+                  animationDelay: star.d,
+                  boxShadow: '0 0 8px rgba(255, 255, 255, 0.9)'
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {weatherCondition === 'rain' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            {[...Array(24)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-[1.5px] h-10 bg-gradient-to-b from-transparent via-sky-200/40 to-white/60 rotate-[12deg] animate-rain-fall"
+                style={{
+                  left: `${(i * 4.2) + (i % 3)}%`,
+                  top: '-40px',
+                  animationDuration: `${0.7 + ((i % 5) * 0.08)}s`,
+                  animationDelay: `-${(i % 6) * 0.16}s`
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {weatherCondition === 'hot' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-radial from-amber-300/35 via-yellow-200/15 to-transparent blur-3xl animate-pulse" style={{ animationDuration: '5s' }} />
+            <div className="absolute -top-20 -left-20 w-[600px] h-[600px] origin-top-left animate-sunbeam opacity-25">
+              <div className="w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,rgba(251,191,36,0.3)_15deg,transparent_30deg,rgba(251,191,36,0.2)_45deg,transparent_60deg,rgba(251,191,36,0.25)_75deg,transparent_90deg)] blur-xl" />
+            </div>
+          </div>
+        )}
 
         {/* ── LAPISAN ANIMASI AWAN BERGERAK DESKTOP (SANGAT TIPIS, HALUS & WISPY) ── */}
         <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-25">
@@ -780,6 +892,59 @@ export default function LandingPage() {
           animation: aerialHazeSlow 20s ease-in-out infinite;
           will-change: transform, opacity;
         }
+
+        @keyframes starTwinkle {
+          0%, 100% {
+            opacity: 0.15;
+            transform: scale(0.8);
+          }
+          50% {
+            opacity: 0.95;
+            transform: scale(1.3);
+          }
+        }
+
+        @keyframes rainDropFall {
+          0% {
+            transform: translate3d(0, -60px, 0);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.65;
+          }
+          85% {
+            opacity: 0.65;
+          }
+          100% {
+            transform: translate3d(-35px, 380px, 0);
+            opacity: 0;
+          }
+        }
+
+        @keyframes sunbeamSweep {
+          0%, 100% {
+            transform: rotate(0deg) scale(1);
+            opacity: 0.18;
+          }
+          50% {
+            transform: rotate(6deg) scale(1.06);
+            opacity: 0.35;
+          }
+        }
+
+        .animate-star-twinkle {
+          animation: starTwinkle 3.2s ease-in-out infinite;
+        }
+
+        .animate-rain-fall {
+          animation: rainDropFall 0.85s linear infinite;
+          will-change: transform, opacity;
+        }
+
+        .animate-sunbeam {
+          animation: sunbeamSweep 12s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
       `}</style>
 
       {/* DESKTOP FULL-WIDTH HEADER */}
@@ -808,13 +973,77 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Scrim Overlay Lembut: Melindungi keterbacaan teks tanpa menutupi gambar gedung sekolah */}
+          {/* Scrim Overlay Lembut Dinamis sesuai Cuaca */}
           <div 
-            className="absolute inset-0 z-0 pointer-events-none"
+            className="absolute inset-0 z-0 pointer-events-none transition-all duration-700"
             style={{
-              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
+              background: weatherCondition === 'night' 
+                ? 'linear-gradient(180deg, rgba(7, 14, 30, 0.90) 0%, rgba(15, 23, 42, 0.74) 35%, rgba(13, 37, 30, 0.65) 70%, rgba(4, 25, 14, 0.88) 100%)'
+                : weatherCondition === 'rain'
+                ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 41, 59, 0.68) 35%, rgba(20, 60, 45, 0.60) 70%, rgba(6, 40, 20, 0.84) 100%)'
+                : weatherCondition === 'hot'
+                ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.32) 0%, rgba(245, 158, 11, 0.16) 35%, rgba(61, 170, 55, 0.28) 70%, rgba(6, 50, 20, 0.78) 100%)'
+                : 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
             }}
           />
+
+          {/* Efek Spesifik Cuaca (Mobile) */}
+          {weatherCondition === 'night' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              <div className="absolute top-4 right-10 w-28 h-28 rounded-full bg-radial from-sky-100/30 via-sky-200/10 to-transparent blur-xl" />
+              {[
+                { t: '12%', l: '15%', s: 2, d: '0s' },
+                { t: '22%', l: '35%', s: 2.5, d: '1.2s' },
+                { t: '18%', l: '75%', s: 1.8, d: '0.6s' },
+                { t: '8%', l: '60%', s: 3, d: '2.1s' },
+                { t: '32%', l: '20%', s: 2, d: '1.8s' },
+                { t: '15%', l: '88%', s: 2.2, d: '0.4s' },
+                { t: '28%', l: '80%', s: 1.6, d: '2.4s' },
+                { t: '10%', l: '28%', s: 2.8, d: '1.5s' },
+                { t: '25%', l: '50%', s: 1.5, d: '0.9s' }
+              ].map((star, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-star-twinkle"
+                  style={{
+                    top: star.t,
+                    left: star.l,
+                    width: star.s,
+                    height: star.s,
+                    animationDelay: star.d,
+                    boxShadow: '0 0 6px rgba(255, 255, 255, 0.8)'
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {weatherCondition === 'rain' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-[1.5px] h-9 bg-gradient-to-b from-transparent via-sky-200/50 to-white/70 rotate-[12deg] animate-rain-fall"
+                  style={{
+                    left: `${(i * 5) + (i % 3)}%`,
+                    top: '-40px',
+                    animationDuration: `${0.65 + ((i % 5) * 0.08)}s`,
+                    animationDelay: `-${(i % 7) * 0.15}s`
+                  }}
+                />
+              ))}
+              <div className="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-white/20 via-sky-100/10 to-transparent blur-md" />
+            </div>
+          )}
+
+          {weatherCondition === 'hot' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-radial from-amber-300/45 via-yellow-200/20 to-transparent blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
+              <div className="absolute -top-20 -left-20 w-[500px] h-[500px] origin-top-left animate-sunbeam opacity-30">
+                <div className="w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,rgba(251,191,36,0.35)_15deg,transparent_30deg,rgba(251,191,36,0.25)_45deg,transparent_60deg,rgba(251,191,36,0.3)_75deg,transparent_90deg)] blur-lg" />
+              </div>
+            </div>
+          )}
 
           {/* ── LAPISAN ANIMASI AWAN BERGERAK (POV DARI ATAS / SANGAT TIPIS & HALUS) ── */}
           <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none opacity-50">
@@ -859,8 +1088,27 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Logo Sekolah di Tengah Header */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-6">
+          {/* Logo Sekolah di Tengah Header + Live Weather Badge */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-4">
+            <button
+              type="button"
+              onClick={handleCycleWeather}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/25 text-white text-[10px] font-extrabold tracking-wide shadow-xs cursor-pointer transition-all duration-300 mb-2.5 select-none"
+              title="Klik untuk mengganti simulasi cuaca (Malam, Hujan, Panas, Berawan)"
+            >
+              {weatherCondition === 'night' && <Moon size={11} className="text-amber-200" />}
+              {weatherCondition === 'rain' && <CloudRain size={11} className="text-sky-300 animate-bounce" />}
+              {weatherCondition === 'hot' && <Sun size={11} className="text-amber-400 animate-spin" style={{ animationDuration: '10s' }} />}
+              {weatherCondition === 'cloudy' && <CloudSun size={11} className="text-emerald-300" />}
+              <span>
+                Bekasi {weatherTemp ? `${weatherTemp}°C` : ''} • {
+                  weatherCondition === 'night' ? 'Malam Hari 🌙' :
+                  weatherCondition === 'rain' ? 'Hujan 🌧️' :
+                  weatherCondition === 'hot' ? 'Panas Terik ☀️' : 'Cerah Berawan ⛅'
+                }
+              </span>
+            </button>
+
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
@@ -1123,6 +1371,29 @@ export default function LandingPage() {
 
           {/* Left Column (Banner/Hero Text) */}
           <div className="flex-1 flex flex-col justify-center min-h-0 text-left">
+            {/* Live Weather Badge for Bekasi (Clickable to preview/cycle weather) */}
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={handleCycleWeather}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-bold tracking-wide shadow-xs cursor-pointer transition-all duration-300 select-none"
+                title="Klik untuk mengganti simulasi cuaca (Malam, Hujan, Panas Terik, Cerah Berawan)"
+              >
+                {weatherCondition === 'night' && <Moon size={13} className="text-indigo-500" />}
+                {weatherCondition === 'rain' && <CloudRain size={13} className="text-sky-500 animate-bounce" />}
+                {weatherCondition === 'hot' && <Sun size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '12s' }} />}
+                {weatherCondition === 'cloudy' && <CloudSun size={13} className="text-emerald-500" />}
+                <span>
+                  Bekasi {weatherTemp ? `${weatherTemp}°C` : ''} • {
+                    weatherCondition === 'night' ? 'Malam Bertabur Bintang 🌙' :
+                    weatherCondition === 'rain' ? 'Cuaca Hujan 🌧️' :
+                    weatherCondition === 'hot' ? 'Panas Terik ☀️' : 'Cerah Berawan ⛅'
+                  }
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium ml-0.5">(Klik coba efek)</span>
+              </button>
+            </div>
+
             <h1 className="text-[28px] lg:text-[40px] font-black leading-[1.15] tracking-tight mb-4 max-w-[550px]" style={{ color: appSettings.heroTitleColor ||'#1e293b' }}>
               {(() => {
                 const str = heroTitle ||"Aplikasi Jadwal, Denah & Materi Ajar Sekolah Terpadu";
