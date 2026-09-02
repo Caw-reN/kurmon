@@ -725,7 +725,7 @@ export default function TabAkademik(props) {
               </div>
             </div>
           ) : (
-            <div className={`grid gap-3.5 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
+            <div className={`grid gap-3 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
               {filteredCalendar.map((evt) => {
                 const cat = calendarCategories.find((c) => c.id === evt.categoryId);
                 const colors = getCategoryColor(cat?.color);
@@ -734,62 +734,55 @@ export default function TabAkademik(props) {
                 return (
                   <div
                     key={evt.id}
-                    className={`ui-card group relative bg-white border border-slate-200/80 hover:border-slate-300 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between border-l-4 ${colors.cardBorder}`}
+                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-2xs hover:shadow-sm transition-all flex flex-col gap-2 border-l-[3px] ${colors.cardBorder}`}
                   >
-                    <div>
-                      {/* Top Badges (Category & Live Status) */}
-                      <div className="flex items-start justify-between gap-2 mb-2.5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] border text-[9.5px] font-black uppercase tracking-wider ${colors.lightBg}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}></span>
-                          {cat?.name || "Umum / Sekolah"}
-                        </span>
-
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] ${status.color}`}>
-                          {status.isToday && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />}
-                          {status.label}
-                        </span>
-                      </div>
-
-                      {/* Title & Description */}
-                      <h3 className="text-sm sm:text-base font-black text-slate-800 leading-snug group-hover:text-[var(--ui-primary)] transition-colors">
-                        {evt.title}
-                      </h3>
-                      
-                      <p className="text-xs font-medium text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-                        {evt.description || "Tidak ada rincian keterangan tambahan."}
-                      </p>
-                    </div>
-
-                    {/* Footer: Date Range & Action Buttons */}
-                    <div className="mt-4 pt-3.5 border-t border-slate-100/90 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-[var(--ui-radius-small)] border border-slate-200/60 shadow-2xs">
-                        <Calendar size={13} className="text-slate-400 shrink-0" />
-                        <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
-                      </div>
-
-                      {/* Action buttons */}
-                      {canEdit && (
-                        <div className="flex items-center gap-1 shrink-0 opacity-90 group-hover:opacity-100 transition-opacity">
-                          <button
-                            type="button"
-                            onClick={() => openModal("event_kalender", "edit", evt)}
-                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-[var(--ui-radius-small)] border border-transparent hover:border-indigo-100 transition-all cursor-pointer"
-                            title="Edit Agenda"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCalendarEventSafe(evt.id)}
-                            className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] border border-transparent hover:border-rose-100 transition-all cursor-pointer"
-                            title="Hapus Agenda"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <h3 className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                            {evt.title}
+                          </h3>
+                          {status.isToday && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
                         </div>
-                      )}
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60 w-fit shadow-2xs">
+                          <Calendar size={11} className="text-slate-400 shrink-0" />
+                          <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wide ${colors.lightBg}`}>
+                          <span className={`w-1 h-1 rounded-full ${colors.dot}`}></span>
+                          {cat?.name || "Umum"}
+                        </span>
+                        {canEdit && (
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                            <button
+                              type="button"
+                              onClick={() => openModal("event_kalender", "edit", evt)}
+                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-all cursor-pointer"
+                              title="Edit Agenda"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCalendarEventSafe(evt.id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
+                              title="Hapus Agenda"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    
+                    {evt.description && (
+                      <p className="text-[11px] font-medium text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
+                        {evt.description}
+                      </p>
+                    )}
                   </div>
                 );
               })}
