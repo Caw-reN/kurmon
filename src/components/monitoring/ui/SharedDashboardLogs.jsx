@@ -713,7 +713,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               className={`py-2 px-1.5 sm:px-2 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center w-full min-h-[56px] sm:min-h-[68px] relative touch-manipulation active:scale-95 ${
                 isActive
                   ? 'text-white shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/30 border-[var(--ui-primary)]'
-                  : 'bg-[var(--ui-card-bg,white)] border-[var(--ui-card-border,theme(colors.slate.200/80))] text-slate-700 shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 hover:border-slate-300'
+                  : 'bg-[var(--ui-card-bg,white)] [border:var(--ui-card-border,1px_solid_theme(colors.slate.200))] text-slate-700 shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 hover:border-slate-300'
               }`}
               style={isActive ? {
                 backgroundColor: "var(--ui-primary)",
