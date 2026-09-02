@@ -126,6 +126,9 @@ export default function AdminContentRouter({ context }) {
       const roleKey = normalizeUserRole(currentUser?.role);
       const division = (currentUser?.division || "").toLowerCase();
 
+      // Kepsek hanya bisa melihat, tidak bisa mengedit atau menghapus (Strict Read-Only)
+      if (roleKey === "kepsek") return true;
+
       if (tabKey === "akademik" || tabKey === "kalender" || tabKey === "kalender_akademik") {
         if (roleKey === "admin" || roleKey === "superadmin" || (roleKey === "waka" && division === "kurikulum")) {
           return false;
@@ -347,19 +350,19 @@ export default function AdminContentRouter({ context }) {
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data...
         </div>}>
-          <MasterDataSiswa students={students} classes={classes} majors={majors} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} setStudents={setStudents} saveDatabaseNow={saveDatabaseNow} isViewOnly={getTabPermissionLevel("siswa") ==="view" || getTabPermissionLevel("siswa") ==="otomatis" && activeUserRole ==="kepsek"} />
+          <MasterDataSiswa students={students} classes={classes} majors={majors} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} setStudents={setStudents} saveDatabaseNow={saveDatabaseNow} isViewOnly={activeUserRole === "kepsek" || getTabPermissionLevel("siswa") === "view"} />
         </Suspense>;
       case"kelas":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Kelas...
         </div>}>
-          <MasterDataKelas classes={classes} teachers={teachers} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
+          <MasterDataKelas classes={classes} teachers={teachers} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} isViewOnly={activeUserRole === "kepsek" || getTabPermissionLevel("kelas") === "view"} />
         </Suspense>;
       case"jurusan":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data Jurusan...
         </div>}>
-          <MasterDataJurusan majors={majors} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
+          <MasterDataJurusan majors={majors} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} isViewOnly={activeUserRole === "kepsek" || getTabPermissionLevel("jurusan") === "view"} />
         </Suspense>;
       case "dataguru":
       case "data_pegawai":
@@ -389,7 +392,7 @@ export default function AdminContentRouter({ context }) {
             setTeachers={setTeachers}
             setStaffs={setStaffs}
             saveDatabaseNow={saveDatabaseNow}
-            isViewOnly={getTabPermissionLevel("data_pegawai") !== "edit" && getTabPermissionLevel("guru") !== "edit"}
+            isViewOnly={activeUserRole === "kepsek" || (getTabPermissionLevel("data_pegawai") !== "edit" && getTabPermissionLevel("guru") !== "edit")}
           />
         </Suspense>;
       case"mapel":
