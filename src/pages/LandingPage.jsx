@@ -823,11 +823,11 @@ export default function LandingPage() {
 
         {/* ── LIVING SKY LAYER (DESKTOP): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
         <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
-          {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
+          {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - Variasi Ketinggian: Belakang & Bawah) */}
           {weatherCondition !== 'night' && (
             <div className="absolute inset-0 pointer-events-none">
-              {/* Kawanan 1: Formasi V 5 Burung dari Kiri ke Kanan */}
-              <div className="absolute top-10 left-0 animate-flock-east">
+              {/* Kawanan 1: Formasi V 5 Burung Melintas di Belakang Area Tengah */}
+              <div className="absolute top-44 left-0 animate-flock-east">
                 <div className="relative">
                   {/* Pemimpin */}
                   <div className="absolute top-0 left-0">
@@ -860,8 +860,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri (Bergantian) */}
-              <div className="absolute top-20 right-0 animate-flock-west">
+              {/* Kawanan 2: 4 Burung Melintas di Area Bawah (Arah Berlawanan) */}
+              <div className="absolute top-80 right-0 animate-flock-west">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
                     <svg viewBox="0 0 32 18" className="w-7.5 h-4 sm:w-8.5 sm:h-4.5 fill-slate-800 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.3s' }}>
@@ -888,11 +888,11 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
+          {/* 2. KAWANAN KELELAWAR (Malam Hari - Variasi Ketinggian: Belakang & Bawah) */}
           {weatherCondition === 'night' && (
             <div className="absolute inset-0 pointer-events-none">
-              {/* Swarm 1: 4 Kelelawar dari Kanan ke Kiri */}
-              <div className="absolute top-10 right-0 animate-swarm-west">
+              {/* Swarm 1: 4 Kelelawar Melintas di Area Tengah */}
+              <div className="absolute top-48 right-0 animate-swarm-west">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
                     <svg viewBox="0 0 34 20" className="w-8 h-5 sm:w-9 sm:h-5.5 fill-slate-950 drop-shadow-md animate-bat-wing">
@@ -917,8 +917,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan (Bergantian) */}
-              <div className="absolute top-22 left-0 animate-swarm-east">
+              {/* Swarm 2: 4 Kelelawar Melintas di Area Bawah */}
+              <div className="absolute top-84 left-0 animate-swarm-east">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
                     <svg viewBox="0 0 34 20" className="w-7.5 h-4.5 sm:w-8.5 sm:h-5 fill-slate-950 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.23s' }}>
@@ -945,8 +945,8 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH */}
-          <div className="absolute top-6 left-0 animate-single-plane flex items-center">
+          {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH (Melintas Gagah di Area Tengah-Atas) */}
+          <div className="absolute top-32 left-0 animate-single-plane flex items-center">
             {/* Jejak Asap Tipis */}
             <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-r from-transparent via-white/35 to-white/60 blur-[0.5px] -mr-1" />
             
@@ -971,8 +971,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* 4. PIRING TERBANG UFO (Melayang Bergantian dengan Pesawat) */}
-          <div className="absolute top-10 right-0 animate-ufo-fly flex flex-col items-center">
+          {/* 4. PIRING TERBANG UFO (Melayang di Area Bawah dengan Sorot Neon) */}
+          <div className="absolute top-64 right-0 animate-ufo-fly flex flex-col items-center">
             <div className="relative">
               <svg viewBox="0 0 48 24" className="w-8 sm:w-9 h-4.5 drop-shadow-lg animate-ufo-glow">
                 <ellipse cx="24" cy="9" rx="9" ry="5.5" fill="#38bdf8" fillOpacity="0.85" />
@@ -1462,11 +1462,11 @@ export default function LandingPage() {
 
           {/* ── LIVING SKY LAYER (MOBILE): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
           <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
-            {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
+            {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - Variasi Ketinggian: Belakang Logo & Bawah) */}
             {weatherCondition !== 'night' && (
               <div className="absolute inset-0 pointer-events-none">
-                {/* Kawanan 1: Formasi V 5 Burung dari Kiri ke Kanan */}
-                <div className="absolute top-8 left-0 animate-flock-east">
+                {/* Kawanan 1: Melintas TEPAT DI BELAKANG LOGO SEKOLAH (Area Tengah Vertikal) */}
+                <div className="absolute top-[44%] -translate-y-1/2 left-0 animate-flock-east">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
                       <svg viewBox="0 0 32 18" className="w-7 h-4 fill-slate-800 drop-shadow-md animate-bird-wing">
@@ -1496,8 +1496,8 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri (Bergantian) */}
-                <div className="absolute top-16 right-0 animate-flock-west">
+                {/* Kawanan 2: Melintas DI BAWAH LOGO SEKOLAH (Area Langit Bawah Dekat Lengkungan) */}
+                <div className="absolute top-[72%] right-0 animate-flock-west">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
                       <svg viewBox="0 0 32 18" className="w-6.5 h-3.5 fill-slate-800 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.3s' }}>
@@ -1524,11 +1524,11 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
+            {/* 2. KAWANAN KELELAWAR (Malam Hari - Variasi Ketinggian: Belakang Logo & Bawah) */}
             {weatherCondition === 'night' && (
               <div className="absolute inset-0 pointer-events-none">
-                {/* Swarm 1: 4 Kelelawar dari Kanan ke Kiri */}
-                <div className="absolute top-8 right-0 animate-swarm-west">
+                {/* Swarm 1: Melintas TEPAT DI BELAKANG LOGO SEKOLAH */}
+                <div className="absolute top-[48%] -translate-y-1/2 right-0 animate-swarm-west">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
                       <svg viewBox="0 0 34 20" className="w-7 h-4.5 fill-slate-950 drop-shadow-md animate-bat-wing">
@@ -1553,8 +1553,8 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan (Bergantian) */}
-                <div className="absolute top-18 left-0 animate-swarm-east">
+                {/* Swarm 2: Melintas DI BAWAH LOGO SEKOLAH */}
+                <div className="absolute top-[70%] left-0 animate-swarm-east">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
                       <svg viewBox="0 0 34 20" className="w-6.5 h-4 fill-slate-950 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.23s' }}>
@@ -1581,8 +1581,8 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH */}
-            <div className="absolute top-5 left-0 animate-single-plane flex items-center">
+            {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH (Melintas di Area Tengah-Atas di Belakang Logo) */}
+            <div className="absolute top-[38%] left-0 animate-single-plane flex items-center">
               <div className="w-18 sm:w-24 h-[1.5px] bg-gradient-to-r from-transparent via-white/35 to-white/60 blur-[0.5px] -mr-1" />
               
               {/* Bendera Merah Putih Berkibar */}
@@ -1606,8 +1606,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* 4. PIRING TERBANG UFO (Melayang Bergantian dengan Pesawat) */}
-            <div className="absolute top-9 right-0 animate-ufo-fly flex flex-col items-center">
+            {/* 4. PIRING TERBANG UFO (Melayang di Area BAWAH LOGO dengan Sorot Neon Alien) */}
+            <div className="absolute top-[64%] right-0 animate-ufo-fly flex flex-col items-center">
               <div className="relative">
                 <svg viewBox="0 0 48 24" className="w-7.5 sm:w-8.5 h-4 drop-shadow-lg animate-ufo-glow">
                   <ellipse cx="24" cy="9" rx="9" ry="5.5" fill="#38bdf8" fillOpacity="0.85" />
