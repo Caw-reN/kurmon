@@ -1,8 +1,154 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, Compass, LayoutGrid, FileText } from 'lucide-react';
+import { 
+  LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, 
+  UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, 
+  Compass, LayoutGrid, FileText, CheckCircle2 
+} from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
 
+// ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
+export function getActionMeta(action, detail = '') {
+  const act = String(action || '').toUpperCase();
+  const det = String(detail || '').toLowerCase();
+
+  // 1. LOGIN
+  if (act.includes('LOGIN') || act.includes('MASUK') || det.includes('masuk ke sistem') || det.includes('login')) {
+    return {
+      label: 'LOGIN',
+      bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+      icon: LogIn,
+      color: 'text-emerald-600',
+      category: 'login'
+    };
+  }
+
+  // 2. BUKA MENU / NAVIGASI
+  if (act.includes('NAVIGASI') || act.includes('TAB') || act.includes('MENU') || det.includes('membuka') || det.includes('navigasi') || det.includes('melihat tab')) {
+    return {
+      label: 'BUKA MENU',
+      bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
+      icon: Compass,
+      color: 'text-sky-600',
+      category: 'navigasi'
+    };
+  }
+
+  // 3. UPLOAD & UNDUH / FILE
+  if (
+    act.includes('DOWNLOAD') || act.includes('UNDUH') || act.includes('UPLOAD') || 
+    act.includes('UNGGAH') || act.includes('IMPORT') || act.includes('EXPORT') || 
+    act.includes('CETAK') || act.includes('FILE') || det.includes('unduh') || 
+    det.includes('download') || det.includes('unggah') || det.includes('upload') || 
+    det.includes('modul') || det.includes('silabus') || det.includes('excel') || 
+    det.includes('pdf') || det.includes('cetak') || det.includes('import') || det.includes('ekspor')
+  ) {
+    const isUpload = act.includes('UPLOAD') || act.includes('UNGGAH') || act.includes('IMPORT') || det.includes('unggah') || det.includes('upload');
+    return {
+      label: isUpload ? 'UPLOAD / FILE' : 'DOWNLOAD',
+      bg: isUpload ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80',
+      icon: isUpload ? UploadCloud : Download,
+      color: isUpload ? 'text-indigo-600' : 'text-amber-600',
+      category: 'file'
+    };
+  }
+
+  // 4. JURNAL KBM & KESISWAAN
+  if (
+    act.includes('JURNAL') || act.includes('KBM') || act.includes('ABSENSI') || 
+    act.includes('PRESENSI') || act.includes('NILAI') || act.includes('VALIDASI') || 
+    act.includes('BK') || act.includes('BPBK') || act.includes('PIKET') || 
+    det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar') || 
+    det.includes('absensi') || det.includes('binaan') || det.includes('tatib') ||
+    det.includes('pelanggaran') || det.includes('konseling') || det.includes('sesi')
+  ) {
+    return {
+      label: act.includes('VALIDASI') ? 'VALIDASI KBM' : (act.includes('JURNAL') ? 'ISI JURNAL' : 'JURNAL & KBM'),
+      bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+      icon: BookOpen,
+      color: 'text-emerald-600',
+      category: 'kbm'
+    };
+  }
+
+  // 5. PENGATURAN / KELOLA DATA
+  if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
+    return {
+      label: 'PENGATURAN',
+      bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
+      icon: Settings,
+      color: 'text-purple-600',
+      category: 'file'
+    };
+  }
+
+  return {
+    label: act || 'AKTIVITAS',
+    bg: 'bg-slate-100 text-slate-700 border-slate-200',
+    icon: Activity,
+    color: 'text-slate-600',
+    category: 'other'
+  };
+}
+
+export function getRoleBadge(role) {
+  const r = String(role || '').toLowerCase();
+  if (r.includes('walas') || r.includes('wali')) return { label: 'Wali Kelas', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+  if (r.includes('guru')) return { label: 'Guru', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
+  if (r.includes('karyawan') || r.includes('staff')) return { label: 'Karyawan', bg: 'bg-teal-50 text-teal-700 border-teal-100' };
+  if (r.includes('tu') || r.includes('tata')) return { label: 'Staf TU', bg: 'bg-sky-50 text-sky-700 border-sky-100' };
+  if (r.includes('waka')) return { label: 'Waka', bg: 'bg-amber-50 text-amber-700 border-amber-100' };
+  if (r.includes('kepsek')) return { label: 'Kepsek', bg: 'bg-purple-50 text-purple-700 border-purple-100' };
+  if (r.includes('admin')) return { label: 'Admin', bg: 'bg-slate-900 text-white border-slate-700' };
+  return { label: role || 'User', bg: 'bg-slate-100 text-slate-600 border-slate-200' };
+}
+
+export function formatLogTime(dateStr) {
+  if (!dateStr) return '-';
+  try {
+    let d = new Date(dateStr);
+    const now = new Date();
+    
+    const initialDiffMins = (now.getTime() - d.getTime()) / 60000;
+    if (initialDiffMins >= 360 && initialDiffMins <= 480) {
+      d = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    }
+
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    const formatter = new Intl.DateTimeFormat('id-ID', {
+      hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta', hour12: false
+    });
+    const timeParts = formatter.formatToParts(d);
+    const hour = timeParts.find(p => p.type === 'hour')?.value || '00';
+    const minute = timeParts.find(p => p.type === 'minute')?.value || '00';
+    const timeStr = `${hour}.${minute}`;
+    
+    if (diffMins >= 0 && diffMins < 1) return 'Baru saja';
+    if (diffMins >= 1 && diffMins < 60) return `${diffMins} mnt lalu`;
+    return `${timeStr} WIB`;
+  } catch {
+    return dateStr;
+  }
+}
+
+export function getDuration(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMins = Math.floor((now.getTime() - d.getTime()) / 60000);
+    if (diffMins < 0) return '';
+    if (diffMins < 60) return `${diffMins} mnt`;
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hours}j ${mins}m`;
+  } catch {
+    return '';
+  }
+}
+
+// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 export default function LiveUserActivityLog({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
   const teachers = useDataStore(state => state.teachers) || [];
@@ -159,147 +305,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     return { activeCount, totalUsers, percentage };
   }, [appActivities, teachers, staffs]);
 
-  // Categorization & Action Meta
-  const getActionMeta = (action, detail = '') => {
-    const act = String(action || '').toUpperCase();
-    const det = String(detail || '').toLowerCase();
-
-    // 1. LOGIN
-    if (act.includes('LOGIN') || act.includes('MASUK') || det.includes('masuk ke sistem') || det.includes('login')) {
-      return {
-        label: 'LOGIN',
-        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-        icon: LogIn,
-        color: 'text-emerald-600',
-        category: 'login'
-      };
-    }
-
-    // 2. BUKA MENU / NAVIGASI
-    if (act.includes('NAVIGASI') || act.includes('TAB') || act.includes('MENU') || det.includes('membuka') || det.includes('navigasi') || det.includes('melihat tab')) {
-      return {
-        label: 'BUKA MENU',
-        bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
-        icon: Compass,
-        color: 'text-sky-600',
-        category: 'navigasi'
-      };
-    }
-
-    // 3. UPLOAD & UNDUH / FILE
-    if (
-      act.includes('DOWNLOAD') || act.includes('UNDUH') || act.includes('UPLOAD') || 
-      act.includes('UNGGAH') || act.includes('IMPORT') || act.includes('EXPORT') || 
-      act.includes('CETAK') || act.includes('FILE') || det.includes('unduh') || 
-      det.includes('download') || det.includes('unggah') || det.includes('upload') || 
-      det.includes('modul') || det.includes('silabus') || det.includes('excel') || 
-      det.includes('pdf') || det.includes('cetak') || det.includes('import') || det.includes('ekspor')
-    ) {
-      const isUpload = act.includes('UPLOAD') || act.includes('UNGGAH') || act.includes('IMPORT') || det.includes('unggah') || det.includes('upload');
-      return {
-        label: isUpload ? 'UPLOAD / FILE' : 'DOWNLOAD',
-        bg: isUpload ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80',
-        icon: isUpload ? UploadCloud : Download,
-        color: isUpload ? 'text-indigo-600' : 'text-amber-600',
-        category: 'file'
-      };
-    }
-
-    // 4. JURNAL KBM & KESISWAAN
-    if (
-      act.includes('JURNAL') || act.includes('KBM') || act.includes('ABSENSI') || 
-      act.includes('PRESENSI') || act.includes('NILAI') || act.includes('VALIDASI') || 
-      act.includes('BK') || act.includes('BPBK') || act.includes('PIKET') || 
-      det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar') || 
-      det.includes('absensi') || det.includes('binaan') || det.includes('tatib') ||
-      det.includes('pelanggaran') || det.includes('konseling') || det.includes('sesi')
-    ) {
-      return {
-        label: act.includes('VALIDASI') ? 'VALIDASI KBM' : (act.includes('JURNAL') ? 'ISI JURNAL' : 'JURNAL & KBM'),
-        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-        icon: BookOpen,
-        color: 'text-emerald-600',
-        category: 'kbm'
-      };
-    }
-
-    // 5. PENGATURAN / KELOLA DATA
-    if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
-      return {
-        label: 'PENGATURAN',
-        bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
-        icon: Settings,
-        color: 'text-purple-600',
-        category: 'file'
-      };
-    }
-
-    return {
-      label: act || 'AKTIVITAS',
-      bg: 'bg-slate-100 text-slate-700 border-slate-200',
-      icon: Activity,
-      color: 'text-slate-600',
-      category: 'other'
-    };
-  };
-
-  const getRoleBadge = (role) => {
-    const r = String(role || '').toLowerCase();
-    if (r.includes('walas') || r.includes('wali')) return { label: 'Wali Kelas', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-    if (r.includes('guru')) return { label: 'Guru', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
-    if (r.includes('karyawan') || r.includes('staff')) return { label: 'Karyawan', bg: 'bg-teal-50 text-teal-700 border-teal-100' };
-    if (r.includes('tu') || r.includes('tata')) return { label: 'Staf TU', bg: 'bg-sky-50 text-sky-700 border-sky-100' };
-    if (r.includes('waka')) return { label: 'Waka', bg: 'bg-amber-50 text-amber-700 border-amber-100' };
-    if (r.includes('kepsek')) return { label: 'Kepsek', bg: 'bg-purple-50 text-purple-700 border-purple-100' };
-    if (r.includes('admin')) return { label: 'Admin', bg: 'bg-slate-900 text-white border-slate-700' };
-    return { label: role || 'User', bg: 'bg-slate-100 text-slate-600 border-slate-200' };
-  };
-
-  const formatLogTime = (dateStr) => {
-    if (!dateStr) return '-';
-    try {
-      let d = new Date(dateStr);
-      const now = new Date();
-      
-      const initialDiffMins = (now.getTime() - d.getTime()) / 60000;
-      if (initialDiffMins >= 360 && initialDiffMins <= 480) {
-        d = new Date(d.getTime() + 7 * 60 * 60 * 1000);
-      }
-
-      const diffMs = now.getTime() - d.getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-
-      const formatter = new Intl.DateTimeFormat('id-ID', {
-        hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta', hour12: false
-      });
-      const timeParts = formatter.formatToParts(d);
-      const hour = timeParts.find(p => p.type === 'hour')?.value || '00';
-      const minute = timeParts.find(p => p.type === 'minute')?.value || '00';
-      const timeStr = `${hour}.${minute}`;
-      
-      if (diffMins >= 0 && diffMins < 1) return 'Baru saja';
-      if (diffMins >= 1 && diffMins < 60) return `${diffMins} mnt lalu`;
-      return `${timeStr} WIB`;
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const getDuration = (dateStr) => {
-    try {
-      const d = new Date(dateStr);
-      const now = new Date();
-      const diffMins = Math.floor((now.getTime() - d.getTime()) / 60000);
-      if (diffMins < 0) return '';
-      if (diffMins < 60) return `${diffMins} mnt`;
-      const hours = Math.floor(diffMins / 60);
-      const mins = diffMins % 60;
-      return `${hours}j ${mins}m`;
-    } catch {
-      return '';
-    }
-  };
-
   // Filtered list & Category Counts
   const categoryCounts = useMemo(() => {
     const counts = { all: appActivities.length, login: 0, navigasi: 0, kbm: 0, file: 0 };
@@ -391,7 +396,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           </div>
         </div>
 
-        {/* â”€â”€ Feed List â”€â”€ */}
+        {/* ── Feed List ── */}
         <div className="divide-y divide-slate-100 my-1.5">
           {paginatedLogs.length === 0 ? (
             <div className="py-8 text-center text-slate-400 font-semibold text-xs">
@@ -417,53 +422,59 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   const homeroomClass = classes.find(c => String(c.homeroom).toLowerCase() === String(foundTeacher.code).toLowerCase());
                   if (homeroomClass) {
                     isWaliKelas = true;
-                    waliKelasLabel = `Wali ${homeroomClass.name}`;
+                    waliKelasLabel = `Wali ${homeroomClass.name || homeroomClass.id}`;
                   }
                 }
               }
 
               return (
                 <div 
-                  key={item.id || idx} 
-                  className="py-1.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-2 group"
+                  key={item.id || idx}
+                  className="py-2.5 flex items-center justify-between gap-3 group hover:bg-slate-50/80 -mx-2 px-2 rounded-lg transition-colors"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-xs`}>
+                  {/* Kiri: Avatar & Info */}
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-2xs group-hover:bg-white transition-colors">
                       {userInitial}
                     </div>
-                    <div className="min-w-0">
+
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-xs font-black text-slate-800 truncate">
+                        <span className="text-xs font-black text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[200px]">
                           {userName}
-                        </p>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border ${roleMeta.bg}`}>
+                        </span>
+                        
+                        <span className={`text-[9px] font-extrabold px-1.5 py-[0.5px] rounded border ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
+
                         {isWaliKelas && (
-                          <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border bg-amber-100/80 text-amber-700 border-amber-200/60 shadow-xs`}>
+                          <span className="text-[9px] font-black px-1.5 py-[0.5px] rounded bg-amber-50 text-amber-700 border border-amber-200">
                             {waliKelasLabel}
                           </span>
                         )}
                       </div>
-                      <p className="text-[10.5px] text-slate-600 font-semibold mt-0.5 truncate max-w-md">
+
+                      <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5" title={item.detail}>
                         {item.detail}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-xs ${meta.bg}`}>
-                      <Icon size={11} className={meta.color} />
+                  {/* Kanan: Badge Aksi & Timestamp */}
+                  <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+                    <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full border whitespace-nowrap ${meta.bg}`}>
+                      <Icon size={10} className={meta.color} />
                       {meta.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-slate-400 text-right">
-                      {formatLogTime(item.timestamp)}
-                      {meta.category === 'login' && (
-                        <span className="block text-[9px] text-emerald-600/90 font-semibold tracking-tighter mt-0.5">
-                          Aktif: {getDuration(item.timestamp)}
+                    <div className="flex items-center gap-1 text-[9.5px] text-slate-400 font-semibold whitespace-nowrap">
+                      <span>{formatLogTime(item.timestamp)}</span>
+                      {getDuration(item.timestamp) && (
+                        <span className="text-[9px] text-slate-400 font-normal">
+                          · Aktif: {getDuration(item.timestamp)}
                         </span>
                       )}
-                    </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -472,9 +483,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         </div>
       </div>
 
-      {/* â”€â”€ Footer & Pagination â”€â”€ */}
-      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between mt-auto">
-        <span className="text-[10px] text-slate-400 font-medium">
+      {/* ── Footer Pagination & Audit Log Link ── */}
+      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs mt-1">
+        <span className="text-[10px] font-bold text-slate-400">
           Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
         </span>
 
@@ -482,17 +493,21 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           {totalPages > 1 && (
             <div className="flex items-center gap-1">
               <button
-                disabled={currentPage === 1}
+                type="button"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="px-2 py-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-control)] disabled:opacity-40 cursor-pointer"
+                disabled={currentPage === 1}
+                className="px-2 py-0.5 text-[10px] font-bold rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Prev
               </button>
-              <span className="text-[10px] font-bold text-slate-600 px-1">{currentPage} / {totalPages}</span>
+              <span className="text-[10px] font-bold text-slate-500 px-1">
+                {currentPage} / {totalPages}
+              </span>
               <button
-                disabled={currentPage === totalPages}
+                type="button"
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className="px-2 py-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-control)] disabled:opacity-40 cursor-pointer"
+                disabled={currentPage === totalPages}
+                className="px-2 py-0.5 text-[10px] font-bold rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next
               </button>
@@ -503,10 +518,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             <button
               type="button"
               onClick={() => onNavigateTab('keamanan')}
-              className="text-xs text-[var(--ui-primary)] hover:underline font-black flex items-center gap-0.5 cursor-pointer ml-1"
+              className="text-[10.5px] font-black text-[var(--ui-primary)] hover:underline flex items-center gap-0.5 cursor-pointer ml-1"
             >
-              Audit Log Lengkap
-              <ChevronRight size={13} />
+              Audit Log Lengkap <ChevronRight size={12} />
             </button>
           )}
         </div>
