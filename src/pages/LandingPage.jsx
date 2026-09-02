@@ -500,9 +500,9 @@ export default function LandingPage() {
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
       <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-white overflow-hidden select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - PROPORSI COMPACT & ELEGAN DENGAN BACKGROUND GAMBAR SEKOLAH) */}
+        {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
-          className="relative w-full h-[36%] min-h-[200px] max-h-[260px] sm:h-[40%] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
+          className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
         >
           {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
           <img 
@@ -518,21 +518,26 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Scrim Overlay Lembut: Melindungi keterbacaan teks tanpa menutupi gambar gedung sekolah */}
+          {/* Transparent Green Gradient Overlay: Menambahkan gradien hijau transparan elegan pada background sekolah */}
           <div 
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
+              background: 'linear-gradient(180deg, rgba(15, 60, 20, 0.62) 0%, rgba(40, 130, 36, 0.42) 36%, rgba(61, 170, 55, 0.52) 70%, rgba(6, 50, 20, 0.88) 100%)'
             }}
           />
 
-          {/* Logo Sekolah di Tengah Header */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-4">
+          {/* Logo Sekolah & Teks Singkat Penjelasan Aplikasi di Tengah Header */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-3 pb-8">
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
-              className="w-40 sm:w-48 max-h-28 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
+              className="w-38 sm:w-46 max-h-26 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
             />
+
+            {/* Teks Singkat Penjelasan Aplikasi */}
+            <p className="text-xs sm:text-[13px] font-semibold text-white/95 text-center max-w-[280px] sm:max-w-[320px] leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mt-2.5 px-2">
+              {cleanHeroSubtitle}
+            </p>
           </div>
 
           {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
@@ -540,7 +545,7 @@ export default function LandingPage() {
             <svg 
               viewBox="0 0 100 24" 
               preserveAspectRatio="none" 
-              className="w-full h-7 sm:h-9 fill-white block"
+              className="w-full h-8 sm:h-10 fill-white block"
               style={{ shapeRendering: 'geometricPrecision' }}
             >
               <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
@@ -549,13 +554,13 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK & SLIDE JURUSAN (NAIK KE ATAS & LEGA) */}
-        <div className="relative w-full flex-1 bg-white px-5 pt-1 pb-[86px] sm:pb-[94px] overflow-y-auto flex flex-col justify-start items-center z-30 -mt-[1px]">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEJAJAR PERSIS DENGAN TOMBOL AKSI DI BAWAH) */}
+        <div className="relative w-full h-[46%] flex-1 bg-white px-5 pt-1 pb-[84px] sm:pb-[92px] flex flex-col justify-center items-center z-30 -mt-[1px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
             {/* Judul: Layanan Publik + Ikon Info */}
-            <div className="flex items-center justify-center gap-1.5 mb-2.5 sm:mb-3">
+            <div className="flex items-center justify-center gap-1.5 mb-3 sm:mb-4">
               <span 
                 className="text-xs sm:text-sm font-black uppercase tracking-wider"
                 style={{ color: '#2b8726' }}
@@ -583,7 +588,7 @@ export default function LandingPage() {
               const rows = [gridServices.slice(0, 4), gridServices.slice(4, 8)];
 
               return (
-                <div className="w-full flex flex-col gap-y-3 sm:gap-y-4">
+                <div className="w-full flex flex-col gap-y-4 sm:gap-y-5">
                   {rows.map((row, rowIdx) => (
                     <div key={rowIdx} className="w-full flex items-start justify-between">
                       {row.map((service, idx) => {
@@ -601,20 +606,20 @@ export default function LandingPage() {
                                 navigate(service.path);
                               }
                             }}
-                            className="flex flex-col items-center gap-1 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[64px]"
+                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[64px]"
                           >
                             {/* Desain Icon Card Sesuai Desktop - Lebar Penuh Item */}
                             <div 
-                              className="w-[54px] h-[54px] sm:w-[62px] sm:h-[62px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
+                              className="w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
                               style={{ 
                                 backgroundColor: hexToRgba(activeColor, 0.08),
                                 border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
                               }}
                             >
                               {service.customIcon ? (
-                                <img src={service.customIcon} alt="" className="w-6.5 h-6.5 object-contain" />
+                                <img src={service.customIcon} alt="" className="w-7 h-7 object-contain" />
                               ) : (
-                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-6.5 h-6.5 object-contain" />
+                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-7 h-7 object-contain" />
                               )}
                             </div>
                             <span className="text-[10.5px] sm:text-xs font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
@@ -628,94 +633,6 @@ export default function LandingPage() {
                 </div>
               );
             })()}
-
-            {/* Slide Jurusan / Program Keahlian Unggulan */}
-            <div className="w-full mt-4 sm:mt-5">
-              <div className="flex items-center justify-between mb-2 px-0.5">
-                <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-700">
-                  {appSettings.trustedByText || "Program Keahlian"}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-0.5">
-                  Geser &rarr;
-                </span>
-              </div>
-
-              {/* Horizontal Scroll Carousel for Jurusan */}
-              <div className="w-full flex gap-2.5 overflow-x-auto no-scrollbar snap-x pb-2 pt-0.5 -mx-1 px-1">
-                {(() => {
-                  const configuredMajors = [1, 2, 3, 4].map(idx => ({
-                    name: appSettings[`partner${idx}`],
-                    desc: appSettings[`partnerDesc${idx}`],
-                    color: appSettings[`partnerColor${idx}`],
-                    icon: appSettings[`partnerIcon${idx}`],
-                    image: appSettings[`partnerImage${idx}`]
-                  })).filter(m => !!m.name);
-
-                  const defaultMajors = [
-                    { name: "Teknik Komputer & Jaringan", desc: "Jaringan, server, cloud & cybersecurity", color: "blue", icon: "wifi" },
-                    { name: "Rekayasa Perangkat Lunak", desc: "Software, web & mobile app engineering", color: "emerald", icon: "monitor" },
-                    { name: "Teknik Kendaraan Ringan", desc: "Otomotif modern, kelistrikan & mesin injeksi", color: "orange", icon: "palette" },
-                    { name: "Teknik Pemesinan", desc: "Fabrikasi presisi tinggi, bubut & mesin CNC", color: "purple", icon: "book" }
-                  ];
-
-                  const activeMajors = configuredMajors.length > 0 ? configuredMajors : defaultMajors;
-
-                  const colorGradients = {
-                    blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
-                    emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                    green: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                    orange: "bg-gradient-to-br from-amber-500 to-orange-600",
-                    purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
-                    red: "bg-gradient-to-br from-rose-500 to-rose-600",
-                    cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
-                    pink: "bg-gradient-to-br from-rose-500 to-pink-600"
-                  };
-
-                  return activeMajors.map((major, idx) => {
-                    const isHex = major.color && major.color.startsWith('#');
-                    const bgClass = isHex ? '' : (colorGradients[major.color] || colorGradients.emerald);
-                    const IconComponent = ICON_MAP[major.icon] || BookOpen;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`w-[205px] sm:w-[225px] shrink-0 snap-start rounded-2xl p-3.5 shadow-sm text-white relative overflow-hidden flex flex-col justify-between min-h-[92px] select-none ${bgClass}`}
-                        style={isHex ? { backgroundColor: major.color } : {}}
-                      >
-                        {/* Glow ambient */}
-                        <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/15 rounded-full blur-md pointer-events-none" />
-
-                        {/* Top row: badge & icon */}
-                        <div className="flex items-center justify-between mb-1.5 relative z-10">
-                          <span className="text-[9px] font-black uppercase tracking-wider text-white/80 px-2 py-0.5 rounded-full bg-black/15">
-                            Keahlian 0{idx + 1}
-                          </span>
-                          <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center">
-                            {major.image ? (
-                              <img src={major.image} alt={major.name} className="w-4 h-4 object-contain" />
-                            ) : (
-                              <IconComponent size={14} strokeWidth={2.3} className="text-white" />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Bottom: name & desc */}
-                        <div className="relative z-10">
-                          <h4 className="text-xs font-black text-white leading-tight uppercase line-clamp-1 drop-shadow-xs">
-                            {major.name}
-                          </h4>
-                          {major.desc && (
-                            <p className="text-[9.5px] text-white/85 line-clamp-1 mt-0.5 leading-snug">
-                              {major.desc}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
 
           </div>
 
