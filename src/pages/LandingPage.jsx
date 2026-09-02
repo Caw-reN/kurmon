@@ -501,25 +501,36 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain Mockup) */}
-      <div className="md:hidden flex flex-col w-full pb-24 bg-slate-50 min-h-screen">
+      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain & Kustomisasi CSS Web) */}
+      <div className="md:hidden flex flex-col w-full pb-28 bg-[var(--ui-bg,#f8fafc)] min-h-screen relative">
 
         {/* 1. TOP HEADER BAR (Mobile) */}
-        <header className="w-full bg-white/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
+        <header className="w-full bg-[var(--ui-card-bg,white)]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
           <div className="flex items-center gap-2.5">
             {appSettings.logoUrl ? (
-              <div className="w-9 h-9 rounded-xl bg-emerald-700 flex items-center justify-center p-1 shadow-xs">
+              <div 
+                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex items-center justify-center p-1 shadow-xs"
+                style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
+              >
                 <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex flex-col items-center justify-center text-white shadow-xs leading-none">
+              <div 
+                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex flex-col items-center justify-center text-white shadow-xs leading-none"
+                style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
+              >
                 <span className="text-[7.5px] font-black opacity-80">SMK</span>
-                <span className="text-[10.5px] font-black">KG2</span>
+                <span className="text-[10.5px] font-black">{appSettings.logoText || "KG2"}</span>
               </div>
             )}
             <div className="flex flex-col text-left">
               <span className="text-[13px] font-black text-slate-800 leading-tight">Sistem Informasi</span>
-              <span className="text-[11px] font-bold text-emerald-600 leading-tight">Karya Guna 2</span>
+              <span 
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: 'var(--ui-primary, #059669)' }}
+              >
+                {appSettings.appName || "Karya Guna 2"}
+              </span>
             </div>
           </div>
 
@@ -535,28 +546,29 @@ export default function LandingPage() {
 
         {/* 2. GREEN HERO CARD */}
         <div
-          className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-14 overflow-hidden"
+          className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-16 overflow-hidden"
           style={{
-            background: 'linear-gradient(180deg, #0e5b38 0%, #064528 100%)'
+            background: 'linear-gradient(180deg, var(--ui-primary, #0e5b38) 0%, color-mix(in srgb, var(--ui-primary, #0e5b38) 65%, #000) 100%)'
           }}
         >
-          {/* Subtle Ambient Light */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+          {/* Subtle Ambient Glow */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/15 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12" />
 
           {/* Capsule Tag: TAHUN AJARAN 2026/2027 */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/25 backdrop-blur-md border border-white/20 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>Tahun Ajaran 2026/2027</span>
           </div>
 
           {/* Big Bold Headline */}
           <div className="text-left relative z-10">
-            <h1 className="text-[30px] font-black leading-[1.12] tracking-tight">
+            <h1 className="text-[30px] sm:text-[34px] font-black leading-[1.12] tracking-tight">
               <span className="text-white block">Portal Pintar</span>
-              <span className="text-emerald-300 block">Karya Guna 2.</span>
+              <span className="text-emerald-300 block">{appSettings.appName || "Karya Guna 2."}</span>
             </h1>
-            <p className="text-white/85 text-[12.5px] font-medium leading-relaxed mt-2.5 max-w-[310px]">
-              Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman.
+            <p className="text-white/85 text-[12.5px] sm:text-[13px] font-medium leading-relaxed mt-2.5 max-w-[310px]">
+              {cleanHeroSubtitle || "Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman."}
             </p>
           </div>
 
@@ -564,7 +576,10 @@ export default function LandingPage() {
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            className="w-full mt-5 py-3.5 px-6 rounded-2xl bg-[#16a34a] hover:bg-[#15803d] active:scale-98 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 cursor-pointer transition-all relative z-10"
+            className="w-full mt-6 py-3.5 px-6 rounded-[var(--ui-radius-control,16px)] text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-black/20 cursor-pointer transition-all active:scale-98 relative z-10 hover:brightness-110"
+            style={{
+              backgroundColor: 'var(--ui-primary-button, var(--ui-primary, #16a34a))'
+            }}
           >
             <span>Masuk Portal Aplikasi</span>
             <ArrowRight size={17} />
@@ -572,10 +587,10 @@ export default function LandingPage() {
         </div>
 
         {/* 3. CARD "AKSES CEPAT" (Floating Overlapping Card) */}
-        <div className="mx-4 -mt-8 bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/60 border border-slate-100 relative z-20 select-none">
-          <h3 className="text-sm font-black text-slate-800 tracking-tight text-left mb-4">Akses Cepat</h3>
+        <div className="mx-4 -mt-8 bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 shadow-[var(--ui-card-shadow,0_10px_25px_rgba(0,0,0,0.06))] border border-slate-100 relative z-20 select-none">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight text-left mb-3.5">Akses Cepat</h3>
           
-          <div className="grid grid-cols-4 gap-y-4 gap-x-2 text-center">
+          <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 text-center">
             {[
               { label: 'Jadwal', icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50', path: '/jadwal' },
               { label: 'Denah', icon: MapPin, color: 'text-amber-500', bg: 'bg-amber-50', path: '/denah' },
@@ -598,10 +613,10 @@ export default function LandingPage() {
                       navigate(item.path);
                     }
                   }}
-                  className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group"
+                  className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group py-1"
                 >
-                  <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
-                    <IconComp size={21} strokeWidth={2.2} />
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small,14px)] ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
+                    <IconComp size={20} strokeWidth={2.2} />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700 tracking-tight leading-none text-center truncate w-full">
                     {item.label}
@@ -659,10 +674,10 @@ export default function LandingPage() {
                 color: 'from-indigo-700 to-purple-900',
                 badgeBg: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
               }
-            ].map((major, idx) => (
+            ].map((major) => (
               <div
                 key={major.id}
-                className={`relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-r ${major.color} shadow-sm border border-white/10 flex flex-col justify-between`}
+                className={`relative overflow-hidden rounded-[var(--ui-radius-card,18px)] p-4 text-white bg-gradient-to-r ${major.color} shadow-xs border border-white/10 flex flex-col justify-between`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{major.code}</span>
@@ -677,66 +692,79 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 5. FLOATING MOBILE BOTTOM NAVIGATION BAR */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-4 py-1.5 flex items-center justify-around shadow-2xl">
-          
-          {/* Tab 1: Beranda */}
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex flex-col items-center justify-center gap-0.5 text-emerald-600 font-black cursor-pointer py-1"
-          >
-            <Home size={20} strokeWidth={2.5} />
-            <span className="text-[10px] leading-none">Beranda</span>
-            <span className="w-1 h-1 rounded-full bg-emerald-600 mt-0.5" />
-          </button>
-
-          {/* Tab 2: Jadwal */}
-          <button
-            type="button"
-            onClick={() => navigate('/jadwal')}
-            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
-          >
-            <Calendar size={20} strokeWidth={2} />
-            <span className="text-[10px] leading-none">Jadwal</span>
-            <span className="w-1 h-1 opacity-0 mt-0.5" />
-          </button>
-
-          {/* Center FAB: Masuk / Portal */}
-          <div className="relative -top-4">
+        {/* 5. FLOATING MOBILE BOTTOM NAVIGATION BAR (Tanpa Tabrakan) */}
+        <nav 
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 px-2 pt-1.5 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}
+        >
+          <div className="grid grid-cols-5 items-center w-full max-w-md mx-auto">
+            
+            {/* 1. Tab: Beranda */}
             <button
               type="button"
-              onClick={() => setIsLoginModalOpen(true)}
-              className="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 flex items-center justify-center border-4 border-white active:scale-95 transition-transform cursor-pointer"
-              title="Masuk ke Portal Aplikasi"
-              aria-label="Masuk ke Portal Aplikasi"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex flex-col items-center justify-center gap-0.5 font-black cursor-pointer py-1"
+              style={{ color: 'var(--ui-primary, #059669)' }}
             >
-              <LogIn size={20} strokeWidth={2.5} />
+              <Home size={19} strokeWidth={2.5} />
+              <span className="text-[10px] leading-none font-extrabold">Beranda</span>
+              <span 
+                className="w-1.5 h-1.5 rounded-full mt-0.5" 
+                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+              />
             </button>
+
+            {/* 2. Tab: Jadwal */}
+            <button
+              type="button"
+              onClick={() => navigate('/jadwal')}
+              className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+            >
+              <Calendar size={19} strokeWidth={2} />
+              <span className="text-[10px] leading-none">Jadwal</span>
+              <span className="w-1.5 h-1.5 opacity-0 mt-0.5" />
+            </button>
+
+            {/* 3. Center FAB: Masuk / Portal */}
+            <div className="flex flex-col items-center justify-center relative -top-3">
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center border-[3.5px] border-white active:scale-95 transition-transform cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--ui-primary, #059669)',
+                  boxShadow: '0 8px 20px -4px rgba(5, 150, 105, 0.45)'
+                }}
+                title="Masuk ke Portal Aplikasi"
+                aria-label="Masuk ke Portal Aplikasi"
+              >
+                <LogIn size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* 4. Tab: Bantuan */}
+            <button
+              type="button"
+              onClick={handleFeedbackClick}
+              className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+            >
+              <HelpCircle size={19} strokeWidth={2} />
+              <span className="text-[10px] leading-none">Bantuan</span>
+              <span className="w-1.5 h-1.5 opacity-0 mt-0.5" />
+            </button>
+
+            {/* 5. Tab: Menu */}
+            <button
+              type="button"
+              onClick={() => setShowPublicGuide(true)}
+              className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+            >
+              <MenuIcon size={19} strokeWidth={2} />
+              <span className="text-[10px] leading-none">Menu</span>
+              <span className="w-1.5 h-1.5 opacity-0 mt-0.5" />
+            </button>
+
           </div>
-
-          {/* Tab 3: Bantuan */}
-          <button
-            type="button"
-            onClick={handleFeedbackClick}
-            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
-          >
-            <HelpCircle size={20} strokeWidth={2} />
-            <span className="text-[10px] leading-none">Bantuan</span>
-            <span className="w-1 h-1 opacity-0 mt-0.5" />
-          </button>
-
-          {/* Tab 4: Menu */}
-          <button
-            type="button"
-            onClick={() => setShowPublicGuide(true)}
-            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
-          >
-            <MenuIcon size={20} strokeWidth={2} />
-            <span className="text-[10px] leading-none">Menu</span>
-            <span className="w-1 h-1 opacity-0 mt-0.5" />
-          </button>
-
         </nav>
 
       </div>
