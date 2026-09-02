@@ -3783,14 +3783,14 @@ const server = createServer(async (req, res) => {
           const limit = parseInt(url.searchParams?.get("limit") || "50");
           const offset = (page - 1) * limit;
           
-          let query = "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2";
-          let countQuery = "SELECT COUNT(*) FROM audit_logs";
+          let query = "SELECT * FROM audit_logs WHERE user_role != 'system' ORDER BY created_at DESC LIMIT $1 OFFSET $2";
+          let countQuery = "SELECT COUNT(*) FROM audit_logs WHERE user_role != 'system'";
           let params = [limit, offset];
           let countParams = [];
 
           if (!isUserAdmin) {
-            query = "SELECT * FROM audit_logs WHERE NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN') ORDER BY created_at DESC LIMIT $1 OFFSET $2";
-            countQuery = "SELECT COUNT(*) FROM audit_logs WHERE NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
+            query = "SELECT * FROM audit_logs WHERE user_role != 'system' AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN') ORDER BY created_at DESC LIMIT $1 OFFSET $2";
+            countQuery = "SELECT COUNT(*) FROM audit_logs WHERE user_role != 'system' AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
           }
 
           const { rows } = await dbPool.query(query, params);
