@@ -342,6 +342,7 @@ export default function AdminContentRouter({ context }) {
       case"kalender":
       case"kalender_akademik":
         return <TabAkademik {...tabProps} />;
+      case"datasiswa":
       case"siswa":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Data...
@@ -360,6 +361,7 @@ export default function AdminContentRouter({ context }) {
         </div>}>
           <MasterDataJurusan majors={majors} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} />
         </Suspense>;
+      case "dataguru":
       case "data_pegawai":
       case "guru":
       case "karyawan":
