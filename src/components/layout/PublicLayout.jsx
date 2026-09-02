@@ -4,7 +4,7 @@ import { Home, CalendarDays, Map, BookOpen, Calendar, Building2 } from'lucide-re
 import { subscribeDatabaseSnapshot } from'../../utils/dataSource.js';
 import { loadInitialState } from'../../utils/state.js';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ChevronLeft, MessageSquare } from 'lucide-react';
+import { ChevronLeft, MessageSquare, HelpCircle, X, Info, Mail } from 'lucide-react';
 import HeaderNavbar from'./HeaderNavbar.jsx';
 
 
@@ -15,6 +15,7 @@ export default function PublicLayout() {
   const [scrolled, setScrolled] = useState(false);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showPublicHelp, setShowPublicHelp] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -84,6 +85,13 @@ export default function PublicLayout() {
 
   const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
   const accentDark = accentColor ||"#a3e635";
+
+  const getWaLink = () => {
+    const phone = contactPhone || "+62 123-456-789";
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+    return `https://wa.me/${waNumber}?text=Halo%20Admin%2C%20saya%20butuh%20bantuan%20terkait%20aplikasi%20${encodeURIComponent(appName || 'Sistem Akademik')}...`;
+  };
 
   const handleFeedbackClick = () => {
     const cleanPhone = String(contactPhone ||"6281234567890").replace(/\D/g,'');
@@ -182,62 +190,46 @@ export default function PublicLayout() {
       })()}
 
       {/* MAIN CONTENT AREA (Sejajar Persis dengan HeaderNavbar) */}
-      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-4 sm:px-6 md:px-8 min-[1400px]:px-0 pt-20 sm:pt-28 pb-24 md:pb-12'}`}>
+      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-4 sm:px-6 md:px-8 min-[1400px]:px-0 pt-20 sm:pt-28 pb-28 md:pb-12'}`}>
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (Sesuai Desain Landing - 5 Menu Publik Tanpa Beranda) */}
+      {/* MOBILE BOTTOM ACTION BAR (Sama Persis dengan Landing Page Mobile: Masuk Sekarang & Bantuan) */}
       {location.pathname !== '/' && (
-        <nav 
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 py-2 px-3 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] print:hidden transition-all"
-          style={{
-            paddingBottom: 'max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem))'
-          }}
-          role="navigation"
-          aria-label="Navigasi Layanan Publik"
-        >
-          <div className="flex items-center justify-around gap-1 max-w-md mx-auto">
-            {publicLinks.map((l) => {
-              const IconComponent = l.icon;
-              const isActive = location.pathname === l.to;
-              const shortLabel = l.label === 'Tempat PKL' ? 'PKL' :
-                                 l.label === 'Materi Ajar' ? 'Materi' :
-                                 l.label === 'Modul Ajar' ? 'Ajar' : l.label;
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none border-t border-slate-100/80 shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
+          <div className="w-full max-w-md mx-auto flex items-center gap-3">
+            {/* Tombol Pertama: Masuk Sekarang */}
+            <button
+              type="button"
+              onClick={() => setIsLoginModalOpen(true)}
+              style={{ backgroundColor: appSettings.primaryColor || '#3DAA37' }}
+              className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-90 cursor-pointer border-none"
+            >
+              Masuk Sekarang
+            </button>
 
-              return (
-                <Link 
-                  key={l.to} 
-                  to={l.to} 
-                  className="flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1 no-underline select-none active:scale-95"
-                  style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#94a3b8' }}
-                >
-                  <div 
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
-                    style={isActive ? {
-                      backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 14%, transparent)',
-                      color: 'var(--ui-primary, #059669)',
-                      transform: 'scale(1.05)'
-                    } : {
-                      color: '#94a3b8'
-                    }}
-                  >
-                    <IconComponent 
-                      size={21} 
-                      style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#94a3b8' }} 
-                    />
-                  </div>
-                  <span 
-                    className={`text-[11.5px] leading-none text-center truncate w-full ${isActive ? 'font-black' : 'font-semibold'}`}
-                    style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#64748b' }}
-                  >
-                    {shortLabel}
-                  </span>
-                </Link>
-              );
-            })}
+            {/* Tombol Kedua: Bantuan */}
+            <button
+              type="button"
+              onClick={() => setShowPublicHelp(true)}
+              title="Bantuan & Panduan"
+              style={{ backgroundColor: appSettings.primaryColor || '#3DAA37' }}
+              className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-90 cursor-pointer border-none"
+            >
+              <HelpCircle size={23} strokeWidth={2.3} />
+            </button>
           </div>
-        </nav>
+        </div>
       )}
+
+      {/* PUBLIC HELP BOTTOM SHEET (Bisa diakses dari tombol bantuan di setiap menu) */}
+      <PublicHelpModal
+        isOpen={showPublicHelp}
+        onClose={() => setShowPublicHelp(false)}
+        contactPhone={contactPhone}
+        contactEmail={contactEmail}
+        getWaLink={getWaLink}
+      />
 
       {/* CTA BANNER (Hidden on homepage) */}
       {location.pathname !== '/' && (
@@ -352,3 +344,124 @@ export default function PublicLayout() {
     </div>
   );
 }
+
+// ── Bantuan bottom sheet modal component for mobile view
+const PublicHelpModal = ({ isOpen, onClose, contactPhone, contactEmail, getWaLink }) => {
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+
+  if (!isOpen) return null;
+
+  const faqs = [
+    {
+      q: "Bagaimana cara masuk ke sistem?",
+      a: "Klik tombol \"Masuk Sekarang\" di bar bawah (atau tombol \"Masuk\" di pojok kanan atas untuk desktop), lalu gunakan username dan password resmi yang diberikan oleh administrator sekolah."
+    },
+    {
+      q: "Lupa password atau tidak bisa login?",
+      a: "Silakan hubungi administrator IT sekolah atau wali kelas Anda untuk mereset password akun Anda."
+    },
+    {
+      q: "Apakah jadwal pelajaran real-time?",
+      a: "Ya, setiap perubahan jadwal piket, guru pengganti, atau perubahan kelas yang dilakukan oleh admin kurikulum akan langsung diperbarui seketika di portal ini."
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-300 p-0 md:p-4 text-left">
+      <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose} />
+
+      <div className="bg-white rounded-t-[28px] md:rounded-[var(--ui-radius-card,24px)] w-full max-w-md md:max-w-xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10 max-h-[85vh]">
+        <div className="w-12 h-1.5 bg-slate-200 hover:bg-slate-300 rounded-full mx-auto my-3 shrink-0 md:hidden cursor-pointer" onClick={onClose} />
+
+        <div className="px-6 pb-3 pt-2 md:pt-6 flex items-center justify-between">
+          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">Hubungi &amp; Bantuan</span>
+          <button onClick={onClose} className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none">
+            <X size={16} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div className="px-6 py-4 space-y-5 overflow-y-auto custom-scrollbar select-text max-h-[55vh]">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-4 text-indigo-800 flex items-start gap-2.5">
+            <Info size={16} className="shrink-0 mt-0.5" style={{ color:'#1d4ed8' }} />
+            <p className="leading-relaxed font-semibold text-left text-indigo-900 text-[11.5px]">
+              Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pertanyaan Umum (FAQ)</p>
+            <div className="space-y-2">
+              {faqs.map((faq, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div key={idx} className="border border-slate-100 rounded-[var(--ui-radius-small)] overflow-hidden bg-slate-50/40 text-left transition-all">
+                    <button
+                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                      className="w-full px-4 py-3.5 flex items-center justify-between bg-transparent border-none text-slate-800 font-extrabold text-[12px] cursor-pointer hover:bg-slate-100/50 transition-colors"
+                    >
+                      <span className="text-left leading-tight pr-4">{faq.q}</span>
+                      <ChevronLeft 
+                        size={15} 
+                        className={`text-slate-400 transition-transform duration-350 ${isOpen ? '-rotate-90' : 'rotate-180'}`} 
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 text-[11.5px] font-medium text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hubungi Admin Sekolah</p>
+            
+            {contactPhone && (
+              <a 
+                href={getWaLink ? getWaLink() : '#'} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+              >
+                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                  <MessageSquare size={16} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <p className="font-extrabold text-[12px] text-slate-800 leading-none mb-1">WhatsApp Admin</p>
+                  <p className="text-[10.5px] font-bold text-slate-400 leading-none">{contactPhone}</p>
+                </div>
+              </a>
+            )}
+
+            {contactEmail && (
+              <a 
+                href={`mailto:${contactEmail}`}
+                className="flex items-center gap-3 p-3 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-[var(--ui-radius-small)] transition-all text-slate-700 no-underline cursor-pointer group"
+              >
+                <div className="w-8.5 h-8.5 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                  <Mail size={16} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <p className="font-extrabold text-[12px] text-slate-800 leading-none mb-1">Email Layanan</p>
+                  <p className="text-[10.5px] font-bold text-slate-400 leading-none">{contactEmail}</p>
+                </div>
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <button 
+            onClick={onClose}
+            className="w-full h-11 flex items-center justify-center cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
