@@ -1203,7 +1203,7 @@ const StudentIllustration = () => (
 
 // TeacherStudentIllustration is now imported from src/components/TeacherStudentIllustration.jsx
 
-// ── Interactive Public Guide Modal matching the theme
+// ── Interactive Public Guide Modal matching the modern theme
 const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginModalOpen }) => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -1211,89 +1211,127 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
 
   const steps = [
     {
-      tabLabel:"Jadwal",
-      svgIcon:"060-calendar.svg",
+      tabLabel: "Jadwal",
+      svgIcon: "060-calendar.svg",
       tabIcon: CalendarDays,
-      title:"1. Cek Jadwal Pelajaran",
-      desc:"Tekan menu 'Jadwal Pelajaran' untuk melihat jadwal KBM aktif secara real-time. Pilih hari dan kelas untuk menyesuaikan.",
-      color:"#D97706", // Orange
-      actionLabel:"Buka Jadwal Pelajaran",
+      title: "1. Cek Jadwal Pelajaran",
+      desc: "Tekan menu 'Jadwal Pelajaran' untuk melihat jadwal KBM aktif secara real-time. Pilih hari dan kelas untuk menyesuaikan.",
+      color: "#D97706",
+      actionLabel: "Buka Jadwal Pelajaran",
       action: () => { navigate("/jadwal"); onClose(); }
     },
     {
-      tabLabel:"Denah",
-      svgIcon:"016-map pin.svg",
+      tabLabel: "Denah",
+      svgIcon: "016-map pin.svg",
       tabIcon: MapPin,
-      title:"2. Cari Denah Kelas & Ruang",
-      desc:"Gunakan menu 'Denah Kelas' untuk melihat tata letak ruang kelas, lab, bengkel, dan kantor secara interaktif di sekolah.",
-      color:"#0284C7", // Blue
-      actionLabel:"Buka Denah Kelas",
+      title: "2. Cari Denah Kelas & Ruang",
+      desc: "Gunakan menu 'Denah Kelas' untuk melihat tata letak ruang kelas, lab, bengkel, dan kantor secara interaktif di sekolah.",
+      color: "#0284C7",
+      actionLabel: "Buka Denah Kelas",
       action: () => { navigate("/denah"); onClose(); }
     },
     {
-      tabLabel:"Materi",
-      svgIcon:"066-education.svg",
+      tabLabel: "Materi",
+      svgIcon: "066-education.svg",
       tabIcon: BookOpenText,
-      title:"3. Akses Materi Ajar",
-      desc:"Temukan materi belajar dari guru langsung di 'Materi Ajar' — unduh PDF atau buka link video/Google Drive kapan saja.",
-      color:"#7C3AED", // Purple
-      actionLabel:"Buka Materi Ajar",
+      title: "3. Akses Materi Ajar",
+      desc: "Temukan materi belajar dari guru langsung di 'Materi Ajar' — unduh PDF atau buka link video/Google Drive kapan saja.",
+      color: "#7C3AED",
+      actionLabel: "Buka Materi Ajar",
       action: () => { navigate("/materi-ajar"); onClose(); }
     },
     {
-      tabLabel:"Portal",
-      svgIcon:"033-padlock.svg",
+      tabLabel: "Portal",
+      svgIcon: "033-padlock.svg",
       tabIcon: Lock,
-      title:"4. Masuk ke Portal Internal",
-      desc:"Bagi guru, siswa, dan staf, masuk menggunakan username & password resmi untuk melakukan absensi, piket, atau hubin.",
-      color:"#15803D", // Green
-      actionLabel:"Masuk Portal Sekarang",
+      title: "4. Masuk ke Portal Internal",
+      desc: "Bagi guru, siswa, dan staf, masuk menggunakan username & password resmi untuk melakukan absensi, piket, atau hubin.",
+      color: "#3DAA37",
+      actionLabel: "Masuk Portal Sekarang",
       action: () => { setIsLoginModalOpen(true); onClose(); }
     }
   ];
 
+  const current = steps[activeStep];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-900/80 animate-in fade-in duration-300 p-0 md:p-4 text-left">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-300 p-0 md:p-4 text-left select-none">
       {/* Backdrop overlay listener to close */}
-      <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose}></div>
+      <div className="absolute inset-0 z-0 cursor-pointer" onClick={onClose} />
 
       {/* Sheet/Modal Drawer */}
-      <div className="bg-white rounded-t-[var(--ui-radius-card)] md:rounded-[var(--ui-radius-card)] w-full max-w-md md:max-w-xl overflow-hidden shadow-xs border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
-        {/* iOS/Android drag handle bar - hidden on desktop */}
-        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto my-3 shrink-0 md:hidden"></div>
+      <div className="bg-white rounded-t-[32px] md:rounded-3xl w-full max-w-md md:max-w-lg overflow-hidden shadow-2xl border-t md:border border-slate-100 flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
+        
+        {/* iOS Drag Handle Bar */}
+        <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-1 shrink-0 md:hidden" />
 
-        {/* Header */}
-        <div className="px-6 pb-3 pt-4 md:pt-6 flex items-center justify-between">
-          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">Panduan Penggunaan</span>
-          <button onClick={onClose} className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none">
+        {/* Header with Step Badge */}
+        <div className="px-6 pt-3 pb-3 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-black text-slate-900 text-lg md:text-xl tracking-tight leading-tight">
+                Panduan Penggunaan
+              </h2>
+              <span 
+                className="text-[11px] font-black px-2.5 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: hexToRgba(current.color, 0.12),
+                  color: current.color
+                }}
+              >
+                {activeStep + 1} / {steps.length}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">
+              Kenali fitur unggulan portal sekolah
+            </p>
+          </div>
+
+          <button 
+            onClick={onClose} 
+            className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none"
+            title="Tutup"
+          >
             <X size={16} strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Tab-based Stepper Grid Row */}
-        <div className="grid grid-cols-4 gap-2.5 px-6 mb-2">
+        {/* Modern Segmented Tab Row */}
+        <div className="grid grid-cols-4 gap-2 px-5 py-2">
           {steps.map((step, i) => {
             const isActive = activeStep === i;
-            const StepIcon = step.tabIcon;
             return (
               <button
                 key={i}
+                type="button"
                 onClick={() => setActiveStep(i)}
-                className={`flex flex-col md:flex-row items-center gap-2 py-2.5 px-3 cursor-pointer border rounded-[var(--ui-radius-small)] transition-all duration-300 md:justify-center ${
+                className={`flex flex-col items-center gap-1.5 py-2 px-1.5 cursor-pointer rounded-2xl transition-all duration-200 border-none ${
                   isActive
-                    ? 'bg-slate-50 border-slate-200/80 shadow-xs'
-                    : 'bg-transparent border-transparent opacity-60 hover:opacity-100'
+                    ? 'shadow-xs scale-[1.02]'
+                    : 'opacity-55 hover:opacity-90 hover:bg-slate-50'
                 }`}
+                style={{
+                  backgroundColor: isActive ? hexToRgba(step.color, 0.1) : 'transparent',
+                  outline: isActive ? `1.5px solid ${hexToRgba(step.color, 0.35)}` : 'none'
+                }}
               >
                 <div 
-                  className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-all ${
-                    isActive ? 'bg-white shadow-xs' : 'bg-slate-100/50'
-                  }`}
-                  style={isActive ? { color: step.color } : { color: '#64748b' }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-all"
+                  style={{
+                    backgroundColor: isActive ? '#ffffff' : hexToRgba(step.color, 0.08),
+                    border: `1px solid ${hexToRgba(step.color, isActive ? 0.25 : 0.12)}`
+                  }}
                 >
-                  <StepIcon size={14} strokeWidth={2.5} />
+                  <img 
+                    src={`/icons/${step.svgIcon}`} 
+                    alt={step.tabLabel}
+                    className="w-5 h-5 object-contain"
+                  />
                 </div>
-                <span className={`text-[10.5px] font-black tracking-tight leading-none ${isActive ? 'text-slate-800' : 'text-slate-500'}`}>
+                <span 
+                  className="text-[11px] font-black tracking-tight leading-none text-center truncate w-full"
+                  style={{ color: isActive ? step.color : '#475569' }}
+                >
                   {step.tabLabel}
                 </span>
               </button>
@@ -1301,83 +1339,122 @@ const PublicGuideModal = ({ isOpen, onClose, primaryColor, navigate, setIsLoginM
           })}
         </div>
 
-        {/* Active Step Details Panel */}
-        <div className="px-6 py-4 flex flex-col gap-4 text-left">
-          <div className="bg-slate-50/40 border border-slate-100 rounded-[var(--ui-radius-card)] p-6 text-left relative overflow-hidden flex flex-col items-center text-center">
-            {/* Soft backdrop radial color glow matching active step theme */}
+        {/* Active Step Showcase Card */}
+        <div className="px-5 py-2">
+          <div 
+            className="rounded-3xl p-5 sm:p-6 text-center relative overflow-hidden flex flex-col items-center transition-all duration-300 shadow-xs border"
+            style={{
+              background: `linear-gradient(180deg, ${hexToRgba(current.color, 0.07)} 0%, #ffffff 100%)`,
+              borderColor: hexToRgba(current.color, 0.18)
+            }}
+          >
+            {/* Ambient background glow */}
             <div
-              className="absolute -top-[30%] -left-[30%] w-[150px] h-[150px] rounded-full blur-[45px] opacity-10 pointer-events-none transition-all duration-500"
-              style={{ backgroundColor: steps[activeStep].color }}
-            ></div>
+              className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
+              style={{ backgroundColor: current.color }}
+            />
 
-            {/* Glowing Icon Container */}
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center mb-3.5 shadow-sm border transition-all duration-500"
-              style={{
-                backgroundColor: `${steps[activeStep].color}12`,
-                borderColor: `${steps[activeStep].color}25`
-              }}
+            {/* Double Ring Hero Showcase Icon */}
+            <div 
+              className="w-20 h-20 rounded-3xl bg-white shadow-md p-2 flex items-center justify-center mb-3 transition-transform duration-300"
+              style={{ border: `1.5px solid ${hexToRgba(current.color, 0.2)}` }}
             >
-              {React.createElement(steps[activeStep].tabIcon, {
-                className: "w-6 h-6",
-                style: { color: steps[activeStep].color },
-                strokeWidth: 2.2
-              })}
+              <div 
+                className="w-full h-full rounded-2xl flex items-center justify-center"
+                style={{ backgroundColor: hexToRgba(current.color, 0.1) }}
+              >
+                <img 
+                  src={`/icons/${current.svgIcon}`} 
+                  alt={current.title} 
+                  className="w-9 h-9 object-contain"
+                />
+              </div>
             </div>
 
-            {/* Content info */}
-            <h3 className="text-[16px] md:text-[18px] font-black text-slate-800 tracking-tight leading-tight">{steps[activeStep].title}</h3>
-            <p className="text-[12.5px] font-medium text-slate-500 mt-2 max-w-[340px] leading-relaxed">{steps[activeStep].desc}</p>
+            {/* Title & Description */}
+            <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight leading-snug">
+              {current.title}
+            </h3>
+            <p className="text-xs sm:text-[13px] font-medium text-slate-500 mt-2 max-w-[310px] leading-relaxed">
+              {current.desc}
+            </p>
 
-            {/* Direct Action Trigger Button inside card */}
+            {/* Action Trigger Button inside card */}
             <button
-              onClick={steps[activeStep].action}
-              className="mt-4 w-full h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
+              type="button"
+              onClick={current.action}
+              className="mt-4 px-6 h-11 w-full max-w-[280px] flex items-center justify-center gap-2 cursor-pointer border-none text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-md hover:opacity-95"
               style={{
-                backgroundColor: steps[activeStep].color
+                backgroundColor: current.color,
+                boxShadow: `0 4px 14px ${hexToRgba(current.color, 0.3)}`
               }}
             >
-              <span>{steps[activeStep].actionLabel}</span>
-              <ArrowRight size={13} strokeWidth={2.5} />
+              <span>{current.actionLabel}</span>
+              <ArrowRight size={14} strokeWidth={2.5} />
             </button>
           </div>
         </div>
 
-        {/* Modal Footer Controls */}
-        <div className="px-6 pb-6 md:pb-6 pt-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/50">
-          {activeStep > 0 && (
-            <button
-              onClick={() => setActiveStep(prev => prev - 1)}
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
-            >
-              <ChevronLeft size={14} strokeWidth={2.5} />
-              <span>Kembali</span>
-            </button>
-          )}
-          {activeStep < 3 ? (
-            <button
-              onClick={() => setActiveStep(prev => prev + 1)}
-              data-slot="button"
-              data-variant="primary"
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] btn-primary-theme"
-              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
-            >
-              <span>Lanjut</span>
-              <ArrowRight size={13} strokeWidth={2.5} />
-            </button>
-          ) : (
-            <button
-              onClick={onClose}
-              data-slot="button"
-              data-variant="primary"
-              className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] btn-primary-theme"
-              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
-            >
-              <Check size={14} strokeWidth={2.5} />
-              <span>Selesai</span>
-            </button>
-          )}
+        {/* Footer Stepper Indicator & Navigation Controls */}
+        <div className="px-5 pt-3 pb-5 md:pb-6 flex flex-col gap-3 bg-white">
+          {/* 4-Step Progress Dots */}
+          <div className="flex items-center justify-center gap-1.5 py-0.5">
+            {steps.map((step, idx) => {
+              const isActive = activeStep === idx;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveStep(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                    isActive ? 'w-7' : 'w-2 bg-slate-200 hover:bg-slate-300'
+                  }`}
+                  style={{
+                    backgroundColor: isActive ? current.color : undefined
+                  }}
+                  title={`Langkah ${idx + 1}`}
+                />
+              );
+            })}
+          </div>
+
+          {/* Navigation Buttons Row */}
+          <div className="flex items-center gap-2.5">
+            {activeStep > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveStep(prev => prev - 1)}
+                className="h-12 px-4 flex items-center justify-center gap-1 cursor-pointer border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
+              >
+                <ChevronLeft size={16} strokeWidth={2.5} />
+                <span>Kembali</span>
+              </button>
+            )}
+            
+            {activeStep < 3 ? (
+              <button
+                type="button"
+                onClick={() => setActiveStep(prev => prev + 1)}
+                className="flex-1 h-12 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-md shadow-green-900/15"
+                style={{ backgroundColor: '#3DAA37' }}
+              >
+                <span>Lanjut</span>
+                <ArrowRight size={15} strokeWidth={2.5} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 h-12 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-md shadow-green-900/15"
+                style={{ backgroundColor: '#3DAA37' }}
+              >
+                <Check size={16} strokeWidth={2.5} />
+                <span>Selesai</span>
+              </button>
+            )}
+          </div>
         </div>
+
       </div>
     </div>
   );
