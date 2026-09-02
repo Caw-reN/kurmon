@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, Compass, LayoutGrid, FileText } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, Compass, LayoutGrid, FileText, CheckCircle2 } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
 
@@ -7,6 +8,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
   const teachers = useDataStore(state => state.teachers) || [];
   const staffs = useDataStore(state => state.staffs) || [];
+  const classes = useDataStore(state => state.classes) || [];
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,6 +73,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       list.push({
         id: `audit-${log.id || Math.random()}`,
         userName: log.user_name || log.user_id || 'Pengguna',
+        userId: log.user_id,
         userRole: log.user_role || 'guru',
         action: log.action || 'ACTIVITY',
         detail: det || 'Melakukan aktivitas dalam aplikasi',
@@ -264,115 +267,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     } catch {
       return dateStr;
     }
-  };
-
-  // Filtered list
-  const filteredLogs = useMemo(() => {
-    if (filterType === 'all') return appActivities;
-    return appActivities.filter(item => {
-      const meta = getActionMeta(item.action, item.detail);
-      return meta.category === filterType;
-    });
-  }, [appActivities, filterType]);
-
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
-  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  return (
-    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-4 sm:p-5 flex flex-col justify-between h-full">
-      {/* â”€â”€ Header â”€â”€ */}
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
-              <Activity size={16} className="text-[var(--ui-primary)]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">
-                  Log Aktivitas & Login Pengguna
-                </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  LIVE
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login guru/staf
-              </p>
-            </div>
-          </div>
-
-          {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {[
-              { id: 'all', label: 'Semua' },
-              { id: 'login', label: 'Login' },
-              { id: 'navigasi', label: 'Buka Menu' },
-              { id: 'kbm', label: 'Jurnal KBM' },
-              { id: 'file', label: 'Upload & Unduh' }
-            ].map(f => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
-                  filterType === f.id
-                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={fetchAuditLogs}
-              title="Perbarui data aktivitas"
-              className="p-1.5 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors"
-            >
-              <RefreshCw size={12} className={loading ? 'animate-spin text-[var(--ui-primary)]' : ''} />
-            </button>
-          </div>
-        </div>
-
-        {/* â”€â”€ Feed List â”€â”€ */}
-        <div className="divide-y divide-slate-100 my-1.5">
-          {paginatedLogs.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 font-semibold text-xs">
-              Belum ada aktivitas {filterType !== 'all' ? filterType : ''} tercatat
-            </div>
-          ) : (
-            paginatedLogs.map((item, idx) => {
-              const meta = getActionMeta(item.action, item.detail);
-              const roleMeta = getRoleBadge(item.userRole);
-              const Icon = meta.icon;
-              const userName = item.userName || 'Pengguna';
-              const userInitial = userName.charAt(0).toUpperCase();
-
-              return (
-                <div 
-                  key={item.id || idx} 
-                  className="py-2.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-3 group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
-                      {userInitial}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-xs font-black text-slate-800 truncate">
-                          {userName}
-                        </p>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
-                          {roleMeta.label}
-                        </span>
-                      </div>
-                      <p className="text-[10.5px] text-slate-600 font-semibold mt-0.5 truncate max-w-md">
-                        {item.detail}
-                      </p>
-                    </div>
-                  </div>
 
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase flex items-center gap-1 shadow-2xs ${meta.bg}`}>
