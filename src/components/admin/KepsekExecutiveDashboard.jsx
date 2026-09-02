@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { SharedDashboardLogs } from '../monitoring/ui/index.js';
 import LiveUserActivityLog from './LiveUserActivityLog.jsx';
+import UserLoginSessionTracker from './UserLoginSessionTracker.jsx';
 
 // ─── Mini Helpers ────────────────────────────────────────────────────────────
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
@@ -822,17 +823,22 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ MONITOR & AKTIVITAS (SEJAJAR 2 KOLOM) ═══════════════ */}
+      {/* ═══════════════ LOG AKTIVITAS (KIRI) & LOG SESI LOGIN (KANAN) ═══════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        {/* Box Kiri: Monitor & Aktivitas Pemantauan Sekolah */}
-        <div className="h-full flex flex-col">
-          <SharedDashboardLogs onLogsFetched={setDashLogs} />
-        </div>
-
-        {/* Box Kanan: Live Log Aktivitas & Login Pengguna */}
+        {/* Box Kiri: Live Log Aktivitas Pengguna (Buka Menu, Jurnal KBM, File Upload/Download) */}
         <div className="h-full flex flex-col">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
         </div>
+
+        {/* Box Kanan: Log Siapa Saja yang Login, Frekuensi, Jam Login & Durasi Aktif */}
+        <div className="h-full flex flex-col">
+          <UserLoginSessionTracker onNavigateTab={gotoTab} />
+        </div>
+      </div>
+
+      {/* ═══════════════ MONITOR & AKTIVITAS PEMANTAUAN SEKOLAH ═══════════════ */}
+      <div className="w-full">
+        <SharedDashboardLogs onLogsFetched={setDashLogs} />
       </div>
 
     </div>
