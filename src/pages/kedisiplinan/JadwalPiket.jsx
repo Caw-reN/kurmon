@@ -7,13 +7,18 @@ import { CustomSelect } from'../../components/CustomSelect.jsx';
 
 const DAYS = ["Senin","Selasa","Rabu","Kamis","Jumat"];
 
-export default function JadwalPiket({ teachers = [] }) {
+export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
   const [schedules, setSchedules] = useState([]);
   const [filterKampus, setFilterKampus] = useState("Kampus A");
   
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
-  const canEdit = !!(authToken && user?.role && user.role !=="guru");
+  const rawRole = String(user?.role || '').toLowerCase().trim();
+  const subrole = String(user?.subrole || '').toLowerCase().trim();
+  const division = String(user?.division || '').toLowerCase().trim();
+
+  const isPrivileged = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'waka' || rawRole === 'kesiswaan' || rawRole === 'bpbk' || subrole === 'bpbk' || subrole === 'pembina_osis' || subrole === 'sekretaris_kesiswaan' || division === 'bk' || division === 'kesiswaan';
+  const canEdit = typeof canEditProp === 'boolean' ? canEditProp : !!(authToken && (rawRole !== 'guru' || isPrivileged));
   
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState(null);

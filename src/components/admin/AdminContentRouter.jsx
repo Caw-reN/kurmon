@@ -632,7 +632,15 @@ export default function AdminContentRouter({ context }) {
 
       case"kedisiplinan_piket":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat data piket...</div>}>
-          <ManajemenPiket teachers={teachers} students={students} classes={classes} currentUser={currentUser} />
+          <ManajemenPiket 
+            teachers={teachers} 
+            students={students} 
+            classes={classes} 
+            currentUser={currentUser} 
+            rolePermissions={rolePermissions}
+            getTabPermissionLevel={getTabPermissionLevel}
+            isSuperAdminRole={isSuperAdminRole}
+          />
         </Suspense>;
       case"kedisiplinan_bpbk":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat layanan BK...</div>}>
