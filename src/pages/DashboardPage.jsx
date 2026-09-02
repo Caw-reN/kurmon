@@ -2739,7 +2739,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             {/* Micro Metric Chips */}
             <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{guruStats.Hadir}</b>
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{guruStats.Hadir}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{guruStats.Terlambat}</b>
@@ -2799,7 +2799,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             {/* Micro Metric Chips */}
             <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{karyawanStats.Hadir}</b>
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{karyawanStats.Hadir}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{karyawanStats.Terlambat}</b>
@@ -2854,7 +2854,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               {/* Micro Metric Chips */}
               <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
                 <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hadir:</span> <b className="text-slate-800">{siswaStats.Hadir}</b>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{siswaStats.Hadir}</b>
                 </div>
                 <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{siswaStats.Terlambat}</b>
