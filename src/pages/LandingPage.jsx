@@ -500,9 +500,9 @@ export default function LandingPage() {
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
       <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-[#F5F6FA] overflow-hidden select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - MEMAKAN SEKITAR 55% TINGGI LAYAR DENGAN WARNA HIJAU DESKTOP) */}
+        {/* 1. AREA HEADER (ATAS - MEMAKAN SEKITAR 45% TINGGI LAYAR DENGAN WARNA HIJAU DESKTOP) */}
         <div 
-          className="relative w-full h-[55%] min-h-[330px] flex flex-col justify-center items-center overflow-hidden text-white"
+          className="relative w-full h-[45%] min-h-[270px] max-h-[360px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
           style={{
             background: `linear-gradient(165deg, ${primaryColor || '#064e3b'} 0%, #054031 42%, #033126 80%, #021f18 100%)`
           }}
@@ -521,34 +521,34 @@ export default function LandingPage() {
 
           {/* Floating Decorative Elements: Bintang, Tas Sekolah, Kartu Identitas */}
           {/* Sparkling Stars */}
-          <div className="absolute top-[16%] left-[8%] text-amber-300/80 animate-pulse pointer-events-none z-10">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <div className="absolute top-[14%] left-[8%] text-amber-300/80 animate-pulse pointer-events-none z-10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" />
             </svg>
           </div>
-          <div className="absolute top-[24%] right-[9%] text-amber-400 drop-shadow-md pointer-events-none transform rotate-12 z-10">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor">
+          <div className="absolute top-[20%] right-[9%] text-amber-400 drop-shadow-md pointer-events-none transform rotate-12 z-10">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
             </svg>
           </div>
-          <div className="absolute top-[28%] left-[28%] text-white/50 pointer-events-none animate-pulse z-10">
+          <div className="absolute top-[28%] left-[26%] text-white/50 pointer-events-none animate-pulse z-10">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0l2 8.5L22 12l-8 2L12 22l-2-8-8-2 8-2z" />
             </svg>
           </div>
-          <div className="absolute top-[38%] right-[26%] text-amber-300/80 pointer-events-none z-10">
+          <div className="absolute top-[36%] right-[24%] text-amber-300/80 pointer-events-none z-10">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0l2 8.5L22 12l-8 2L12 22l-2-8-8-2 8-2z" />
             </svg>
           </div>
-          <div className="absolute bottom-[22%] right-[12%] text-amber-300/70 pointer-events-none z-10 animate-pulse">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <div className="absolute bottom-[20%] right-[12%] text-amber-300/70 pointer-events-none z-10 animate-pulse">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" />
             </svg>
           </div>
 
           {/* Floating Tas Sekolah */}
-          <div className="absolute top-[20%] left-[8%] w-13 h-13 sm:w-15 sm:h-15 pointer-events-none z-10 transform -rotate-12 drop-shadow-xl">
+          <div className="absolute top-[18%] left-[7%] w-12 h-12 sm:w-14 sm:h-14 pointer-events-none z-10 transform -rotate-12 drop-shadow-xl">
             <div className="w-full h-full rounded-2xl bg-white/95 p-2 shadow-lg border border-white/60 flex items-center justify-center">
               <img 
                 src="/icons/038-school bag.svg" 
@@ -560,16 +560,16 @@ export default function LandingPage() {
           </div>
 
           {/* Floating Kartu Identitas Pelajar */}
-          <div className="absolute top-[19%] right-[10%] w-15 h-11 sm:w-16 sm:h-12 pointer-events-none z-10 transform rotate-6 drop-shadow-xl">
+          <div className="absolute top-[16%] right-[8%] w-14 h-10 sm:w-15 sm:h-11 pointer-events-none z-10 transform rotate-6 drop-shadow-xl">
             <div className="w-full h-full rounded-xl bg-white/95 p-1.5 shadow-lg border border-white/60 flex items-center gap-1.5">
               <div 
-                className="w-5.5 h-7 rounded border flex items-center justify-center shrink-0"
+                className="w-5 h-6.5 rounded border flex items-center justify-center shrink-0"
                 style={{ 
                   backgroundColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 15%, #ffffff)',
                   borderColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 30%, transparent)'
                 }}
               >
-                <User size={13} style={{ color: 'var(--ui-primary, #064e3b)' }} />
+                <User size={12} style={{ color: 'var(--ui-primary, #064e3b)' }} />
               </div>
               <div className="flex flex-col gap-1 w-full">
                 <div className="w-full h-1 rounded-full" style={{ backgroundColor: 'var(--ui-primary, #064e3b)', opacity: 0.5 }} />
@@ -581,18 +581,18 @@ export default function LandingPage() {
 
           {/* Konten Teks Header: Judul & Sapaan (Centered & Balanced) */}
           <div className="px-6 text-center z-20 relative my-auto pt-2 pb-6">
-            <h1 className="text-[30px] sm:text-[36px] font-black tracking-tight text-white leading-none drop-shadow-lg">
+            <h1 className="text-[28px] sm:text-[34px] font-black tracking-tight text-white leading-none drop-shadow-lg">
               {appSettings.appName || 'KG2 School'}
             </h1>
-            <p className="text-[10.5px] sm:text-[12px] font-black tracking-[0.28em] text-emerald-100 uppercase opacity-90 mt-2 drop-shadow-sm">
+            <p className="text-[10px] sm:text-[11.5px] font-black tracking-[0.28em] text-emerald-100 uppercase opacity-90 mt-2 drop-shadow-sm">
               MOBILE
             </p>
 
-            <div className="mt-5 text-center">
-              <p className="text-base sm:text-lg font-bold text-white/90 leading-tight drop-shadow-md">
+            <div className="mt-4 text-center">
+              <p className="text-sm sm:text-base font-bold text-white/90 leading-tight drop-shadow-md">
                 Halo, {userName === 'Pengunjung' ? '[Nama Pengguna]' : userName}
               </p>
-              <p className="text-xl sm:text-2xl font-black text-white leading-tight drop-shadow-md mt-1">
+              <p className="text-lg sm:text-xl font-black text-white leading-tight drop-shadow-md mt-1">
                 Selamat Datang!
               </p>
             </div>
@@ -603,7 +603,7 @@ export default function LandingPage() {
             <svg 
               viewBox="0 0 100 24" 
               preserveAspectRatio="none" 
-              className="w-full h-8 sm:h-10 fill-[#F5F6FA] block"
+              className="w-full h-7 sm:h-9 fill-[#F5F6FA] block"
             >
               <path d="M 0,24 Q 50,-4 100,24 L 100,24 L 0,24 Z" />
             </svg>
@@ -611,65 +611,75 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN (BAWAH - MEMAKAN SEKITAR 40% TINGGI LAYAR, BG #F5F6FA) */}
-        <div className="relative w-full h-[42%] bg-[#F5F6FA] px-5 pt-2 pb-20 sm:pb-24 flex flex-col justify-center items-center z-30">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - 8 ICON: 4 ATAS 4 BAWAH, BG #F5F6FA) */}
+        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-2.5 pb-[96px] flex flex-col justify-start items-center z-30 overflow-y-auto">
           
-          {/* FAST MENU SECTION */}
-          <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
-            {/* Judul Fast Menu + Ikon Info */}
+            {/* Judul: Layanan Publik + Ikon Info */}
             <div className="flex items-center justify-center gap-1.5 mb-3.5">
               <span 
-                className="text-sm sm:text-base font-black tracking-tight"
+                className="text-xs sm:text-sm font-black uppercase tracking-wider"
                 style={{ color: primaryColor || '#064e3b' }}
               >
-                Fast Menu
+                Layanan Publik
               </span>
               <button
                 type="button"
                 onClick={() => setShowPublicGuide(true)}
                 className="hover:opacity-80 cursor-pointer transition-opacity p-0.5"
                 style={{ color: primaryColor || '#064e3b' }}
-                title="Informasi Menu"
+                title="Informasi Layanan"
               >
-                <Info size={15} strokeWidth={2.3} />
+                <Info size={14} strokeWidth={2.3} />
               </button>
             </div>
 
-            {/* Grid 4 Kolom x 1 Baris */}
-            <div className="grid grid-cols-4 gap-2.5 sm:gap-4 w-full px-1">
-              {[
-                { label: 'Jadwal\nPelajaran', icon: CalendarDays, path: '/jadwal' },
-                { label: 'Denah\nRuang', icon: MapPin, path: '/denah' },
-                { label: 'Materi\nAjar', icon: BookOpen, path: '/materi-ajar' },
-                { label: 'Kalender\nAkademik', icon: Calendar, path: '/kalender' },
-              ].map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => navigate(item.path)}
-                    className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95"
-                  >
-                    {/* Desain Ikon Menu: Double Ring Effect */}
-                    <div className="w-[58px] h-[58px] sm:w-[64px] sm:h-[64px] rounded-full bg-white border border-slate-200/90 shadow-xs p-1.5 flex items-center justify-center transition-all group-hover:shadow-md">
+            {/* Grid 8 Item: 4 Atas, 4 Bawah dengan Icon Desktop */}
+            <div className="grid grid-cols-4 gap-x-2 gap-y-3.5 sm:gap-x-4 sm:gap-y-4 w-full px-1">
+              {(() => {
+                const gridServices = [
+                  ...publicServices,
+                  { label: "Lainnya", subtitle: "Bantuan", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#64748b" }
+                ];
+                return gridServices.slice(0, 8).map((service, idx) => {
+                  const activeColor = service.customColor || service.defaultColor;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        if (service.isLainnya) {
+                          setShowPublicGuide(true);
+                        } else if (service.isPdfRules) {
+                          setShowRulesModal(true);
+                        } else {
+                          navigate(service.path);
+                        }
+                      }}
+                      className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-full"
+                    >
+                      {/* Desain Icon Card Sesuai Desktop */}
                       <div 
-                        className="w-full h-full rounded-full flex items-center justify-center transition-colors"
+                        className="w-[50px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
                         style={{ 
-                          backgroundColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 12%, #ffffff)',
-                          color: 'var(--ui-primary, #064e3b)'
+                          backgroundColor: hexToRgba(activeColor, 0.08),
+                          border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
                         }}
                       >
-                        <IconComponent size={24} strokeWidth={2.3} style={{ color: 'var(--ui-primary, #064e3b)' }} />
+                        {service.customIcon ? (
+                          <img src={service.customIcon} alt="" className="w-6 h-6 object-contain" />
+                        ) : (
+                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-6 h-6 object-contain" />
+                        )}
                       </div>
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 leading-tight text-center whitespace-pre-line tracking-tight">
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span className="text-[10px] sm:text-[10.5px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                        {getShortLabel(service.label)}
+                      </span>
+                    </button>
+                  );
+                });
+              })()}
             </div>
 
           </div>
@@ -1084,27 +1094,27 @@ export default function LandingPage() {
       </footer>
 
       {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-[#F5F6FA]/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2.5 pb-safe-bottom shadow-md select-none">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-5 pt-3.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
           {/* Tombol Pertama: Login (Hijau desktop solid, flex-1, teks putih tebal, rounded-xl) */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
             style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
-            className="flex-1 h-[54px] sm:h-[60px] rounded-xl text-white font-black text-base tracking-wide shadow-md shadow-emerald-900/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
+            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
           >
             Login
           </button>
 
-          {/* Tombol Kedua: Kotak Persegi 60x60px rounded-xl, warna hijau desktop sama, ikon Chat/Comment */}
+          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau desktop sama, ikon Chat/Comment */}
           <button
             type="button"
             onClick={handleFeedbackClick}
             title="Tanya / Bantuan"
             style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
-            className="w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] shrink-0 rounded-xl text-white shadow-md shadow-emerald-900/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
+            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
           >
-            <MessageSquare size={24} strokeWidth={2.3} />
+            <MessageSquare size={22} strokeWidth={2.3} />
           </button>
         </div>
       </div>
