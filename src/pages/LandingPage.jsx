@@ -611,10 +611,10 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - DITURUNKAN KE TENGAH/BAWAH, BG #F5F6FA) */}
-        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-4 pb-[105px] flex flex-col justify-center items-center z-30">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - DIPOSISIKAN LEBIH DEKAT KE TOMBOL MASUK, BG #F5F6FA) */}
+        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-2 pb-[96px] sm:pb-[106px] flex flex-col justify-end items-center z-30">
           
-          <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center mb-3 sm:mb-4">
             
             {/* Judul: Layanan Publik + Ikon Info */}
             <div className="flex items-center justify-center gap-1.5 mb-4">
@@ -1106,15 +1106,15 @@ export default function LandingPage() {
             Login
           </button>
 
-          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau desktop sama, ikon Chat/Comment */}
+          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau desktop sama, ikon Bantuan (Membuka Bottom Sheet) */}
           <button
             type="button"
-            onClick={handleFeedbackClick}
-            title="Tanya / Bantuan"
+            onClick={() => setShowPublicHelp(true)}
+            title="Bantuan & Panduan"
             style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
             className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
           >
-            <MessageSquare size={22} strokeWidth={2.3} />
+            <HelpCircle size={23} strokeWidth={2.3} />
           </button>
         </div>
       </div>
