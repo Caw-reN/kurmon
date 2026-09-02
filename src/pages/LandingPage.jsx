@@ -2,7 +2,7 @@ import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
-import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
+import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
@@ -685,35 +685,65 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* Banner Card Putih Bersih - Senada dengan Kartu Telah Dipercaya */}
+              {/* Banner Card Hijau Solid #3DAA37 - Proporsional, Interaktif & Elegan */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
+                const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full bg-white rounded-2xl sm:rounded-3xl py-5 px-5 sm:py-6 sm:px-6 shadow-xs border border-slate-100 flex flex-col items-center justify-center transition-all duration-300"
+                    className="w-full rounded-2xl h-[70px] px-3 shadow-md text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
+                    style={{
+                      background: `linear-gradient(135deg, ${cardColor} 0%, color-mix(in srgb, ${cardColor} 85%, #000000) 100%)`,
+                      boxShadow: `0 6px 20px ${hexToRgba(cardColor, 0.28)}`
+                    }}
                   >
-                    {/* Nama Jurusan Saja (Tebal, Centered, Teks Slate/Hitam Elegan) */}
-                    <h3 className="text-[13px] sm:text-sm font-black text-slate-800 uppercase tracking-wider text-center truncate w-full px-2">
-                      {activeProgram.name}
-                    </h3>
+                    {/* Subtle Top Glass Highlight */}
+                    <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/12 to-transparent pointer-events-none" />
 
-                    {/* Indikator Titik Carousel (Dots) di Bawahnya */}
-                    <div className="flex items-center justify-center gap-1.5 mt-3">
-                      {availablePrograms.map((prog, pIdx) => {
-                        const isActive = activeProgramIdx === pIdx;
-                        return (
-                          <button
-                            key={pIdx}
-                            type="button"
-                            onClick={() => setActiveProgramIdx(pIdx)}
-                            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
-                              isActive ? 'w-6 bg-[#3DAA37]' : 'w-1.5 bg-slate-200 hover:bg-slate-300'
-                            }`}
-                            title={`Keahlian 0${prog.index}`}
-                          />
-                        );
-                      })}
+                    {/* Tombol Panah Kiri */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveProgramIdx((prev) => (prev === 0 ? availablePrograms.length - 1 : prev - 1))}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      title="Sebelumnya"
+                    >
+                      <ChevronLeft size={18} strokeWidth={2.6} />
+                    </button>
+
+                    {/* Area Konten Tengah: Nama Jurusan & Indikator Dots */}
+                    <div className="flex-1 flex flex-col items-center justify-center px-2 min-w-0 z-10">
+                      <h3 className="text-xs sm:text-[13.5px] font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-tight">
+                        {activeProgram.name}
+                      </h3>
+
+                      {/* Indikator Titik Carousel (Dots) */}
+                      <div className="flex items-center justify-center gap-1.5 mt-2">
+                        {availablePrograms.map((prog, pIdx) => {
+                          const isActive = activeProgramIdx === pIdx;
+                          return (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => setActiveProgramIdx(pIdx)}
+                              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                                isActive ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                              }`}
+                              title={`Keahlian 0${prog.index}`}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
+
+                    {/* Tombol Panah Kanan */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      title="Selanjutnya"
+                    >
+                      <ChevronRight size={18} strokeWidth={2.6} />
+                    </button>
                   </div>
                 );
               })()}
