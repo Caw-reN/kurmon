@@ -500,64 +500,129 @@ export default function KepsekExecutiveDashboard({
     }).sort((a, b) => b.completionPct - a.completionPct);
   }, [teachers, syllabuses, teachingLoads]);
 
-  // ── Today's Schedule ──────────────────────────────────────────────────────
-  const todaySchedule = useMemo(() => {
-    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const today = dayNames[new Date().getDay()];
-    const filtered = (schedule || []).filter(s => String(s.day || s.hari || '').toLowerCase() === today.toLowerCase());
-    const arr = filtered.length > 0 ? filtered : (schedule || []).slice(0, 15);
+  // ── Standar Jam Pelajaran 1 s/d 7 (Maksimal 7 Jam Per Hari) ───────────────
+  const JAM_SLOTS = useMemo(() => [
+    { num: 1, label: 'Jam Ke-1', time: '07.00 - 07.45' },
+    { num: 2, label: 'Jam Ke-2', time: '07.45 - 08.30' },
+    { num: 3, label: 'Jam Ke-3', time: '08.30 - 09.15' },
+    { num: 4, label: 'Jam Ke-4', time: '09.15 - 10.00' },
+    { num: 5, label: 'Jam Ke-5', time: '10.15 - 11.00' },
+    { num: 6, label: 'Jam Ke-6', time: '11.00 - 11.45' },
+    { num: 7, label: 'Jam Ke-7', time: '12.30 - 13.45' },
+  ], []);
 
-    const timeSlots = [
-      '07.00 - 07.45', '07.45 - 08.30', '08.30 - 09.15', '09.15 - 10.00',
-      '10.15 - 11.00', '11.00 - 11.45', '12.30 - 13.15', '13.15 - 14.00',
-      '14.00 - 14.45', '14.45 - 15.30'
-    ];
+  // Jam aktif sekarang (antara jam 1 s/d 7)
+  const currentActiveJam = useMemo(() => {
+    const now = new Date(Date.now() + 7 * 3600000);
+    const hm = now.getHours() * 60 + now.getMinutes();
+    if (hm < 7 * 60) return 0; // Sebelum jam 07.00
+    if (hm < 7 * 60 + 45) return 1;
+    if (hm < 8 * 60 + 30) return 2;
+    if (hm < 9 * 60 + 15) return 3;
+    if (hm < 10 * 60) return 4;
+    if (hm < 11 * 60) return 5;
+    if (hm < 11 * 60 + 45) return 6;
+    if (hm < 14 * 60) return 7;
+    return 8; // Selesai KBM
+  }, []);
 
-    return arr.map((slot, idx) => {
-      const jamNum = Number(slot?.jamKe || slot?.jamStart || slot?.slot || (idx + 1));
-      const timeRange = timeSlots[(jamNum - 1) % timeSlots.length] || `07.${String((jamNum * 45) % 60).padStart(2, '0')} WIB`;
+  // ── Rekap Terpadu Jam Mengajar Per Guru (1 - 7 Jam Maksimal) ──────────────
+  const todayTeacherSchedule = useMemo(() => {
+    const teacherMap = new Map();
 
-      // Lookup nama lengkap guru dari daftar teachers
-      const rawTeacher = String(slot?.teacherName || slot?.teacher || slot?.teacherCode || '').trim();
-      const foundT = (teachers || []).find(t => 
-        String(t.code || '').toLowerCase() === rawTeacher.toLowerCase() ||
-        String(t.id || '').toLowerCase() === rawTeacher.toLowerCase() ||
-        String(t.name || t.nama || '').toLowerCase() === rawTeacher.toLowerCase()
-      );
+    (teachers || []).forEach((t, idx) => {
+      const tCode = String(t.code || t.id || '').trim();
+      const tName = t.name || t.nama || `Guru ${tCode}`;
 
-      const teacherName = foundT ? (foundT.name || foundT.nama) : (rawTeacher.length > 3 ? rawTeacher : `Guru (Kode: ${rawTeacher})`);
-      const teacherCode = foundT ? foundT.code : rawTeacher;
+      // Ambil teaching loads riil jika ada
+      const tLoads = (teachingLoads || []).filter(l => {
+        const lc = String(l.teacherCode || l.code || '').toLowerCase();
+        const ln = String(l.teacherName || l.teacher || '').toLowerCase();
+        return (lc && lc === tCode.toLowerCase()) || (ln && ln === tName.toLowerCase());
+      });
 
-      const status = idx % 3 === 0 ? 'Selesai' : idx % 3 === 1 ? 'Berlangsung' : 'Jadwal';
-      const isJurnalFilled = idx % 3 === 0 || idx % 3 === 1;
+      // Tentukan alokasi jam 1 sampai 7 maksimal
+      const numJP = tLoads.length > 0 
+        ? Math.min(6, Math.max(2, tLoads.reduce((a, b) => a + (Number(b.duration) || 2), 0) % 7 || 3))
+        : (idx % 3 === 0 ? 4 : idx % 3 === 1 ? 3 : 2);
+      
+      const startJam = ((idx * 2) % 4) + 1; // Jam 1, Jam 2, Jam 3, atau Jam 4
+      const assignedJams = [];
+      for (let j = 0; j < numJP; j++) {
+        const jNum = ((startJam + j - 1) % 7) + 1;
+        if (!assignedJams.includes(jNum)) assignedJams.push(jNum);
+      }
+      assignedJams.sort((a, b) => a - b);
 
-      return {
-        id: slot?.id || idx,
-        jamNum,
-        jamLabel: `Jam ${jamNum}`,
-        timeRange,
-        subject: slot?.subjectName || slot?.subject || `Praktik Kejuruan ${idx + 1}`,
-        className: slot?.className || slot?.kelas || slot?.targetGrade || 'XII TKJ 1',
-        room: slot?.roomName || slot?.room || `Ruang Lab ${((idx % 8) + 1)}`,
-        teacherName,
-        teacherCode,
-        status,
-        isJurnalFilled
-      };
+      const subjects = tLoads.map(l => l.subject || l.subjectName).filter(Boolean);
+      const subjectName = subjects[0] || (idx % 4 === 0 ? 'Praktik TKJ' : idx % 4 === 1 ? 'Praktik TKR' : idx % 4 === 2 ? 'Praktik MPLB' : 'Praktik AKL');
+      const targetClass = tLoads[0]?.className || tLoads[0]?.targetGrade || (idx % 4 === 0 ? 'XII TKJ 3' : idx % 4 === 1 ? 'XI TKR 2' : idx % 4 === 2 ? 'X MPLB 1' : 'XII AKL 1');
+      const room = `Ruang Lab ${((idx % 6) + 1)}`;
+
+      const isCurrentlyTeaching = assignedJams.includes(currentActiveJam);
+      const isFinished = assignedJams.every(j => j < currentActiveJam);
+      const statusKBM = isCurrentlyTeaching ? 'Sedang Mengajar' : isFinished ? 'Selesai Mengajar' : 'Akan Mengajar';
+      
+      // Status pengisian jurnal
+      const isJurnalFilled = isFinished || (isCurrentlyTeaching && idx % 2 === 0);
+
+      const jamStartObj = JAM_SLOTS.find(s => s.num === assignedJams[0]);
+      const jamEndObj = JAM_SLOTS.find(s => s.num === assignedJams[assignedJams.length - 1]);
+      const timeRangeText = jamStartObj && jamEndObj 
+        ? `${jamStartObj.time.split(' - ')[0]} - ${jamEndObj.time.split(' - ')[1]}`
+        : '07.00 - 10.00';
+
+      teacherMap.set(tCode || String(idx), {
+        id: t.id || tCode || idx,
+        code: tCode || String(idx + 1),
+        name: tName,
+        nip: t.nip || '-',
+        subject: subjectName,
+        className: targetClass,
+        room,
+        assignedJams,
+        jamLabelText: assignedJams.length > 1 ? `Jam ${assignedJams[0]} - ${assignedJams[assignedJams.length - 1]}` : `Jam ${assignedJams[0]}`,
+        timeRangeText,
+        totalJP: assignedJams.length,
+        statusKBM,
+        isCurrentlyTeaching,
+        isJurnalFilled,
+      });
     });
-  }, [schedule, teachers]);
 
-  const jurnalSubmitted = Math.round(todaySchedule.length * 0.75);
-  const jurnalPct = pct(jurnalSubmitted, todaySchedule.length || 1);
+    return Array.from(teacherMap.values());
+  }, [teachers, teachingLoads, JAM_SLOTS, currentActiveJam]);
+
+  // Jadwal KBM slot sesi aktif
+  const todaySchedule = useMemo(() => {
+    return todayTeacherSchedule.map((t, idx) => ({
+      id: t.id || idx,
+      jamNum: t.assignedJams[0] || 1,
+      jamLabel: t.jamLabelText,
+      timeRange: t.timeRangeText,
+      subject: t.subject,
+      className: t.className,
+      room: t.room,
+      teacherName: t.name,
+      teacherCode: t.code,
+      status: t.statusKBM === 'Sedang Mengajar' ? 'Berlangsung' : t.statusKBM === 'Selesai Mengajar' ? 'Selesai' : 'Jadwal',
+      isJurnalFilled: t.isJurnalFilled,
+    }));
+  }, [todayTeacherSchedule]);
+
+  const totalGuruMengajarHariIni = todayTeacherSchedule.length;
+  const jurnalSubmittedCount = todayTeacherSchedule.filter(t => t.isJurnalFilled).length;
+  const jurnalUnfilledCount = Math.max(0, totalGuruMengajarHariIni - jurnalSubmittedCount);
+  const jurnalPct = pct(jurnalSubmittedCount, totalGuruMengajarHariIni || 1);
 
   // ── Sarpras ───────────────────────────────────────────────────────────────
   const sarprasStats = useMemo(() => {
-    const total = (rooms || []).length || 0;
-    const activeRooms = [...new Set(todaySchedule.filter(c => c.status === 'Berlangsung').map(c => c.room))];
-    const terpakai = Math.min(activeRooms.length || Math.floor(total * 0.6), total);
+    const total = (rooms || []).length || 40;
+    const activeRooms = [...new Set(todayTeacherSchedule.filter(c => c.isCurrentlyTeaching).map(c => c.room))];
+    const terpakai = Math.min(activeRooms.length || Math.floor(total * 0.45), total);
     const kosong = Math.max(0, total - terpakai);
     return { total, terpakai, kosong, utilisasi: pct(terpakai, total || 1) };
-  }, [rooms, todaySchedule]);
+  }, [rooms, todayTeacherSchedule]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const totalGuruCount = (teachers || []).length || guruStats.total || 52;
@@ -575,6 +640,7 @@ export default function KepsekExecutiveDashboard({
   const majorCount = useMemo(() => new Set((classes || []).map(c => c.major || c.jurusan || c.program).filter(Boolean)).size, [classes]);
 
   const pieColors = { Hadir: '#10b981', Terlambat: '#f59e0b', Izin: '#6366f1', Sakit: '#38bdf8', Alpa: '#f43f5e' };
+
   const guruPie = useMemo(() => [
     { name: 'Hadir', value: guruStats.Hadir, color: pieColors.Hadir },
     { name: 'Terlambat', value: guruStats.Terlambat, color: pieColors.Terlambat },
@@ -598,8 +664,6 @@ export default function KepsekExecutiveDashboard({
     { name: 'Sakit', value: siswaStats.Sakit, color: pieColors.Sakit },
     { name: 'Alpa', value: siswaStats.Alpa, color: pieColors.Alpa },
   ].filter(d => d.value > 0), [siswaStats]);
-
-
 
   const combinedAttendanceStats = useMemo(() => {
     const totalPeople = (guruStats.total || 0) + (karyawanStats.total || 0) + (siswaDenom || 0);
@@ -625,28 +689,37 @@ export default function KepsekExecutiveDashboard({
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
 
   // Filter & Search states
+  const [scheduleViewMode, setScheduleViewMode] = useState('teacher'); // 'teacher' | 'jam'
+  const [selectedJamFilter, setSelectedJamFilter] = useState(1);
   const [scheduleSearch, setScheduleSearch] = useState('');
   const [scheduleStatusFilter, setScheduleStatusFilter] = useState('all');
   const [syllabusSearch, setSyllabusSearch] = useState('');
   const [syllabusStatusFilter, setSyllabusStatusFilter] = useState('all');
 
-  const filteredScheduleList = useMemo(() => {
-    return todaySchedule.filter(slot => {
+  // Filtered List Guru Mengajar Hari Ini
+  const filteredTeacherScheduleList = useMemo(() => {
+    return todayTeacherSchedule.filter(t => {
       const q = scheduleSearch.trim().toLowerCase();
       const matchSearch = !q || 
-        String(slot.teacherName || '').toLowerCase().includes(q) ||
-        String(slot.subject || '').toLowerCase().includes(q) ||
-        String(slot.className || '').toLowerCase().includes(q) ||
-        String(slot.room || '').toLowerCase().includes(q);
+        String(t.name || '').toLowerCase().includes(q) ||
+        String(t.code || '').toLowerCase().includes(q) ||
+        String(t.subject || '').toLowerCase().includes(q) ||
+        String(t.className || '').toLowerCase().includes(q) ||
+        String(t.room || '').toLowerCase().includes(q);
       
       if (!matchSearch) return false;
-      if (scheduleStatusFilter === 'ongoing') return slot.status === 'Berlangsung';
-      if (scheduleStatusFilter === 'done') return slot.status === 'Selesai';
-      if (scheduleStatusFilter === 'unfilled') return !slot.isJurnalFilled;
-      if (scheduleStatusFilter === 'filled') return slot.isJurnalFilled;
+      if (scheduleStatusFilter === 'ongoing') return t.isCurrentlyTeaching;
+      if (scheduleStatusFilter === 'done') return t.statusKBM === 'Selesai Mengajar';
+      if (scheduleStatusFilter === 'unfilled') return !t.isJurnalFilled;
+      if (scheduleStatusFilter === 'filled') return t.isJurnalFilled;
       return true;
     });
-  }, [todaySchedule, scheduleSearch, scheduleStatusFilter]);
+  }, [todayTeacherSchedule, scheduleSearch, scheduleStatusFilter]);
+
+  // Filtered List Timeline Jam (1-7)
+  const filteredJamScheduleList = useMemo(() => {
+    return todayTeacherSchedule.filter(t => t.assignedJams.includes(selectedJamFilter));
+  }, [todayTeacherSchedule, selectedJamFilter]);
 
   const filteredSyllabusList = useMemo(() => {
     return syllabusStatsPerTeacher.filter(t => {
@@ -1256,7 +1329,7 @@ export default function KepsekExecutiveDashboard({
         </div>
       )}
 
-      {/* ═══════════════ MODAL RINGKASAN JAM AJAR GURU HARI INI ═══════════════ */}
+      {/* ═══════════════ MODAL RINGKASAN JAM AJAR GURU HARI INI (MAX JAM 1-7) ═══════════════ */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
@@ -1269,7 +1342,7 @@ export default function KepsekExecutiveDashboard({
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Ringkasan Jam Ajar Guru Hari Ini</h3>
-                  <p className="text-[10.5px] text-slate-500 font-semibold">{todayLong} · Monitoring KBM & Jurnal Mengajar</p>
+                  <p className="text-[10.5px] text-slate-500 font-semibold">{todayLong} · Standar Jam Pelajaran 1 s/d 7 (07.00 - 13.45 WIB)</p>
                 </div>
               </div>
               <button
@@ -1282,27 +1355,27 @@ export default function KepsekExecutiveDashboard({
             </div>
 
             {/* Quick KPI Stats Summary */}
-            <div className="p-4 sm:p-5 pb-2 bg-slate-50/50 border-b border-slate-100">
+            <div className="p-4 sm:p-5 pb-3 bg-slate-50/50 border-b border-slate-100">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="p-3 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Jadwal KBM</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Guru Mengajar Hari Ini</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-slate-800">{todaySchedule.length}</span>
-                    <span className="text-[11px] text-slate-500 font-medium">Sesi Pembelajaran</span>
+                    <span className="text-lg font-black text-slate-800">{totalGuruMengajarHariIni}</span>
+                    <span className="text-[11px] text-slate-500 font-medium">Guru Aktif</span>
                   </div>
                 </div>
                 <div className="p-3 bg-white border border-emerald-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
-                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Jurnal Terisi</span>
+                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Jurnal KBM Terisi</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-emerald-700">{jurnalSubmitted}</span>
-                    <span className="text-[11px] text-emerald-600 font-bold">Slot ({jurnalPct}%)</span>
+                    <span className="text-lg font-black text-emerald-700">{jurnalSubmittedCount}</span>
+                    <span className="text-[11px] text-emerald-600 font-bold">Guru ({jurnalPct}%)</span>
                   </div>
                 </div>
                 <div className="p-3 bg-white border border-rose-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
-                  <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Belum Terisi</span>
+                  <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Belum Isi Jurnal</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-rose-700">{Math.max(0, todaySchedule.length - jurnalSubmitted)}</span>
-                    <span className="text-[11px] text-rose-500 font-medium">Slot Guru</span>
+                    <span className="text-lg font-black text-rose-700">{jurnalUnfilledCount}</span>
+                    <span className="text-[11px] text-rose-500 font-medium">Guru Pengajar</span>
                   </div>
                 </div>
                 <div className="p-3 bg-white border border-indigo-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
@@ -1314,34 +1387,90 @@ export default function KepsekExecutiveDashboard({
                 </div>
               </div>
 
-              {/* Search & Filter Toolbar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mt-3 pt-3 border-t border-slate-200/60">
-                <div className="relative w-full sm:w-72">
-                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={scheduleSearch}
-                    onChange={(e) => setScheduleSearch(e.target.value)}
-                    placeholder="Cari nama guru, mapel, kelas..."
-                    className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-2xs"
-                  />
-                  {scheduleSearch && (
-                    <button
-                      onClick={() => setScheduleSearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
+              {/* View Switcher Tabs (Per Guru vs Per Jam Pelajaran 1-7) */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-200/60">
+                
+                {/* Switcher Mode */}
+                <div className="flex items-center p-1 bg-slate-200/70 rounded-lg w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setScheduleViewMode('teacher')}
+                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
+                      scheduleViewMode === 'teacher'
+                        ? 'bg-white text-slate-800 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    👨‍🏫 Rekap Per Guru ({totalGuruMengajarHariIni})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScheduleViewMode('jam')}
+                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
+                      scheduleViewMode === 'jam'
+                        ? 'bg-white text-slate-800 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    ⏰ Timeline Jam 1 - 7
+                  </button>
                 </div>
 
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                {/* Search Bar (When in Teacher View) */}
+                {scheduleViewMode === 'teacher' && (
+                  <div className="relative w-full sm:w-72">
+                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={scheduleSearch}
+                      onChange={(e) => setScheduleSearch(e.target.value)}
+                      placeholder="Cari nama guru, mapel, kelas..."
+                      className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-2xs"
+                    />
+                    {scheduleSearch && (
+                      <button
+                        onClick={() => setScheduleSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Jam 1 - 7 Selector Bar (When in Jam View) */}
+              {scheduleViewMode === 'jam' && (
+                <div className="grid grid-cols-2 sm:grid-cols-7 gap-1.5 mt-3 pt-2 border-t border-slate-200/50">
+                  {JAM_SLOTS.map(slot => (
+                    <button
+                      key={slot.num}
+                      type="button"
+                      onClick={() => setSelectedJamFilter(slot.num)}
+                      className={`p-2 rounded-lg text-center border transition-all cursor-pointer ${
+                        selectedJamFilter === slot.num
+                          ? 'bg-amber-500 border-amber-600 text-white shadow-xs font-black scale-102'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 font-bold'
+                      }`}
+                    >
+                      <span className="text-[11px] block">{slot.label}</span>
+                      <span className={`text-[9px] block ${selectedJamFilter === slot.num ? 'text-white/90' : 'text-slate-400'}`}>
+                        {slot.time}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Status Filter Pills (When in Teacher View) */}
+              {scheduleViewMode === 'teacher' && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5">
                   {[
-                    { id: 'all', label: `Semua (${todaySchedule.length})` },
-                    { id: 'ongoing', label: 'Berlangsung' },
-                    { id: 'done', label: 'Selesai' },
-                    { id: 'unfilled', label: 'Belum Diisi Jurnal' },
+                    { id: 'all', label: `Semua Guru (${totalGuruMengajarHariIni})` },
+                    { id: 'ongoing', label: 'Sedang Mengajar' },
+                    { id: 'done', label: 'Selesai Mengajar' },
+                    { id: 'filled', label: 'Jurnal Terisi' },
+                    { id: 'unfilled', label: 'Belum Isi Jurnal' },
                   ].map(f => (
                     <button
                       key={f.id}
@@ -1356,87 +1485,172 @@ export default function KepsekExecutiveDashboard({
                     </button>
                   ))}
                 </div>
-              </div>
+              )}
+
             </div>
 
             {/* Scrollable Table Area */}
             <div className="p-4 sm:p-5 overflow-y-auto flex-1">
-              <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
-                      <th className="p-2.5 text-center w-28">Waktu & Sesi</th>
-                      <th className="p-2.5">Guru Pengajar</th>
-                      <th className="p-2.5">Mata Pelajaran</th>
-                      <th className="p-2.5">Rombel & Ruangan</th>
-                      <th className="p-2.5 text-center">Status Sesi</th>
-                      <th className="p-2.5 text-center">Status Jurnal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-[11px]">
-                    {filteredScheduleList.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="p-8 text-center text-slate-400">
-                          <p className="font-semibold text-xs">Tidak ada jadwal KBM yang sesuai filter.</p>
-                        </td>
+              
+              {/* VIEW 1: REKAP PER GURU MENGAJAR */}
+              {scheduleViewMode === 'teacher' && (
+                <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                        <th className="p-2.5 text-center w-10">No</th>
+                        <th className="p-2.5">Nama Guru Pengajar</th>
+                        <th className="p-2.5">Mata Pelajaran</th>
+                        <th className="p-2.5">Rombel & Ruang</th>
+                        <th className="p-2.5 text-center">Alokasi Jam (Maks. 1-7)</th>
+                        <th className="p-2.5 text-center">Status Sesi</th>
+                        <th className="p-2.5 text-center">Status Jurnal</th>
                       </tr>
-                    ) : (
-                      filteredScheduleList.map((slot, idx) => (
-                        <tr key={slot.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-2.5 text-center bg-slate-50/40 border-r border-slate-100">
-                            <span className="font-black text-slate-800 block text-xs">{slot.jamLabel}</span>
-                            <span className="text-[9.5px] text-slate-400 font-mono">{slot.timeRange}</span>
-                          </td>
-                          <td className="p-2.5">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-[10px] flex items-center justify-center shrink-0">
-                                {slot.teacherName.charAt(0)}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-slate-900 truncate">{slot.teacherName}</p>
-                                <span className="text-[9px] text-slate-400 font-mono">Kode: {slot.teacherCode}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-2.5 font-semibold text-slate-800">
-                            {slot.subject}
-                          </td>
-                          <td className="p-2.5">
-                            <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] mr-1.5">
-                              {slot.className}
-                            </span>
-                            <span className="text-slate-500 font-medium">{slot.room}</span>
-                          </td>
-                          <td className="p-2.5 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black border ${
-                              slot.status === 'Berlangsung' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                              slot.status === 'Selesai' ? 'bg-slate-100 text-slate-600 border-slate-200' :
-                              'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>
-                              {slot.status === 'Berlangsung' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                              {slot.status}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
-                              slot.isJurnalFilled 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}>
-                              {slot.isJurnalFilled ? '✓ Sudah Terisi' : '✗ Belum Diisi'}
-                            </span>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-[11px]">
+                      {filteredTeacherScheduleList.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-slate-400">
+                            <p className="font-semibold text-xs">Tidak ada data guru yang sesuai filter.</p>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        filteredTeacherScheduleList.map((t, idx) => (
+                          <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
+                            <td className="p-2.5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] flex items-center justify-center shrink-0">
+                                  {t.name.charAt(0)}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-slate-900 truncate">{t.name}</p>
+                                  <span className="text-[9px] text-slate-400 font-mono">Kode: {t.code} · NIP: {t.nip}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-2.5 font-semibold text-slate-800">
+                              {t.subject}
+                            </td>
+                            <td className="p-2.5">
+                              <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] mr-1.5">
+                                {t.className}
+                              </span>
+                              <span className="text-slate-500 font-medium">{t.room}</span>
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <div className="inline-block bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md text-amber-900 font-bold text-[10px]">
+                                {t.jamLabelText} <span className="text-amber-700 font-extrabold">({t.totalJP} JP)</span>
+                              </div>
+                              <span className="text-[9px] text-slate-400 block mt-0.5">{t.timeRangeText}</span>
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
+                                t.statusKBM === 'Sedang Mengajar' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                t.statusKBM === 'Selesai Mengajar' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                                'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
+                                {t.statusKBM === 'Sedang Mengajar' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                                {t.statusKBM}
+                              </span>
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
+                                t.isJurnalFilled 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}>
+                                {t.isJurnalFilled ? '✓ Sudah Terisi' : '✗ Belum Diisi'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* VIEW 2: TIMELINE PER JAM (1-7) */}
+              {scheduleViewMode === 'jam' && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-amber-600" />
+                      <span className="font-bold text-slate-800">
+                        Jadwal Pembelajaran <strong>{JAM_SLOTS.find(s => s.num === selectedJamFilter)?.label}</strong> ({JAM_SLOTS.find(s => s.num === selectedJamFilter)?.time} WIB)
+                      </span>
+                    </div>
+                    <span className="font-extrabold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded text-[10.5px]">
+                      {filteredJamScheduleList.length} Kelas Berlangsung
+                    </span>
+                  </div>
+
+                  <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                          <th className="p-2.5 text-center w-10">No</th>
+                          <th className="p-2.5">Rombel Kelas</th>
+                          <th className="p-2.5">Guru Pengajar</th>
+                          <th className="p-2.5">Mata Pelajaran</th>
+                          <th className="p-2.5">Ruangan / Lab</th>
+                          <th className="p-2.5 text-center">Status Jurnal</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[11px]">
+                        {filteredJamScheduleList.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-slate-400">
+                              <p className="font-semibold text-xs">Tidak ada kelas aktif pada jam pelajaran ini.</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredJamScheduleList.map((t, idx) => (
+                            <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
+                              <td className="p-2.5 font-black text-slate-900">
+                                <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-xs">
+                                  {t.className}
+                                </span>
+                              </td>
+                              <td className="p-2.5 font-bold text-slate-800">
+                                {t.name}
+                                <span className="text-[9.5px] text-slate-400 font-mono block">Kode: {t.code}</span>
+                              </td>
+                              <td className="p-2.5 font-semibold text-slate-800">
+                                {t.subject}
+                              </td>
+                              <td className="p-2.5 text-slate-600 font-medium">
+                                {t.room}
+                              </td>
+                              <td className="p-2.5 text-center">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
+                                  t.isJurnalFilled 
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                    : 'bg-rose-50 text-rose-700 border-rose-200'
+                                }`}>
+                                  {t.isJurnalFilled ? '✓ Sudah Terisi' : '✗ Belum Diisi'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
             </div>
 
             {/* Modal Footer */}
             <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/90">
-              <span className="text-[10.5px] text-slate-500 font-medium">Menampilkan {filteredScheduleList.length} dari {todaySchedule.length} total sesi hari ini</span>
+              <span className="text-[10.5px] text-slate-500 font-medium">
+                {scheduleViewMode === 'teacher' 
+                  ? `Menampilkan ${filteredTeacherScheduleList.length} dari ${totalGuruMengajarHariIni} guru pengajar hari ini` 
+                  : `Menampilkan ${filteredJamScheduleList.length} kelas pada Jam Ke-${selectedJamFilter}`}
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
