@@ -431,8 +431,8 @@ export default function LandingPage() {
   );
 
   const colorMap = {
-    red:"from-red-500 to-red-600",
-    blue:"from-blue-500 to-blue-600",
+    red:"from-rose-500 to-rose-600",
+    blue:"from-sky-500 to-sky-600",
     emerald:"from-emerald-500 to-emerald-600",
     purple:"from-purple-500 to-purple-600",
     orange:"from-orange-500 to-orange-600",
@@ -672,18 +672,18 @@ export default function LandingPage() {
 
               const defaultGradients = [
                 "bg-gradient-to-br from-amber-500 to-orange-600",
-                "bg-gradient-to-br from-blue-600 to-indigo-700",
+                "bg-gradient-to-br from-sky-600 to-indigo-700",
                 "bg-gradient-to-br from-emerald-600 to-teal-700",
                 "bg-gradient-to-br from-rose-500 to-pink-600"
               ];
               const colorMap = {
-                red: "bg-gradient-to-br from-rose-500 to-red-600",
-                blue: "bg-gradient-to-br from-blue-600 to-indigo-700",
+                red: "bg-gradient-to-br from-rose-500 to-rose-600",
+                blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
                 emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
                 green: "bg-gradient-to-br from-emerald-600 to-teal-700",
                 purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
                 orange: "bg-gradient-to-br from-amber-500 to-orange-600",
-                cyan: "bg-gradient-to-br from-cyan-500 to-blue-600",
+                cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
                 pink: "bg-gradient-to-br from-rose-500 to-pink-600"
               };
               
@@ -891,7 +891,7 @@ export default function LandingPage() {
             <div className="w-[380px] lg:w-[450px] flex items-center justify-center shrink-0 min-h-0">
               <div className="w-full max-w-[320px] lg:max-w-[380px] aspect-square flex items-center justify-center p-6 bg-slate-800 rounded-[var(--ui-radius-card)] border border-slate-700 shadow-xs relative overflow-hidden">
                 {/* Glowing decorative background behind illustration */}
-                <div className="absolute inset-4 rounded-full blur-2xl opacity-10 bg-gradient-to-tr from-blue-500 to-purple-500"></div>
+                <div className="absolute inset-4 rounded-full blur-2xl opacity-10 bg-gradient-to-tr from-sky-500 to-purple-500"></div>
                 <div className="flex flex-col items-center justify-center gap-4 text-white/90">
                   <MonitorSmartphone size={80} strokeWidth={1.5} className="animate-pulse" />
                   <div className="flex gap-4">
@@ -970,18 +970,18 @@ export default function LandingPage() {
               const rawColor = appSettings[`partnerColor${idx}`];
               const defaultGradients = [
                 "bg-gradient-to-br from-amber-500 to-orange-600",
-                "bg-gradient-to-br from-blue-600 to-indigo-700",
+                "bg-gradient-to-br from-sky-600 to-indigo-700",
                 "bg-gradient-to-br from-emerald-600 to-teal-700",
                 "bg-gradient-to-br from-rose-500 to-pink-600"
               ];
               const colorMap = {
-                red: "bg-gradient-to-br from-rose-500 to-red-600",
-                blue: "bg-gradient-to-br from-blue-600 to-indigo-700",
+                red: "bg-gradient-to-br from-rose-500 to-rose-600",
+                blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
                 emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
                 green: "bg-gradient-to-br from-emerald-600 to-teal-700",
                 purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
                 orange: "bg-gradient-to-br from-amber-500 to-orange-600",
-                cyan: "bg-gradient-to-br from-cyan-500 to-blue-600",
+                cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
                 pink: "bg-gradient-to-br from-rose-500 to-pink-600"
               };
               

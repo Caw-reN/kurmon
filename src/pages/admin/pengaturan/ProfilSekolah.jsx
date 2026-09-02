@@ -365,7 +365,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
             onClick={() => setActiveTab('profil')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'profil'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -378,7 +378,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
             onClick={() => setActiveTab('tahun')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'tahun'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -391,7 +391,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
             onClick={() => setActiveTab('kop')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'kop'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -419,7 +419,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-2xs">
+                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
                   {logoPreview ? (
                     <img src={logoPreview} alt="Logo Umum" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -435,7 +435,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               </div>
 
               <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-2xs">
+                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
                   {logoMobilePreview ? (
                     <img src={logoMobilePreview} alt="Logo Mobile" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -451,7 +451,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               </div>
 
               <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-2xs">
+                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
                   {logoWebPreview ? (
                     <img src={logoWebPreview} alt="Logo Website" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -871,7 +871,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                         onClick={() => setKopState({ ...kopState, kopAlign: 'center' })}
                         className={`py-1.5 px-3 rounded-[var(--ui-radius-control)] text-xs font-bold border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                           kopState.kopAlign === 'center' 
-                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] shadow-2xs font-extrabold' 
+                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] shadow-xs font-extrabold' 
                             : 'bg-slate-50 border-slate-200 text-slate-600'
                         }`}
                       >
@@ -882,7 +882,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                         onClick={() => setKopState({ ...kopState, kopAlign: 'left' })}
                         className={`py-1.5 px-3 rounded-[var(--ui-radius-control)] text-xs font-bold border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                           kopState.kopAlign === 'left' 
-                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] shadow-2xs font-extrabold' 
+                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] shadow-xs font-extrabold' 
                             : 'bg-slate-50 border-slate-200 text-slate-600'
                         }`}
                       >

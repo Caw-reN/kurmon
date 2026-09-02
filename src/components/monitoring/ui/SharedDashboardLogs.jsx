@@ -14,34 +14,34 @@ export const getClassBadge = (className) => {
   const upper = String(className).toUpperCase().trim();
   
   if (upper.includes('TKJ') || upper.includes('TJKT')) {
-    return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-2xs';
+    return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-xs';
   }
   if (upper.includes('TKR') || upper.includes('TKRO') || upper.includes('OTOMOTIF')) {
-    return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold shadow-2xs';
+    return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold shadow-xs';
   }
   if (upper.includes('MP') || upper.includes('MPLB') || upper.includes('OTKP') || upper.includes('PERKANTORAN')) {
-    return 'bg-emerald-100/90 text-emerald-800 border-emerald-300 font-extrabold shadow-2xs';
+    return 'bg-emerald-100/90 text-emerald-800 border-emerald-300 font-extrabold shadow-xs';
   }
   if (upper.includes('AK') || upper.includes('AKL') || upper.includes('AKUNTANSI')) {
-    return 'bg-pink-100/90 text-pink-800 border-pink-300 font-extrabold shadow-2xs';
+    return 'bg-pink-100/90 text-pink-800 border-pink-300 font-extrabold shadow-xs';
   }
   if (upper.includes('RPL') || upper.includes('PPLG')) {
-    return 'bg-cyan-100/90 text-cyan-800 border-cyan-300 font-extrabold shadow-2xs';
+    return 'bg-cyan-100/90 text-cyan-800 border-cyan-300 font-extrabold shadow-xs';
   }
   if (upper.includes('DKV') || upper.includes('MM') || upper.includes('MULTIMEDIA')) {
-    return 'bg-purple-100/90 text-purple-800 border-purple-300 font-extrabold shadow-2xs';
+    return 'bg-purple-100/90 text-purple-800 border-purple-300 font-extrabold shadow-xs';
   }
   if (upper.includes('PM') || upper.includes('BDP') || upper.includes('PEMASARAN')) {
-    return 'bg-amber-100/90 text-amber-800 border-amber-300 font-extrabold shadow-2xs';
+    return 'bg-amber-100/90 text-amber-800 border-amber-300 font-extrabold shadow-xs';
   }
   if (upper.includes('TB') || upper.includes('BOGA')) {
-    return 'bg-rose-100/90 text-rose-800 border-rose-300 font-extrabold shadow-2xs';
+    return 'bg-rose-100/90 text-rose-800 border-rose-300 font-extrabold shadow-xs';
   }
   if (upper.includes('BS') || upper.includes('BUSANA')) {
-    return 'bg-fuchsia-100/90 text-fuchsia-800 border-fuchsia-300 font-extrabold shadow-2xs';
+    return 'bg-fuchsia-100/90 text-fuchsia-800 border-fuchsia-300 font-extrabold shadow-xs';
   }
 
-  return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-2xs';
+  return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-xs';
 };
 
 export const SharedDashboardLogs = ({ onLogsFetched }) => {
@@ -691,7 +691,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
-              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700"
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 border border-slate-700"
               title="Koreksi Jam Absensi (Khusus Admin / Super Admin)"
             >
               <Shield size={13} className="text-amber-400 shrink-0" />

@@ -258,7 +258,7 @@ const JurnalAdmin = ({ readOnly }) => {
               onClick={() => setFilterStatus(st.id)}
               className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap flex items-center gap-1.5 ${
                 filterStatus === st.id 
-                  ? 'bg-white text-slate-800 shadow-2xs' 
+                  ? 'bg-white text-slate-800 shadow-xs' 
                   : 'text-slate-500 hover:text-slate-800 bg-transparent'
               }`}
             >
@@ -349,7 +349,7 @@ const JurnalAdmin = ({ readOnly }) => {
 
                       {/* Status */}
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black border shadow-2xs ${st.cls}`}>
+                        <span className={`inline-block px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black border shadow-xs ${st.cls}`}>
                           {st.label}
                         </span>
                       </td>
@@ -362,7 +362,7 @@ const JurnalAdmin = ({ readOnly }) => {
                               <button
                                 type="button"
                                 onClick={(e) => handleReject(j.id, e)}
-                                className="px-2.5 py-1 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[var(--ui-radius-control)] border border-rose-200 transition-all cursor-pointer shadow-2xs"
+                                className="px-2.5 py-1 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[var(--ui-radius-control)] border border-rose-200 transition-all cursor-pointer shadow-xs"
                                 title="Minta Revisi Jurnal"
                               >
                                 Tolak
@@ -370,7 +370,7 @@ const JurnalAdmin = ({ readOnly }) => {
                               <button
                                 type="button"
                                 onClick={(e) => handleApprove(j.id, e)}
-                                className="px-2.5 py-1 text-[11px] font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-2xs transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                                className="px-2.5 py-1 text-[11px] font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-xs transition-all flex items-center gap-1 cursor-pointer active:scale-95"
                                 title="Setujui Jurnal"
                               >
                                 <Check size={13} />

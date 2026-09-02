@@ -345,7 +345,7 @@ export default function JadwalPiket({ teachers = [] }) {
                               onClick={() => toggleTeacher(t.code)}
                               className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-[var(--ui-radius-small)] transition-colors cursor-pointer border ${
                                 isSelected 
-                                  ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs" 
+                                  ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-xs" 
                                   : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700"
                               }`}
                            >

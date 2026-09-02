@@ -866,7 +866,7 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
                         onClick={() => setSelectedTemplate(t)}
                         className={`w-full text-left p-3 rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                           isSelected 
-                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20 shadow-2xs' 
+                            ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] ring-2 ring-[var(--ui-primary)]/20 shadow-xs' 
                             : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
@@ -936,7 +936,7 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
                         onClick={() => setSelectedStudent(s)}
                         className={`p-2.5 rounded-[var(--ui-radius-control)] cursor-pointer flex items-center justify-between gap-2.5 transition-all ${
                           isSelected 
-                            ? 'bg-emerald-50/80 border border-emerald-300 text-emerald-800 font-black shadow-2xs' 
+                            ? 'bg-emerald-50/80 border border-emerald-300 text-emerald-800 font-black shadow-xs' 
                             : 'hover:bg-slate-50 text-slate-700'
                         }`}
                       >

@@ -1066,7 +1066,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
             type="button"
             onClick={handleExport}
             disabled={loading || data.length === 0}
-            className="px-3.5 py-2 bg-emerald-50/90 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-2xs disabled:opacity-50"
+            className="px-3.5 py-2 bg-emerald-50/90 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
           >
             <FileSpreadsheet size={14} className="shrink-0 text-emerald-600" />
             <span>Excel</span>
@@ -1077,7 +1077,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
             type="button"
             onClick={handleExportPDF}
             disabled={loading || data.length === 0}
-            className="px-3.5 py-2 bg-rose-50/90 hover:bg-rose-100 text-rose-700 border-rose-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-2xs disabled:opacity-50"
+            className="px-3.5 py-2 bg-rose-50/90 hover:bg-rose-100 text-rose-700 border-rose-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
           >
             <FileText size={14} className="shrink-0 text-rose-600" />
             <span>PDF</span>
@@ -1193,7 +1193,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-emerald-200/80">
                     {dailyTotals.hadir[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-xs">
                         {dailyTotals.hadir[d]}
                       </span>
                     ) : (
@@ -1213,7 +1213,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-rose-200/80">
                     {dailyTotals.terlambat[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
                         {dailyTotals.terlambat[d]}
                       </span>
                     ) : (
@@ -1233,7 +1233,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-indigo-200/80">
                     {dailyTotals.izin[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-xs">
                         {dailyTotals.izin[d]}
                       </span>
                     ) : (
@@ -1253,7 +1253,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-amber-200/80">
                     {dailyTotals.sakit[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-amber-500 text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-amber-500 text-white font-black text-[10px] shadow-xs">
                         {dailyTotals.sakit[d]}
                       </span>
                     ) : (
@@ -1273,7 +1273,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                 {daysToRender.map(d => (
                   <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
                     {dailyTotals.alpa[d] > 0 ? (
-                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-2xs">
+                      <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
                         {dailyTotals.alpa[d]}
                       </span>
                     ) : (
@@ -1334,7 +1334,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                        onClick={() => setPrintPeriod(item.id)}
                        className={`p-3 rounded-[var(--ui-radius-card)] text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
                          printPeriod === item.id 
-                           ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-2xs font-bold ring-2 ring-indigo-500/20' 
+                           ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-xs font-bold ring-2 ring-indigo-500/20' 
                            : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
                        }`}
                      >

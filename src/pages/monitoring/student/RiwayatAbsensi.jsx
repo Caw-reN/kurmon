@@ -153,7 +153,7 @@ const RiwayatAbsensi = () => {
 
       {/* ── 2. METRIC SUMMARY STAT CARDS (2x2 Mobile Grid) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hadir Tepat</span>
             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
@@ -163,7 +163,7 @@ const RiwayatAbsensi = () => {
           <p className="text-2xl font-black text-emerald-700 leading-none">{counts.hadir}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Terlambat</span>
             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
@@ -173,7 +173,7 @@ const RiwayatAbsensi = () => {
           <p className="text-2xl font-black text-amber-700 leading-none">{counts.terlambat}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Izin / Sakit</span>
             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
@@ -183,7 +183,7 @@ const RiwayatAbsensi = () => {
           <p className="text-2xl font-black text-sky-700 leading-none">{counts.izin}</p>
         </div>
 
-        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-2 flex flex-col justify-between">
+        <div className="bg-white p-4.5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Alpa / Absen</span>
             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
@@ -195,7 +195,7 @@ const RiwayatAbsensi = () => {
       </div>
 
       {/* ── 3. ATTENDANCE HISTORY LOG LIST & FILTER SEARCH ── */}
-      <div className="bg-white p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-2xs space-y-4">
+      <div className="bg-white p-5 rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <h2 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
             <Clock size={16} style={{ color: themeColorCSS }} /> Histori Absensi Harian

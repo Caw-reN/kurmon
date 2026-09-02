@@ -485,7 +485,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
                   onClick={() => { setFilterVerified(st.id); }}
                   className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
                     filterVerified === st.id 
-                      ? 'bg-white text-slate-800 shadow-2xs' 
+                      ? 'bg-white text-slate-800 shadow-xs' 
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >
@@ -500,7 +500,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
                 onClick={() => setView('list')}
                 className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center gap-1.5 ${
                   view === 'list' 
-                    ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                    ? 'bg-[var(--ui-primary)] text-white shadow-xs' 
                     : 'text-slate-600 hover:text-slate-900 bg-transparent'
                 }`}
               >
@@ -511,7 +511,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
                 onClick={() => setView('map')}
                 className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center gap-1.5 ${
                   view === 'map' 
-                    ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                    ? 'bg-[var(--ui-primary)] text-white shadow-xs' 
                     : 'text-slate-600 hover:text-slate-900 bg-transparent'
                 }`}
               >
@@ -623,7 +623,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
                     {/* Top Row: Icon, Name, and Status Badge */}
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                           <Building2 size={20} strokeWidth={2.2} />
                         </div>
                         <div className="min-w-0 flex-1">

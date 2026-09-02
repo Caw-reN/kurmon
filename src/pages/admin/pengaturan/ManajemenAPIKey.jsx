@@ -189,7 +189,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 type="button"
                 key={preset.service_name_prefix} 
                 onClick={() => openAdd(preset)}
-                className={`w-full text-left p-4 rounded-[var(--ui-radius-card)] border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 ${
+                className={`w-full text-left p-4 rounded-[var(--ui-radius-card)] border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 shadow-xs hover:shadow-xs hover:-translate-y-0.5 ${
                   isConfigured 
                     ? 'border-emerald-200/90 bg-emerald-50/20 hover:border-emerald-400' 
                     : 'border-slate-200/80 bg-white hover:border-violet-400 hover:bg-slate-50/50'
@@ -224,7 +224,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
       </div>
 
       {/* CONFIGURED KEYS LIST */}
-      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">

@@ -588,7 +588,7 @@ export default function KepsekExecutiveDashboard({
                     <button
                       key={m.tab}
                       onClick={() => gotoTab(m.tab)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <div className="w-7 h-7 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                         <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
@@ -655,7 +655,7 @@ export default function KepsekExecutiveDashboard({
                       <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
                       <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
                       <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
-                      <div className="h-full bg-blue-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
+                      <div className="h-full bg-sky-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
                       <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
                     </div>
 
@@ -663,7 +663,7 @@ export default function KepsekExecutiveDashboard({
                       <span className="text-emerald-700">● {row.hadir} Hadir</span>
                       <span className="text-amber-600">● {row.telat} Telat</span>
                       <span className="text-orange-600">● {row.izin} Izin</span>
-                      <span className="text-blue-600">● {row.sakit} Sakit</span>
+                      <span className="text-sky-600">● {row.sakit} Sakit</span>
                       <span className="text-rose-600">● {row.alpa} Alpa</span>
                     </div>
 
@@ -673,7 +673,7 @@ export default function KepsekExecutiveDashboard({
                           const gStat = siswaStats.gradeStats[g];
                           const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
                           return (
-                            <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-1 px-1 text-center shadow-2xs">
+                            <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-1 px-1 text-center shadow-xs">
                               <span className="text-[9px] font-extrabold text-slate-500 mr-1">Kelas {g}:</span>
                               <span className="text-[10px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
                             </div>

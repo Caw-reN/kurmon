@@ -274,7 +274,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
       </div>
 
       {/* Info Tip Banner */}
-      <div className="bg-indigo-50/80 border border-indigo-200/70 text-indigo-800 p-3 sm:p-4 rounded-[var(--ui-radius-card)] flex items-center gap-2.5 sm:gap-3 text-xs shadow-2xs">
+      <div className="bg-indigo-50/80 border border-indigo-200/70 text-indigo-800 p-3 sm:p-4 rounded-[var(--ui-radius-card)] flex items-center gap-2.5 sm:gap-3 text-xs shadow-xs">
         <Info className="shrink-0 text-indigo-600" size={16} />
         <p className="font-medium leading-relaxed">
           Pilih guru pembimbing pada dropdown header perusahaan untuk menugaskan <strong>seluruh siswa di perusahaan tersebut</strong> secara instan.
@@ -292,7 +292,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
               onClick={() => setActiveTab('manual')}
               className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
                 activeTab === 'manual'
-                  ? 'bg-white text-slate-800 shadow-2xs'
+                  ? 'bg-white text-slate-800 shadow-xs'
                   : 'bg-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -306,7 +306,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
                 onClick={() => setActiveTab('auto')}
                 className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
                   activeTab === 'auto'
-                    ? 'bg-white text-slate-800 shadow-2xs'
+                    ? 'bg-white text-slate-800 shadow-xs'
                     : 'bg-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -341,7 +341,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
                   onClick={() => setFilterKelas(k)}
                   className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold whitespace-nowrap cursor-pointer border transition-all ${
                     filterKelas === k 
-                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs' 
+                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
                       : 'bg-[var(--ui-surface-muted)] text-slate-600 border-[var(--ui-border-muted)] hover:bg-slate-200/60'
                   }`}
                 >
@@ -361,7 +361,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
                   onClick={() => setFilterJurusan(j)}
                   className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold whitespace-nowrap cursor-pointer border transition-all ${
                     filterJurusan === j 
-                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs' 
+                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
                       : 'bg-[var(--ui-surface-muted)] text-slate-600 border-[var(--ui-border-muted)] hover:bg-slate-200/60'
                   }`}
                 >
@@ -393,7 +393,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
                       className="w-4 h-4 text-[var(--ui-primary)] rounded border-slate-300 focus:ring-[var(--ui-primary)] cursor-pointer"
                     />
                   )}
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
                     <Building2 size={18} strokeWidth={2.2} className="sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0">

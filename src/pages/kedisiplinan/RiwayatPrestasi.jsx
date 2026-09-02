@@ -224,13 +224,13 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const getTingkatBadgeClass = (tingkat) => {
     switch(tingkat) {
       case 'Internasional':
-        return 'bg-purple-100/90 text-purple-800 border-purple-200 shadow-2xs';
+        return 'bg-purple-100/90 text-purple-800 border-purple-200 shadow-xs';
       case 'Nasional':
-        return 'bg-rose-100/90 text-rose-800 border-rose-200 shadow-2xs';
+        return 'bg-rose-100/90 text-rose-800 border-rose-200 shadow-xs';
       case 'Provinsi':
-        return 'bg-sky-100/90 text-sky-800 border-sky-200 shadow-2xs';
+        return 'bg-sky-100/90 text-sky-800 border-sky-200 shadow-xs';
       default:
-        return 'bg-amber-100/90 text-amber-800 border-amber-200 shadow-2xs';
+        return 'bg-amber-100/90 text-amber-800 border-amber-200 shadow-xs';
     }
   };
 
@@ -246,7 +246,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         <button
           type="button"
           onClick={exportExcel}
-          className="py-2 px-3.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer backdrop-blur-sm active:scale-95"
+          className="py-2 px-3.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white/15 hover:bg-white/25 text-white border border-white/20 flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer backdrop-blur-sm active:scale-95"
         >
           <FileSpreadsheet size={15} />
           <span>Export Excel</span>
@@ -264,7 +264,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/70 flex items-center justify-center shrink-0 shadow-xs">
             <Trophy size={24} />
           </div>
           <div>
@@ -275,7 +275,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         </div>
 
         <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0 shadow-xs">
             <Award size={24} />
           </div>
           <div>
@@ -286,7 +286,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         </div>
 
         <div className="bg-white rounded-[var(--ui-radius-card)] p-4.5 border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-xs">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0 shadow-xs">
             <TrendingUp size={24} />
           </div>
           <div>
@@ -357,7 +357,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 <div key={item.id} className="p-4 hover:bg-slate-50/50 transition-colors space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-100/70 text-amber-700 border border-amber-200/80 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                      <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-100/70 text-amber-700 border border-amber-200/80 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
                         {sInfo.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
@@ -445,7 +445,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               ) : filteredPrestasi.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-16 text-center text-slate-400 space-y-2">
-                    <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-2xs">
+                    <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-xs">
                       <Trophy size={28} />
                     </div>
                     <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
@@ -482,7 +482,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       <td className="px-5 py-3.5">
                         <div className="flex flex-col items-center gap-1">
                           {item.peringkat && (
-                            <span className="px-2.5 py-0.5 bg-amber-100/80 text-amber-800 border border-amber-200/80 rounded-[var(--ui-radius-pill)] text-[10px] font-black shadow-2xs">
+                            <span className="px-2.5 py-0.5 bg-amber-100/80 text-amber-800 border border-amber-200/80 rounded-[var(--ui-radius-pill)] text-[10px] font-black shadow-xs">
                               {item.peringkat}
                             </span>
                           )}

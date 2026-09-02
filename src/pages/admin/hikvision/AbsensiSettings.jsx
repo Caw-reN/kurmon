@@ -132,7 +132,7 @@ const AbsensiSettings = ({ readOnly }) => {
         title="Pengaturan Absensi PKL"
         description="Kelola metode validasi absensi harian siswa (Radius GPS, Foto Selfie, QR Code, dan Jam Kerja PKL)."
         rightContent={
-          <span className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-pill)] border shadow-2xs ${
+          <span className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-pill)] border shadow-xs ${
             activeCount > 0 
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
               : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -286,7 +286,7 @@ const AbsensiSettings = ({ readOnly }) => {
           <button
             type="button"
             onClick={handleReset}
-            className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs"
+            className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
           >
             <RotateCcw size={14} />
             <span>Reset ke Standar</span>

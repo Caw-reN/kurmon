@@ -111,7 +111,7 @@ const StudentDashboard = () => {
           {/* Notification Bell */}
           <button
             type="button"
-            className="w-10 h-10 rounded-full bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center text-slate-700 relative hover:bg-slate-50 transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white shadow-xs border border-slate-200/80 flex items-center justify-center text-slate-700 relative hover:bg-slate-50 transition-colors cursor-pointer"
             title="Notifikasi"
           >
             <Bell size={18} />
@@ -122,7 +122,7 @@ const StudentDashboard = () => {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-10 h-10 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs"
+            className="w-10 h-10 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center cursor-pointer transition-colors shadow-xs"
             title="Keluar Akun"
           >
             <LogOut size={18} />
@@ -184,7 +184,7 @@ const StudentDashboard = () => {
             <div className="flex items-center gap-3 min-w-0">
               {/* Round White Icon Container */}
               <div 
-                className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0 shadow-2xs"
+                className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs"
                 style={{ color: themeColorCSS }}
               >
                 <Building2 size={18} />

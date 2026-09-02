@@ -251,7 +251,7 @@ export default function TabSilabus(props) {
             {spotlightSyllabuses.map((s) => {
               const cat = syllabusCategories?.find((c) => c.id === s.categoryId);
               return (
-                <div key={s.id} className="rounded-[var(--ui-radius-control)] bg-white border border-slate-200 p-3.5 shadow-2xs space-y-1.5">
+                <div key={s.id} className="rounded-[var(--ui-radius-control)] bg-white border border-slate-200 p-3.5 shadow-xs space-y-1.5">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     {s.teacherCode || '-'} &bull; {s.gradeSemester || '-'}
                   </div>
@@ -393,7 +393,7 @@ export default function TabSilabus(props) {
                         onClick={() => setSelectedSilabusId(item.id)}
                         className={`shrink-0 text-left px-3 py-2 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer ${
                           isActive 
-                            ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs' 
+                            ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >

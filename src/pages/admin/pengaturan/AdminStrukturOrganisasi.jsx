@@ -287,7 +287,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
             onClick={() => setActiveTab('kelola')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'kelola'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -300,7 +300,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
             onClick={() => setActiveTab('preview')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'preview'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -398,7 +398,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
                     {/* Member Avatar / Photo Upload */}
                     <div className="relative group/avatar shrink-0">
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] flex items-center justify-center overflow-hidden shadow-2xs">
+                      <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] flex items-center justify-center overflow-hidden shadow-xs">
                         {item.photoUrl ? (
                           <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
@@ -550,7 +550,7 @@ function TreeNode({ node }) {
     <div className="flex flex-col items-center relative">
       {/* Node Card */}
       <div className="bg-white rounded-[var(--ui-radius-control)] p-3 border-2 border-[var(--ui-primary)] shadow-sm flex flex-col items-center text-center w-48 relative z-10 transition-all hover:scale-105 hover:shadow-sm">
-        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-2xs flex items-center justify-center bg-slate-50">
+        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-xs flex items-center justify-center bg-slate-50">
           {node.photoUrl ? (
             <img src={node.photoUrl} alt={node.name} className="w-full h-full object-cover" />
           ) : (

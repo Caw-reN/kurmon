@@ -191,7 +191,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={() => openModal("bulk","add")} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs border-slate-200 hover:bg-slate-50 text-slate-700"
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs border-slate-200 hover:bg-slate-50 text-slate-700"
                   >
                     <Upload size={13} /> Import Teks
                   </Button>
@@ -202,7 +202,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={undoLastDelete} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs border-slate-200 text-slate-700 hover:bg-slate-50"
                   >
                     <History size={13} /> Undo Hapus
                   </Button>
@@ -214,7 +214,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="outline" 
                       onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
-                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-[var(--ui-radius-small)] shadow-2xs"
+                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-[var(--ui-radius-small)] shadow-xs"
                     >
                       <Edit3 size={13} /> Edit Massal ({selectedCount})
                     </Button>
@@ -222,7 +222,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="destructive" 
                       onClick={() => handleBulkDelete(tabKey, selectedKeys)} 
-                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[var(--ui-radius-small)] shadow-2xs"
+                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
                     >
                       <Trash2 size={13} /> Hapus ({selectedCount})
                     </Button>
@@ -234,7 +234,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="destructive" 
                     onClick={handleResetRuangan} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-2xs"
+                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs"
                   >
                     <Trash2 size={13} /> Kosongkan Semua
                   </Button>

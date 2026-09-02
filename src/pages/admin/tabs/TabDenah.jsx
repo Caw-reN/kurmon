@@ -96,14 +96,14 @@ export default function TabDenah(props) {
                   <button 
                     type="button" 
                     onClick={() => setLayoutPreset("kampus_a")} 
-                    className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_a" ? "bg-white text-slate-900 shadow-2xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
+                    className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_a" ? "bg-white text-slate-900 shadow-xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
                   >
                     Kampus A - Teori
                   </button>
                   <button 
                     type="button" 
                     onClick={() => setLayoutPreset("kampus_b")} 
-                    className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_b" ? "bg-white text-slate-900 shadow-2xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
+                    className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${layoutPreset === "kampus_b" ? "bg-white text-slate-900 shadow-xs font-extrabold" : "text-slate-600 hover:text-slate-900"}`}
                   >
                     Kampus B - Praktik
                   </button>

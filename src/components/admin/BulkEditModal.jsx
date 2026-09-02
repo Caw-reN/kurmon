@@ -216,7 +216,7 @@ export default function BulkEditModal({
         
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 shadow-xs">
             <Edit3 size={22} />
           </div>
           <div>

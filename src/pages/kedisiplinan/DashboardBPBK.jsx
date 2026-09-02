@@ -925,9 +925,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             });
             setShowSessionModal(true);
           }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 transition-all font-black text-xs cursor-pointer shadow-2xs active:scale-98 text-left"
+          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
         >
-          <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Plus size={16} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -948,9 +948,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             });
             setShowVisitModal(true);
           }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200/80 transition-all font-black text-xs cursor-pointer shadow-2xs active:scale-98 text-left"
+          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
         >
-          <div className="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Home size={15} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -976,9 +976,9 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             });
             setShowLetterModal(true);
           }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/80 transition-all font-black text-xs cursor-pointer shadow-2xs active:scale-98 text-left"
+          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
         >
-          <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Printer size={15} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -1087,7 +1087,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
 
               {highRiskStudents.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-gradient-to-b from-slate-50/50 to-emerald-50/20 rounded-[var(--ui-radius-card)] border border-slate-100/80 my-1">
-                  <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-2xs">
+                  <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-xs">
                     <ShieldCheck size={28} strokeWidth={2.2} />
                   </div>
                   <div className="max-w-md space-y-1">
@@ -1102,11 +1102,11 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                   {highRiskStudents.map(st => (
                     <div 
                       key={st.nis}
-                      className="p-3.5 rounded-[var(--ui-radius-small)] border border-slate-200/80 bg-white hover:bg-slate-50/80 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-2xs"
+                      className="p-3.5 rounded-[var(--ui-radius-small)] border border-slate-200/80 bg-white hover:bg-slate-50/80 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-xs"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-11 h-11 rounded-[var(--ui-radius-small)] flex flex-col items-center justify-center font-black text-xs shrink-0 border ${
-                          st.total_poin >= 100 ? 'bg-rose-600 text-white border-rose-700 shadow-2xs' :
+                          st.total_poin >= 100 ? 'bg-rose-600 text-white border-rose-700 shadow-xs' :
                           st.total_poin >= 75 ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200'
                         }`}>
                           <span className="text-sm leading-none font-black">{st.total_poin}</span>
@@ -1134,7 +1134,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         <button
                           type="button"
                           onClick={() => openSessionWithStudent(st)}
-                          className="px-2.5 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-emerald-200 cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-2.5 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-emerald-200 cursor-pointer flex items-center gap-1 shadow-xs"
                           title="Catat sesi konseling untuk siswa ini"
                         >
                           <Plus size={13} />
@@ -1144,7 +1144,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         <button
                           type="button"
                           onClick={() => openLetterWithStudent(st)}
-                          className="px-2.5 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-rose-200 cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-2.5 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border border-rose-200 cursor-pointer flex items-center gap-1 shadow-xs"
                           title="Terbitkan surat panggilan/SP"
                         >
                           <FileText size={13} />
@@ -1154,7 +1154,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         <button
                           type="button"
                           onClick={() => openDossier(st)}
-                          className="px-2.5 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-2.5 py-1.5 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
                           title="Lihat berkas lengkap siswa"
                         >
                           <Eye size={13} />
@@ -1177,7 +1177,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
               <div className="flex flex-col gap-3.5">
                 {[
                   { label: 'Kedisiplinan & Tata Tertib', gradient: 'from-rose-500 to-pink-500', count: bkSessions.filter(s => s.category === 'Kedisiplinan').length },
-                  { label: 'Akademik & Nilai Belajar', gradient: 'from-sky-500 to-blue-500', count: bkSessions.filter(s => s.category === 'Akademik').length },
+                  { label: 'Akademik & Nilai Belajar', gradient: 'from-sky-500 to-sky-500', count: bkSessions.filter(s => s.category === 'Akademik').length },
                   { label: 'Pribadi & Sosial Remaja', gradient: 'from-amber-500 to-orange-500', count: bkSessions.filter(s => s.category === 'Pribadi' || s.category === 'Sosial').length },
                   { label: 'Karir, Minat & Kelulusan', gradient: 'from-emerald-500 to-teal-500', count: bkSessions.filter(s => s.category === 'Karir').length }
                 ].map(cat => {
@@ -1217,7 +1217,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5">
               <div className="flex items-center gap-2.5">
                 <div 
-                  className="w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-2xs"
+                  className="w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-xs"
                   style={{ background: "var(--ui-primary)" }}
                 >
                   <MessageSquare size={16} strokeWidth={2.2} />
@@ -1258,7 +1258,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                   type="button"
                   variant="outline"
                   onClick={handleExportExcel}
-                  className="px-3 py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs bg-white text-slate-700"
+                  className="px-3 py-2 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs bg-white text-slate-700"
                 >
                   <Download size={13} />
                   <span>Export Excel</span>
@@ -1396,7 +1396,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                                 const st = students.find(s => String(getStudentNis(s)) === String(ses.student_nis));
                                 if (st) openDossier(st);
                               }}
-                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border border-slate-200 cursor-pointer shadow-2xs bg-white"
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border border-slate-200 cursor-pointer shadow-xs bg-white"
                               title="Buka Dossier 360°"
                             >
                               <Eye size={13} />
@@ -1418,14 +1418,14 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                                 });
                                 setShowSessionModal(true);
                               }}
-                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border border-slate-200 cursor-pointer shadow-2xs bg-white"
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] transition-all border border-slate-200 cursor-pointer shadow-xs bg-white"
                               title="Edit Sesi"
                             >
                               <Edit2 size={13} />
                             </button>
                             <button
                               onClick={() => handleDeleteSession(ses.id)}
-                              className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] transition-all border border-rose-200 cursor-pointer shadow-2xs bg-white"
+                              className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] transition-all border border-rose-200 cursor-pointer shadow-xs bg-white"
                               title="Hapus Sesi"
                             >
                               <Trash2 size={13} />
@@ -1578,7 +1578,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                   });
                   setShowVisitModal(true);
                 }}
-                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-sky-600 hover:bg-sky-700 text-white rounded-[var(--ui-radius-small)] shadow-2xs"
+                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-sky-600 hover:bg-sky-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
               >
                 + Tambah Visit
               </Button>
@@ -1592,7 +1592,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                 </div>
               ) : (
                 filteredHomeVisits.map(hv => (
-                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-2xs">
+                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <div className="font-black text-slate-900 text-xs sm:text-sm">{hv.student_name || 'Siswa'}</div>
@@ -1658,7 +1658,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                   });
                   setShowLetterModal(true);
                 }}
-                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] shadow-2xs"
+                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
               >
                 + Terbitkan Surat
               </Button>
@@ -1672,7 +1672,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                 </div>
               ) : (
                 filteredLetters.map(lettr => (
-                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-2xs">
+                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <div className="flex items-center gap-2">
@@ -1711,7 +1711,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                             });
                             setShowLetterModal(true);
                           }}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-slate-600 hover:bg-slate-100 transition-all border border-slate-200 bg-white cursor-pointer shadow-2xs"
+                          className="p-1.5 rounded-[var(--ui-radius-small)] text-slate-600 hover:bg-slate-100 transition-all border border-slate-200 bg-white cursor-pointer shadow-xs"
                           title="Edit / Ubah Data Surat"
                         >
                           <Edit2 size={13} />
@@ -1719,7 +1719,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         <button
                           type="button"
                           onClick={() => downloadLetterPDF(lettr)}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-emerald-600 hover:bg-emerald-50 transition-all border border-emerald-200 bg-white cursor-pointer shadow-2xs"
+                          className="p-1.5 rounded-[var(--ui-radius-small)] text-emerald-600 hover:bg-emerald-50 transition-all border border-emerald-200 bg-white cursor-pointer shadow-xs"
                           title="Cetak Ulang PDF"
                         >
                           <Printer size={13} />

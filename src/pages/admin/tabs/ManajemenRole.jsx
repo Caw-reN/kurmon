@@ -14,7 +14,7 @@ const ORGANOGRAM = [
   {
     key: 'kepsek',
     title: 'Kepala Sekolah',
-    color: 'from-blue-600 to-indigo-600',
+    color: 'from-sky-600 to-indigo-600',
     headerBg: 'bg-[var(--ui-primary)] text-white',
     badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     description: 'Pimpinan sekolah & monitoring seluruh data dan kebijakan akademik.',
@@ -51,7 +51,7 @@ const ORGANOGRAM = [
   {
     key: 'waka_kesiswaan',
     title: 'Waka Kesiswaan & Kedisiplinan',
-    color: 'from-orange-500 to-red-500',
+    color: 'from-orange-500 to-rose-500',
     headerBg: 'bg-orange-600 text-white',
     badgeColor: 'bg-orange-50 text-orange-700 border-orange-200',
     description: 'Presensi siswa, tatib & skor pelanggaran, BP/BK, dan Pembina OSIS.',
@@ -662,7 +662,7 @@ export default function ManajemenRole(props) {
       />
 
       {/* Guide Banner */}
-      <div className="p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-blue-50 via-indigo-50/40 to-slate-50 border border-indigo-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-sky-50 via-indigo-50/40 to-slate-50 border border-indigo-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
             <Info size={18} />

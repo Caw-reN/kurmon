@@ -238,7 +238,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Karyawan */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs hover:shadow-xs transition-all flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 border border-[var(--ui-primary)]/20">
             <Users size={20} strokeWidth={2.2} />
           </div>
@@ -249,7 +249,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
         </div>
 
         {/* Terhubung */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-emerald-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-emerald-200/60 shadow-xs hover:shadow-xs transition-all flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
             <CheckCircle2 size={20} strokeWidth={2.2} />
           </div>
@@ -260,7 +260,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
         </div>
 
         {/* Belum Ada di Mesin */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-rose-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-rose-200/60 shadow-xs hover:shadow-xs transition-all flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
             <XCircle size={20} strokeWidth={2.2} />
           </div>
@@ -271,7 +271,7 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
         </div>
 
         {/* Total Divisi */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/60 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
+        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/60 shadow-xs hover:shadow-xs transition-all flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
             <Briefcase size={20} strokeWidth={2.2} />
           </div>

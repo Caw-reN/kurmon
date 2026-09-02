@@ -260,7 +260,7 @@ export default function SiswaKeluar() {
             <span className="text-[11px] font-extrabold text-slate-600 uppercase tracking-tight">{stat.label}</span>
             <div className="flex items-center justify-between mt-3">
               <span className="text-2xl font-black text-slate-800">{stat.count}</span>
-              <span className={`w-2.5 h-2.5 rounded-full ${stat.dot} shadow-2xs`} />
+              <span className={`w-2.5 h-2.5 rounded-full ${stat.dot} shadow-xs`} />
             </div>
           </div>
         ))}
@@ -289,7 +289,7 @@ export default function SiswaKeluar() {
               <button
                 type="button"
                 onClick={handleExportExcel}
-                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-[var(--ui-radius-small)] font-extrabold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-[var(--ui-radius-small)] font-extrabold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer shrink-0"
                 title="Ekspor ke Excel"
               >
                 <Download size={14} />
@@ -357,7 +357,7 @@ export default function SiswaKeluar() {
           </div>
 
           {/* 💻 Desktop Table View (Hidden on Mobile) */}
-          <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-2xs">
+          <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
@@ -410,7 +410,7 @@ export default function SiswaKeluar() {
                         </span>
                       </td>
                       <td className="px-3 py-3.5">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wide border shadow-2xs ${
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wide border shadow-xs ${
                           student.alasan === 'Dikeluarkan' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                           student.alasan === 'Mengundurkan Diri' ? 'bg-amber-50 text-amber-800 border-amber-200' :
                           student.alasan === 'Pindah Sekolah' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200'
@@ -435,7 +435,7 @@ export default function SiswaKeluar() {
                             setTargetRestoreStudent(student);
                             setConfirmModal('restore');
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-emerald-50/60 text-emerald-700 hover:bg-emerald-600 hover:text-white font-extrabold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-emerald-50/60 text-emerald-700 hover:bg-emerald-600 hover:text-white font-extrabold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
                           title="Batalkan status keluar & kembalikan ke siswa aktif"
                         >
                           <RotateCcw size={13} />
@@ -463,7 +463,7 @@ export default function SiswaKeluar() {
               </div>
             ) : (
               filteredHistory.map(student => (
-                <div key={student.id || student.nis} className="p-4 bg-slate-50/80 border border-slate-200 rounded-[var(--ui-radius-card)] space-y-3 shadow-2xs">
+                <div key={student.id || student.nis} className="p-4 bg-slate-50/80 border border-slate-200 rounded-[var(--ui-radius-card)] space-y-3 shadow-xs">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">
@@ -501,7 +501,7 @@ export default function SiswaKeluar() {
                         setTargetRestoreStudent(student);
                         setConfirmModal('restore');
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-white text-emerald-700 font-extrabold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200 bg-white text-emerald-700 font-extrabold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
                     >
                       <RotateCcw size={12} />
                       <span>Batalkan Status</span>
@@ -634,7 +634,7 @@ export default function SiswaKeluar() {
 
               {/* Card Ringkasan Siswa Terpilih */}
               {selectedStudent && (
-                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-2xs animate-in zoom-in-95 duration-200">
+                <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-xs animate-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
                       {(selectedStudent.namaSiswa || selectedStudent.name || 'S').charAt(0)}
@@ -688,7 +688,7 @@ export default function SiswaKeluar() {
                       onClick={() => setExitForm({ ...exitForm, alasan: item.key })}
                       className={`px-2.5 py-2 rounded-[var(--ui-radius-small)] border text-[11px] font-extrabold transition-all text-center cursor-pointer ${
                         exitForm.alasan === item.key 
-                          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-600 text-white shadow-2xs' 
+                          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-600 text-white shadow-xs' 
                           : item.color
                       }`}
                     >

@@ -340,27 +340,27 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {activeTab ==='telegram' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {!isCheckingConfig && (
-            <div className={`p-6 rounded-[24px] border flex items-center justify-between gap-6 shadow-sm transition-all duration-300 ${isTelegramConfigured ?'bg-gradient-to-br from-blue-50 to-white border-blue-200' :'bg-slate-50 border-slate-200'}`}>
+            <div className={`p-6 rounded-[24px] border flex items-center justify-between gap-6 shadow-sm transition-all duration-300 ${isTelegramConfigured ?'bg-gradient-to-br from-sky-50 to-white border-sky-200' :'bg-slate-50 border-slate-200'}`}>
               <div className="flex items-center gap-5">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isTelegramConfigured ?'bg-blue-500 text-white shadow-blue-200' :'bg-slate-200 text-slate-500'}`}>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isTelegramConfigured ?'bg-sky-500 text-white shadow-sky-200' :'bg-slate-200 text-slate-500'}`}>
                   <Send size={28} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <p className={`font-extrabold text-lg flex items-center gap-2 ${isTelegramConfigured ?'text-blue-900' :'text-slate-700'}`}>
+                  <p className={`font-extrabold text-lg flex items-center gap-2 ${isTelegramConfigured ?'text-sky-900' :'text-slate-700'}`}>
                     {isTelegramConfigured ? (
-                      <><span>Telegram Terhubung Aktif</span><CheckCircle2 size={18} className="text-blue-500" /></>
+                      <><span>Telegram Terhubung Aktif</span><CheckCircle2 size={18} className="text-sky-500" /></>
                     ) : (
                       <span>Telegram Belum Dikonfigurasi</span>
                     )}
                   </p>
-                  <p className={`text-sm mt-1 font-medium ${isTelegramConfigured ?'text-blue-600/80' :'text-slate-500'}`}>
+                  <p className={`text-sm mt-1 font-medium ${isTelegramConfigured ?'text-sky-600/80' :'text-slate-500'}`}>
                     {isTelegramConfigured
                       ?'Backup otomatis setiap hari pukul 02:00 WIB. Data terkirim aman ke obrolan Telegram Anda secara gratis tanpa batasan limit.'
                       :'Tambahkan API Key Telegram di menu Manajemen API Key → pilih "Telegram Auto-Backup" untuk mengaktifkan fitur ini.'}
                   </p>
                 </div>
               </div>
-              <Button onClick={() =>handleManualBackup('telegram')} disabled={isBackingUp || !isTelegramConfigured} className="flex items-center gap-2 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md h-11 px-6 font-bold disabled:opacity-50">
+              <Button onClick={() =>handleManualBackup('telegram')} disabled={isBackingUp || !isTelegramConfigured} className="flex items-center gap-2 shrink-0 bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md h-11 px-6 font-bold disabled:opacity-50">
                 {isBackingUp ? <RefreshCw size={18} className="animate-spin" /> : <CloudUpload size={18} />} Backup Manual
               </Button>
             </div>

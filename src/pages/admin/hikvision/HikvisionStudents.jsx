@@ -386,7 +386,7 @@ function TabSiswa({ classes, authToken, showToast }) {
               type="button"
               onClick={handleSyncFromDevice}
               disabled={syncing}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               title="Tarik data pengguna terbaru dari mesin fingerprint Hikvision"
             >
               <Wifi size={14} strokeWidth={2.5} className={syncing ? "animate-spin" : ""} />
@@ -398,7 +398,7 @@ function TabSiswa({ classes, authToken, showToast }) {
               type="button"
               onClick={handleSyncClassesFromMaster}
               disabled={syncingMaster}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               title="Otomatis petakan kelas seluruh siswa sesuai database Master Data Siswa"
             >
               <Database size={14} className={syncingMaster ? "animate-spin text-emerald-600" : "text-emerald-600"} />
@@ -409,7 +409,7 @@ function TabSiswa({ classes, authToken, showToast }) {
             <button
               type="button"
               onClick={handleAutoDetect}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer"
               title="Deteksi kesesuaian grup alat atau nama dengan kelas master"
             >
               <Sparkles size={14} className="text-amber-500" />
@@ -420,7 +420,7 @@ function TabSiswa({ classes, authToken, showToast }) {
             <button
               type="button"
               onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer"
               title="Unggah file Excel untuk memetakan NIS ke Kelas"
             >
               <Upload size={14} className="text-slate-500" />
@@ -432,7 +432,7 @@ function TabSiswa({ classes, authToken, showToast }) {
               type="button"
               onClick={fetchStudents}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer"
               title="Segarkan data tabel"
             >
               <RefreshCw size={13} className={loading ? "animate-spin text-slate-500" : "text-slate-500"} />
@@ -455,7 +455,7 @@ function TabSiswa({ classes, authToken, showToast }) {
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 pl-9 pr-8 py-2 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] shadow-2xs transition-all"
+              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 pl-9 pr-8 py-2 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] shadow-xs transition-all"
               placeholder="Cari nama, NIS, atau kelas siswa..."
             />
             {search && (
@@ -544,7 +544,7 @@ function TabSiswa({ classes, authToken, showToast }) {
               type="button"
               onClick={handleBulkApply}
               disabled={isBulkSaving || !bulkClass}
-              className="px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
             >
               {isBulkSaving && <RefreshCw size={13} className="animate-spin" />}
               <span>Terapkan Kelas</span>
@@ -553,7 +553,7 @@ function TabSiswa({ classes, authToken, showToast }) {
             <button
               type="button"
               onClick={() => setSelectedNis(new Set())}
-              className="px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-2xs transition-all cursor-pointer"
+              className="px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-xs transition-all cursor-pointer"
             >
               Batal
             </button>
@@ -1007,7 +1007,7 @@ function TabStaff({ authToken, showToast, type = 'guru' }) {
               type="button"
               onClick={handleSync}
               disabled={syncing}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-black text-white bg-[var(--ui-primary)] hover:opacity-90 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               title={`Tarik data ${cfg.label.toLowerCase()} dari mesin absensi`}
             >
               <Wifi size={14} strokeWidth={2.5} className={syncing ? "animate-spin" : ""} />
@@ -1018,7 +1018,7 @@ function TabStaff({ authToken, showToast, type = 'guru' }) {
               type="button"
               onClick={fetchStaff}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-2xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-[var(--ui-radius-small)] shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               <RefreshCw size={13} className={loading ? "animate-spin text-slate-500" : "text-slate-500"} />
               <span>Refresh</span>
@@ -1040,7 +1040,7 @@ function TabStaff({ authToken, showToast, type = 'guru' }) {
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 pl-9 pr-8 py-2 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] shadow-2xs transition-all"
+              className="w-full rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-200 pl-9 pr-8 py-2 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] shadow-xs transition-all"
               placeholder={cfg.placeholder}
             />
             {search && (

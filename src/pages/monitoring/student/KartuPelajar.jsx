@@ -324,7 +324,7 @@ const KartuPelajarSiswa = () => {
               <button
                 type="button"
                 onClick={() => setCardSide(prev => prev === 'front' ? 'back' : 'front')}
-                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold border border-slate-200 shadow-2xs flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold border border-slate-200 shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <ArrowLeftRight size={14} />
                 <span>Putar Kartu ({cardSide === 'front' ? 'Ke Sisi Belakang' : 'Ke Sisi Depan'})</span>
@@ -333,7 +333,7 @@ const KartuPelajarSiswa = () => {
               <button
                 type="button"
                 onClick={handlePrintCard}
-                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-200 shadow-2xs flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-200 shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <Printer size={14} />
                 <span>Cetak Pratinjau PDF</span>

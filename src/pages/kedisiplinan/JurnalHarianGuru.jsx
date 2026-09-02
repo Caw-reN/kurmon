@@ -113,7 +113,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_late') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/90 shadow-xs">
           <Clock size={10} className="stroke-[3] text-rose-600 shrink-0" />
           <span>{statusInfo.label}</span>
         </span>
@@ -129,7 +129,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
   if (statusInfo.status === 'submitted_on_time') {
     return (
       <div className="inline-flex flex-col items-center">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-xs">
           <CheckCircle2 size={10} className="stroke-[3] text-emerald-600 shrink-0" />
           <span>Tepat Waktu</span>
         </span>
@@ -144,7 +144,7 @@ function StatusBadge({ submitted, isLate, submittedAt, tanggal, showTime = true 
 
   if (statusInfo.status === 'unsubmitted_past') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
         <AlertCircle size={10} className="stroke-[3] text-amber-600 shrink-0" />
         <span>Terlewat (H-{statusInfo.diffDays})</span>
       </span>
@@ -666,7 +666,7 @@ function ExportSemesterModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Cetak &amp; Rekap Jurnal KBM (PDF)" maxWidth="max-w-xl">
       <div className="space-y-4">
         {/* Banner Info */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-2xs flex items-start gap-2.5">
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-xs flex items-start gap-2.5">
           <FileText size={18} className="text-emerald-700 shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-xs font-black text-slate-800">
@@ -1178,14 +1178,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-2xs">
+              <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-xs">
                 {form.kelas}
               </span>
               <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
                 {form.mapel}
               </span>
             </div>
-            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-2xs">
+            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-xs">
               {form.slot_label || `Jam ke-${form.jam_ke}`}
             </span>
           </div>
@@ -1261,7 +1261,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               )}
 
               {/* 1. MATERI POKOK */}
-              <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-200/90 shadow-2xs">
+              <div className="space-y-1.5 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-200/90 shadow-xs">
                 <label className="flex items-center justify-between text-xs font-black text-slate-800">
                   <span className="flex items-center gap-1.5">
                     <Award size={14} className="text-emerald-700" />
@@ -1276,13 +1276,13 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   placeholder="Contoh: Konfigurasi Routing Dinamis BGP"
                   value={form.materi_pokok}
                   onChange={e => setForm({ ...form, materi_pokok: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
                   required
                 />
               </div>
 
               {/* 2. KEGIATAN PEMBELAJARAN */}
-              <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
+              <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-2xl border border-slate-200/90 shadow-xs">
                 <div className="flex items-center justify-between flex-wrap gap-1">
                   <label className="flex items-center gap-1.5 text-xs font-black text-slate-800">
                     <FileText size={14} className="text-[var(--ui-primary)]" />
@@ -1290,9 +1290,9 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   </label>
                 </div>
                 <div className="flex items-center gap-1 flex-wrap mb-1">
-                  <button type="button" onClick={() => handleApplyKegiatanTemplate('lengkap')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all shadow-2xs cursor-pointer">+ Lengkap</button>
-                  <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-2xs cursor-pointer">+ Praktik</button>
-                  <button type="button" onClick={() => handleApplyKegiatanTemplate('diskusi')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-2xs cursor-pointer">+ Diskusi</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('lengkap')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all shadow-xs cursor-pointer">+ Lengkap</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-xs cursor-pointer">+ Praktik</button>
+                  <button type="button" onClick={() => handleApplyKegiatanTemplate('diskusi')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-xs cursor-pointer">+ Diskusi</button>
                 </div>
                 <textarea
                   rows={4}
@@ -1339,7 +1339,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     <ShieldAlert size={12} className="text-rose-600" /> Lapor Siswa / Catatan Kasus
                   </label>
                   
-                  <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-2xl space-y-2 shadow-2xs">
+                  <div className="p-2.5 bg-rose-50/50 border border-rose-200 rounded-2xl space-y-2 shadow-xs">
                     <CustomSelect
                       value={laporSiswaNis}
                       onChange={(val) => setLaporSiswaNis(val)}
@@ -1354,7 +1354,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                         value={laporSiswaKasus}
                         onChange={(e) => setLaporSiswaKasus(e.target.value)}
                         onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLaporBk(); } }}
-                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-[var(--ui-radius-control)] text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-2xs"
+                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-[var(--ui-radius-control)] text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-rose-500 shadow-xs"
                       />
                       <button
                         type="button"
@@ -1370,7 +1370,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                       <div className="pt-2 mt-2 border-t border-rose-200/60 space-y-1.5">
                         <div className="text-[10px] font-black text-rose-700">Daftar Laporan (Akan diteruskan ke BK):</div>
                         {form.laporan_bk.map((l, i) => (
-                          <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-white rounded border border-rose-100 shadow-2xs">
+                          <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-white rounded border border-rose-100 shadow-xs">
                             <div className="min-w-0">
                               <div className="text-[10px] font-black text-slate-800 truncate">{l.name}</div>
                               <div className="text-[10px] font-medium text-rose-700 truncate">{l.kasus}</div>
@@ -1401,29 +1401,29 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     Presensi & Lapor Siswa
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200 shadow-2xs">Hadir: {form.jumlah_hadir}/{totalStudentsCount}</span>
+                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200 shadow-xs">Hadir: {form.jumlah_hadir}/{totalStudentsCount}</span>
                   </div>
                 </div>
 
                 {/* 5 Quick KPI Attendance Filter Pills */}
                 <div className="grid grid-cols-5 gap-1.5 mt-1">
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-white border-emerald-200 hover:bg-emerald-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'hadir' ? 'all' : 'hadir')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-xs ${filterRollCall === 'hadir' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400/20' : 'bg-white border-emerald-200 hover:bg-emerald-50'}`}>
                     <span className="text-[9px] font-black uppercase text-emerald-700">Hadir</span>
                     <span className="text-xs font-black text-emerald-900">{hadirCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-white border-yellow-200 hover:bg-yellow-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'terlambat' ? 'all' : 'terlambat')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-xs ${filterRollCall === 'terlambat' ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-400/20' : 'bg-white border-yellow-200 hover:bg-yellow-50'}`}>
                     <span className="text-[9px] font-black uppercase text-yellow-700">Telat</span>
                     <span className="text-xs font-black text-yellow-900">{telatCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-white border-amber-200 hover:bg-amber-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'sakit' ? 'all' : 'sakit')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-xs ${filterRollCall === 'sakit' ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/20' : 'bg-white border-amber-200 hover:bg-amber-50'}`}>
                     <span className="text-[9px] font-black uppercase text-amber-700">Sakit</span>
                     <span className="text-xs font-black text-amber-900">{sakitCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'izin' ? 'bg-indigo-100 border-indigo-400 ring-2 ring-indigo-400/20' : 'bg-white border-indigo-200 hover:bg-indigo-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'izin' ? 'all' : 'izin')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-xs ${filterRollCall === 'izin' ? 'bg-indigo-100 border-indigo-400 ring-2 ring-indigo-400/20' : 'bg-white border-indigo-200 hover:bg-indigo-50'}`}>
                     <span className="text-[9px] font-black uppercase text-indigo-700">Izin</span>
                     <span className="text-xs font-black text-indigo-900">{izinCount}</span>
                   </button>
-                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-2xs ${filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-white border-rose-200 hover:bg-rose-50'}`}>
+                  <button type="button" onClick={() => setFilterRollCall(filterRollCall === 'alpa' ? 'all' : 'alpa')} className={`flex flex-col items-center justify-center py-1 rounded-[var(--ui-radius-control)] border text-center cursor-pointer transition-all shadow-xs ${filterRollCall === 'alpa' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400/20' : 'bg-white border-rose-200 hover:bg-rose-50'}`}>
                     <span className="text-[9px] font-black uppercase text-rose-700">Alpa</span>
                     <span className="text-xs font-black text-rose-900">{alpaCount}</span>
                   </button>
@@ -1435,7 +1435,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input type="text" placeholder="Cari nama/NIS..." value={searchRollCall} onChange={e => setSearchRollCall(e.target.value)} className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] font-medium focus:outline-none focus:ring-1 focus:ring-[var(--ui-primary)]" />
                   </div>
-                  <button type="button" onClick={handleSetSemuaHadir} className="text-[10px] font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-2xs shrink-0">
+                  <button type="button" onClick={handleSetSemuaHadir} className="text-[10px] font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-xs shrink-0">
                     <CheckCheck size={13} />
                     <span className="hidden sm:inline">Set Semua Hadir</span>
                     <span className="sm:hidden">Hadir Semua</span>
@@ -1460,7 +1460,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                     const isNonHadir = !['hadir', 'terlambat'].includes(currentStatus.toLowerCase());
 
                     return (
-                      <div key={s.nis || idx} className={`p-2 rounded-2xl border transition-all shadow-2xs ${currentStatus === 'Hadir' ? 'bg-white border-slate-200 hover:border-emerald-300' : isTelat ? 'bg-yellow-50/60 border-yellow-300' : currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-300' : ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-indigo-50/60 border-indigo-300' : 'bg-rose-50/60 border-rose-300'}`}>
+                      <div key={s.nis || idx} className={`p-2 rounded-2xl border transition-all shadow-xs ${currentStatus === 'Hadir' ? 'bg-white border-slate-200 hover:border-emerald-300' : isTelat ? 'bg-yellow-50/60 border-yellow-300' : currentStatus === 'Sakit' ? 'bg-amber-50/60 border-amber-300' : ['Izin', 'Dispen', 'Dispensasi'].includes(currentStatus) ? 'bg-indigo-50/60 border-indigo-300' : 'bg-rose-50/60 border-rose-300'}`}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           
                           {/* Info Siswa */}
@@ -1496,7 +1496,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                               placeholder={`Keterangan ${currentStatus} (contoh: izin UKS)...`}
                               value={s.keterangan || ''}
                               onChange={e => handleUpdateStudentKeterangan(s.nis, e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-xs bg-white border rounded-[var(--ui-radius-small)] font-semibold focus:outline-none focus:ring-2 shadow-2xs border-slate-200 focus:border-[var(--ui-primary)] focus:ring-[var(--ui-primary)]/10 text-slate-800"
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border rounded-[var(--ui-radius-small)] font-semibold focus:outline-none focus:ring-2 shadow-xs border-slate-200 focus:border-[var(--ui-primary)] focus:ring-[var(--ui-primary)]/10 text-slate-800"
                             />
                           </div>
                         )}
@@ -1510,9 +1510,9 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               <div className="p-2 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
                 <span className="text-[10px] font-black text-slate-500 uppercase">Hitungan Manual</span>
                 <div className="flex items-center gap-2 bg-slate-100 rounded-[var(--ui-radius-control)] p-0.5 border border-slate-200/80">
-                  <button type="button" onClick={() => handleStepHadir(-1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Minus size={13} /></button>
+                  <button type="button" onClick={() => handleStepHadir(-1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-xs"><Minus size={13} /></button>
                   <span className="text-xs font-black text-slate-800 min-w-[30px] text-center">{form.jumlah_hadir}</span>
-                  <button type="button" onClick={() => handleStepHadir(1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-2xs"><Plus size={13} /></button>
+                  <button type="button" onClick={() => handleStepHadir(1)} className="w-8 h-7 rounded-[var(--ui-radius-small)] bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer shadow-xs"><Plus size={13} /></button>
                 </div>
               </div>
             </div>

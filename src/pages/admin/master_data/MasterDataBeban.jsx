@@ -124,8 +124,8 @@ const MasterDataBeban = memo(function MasterDataBeban({
                         :"Isi kompetensi/mapel guru di tab Ketersediaan Guru agar sistem bisa memberi rekomendasi otomatis."}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 border-none text-[10px] font-black text-slate-600 shadow-2xs">Guru berkompetensi: {teachersWithCompetenciesCount}</span>
-                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 border-none text-[10px] font-black text-slate-600 shadow-2xs">Rekomendasi: {recommendedLoads.length}</span>
+                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 border-none text-[10px] font-black text-slate-600 shadow-xs">Guru berkompetensi: {teachersWithCompetenciesCount}</span>
+                    <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 border-none text-[10px] font-black text-slate-600 shadow-xs">Rekomendasi: {recommendedLoads.length}</span>
                   </div>
                 </div>
               </div>

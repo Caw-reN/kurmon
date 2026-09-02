@@ -335,7 +335,7 @@ export default function DashboardPKL() {
           {/* Map Controls Header */}
           <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-8 h-8 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
                 <MapIcon size={16} strokeWidth={2.5} />
               </div>
               <div>
@@ -346,7 +346,7 @@ export default function DashboardPKL() {
 
             <div className="flex items-center gap-2 flex-wrap">
               {/* City Filter Pills */}
-              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-2xs">
+              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs">
                 {[
                   { id: 'all', label: 'Semua' },
                   { id: 'bekasi', label: 'Bekasi' },
@@ -359,7 +359,7 @@ export default function DashboardPKL() {
                     onClick={() => setSelectedCityFilter(city.id)}
                     className={`px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none ${
                       selectedCityFilter === city.id
-                        ? 'bg-[var(--ui-primary)] text-white shadow-2xs'
+                        ? 'bg-[var(--ui-primary)] text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900 bg-transparent'
                     }`}
                   >
@@ -369,13 +369,13 @@ export default function DashboardPKL() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-2xs">
+              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs">
                 <button
                   type="button"
                   onClick={() => setViewMode('map')}
                   className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
                     viewMode === 'map'
-                      ? 'bg-slate-800 text-white shadow-2xs'
+                      ? 'bg-slate-800 text-white shadow-xs'
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >
@@ -386,7 +386,7 @@ export default function DashboardPKL() {
                   onClick={() => setViewMode('list')}
                   className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
                     viewMode === 'list'
-                      ? 'bg-slate-800 text-white shadow-2xs'
+                      ? 'bg-slate-800 text-white shadow-xs'
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >
@@ -497,13 +497,13 @@ export default function DashboardPKL() {
         <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col h-[520px] overflow-hidden">
           {/* Header Segmented Tabs */}
           <div className="px-4 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-1 p-1 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-2xs w-full">
+            <div className="flex items-center gap-1 p-1 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs w-full">
               <button
                 type="button"
                 onClick={() => setActiveSideTab('journals')}
                 className={`flex-1 py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                   activeSideTab === 'journals'
-                    ? 'bg-[var(--ui-primary)] text-white border-transparent shadow-2xs'
+                    ? 'bg-[var(--ui-primary)] text-white border-transparent shadow-xs'
                     : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
                 }`}
               >
@@ -515,7 +515,7 @@ export default function DashboardPKL() {
                 onClick={() => setActiveSideTab('majors')}
                 className={`flex-1 py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                   activeSideTab === 'majors'
-                    ? 'bg-[var(--ui-primary)] text-white border-transparent shadow-2xs'
+                    ? 'bg-[var(--ui-primary)] text-white border-transparent shadow-xs'
                     : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
                 }`}
               >

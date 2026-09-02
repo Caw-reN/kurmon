@@ -805,7 +805,7 @@ export default function ModulAjar(props) {
                     onClick={() => setMonitoringStatusFilter('all')}
                     className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
                       monitoringStatusFilter === 'all' 
-                        ? 'bg-white text-slate-800 shadow-2xs' 
+                        ? 'bg-white text-slate-800 shadow-xs' 
                         : 'bg-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -817,7 +817,7 @@ export default function ModulAjar(props) {
                     onClick={() => setMonitoringStatusFilter('submitted')}
                     className={`flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
                       monitoringStatusFilter === 'submitted' 
-                        ? 'bg-white text-emerald-700 shadow-2xs' 
+                        ? 'bg-white text-emerald-700 shadow-xs' 
                         : 'bg-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -830,7 +830,7 @@ export default function ModulAjar(props) {
                     onClick={() => setMonitoringStatusFilter('pending')}
                     className={`flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
                       monitoringStatusFilter === 'pending' 
-                        ? 'bg-white text-rose-700 shadow-2xs' 
+                        ? 'bg-white text-rose-700 shadow-xs' 
                         : 'bg-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -1240,7 +1240,7 @@ Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam sa
                     type="button"
                     onClick={() => setViewMode('grid')}
                     className={`p-1.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none ${
-                      viewMode === 'grid' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-400 hover:text-slate-700 bg-transparent'
+                      viewMode === 'grid' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-400 hover:text-slate-700 bg-transparent'
                     }`}
                     title="Tampilan Grid Kartu"
                   >
@@ -1250,7 +1250,7 @@ Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam sa
                     type="button"
                     onClick={() => setViewMode('table')}
                     className={`p-1.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none ${
-                      viewMode === 'table' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-400 hover:text-slate-700 bg-transparent'
+                      viewMode === 'table' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-400 hover:text-slate-700 bg-transparent'
                     }`}
                     title="Tampilan Tabel Kompak"
                   >
@@ -1863,7 +1863,7 @@ Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam sa
                   onClick={() => setMateriForm(f => ({ ...f, tipe: 'file' }))}
                   className={`p-2.5 rounded-[var(--ui-radius-control)] border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                     materiForm.tipe === 'file' 
-                      ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] font-black shadow-2xs' 
+                      ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] font-black shadow-xs' 
                       : 'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >
@@ -1874,7 +1874,7 @@ Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam sa
                   onClick={() => setMateriForm(f => ({ ...f, tipe: 'link' }))}
                   className={`p-2.5 rounded-[var(--ui-radius-control)] border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                     materiForm.tipe === 'link' 
-                      ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] font-black shadow-2xs' 
+                      ? 'bg-[var(--ui-primary)]/10 border-[var(--ui-primary)] text-[var(--ui-primary)] font-black shadow-xs' 
                       : 'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >

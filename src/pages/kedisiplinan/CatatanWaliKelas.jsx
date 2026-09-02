@@ -1080,7 +1080,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       onClick={() => { setFilterTingkat(tab.id); setFilterKelas('all'); }}
                       className={`flex-1 py-1 text-[11px] font-bold rounded-[var(--ui-radius-small)] transition-all border-none cursor-pointer text-center ${
                         filterTingkat === tab.id
-                          ? 'bg-white text-slate-800 shadow-2xs font-black'
+                          ? 'bg-white text-slate-800 shadow-xs font-black'
                           : 'text-slate-500 hover:text-slate-800 bg-transparent'
                       }`}
                     >
@@ -1214,14 +1214,14 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                       }}
                       className={`w-full flex items-center justify-between text-left p-3 transition-all duration-200 cursor-pointer border-none bg-transparent hover:bg-slate-50 ${
                         isSelected 
-                          ? 'bg-emerald-50/70 font-semibold border-l-4 border-l-emerald-600 shadow-2xs' 
+                          ? 'bg-emerald-50/70 font-semibold border-l-4 border-l-emerald-600 shadow-xs' 
                           : 'border-l-4 border-l-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center text-xs font-black shrink-0 border ${
                           isSelected 
-                            ? 'bg-emerald-600 text-white border-emerald-700 shadow-2xs' 
+                            ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs' 
                             : siswaCatatan.length > 0
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                               : 'bg-slate-100 text-slate-600 border-slate-200'
@@ -1302,7 +1302,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small)] bg-white/20 text-white border border-white/30 flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small)] bg-white/20 text-white border border-white/30 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
                       {getInitials(getStudentName(selectedSiswa))}
                     </div>
                     <div className="min-w-0">
@@ -1321,7 +1321,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                         .filter(p => String(p.siswa_nis) === String(getStudentNis(selectedSiswa)))
                         .reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
                       return totalPoin > 0 ? (
-                        <div className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black flex items-center gap-1 border shadow-2xs ${
+                        <div className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black flex items-center gap-1 border shadow-xs ${
                           totalPoin >= 100 
                             ? 'bg-rose-500/30 text-rose-100 border-rose-300/40' 
                             : 'bg-amber-500/30 text-amber-100 border-amber-300/40'
@@ -1347,7 +1347,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                           siswa_name: getStudentName(selectedSiswa),
                           kelas: getStudentClass(selectedSiswa) || walasClass
                         })}
-                        className="bg-white text-emerald-800 hover:bg-emerald-50 border-none font-black text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0 shadow-2xs"
+                        className="bg-white text-emerald-800 hover:bg-emerald-50 border-none font-black text-xs px-3 py-1.5 h-8 cursor-pointer rounded-[var(--ui-radius-small)] flex items-center gap-1 shrink-0 shadow-xs"
                       >
                         <Plus size={13} strokeWidth={2.5} />
                         <span>+ Catat</span>
@@ -1370,7 +1370,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2.5">
                     <div 
-                      className="w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-2xs"
+                      className="w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white shrink-0 shadow-xs"
                       style={{ background: "var(--ui-primary)" }}
                     >
                       <MessageSquare size={16} strokeWidth={2.2} />
@@ -1398,7 +1398,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     <button
                       type="button"
                       onClick={exportExcel}
-                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center justify-center gap-1 transition-all shadow-xs cursor-pointer shrink-0"
                       title="Export data catatan ke Excel"
                     >
                       <Download size={13} className="text-slate-500" />
@@ -1407,7 +1407,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     <button
                       type="button"
                       onClick={exportClassRecapExcel}
-                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer shrink-0"
+                      className="py-1.5 px-2.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 flex items-center justify-center gap-1 transition-all shadow-xs cursor-pointer shrink-0"
                       title="Export Rekapitulasi Kelas ke Excel"
                     >
                       <Download size={13} className="text-emerald-600" />

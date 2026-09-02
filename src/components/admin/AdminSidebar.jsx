@@ -399,7 +399,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-[var(--ui-radius-small)] hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-2xs"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-[var(--ui-radius-small)] hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-xs"
                 title="Sembunyikan Sidebar"
               >
                 <PanelLeftClose size={16} strokeWidth={2.5} />

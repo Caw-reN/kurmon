@@ -449,7 +449,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                 onClick={() => { setFilterStatus(st); }}
                 className={`px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
                   filterStatus === st 
-                    ? 'bg-white text-slate-800 shadow-2xs' 
+                    ? 'bg-white text-slate-800 shadow-xs' 
                     : 'text-slate-500 hover:text-slate-800 bg-transparent'
                 }`}
               >
@@ -482,7 +482,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                   onClick={() => handleTingkatChange(lvl)}
                   className={`flex-1 h-7.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1 ${
                     eligibleClass === lvl 
-                      ? 'bg-[var(--ui-primary)] text-white shadow-2xs' 
+                      ? 'bg-[var(--ui-primary)] text-white shadow-xs' 
                       : 'text-slate-600 hover:text-slate-900 bg-transparent'
                   }`}
                 >
@@ -613,7 +613,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
                     {/* Status PKL */}
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black border shadow-2xs ${
+                      <span className={`inline-block px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black border shadow-xs ${
                         s.statusPKL === 'Sudah PKL'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
                           : 'bg-rose-50 text-rose-700 border-rose-200/80'
@@ -627,7 +627,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                       <button
                         type="button"
                         onClick={() => setSelectedSiswa(s)}
-                        className="px-3 py-1 text-[11px] font-extrabold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 hover:bg-[var(--ui-primary)] hover:text-white border border-[var(--ui-primary)]/20 rounded-[var(--ui-radius-control)] transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 shadow-2xs"
+                        className="px-3 py-1 text-[11px] font-extrabold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 hover:bg-[var(--ui-primary)] hover:text-white border border-[var(--ui-primary)]/20 rounded-[var(--ui-radius-control)] transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 shadow-xs"
                       >
                         <span>Penugasan</span>
                         <ChevronRight size={13} />

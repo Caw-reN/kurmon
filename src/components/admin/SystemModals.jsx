@@ -471,7 +471,7 @@ export default function SystemModals({
       >
         <div className="p-6 w-full max-w-md space-y-4 font-sans">
           <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-            <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-xs">
               <Lock size={22} />
             </div>
             <div>

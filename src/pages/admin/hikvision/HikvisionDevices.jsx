@@ -344,7 +344,7 @@ export default function HikvisionDevices() {
 
           {/* Progress Animation State */}
           {saving && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-[var(--ui-radius-control)] flex items-center gap-3 animate-pulse text-emerald-950 shadow-2xs">
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-[var(--ui-radius-control)] flex items-center gap-3 animate-pulse text-emerald-950 shadow-xs">
               <RefreshCw size={18} className="text-emerald-600 animate-spin shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-black leading-tight">{saveStep || 'Sedang memproses...'}</p>

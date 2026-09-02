@@ -92,7 +92,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
 
       {/* KPI Overview Summary Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-2xs flex items-center gap-3.5">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
             <Layers size={20} />
           </div>
@@ -102,7 +102,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-2xs flex items-center gap-3.5">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
             <ToggleRight size={20} />
           </div>
@@ -112,7 +112,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-2xs flex items-center gap-3.5">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
             <AlertTriangle size={20} />
           </div>
@@ -122,7 +122,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-2xs flex items-center gap-3.5">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
             <Sparkles size={20} />
           </div>
@@ -162,7 +162,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
               key={cfg.key}
               className={`group relative bg-white border rounded-[var(--ui-radius-card)] p-5 transition-all duration-200 flex flex-col justify-between ${
                 isActive 
-                  ? 'border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300' 
+                  ? 'border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300' 
                   : 'border-slate-200/60 bg-slate-50/50 shadow-none opacity-85'
               }`}
             >
@@ -172,7 +172,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                   <div className="flex items-center gap-3">
                     <div className={`w-11 h-11 rounded-[var(--ui-radius-card)] flex items-center justify-center shrink-0 transition-colors ${
                       isActive 
-                        ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20 shadow-2xs' 
+                        ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20 shadow-xs' 
                         : 'bg-slate-100 text-slate-400 border border-slate-200/60'
                     }`}>
                       <Icon size={20} strokeWidth={2.2} />
@@ -249,7 +249,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
       </div>
 
       {/* Bottom Action Footer */}
-      <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-[var(--ui-radius-card)] bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
             <RotateCcw size={16} />
@@ -282,7 +282,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           <Button 
             variant="outline" 
             onClick={() => setConfirmReset(true)}
-            className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 transition-colors shadow-xs"
           >
             <RotateCcw size={14} />
             Reset ke Kondisi Awal

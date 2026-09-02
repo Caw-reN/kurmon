@@ -384,7 +384,7 @@ export default function DashboardPage({
                   {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
                 </div>
                 <span 
-                  className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500 shadow-2xs"
+                  className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500 shadow-xs"
                 />
               </div>
               <div className="flex flex-col min-w-0 flex-1">
@@ -475,7 +475,7 @@ export default function DashboardPage({
                       if (onOpenProfile) onOpenProfile();
                       else if (setActiveTab) setActiveTab('profile');
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] shadow-2xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] shadow-xs active:scale-98"
                   >
                     <User size={14} strokeWidth={2.2} /> Edit Profil & Kata Sandi
                   </button>
@@ -486,7 +486,7 @@ export default function DashboardPage({
                       setShowMobileProfileModal(false);
                       triggerLogout();
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-2xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
                   >
                     <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
                   </button>
@@ -496,7 +496,7 @@ export default function DashboardPage({
           </div>
           
           <div className="shrink-0 flex items-center gap-1.5">
-            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)] shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)] shadow-xs">
               {todayShort}
             </span>
           </div>
@@ -509,7 +509,7 @@ export default function DashboardPage({
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-0.5">
               <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Anda Sekarang</h3>
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-2xs">
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
                 Hari ini, {todayShort}
               </span>
             </div>
@@ -752,7 +752,7 @@ export default function DashboardPage({
                     <div 
                       key={idx} 
                       onClick={() => setActiveAnnouncementDetail(msg)}
-                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-[var(--ui-border-soft)] shadow-2xs hover:bg-slate-100 hover:border-slate-200 cursor-pointer transition-all"
+                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-[var(--ui-border-soft)] shadow-xs hover:bg-slate-100 hover:border-slate-200 cursor-pointer transition-all"
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
@@ -823,7 +823,7 @@ export default function DashboardPage({
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
                   <p className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
                 </div>
-                <button className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
+                <button className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
                   <Printer size={11} /> Export
                 </button>
               </div>
@@ -835,7 +835,7 @@ export default function DashboardPage({
               ) : (
                 <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[380px]">
                   <table className="w-full text-left">
-                    <thead className="sticky top-0 bg-white z-10 shadow-2xs">
+                    <thead className="sticky top-0 bg-white z-10 shadow-xs">
                       <tr className="border-b border-slate-100">
                         <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
                         <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
@@ -1248,7 +1248,7 @@ export default function DashboardPage({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] shadow-2xs">
+          <span className="bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] shadow-xs">
             {todayShort}
           </span>
         </div>
@@ -1807,7 +1807,7 @@ export default function DashboardPage({
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white px-3 py-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
+                className="bg-white px-3 py-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-xs hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
               >
                 <div className="flex items-center justify-between w-full mb-1.5">
                   <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
@@ -1849,7 +1849,7 @@ export default function DashboardPage({
         
         {/* Full-width Ringkasan & Grafik Card */}
         <div className="w-full flex flex-col gap-3">
-          <div className="bg-white border border-slate-200/80 shadow-2xs rounded-[var(--ui-radius-card)] p-3 flex flex-col flex-1 min-h-[300px]">
+          <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3 flex flex-col flex-1 min-h-[300px]">
             
             {/* Header Bar: Tabs Navigation & Export Action */}
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
@@ -1882,7 +1882,7 @@ export default function DashboardPage({
               </div>
 
               {activeMiddleTab === 'ringkasan' && (
-                <button className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95">
+                <button className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95">
                   <Printer size={13} className="text-slate-500" /> 
                   <span>Export</span>
                 </button>
@@ -1905,7 +1905,7 @@ export default function DashboardPage({
                       onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
                       className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
                         activeDataTab === tab.id
-                          ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs font-extrabold"
+                          ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs font-extrabold"
                           : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-800"
                       }`}
                     >
@@ -1985,12 +1985,12 @@ export default function DashboardPage({
                       <Button variant="outline" 
                         disabled={summaryPage === 0} 
                         onClick={() => setSummaryPage(p => p - 1)}
-                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-xs"
                       >Sebelumnya</Button>
                       <Button variant="outline" 
                         disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
                         onClick={() => setSummaryPage(p => p + 1)}
-                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-xs"
                       >Berikutnya</Button>
                     </div>
                   </div>
@@ -2025,8 +2025,8 @@ export default function DashboardPage({
 
           {/* Rekomendasi Aksi System */}
           {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
-            <div className="bg-amber-50/80 border border-amber-200/80 shadow-2xs rounded-[var(--ui-radius-card)] px-3 py-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <div className="shrink-0 w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-2xs">
+            <div className="bg-amber-50/80 border border-amber-200/80 shadow-xs rounded-[var(--ui-radius-card)] px-3 py-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="shrink-0 w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
                 <AlertTriangle size={14} strokeWidth={2.2} />
               </div>
               <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">

@@ -319,14 +319,14 @@ export default function PanelPiket({ students = [], classes = [] }) {
                        onClick={() => toggleStudent(student)}
                        className={`w-full text-left flex items-center justify-between p-2.5 px-3 rounded-[var(--ui-radius-small)] border transition-all text-slate-800 cursor-pointer active:scale-[0.99] ${
                          isSelected
-                           ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 font-bold shadow-2xs'
+                           ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 font-bold shadow-xs'
                            : 'border-slate-200/60 bg-white hover:bg-slate-50'
                        }`}
                     >
                        <div className="min-w-0 flex-1 flex items-center gap-2.5 pr-2">
                           <div className={`w-7 h-7 rounded-full text-[11px] font-black flex items-center justify-center shrink-0 border ${
                             isSelected 
-                              ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
+                              ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs'
                               : 'bg-slate-100 text-slate-600 border-slate-200'
                           }`}>
                              {name.charAt(0).toUpperCase()}
@@ -340,7 +340,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                           </div>
                        </div>
                        {isSelected ? (
-                         <div className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                         <div className="w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white flex items-center justify-center shrink-0 shadow-xs">
                            <Check size={12} className="stroke-[3]" />
                          </div>
                        ) : (
@@ -387,7 +387,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                     selectedStudents.map(student => {
                        const name = student.namaSiswa || student.name || student.nama || '-';
                        return (
-                          <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-extrabold text-slate-800 shadow-2xs">
+                          <span key={student.nis} className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-extrabold text-slate-800 shadow-xs">
                              <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black flex items-center justify-center shrink-0">
                                {name.charAt(0).toUpperCase()}
                              </div>
@@ -416,7 +416,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                   <p className="text-xs text-slate-500 mt-0.5">Pilih jenis pelanggaran di bawah ini (bisa lebih dari 1).</p>
                 </div>
                 {selectedViolations.length > 0 && (
-                  <span className="text-xs font-black px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-700 border border-rose-200 self-start sm:self-auto shadow-2xs">
+                  <span className="text-xs font-black px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-700 border border-rose-200 self-start sm:self-auto shadow-xs">
                     +{totalPoin} Poin Terpilih
                   </span>
                 )}
@@ -444,7 +444,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                                  ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200/60'
                                  : isSelected
                                    ? 'border-emerald-600 bg-emerald-50/60 shadow-xs ring-2 ring-emerald-500/20 text-emerald-900 cursor-pointer scale-[1.01]'
-                                   : 'border-slate-200/80 bg-white hover:bg-slate-50/80 hover:border-slate-300 shadow-2xs text-slate-800 cursor-pointer'
+                                   : 'border-slate-200/80 bg-white hover:bg-slate-50/80 hover:border-slate-300 shadow-xs text-slate-800 cursor-pointer'
                              }`}
                           >
                              {isSelected && (
@@ -464,7 +464,7 @@ export default function PanelPiket({ students = [], classes = [] }) {
                                  {String(v.nama_tindakan || '').split(' - ').slice(1).join(' - ')}
                                </p>
                              )}
-                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider shadow-2xs ${
+                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] tracking-wider shadow-xs ${
                                isSelected ? 'text-white bg-emerald-700' : 'text-rose-700 bg-rose-50 border border-rose-200/80'
                              }`}>
                                +{v.nilai_poin} POIN

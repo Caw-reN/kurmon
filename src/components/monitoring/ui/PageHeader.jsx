@@ -91,7 +91,7 @@ export default function PageHeader({
                     isLastOdd ? "col-span-2" : "",
                     tab.isActive
                       ? "bg-slate-900 text-white border-slate-900 shadow-xs font-black"
-                      : "bg-white text-slate-700 hover:text-slate-900 border-slate-200/90 shadow-2xs"
+                      : "bg-white text-slate-700 hover:text-slate-900 border-slate-200/90 shadow-xs"
                   )}
                   style={tab.isActive ? {
                     background: "var(--ui-primary)",

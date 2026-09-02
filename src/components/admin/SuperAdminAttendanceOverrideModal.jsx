@@ -102,13 +102,13 @@ export default function SuperAdminAttendanceOverrideModal({ isOpen, onClose, onS
         {/* Header - Aligned with Web Design System */}
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 flex items-center justify-center text-[var(--ui-primary)] shadow-2xs shrink-0">
+            <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 flex items-center justify-center text-[var(--ui-primary)] shadow-xs shrink-0">
               <Shield size={18} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight">Koreksi Presensi & Jam Detil</h3>
-                <span className="text-[9px] font-black uppercase bg-[var(--ui-primary)] text-white px-2 py-0.5 rounded-full shadow-2xs">
+                <span className="text-[9px] font-black uppercase bg-[var(--ui-primary)] text-white px-2 py-0.5 rounded-full shadow-xs">
                   Super Admin
                 </span>
               </div>

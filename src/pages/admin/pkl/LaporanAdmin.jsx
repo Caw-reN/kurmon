@@ -302,7 +302,7 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
                   onClick={() => setSelectedType(tab.key)}
                   className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
                     selectedType === tab.key
-                      ? 'bg-white text-slate-800 shadow-2xs'
+                      ? 'bg-white text-slate-800 shadow-xs'
                       : 'bg-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -339,7 +339,7 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
                     onClick={() => setFilterJurusan(j)}
                     className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold whitespace-nowrap cursor-pointer border transition-all ${
                       filterJurusan === j 
-                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs' 
+                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
                         : 'bg-[var(--ui-surface-muted)] text-slate-600 border-[var(--ui-border-muted)] hover:bg-slate-200/60'
                     }`}
                   >
@@ -359,7 +359,7 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
                     onClick={() => setFilterKelas(k)}
                     className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-bold whitespace-nowrap cursor-pointer border transition-all ${
                       filterKelas === k 
-                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs' 
+                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
                         : 'bg-[var(--ui-surface-muted)] text-slate-600 border-[var(--ui-border-muted)] hover:bg-slate-200/60'
                     }`}
                   >

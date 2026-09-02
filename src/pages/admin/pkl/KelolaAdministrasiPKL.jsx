@@ -236,7 +236,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
             onClick={() => setActiveTab('surat')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'surat'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -249,7 +249,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
             onClick={() => setActiveTab('mutasi')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'mutasi'
-                ? 'bg-white text-slate-800 shadow-2xs'
+                ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -399,7 +399,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
                   className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
                       <Building2 size={20} strokeWidth={2.2} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -448,7 +448,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
                         <button
                           type="button"
                           onClick={() => accSurat(surat.id)}
-                          className="px-3 py-1.5 text-xs font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          className="px-3 py-1.5 text-xs font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                         >
                           <Check size={14} />
                           <span>ACC & Beri Nomor</span>
@@ -458,7 +458,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
                         <button
                           type="button"
                           onClick={() => validasiStempel(surat.id)}
-                          className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-[var(--ui-radius-control)] shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-[var(--ui-radius-control)] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <ShieldCheck size={14} />
                           <span>Validasi Cap/Stempel</span>
@@ -548,7 +548,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
                     <button
                       type="button"
                       onClick={() => accMutasi(mutasi.id, 'acc')}
-                      className="px-3 py-1 text-xs font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-2xs cursor-pointer"
+                      className="px-3 py-1 text-xs font-bold text-white bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] rounded-[var(--ui-radius-control)] shadow-xs cursor-pointer"
                     >
                       ACC Mutlak (Hubin)
                     </button>

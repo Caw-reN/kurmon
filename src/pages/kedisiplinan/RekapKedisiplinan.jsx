@@ -686,7 +686,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
                   const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
                   return (
-                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
+                    <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-xs">
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="font-extrabold text-xs text-slate-800">{name}</div>

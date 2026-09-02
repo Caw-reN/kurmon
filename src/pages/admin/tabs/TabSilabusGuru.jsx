@@ -176,7 +176,7 @@ export default function TabSilabusGuru(props) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
         {/* ── LEFT FORM: TAMBAH PERTEMUAN BARU (7 cols) ── */}
-        <div className="lg:col-span-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4 h-fit">
+        <div className="lg:col-span-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 h-fit">
           <div className="border-b border-slate-100 pb-3">
             <span className="text-[10px] font-black uppercase tracking-wider text-[var(--ui-primary)]">
               Perencanaan KBM
@@ -388,7 +388,7 @@ export default function TabSilabusGuru(props) {
         </div>
 
         {/* ── RIGHT LIST: DAFTAR SILABUS SAYA (7 cols) ── */}
-        <div className="lg:col-span-7 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+        <div className="lg:col-span-7 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-black text-slate-800">Silabus &amp; RPP Saya</h3>

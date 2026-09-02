@@ -359,7 +359,7 @@ const StudentLayout = () => {
                   setShowProfileModal(false);
                   setShowPasswordModal(true);
                 }}
-                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
               >
                 <User size={15} /> Edit Profil &amp; Kata Sandi
               </button>
@@ -370,7 +370,7 @@ const StudentLayout = () => {
                   setShowProfileModal(false);
                   handleLogout();
                 }}
-                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+                className="w-full py-3 px-4 rounded-[var(--ui-radius-small)] border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
               >
                 <LogOut size={15} /> Keluar Akun (Logout)
               </button>

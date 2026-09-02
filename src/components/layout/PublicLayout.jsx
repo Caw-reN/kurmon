@@ -116,7 +116,7 @@ export default function PublicLayout() {
       {/* GLOBAL DECORATIVE BACKGROUND */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-[-1]">
         {/* Soft Wash Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-purple-50/30 to-blue-50/40 backdrop-blur-[100px] public-layout-bg"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-purple-50/30 to-sky-50/40 backdrop-blur-[100px] public-layout-bg"></div>
         {/* Glowing Blobs */}
         <div className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: primaryColor }}></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[700px] h-[700px] opacity-[0.08] rounded-[var(--ui-radius-small)] blur-[150px]" style={{ backgroundColor: accentDark }}></div>

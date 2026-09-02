@@ -262,7 +262,7 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
           {new Date(student?.updated_at || student?.created_at || new Date()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
         </p>
         {config.show_barcode && (
-          <div className="w-[50%] aspect-square flex items-center justify-center bg-white/70 rounded-[var(--ui-radius-small)] p-0.5 shadow-2xs">
+          <div className="w-[50%] aspect-square flex items-center justify-center bg-white/70 rounded-[var(--ui-radius-small)] p-0.5 shadow-xs">
             {qrCode ? (
               <img src={qrCode} alt="QR TTD" className="w-full h-full object-contain mix-blend-multiply" />
             ) : (
@@ -1086,7 +1086,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={() => setShowExcelModal(true)}
-                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
                       title="Upload File Excel / CSV Data Siswa & TTL"
                     >
                       <FileSpreadsheet size={14} className="text-emerald-600" />
@@ -1096,7 +1096,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={handleOpenMassTtlModal}
-                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
                       title="Mass Update Tanggal Lahir / TTL Siswa"
                     >
                       <Calendar size={14} className="text-amber-600" />
@@ -1232,7 +1232,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                   <img 
                                     src={tempPhotos[student.nis] || student.photo} 
                                     alt="Foto" 
-                                    className="w-7 h-7 rounded-[var(--ui-radius-small)] object-cover shrink-0 border border-emerald-300 shadow-2xs" 
+                                    className="w-7 h-7 rounded-[var(--ui-radius-small)] object-cover shrink-0 border border-emerald-300 shadow-xs" 
                                   />
                                 ) : (
                                   <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200 text-slate-700 font-black text-[11px] flex items-center justify-center shrink-0">
@@ -1264,7 +1264,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                 <label 
                                   className={`p-1.5 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer flex items-center justify-center ${
                                     tempPhotos[student.nis]
-                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-300 shadow-2xs'
+                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-300 shadow-xs'
                                       : 'bg-slate-50 text-slate-500 hover:text-[var(--ui-primary)] border-slate-200/80 hover:bg-[var(--ui-primary)]/10'
                                   }`}
                                   title={tempPhotos[student.nis] ? "Foto tersimpan di memori (Siap Cetak - Tidak disimpan ke DB)" : "Upload Foto Siswa (Hanya di memori / Tanpa simpan DB)"}
@@ -1496,7 +1496,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                         isActive ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/10 ring-2 ring-[var(--ui-primary)]/20' : 'border-slate-200/80 bg-slate-50/60 hover:bg-slate-100'
                       }`}
                     >
-                      <span className="w-5 h-5 rounded-full shrink-0 border border-black/10 shadow-2xs" style={{ backgroundColor: theme.bg_color }} />
+                      <span className="w-5 h-5 rounded-full shrink-0 border border-black/10 shadow-xs" style={{ backgroundColor: theme.bg_color }} />
                       <span className="text-xs font-bold text-slate-800 truncate">{theme.label}</span>
                     </button>
                   );

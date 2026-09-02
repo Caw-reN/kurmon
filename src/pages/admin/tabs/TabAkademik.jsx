@@ -428,7 +428,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={openAcademicCalendarGuide}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Petunjuk Penggunaan Kalender"
               >
                 <BookOpen size={14} className="text-slate-500" />
@@ -440,7 +440,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={downloadMasterTemplate}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Unduh Template Excel"
               >
                 <FileDown size={14} className="text-slate-500" />
@@ -452,7 +452,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => openModal("bulk", "add")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Import Agenda dari Excel"
               >
                 <Upload size={14} className="text-slate-500" />
@@ -464,7 +464,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => setActiveTab("kategori_kalender")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Kelola Kategori Agenda"
               >
                 <List size={14} className="text-slate-500" />
@@ -500,7 +500,7 @@ export default function TabAkademik(props) {
               onClick={() => setTimeFilter("all")}
               className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
                 timeFilter === "all"
-                  ? "bg-[var(--ui-primary)] text-white shadow-2xs"
+                  ? "bg-[var(--ui-primary)] text-white shadow-xs"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
               }`}
             >
@@ -512,7 +512,7 @@ export default function TabAkademik(props) {
               onClick={() => setTimeFilter("month")}
               className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
                 timeFilter === "month"
-                  ? "bg-[var(--ui-primary)] text-white shadow-2xs"
+                  ? "bg-[var(--ui-primary)] text-white shadow-xs"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
               }`}
             >
@@ -524,7 +524,7 @@ export default function TabAkademik(props) {
               onClick={() => setTimeFilter("upcoming")}
               className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
                 timeFilter === "upcoming"
-                  ? "bg-emerald-600 text-white shadow-2xs"
+                  ? "bg-emerald-600 text-white shadow-xs"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
               }`}
             >
@@ -536,7 +536,7 @@ export default function TabAkademik(props) {
               onClick={() => setTimeFilter("past")}
               className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
                 timeFilter === "past"
-                  ? "bg-slate-700 text-white shadow-2xs"
+                  ? "bg-slate-700 text-white shadow-xs"
                   : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
               }`}
             >
@@ -624,7 +624,7 @@ export default function TabAkademik(props) {
 
       {/* ── 3. Active Date Selection Filter Banner ── */}
       {selectedDate && (
-        <div className="ui-card p-3 sm:p-4 rounded-[var(--ui-radius-small)] bg-emerald-50/90 border border-emerald-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="ui-card p-3 sm:p-4 rounded-[var(--ui-radius-small)] bg-emerald-50/90 border border-emerald-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
             <div>
@@ -642,7 +642,7 @@ export default function TabAkademik(props) {
               <button
                 type="button"
                 onClick={() => handleAddNewOnDate(selectedDate)}
-                className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-[var(--ui-radius-small)] text-xs font-extrabold shadow-2xs cursor-pointer inline-flex items-center gap-1.5 transition-all"
+                className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-[var(--ui-radius-small)] text-xs font-extrabold shadow-xs cursor-pointer inline-flex items-center gap-1.5 transition-all"
               >
                 <Plus size={13} strokeWidth={2.5} />
                 <span>Tambah di Tanggal Ini</span>
@@ -651,7 +651,7 @@ export default function TabAkademik(props) {
             <button
               type="button"
               onClick={() => setSelectedDate(null)}
-              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold shadow-2xs cursor-pointer inline-flex items-center gap-1 transition-all"
+              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1 transition-all"
             >
               <X size={13} />
               <span>Tutup Filter</span>
@@ -734,7 +734,7 @@ export default function TabAkademik(props) {
                 return (
                   <div
                     key={evt.id}
-                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-2xs hover:shadow-sm transition-all flex flex-col gap-2 border-l-[3px] ${colors.cardBorder}`}
+                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-xs hover:shadow-sm transition-all flex flex-col gap-2 border-l-[3px] ${colors.cardBorder}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -744,7 +744,7 @@ export default function TabAkademik(props) {
                           </h3>
                           {status.isToday && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60 w-fit shadow-2xs">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/60 w-fit shadow-xs">
                           <Calendar size={11} className="text-slate-400 shrink-0" />
                           <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
                         </div>
@@ -815,7 +815,7 @@ export default function TabAkademik(props) {
                 <button
                   type="button"
                   onClick={handleJumpToToday}
-                  className="px-2.5 py-1 text-[11px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-2xs transition-all cursor-pointer mr-1"
+                  className="px-2.5 py-1 text-[11px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs transition-all cursor-pointer mr-1"
                   title="Kembali ke Hari Ini"
                 >
                   Hari Ini
@@ -848,7 +848,7 @@ export default function TabAkademik(props) {
             </p>
 
             {/* Calendar Table Grid */}
-            <div className="overflow-hidden border border-slate-200/90 rounded-[var(--ui-radius-small)] bg-white shadow-2xs">
+            <div className="overflow-hidden border border-slate-200/90 rounded-[var(--ui-radius-small)] bg-white shadow-xs">
               
               {/* Day Name Headers */}
               <div className="grid grid-cols-7 border-b border-slate-200/90 bg-slate-50/80 text-center font-black text-[10px] py-2 uppercase tracking-wider">
@@ -919,7 +919,7 @@ export default function TabAkademik(props) {
                         <span className={`
                           text-xs font-extrabold inline-flex items-center justify-center
                           ${isTodayCell 
-                            ? 'w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white shadow-2xs font-black text-[11px]' 
+                            ? 'w-5 h-5 rounded-full bg-[var(--ui-primary)] text-white shadow-xs font-black text-[11px]' 
                             : isSunday ? 'text-rose-600' : 'text-slate-800'}
                         `}>
                           {dayNum}
@@ -935,7 +935,7 @@ export default function TabAkademik(props) {
                       {/* Event Snippet Preview in Cell */}
                       {dayEvents.length > 0 && (
                         <div className="mt-1 flex flex-col gap-0.5">
-                          <div className={`text-[7.5px] font-black uppercase tracking-tight truncate px-1 py-0.5 rounded-[var(--ui-radius-small)] ${eventBadgeColor} shadow-2xs`}>
+                          <div className={`text-[7.5px] font-black uppercase tracking-tight truncate px-1 py-0.5 rounded-[var(--ui-radius-small)] ${eventBadgeColor} shadow-xs`}>
                             {dayEvents[0].title}
                           </div>
                         </div>
@@ -977,7 +977,7 @@ export default function TabAkademik(props) {
                       className={`
                         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold border transition-all cursor-pointer
                         ${isSelected 
-                          ? `${colors.bg} shadow-2xs ring-2 ring-offset-1 ring-slate-400` 
+                          ? `${colors.bg} shadow-xs ring-2 ring-offset-1 ring-slate-400` 
                           : `${colors.lightBg} hover:opacity-80`}
                       `}
                       title={`Klik untuk memfilter agenda ${cat.name}`}
