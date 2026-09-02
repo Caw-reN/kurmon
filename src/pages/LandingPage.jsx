@@ -1,8 +1,8 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
-import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, Bell, Home, Star, ChevronRight } from 'lucide-react';
+import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from 'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
@@ -497,274 +497,263 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW */}
-      <div className="md:hidden flex flex-col w-full pb-20">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 📱 NEW MOBILE VIEW (MATCHING USER REFERENCE DESIGN)                  */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div className="md:hidden flex flex-col w-full pb-24 bg-[#f8fafc] min-h-screen">
 
-        {/* Curved Green Header Card (Matching Reference Image) */}
-        <div
-          className="w-full relative flex flex-col text-white select-none px-5 pb-6.5 pt-5 rounded-b-[var(--ui-radius-card)] overflow-hidden"
-        >
-        {appSettings.heroImage && (
-          <img 
-            src={appSettings.heroImage} 
-            fetchpriority="high" 
-            loading="eager" 
-            className="absolute inset-0 w-full h-full object-cover object-center z-0" 
-            alt="Mobile Hero Background" 
-          />
-        )}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            background: `linear-gradient(135deg, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.94 : 1)} 0%, ${hexToRgba(primaryColor ||'#064e3b', appSettings.heroImage ? 0.88 : 0.86)} 100%)`
-          }}
-        />
-        {/* Sparkles backdrop illustration */}
-        <Sparkles className="absolute left-6 top-16 text-white/10 animate-pulse z-10" size={16} />
-        <Sparkles className="absolute right-12 bottom-6 text-white/10 animate-pulse z-10" size={16} />
-
-        {/* Top Bar inside Green Card */}
-        <div className="flex items-center justify-between mb-5 w-full relative z-10">
-          <div className="flex items-center gap-2.5">
-            {appSettings.logoUrl ? (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/95 flex items-center justify-center p-1 shadow-xs backdrop-blur-sm">
-                <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-              </div>
-            ) : (
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/95 flex items-center justify-center text-[var(--ui-primary)] font-black text-[11px] shadow-xs backdrop-blur-sm">
-                {logoText ||"TS"}
-              </div>
-            )}
-            <div className="flex flex-col text-left">
-              <span className="text-[7.5px] font-black text-white/80 tracking-wider leading-none uppercase">{appSettings.logoSmallText ||"PORTAL"}</span>
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none uppercase">{appSettings.appName ||"KG2 SCHOOL"}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsLoginModalOpen(true)}
-              className="h-8.5 px-3.5 rounded-[var(--ui-radius-control)] bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/25 shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer select-none"
-              aria-label="Masuk Aplikasi"
-              title="Masuk ke Aplikasi"
-            >
-              <LogIn size={14} strokeWidth={2.5} className="text-white shrink-0" />
-              <span className="text-[12px] font-extrabold text-white tracking-tight leading-none">Masuk</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Greetings */}
-        <div className="text-left mt-1.5 mb-3.5 relative z-10 pl-0">
-          <h2 className="text-[20px] font-normal opacity-90 leading-tight">Hello,</h2>
-          <h1 className="text-[28px] font-black leading-tight mt-0.5">Selamat Datang{appSettings.appName ? ` di ${appSettings.appName}` : ''}</h1>
-          <p className="text-[11px] opacity-80 font-medium leading-relaxed max-w-[280px] mt-2">
-            {cleanHeroSubtitle}
-          </p>
-        </div>
-      </div>
-
-        {/* Layanan Publik Overlapping Card (Matching Reference Image) */}
-        <div className="mx-4 mt-2.5 bg-white rounded-[var(--ui-radius-card)] pt-6.5 pb-5 px-4 shadow-[var(--ui-shadow-card)] relative z-20 border border-[var(--ui-border-muted)] flex flex-col gap-3 select-none">
-          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-left pl-1 pt-1 mb-0.5">Layanan Publik</h3>
+        {/* 1. TOP STATUS & LOCATION HEADER */}
+        <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5 bg-white/95 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100 shadow-2xs">
           
-          {/* Flex column enclosing rows of 4 buttons */}
-          <div className="flex flex-col gap-3.5 w-full mt-1.5">
-            {/* Row 1 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(0, 4).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                           setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-small)] shadow-xs flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative active:scale-95 transition-transform"
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-[var(--ui-radius-control)] flex items-center justify-center transition-all duration-300 shadow-xs"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
-            </div>
+          {/* Left: Search Button (Rounded Square) */}
+          <button 
+            type="button" 
+            onClick={() => setShowRulesModal(true)}
+            title="Cari Informasi / Tata Tertib"
+            className="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-700 active:scale-95 transition-transform cursor-pointer"
+          >
+            <Search size={18} strokeWidth={2.2} />
+          </button>
 
-            {/* Row 2 */}
-            <div className="flex justify-between items-start w-full">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label:"Lainnya", svgIcon:"056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor:"#64748b" }
-                ];
-                return gridServices.slice(4, 8).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx + 4}
-                      onClick={() =>{
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="aspect-square bg-white border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-small)] shadow-xs flex flex-col items-center justify-center gap-1 p-1.5 cursor-pointer w-[22%] shrink-0 group relative active:scale-95 transition-transform"
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-[var(--ui-radius-control)] flex items-center justify-center transition-all duration-300 shadow-xs"
-                        style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5 h-5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} className="w-5 h-5 object-contain" alt="" />
-                        )}
-                      </div>
-                      <span className="text-[9px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full mt-0.5">
-                        {getShortLabel(service.label)}
-                      </span></button>
-                  );
-                });
-              })()}
+          {/* Center: Location / School Indicator */}
+          <div className="flex flex-col items-center text-center">
+            <span className="text-[9.5px] text-slate-400 font-bold uppercase tracking-wider">
+              {appSettings.logoSmallText || "Current location"}
+            </span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <MapPin size={13} className="text-emerald-600 fill-emerald-600/20 shrink-0" strokeWidth={2.5} />
+              <span className="text-xs font-black text-slate-800 tracking-tight truncate max-w-[180px]">
+                {appSettings.appName || "SMK Karya Guna 2"}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Notification Bell Button (Rounded Square with Alert Badge) */}
+          <button 
+            type="button" 
+            onClick={() => setShowPublicGuide(true)}
+            title="Pengumuman & Panduan"
+            className="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-700 relative active:scale-95 transition-transform cursor-pointer"
+          >
+            <Bell size={18} strokeWidth={2.2} />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-white animate-pulse" />
+          </button>
+
+        </div>
+
+        {/* 2. GREEN PROMO HERO BANNER */}
+        <div className="px-4 mt-3">
+          <div 
+            className="w-full rounded-3xl p-4.5 text-white relative overflow-hidden shadow-md"
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)'
+            }}
+          >
+            {/* Ambient Lighting / Glow */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-white/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+            <Sparkles className="absolute left-4 top-3 text-white/25 animate-pulse" size={14} />
+
+            <div className="relative z-10 flex items-center justify-between gap-3">
+              {/* Text & Action CTA */}
+              <div className="flex-1 pr-1">
+                <h2 className="text-[16px] font-black leading-snug tracking-tight text-white drop-shadow-xs">
+                  Akses Jadwal, Denah &amp; Materi Belajar!
+                </h2>
+                <p className="text-[10.5px] text-emerald-100 font-medium mt-1 mb-3 line-clamp-2 leading-relaxed">
+                  {cleanHeroSubtitle || "Sistem informasi kurikulum, presensi, dan logbook KBM realtime"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-4 py-1.5 rounded-full bg-slate-900 hover:bg-black text-white text-[11px] font-black tracking-tight shadow-md flex items-center gap-1.5 active:scale-95 transition-transform cursor-pointer w-max"
+                >
+                  <span>Masuk Akun</span>
+                  <ArrowRight size={12} strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Mascot / 3D Icon Graphic */}
+              <div className="w-22 h-22 shrink-0 flex items-center justify-center relative">
+                <div className="w-18 h-18 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-inner relative">
+                  <Sparkles size={16} className="text-amber-300 absolute -top-1.5 -right-1.5 animate-bounce" />
+                  <GraduationCap size={38} className="text-white drop-shadow-md" strokeWidth={2} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* JURUSAN / PROGRAM SLIDER (Mobile Only - Colorful Flat Cards) */}
-        <section className="relative z-10 w-full px-4 mt-6 mb-5">
-          <div className="flex flex-col items-center text-center mb-3">
-            <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight leading-none">
-              {appSettings.trustedByText || "Program Keahlian Unggulan"}
-            </h2>
-            <p className="text-[10.5px] text-slate-400 font-semibold mt-1">Kompetensi keahlian terakreditasi berstandar industri</p>
-          </div>
-
-          <div className="relative w-full h-[112px] overflow-hidden rounded-[var(--ui-radius-card)] shadow-sm border-0">
-            {partners.map((partner, index) => {
-              const isActive = index === activeSlide % (partners.length || 1);
-              const imageSrc = partner.image;
-              const IconComponent = ICON_MAP[partner.icon] || HelpCircle;
-
-              const defaultGradients = [
-                "bg-gradient-to-br from-amber-500 to-orange-600",
-                "bg-gradient-to-br from-sky-600 to-indigo-700",
-                "bg-gradient-to-br from-emerald-600 to-teal-700",
-                "bg-gradient-to-br from-rose-500 to-pink-600"
-              ];
-              const colorMap = {
-                red: "bg-gradient-to-br from-rose-500 to-rose-600",
-                blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
-                emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                green: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
-                orange: "bg-gradient-to-br from-amber-500 to-orange-600",
-                cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
-                pink: "bg-gradient-to-br from-rose-500 to-pink-600"
-              };
-              
-              const rawColor = partner.color;
-              const isHexColor = rawColor && rawColor.startsWith('#');
-              const bgClass = isHexColor ? '' : (colorMap[rawColor] || defaultGradients[index] || "bg-gradient-to-br from-emerald-600 to-teal-700");
-
-              return (
-                <div 
-                  key={index}
-                  className={`absolute inset-0 p-4 flex items-center justify-between gap-3 transition-all duration-500 transform text-white ${bgClass} ${
-                    isActive ? 'opacity-100 translate-x-0 scale-100 z-10' : 'opacity-0 translate-x-8 scale-95 z-0 pointer-events-none'
-                  }`}
-                  style={isHexColor ? { backgroundColor: rawColor } : {}}
-                >
-                  {/* Subtle decorative glow */}
-                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/15 rounded-full blur-lg pointer-events-none" />
-
-                  {/* Left Text */}
-                  <div className="flex flex-col justify-center text-left min-w-0 flex-1 relative z-10">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-white/80 mb-1">
-                      Keahlian 0{index + 1}
-                    </span>
-                    <h4 className="text-[14px] font-black text-white tracking-tight leading-tight line-clamp-2 uppercase drop-shadow-xs">
-                      {partner.name}
-                    </h4>
-                  </div>
-
-                  {/* Right Logo Badge - cleanly contained */}
-                  <div className="relative z-10 w-13 h-13 rounded-[var(--ui-radius-small)] bg-white/95 backdrop-blur-md shadow-xs p-1.5 flex items-center justify-center shrink-0">
-                    {imageSrc ? (
-                      <img src={imageSrc} alt={partner.name} loading="lazy" className="w-full h-full object-contain" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <IconComponent size={26} strokeWidth={2} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Dots indicators */}
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {partners.map((_, index) => {
-                const isActive = index === activeSlide % (partners.length || 1);
+        {/* 3. 8-CATEGORY GRID (4x2 MATRIX) */}
+        <div className="px-4 mt-4">
+          <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100">
+            <div className="grid grid-cols-4 gap-y-3.5 gap-x-2">
+              {[
+                ...publicServices,
+                { label: "Bantuan", subtitle: "Info & Panduan", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#059669" }
+              ].slice(0, 8).map((service, idx) => {
+                const activeColor = service.customColor || service.defaultColor || '#059669';
                 return (
                   <button
-                    key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`cursor-pointer h-1.5 rounded-full transition-all duration-300 border-none p-0 ${
-                      isActive ? 'w-4 bg-white shadow-xs' : 'w-1.5 bg-white/40'
-                    }`}
-                    style={{ borderRadius: '9999px' }}
-                    aria-label={`Ke slide ${index + 1}`}
-                  />
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (service.isLainnya) {
+                        setShowPublicGuide(true);
+                      } else if (service.isPdfRules) {
+                        setShowRulesModal(true);
+                      } else if (service.path) {
+                        navigate(service.path);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center gap-1.5 cursor-pointer group active:scale-95 transition-transform select-none"
+                  >
+                    {/* Category Icon Squircle */}
+                    <div 
+                      className="w-13 h-13 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-2xs border border-slate-100/80 group-hover:scale-105"
+                      style={{ backgroundColor: hexToRgba(activeColor, 0.08) }}
+                    >
+                      {service.customIcon ? (
+                        <img src={service.customIcon} alt="" className="w-6 h-6 object-contain" />
+                      ) : service.svgIcon ? (
+                        <img src={`/icons/${service.svgIcon}`} className="w-6 h-6 object-contain" alt="" />
+                      ) : (
+                        <service.icon size={22} style={{ color: activeColor }} />
+                      )}
+                    </div>
+
+                    {/* Category Label Underneath */}
+                    <span className="text-[10px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                      {getShortLabel(service.label)}
+                    </span>
+                  </button>
                 );
               })}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* MITRA & KERJASAMA SLIDER (Mobile) */}
+        {/* 4. FEATURED SECTION (PROGRAM KEAHLIAN & SPOTLIGHT CARDS) */}
+        <div className="px-4 mt-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <div>
+              <h3 className="text-sm font-black text-slate-800 tracking-tight leading-none">Featured</h3>
+              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Program Keahlian &amp; Layanan Unggulan</p>
+            </div>
+            <button 
+              type="button" 
+              onClick={() => setShowPublicGuide(true)}
+              className="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer flex items-center gap-0.5"
+            >
+              <span>Lihat Info</span>
+              <ChevronRight size={12} />
+            </button>
+          </div>
+
+          {/* 2-Column Grid of Spotlight Cards */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              {
+                id: 1,
+                title: "Teknik Jaringan (TKJ)",
+                subtitle: "12 Rombel · Lab Cisco",
+                rating: "4.9",
+                gradient: "from-emerald-500 to-teal-700",
+                icon: MonitorSmartphone,
+                badge: "Terfavorit",
+                color: "#10b981"
+              },
+              {
+                id: 2,
+                title: "Otomotif (TKR)",
+                subtitle: "Bengkel Standar Industri",
+                rating: "4.8",
+                gradient: "from-sky-500 to-indigo-700",
+                icon: Briefcase,
+                badge: "Industri",
+                color: "#0ea5e9"
+              },
+              {
+                id: 3,
+                title: "Manajemen Kantor (MPLB)",
+                subtitle: "Lab Digital Office",
+                rating: "4.8",
+                gradient: "from-purple-500 to-indigo-700",
+                icon: BookOpen,
+                badge: "Unggulan",
+                color: "#8b5cf6"
+              },
+              {
+                id: 4,
+                title: "Akuntansi (AKL)",
+                subtitle: "Lab Komputer Akuntansi",
+                rating: "4.9",
+                gradient: "from-amber-500 to-orange-600",
+                icon: Users,
+                badge: "Akreditasi A",
+                color: "#f59e0b"
+              },
+            ].map((card, index) => {
+              const IconComp = card.icon;
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="bg-white rounded-2xl overflow-hidden shadow-2xs border border-slate-100 flex flex-col active:scale-98 transition-all cursor-pointer group"
+                >
+                  {/* Card Header Image / Banner with Rating Badge */}
+                  <div className={`h-22 bg-gradient-to-br ${card.gradient} relative p-2.5 flex flex-col justify-between text-white overflow-hidden`}>
+                    <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/20 rounded-full blur-md pointer-events-none" />
+                    
+                    {/* Top Badges */}
+                    <div className="flex items-center justify-between relative z-10">
+                      <span className="text-[8.5px] font-black uppercase bg-black/30 backdrop-blur-xs px-2 py-0.5 rounded-full text-white/95">
+                        {card.badge}
+                      </span>
+                      <span className="text-[9.5px] font-black bg-white text-slate-800 px-1.5 py-0.5 rounded-full shadow-xs flex items-center gap-0.5">
+                        <Star size={10} className="text-amber-500 fill-amber-500" />
+                        {card.rating}
+                      </span>
+                    </div>
+
+                    {/* Icon Graphic */}
+                    <div className="relative z-10 self-end">
+                      <IconComp size={24} className="text-white/90 drop-shadow-xs" />
+                    </div>
+                  </div>
+
+                  {/* Card Details */}
+                  <div className="p-2.5 flex flex-col flex-1 justify-between bg-white">
+                    <h4 className="text-[11.5px] font-black text-slate-800 tracking-tight leading-snug line-clamp-1 group-hover:text-emerald-700 transition-colors">
+                      {card.title}
+                    </h4>
+                    <p className="text-[9.5px] text-slate-400 font-semibold mt-0.5 truncate">
+                      {card.subtitle}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 5. MITRA & KERJASAMA SLIDER */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <section className="relative z-10 w-full overflow-hidden px-4 mt-2 mb-6">
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-3 px-4 w-full">
-              <div className="w-full mb-2 text-center">
-                <h3 className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider inline-block">Telah Dipercaya & Bekerjasama Dengan</h3>
+          <section className="relative z-10 w-full overflow-hidden px-4 mt-5 mb-3">
+            <div className="bg-white rounded-2xl shadow-2xs border border-slate-100 py-3 px-3.5 w-full">
+              <div className="w-full mb-1.5 text-center">
+                <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider inline-block">
+                  Telah Dipercaya &amp; Rekanan Industri
+                </h4>
               </div>
 
               <div className="relative w-full overflow-hidden flex py-0.5">
-                <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-
-                <div className="flex w-max animate-marquee gap-7 items-center px-2 hover:[animation-play-state:paused]">
-                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[70px] h-[30px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                <div className="flex w-max animate-marquee gap-6 items-center px-1">
+                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
+                    <div key={`${mitra.id || 'm'}-${idx}`} className="w-[65px] h-[26px] flex items-center justify-center shrink-0 grayscale opacity-60">
                       {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
+                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" />
                       ) : (
-                        <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
+                        <span className="text-[9.5px] font-black text-slate-700 tracking-tight">{mitra.name}</span>
                       )}
                     </div>
                   ))}
@@ -773,6 +762,56 @@ export default function LandingPage() {
             </div>
           </section>
         )}
+
+        {/* 6. FLOATING DARK BOTTOM NAVIGATION PILL (MATCHING REFERENCE) */}
+        <div className="fixed bottom-4 left-1/2 -translate-y-0 -translate-x-1/2 z-40 w-[88%] max-w-[340px]">
+          <div className="bg-slate-900/95 backdrop-blur-md text-white rounded-full px-5 py-3 shadow-2xl flex items-center justify-between border border-white/15">
+            
+            {/* Nav 1: Home (Active) */}
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex flex-col items-center justify-center text-white cursor-pointer active:scale-95 transition-transform"
+              aria-label="Beranda"
+            >
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                <Home size={17} strokeWidth={2.5} />
+              </div>
+            </button>
+
+            {/* Nav 2: Pesan / WhatsApp Bantuan */}
+            <button
+              type="button"
+              onClick={handleFeedbackClick}
+              className="flex flex-col items-center justify-center text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+              aria-label="Pesan"
+            >
+              <MessageSquare size={19} strokeWidth={2} />
+            </button>
+
+            {/* Nav 3: Jadwal KBM */}
+            <button
+              type="button"
+              onClick={() => navigate('/jadwal')}
+              className="flex flex-col items-center justify-center text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+              aria-label="Jadwal"
+            >
+              <Calendar size={19} strokeWidth={2} />
+            </button>
+
+            {/* Nav 4: Akun / Login Modal */}
+            <button
+              type="button"
+              onClick={() => setIsLoginModalOpen(true)}
+              className="flex flex-col items-center justify-center text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+              aria-label="Akun"
+            >
+              <User size={19} strokeWidth={2} />
+            </button>
+
+          </div>
+        </div>
+
       </div>
 
       {/* DESKTOP VIEW COMPACT WRAPPER */}
