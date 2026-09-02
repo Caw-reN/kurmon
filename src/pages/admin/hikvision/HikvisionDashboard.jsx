@@ -150,7 +150,7 @@ export default function HikvisionDashboard() {
     : activeFilter === 'staff'
       ? recentLogs.filter(log => ['guru', 'karyawan', 'staff'].includes(log.true_person_type || log.person_type || log.device_type))
       : recentLogs.filter(log => (log.true_person_type || log.person_type || log.device_type) === activeFilter)
-  );
+  ).sort((a, b) => new Date(b.timestamp || b.created_at || b.date || 0) - new Date(a.timestamp || a.created_at || a.date || 0));
 
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
