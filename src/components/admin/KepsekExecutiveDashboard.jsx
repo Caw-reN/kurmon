@@ -125,6 +125,7 @@ export default function KepsekExecutiveDashboard({
   schedule = [],
   teachingLoads = [],
   dashLogs = null,
+  setDashLogs,
   attendanceRecords = [],
   syllabuses = [],
   dashboardMessages = [],
@@ -697,7 +698,7 @@ export default function KepsekExecutiveDashboard({
 
           {/* ── BARIS 2: Monitor & Aktivitas (Di Bawahnya) ── */}
           <div className="w-full">
-            <SharedDashboardLogs />
+            <SharedDashboardLogs onLogsFetched={setDashLogs} />
           </div>
       </div>
 

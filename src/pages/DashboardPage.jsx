@@ -1213,6 +1213,7 @@ export default function DashboardPage({
         teachingLoads={teachingLoads}
         subjectComposition={subjectComposition}
         dashLogs={dashLogs}
+        setDashLogs={setDashLogs}
         attendanceRecords={attendanceRecords}
         syllabuses={syllabuses}
         dashboardMessages={dashboardMessages}
