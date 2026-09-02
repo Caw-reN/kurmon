@@ -5,7 +5,7 @@ import {
   Award, Briefcase, Building2, ChevronRight, Sparkles, Search,
   AlertTriangle, Clock, Megaphone, BarChart3, GraduationCap,
   ClipboardCheck, Zap, XCircle, Timer, RefreshCw, Bell,
-  TrendingDown, Eye, Shield, Map, Phone, Star, Filter, X
+  TrendingDown, Eye, Shield, Map, Phone, Star, Filter, X, Printer
 } from 'lucide-react';
 import { SharedDashboardLogs } from '../monitoring/ui/index.js';
 import LiveUserActivityLog from './LiveUserActivityLog.jsx';
@@ -560,6 +560,20 @@ export default function KepsekExecutiveDashboard({
     return { totalPeople, totalHadir, totalTelat, totalIzinSakit, totalAlpa, overallPct, chartData };
   }, [guruStats, karyawanStats, siswaStats, siswaDenom]);
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      await fetchDashboardData();
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setTimeout(() => setIsSyncing(false), 600);
+    }
+  };
+
   // ─── RENDER ───────────────────────────────────────────────────────────────
   return (
     <div className="w-full max-w-[1800px] mx-auto flex flex-col gap-4 animate-in fade-in duration-300 pb-12">
@@ -591,16 +605,32 @@ export default function KepsekExecutiveDashboard({
               </p>
             </div>
 
-            {/* Kanan: Badge Tanggal & Status Executive (1 Baris) */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Kanan: Badge Tanggal, Sinkronisasi & Cetak Laporan (1 Baris) */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10.5px] font-extrabold border border-white/15 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {todayLong}
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-white text-[10px] font-bold border border-white/15 backdrop-blur-sm">
-                <Sparkles size={11} className="text-amber-300" />
-                Executive View
-              </span>
+              
+              <button
+                type="button"
+                onClick={handleManualSync}
+                title="Sinkronisasi seluruh data sistem realtime"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+              >
+                <RefreshCw size={11} className={isSyncing ? 'animate-spin text-emerald-300' : 'text-amber-300'} />
+                <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkron'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                title="Cetak Laporan Eksekutif Hari Ini"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 shadow-xs transition-all cursor-pointer"
+              >
+                <FileText size={11} className="text-emerald-600" />
+                <span>Cetak Laporan</span>
+              </button>
             </div>
 
           </div>
@@ -797,6 +827,112 @@ export default function KepsekExecutiveDashboard({
           <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
       </div>
+
+      {/* ═══════════════ MODAL CETAK LAPORAN EKSEKUTIF ═══════════════ */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold">
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Laporan Eksekutif Harian Sekolah</h3>
+                  <p className="text-[10.5px] text-slate-400 font-medium">Ringkasan operasional & presensi siap cetak</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                className="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Printable Content Area */}
+            <div id="executive-print-area" className="p-5 overflow-y-auto space-y-4 text-slate-800">
+              
+              {/* Kop Laporan */}
+              <div className="border-b-2 border-slate-800 pb-3 text-center">
+                <h2 className="text-base font-black uppercase tracking-wide">SMK NEGERI 1 SYSTEM MONITORING</h2>
+                <h3 className="text-xs font-bold text-slate-600 uppercase">Laporan Eksekutif Presensi & Operasional KBM</h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">Hari / Tanggal: {todayLong} · Waktu Cetak: {new Date().toLocaleTimeString('id-ID')} WIB</p>
+              </div>
+
+              {/* Status Pimpinan */}
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs flex items-center justify-between">
+                <span>Kepala Sekolah: <strong>{currentUser?.name || 'Yunie Purwiasih, M.Pd'}</strong></span>
+                <span className="font-extrabold text-emerald-700">Tingkat Kehadiran Total: {combinedAttendanceStats.overallPct}%</span>
+              </div>
+
+              {/* Rangkuman 6 KPI Operasional */}
+              <div>
+                <h4 className="text-xs font-black text-slate-700 mb-1.5 uppercase tracking-wider">1. Ringkasan Presensi Terpadu</h4>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="p-2 bg-slate-50 border border-slate-200 rounded">
+                    <p className="text-[10px] text-slate-400 font-bold">Guru Pengajar</p>
+                    <p className="text-sm font-black text-slate-800 mt-0.5">{guruStats.totalMasuk} / {guruStats.total} ({guruPresentPct}%)</p>
+                    <p className="text-[9px] text-emerald-600 font-semibold">{guruStats.Hadir} Hadir · {guruStats.Terlambat} Telat</p>
+                  </div>
+                  <div className="p-2 bg-slate-50 border border-slate-200 rounded">
+                    <p className="text-[10px] text-slate-400 font-bold">Karyawan / Staf</p>
+                    <p className="text-sm font-black text-slate-800 mt-0.5">{karyawanStats.totalMasuk} / {karyawanStats.total} ({karyawanPresentPct}%)</p>
+                    <p className="text-[9px] text-teal-600 font-semibold">{karyawanStats.Hadir} Hadir · {karyawanStats.Terlambat} Telat</p>
+                  </div>
+                  <div className="p-2 bg-slate-50 border border-slate-200 rounded">
+                    <p className="text-[10px] text-slate-400 font-bold">Peserta Didik</p>
+                    <p className="text-sm font-black text-slate-800 mt-0.5">{siswaPresentTotal} / {siswaDenom} ({siswaPresentPct}%)</p>
+                    <p className="text-[9px] text-emerald-600 font-semibold">{siswaStats.Hadir} Hadir · {siswaStats.Terlambat} Telat</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rangkuman KBM & Fasilitas */}
+              <div>
+                <h4 className="text-xs font-black text-slate-700 mb-1.5 uppercase tracking-wider">2. Operasional KBM & Fasilitas</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded flex justify-between items-center">
+                    <span>Pengisian Jurnal KBM:</span>
+                    <strong className="text-sky-700 font-black">{jurnalSubmitted} / {todaySchedule.length} Slot ({jurnalPct}%)</strong>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded flex justify-between items-center">
+                    <span>Utilisasi Ruangan / Lab:</span>
+                    <strong className="text-indigo-700 font-black">{sarprasStats.terpakai} / {sarprasStats.total} Ruang ({sarprasStats.utilisasi}%)</strong>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <span className="text-[10.5px] text-slate-400 font-medium">Dokumen ini digenerate secara otomatis oleh sistem</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                >
+                  <Printer size={13} />
+                  <span>Print / Simpan PDF</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
