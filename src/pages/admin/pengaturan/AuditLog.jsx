@@ -1,4 +1,4 @@
-﻿import { Button, TablePagination } from "../../../components/ui.jsx";
+import { Button, TablePagination } from "../../../components/ui.jsx";
 import { useState, useEffect, useMemo } from "react";
 import {
   Activity, Trash2, User, Database, CheckCircle2, Edit2, LogOut, Send,
@@ -103,6 +103,11 @@ function AuditDetailModal({ log, onClose }) {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><MapPin size={10} /> Alamat IP</p>
               <p className="text-sm font-bold text-slate-800 font-mono">{log.ip_address || "—"}</p>
             </div>
+            <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1"><Monitor size={10} /> MAC Address</p>
+              <p className="text-sm font-bold text-slate-800 font-mono">{log.mac_address || "Tidak Tersedia"}</p>
+              <p className="text-[9px] text-slate-400 mt-0.5">Dibatasi keamanan browser</p>
+            </div>
           </div>
           <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-1"><Monitor size={10} /> Perangkat & Browser</p>
@@ -162,11 +167,23 @@ export default function AuditLog({ activeTab, setActiveTab }) {
     } catch (e) { showToast("Gagal.", "error"); }
   };
 
+  const currentUser = useAuthStore(state => state.user);
+  const isSuperAdmin = currentUser?.role === 'superadmin' || currentUser?.role === 'admin' || currentUser?.username === 'admin';
+
   const filteredLogs = useMemo(() => logs.filter(log => {
+    // 1. Sembunyikan log aktivitas admin jika pengguna saat ini bukan admin
+    if (!isSuperAdmin) {
+      const uRole = String(log.user_role || '').toLowerCase();
+      const uName = String(log.user_name || '').toLowerCase();
+      const uId = String(log.user_id || '').toLowerCase();
+      const isAdminLog = uRole.includes('admin') || uName.includes('admin') || uId.includes('admin') || uName.includes('radmin');
+      if (isAdminLog) return false;
+    }
+
     const s = search.toLowerCase();
     const matchSearch = !s || log.user_name?.toLowerCase().includes(s) || log.action?.toLowerCase().includes(s) || log.detail?.toLowerCase().includes(s) || log.target_type?.toLowerCase().includes(s) || log.ip_address?.toLowerCase().includes(s);
     return matchSearch && (filterAction === "all" || log.action === filterAction) && (filterRole === "all" || log.user_role === filterRole);
-  }), [logs, search, filterAction, filterRole]);
+  }), [logs, search, filterAction, filterRole, isSuperAdmin]);
 
   const uniqueActions = useMemo(() => ["all", ...new Set(logs.map(l => l.action).filter(Boolean))], [logs]);
   const uniqueRoles = useMemo(() => ["all", ...new Set(logs.map(l => l.user_role).filter(Boolean))], [logs]);
