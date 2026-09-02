@@ -300,8 +300,11 @@ export default function KepsekExecutiveDashboard({
   const siswaStats = useMemo(() => {
     const hikLogs = dashLogs?.hikvisionStudentToday || [];
     const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
-      const t = String(r?.true_person_type || r?.device_type || '').toUpperCase();
-      if (!t.includes('SISWA')) return false;
+      const type = String(r?.true_person_type || r?.person_type || 'siswa').toLowerCase();
+      const empId = String(r?.employee_id || r?.nis || r?.username || '');
+      if (empId.toUpperCase().startsWith('K')) return false;
+      if (type.includes('guru') || type.includes('karyawan')) return false;
+      
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return true;
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });

@@ -2617,7 +2617,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     let allLogs = [...hikLogs];
     if (allLogs.length === 0 && recentLogs.length > 0) {
       allLogs = recentLogs.filter(r => {
-        if (!String(r.true_person_type || r.device_type || 'SISWA').toUpperCase().includes('SISWA')) return false;
+        const type = String(r.true_person_type || r.person_type || 'siswa').toLowerCase();
+        const empId = String(r.employee_id || r.nis || r.username || '');
+        if (empId.toUpperCase().startsWith('K')) return false;
+        if (type.includes('guru') || type.includes('karyawan')) return false;
+        
         const logDate = r?.timestamp || r?.created_at || r?.date || '';
         if (!logDate) return true;
         const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
