@@ -190,7 +190,8 @@ export default function AdminSidebar({
 
         {/* LOG AKTIVITAS */}
         <SidebarSection label="AKTIVITAS" />
-        {renderNavItem({ id: 'keamanan', icon: Activity, label: 'Log Aktivitas' })}
+        {renderNavItem({ id: 'audit_log', icon: Activity, label: 'Log Aktivitas' })}
+        {renderNavItem({ id: 'keamanan', icon: Shield, label: 'Keamanan Akun' })}
       </>
     );
   };
