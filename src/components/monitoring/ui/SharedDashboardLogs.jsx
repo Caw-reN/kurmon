@@ -556,27 +556,27 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     }
 
     return (
-      <div key={index} className="flex justify-between items-center py-2.5 px-3 hover:bg-slate-50/80 transition-colors group">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="text-[10px] sm:text-[11px] font-black text-slate-500 w-4 sm:w-5 text-right shrink-0">{absoluteIndex}.</div>
-          <div className={`w-9 h-9 rounded-full font-black text-sm flex items-center justify-center shrink-0 border shadow-xs ${avatarBg}`}>
+      <div key={index} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50/80 transition-colors group">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="text-[10px] sm:text-[10.5px] font-black text-slate-500 w-4 text-right shrink-0">{absoluteIndex}.</div>
+          <div className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center shrink-0 border shadow-xs ${avatarBg}`}>
             {avatarChar}
           </div>
           <div className="min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
               <p className="text-xs font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
               {subtitleBadge}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate flex items-center gap-1.5">
+            <p className="text-[9.5px] text-slate-400 font-medium mt-0.5 truncate flex items-center gap-1.5">
               {subtitleText && <span className="font-semibold text-slate-500">{subtitleText}</span>}
             </p>
           </div>
         </div>
-        <div className="text-right shrink-0 flex flex-col items-end gap-1">
-          <span className={`text-[9px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
+        <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
+          <span className={`text-[8.5px] font-black px-1.5 py-0.2 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-2 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-1 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
+          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
             {timeText}
           </span>
         </div>
@@ -590,8 +590,8 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
 
     return (
-      <div className="flex items-center justify-between px-4 py-3 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
-        <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
+        <span className="text-[10px] text-slate-500 font-medium">
           Data {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
         </span>
         <div className="flex items-center gap-1.5">
@@ -626,10 +626,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }
 
   return (
-    <div className="bg-white rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-card)] border border-[var(--ui-border-muted)] flex flex-col overflow-hidden h-auto transition-all duration-300">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
 
       {/* Dynamic Header */}
-      <div className="px-4 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="px-4 py-3 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
             <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />

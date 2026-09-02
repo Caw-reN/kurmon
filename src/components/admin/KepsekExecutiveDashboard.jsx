@@ -563,40 +563,43 @@ export default function KepsekExecutiveDashboard({
   return (
     <div className="w-full max-w-[1800px] mx-auto flex flex-col gap-4 animate-in fade-in duration-300 pb-12">
 
-      {/* ═══════════════ HERO COMPACT ═══════════════ */}
+      {/* ═══════════════ HERO ═══════════════ */}
       <div
-        className="rounded-[var(--ui-radius-card)] text-white shadow-md relative overflow-hidden border border-white/10"
-        style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 60%, #000) 100%)' }}
+        className="rounded-[var(--ui-radius-card)] text-white shadow-xl relative overflow-hidden border border-white/10"
+        style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 55%, #000) 100%)' }}
       >
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[60px] pointer-events-none -mr-20 -mt-20" />
-        <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-black/15 rounded-full blur-[50px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-40" />
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-black/15 rounded-full blur-[60px] pointer-events-none" />
 
-        <div className="relative z-10 px-4 py-3 sm:px-5 sm:py-3.5">
-          {/* Main Row: Greeting (Left) & Menu Pintasan (Right) */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        <div className="relative z-10 p-5 sm:p-7">
+          {/* Top Row: Greeting (Left) & Menu Pintasan (Right) */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Left: User greeting & overview info */}
-            <div className="flex flex-col gap-1 min-w-0 flex-1">
+            <div className="flex flex-col gap-2 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-white/90 text-[9.5px] font-extrabold border border-white/15 backdrop-blur-sm">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {todayLong}
                 </span>
-                <span className="text-white/80 text-[11px] font-semibold">
-                  {greeting}, <strong className="text-white font-black">{currentUser?.name || 'Kepala Sekolah'}</strong>
-                </span>
               </div>
-              <p className="text-[11px] text-white/80 font-medium leading-snug line-clamp-1 max-w-xl">
-                Pusat pemantauan operasional sekolah — kehadiran, KBM, fasilitas, PKL, dan kesiswaan realtime.
-              </p>
+              <div>
+                <p className="text-white/75 text-xs font-semibold">{greeting},</p>
+                <h1 className="text-xl sm:text-2xl font-black leading-tight mt-0.5">
+                  {currentUser?.name || 'Kepala Sekolah'}
+                </h1>
+                <p className="text-xs text-white/70 font-medium mt-1 max-w-sm leading-relaxed">
+                  Pusat pemantauan operasional sekolah — kehadiran, KBM, fasilitas, PKL, dan kesiswaan realtime.
+                </p>
+              </div>
             </div>
 
             {/* Right: Menu Pintasan Glassmorphic Grid */}
-            <div className="flex flex-col gap-1.5 w-full lg:w-auto shrink-0">
+            <div className="flex flex-col gap-2.5 w-full lg:w-auto shrink-0">
               <div className="flex items-center gap-1.5 text-white/90">
-                <Sparkles size={11} className="text-amber-300" />
-                <span className="text-[10px] font-black uppercase tracking-wider">Menu Pintasan</span>
+                <Sparkles size={13} className="text-amber-300" />
+                <span className="text-xs font-black uppercase tracking-wider">Menu Pintasan</span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full lg:max-w-2xl">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:max-w-3xl">
                 {[
                   { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
                   { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
@@ -612,13 +615,13 @@ export default function KepsekExecutiveDashboard({
                     <button
                       key={m.tab}
                       onClick={() => gotoTab(m.tab)}
-                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      <div className="w-5 h-5 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                        <img src={m.icon} alt={m.label} className="w-3.5 h-3.5 object-contain" />
+                      <div className="w-7 h-7 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                        <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
                       </div>
-                      <span className="text-[10.5px] font-extrabold text-white whitespace-nowrap min-w-0 flex-1">{m.label}</span>
-                      <ChevronRight size={10} className="text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
+                      <span className="text-xs font-extrabold text-white whitespace-nowrap min-w-0 flex-1">{m.label}</span>
+                      <ChevronRight size={12} className="text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
                     </button>
                   );
                 })}
