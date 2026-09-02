@@ -291,7 +291,7 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
         </div>
 
         {/* ── Feed List ── */}
-        <div className="divide-y divide-slate-100 my-1.5">
+        <div className="divide-y divide-slate-100 my-1 flex-1 flex flex-col justify-around">
           {paginatedSessions.length === 0 ? (
             <div className="py-8 text-center text-slate-400 font-semibold text-xs">
               Belum ada data sesi login {filterRole !== 'all' ? filterRole : ''} hari ini

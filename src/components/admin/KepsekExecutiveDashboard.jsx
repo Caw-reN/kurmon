@@ -833,6 +833,24 @@ export default function KepsekExecutiveDashboard({
         />
       </div>
 
+      {/* ═══════════════ BARIS 3: 3 BOX LOG & MONITOR AKTIVITAS SEJAJAR (RATA 100%) ═══════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Box 1: Live Log Aktivitas Pengguna */}
+        <div className="flex flex-col h-full">
+          <LiveUserActivityLog onNavigateTab={gotoTab} />
+        </div>
+
+        {/* Box 2: Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
+        <div className="flex flex-col h-full">
+          <UserLoginSessionTracker onNavigateTab={gotoTab} />
+        </div>
+
+        {/* Box 3: Monitor & Aktivitas Pemantauan Sekolah */}
+        <div className="flex flex-col h-full md:col-span-2 lg:col-span-1">
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        </div>
+      </div>
+
     </div>
   );
 }

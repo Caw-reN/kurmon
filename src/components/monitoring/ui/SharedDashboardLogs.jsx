@@ -744,7 +744,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       </div>
 
       {/* Tab Contents */}
-      <div className="p-3.5 bg-white min-h-[460px] h-auto [&>div]:h-full">
+      <div className="p-3 bg-white flex-1 flex flex-col justify-between">
 
         {/* TAB 1: Kehadiran Guru & Karyawan */}
         {activeLogTab === 'guru_karyawan' && (
