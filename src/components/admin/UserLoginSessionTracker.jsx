@@ -133,15 +133,16 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
     }
 
     // Convert map to array with computed metrics
+    const todayStart = new Date();
+    todayStart.setHours(5, 0, 0, 0); // 05:00 WIB today
+
     const result = Array.from(map.values()).map(item => {
-      const diffFromLatest = Math.max(0, now - item.latestLoginTime);
-      const isOnline = diffFromLatest < 20 * 60000; // Active within last 20m
+      const effectiveStart = Math.max(todayStart.getTime(), item.firstLoginTime);
+      const durationMs = Math.max(0, Math.min(now - effectiveStart, 12 * 60 * 60 * 1000));
+      const durationMins = Math.floor(durationMs / 60000);
+      const isOnline = (now - item.latestLoginTime) < 20 * 60000; // Active within last 20m
 
-      // Hitung durasi aktif realistis hari ini (maksimal 8 jam / 480 menit jam kerja)
-      const diffFromFirst = Math.max(0, now - item.firstLoginTime);
-      const realisticDurationMs = Math.min(diffFromFirst, 8 * 60 * 60 * 1000);
-      const durationMins = Math.max(1, Math.floor(realisticDurationMs / 60000));
-
+      // Format duration
       let durationStr = `${durationMins} mnt`;
       if (durationMins >= 60) {
         const h = Math.floor(durationMins / 60);
