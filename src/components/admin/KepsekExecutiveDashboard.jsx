@@ -539,6 +539,24 @@ export default function KepsekExecutiveDashboard({
 
 
 
+  const combinedAttendanceStats = useMemo(() => {
+    const totalPeople = (guruStats.total || 0) + (karyawanStats.total || 0) + (siswaDenom || 0);
+    const totalHadir = (guruStats.Hadir || 0) + (karyawanStats.Hadir || 0) + (siswaStats.Hadir || 0);
+    const totalTelat = (guruStats.Terlambat || 0) + (karyawanStats.Terlambat || 0) + (siswaStats.Terlambat || 0);
+    const totalIzinSakit = (guruStats.Izin || 0) + (guruStats.Sakit || 0) + (karyawanStats.Izin || 0) + (karyawanStats.Sakit || 0) + (siswaStats.Izin || 0) + (siswaStats.Sakit || 0);
+    const totalAlpa = (guruStats.Alpa || 0) + (karyawanStats.Alpa || 0) + (siswaStats.Alpa || 0);
+    const overallPct = totalPeople > 0 ? Math.round(((totalHadir + totalTelat) / totalPeople) * 100) : 0;
+
+    const chartData = [
+      { name: 'Tepat Waktu', value: totalHadir, color: '#10b981' }, // emerald-500
+      { name: 'Terlambat', value: totalTelat, color: '#f59e0b' }, // amber-500
+      { name: 'Izin / Sakit', value: totalIzinSakit, color: '#0ea5e9' }, // sky-500
+      { name: 'Belum Absen', value: totalAlpa, color: '#f43f5e' }, // rose-500
+    ].filter(d => d.value > 0);
+
+    return { totalPeople, totalHadir, totalTelat, totalIzinSakit, totalAlpa, overallPct, chartData };
+  }, [guruStats, karyawanStats, siswaStats, siswaDenom]);
+
   // ─── RENDER ───────────────────────────────────────────────────────────────
   return (
     <div className="w-full max-w-[1800px] mx-auto flex flex-col gap-4 animate-in fade-in duration-300 pb-12">
@@ -612,106 +630,209 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ 7 KPI PILLARS ═══════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-2.5">
-        {[
-          { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
-          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
-          { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu`, onClick: () => gotoTab('laporan_absensi') },
-          { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmitted, sub: `/ ${todaySchedule.length} Slot`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${Math.max(0, todaySchedule.length - jurnalSubmitted)} slot belum terisi`, onClick: () => gotoTab('generate') },
-          { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini`, onClick: () => gotoTab('generate') },
-          { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif`, onClick: () => gotoTab('pkl_dashboard') },
-          { id: 'kesiswaan_k', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi`, onClick: () => gotoTab('kedisiplinan_bpbk') },
-        ].map((kpi, i) => (
-          <KPICard key={i} {...kpi} />
-        ))}
-      </div>
-
-      {/* ═══════════════ KONTEN UTAMA RINGKASAN ═══════════════ */}
-      <div className="flex flex-col gap-4 animate-in fade-in duration-200">
-
-        {/* ── BARIS 1: Presensi Live Hari Ini (LEBAR PENUH KE SAMPING) ── */}
-        <SectionCard 
-          title="Presensi Live Hari Ini" 
-          subtitle="Data terpadu mesin absensi Hikvision & gerbang sekolah" 
-          icon="/icons/084-fingerprint scan.svg" 
-          action="Detail Laporan" 
-          onAction={() => gotoTab('laporan_absensi')}
-          className="w-full"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* ═══════════════ TOP SECTION (5 KPI + PRESENSI LIVE KIRI & 2 KPI + PIE CHART KANAN) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+        
+        {/* ── KOLOM KIRI (75% LEBAR): 5 KPI Cards + Presensi Live Box ── */}
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-3.5">
+          
+          {/* 5 KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-2.5">
             {[
-              { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
-              { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
-              { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
-            ].filter(row => row.total > 0).map(row => (
-              <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/60 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
-                    <span className="flex items-center gap-1.5">
-                      {row.label} 
-                      <span className="text-[10px] text-slate-400 font-medium">({row.total} orang)</span>
-                    </span>
-                    <span className="text-emerald-700 font-black text-xs bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200/60">
-                      {pct(row.hadir + row.telat, row.total || 1)}% Hadir
-                    </span>
-                  </div>
-                  
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-2 shadow-inner">
-                    <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
-                    <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
-                    <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
-                    <div className="h-full bg-sky-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
-                    <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[9.5px] font-bold text-slate-500 pt-0.5">
-                    <span className="text-emerald-700">● {row.hadir} Hadir</span>
-                    <span className="text-amber-600">● {row.telat} Telat</span>
-                    <span className="text-orange-600">● {row.izin} Izin</span>
-                    <span className="text-sky-600">● {row.sakit} Sakit</span>
-                    <span className="text-rose-600">● {row.alpa} Alpa</span>
-                  </div>
-                </div>
-
-                {row.isSiswa && siswaStats.gradeStats && (
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-1.5">
-                    {['X', 'XI', 'XII'].map(g => {
-                      const gStat = siswaStats.gradeStats[g];
-                      const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
-                      return (
-                        <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-1 px-1 text-center shadow-xs">
-                          <span className="text-[9px] font-extrabold text-slate-500 mr-1">Kelas {g}:</span>
-                          <span className="text-[10px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
+              { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
+              { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu`, onClick: () => gotoTab('laporan_absensi') },
+              { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmitted, sub: `/ ${todaySchedule.length} Slot`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${Math.max(0, todaySchedule.length - jurnalSubmitted)} slot belum terisi`, onClick: () => gotoTab('generate') },
+              { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini`, onClick: () => gotoTab('generate') },
+            ].map((kpi, i) => (
+              <KPICard key={i} {...kpi} />
             ))}
           </div>
 
-          <div className="flex items-center gap-2 p-2 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[10.5px] text-emerald-800 font-semibold mt-3">
-            <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-            Realtime — Gateway Mesin Hikvision & Gerbang Sekolah Terhubung
-            <span className="ml-auto text-[8.5px] font-black uppercase bg-emerald-200 px-1.5 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
-          </div>
-        </SectionCard>
+          {/* Presensi Live Hari Ini */}
+          <SectionCard 
+            title="Presensi Live Hari Ini" 
+            subtitle="Data terpadu mesin absensi Hikvision & gerbang sekolah" 
+            icon="/icons/084-fingerprint scan.svg" 
+            action="Detail Laporan" 
+            onAction={() => gotoTab('laporan_absensi')}
+            className="flex-1"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              {[
+                { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
+                { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
+                { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
+              ].filter(row => row.total > 0).map(row => (
+                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/60 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        {row.label} 
+                        <span className="text-[10px] text-slate-400 font-medium">({row.total} orang)</span>
+                      </span>
+                      <span className="text-emerald-700 font-black text-[11px] bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200/60">
+                        {pct(row.hadir + row.telat, row.total || 1)}% Hadir
+                      </span>
+                    </div>
+                    
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-2 shadow-inner">
+                      <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
+                      <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
+                      <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
+                      <div className="h-full bg-sky-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
+                      <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
+                    </div>
 
-        {/* ── BARIS 2: Monitor & Aktivitas (Kiri) & Log Aktivitas & Login Pengguna (Kanan) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-          {/* Box Kiri: Monitor & Aktivitas Pemantauan Sekolah */}
-          <div className="h-full flex flex-col">
-            <SharedDashboardLogs onLogsFetched={setDashLogs} />
-          </div>
+                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 pt-0.5">
+                      <span className="text-emerald-700">● {row.hadir} Hadir</span>
+                      <span className="text-amber-600">● {row.telat} Telat</span>
+                      <span className="text-orange-600">● {row.izin} Izin</span>
+                      <span className="text-sky-600">● {row.sakit} Sakit</span>
+                      <span className="text-rose-600">● {row.alpa} Alpa</span>
+                    </div>
+                  </div>
 
-          {/* Box Kanan: Live Log Aktivitas & Login Pengguna */}
-          <div className="h-full flex flex-col">
-            <LiveUserActivityLog onNavigateTab={gotoTab} />
-          </div>
+                  {row.isSiswa && siswaStats.gradeStats && (
+                    <div className="mt-2.5 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-1">
+                      {['X', 'XI', 'XII'].map(g => {
+                        const gStat = siswaStats.gradeStats[g];
+                        const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
+                        return (
+                          <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-0.5 px-1 text-center shadow-xs">
+                            <span className="text-[8.5px] font-extrabold text-slate-500 mr-0.5">Kls {g}:</span>
+                            <span className="text-[9.5px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 p-1.5 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[10px] text-emerald-800 font-semibold mt-2.5">
+              <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
+              Realtime — Gateway Mesin Hikvision & Gerbang Sekolah Terhubung
+              <span className="ml-auto text-[8.5px] font-black uppercase bg-emerald-200 px-1.5 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
+            </div>
+          </SectionCard>
+
         </div>
 
+        {/* ── KOLOM KANAN (25% LEBAR): 2 KPI Cards + Pie Chart Persentase Kehadiran ── */}
+        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-3.5">
+          
+          {/* 2 KPI Cards */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+            {[
+              { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif`, onClick: () => gotoTab('pkl_dashboard') },
+              { id: 'kesiswaan_k', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi`, onClick: () => gotoTab('kedisiplinan_bpbk') },
+            ].map((kpi, i) => (
+              <KPICard key={i} {...kpi} />
+            ))}
+          </div>
+
+          {/* Pie Chart Card: Persentase Kehadiran */}
+          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 flex flex-col justify-between flex-1">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-1">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
+                  <PieChart size={14} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-800 leading-tight">Persentase Kehadiran</h4>
+                  <p className="text-[9.5px] text-slate-400 font-medium">Proporsi kehadiran sekolah hari ini</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+                {combinedAttendanceStats.overallPct}% Total
+              </span>
+            </div>
+
+            {/* Donut Chart with Center Stat */}
+            <div className="relative h-36 w-full flex items-center justify-center my-0.5">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={combinedAttendanceStats.chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={36}
+                    outerRadius={54}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {combinedAttendanceStats.chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(val, name) => [`${val} Orang (${pct(val, combinedAttendanceStats.totalPeople)}%)`, name]}
+                    contentStyle={{ fontSize: '11px', borderRadius: '8px', padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-base font-black text-slate-800 tracking-tight leading-none">
+                  {combinedAttendanceStats.overallPct}%
+                </span>
+                <span className="text-[8.5px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5">
+                  Hadir
+                </span>
+              </div>
+            </div>
+
+            {/* Breakdown Legend */}
+            <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-100 text-[9.5px] font-bold">
+              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
+                <span className="text-emerald-700 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  Tepat Waktu
+                </span>
+                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalHadir}</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
+                <span className="text-amber-600 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  Terlambat
+                </span>
+                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalTelat}</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
+                <span className="text-sky-600 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
+                  Izin/Sakit
+                </span>
+                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalIzinSakit}</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
+                <span className="text-rose-600 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  Belum Absen
+                </span>
+                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalAlpa}</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* ═══════════════ MONITOR & AKTIVITAS (SEJAJAR 2 KOLOM) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        {/* Box Kiri: Monitor & Aktivitas Pemantauan Sekolah */}
+        <div className="h-full flex flex-col">
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        </div>
+
+        {/* Box Kanan: Live Log Aktivitas & Login Pengguna */}
+        <div className="h-full flex flex-col">
+          <LiveUserActivityLog onNavigateTab={gotoTab} />
+        </div>
       </div>
 
     </div>
