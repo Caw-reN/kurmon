@@ -2437,6 +2437,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
 // ============================================================
 function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [], staffs: _staffs = [], currentUser, isSuperAdmin, isKepsek, isWaka, isTU, activeDivision, setActiveTab }) {
   const storeStaffs = useDataStore(state => state.staffs);
+  const storeStudents = useDataStore(state => state.students);
   const staffs = (_staffs && _staffs.length > 0) ? _staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
   const todayStr = useMemo(() => {
     return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
@@ -2660,7 +2661,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else if (s.includes('alpa')) statuses.Alpa++;
       else statuses.Hadir++;
     });
-    const totalSiswaInSchool = dashLogs?.totalStudents || 0;
+    const totalSiswaInSchool = (storeStudents || []).length || dashLogs?.totalStudents || 0;
 
     // Auto-calculate Alpa if current time is past cutoff limit (08:00)
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
@@ -2676,8 +2677,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     ? Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100)
     : 0;
 
-  const siswaPercent = (dashLogs?.totalStudents > 0)
-    ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / dashLogs.totalStudents) * 100)
+  const siswaPercent = (siswaStats.totalSiswaInSchool > 0)
+    ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / siswaStats.totalSiswaInSchool) * 100)
     : (siswaStats.total > 0 ? Math.round((siswaStats.Hadir / siswaStats.total) * 100) : 0);
 
   return (
@@ -2801,7 +2802,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
         {/* ── Panel Siswa ── */}
         {canSeeStudentAttendance && (() => {
-          const totalSiswaDenominator = Math.max(dashLogs?.totalStudents || siswaStats.total || 1, 1);
+          const totalSiswaDenominator = Math.max(siswaStats.totalSiswaInSchool || siswaStats.total || 1, 1);
           return (
             <button
               onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
@@ -2818,8 +2819,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                       <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </h3>
                     <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
-                      {dashLogs?.totalStudents > 0 
-                        ? `${siswaStats.total}/${dashLogs.totalStudents} siswa terdata` 
+                      {siswaStats.totalSiswaInSchool > 0 
+                        ? `${siswaStats.total}/${siswaStats.totalSiswaInSchool} siswa terdata` 
                         : (dashLogs?.hikvisionStudentToday ? `${siswaStats.total} record mesin` : 'Absensi Hikvision')
                       }
                     </p>

@@ -1347,8 +1347,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
                     <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
-                      <span className="sm:hidden">Hadir</span>
-                      <span className="hidden sm:inline">Hadir Tepat Waktu</span>
+                      <span className="sm:hidden">Hadir (Hari Ini)</span>
+                      <span className="hidden sm:inline">Hadir Tepat Waktu (Hari Ini)</span>
                     </span>
                     <div className="flex items-baseline gap-1">
                       <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
@@ -1380,7 +1380,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
                     <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
-                      Terlambat
+                      Terlambat (Hari Ini)
                     </span>
                     <div className="flex items-baseline gap-1">
                       <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
@@ -1416,8 +1416,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
                     <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-0.5 truncate">
-                      <span className="sm:hidden">Tidak Hadir</span>
-                      <span className="hidden sm:inline">Belum Hadir / Izin / Sakit</span>
+                      <span className="sm:hidden">Tidak Hadir (Hari Ini)</span>
+                      <span className="hidden sm:inline">Belum Hadir / Izin / Sakit (Hari Ini)</span>
                     </span>
                     <div className="flex items-baseline gap-1">
                       <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">

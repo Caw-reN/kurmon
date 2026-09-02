@@ -417,7 +417,7 @@ export default function KepsekExecutiveDashboard({
       .sort((a, b) => b.pct - a.pct)
       .slice(0, 4);
     
-    const totalSiswaInSchool = dashLogs?.totalStudents || (students || []).length || 0;
+    const totalSiswaInSchool = (students || []).length || dashLogs?.totalStudents || 0;
     
     // Auto-calculate Alpa for each grade if past cutoff
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
@@ -492,7 +492,7 @@ export default function KepsekExecutiveDashboard({
   const totalSiswaCount = (students || []).length || dashLogs?.totalStudents || 0;
   const totalClassesCount = (classes || []).length || 0;
   const totalJP = useMemo(() => (teachingLoads || []).reduce((s, l) => s + (Number(l?.duration) || 0), 0), [teachingLoads]);
-  const siswaDenom = dashLogs?.totalStudents || siswaStats.totalSiswaInSchool || totalSiswaCount || 1;
+  const siswaDenom = totalSiswaCount || 1;
   const siswaPresentTotal = siswaStats.Hadir + siswaStats.Terlambat;
   const siswaPresentPct = pct(siswaPresentTotal, siswaDenom);
   const guruPresentPct = pct(guruStats.totalMasuk, guruStats.total);

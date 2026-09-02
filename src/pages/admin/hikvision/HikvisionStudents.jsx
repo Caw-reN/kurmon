@@ -334,7 +334,7 @@ function TabSiswa({ classes, authToken, showToast }) {
             <Users size={20} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Siswa Terdata</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Siswa di Mesin</p>
             <p className="text-lg sm:text-xl font-black text-slate-800">{students.length}</p>
           </div>
         </div>
