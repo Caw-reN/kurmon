@@ -268,6 +268,21 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     }
   };
 
+  const getDuration = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffMins = Math.floor((now.getTime() - d.getTime()) / 60000);
+      if (diffMins < 0) return '';
+      if (diffMins < 60) return `${diffMins} mnt`;
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      return `${hours}j ${mins}m`;
+    } catch {
+      return '';
+    }
+  };
+
   // Filtered list
   const filteredLogs = useMemo(() => {
     if (filterType === 'all') return appActivities;
@@ -306,7 +321,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           </div>
 
           {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar sm:justify-end max-w-full pb-1 sm:pb-0 w-full sm:w-auto">
             {[
               { id: 'all', label: 'Semua' },
               { id: 'login', label: 'Login' },
@@ -403,8 +418,13 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                       <Icon size={11} className={meta.color} />
                       {meta.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-slate-400">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 text-right">
                       {formatLogTime(item.timestamp)}
+                      {meta.category === 'login' && (
+                        <span className="block text-[9px] text-emerald-600/90 font-semibold tracking-tighter mt-0.5">
+                          Aktif: {getDuration(item.timestamp)}
+                        </span>
+                      )}
                     </span>
                   </div>
                 </div>
