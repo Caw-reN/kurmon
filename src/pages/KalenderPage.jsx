@@ -287,8 +287,8 @@ export default function KalenderPage() {
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
-          {/* Header Title & Subtitle */}
-          <div className="max-w-2xl">
+          {/* Header Title & Subtitle (Desktop only, mobile title is in top bar) */}
+          <div className="hidden md:block max-w-2xl">
             <div 
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 border shadow-2xs"
               style={{

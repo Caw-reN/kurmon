@@ -3,14 +3,15 @@ import { useLocation } from'react-router-dom';
 import { Home, CalendarDays, Map, BookOpen, Calendar, Building2 } from'lucide-react';
 import { subscribeDatabaseSnapshot } from'../../utils/dataSource.js';
 import { loadInitialState } from'../../utils/state.js';
-import { Link, Outlet } from'react-router-dom';
-import { ChevronLeft, MessageSquare } from'lucide-react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { ChevronLeft, MessageSquare } from 'lucide-react';
 import HeaderNavbar from'./HeaderNavbar.jsx';
 
 
 export default function PublicLayout() {
   const [dataVersion, setDataVersion] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [schoolProfile, setSchoolProfile] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -124,69 +125,71 @@ export default function PublicLayout() {
       </div>
 
       {/* HEADER NAVBAR */}
-      {location.pathname !=='/' && (() => {
-        const headerStyle = appSettings?.headerStyle || 'primary';
-        const surfaceColor = appSettings?.surfaceColor || '#ffffff';
-        
-        let mobHeaderBg = 'bg-white/85 backdrop-blur-lg border-b border-slate-100/80';
-        let mobHeaderTextColor = 'text-slate-800';
-        let mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
-        let mobHeaderStyleAttr = {};
-
-        if (headerStyle === 'primary') {
-          mobHeaderBg = 'border-b';
-          mobHeaderTextColor = 'text-white';
-          mobBackButtonClass = 'bg-white/10 border border-white/20 text-white';
-          mobHeaderStyleAttr = { backgroundColor: primaryColor, borderColor: 'rgba(255, 255, 255, 0.15)' };
-        } else if (headerStyle === 'solid') {
-          mobHeaderBg = 'border-b border-slate-100';
-          mobHeaderTextColor = 'text-slate-800';
-          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
-          mobHeaderStyleAttr = { backgroundColor: surfaceColor };
-        } else if (headerStyle === 'glass') {
-          mobHeaderBg = 'backdrop-blur-lg border-b border-slate-100/80';
-          mobHeaderTextColor = 'text-slate-800';
-          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
-          mobHeaderStyleAttr = { backgroundColor: `rgba(255, 255, 255, 0.7)` };
-        } else if (headerStyle === 'minimal') {
-          mobHeaderBg = '';
-          mobHeaderTextColor = 'text-slate-800';
-          mobBackButtonClass = 'bg-slate-50 border border-slate-200/50 text-slate-700';
-          mobHeaderStyleAttr = { backgroundColor: 'transparent', borderBottom: 'none' };
-        }
+      {location.pathname !== '/' && (() => {
+        const getPageTitle = (path) => {
+          switch (path) {
+            case '/jadwal': return 'Jadwal Pelajaran';
+            case '/denah': return 'Denah Tata Ruang';
+            case '/silabus':
+            case '/materi-ajar': return 'Materi Ajar';
+            case '/kalender': return 'Kalender Akademik';
+            case '/pkl-locations': return 'Data Tempat PKL';
+            case '/struktur': return 'Struktur Organisasi';
+            case '/validasi-siswa': return 'Validasi Data Siswa';
+            default: return 'Layanan Publik';
+          }
+        };
 
         return (
           <>
-            {/* Desktop Header */}
+            {/* Desktop Header (Floating Navbar Card) */}
             <div className="hidden md:block">
               <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} schoolProfile={schoolProfile} />
             </div>
 
-            {/* Mobile Header */}
-            <header 
-              className={`md:hidden w-full fixed top-0 left-0 right-0 z-50 py-3.5 px-4 flex items-center justify-between print:hidden ${mobHeaderBg}`}
-              style={mobHeaderStyleAttr}
-            >
-              <Link to="/" className={`w-9 h-9 rounded-full flex items-center justify-center active:translate-y-[1px] transition-all no-underline ${mobBackButtonClass}`}>
-                <ChevronLeft size={18} strokeWidth={2.5} />
+            {/* Mobile Header (Judul & Tombol Back di Bagian Atas) */}
+            <header className="md:hidden w-full fixed top-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between shadow-2xs print:hidden transition-all">
+              <button 
+                type="button"
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                  } else {
+                    navigate('/');
+                  }
+                }}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer border border-slate-200/60 shadow-2xs shrink-0"
+                title="Kembali"
+              >
+                <ChevronLeft size={20} strokeWidth={2.5} />
+              </button>
+              
+              <div className="flex flex-col items-center justify-center text-center px-2 flex-1 min-w-0">
+                <span 
+                  className="text-[9.5px] font-black uppercase tracking-widest leading-none mb-0.5" 
+                  style={{ color: 'var(--ui-primary, #059669)' }}
+                >
+                  Layanan Publik
+                </span>
+                <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none truncate max-w-full">
+                  {getPageTitle(location.pathname)}
+                </h1>
+              </div>
+              
+              <Link 
+                to="/"
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center transition-all no-underline border border-slate-200/60 shadow-2xs shrink-0"
+                title="Beranda Utama"
+              >
+                <Home size={17} strokeWidth={2.2} />
               </Link>
-              <span className={`font-black text-[14.5px] tracking-tight ${mobHeaderTextColor}`}>
-                {location.pathname ==='/jadwal' ?'Jadwal Pelajaran' :
-                 location.pathname ==='/denah' ?'Denah Kelas' :
-                 location.pathname ==='/silabus' ?'Modul Ajar' :
-                 location.pathname ==='/materi-ajar' ?'Materi Ajar' :
-                 location.pathname ==='/kalender' ?'Kalender Akademik' :
-                 location.pathname ==='/pkl-locations' ?'Tempat PKL' :
-                 location.pathname ==='/struktur' ?'Struktur Organisasi' :'Informasi'}
-              </span>
-              <div className="w-9 h-9 opacity-0"></div>
             </header>
           </>
         );
       })()}
 
       {/* MAIN CONTENT AREA (Sejajar Persis dengan HeaderNavbar) */}
-      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-6 md:px-8 min-[1400px]:px-0 pt-20 sm:pt-28 pb-24 md:pb-12'}`}>
+      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-4 sm:px-6 md:px-8 min-[1400px]:px-0 pt-16 sm:pt-28 pb-24 md:pb-12'}`}>
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 
