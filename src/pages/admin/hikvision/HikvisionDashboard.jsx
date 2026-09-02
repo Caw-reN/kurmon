@@ -190,7 +190,7 @@ export default function HikvisionDashboard() {
       </div>
 
       {syncMessage && (
-        <div className={`p-4 rounded-[var(--ui-radius-small)] border-l-4 shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50 border-emerald-500 text-emerald-800' :'bg-rose-50 border-rose-500 text-rose-800'}`}>
+        <div className={`p-4 rounded-[var(--ui-radius-small)] border shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50/50 border-emerald-200/60 text-emerald-800' :'bg-rose-50/50 border-rose-200/60 text-rose-800'}`}>
           <div className="flex justify-between items-start">
             <p className="font-bold">{syncMessage.text}</p>
             <Button variant="outline" onClick={() =>setSyncMessage(null)} >×</Button>
@@ -436,7 +436,10 @@ export default function HikvisionDashboard() {
                         <div className="font-bold text-slate-800">{log.student_name}</div>
                         <div className="text-[10px] text-slate-400 font-mono mt-0.5">{log.employee_id}</div>
                       </td>
-                      <td className="px-5 py-3.5 text-slate-500 font-mono">{log.ip_address}</td>
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-slate-700">{devices.find(d => d.ip_address === log.ip_address)?.name || 'Mesin Hikvision'}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{log.ip_address}</div>
+                      </td>
                       <td className="px-5 py-3.5 text-right">
                         <DeviceTypeBadge type={log.true_person_type || log.person_type || log.device_type || 'siswa'} />
                       </td>
