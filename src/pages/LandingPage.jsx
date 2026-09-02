@@ -501,180 +501,259 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain & Palet Warna Mockup) */}
-      <div className="md:hidden flex flex-col w-full pb-28 bg-[#f5f8f6] min-h-screen relative">
+      {/* MOBILE SCROLLABLE VIEW (Konsisten dengan Warna & Desain Desktop) */}
+      <div className="md:hidden flex flex-col w-full pb-28 bg-[var(--ui-bg,#f8fafc)] min-h-screen relative">
 
-        {/* 1. TOP HEADER BAR (Mobile: Light Mint Background) */}
-        <header className="w-full bg-[#eaf4ee] px-4 py-3 flex items-center justify-between border-b border-[#d8ebe0] sticky top-0 z-30 shadow-2xs">
+        {/* 1. TOP HEADER BAR (Mobile) */}
+        <header className="w-full bg-white/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
           <div className="flex items-center gap-2.5">
             {appSettings.logoUrl ? (
-              <div className="w-9 h-9 rounded-xl bg-[#16a34a] flex items-center justify-center p-1 shadow-xs">
+              <div 
+                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex items-center justify-center p-1 shadow-xs"
+                style={{ backgroundColor: primaryColor || '#064e3b' }}
+              >
                 <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-[#16a34a] flex flex-col items-center justify-center text-white shadow-xs leading-none">
-                <span className="text-[7.5px] font-black opacity-90 tracking-tighter">SMK</span>
-                <span className="text-[10.5px] font-black">KG2</span>
+              <div 
+                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex flex-col items-center justify-center text-white shadow-xs leading-none"
+                style={{ backgroundColor: primaryColor || '#064e3b' }}
+              >
+                <span className="text-[7.5px] font-black opacity-80">SMK</span>
+                <span className="text-[10.5px] font-black">{appSettings.logoText || "KG2"}</span>
               </div>
             )}
             <div className="flex flex-col text-left">
-              <span className="text-[13px] font-black text-slate-900 leading-tight">Sistem Informasi</span>
-              <span className="text-[11px] font-bold text-[#16a34a] leading-tight">Karya Guna 2</span>
+              <span className="text-[13px] font-black text-slate-800 leading-tight">Sistem Informasi</span>
+              <span 
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: primaryColor || '#059669' }}
+              >
+                {appSettings.appName || "Karya Guna 2"}
+              </span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setShowPublicGuide(true)}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200/90 shadow-xs flex items-center justify-center text-slate-700 hover:text-slate-950 active:scale-95 transition-all cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-95 transition-all cursor-pointer"
             aria-label="Pencarian"
           >
-            <Search size={16} strokeWidth={2.5} />
+            <Search size={16} />
           </button>
         </header>
 
-        {/* 2. GREEN HERO CARD (Rich Forest Emerald Gradient) */}
+        {/* 2. HERO CARD (Warna Konsisten dengan Tema Desktop) */}
         <div
           className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-16 overflow-hidden"
           style={{
-            background: 'linear-gradient(180deg, #157444 0%, #0c4d2d 100%)'
+            background: appSettings.heroImage ? undefined : `linear-gradient(135deg, ${hexToRgba(primaryColor || '#064e3b', 1)} 0%, ${hexToRgba(primaryColor || '#064e3b', 0.88)} 100%)`
           }}
         >
-          {/* Subtle Ambient Radial Glow */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-300/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/20 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12" />
+          {appSettings.heroImage && (
+            <>
+              <img 
+                src={appSettings.heroImage} 
+                fetchpriority="high" 
+                loading="eager" 
+                className="absolute inset-0 w-full h-full object-cover object-center z-0" 
+                alt="Mobile Hero Background" 
+              />
+              <div 
+                className="absolute inset-0 z-0"
+                style={{
+                  background: `linear-gradient(135deg, ${hexToRgba(primaryColor || '#064e3b', 0.94)} 0%, ${hexToRgba(primaryColor || '#064e3b', 0.88)} 100%)`
+                }}
+              />
+            </>
+          )}
+
+          {/* Subtle Ambient Glow */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20 z-0" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/15 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12 z-0" />
 
           {/* Capsule Tag: TAHUN AJARAN 2026/2027 */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/25 backdrop-blur-md border border-white/20 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs relative z-10">
+            <span 
+              className="w-2 h-2 rounded-full animate-pulse" 
+              style={{ backgroundColor: accentColor || '#a3e635' }}
+            />
             <span>Tahun Ajaran 2026/2027</span>
           </div>
 
           {/* Big Bold Headline */}
           <div className="text-left relative z-10">
-            <h1 className="text-[31px] sm:text-[35px] font-black leading-[1.12] tracking-tight">
+            <h1 className="text-[30px] sm:text-[34px] font-black leading-[1.12] tracking-tight">
               <span className="text-white block">Portal Pintar</span>
-              <span className="text-[#86efac] block">Karya Guna 2.</span>
+              <span 
+                className="block"
+                style={{ color: appSettings.heroHighlightColor || accentColor || '#a3e635' }}
+              >
+                {appSettings.appName || "Karya Guna 2."}
+              </span>
             </h1>
             <p className="text-white/85 text-[12.5px] sm:text-[13px] font-medium leading-relaxed mt-2.5 max-w-[310px]">
-              Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman.
+              {cleanHeroSubtitle || "Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman."}
             </p>
           </div>
 
-          {/* Big CTA Button: Vibrant Emerald */}
+          {/* Big CTA Button */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            className="w-full mt-6 py-3.5 px-6 rounded-2xl bg-[#16a34a] hover:bg-[#15803d] active:scale-98 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer transition-all relative z-10"
+            className="w-full mt-6 py-3.5 px-6 rounded-[var(--ui-radius-control,16px)] text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all active:scale-98 relative z-10 hover:brightness-110"
+            style={{
+              backgroundColor: appSettings.primaryButtonColor || appSettings.heroHighlightColor || accentColor || primaryColor || '#064e3b',
+              boxShadow: `0 8px 24px -4px ${hexToRgba(primaryColor || '#064e3b', 0.45)}`
+            }}
           >
             <span>Masuk Portal Aplikasi</span>
             <ArrowRight size={17} strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* 3. CARD "AKSES CEPAT" (Floating Overlapping Card) */}
-        <div className="mx-4 -mt-8 bg-white rounded-[28px] p-4.5 sm:p-5 shadow-[0_12px_36px_rgba(0,0,0,0.07)] border border-slate-100/90 relative z-20 select-none">
-          <h3 className="text-[14.5px] font-black text-slate-900 tracking-tight text-left mb-3.5">Akses Cepat</h3>
+        {/* 3. CARD "AKSES CEPAT" (Konsisten dengan Icon & Warna Layanan Publik Desktop) */}
+        <div className="mx-4 -mt-8 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 shadow-[var(--ui-shadow-card,0_10px_25px_rgba(0,0,0,0.06))] border border-[var(--ui-border-muted,#e2e8f0)] relative z-20 select-none">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight text-left mb-3.5">Akses Cepat</h3>
           
           <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 text-center">
-            {[
-              { label: 'Jadwal', icon: Calendar, color: 'text-[#2563eb]', bg: 'bg-[#eef5ff]', path: '/jadwal' },
-              { label: 'Denah', icon: MapPin, color: 'text-[#ea580c]', bg: 'bg-[#fff1e6]', path: '/denah' },
-              { label: 'Materi', icon: GraduationCap, color: 'text-[#9333ea]', bg: 'bg-[#f5eeff]', path: '/materi-ajar' },
-              { label: 'Absensi', icon: ClipboardCheck, color: 'text-[#059669]', bg: 'bg-[#e6f7ef]', path: '/dashboard' },
-              { label: 'Kalender', icon: CalendarDays, color: 'text-[#d97706]', bg: 'bg-[#fef8e7]', path: '/kalender' },
-              { label: 'Info PKL', icon: Building2, color: 'text-[#e11d48]', bg: 'bg-[#ffeef2]', path: '/pkl-locations' },
-              { label: 'Struktur', icon: Users, color: 'text-[#4f46e5]', bg: 'bg-[#eeefff]', path: '/struktur' },
-              { label: 'Semua', icon: LayoutGrid, color: 'text-[#475569]', bg: 'bg-[#f1f5f9]', isGuide: true },
-            ].map((item, idx) => {
-              const IconComp = item.icon;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    if (item.isGuide) {
-                      setShowPublicGuide(true);
-                    } else if (item.path) {
-                      navigate(item.path);
-                    }
-                  }}
-                  className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group py-1"
-                >
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
-                    <IconComp size={20} strokeWidth={2.3} />
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-700 tracking-tight leading-none text-center truncate w-full">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
+            {(() => {
+              const gridServices = [
+                ...publicServices,
+                { label: "Semua", svgIcon: "056-question.svg", icon: LayoutGrid, isLainnya: true, defaultColor: "#64748b" }
+              ];
+
+              return gridServices.slice(0, 8).map((service, idx) => {
+                const activeColor = service.customColor || service.defaultColor;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (service.isLainnya) {
+                        setShowPublicGuide(true);
+                      } else if (service.isPdfRules) {
+                        setShowRulesModal(true);
+                      } else if (service.path) {
+                        navigate(service.path);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group py-1"
+                  >
+                    <div 
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-[var(--ui-radius-card,14px)] flex items-center justify-center transition-all duration-300 shadow-2xs group-hover:scale-105"
+                      style={{ 
+                        backgroundColor: hexToRgba(activeColor, 0.09),
+                        border: `1px solid ${hexToRgba(activeColor, 0.14)}`
+                      }}
+                    >
+                      {service.customIcon ? (
+                        <img src={service.customIcon} alt="" className="w-5.5 h-5.5 object-contain" />
+                      ) : (
+                        <img src={`/icons/${service.svgIcon}`} className="w-5.5 h-5.5 object-contain" alt="" />
+                      )}
+                    </div>
+                    <span className="text-[10.5px] font-bold text-slate-700 tracking-tight leading-none text-center truncate w-full">
+                      {getShortLabel(service.label)}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
 
-        {/* 4. SECTION: PROGRAM KEAHLIAN (Horizontal Cards matching mockup) */}
+        {/* 4. SECTION: PROGRAM KEAHLIAN (Warna Konsisten dengan Desktop) */}
         <section className="relative z-10 w-full px-4 mt-6">
           <div className="flex flex-col text-left mb-3">
-            <h2 className="text-[15.5px] font-black text-slate-900 tracking-tight">
-              Program Keahlian
+            <h2 className="text-[15px] font-black text-slate-800 tracking-tight">
+              {appSettings.trustedByText || "Program Keahlian Unggulan"}
             </h2>
-            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Kompetensi unggulan berstandar industri.</p>
+            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Kompetensi keahlian terakreditasi berstandar industri</p>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
-            {[
-              {
-                id: 'tjkt',
-                code: 'TJKT / TKJ',
-                name: 'Teknik Jaringan Komputer & Telekomunikasi',
-                desc: 'Networking, Cyber Security, Cloud, AI & Enterprise Server.',
-                badge: 'Akreditasi A',
-                color: 'from-[#0f5232] to-[#0a3621]',
-                badgeBg: 'bg-[#22c55e]/25 text-[#86efac] border-[#22c55e]/30',
-              },
-              {
-                id: 'tkro',
-                code: 'TKRO / TKR',
-                name: 'Teknik Kendaraan Ringan Otomotif',
-                desc: 'Teknologi Injeksi Otomotif, Engine Management & EV.',
-                badge: 'Standar Industri',
-                color: 'from-[#0369a1] to-[#0c4a6e]',
-                badgeBg: 'bg-sky-400/25 text-sky-200 border-sky-400/30',
-              },
-              {
-                id: 'mplb',
-                code: 'MPLB / MP',
-                name: 'Manajemen Perkantoran & Layanan Bisnis',
-                desc: 'Digital Office, Administrasi Modern & Public Relations.',
-                badge: 'Unggulan',
-                color: 'from-[#c2410c] to-[#7c2d12]',
-                badgeBg: 'bg-amber-400/25 text-amber-200 border-amber-400/30',
-              },
-              {
-                id: 'akl',
-                code: 'AKL / AK',
-                name: 'Akuntansi & Keuangan Lembaga',
-                desc: 'Financial Tech, Akuntansi Digital & Perpajakan Terpadu.',
-                badge: 'Terakreditasi',
-                color: 'from-[#4338ca] to-[#312e81]',
-                badgeBg: 'bg-indigo-400/25 text-indigo-200 border-indigo-400/30',
-              }
-            ].map((major) => (
-              <div
-                key={major.id}
-                className={`min-w-[270px] max-w-[280px] shrink-0 snap-start relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-br ${major.color} shadow-sm border border-white/15 flex flex-col justify-between`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{major.code}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border backdrop-blur-xs ${major.badgeBg}`}>
-                    {major.badge}
-                  </span>
+          <div className="grid grid-cols-1 gap-3">
+            {[1, 2, 3, 4].map((idx) => {
+              const defaultNames = [
+                "Teknik Jaringan Komputer & Telekomunikasi",
+                "Teknik Kendaraan Ringan Otomotif",
+                "Manajemen Perkantoran & Layanan Bisnis",
+                "Akuntansi & Keuangan Lembaga"
+              ];
+              const defaultCodes = ["TJKT / TKJ", "TKRO / TKR", "MPLB / MP", "AKL / AK"];
+              const defaultBadges = ["Akreditasi A", "Standar Industri", "Unggulan", "Terakreditasi"];
+              const defaultDescs = [
+                "Networking, Cyber Security, Cloud, AI & Server Enterprise.",
+                "Teknologi Injeksi Otomotif, Engine Management & EV.",
+                "Digital Office, Administrasi Modern & Public Relations.",
+                "Financial Tech, Akuntansi Digital & Perpajakan Terpadu."
+              ];
+              const defaultGradients = [
+                "bg-gradient-to-br from-amber-500 to-orange-600",
+                "bg-gradient-to-br from-sky-600 to-indigo-700",
+                "bg-gradient-to-br from-emerald-600 to-teal-700",
+                "bg-gradient-to-br from-rose-500 to-pink-600"
+              ];
+              const colorMap = {
+                red: "bg-gradient-to-br from-rose-500 to-rose-600",
+                blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
+                emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
+                green: "bg-gradient-to-br from-emerald-600 to-teal-700",
+                purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
+                orange: "bg-gradient-to-br from-amber-500 to-orange-600",
+                cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
+                pink: "bg-gradient-to-br from-rose-500 to-pink-600"
+              };
+
+              const name = appSettings[`partner${idx}`] || defaultNames[idx - 1];
+              const iconStr = appSettings[`partnerIcon${idx}`] || "book";
+              const IconComponent = ICON_MAP[iconStr] || HelpCircle;
+              const imageSrc = appSettings[`partnerImage${idx}`];
+              const rawColor = appSettings[`partnerColor${idx}`];
+              const isHexColor = rawColor && rawColor.startsWith('#');
+              const bgClass = isHexColor ? '' : (colorMap[rawColor] || defaultGradients[idx - 1]);
+
+              return (
+                <div 
+                  key={idx} 
+                  className={`group relative rounded-[var(--ui-radius-card,18px)] p-4 shadow-xs flex items-center justify-between gap-3.5 min-h-[92px] w-full overflow-hidden select-none text-white ${bgClass}`}
+                  style={isHexColor ? { backgroundColor: rawColor } : {}}
+                >
+                  {/* Subtle ambient decorative backdrop light */}
+                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/15 rounded-full blur-lg pointer-events-none" />
+                  
+                  {/* Left text content */}
+                  <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white/80">
+                        {defaultCodes[idx - 1]}
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[8.5px] font-bold bg-white/20 backdrop-blur-xs border border-white/25">
+                        {defaultBadges[idx - 1]}
+                      </span>
+                    </div>
+                    <h4 className="text-[13.5px] font-black text-white tracking-tight leading-snug drop-shadow-xs line-clamp-2">
+                      {name}
+                    </h4>
+                    <p className="text-[10px] text-white/80 font-medium mt-0.5 line-clamp-1">
+                      {appSettings[`partnerDesc${idx}`] || defaultDescs[idx - 1]}
+                    </p>
+                  </div>
+
+                  {/* Right logo badge container */}
+                  <div className="relative z-10 w-11 h-11 rounded-[var(--ui-radius-small,12px)] bg-white/95 backdrop-blur-md shadow-xs p-1.5 flex items-center justify-center shrink-0">
+                    {imageSrc ? (
+                      <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-700">
+                        <IconComponent size={22} strokeWidth={2} />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-sm font-black text-white tracking-tight leading-snug">{major.name}</h3>
-                <p className="text-[10.5px] text-white/85 font-medium mt-1.5 leading-relaxed">{major.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -689,11 +768,15 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex flex-col items-center justify-center gap-0.5 text-[#15803d] font-black cursor-pointer py-1"
+              className="flex flex-col items-center justify-center gap-0.5 font-black cursor-pointer py-1"
+              style={{ color: primaryColor || '#064e3b' }}
             >
               <Home size={19} strokeWidth={2.5} />
               <span className="text-[10px] leading-none font-extrabold">Beranda</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#15803d] mt-0.5" />
+              <span 
+                className="w-1.5 h-1.5 rounded-full mt-0.5" 
+                style={{ backgroundColor: primaryColor || '#064e3b' }}
+              />
             </button>
 
             {/* 2. Tab: Jadwal */}
@@ -712,7 +795,11 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)}
-                className="w-12 h-12 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white shadow-[0_8px_20px_-4px_rgba(22,163,74,0.5)] flex items-center justify-center border-[3.5px] border-white active:scale-95 transition-transform cursor-pointer"
+                className="w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center border-[3.5px] border-white active:scale-95 transition-transform cursor-pointer"
+                style={{ 
+                  backgroundColor: primaryColor || '#064e3b',
+                  boxShadow: `0 8px 20px -4px ${hexToRgba(primaryColor || '#064e3b', 0.5)}`
+                }}
                 title="Masuk ke Portal Aplikasi"
                 aria-label="Masuk ke Portal Aplikasi"
               >
