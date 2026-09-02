@@ -607,16 +607,26 @@ export default function LandingPage() {
       .then(res => res.json())
       .then(data => {
         if (!isMounted || !data?.current) return;
-        const { is_day, rain, precipitation, weather_code, temperature_2m } = data.current;
+        const { rain, precipitation, weather_code, temperature_2m } = data.current;
         if (temperature_2m !== undefined) setWeatherTemp(Math.round(temperature_2m));
         
+        const now = new Date();
+        const jktHour = parseInt(
+          new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }).format(now),
+          10
+        );
+        // Proteksi ketat: Jam 06:00 - 17:59 WIB PASTI SIANG/PAGI HARI (Kelelawar tidak boleh muncul)
+        const isDaytimeHour = (jktHour >= 6 && jktHour < 18);
+
         let detected = 'cloudy';
         if (rain > 0.1 || precipitation > 0.1 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(weather_code)) {
           detected = 'rain';
-        } else if (is_day === 0) {
+        } else if (!isDaytimeHour) {
           detected = 'night';
         } else if (temperature_2m >= 31 || [0, 1].includes(weather_code)) {
           detected = 'hot';
+        } else {
+          detected = 'cloudy';
         }
         setLiveWeather(detected);
       })
@@ -935,7 +945,7 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT - Melintas Bergantian dengan Roket) */}
+          {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT MELINTAS DI LANGIT) */}
           <div className="absolute top-6 left-0 animate-single-plane flex items-center">
             <div className="w-28 sm:w-36 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
             <div className="relative">
@@ -944,17 +954,6 @@ export default function LandingPage() {
               </svg>
               <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
             </div>
-          </div>
-
-          {/* 4. ROKET LUAR ANGKASA (HANYA 1 ROKET - Meluncur Bergantian Setelah Pesawat) */}
-          <div className="absolute bottom-5 left-0 animate-single-rocket flex flex-col items-center">
-            <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
-              <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
-              <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
-              <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
-            </svg>
-            <div className="w-2.5 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-            <div className="w-3 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
           </div>
         </div>
       </div>
@@ -1186,41 +1185,20 @@ export default function LandingPage() {
           }
         }
 
-        /* ── PESAWAT (HANYA 1 SAJA, BERGANTIAN DENGAN ROKET) ── */
+        /* ── PESAWAT (HANYA 1 PESAWAT MELINTAS DI LANGIT) ── */
         @keyframes singlePlaneFly {
           0% {
-            transform: translate3d(-150px, 22px, 0) rotate(-3deg);
+            transform: translate3d(-150px, 20px, 0) rotate(-3deg);
             opacity: 0;
           }
           5% { opacity: 0.95; }
-          36% { opacity: 0.95; }
-          42% {
+          42% { opacity: 0.95; }
+          48% {
             transform: translate3d(670px, 10px, 0) rotate(-3deg);
             opacity: 0;
           }
-          42.1%, 100% {
+          48.1%, 100% {
             transform: translate3d(720px, 10px, 0);
-            opacity: 0;
-          }
-        }
-
-        /* ── ROKET (HANYA 1 SAJA, MELUNCUR SETELAH PESAWAT SELESAI) ── */
-        @keyframes singleRocketLaunch {
-          0%, 48% {
-            transform: translate3d(-100px, 280px, 0) rotate(48deg) scale(0.8);
-            opacity: 0;
-          }
-          52% {
-            transform: translate3d(-80px, 260px, 0) rotate(48deg) scale(0.85);
-            opacity: 0.95;
-          }
-          82% { opacity: 0.95; }
-          88% {
-            transform: translate3d(640px, -150px, 0) rotate(48deg) scale(1.25);
-            opacity: 0;
-          }
-          88.1%, 100% {
-            transform: translate3d(700px, -200px, 0) rotate(48deg);
             opacity: 0;
           }
         }
@@ -1246,21 +1224,8 @@ export default function LandingPage() {
         }
 
         .animate-single-plane {
-          animation: singlePlaneFly 34s linear infinite;
+          animation: singlePlaneFly 30s linear infinite;
           will-change: transform, opacity;
-        }
-
-        .animate-single-rocket {
-          animation: singleRocketLaunch 34s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        @media (max-width: 767px) {
-          html, body {
-            overflow: hidden !important;
-            height: 100dvh !important;
-            overscroll-behavior: none !important;
-          }
         }
       `}</style>
 
@@ -1269,12 +1234,12 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE APP LANDING VIEW (Fitted Exactly to 1 Screen - 100dvh, Non-Scrollable) */}
-      <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-white overflow-hidden select-none relative font-sans">
+      {/* MOBILE APP LANDING VIEW (Scrollable App Screen) */}
+      <div className="md:hidden flex flex-col min-h-screen w-full bg-white overflow-y-auto select-none relative font-sans">
         
         {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
-          className="relative w-full h-[29vh] min-h-[170px] max-h-[220px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
+          className="relative w-full h-[42vh] min-h-[280px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
         >
           {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
           <img 
@@ -1526,7 +1491,7 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT - Melintas Bergantian dengan Roket) */}
+            {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT MELINTAS DI LANGIT) */}
             <div className="absolute top-5 left-0 animate-single-plane flex items-center">
               <div className="w-22 sm:w-30 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
               <div className="relative">
@@ -1535,17 +1500,6 @@ export default function LandingPage() {
                 </svg>
                 <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
               </div>
-            </div>
-
-            {/* 4. ROKET LUAR ANGKASA (HANYA 1 ROKET - Meluncur Bergantian Setelah Pesawat) */}
-            <div className="absolute bottom-4 left-0 animate-single-rocket flex flex-col items-center">
-              <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
-                <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
-                <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
-                <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
-              </svg>
-              <div className="w-2.5 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-              <div className="w-3 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
             </div>
           </div>
 
@@ -1582,11 +1536,11 @@ export default function LandingPage() {
           </div>
 
           {/* Logo Sekolah di Tengah Header (Bersih & Elegan tanpa Tertutup Badge) */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-4 pt-3 pb-2">
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-6 pb-4">
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
-              className="w-36 sm:w-44 max-h-20 sm:max-h-24 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
+              className="w-44 sm:w-52 max-h-32 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
             />
           </div>
 
@@ -1595,7 +1549,7 @@ export default function LandingPage() {
             <svg 
               viewBox="0 0 100 24" 
               preserveAspectRatio="none" 
-              className="w-full h-6 sm:h-7 fill-white block"
+              className="w-full h-8 sm:h-10 fill-white block"
               style={{ shapeRendering: 'geometricPrecision' }}
             >
               <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
@@ -1604,14 +1558,14 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA (PAS 1 LAYAR) */}
-        <div className="relative w-full flex-1 min-h-0 bg-white px-4 py-1 flex flex-col justify-evenly items-center z-30 overflow-hidden">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA */}
+        <div className="relative w-full flex-1 bg-white px-5 pt-3 pb-[115px] flex flex-col items-center z-30 -mt-[1px]">
           
-          <div className="w-full max-w-md mx-auto flex flex-col justify-evenly h-full min-h-0">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
-            {/* Judul: Layanan Publik */}
-            <div className="flex items-center justify-center gap-1.5 py-0.5 shrink-0">
-              <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-slate-900">
+            {/* Judul: Layanan Publik (Warna Hitam, Nyaman & Tidak Mepet) */}
+            <div className="flex items-center justify-center gap-1.5 pt-4 pb-1 mb-4">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
                 Layanan Publik
               </span>
               <button
@@ -1620,11 +1574,11 @@ export default function LandingPage() {
                 className="hover:opacity-80 cursor-pointer transition-opacity p-0.5 text-slate-400 hover:text-slate-700"
                 title="Informasi Layanan"
               >
-                <Info size={13} strokeWidth={2.3} />
+                <Info size={14} strokeWidth={2.3} />
               </button>
             </div>
 
-            {/* 8 Items Layanan: 2 Baris x 4 Kolom */}
+            {/* 8 Items Layanan: 2 Baris x 4 Kolom dengan Flex justify-between Sejajar Tombol Aksi */}
             {(() => {
               const gridServices = [
                 ...publicServices,
@@ -1634,7 +1588,7 @@ export default function LandingPage() {
               const rows = [gridServices.slice(0, 4), gridServices.slice(4, 8)];
 
               return (
-                <div className="w-full flex flex-col gap-y-1.5 sm:gap-y-2 shrink-0">
+                <div className="w-full flex flex-col gap-y-4 sm:gap-y-5">
                   {rows.map((row, rowIdx) => (
                     <div key={rowIdx} className="w-full flex items-start justify-between">
                       {row.map((service, idx) => {
@@ -1652,22 +1606,23 @@ export default function LandingPage() {
                                 navigate(service.path);
                               }
                             }}
-                            className="flex flex-col items-center gap-1 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[52px] sm:w-[58px]"
+                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[64px]"
                           >
+                            {/* Desain Icon Card Sesuai Desktop - Lebar Penuh Item */}
                             <div 
-                              className="w-[46px] h-[46px] sm:w-[50px] sm:h-[50px] rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-2xs"
+                              className="w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
                               style={{ 
                                 backgroundColor: hexToRgba(activeColor, 0.08),
                                 border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
                               }}
                             >
                               {service.customIcon ? (
-                                <img src={service.customIcon} alt="" className="w-5.5 h-5.5 sm:w-6 sm:h-6 object-contain" />
+                                <img src={service.customIcon} alt="" className="w-7 h-7 object-contain" />
                               ) : (
-                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 sm:w-6 sm:h-6 object-contain" />
+                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-7 h-7 object-contain" />
                               )}
                             </div>
-                            <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                            <span className="text-[10.5px] sm:text-xs font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
                               {getShortLabel(service.label)}
                             </span>
                           </button>
@@ -1679,73 +1634,99 @@ export default function LandingPage() {
               );
             })()}
 
-            {/* 3. PROGRAM KEAHLIAN UNGGULAN (COMPACT CAROUSEL BANNER) */}
-            <div className="w-full shrink-0">
+            {/* 3. PROGRAM KEAHLIAN UNGGULAN (SPACIOUS & ELEGANT BANNER) */}
+            <div className="w-full mt-9 sm:mt-10 flex flex-col items-center">
+              <div className="flex flex-col items-center justify-center text-center mb-3.5">
+                <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-wider uppercase">
+                  {appSettings.trustedByText || "Program Keahlian Unggulan"}
+                </h2>
+                <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-1">
+                  Kompetensi keahlian terakreditasi berstandar industri
+                </p>
+              </div>
+
+              {/* Banner Card Hijau Solid #3DAA37 - Proporsional, Interaktif & Elegan */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
                 const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full rounded-xl h-[42px] sm:h-[46px] px-2.5 shadow-sm text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
+                    className="w-full rounded-2xl h-[70px] px-3 shadow-md text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
                     style={{
                       background: `linear-gradient(135deg, ${cardColor} 0%, color-mix(in srgb, ${cardColor} 85%, #000000) 100%)`,
-                      boxShadow: `0 4px 14px ${hexToRgba(cardColor, 0.22)}`
+                      boxShadow: `0 6px 20px ${hexToRgba(cardColor, 0.28)}`
                     }}
                   >
+                    {/* Subtle Top Glass Highlight */}
                     <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/12 to-transparent pointer-events-none" />
 
                     {/* Tombol Panah Kiri */}
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev === 0 ? availablePrograms.length - 1 : prev - 1))}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Sebelumnya"
                     >
-                      <ChevronLeft size={16} strokeWidth={2.6} />
+                      <ChevronLeft size={18} strokeWidth={2.6} />
                     </button>
 
-                    {/* Area Konten Tengah */}
-                    <div className="flex-1 flex flex-col items-center justify-center px-1.5 min-w-0 z-10">
-                      <span className="text-[8px] sm:text-[8.5px] font-extrabold uppercase tracking-widest text-white/75 leading-none mb-0.5">
-                        {appSettings.trustedByText || "Program Keahlian"}
-                      </span>
-                      <h3 className="text-[11px] sm:text-[12px] font-black text-white uppercase tracking-wider text-center drop-shadow-xs truncate w-full leading-tight">
+                    {/* Area Konten Tengah: Nama Jurusan & Indikator Dots */}
+                    <div className="flex-1 flex flex-col items-center justify-center px-2 min-w-0 z-10">
+                      <h3 className="text-xs sm:text-[13.5px] font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-tight">
                         {activeProgram.name}
                       </h3>
+
+                      {/* Indikator Titik Carousel (Dots) */}
+                      <div className="flex items-center justify-center gap-1.5 mt-2">
+                        {availablePrograms.map((prog, pIdx) => {
+                          const isActive = activeProgramIdx === pIdx;
+                          return (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => setActiveProgramIdx(pIdx)}
+                              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                                isActive ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                              }`}
+                              title={`Keahlian 0${prog.index}`}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* Tombol Panah Kanan */}
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Selanjutnya"
                     >
-                      <ChevronRight size={16} strokeWidth={2.6} />
+                      <ChevronRight size={18} strokeWidth={2.6} />
                     </button>
                   </div>
                 );
               })()}
             </div>
 
-            {/* 4. MITRA KERJASAMA (COMPACT SLEEK 1-LINE MARQUEE) */}
-            <div className="w-full bg-slate-50/90 rounded-lg px-2.5 py-1 border border-slate-100/90 flex items-center gap-2 overflow-hidden shrink-0">
-              <span className="text-[8.5px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wider shrink-0">
-                Mitra:
+            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN (MITRA KERJASAMA CARD - SPACIOUS) */}
+            <div className="w-full bg-white rounded-2xl sm:rounded-3xl py-5 px-5 sm:py-6 sm:px-6 shadow-xs border border-slate-100 flex flex-col items-center mt-6 sm:mt-7">
+              <span className="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4">
+                Telah Dipercaya & Bekerjasama Dengan
               </span>
 
-              <div className="relative w-full overflow-hidden flex items-center py-0.5">
-                <div className="flex w-max animate-marquee gap-6 sm:gap-8 items-center px-2">
+              <div className="relative w-full overflow-hidden flex items-center justify-center py-1">
+                <div className="flex w-max animate-marquee gap-8 sm:gap-10 items-center px-4">
                   {mitraList.map((mitra, idx) => (
                     <div 
                       key={idx} 
-                      className="h-5 sm:h-5.5 flex items-center justify-center shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer"
+                      className="h-7 sm:h-8 flex items-center justify-center shrink-0 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer"
                       title={mitra.name}
                     >
                       {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} className="max-h-full max-w-[70px] object-contain" />
+                        <img src={mitra.image} alt={mitra.name} className="max-h-full max-w-[90px] object-contain" />
                       ) : (
-                        <span className="text-[10px] font-black text-slate-600 tracking-tight">{mitra.name}</span>
+                        <span className="text-xs font-black text-slate-600 tracking-tight">{mitra.name}</span>
                       )}
                     </div>
                   ))}
@@ -1755,30 +1736,6 @@ export default function LandingPage() {
 
           </div>
 
-        </div>
-
-        {/* 3. MOBILE BOTTOM ACTION BAR (Terintegrasi Pas di Bawah 1 Layar) */}
-        <div className="shrink-0 w-full bg-white px-4 pt-2 pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.45rem))] border-t border-slate-100 z-40 select-none">
-          <div className="w-full max-w-md mx-auto flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setIsLoginModalOpen(true)}
-              style={{ backgroundColor: '#3DAA37' }}
-              className="flex-1 h-[44px] sm:h-[48px] rounded-xl text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
-            >
-              Masuk Sekarang
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowPublicHelp(true)}
-              title="Bantuan & Panduan"
-              style={{ backgroundColor: '#3DAA37' }}
-              className="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
-            >
-              <HelpCircle size={21} strokeWidth={2.3} />
-            </button>
-          </div>
         </div>
 
       </div>
@@ -2213,6 +2170,31 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
+        <div className="w-full max-w-md mx-auto flex items-center gap-3">
+          {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
+          <button
+            type="button"
+            onClick={() => setIsLoginModalOpen(true)}
+            style={{ backgroundColor: '#3DAA37' }}
+            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+          >
+            Masuk Sekarang
+          </button>
+
+          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau solid #3DAA37 sama, ikon Bantuan (Membuka Bottom Sheet) */}
+          <button
+            type="button"
+            onClick={() => setShowPublicHelp(true)}
+            title="Bantuan & Panduan"
+            style={{ backgroundColor: '#3DAA37' }}
+            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+          >
+            <HelpCircle size={23} strokeWidth={2.3} />
+          </button>
+        </div>
+      </div>
 
       {/* REMOVED LOGIN MODAL (NOW HANDLED IN PUBLIC LAYOUT) */}
       {renderRulesModal()}
