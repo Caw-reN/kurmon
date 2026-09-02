@@ -314,7 +314,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
       {/* â”€â”€ Header â”€â”€ */}
       <div>
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div className="flex flex-col justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex items-center justify-center shrink-0">
               <Activity size={16} className="text-[var(--ui-primary)]" />
@@ -341,7 +341,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           </div>
 
           {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar lg:justify-end pb-1 lg:pb-0 shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 shrink-0 w-full">
             {[
               { id: 'all', label: 'Semua' },
               { id: 'login', label: 'Login' },
