@@ -811,65 +811,65 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ── LIVING SKY LAYER (DESKTOP): Kawanan Burung, Kawanan Kelelawar, 2 Pesawat & 2 Roket ── */}
+        {/* ── LIVING SKY LAYER (DESKTOP): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
         <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
-          {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Arah Berbeda) */}
+          {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
           {weatherCondition !== 'night' && (
             <div className="absolute inset-0 pointer-events-none">
               {/* Kawanan 1: Formasi V 5 Burung dari Kiri ke Kanan */}
-              <div className="absolute top-10 left-0 animate-flock-1">
+              <div className="absolute top-10 left-0 animate-flock-east">
                 <div className="relative">
                   {/* Pemimpin */}
                   <div className="absolute top-0 left-0">
-                    <svg viewBox="0 0 32 18" className="w-4.5 h-2.5 fill-slate-800 drop-shadow-sm animate-bird-wing">
+                    <svg viewBox="0 0 32 18" className="w-8 h-4.5 sm:w-9 sm:h-5 fill-slate-800 drop-shadow-md animate-bird-wing">
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
                   {/* Sayap Atas */}
-                  <div className="absolute -top-3 -left-4">
-                    <svg viewBox="0 0 32 18" className="w-3.5 h-2 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.31s' }}>
+                  <div className="absolute -top-5 -left-7">
+                    <svg viewBox="0 0 32 18" className="w-6.5 h-3.5 sm:w-7.5 sm:h-4 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.31s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
-                  <div className="absolute -top-6 -left-8">
-                    <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700/80 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.34s' }}>
+                  <div className="absolute -top-10 -left-14">
+                    <svg viewBox="0 0 32 18" className="w-5.5 h-3 sm:w-6.5 sm:h-3.5 fill-slate-700/85 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.34s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
                   {/* Sayap Bawah */}
-                  <div className="absolute top-3 -left-4">
-                    <svg viewBox="0 0 32 18" className="w-3.5 h-2 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.29s' }}>
+                  <div className="absolute top-5 -left-7">
+                    <svg viewBox="0 0 32 18" className="w-6.5 h-3.5 sm:w-7.5 sm:h-4 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.29s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-6 -left-8">
-                    <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700/80 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.33s' }}>
+                  <div className="absolute top-10 -left-14">
+                    <svg viewBox="0 0 32 18" className="w-5.5 h-3 sm:w-6.5 sm:h-3.5 fill-slate-700/85 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.33s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri */}
-              <div className="absolute top-20 right-0 animate-flock-2">
+              {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri (Bergantian) */}
+              <div className="absolute top-20 right-0 animate-flock-west">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
-                    <svg viewBox="0 0 32 18" className="w-4 h-2 fill-slate-800 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.3s' }}>
+                    <svg viewBox="0 0 32 18" className="w-7.5 h-4 sm:w-8.5 sm:h-4.5 fill-slate-800 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.3s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
-                  <div className="absolute -top-3 left-4">
-                    <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.33s' }}>
+                  <div className="absolute -top-5 left-7">
+                    <svg viewBox="0 0 32 18" className="w-6 h-3.5 sm:w-7 sm:h-4 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.33s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-3 left-4">
-                    <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.28s' }}>
+                  <div className="absolute top-5 left-7">
+                    <svg viewBox="0 0 32 18" className="w-6 h-3.5 sm:w-7 sm:h-4 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.28s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-1 left-8">
-                    <svg viewBox="0 0 32 18" className="w-2.5 h-1.5 fill-slate-600 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.31s' }}>
+                  <div className="absolute top-2 left-14">
+                    <svg viewBox="0 0 32 18" className="w-5 h-2.5 sm:w-6 sm:h-3 fill-slate-600 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.31s' }}>
                       <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                     </svg>
                   </div>
@@ -878,55 +878,55 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Meliuk) */}
+          {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
           {weatherCondition === 'night' && (
             <div className="absolute inset-0 pointer-events-none">
               {/* Swarm 1: 4 Kelelawar dari Kanan ke Kiri */}
-              <div className="absolute top-10 right-0 animate-swarm-1">
+              <div className="absolute top-10 right-0 animate-swarm-west">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
-                    <svg viewBox="0 0 34 20" className="w-4.5 h-3 fill-slate-950 drop-shadow-sm animate-bat-wing">
+                    <svg viewBox="0 0 34 20" className="w-8 h-5 sm:w-9 sm:h-5.5 fill-slate-950 drop-shadow-md animate-bat-wing">
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute -top-3 left-5">
-                    <svg viewBox="0 0 34 20" className="w-3.5 h-2.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.24s' }}>
+                  <div className="absolute -top-5 left-8">
+                    <svg viewBox="0 0 34 20" className="w-6.5 h-4 sm:w-7.5 sm:h-4.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.24s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-4 left-4">
-                    <svg viewBox="0 0 34 20" className="w-3.5 h-2.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.26s' }}>
+                  <div className="absolute top-6 left-7">
+                    <svg viewBox="0 0 34 20" className="w-6.5 h-4 sm:w-7.5 sm:h-4.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.26s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-2 left-9">
-                    <svg viewBox="0 0 34 20" className="w-3 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.29s' }}>
+                  <div className="absolute top-3 left-15">
+                    <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 sm:w-6.5 sm:h-4 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.29s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan di Ketinggian Berbeda */}
-              <div className="absolute top-22 left-0 animate-swarm-2">
+              {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan (Bergantian) */}
+              <div className="absolute top-22 left-0 animate-swarm-east">
                 <div className="relative">
                   <div className="absolute top-0 left-0">
-                    <svg viewBox="0 0 34 20" className="w-4 h-2.5 fill-slate-950 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.23s' }}>
+                    <svg viewBox="0 0 34 20" className="w-7.5 h-4.5 sm:w-8.5 sm:h-5 fill-slate-950 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.23s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute -top-3 -left-4">
-                    <svg viewBox="0 0 34 20" className="w-3.5 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.27s' }}>
+                  <div className="absolute -top-5 -left-7">
+                    <svg viewBox="0 0 34 20" className="w-6.5 h-4 sm:w-7 sm:h-4 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.27s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-3 -left-4">
-                    <svg viewBox="0 0 34 20" className="w-3.5 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.25s' }}>
+                  <div className="absolute top-5 -left-7">
+                    <svg viewBox="0 0 34 20" className="w-6.5 h-4 sm:w-7 sm:h-4 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.25s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
-                  <div className="absolute top-1 -left-8">
-                    <svg viewBox="0 0 34 20" className="w-3 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.28s' }}>
+                  <div className="absolute top-2 -left-14">
+                    <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 sm:w-6 sm:h-3.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.28s' }}>
                       <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                     </svg>
                   </div>
@@ -935,50 +935,26 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 3. PESAWAT TERBANG (2 Pesawat: Arah Berlawanan & Bergantian Waktu) */}
-          {/* Pesawat A: Kiri ke Kanan Atas */}
-          <div className="absolute top-6 left-0 animate-plane-east flex items-center">
-            <div className="w-24 sm:w-32 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
+          {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT - Melintas Bergantian dengan Roket) */}
+          <div className="absolute top-6 left-0 animate-single-plane flex items-center">
+            <div className="w-28 sm:w-36 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
             <div className="relative">
-              <svg viewBox="0 0 44 24" className="w-6 sm:w-7 h-4 fill-white drop-shadow-md">
+              <svg viewBox="0 0 44 24" className="w-7 sm:w-8 h-4.5 fill-white drop-shadow-md">
                 <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
               </svg>
               <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
             </div>
           </div>
 
-          {/* Pesawat B: Kanan ke Kiri Tengah (Bergantian Waktu) */}
-          <div className="absolute top-15 right-0 animate-plane-west flex items-center flex-row-reverse">
-            <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-l from-transparent via-white/35 to-white/65 blur-[0.5px] -ml-1" />
-            <div className="relative">
-              <svg viewBox="0 0 44 24" className="w-5.5 sm:w-6.5 h-3.5 fill-white/90 drop-shadow-md">
-                <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
-              </svg>
-              <div className="absolute top-0 left-3 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            </div>
-          </div>
-
-          {/* 4. ROKET LUAR ANGKASA (2 Roket: Sudut Berbeda & Bergantian Meluncur) */}
-          {/* Roket A: Meluncur Diagonal ke Kanan Atas */}
-          <div className="absolute bottom-5 left-0 animate-rocket-right flex flex-col items-center">
-            <svg viewBox="0 0 24 44" className="w-3.5 h-6 drop-shadow-lg">
+          {/* 4. ROKET LUAR ANGKASA (HANYA 1 ROKET - Meluncur Bergantian Setelah Pesawat) */}
+          <div className="absolute bottom-5 left-0 animate-single-rocket flex flex-col items-center">
+            <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
               <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
               <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
               <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
             </svg>
-            <div className="w-2 h-9 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-            <div className="w-2.5 h-14 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
-          </div>
-
-          {/* Roket B: Meluncur Diagonal ke Kiri Atas (Dari Sisi Berlawanan & Waktu Berbeda) */}
-          <div className="absolute bottom-7 right-0 animate-rocket-left flex flex-col items-center">
-            <svg viewBox="0 0 24 44" className="w-3.5 h-6 drop-shadow-lg">
-              <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
-              <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#38bdf8" />
-              <circle cx="12" cy="16" r="2.5" fill="#ef4444" />
-            </svg>
-            <div className="w-2 h-9 -mt-1 bg-gradient-to-b from-yellow-300 via-rose-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-            <div className="w-2.5 h-14 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
+            <div className="w-2.5 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
+            <div className="w-3 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
           </div>
         </div>
       </div>
@@ -1122,180 +1098,160 @@ export default function LandingPage() {
           will-change: transform, opacity;
         }
 
-        /* ── BURUNG KAWANAN (FLOCKS) ── */
+        /* ── BURUNG BERKELOMPOK (BERGANTIAN, UKURAN LEBIH BESAR & JELAS) ── */
         @keyframes birdFlap {
           0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(0.25); }
+          50% { transform: scaleY(0.2); }
         }
 
-        @keyframes flockFlyLeftToRight {
+        @keyframes flockFlyEast {
           0% {
-            transform: translate3d(-140px, 30px, 0) scale(0.85);
+            transform: translate3d(-170px, 28px, 0) scale(1);
             opacity: 0;
           }
-          8% { opacity: 0.85; }
-          90% { opacity: 0.85; }
-          100% {
-            transform: translate3d(620px, -5px, 0) scale(0.9);
+          6% { opacity: 0.92; }
+          36% { opacity: 0.92; }
+          42% {
+            transform: translate3d(650px, 8px, 0) scale(1.05);
             opacity: 0;
           }
-        }
-
-        @keyframes flockFlyRightToLeft {
-          0% {
-            transform: translate3d(620px, 55px, 0) scaleX(-1) scale(0.75);
-            opacity: 0;
-          }
-          8% { opacity: 0.8; }
-          90% { opacity: 0.8; }
-          100% {
-            transform: translate3d(-140px, 20px, 0) scaleX(-1) scale(0.8);
+          42.1%, 100% {
+            transform: translate3d(700px, 8px, 0);
             opacity: 0;
           }
         }
 
-        /* ── KELELAWAR KAWANAN (SWARMS) ── */
+        @keyframes flockFlyWest {
+          0%, 48% {
+            transform: translate3d(660px, 50px, 0) scaleX(-1);
+            opacity: 0;
+          }
+          52% {
+            transform: translate3d(640px, 50px, 0) scaleX(-1);
+            opacity: 0.88;
+          }
+          84% { opacity: 0.88; }
+          90% {
+            transform: translate3d(-170px, 25px, 0) scaleX(-1);
+            opacity: 0;
+          }
+          90.1%, 100% {
+            transform: translate3d(-200px, 25px, 0) scaleX(-1);
+            opacity: 0;
+          }
+        }
+
+        /* ── KELELAWAR BERKELOMPOK (BERGANTIAN, UKURAN LEBIH BESAR & JELAS) ── */
         @keyframes batFlap {
           0%, 100% { transform: scaleY(1) rotate(0deg); }
-          50% { transform: scaleY(-0.5) rotate(4deg); }
+          50% { transform: scaleY(-0.55) rotate(4deg); }
         }
 
-        @keyframes swarmFlyRightToLeft {
+        @keyframes swarmFlyWest {
           0% {
-            transform: translate3d(600px, 25px, 0) scale(0.85);
-            opacity: 0;
-          }
-          8% { opacity: 0.9; }
-          30% { transform: translate3d(400px, 10px, 0) scale(0.9); }
-          60% { transform: translate3d(220px, 40px, 0) scale(0.85); }
-          90% { opacity: 0.9; }
-          100% {
-            transform: translate3d(-120px, 18px, 0) scale(0.8);
-            opacity: 0;
-          }
-        }
-
-        @keyframes swarmFlyLeftToRight {
-          0% {
-            transform: translate3d(-120px, 65px, 0) scaleX(-1) scale(0.75);
-            opacity: 0;
-          }
-          8% { opacity: 0.85; }
-          35% { transform: translate3d(150px, 85px, 0) scaleX(-1) scale(0.8); }
-          70% { transform: translate3d(380px, 50px, 0) scaleX(-1) scale(0.75); }
-          90% { opacity: 0.85; }
-          100% {
-            transform: translate3d(600px, 70px, 0) scaleX(-1) scale(0.75);
-            opacity: 0;
-          }
-        }
-
-        /* ── PESAWAT BERGANTIAN & ARAH BERBEDA ── */
-        @keyframes planeFlyEast {
-          0% {
-            transform: translate3d(-130px, 24px, 0) rotate(-3deg);
-            opacity: 0;
-          }
-          6% { opacity: 0.9; }
-          94% { opacity: 0.9; }
-          100% {
-            transform: translate3d(660px, 10px, 0) rotate(-3deg);
-            opacity: 0;
-          }
-        }
-
-        @keyframes planeFlyWest {
-          0% {
-            transform: translate3d(660px, 60px, 0) scaleX(-1) rotate(2deg);
-            opacity: 0;
-          }
-          6% { opacity: 0.85; }
-          94% { opacity: 0.85; }
-          100% {
-            transform: translate3d(-130px, 45px, 0) scaleX(-1) rotate(2deg);
-            opacity: 0;
-          }
-        }
-
-        /* ── ROKET BERGANTIAN & ARAH BERBEDA ── */
-        @keyframes rocketLaunchRight {
-          0% {
-            transform: translate3d(-100px, 280px, 0) rotate(48deg) scale(0.7);
+            transform: translate3d(650px, 22px, 0);
             opacity: 0;
           }
           6% { opacity: 0.95; }
-          92% { opacity: 0.95; }
-          100% {
-            transform: translate3d(620px, -140px, 0) rotate(48deg) scale(1.15);
+          22% { transform: translate3d(420px, 12px, 0); }
+          36% { opacity: 0.95; }
+          42% {
+            transform: translate3d(-160px, 32px, 0);
+            opacity: 0;
+          }
+          42.1%, 100% {
+            transform: translate3d(-200px, 32px, 0);
             opacity: 0;
           }
         }
 
-        @keyframes rocketLaunchLeft {
+        @keyframes swarmFlyEast {
+          0%, 48% {
+            transform: translate3d(-160px, 58px, 0) scaleX(-1);
+            opacity: 0;
+          }
+          52% {
+            transform: translate3d(-140px, 58px, 0) scaleX(-1);
+            opacity: 0.92;
+          }
+          70% { transform: translate3d(240px, 42px, 0) scaleX(-1); }
+          84% { opacity: 0.92; }
+          90% {
+            transform: translate3d(650px, 65px, 0) scaleX(-1);
+            opacity: 0;
+          }
+          90.1%, 100% {
+            transform: translate3d(700px, 65px, 0) scaleX(-1);
+            opacity: 0;
+          }
+        }
+
+        /* ── PESAWAT (HANYA 1 SAJA, BERGANTIAN DENGAN ROKET) ── */
+        @keyframes singlePlaneFly {
           0% {
-            transform: translate3d(620px, 300px, 0) rotate(-46deg) scale(0.7);
+            transform: translate3d(-150px, 22px, 0) rotate(-3deg);
             opacity: 0;
           }
-          6% { opacity: 0.95; }
-          92% { opacity: 0.95; }
-          100% {
-            transform: translate3d(-100px, -130px, 0) rotate(-46deg) scale(1.15);
+          5% { opacity: 0.95; }
+          36% { opacity: 0.95; }
+          42% {
+            transform: translate3d(670px, 10px, 0) rotate(-3deg);
+            opacity: 0;
+          }
+          42.1%, 100% {
+            transform: translate3d(720px, 10px, 0);
             opacity: 0;
           }
         }
 
-        .animate-flock-1 {
-          animation: flockFlyLeftToRight 16s linear infinite;
+        /* ── ROKET (HANYA 1 SAJA, MELUNCUR SETELAH PESAWAT SELESAI) ── */
+        @keyframes singleRocketLaunch {
+          0%, 48% {
+            transform: translate3d(-100px, 280px, 0) rotate(48deg) scale(0.8);
+            opacity: 0;
+          }
+          52% {
+            transform: translate3d(-80px, 260px, 0) rotate(48deg) scale(0.85);
+            opacity: 0.95;
+          }
+          82% { opacity: 0.95; }
+          88% {
+            transform: translate3d(640px, -150px, 0) rotate(48deg) scale(1.25);
+            opacity: 0;
+          }
+          88.1%, 100% {
+            transform: translate3d(700px, -200px, 0) rotate(48deg);
+            opacity: 0;
+          }
+        }
+
+        .animate-flock-east {
+          animation: flockFlyEast 28s linear infinite;
           will-change: transform, opacity;
         }
 
-        .animate-flock-2 {
-          animation: flockFlyRightToLeft 19s linear infinite;
-          animation-delay: -7s;
+        .animate-flock-west {
+          animation: flockFlyWest 28s linear infinite;
           will-change: transform, opacity;
         }
 
-        .animate-bird-wing {
-          animation: birdFlap 0.35s ease-in-out infinite;
-          transform-origin: center;
-        }
-
-        .animate-swarm-1 {
-          animation: swarmFlyRightToLeft 18s ease-in-out infinite;
+        .animate-swarm-west {
+          animation: swarmFlyWest 28s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
-        .animate-swarm-2 {
-          animation: swarmFlyLeftToRight 20s ease-in-out infinite;
-          animation-delay: -9s;
+        .animate-swarm-east {
+          animation: swarmFlyEast 28s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
-        .animate-bat-wing {
-          animation: batFlap 0.28s ease-in-out infinite;
-          transform-origin: center;
-        }
-
-        .animate-plane-east {
-          animation: planeFlyEast 28s linear infinite;
+        .animate-single-plane {
+          animation: singlePlaneFly 34s linear infinite;
           will-change: transform, opacity;
         }
 
-        .animate-plane-west {
-          animation: planeFlyWest 32s linear infinite;
-          animation-delay: -14s;
-          will-change: transform, opacity;
-        }
-
-        .animate-rocket-right {
-          animation: rocketLaunchRight 26s linear infinite;
-          animation-delay: -6s;
-          will-change: transform, opacity;
-        }
-
-        .animate-rocket-left {
-          animation: rocketLaunchLeft 30s linear infinite;
-          animation-delay: -20s;
+        .animate-single-rocket {
+          animation: singleRocketLaunch 34s linear infinite;
           will-change: transform, opacity;
         }
       `}</style>
@@ -1441,63 +1397,62 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* ── LIVING SKY LAYER (MOBILE): Burung (Siang), Kelelawar (Malam), Pesawat & Roket ── */}
-          {/* ── LIVING SKY LAYER (MOBILE): Kawanan Burung, Kawanan Kelelawar, 2 Pesawat & 2 Roket ── */}
+          {/* ── LIVING SKY LAYER (MOBILE): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
           <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
-            {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Arah Berbeda) */}
+            {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
             {weatherCondition !== 'night' && (
               <div className="absolute inset-0 pointer-events-none">
                 {/* Kawanan 1: Formasi V 5 Burung dari Kiri ke Kanan */}
-                <div className="absolute top-8 left-0 animate-flock-1">
+                <div className="absolute top-8 left-0 animate-flock-east">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
-                      <svg viewBox="0 0 32 18" className="w-4 h-2.5 fill-slate-800 drop-shadow-sm animate-bird-wing">
+                      <svg viewBox="0 0 32 18" className="w-7 h-4 fill-slate-800 drop-shadow-md animate-bird-wing">
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute -top-2.5 -left-3.5">
-                      <svg viewBox="0 0 32 18" className="w-3.5 h-2 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.31s' }}>
+                    <div className="absolute -top-4 -left-6">
+                      <svg viewBox="0 0 32 18" className="w-5.5 h-3 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.31s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute -top-5 -left-7">
-                      <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700/80 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.34s' }}>
+                    <div className="absolute -top-8 -left-12">
+                      <svg viewBox="0 0 32 18" className="w-5 h-2.5 fill-slate-700/85 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.34s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-2.5 -left-3.5">
-                      <svg viewBox="0 0 32 18" className="w-3.5 h-2 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.29s' }}>
+                    <div className="absolute top-4 -left-6">
+                      <svg viewBox="0 0 32 18" className="w-5.5 h-3 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.29s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-5 -left-7">
-                      <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700/80 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.33s' }}>
+                    <div className="absolute top-8 -left-12">
+                      <svg viewBox="0 0 32 18" className="w-5 h-2.5 fill-slate-700/85 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.33s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
                   </div>
                 </div>
 
-                {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri */}
-                <div className="absolute top-16 right-0 animate-flock-2">
+                {/* Kawanan 2: 4 Burung Melintas Arah Berlawanan dari Kanan ke Kiri (Bergantian) */}
+                <div className="absolute top-16 right-0 animate-flock-west">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
-                      <svg viewBox="0 0 32 18" className="w-3.5 h-2 fill-slate-800 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.3s' }}>
+                      <svg viewBox="0 0 32 18" className="w-6.5 h-3.5 fill-slate-800 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.3s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute -top-2.5 left-3.5">
-                      <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.33s' }}>
+                    <div className="absolute -top-4 left-6">
+                      <svg viewBox="0 0 32 18" className="w-5.5 h-3 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.33s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-2.5 left-3.5">
-                      <svg viewBox="0 0 32 18" className="w-3 h-1.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.28s' }}>
+                    <div className="absolute top-4 left-6">
+                      <svg viewBox="0 0 32 18" className="w-5.5 h-3 fill-slate-700 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.28s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-1 left-7">
-                      <svg viewBox="0 0 32 18" className="w-2.5 h-1.5 fill-slate-600 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.31s' }}>
+                    <div className="absolute top-2 left-12">
+                      <svg viewBox="0 0 32 18" className="w-4.5 h-2.5 fill-slate-600 drop-shadow-md animate-bird-wing" style={{ animationDuration: '0.31s' }}>
                         <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
                       </svg>
                     </div>
@@ -1506,55 +1461,55 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Meliuk) */}
+            {/* 2. KAWANAN KELELAWAR (Malam Hari - 2 Kawanan Bergantian Waktu & Ukuran Jelas) */}
             {weatherCondition === 'night' && (
               <div className="absolute inset-0 pointer-events-none">
                 {/* Swarm 1: 4 Kelelawar dari Kanan ke Kiri */}
-                <div className="absolute top-8 right-0 animate-swarm-1">
+                <div className="absolute top-8 right-0 animate-swarm-west">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
-                      <svg viewBox="0 0 34 20" className="w-4 h-2.5 fill-slate-950 drop-shadow-sm animate-bat-wing">
+                      <svg viewBox="0 0 34 20" className="w-7 h-4.5 fill-slate-950 drop-shadow-md animate-bat-wing">
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute -top-2.5 left-4">
-                      <svg viewBox="0 0 34 20" className="w-3 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.24s' }}>
+                    <div className="absolute -top-4 left-6">
+                      <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.24s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-3 left-3.5">
-                      <svg viewBox="0 0 34 20" className="w-3 h-2 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.26s' }}>
+                    <div className="absolute top-5 left-6">
+                      <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.26s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-1 left-7">
-                      <svg viewBox="0 0 34 20" className="w-2.5 h-1.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.29s' }}>
+                    <div className="absolute top-2 left-12">
+                      <svg viewBox="0 0 34 20" className="w-4.5 h-3 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.29s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
                   </div>
                 </div>
 
-                {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan di Ketinggian Berbeda */}
-                <div className="absolute top-18 left-0 animate-swarm-2">
+                {/* Swarm 2: 4 Kelelawar dari Kiri ke Kanan (Bergantian) */}
+                <div className="absolute top-18 left-0 animate-swarm-east">
                   <div className="relative">
                     <div className="absolute top-0 left-0">
-                      <svg viewBox="0 0 34 20" className="w-3.5 h-2 fill-slate-950 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.23s' }}>
+                      <svg viewBox="0 0 34 20" className="w-6.5 h-4 fill-slate-950 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.23s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute -top-2.5 -left-3.5">
-                      <svg viewBox="0 0 34 20" className="w-3 h-1.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.27s' }}>
+                    <div className="absolute -top-4 -left-6">
+                      <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.27s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-2.5 -left-3.5">
-                      <svg viewBox="0 0 34 20" className="w-3 h-1.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.25s' }}>
+                    <div className="absolute top-4 -left-6">
+                      <svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.25s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
-                    <div className="absolute top-1 -left-7">
-                      <svg viewBox="0 0 34 20" className="w-2.5 h-1.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.28s' }}>
+                    <div className="absolute top-2 -left-12">
+                      <svg viewBox="0 0 34 20" className="w-4.5 h-3 fill-slate-900 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.28s' }}>
                         <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
                       </svg>
                     </div>
@@ -1563,50 +1518,26 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 3. PESAWAT TERBANG (2 Pesawat: Arah Berlawanan & Bergantian Waktu) */}
-            {/* Pesawat A: Kiri ke Kanan Atas */}
-            <div className="absolute top-5 left-0 animate-plane-east flex items-center">
-              <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
+            {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT - Melintas Bergantian dengan Roket) */}
+            <div className="absolute top-5 left-0 animate-single-plane flex items-center">
+              <div className="w-22 sm:w-30 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
               <div className="relative">
-                <svg viewBox="0 0 44 24" className="w-6 sm:w-7 h-4 fill-white drop-shadow-md">
+                <svg viewBox="0 0 44 24" className="w-6.5 sm:w-7.5 h-4.5 fill-white drop-shadow-md">
                   <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
                 </svg>
                 <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
               </div>
             </div>
 
-            {/* Pesawat B: Kanan ke Kiri Tengah (Bergantian Waktu) */}
-            <div className="absolute top-13 right-0 animate-plane-west flex items-center flex-row-reverse">
-              <div className="w-18 sm:w-24 h-[1.5px] bg-gradient-to-l from-transparent via-white/35 to-white/65 blur-[0.5px] -ml-1" />
-              <div className="relative">
-                <svg viewBox="0 0 44 24" className="w-5 sm:w-6 h-3.5 fill-white/90 drop-shadow-md">
-                  <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
-                </svg>
-                <div className="absolute top-0 left-3 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              </div>
-            </div>
-
-            {/* 4. ROKET LUAR ANGKASA (2 Roket: Sudut Berbeda & Bergantian Meluncur) */}
-            {/* Roket A: Meluncur Diagonal ke Kanan Atas */}
-            <div className="absolute bottom-4 left-0 animate-rocket-right flex flex-col items-center">
-              <svg viewBox="0 0 24 44" className="w-3.5 h-6 drop-shadow-lg">
+            {/* 4. ROKET LUAR ANGKASA (HANYA 1 ROKET - Meluncur Bergantian Setelah Pesawat) */}
+            <div className="absolute bottom-4 left-0 animate-single-rocket flex flex-col items-center">
+              <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
                 <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
                 <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
                 <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
               </svg>
-              <div className="w-2 h-9 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-              <div className="w-2 h-14 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
-            </div>
-
-            {/* Roket B: Meluncur Diagonal ke Kiri Atas (Dari Sisi Berlawanan & Waktu Berbeda) */}
-            <div className="absolute bottom-6 right-0 animate-rocket-left flex flex-col items-center">
-              <svg viewBox="0 0 24 44" className="w-3.5 h-6 drop-shadow-lg">
-                <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
-                <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#38bdf8" />
-                <circle cx="12" cy="16" r="2.5" fill="#ef4444" />
-              </svg>
-              <div className="w-2 h-9 -mt-1 bg-gradient-to-b from-yellow-300 via-rose-500 to-transparent rounded-full blur-[1px] animate-pulse" />
-              <div className="w-2 h-14 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
+              <div className="w-2.5 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
+              <div className="w-3 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
             </div>
           </div>
 
