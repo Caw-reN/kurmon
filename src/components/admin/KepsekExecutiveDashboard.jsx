@@ -28,11 +28,11 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
     className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-4 border cursor-pointer group transition-all hover:shadow-[var(--ui-shadow-card-hover,var(--ui-shadow-card))]
       ${active
         ? 'border-[var(--ui-primary)] shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/10'
-        : '[border:var(--ui-card-border,1px_solid_theme(colors.slate.200))] hover:border-[var(--ui-primary)]/30 shadow-[var(--ui-shadow-card)]'}`}
+        : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30 shadow-[var(--ui-shadow-card)]'}`}
   >
     <div className="flex items-start justify-between gap-2 mb-3">
       <div className={`w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105
-        ${active ? 'bg-[var(--ui-primary)] shadow-[var(--ui-shadow-card)]' : 'bg-slate-50 [border:var(--ui-card-border,1px_solid_theme(colors.slate.200))]'}`}>
+        ${active ? 'bg-[var(--ui-primary)] shadow-[var(--ui-shadow-card)]' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
         <img src={icon} alt={label} className={`w-6 h-6 object-contain ${active ? 'invert brightness-0' : ''}`} />
       </div>
       <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border whitespace-nowrap ${badgeColor}`}>
@@ -50,11 +50,11 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
 );
 
 const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
-  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] ${accent ? 'border border-[var(--ui-primary)]/20' : '[border:var(--ui-card-border,1px_solid_theme(colors.slate.200))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
+  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] ${accent ? 'border border-[var(--ui-primary)]/20' : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 shrink-0 mb-4`}>
       <div className="flex items-center gap-3 min-w-0">
         {icon && (
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] [border:var(--ui-card-border,1px_solid_theme(colors.slate.200))] shadow-xs flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}

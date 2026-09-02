@@ -165,19 +165,23 @@ export const applyDocumentBranding = (settings = {}) => {
   // Card Style CSS variables mapping
   let cardBg = 'var(--ui-surface, #ffffff)';
   let cardBorder = '1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08))';
+  let cardBorderColor = 'var(--ui-border-soft, rgba(0, 0, 0, 0.08))';
   let cardShadow = 'var(--ui-shadow-card)';
 
   if (settings.cardStyle === 'shadow-sm') {
     cardBg = 'var(--ui-surface, #ffffff)';
     cardBorder = '1px solid transparent';
+    cardBorderColor = 'transparent';
     cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)';
   } else if (settings.cardStyle === 'flat') {
     cardBg = 'var(--ui-surface-muted, #f8fafc)';
     cardBorder = '1px solid transparent';
+    cardBorderColor = 'transparent';
     cardShadow = 'none';
   }
   root.style.setProperty('--ui-card-bg', cardBg);
   root.style.setProperty('--ui-card-border', cardBorder);
+  root.style.setProperty('--ui-card-border-color', cardBorderColor);
   root.style.setProperty('--ui-card-shadow', cardShadow);
 
   // Dynamic Font Family

@@ -1614,7 +1614,7 @@ export default function DashboardPage({
       )}
 
       {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
-      <div className="hidden sm:flex bg-[var(--ui-card-bg,white)] [border:var(--ui-card-border,1px_solid_theme(colors.slate.200))] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+      <div className="hidden sm:flex bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
         {/* Dashboard Messages Carousel */}
         {dashboardMessages?.length > 0 && (
           <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
