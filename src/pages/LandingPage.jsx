@@ -612,10 +612,10 @@ export default function LandingPage() {
         </div>
 
         {/* 2. AREA KONTEN (BAWAH - MEMAKAN SEKITAR 40% TINGGI LAYAR, BG #F5F6FA) */}
-        <div className="relative w-full h-[42%] bg-[#F5F6FA] px-5 pt-1.5 pb-6 flex flex-col justify-between z-30">
+        <div className="relative w-full h-[42%] bg-[#F5F6FA] px-5 pt-2 pb-20 sm:pb-24 flex flex-col justify-center items-center z-30">
           
           {/* FAST MENU SECTION */}
-          <div className="w-full max-w-md mx-auto flex flex-col items-center">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
             
             {/* Judul Fast Menu + Ikon Info */}
             <div className="flex items-center justify-center gap-1.5 mb-3.5">
@@ -659,30 +659,6 @@ export default function LandingPage() {
                 );
               })}
             </div>
-
-          </div>
-
-          {/* 3. AREA TOMBOL AKSI (PALING BAWAH) */}
-          <div className="w-full max-w-md mx-auto flex items-center gap-3 pt-2">
-            
-            {/* Tombol Pertama: Login (Hijau solid, flex-1, teks putih tebal, rounded-xl) */}
-            <button
-              type="button"
-              onClick={() => setIsLoginModalOpen(true)}
-              className="flex-1 h-[54px] sm:h-[60px] rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-base tracking-wide shadow-md shadow-emerald-600/20 flex items-center justify-center transition-all cursor-pointer"
-            >
-              Login
-            </button>
-
-            {/* Tombol Kedua: Kotak Persegi 60x60px rounded-xl, warna hijau sama, ikon Chat/Comment */}
-            <button
-              type="button"
-              onClick={handleFeedbackClick}
-              title="Tanya / Bantuan"
-              className="w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] shrink-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white shadow-md shadow-emerald-600/20 flex items-center justify-center transition-all cursor-pointer"
-            >
-              <MessageSquare size={24} strokeWidth={2.3} />
-            </button>
 
           </div>
 
@@ -1095,25 +1071,28 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-[var(--ui-border-muted)] flex items-center justify-between z-[40] pb-safe-bottom shadow-[var(--ui-shadow-float)] px-4 gap-3 select-none">
-        <button 
-          onClick={() => setShowPublicHelp(true)} 
-          className="flex flex-col items-center justify-center cursor-pointer border-none bg-transparent text-slate-600 hover:text-slate-900 active:scale-95 transition-all w-16 h-12"
-        >
-          <img src="/icons/012-support.svg" className="w-5 h-5 object-contain" alt="" />
-          <span className="text-[8px] font-extrabold tracking-tight mt-1 text-slate-500">Bantuan</span>
-        </button>
+      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-[#F5F6FA]/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2.5 pb-safe-bottom shadow-md select-none">
+        <div className="w-full max-w-md mx-auto flex items-center gap-3">
+          {/* Tombol Pertama: Login (Hijau solid, flex-1, teks putih tebal, rounded-xl) */}
+          <button
+            type="button"
+            onClick={() => setIsLoginModalOpen(true)}
+            className="flex-1 h-[54px] sm:h-[60px] rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-base tracking-wide shadow-md shadow-emerald-600/20 flex items-center justify-center transition-all cursor-pointer"
+          >
+            Login
+          </button>
 
-        <button 
-          onClick={() => setIsLoginModalOpen(true)} 
-          data-slot="button"
-          data-variant="primary"
-          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-control)] font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
-          style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
-        >
-          Masuk Sekarang
-        </button>
+          {/* Tombol Kedua: Kotak Persegi 60x60px rounded-xl, warna hijau sama, ikon Chat/Comment */}
+          <button
+            type="button"
+            onClick={handleFeedbackClick}
+            title="Tanya / Bantuan"
+            className="w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] shrink-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white shadow-md shadow-emerald-600/20 flex items-center justify-center transition-all cursor-pointer"
+          >
+            <MessageSquare size={24} strokeWidth={2.3} />
+          </button>
+        </div>
       </div>
 
       {/* REMOVED LOGIN MODAL (NOW HANDLED IN PUBLIC LAYOUT) */}
