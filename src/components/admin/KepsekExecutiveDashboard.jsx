@@ -825,50 +825,44 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ KONTEN UTAMA: GRID KOMBINASI (KIRI 2/3 & KANAN 1/3) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
-        {/* ── SISI KIRI (8 / 12 kolom): Presentase Jurusan/Kelas + 2 Box Log Aktivitas & Sesi ── */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
-          
-          {/* 1. Presentase Kehadiran Per Jurusan dan Per Kelas (Membentang Lebar di Kiri) */}
+      {/* ═══════════════ BARIS ATAS: JURUSAN/KELAS (KIRI 8-KOL) + GRAFIK TREN KEHADIRAN (KANAN 4-KOL) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        {/* 1. Presentase Kehadiran Per Jurusan dan Per Kelas (Membentang Lebar 8 Kolom) */}
+        <div className="lg:col-span-8 flex flex-col">
           <JurusanKelasAttendanceSummary 
             students={students} 
             classes={classes} 
             dashLogs={dashLogs}
             siswaStats={siswaStats}
           />
-
-          {/* 2. Dua Kolom Sejajar: Log Aktivitas (Kiri) & Log Sesi dan Durasi Login (Kanan) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-            {/* Box 1: Live Log Aktivitas Pengguna */}
-            <div className="h-full flex flex-col">
-              <LiveUserActivityLog onNavigateTab={gotoTab} />
-            </div>
-
-            {/* Box 2: Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
-            <div className="h-full flex flex-col">
-              <UserLoginSessionTracker onNavigateTab={gotoTab} />
-            </div>
-          </div>
-
         </div>
 
-        {/* ── SISI KANAN (4 / 12 kolom): Grafik Tren Kehadiran (Atas) + Monitor & Aktivitas (Bawah) ── */}
-        <div className="lg:col-span-4 flex flex-col gap-4 h-full">
-          {/* Box 1 (Atas Kanan): Grafik Tren & Jam Kehadiran */}
+        {/* 2. Grafik Tren & Jam Kehadiran (4 Kolom Kanan) */}
+        <div className="lg:col-span-4 flex flex-col">
           <AttendanceTrendChartCard 
             dashLogs={dashLogs} 
             siswaStats={siswaStats} 
             guruStats={guruStats} 
           />
+        </div>
+      </div>
 
-          {/* Box 2 (Bawah Kanan): Monitor & Aktivitas Pemantauan Sekolah */}
-          <div className="flex-1 flex flex-col">
-            <SharedDashboardLogs onLogsFetched={setDashLogs} />
-          </div>
+      {/* ═══════════════ BARIS BAWAH: 3 BOX LOG & MONITOR AKTIVITAS SEJAJAR (RATA 100%) ═══════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Box 1: Live Log Aktivitas Pengguna */}
+        <div className="flex flex-col h-full">
+          <LiveUserActivityLog onNavigateTab={gotoTab} />
         </div>
 
+        {/* Box 2: Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
+        <div className="flex flex-col h-full">
+          <UserLoginSessionTracker onNavigateTab={gotoTab} />
+        </div>
+
+        {/* Box 3: Monitor & Aktivitas Pemantauan Sekolah */}
+        <div className="flex flex-col h-full md:col-span-2 lg:col-span-1">
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        </div>
       </div>
 
     </div>
