@@ -1,0 +1,25 @@
+# Konfigurasi Anti-Cache & SPA Routing untuk Apache / Laragon / cPanel
+<IfModule mod_headers.c>
+  # 1. Jangan cache file HTML dan Service Worker agar client selalu mendapat versi rilis terbaru
+  <FilesMatch "^(index\.html|sw\.js|registerSW\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # 2. File aset Vite dengan hash unik (immutable) aman disimpan di cache browser
+  <FilesMatch "\.(js|css|woff2?|png|jpe?g|gif|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  # Lewatkan request API dan file yang benar-benar ada di disk
+  RewriteRule ^api/ - [L]
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

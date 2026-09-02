@@ -4,8 +4,35 @@ import './index.css';
 import App from './App.jsx';
 import { registerSW } from 'virtual:pwa-register';
 
-// Register Service Worker for PWA
-registerSW({ immediate: true });
+// Register Service Worker for PWA with auto-update
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    console.log('[PWA] Versi baru tersedia, memperbarui cache...');
+    updateSW(true);
+  },
+  onOfflineReady() {
+    console.log('[PWA] Aplikasi siap offline');
+  },
+  onRegisteredSW(swUrl, registration) {
+    if (registration) {
+      // Cek update berkala setiap 15 menit
+      setInterval(() => {
+        registration.update().catch(() => {});
+      }, 15 * 60 * 1000);
+
+      // Cek update otomatis saat tab aktif kembali
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          registration.update().catch(() => {});
+        }
+      });
+      window.addEventListener('focus', () => {
+        registration.update().catch(() => {});
+      });
+    }
+  }
+});
 
 // Otomatis refresh browser saat ada pembaruan versi (chunk hash lama sudah berganti)
 window.addEventListener('vite:preloadError', () => {
