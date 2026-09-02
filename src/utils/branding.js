@@ -55,6 +55,41 @@ export const applyDocumentBranding = (settings = {}) => {
     settings.siteDescription || settings.heroSubtitle || "TimeSchedule adalah aplikasi jadwal, denah ruang, dan modul ajar sekolah untuk pengelolaan akademik yang rapi dan terpusat."
   );
 
+  // INJECT DYNAMIC PWA MANIFEST
+  if (faviconHref !== DEFAULT_FAVICON) {
+    const manifestTag = document.querySelector('link[rel="manifest"]');
+    if (manifestTag) {
+      const manifestData = {
+        name: settings.siteTitle || appName,
+        short_name: appName,
+        description: settings.siteDescription || settings.heroSubtitle || "TimeSchedule",
+        theme_color: settings.primaryColor || "#064e3b",
+        background_color: settings.bgColor || "#052e16",
+        display: "standalone",
+        orientation: "portrait-primary",
+        start_url: "/",
+        scope: "/",
+        icons: [
+          {
+            src: faviconHref,
+            sizes: "192x192",
+            type: faviconMime,
+            purpose: "any"
+          },
+          {
+            src: faviconHref,
+            sizes: "512x512",
+            type: faviconMime,
+            purpose: "any maskable"
+          }
+        ]
+      };
+      
+      const blob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+      manifestTag.setAttribute("href", URL.createObjectURL(blob));
+    }
+  }
+
   // INJECT CSS VARIABLES GLOBALLY
   const root = document.documentElement;
   if (settings.primaryColor) {
