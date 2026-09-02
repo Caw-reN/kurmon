@@ -1329,7 +1329,7 @@ export default function LandingPage() {
         
         {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
-          className="relative w-full h-[42vh] min-h-[280px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
+          className="relative w-full h-[38vh] min-h-[255px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
         >
           {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
           <img 
@@ -1666,27 +1666,27 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
+          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Naik Lebih Tinggi ke Atas) */}
           <div className="absolute -bottom-[2px] left-0 right-0 w-full z-20 pointer-events-none leading-none overflow-visible">
             <svg 
-              viewBox="0 0 100 24" 
+              viewBox="0 0 100 30" 
               preserveAspectRatio="none" 
-              className="w-full h-8 sm:h-10 fill-white block"
+              className="w-full h-10 sm:h-12 fill-white block"
               style={{ shapeRendering: 'geometricPrecision' }}
             >
-              <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
+              <path d="M 0,30 Q 50,-6 100,30 L 100,38 L 0,38 Z" />
             </svg>
           </div>
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA */}
-        <div className="relative w-full flex-1 bg-white px-5 pt-3 pb-[115px] flex flex-col items-center z-30 -mt-[1px]">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA (Posisi Putih Lebih Naik ke Atas) */}
+        <div className="relative w-full flex-1 bg-white px-5 pt-1 sm:pt-1.5 pb-[115px] flex flex-col items-center z-30 -mt-[2px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
-            {/* Judul: Layanan Publik (Warna Hitam, Nyaman & Tidak Mepet) */}
-            <div className="flex items-center justify-center gap-1.5 pt-4 pb-1 mb-4">
+            {/* Judul: Layanan Publik */}
+            <div className="flex items-center justify-center gap-1.5 pt-2 pb-1 mb-3.5">
               <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
                 Layanan Publik
               </span>
