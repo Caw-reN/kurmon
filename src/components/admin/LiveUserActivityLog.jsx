@@ -149,6 +149,21 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   }, [auditLogs, user, teachers]);
 
+  const onlineStats = useMemo(() => {
+    const today = new Date().toDateString();
+    const uniqueLogins = new Set();
+    appActivities.forEach(log => {
+      if (String(log.action).toUpperCase().includes('LOGIN') && new Date(log.timestamp).toDateString() === today) {
+        uniqueLogins.add(String(log.userName).toLowerCase());
+      }
+    });
+    const totalUsers = (teachers?.length || 0) + (staffs?.length || 0);
+    const activeCount = uniqueLogins.size;
+    // Jika tidak ada data guru/staf, asumsikan 0%
+    const percentage = totalUsers > 0 ? Math.round((activeCount / totalUsers) * 100) : 0;
+    return { activeCount, totalUsers, percentage };
+  }, [appActivities, teachers, staffs]);
+
   // Categorization & Action Meta
   const getActionMeta = (action, detail = '') => {
     const act = String(action || '').toUpperCase();
@@ -314,9 +329,16 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   LIVE
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login guru/staf
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-[10px] text-slate-400 font-medium">
+                  Pantau navigasi menu, download/upload berkas, jurnal KBM, dan login
+                </p>
+                {onlineStats.totalUsers > 0 && (
+                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded border border-slate-200 shadow-2xs whitespace-nowrap">
+                    <span className="text-indigo-600">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

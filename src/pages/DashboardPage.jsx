@@ -29,6 +29,7 @@ import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
 import { getAttendanceStatusTone } from "../utils/adminHelpers.js";
 import KepsekExecutiveDashboard from "../components/admin/KepsekExecutiveDashboard.jsx";
+import LiveUserActivityLog from "../components/admin/LiveUserActivityLog.jsx";
 
 const DashboardCharts = lazy(() => import("./DashboardCharts.jsx"));
 const ACTIVITY_PAGE_SIZE = 6;
@@ -1770,9 +1771,14 @@ export default function DashboardPage({
         </div>
       </div>
 
-      {/* Shared Activity Logs */}
-      <div className="w-full">
-        <SharedDashboardLogs onLogsFetched={setDashLogs} />
+      {/* Shared & Live Activity Logs */}
+      <div className="w-full flex flex-col xl:flex-row gap-3">
+        <div className="flex-1 min-w-0">
+          <LiveUserActivityLog onNavigateTab={setActiveTab} />
+        </div>
+        <div className="w-full xl:w-[400px] shrink-0">
+          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        </div>
       </div>
 
 
