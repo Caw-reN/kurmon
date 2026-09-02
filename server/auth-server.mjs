@@ -1,3 +1,4 @@
+import "./auto-backup.mjs";
 import { handlePklRoutes } from "./routes/pkl.mjs";
 import { handleBkRoutes, initBkTables } from "./routes/bk.mjs";
 import { handleHikvisionRoutes, autoLinkHikvisionStudents, autoLinkHikvisionTeachersAndStaffs } from "./routes/hikvision.mjs";
