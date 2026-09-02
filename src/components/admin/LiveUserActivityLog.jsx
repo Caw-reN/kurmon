@@ -7,15 +7,12 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
   const teachers = useDataStore(state => state.teachers) || [];
   const staffs = useDataStore(state => state.staffs) || [];
-  const classes = useDataStore(state => state.classes) || [];
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'navigasi' | 'kbm' | 'file'
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
-  const sameText = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
 
   const fetchAuditLogs = useCallback(async () => {
     setLoading(true);
@@ -370,17 +367,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                         <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
-                        {(() => {
-                          const teacherObj = teachers.find(t => sameText(t.name, userName) || sameText(t.code, item.userCode));
-                          if (teacherObj && classes.some(c => sameText(c.homeroom, teacherObj.code))) {
-                            return (
-                              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shadow-2xs">
-                                Walikelas
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
                       </div>
                       <p className="text-[10.5px] text-slate-600 font-semibold mt-0.5 truncate max-w-md">
                         {item.detail}

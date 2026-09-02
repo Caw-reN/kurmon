@@ -83,17 +83,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/data/save") {
-    const session = requireAuthenticated(req, res);
-    if (!session) return true;
-
-    // Strict RBAC: Prevent Read-Only roles from saving data
-    const sessionRole = String(session.role || "").toLowerCase().trim();
-    const writeAllowedRoles = ["superadmin", "admin", "waka", "tu", "tata_usaha"];
-    if (!writeAllowedRoles.includes(sessionRole)) {
-      send(req, res, 403, { ok: false, error: "Akses Ditolak: Peran Anda hanya diizinkan untuk melihat data (Read-Only)." });
-      return true;
-    }
-
+    if (!requireAuthenticated(req, res)) return true;
     try {
       if (!dbPool) throw createDatabaseUnavailableError();
       const body = await readJsonBody(req);

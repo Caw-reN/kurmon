@@ -858,13 +858,13 @@ export function useAdminCRUD(props) {
 
           let dbUpdates = { teachers: nextTeachers };
           if (didCodeChange) {
-            const nextClasses = (classes || []).map(c => sameText(c.homeroom, oldCode) ? { ...c, homeroom: nextCode } : c);
-            const nextTeachingLoads = (teachingLoads || []).map(tl => sameText(tl.teacherCode, oldCode) ? { ...tl, teacherCode: nextCode } : tl);
+            const nextClasses = (Array.isArray(classes) ? classes : []).map(c => sameText(c.homeroom, oldCode) ? { ...c, homeroom: nextCode } : c);
+            const nextTeachingLoads = (Array.isArray(teachingLoads) ? teachingLoads : []).map(tl => sameText(tl.teacherCode, oldCode) ? { ...tl, teacherCode: nextCode } : tl);
             
-            const nextTeacherAvailability = { ...(teacherAvailability || {}) };
+            let nextTeacherAvailability = { ...(teacherAvailability || {}) };
             const oldKey = Object.keys(nextTeacherAvailability).find(k => sameText(k, oldCode));
             if (oldKey) {
-              nextTeacherAvailability[nextCode] = nextTeacherAvailability[oldKey];
+              nextTeacherAvailability[nextCode] = { ...nextTeacherAvailability[oldKey], teacherCode: nextCode };
               delete nextTeacherAvailability[oldKey];
             }
             
