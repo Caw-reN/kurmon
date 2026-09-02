@@ -726,7 +726,7 @@ export default function TabAkademik(props) {
             </div>
           ) : (
             <div className={`grid gap-3 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-              {filteredCalendar.map((evt) => {
+              {filteredCalendar.map((evt, index) => {
                 const cat = calendarCategories.find((c) => c.id === evt.categoryId);
                 const colors = getCategoryColor(cat?.color);
                 const status = getEventStatus(evt.dateStart, evt.dateEnd);
@@ -734,9 +734,12 @@ export default function TabAkademik(props) {
                 return (
                   <div
                     key={evt.id}
-                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-xs hover:shadow-sm transition-all flex flex-col gap-2 border-l-[3px] ${colors.cardBorder}`}
+                    className={`group relative bg-white border border-slate-200/60 hover:border-slate-300 rounded-[var(--ui-radius-small)] p-3.5 shadow-xs hover:shadow-sm transition-all flex flex-col gap-2`}
                   >
                     <div className="flex items-start justify-between gap-3">
+                      <div className="text-[13px] font-black text-slate-400 shrink-0 min-w-[20px] pt-0.5">
+                        {index + 1}.
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <h3 className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
