@@ -611,13 +611,13 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - 8 ICON: 4 ATAS 4 BAWAH, BG #F5F6FA) */}
-        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-2.5 pb-[96px] flex flex-col justify-start items-center z-30 overflow-y-auto">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (BAWAH - DITURUNKAN KE TENGAH/BAWAH, BG #F5F6FA) */}
+        <div className="relative w-full flex-1 bg-[#F5F6FA] px-4 pt-4 pb-[105px] flex flex-col justify-center items-center z-30">
           
-          <div className="w-full max-w-md mx-auto flex flex-col items-center">
+          <div className="w-full max-w-md mx-auto flex flex-col items-center my-auto">
             
             {/* Judul: Layanan Publik + Ikon Info */}
-            <div className="flex items-center justify-center gap-1.5 mb-3.5">
+            <div className="flex items-center justify-center gap-1.5 mb-4">
               <span 
                 className="text-xs sm:text-sm font-black uppercase tracking-wider"
                 style={{ color: primaryColor || '#064e3b' }}
@@ -636,7 +636,7 @@ export default function LandingPage() {
             </div>
 
             {/* Grid 8 Item: 4 Atas, 4 Bawah dengan Icon Desktop */}
-            <div className="grid grid-cols-4 gap-x-2 gap-y-3.5 sm:gap-x-4 sm:gap-y-4 w-full px-1">
+            <div className="grid grid-cols-4 gap-x-2.5 gap-y-4 sm:gap-x-4 sm:gap-y-5 w-full px-1">
               {(() => {
                 const gridServices = [
                   ...publicServices,
@@ -661,19 +661,19 @@ export default function LandingPage() {
                     >
                       {/* Desain Icon Card Sesuai Desktop */}
                       <div 
-                        className="w-[50px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
+                        className="w-[52px] h-[52px] sm:w-[58px] sm:h-[58px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
                         style={{ 
                           backgroundColor: hexToRgba(activeColor, 0.08),
                           border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
                         }}
                       >
                         {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-6 h-6 object-contain" />
+                          <img src={service.customIcon} alt="" className="w-6.5 h-6.5 object-contain" />
                         ) : (
-                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-6 h-6 object-contain" />
+                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-6.5 h-6.5 object-contain" />
                         )}
                       </div>
-                      <span className="text-[10px] sm:text-[10.5px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
                         {getShortLabel(service.label)}
                       </span>
                     </button>
