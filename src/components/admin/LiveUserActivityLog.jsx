@@ -333,7 +333,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 key={f.id}
                 type="button"
                 onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
                   filterType === f.id
                     ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-2xs'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
@@ -387,9 +387,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               return (
                 <div 
                   key={item.id || idx} 
-                  className="py-2.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-3 group"
+                  className="py-1.5 px-2 hover:bg-slate-50/80 rounded-[var(--ui-radius-small)] transition-colors flex items-center justify-between gap-2 group"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${roleMeta.bg} border shadow-2xs`}>
                       {userInitial}
                     </div>
@@ -398,11 +398,11 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                         <p className="text-xs font-black text-slate-800 truncate">
                           {userName}
                         </p>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border ${roleMeta.bg}`}>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
                         {isWaliKelas && (
-                          <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-full border bg-amber-100/80 text-amber-700 border-amber-200/60 shadow-2xs`}>
+                          <span className={`text-[9px] font-extrabold px-1.5 py-[1px] rounded-full border bg-amber-100/80 text-amber-700 border-amber-200/60 shadow-2xs`}>
                             {waliKelasLabel}
                           </span>
                         )}
