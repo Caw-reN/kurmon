@@ -708,20 +708,29 @@ export function useAdminCRUD(props) {
         }
         if (action ==="edit") {
           const oldCode = String(data?.code || formData.code ||"").trim();
+          const nextCode = String(formData.code || oldCode).trim();
           const oldRole = (data?.role);
           const oldDivision = oldRole ==="waka" ? data?.division || WAKA_DIVISION_OPTIONS[0].value :"";
+          
           if (currentUser?.code && sameText(currentUser.code, oldCode) && (oldRole !== nextRole || oldDivision !== nextDivision)) {
             showNotification("Akses sesi aktif tidak bisa diubah dari akun yang sedang login. Gunakan SuperAdmin lain atau login ulang setelah perubahan.","warning");
             return;
           }
+
+          const didCodeChange = !sameText(oldCode, nextCode);
+          if (didCodeChange && staffs.some(s => sameText(s.code, nextCode))) {
+            showNotification("Kode karyawan yang baru sudah digunakan oleh karyawan lain.","warning");
+            return;
+          }
+
           let didUpdate = false;
           const nextStaffs = staffs.map(t => {
             if (!sameText(t.code, oldCode)) return t;
             didUpdate = true;
             return {
               ...t,
-              code: t.code || oldCode,
-              staff_code: t.code || oldCode,
+              code: nextCode,
+              staff_code: nextCode,
               name: nextName,
               type: formData.type ||"Umum",
               role: nextRole,
@@ -733,14 +742,13 @@ export function useAdminCRUD(props) {
               phone: formData.phone ||""
             };
           });
+          
           if (!didUpdate) {
             showNotification("Data karyawan tidak ditemukan. Tutup modal lalu buka ulang data karyawan.","warning");
             return;
           }
           await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, "memperbarui data karyawan");
-          await saveDatabaseNow({
-            staffs: nextStaffs
-          },"memperbarui data karyawan");
+          await saveDatabaseNow({ staffs: nextStaffs },"memperbarui data karyawan");
           setStaffs(nextStaffs);
           showNotification("Data karyawan berhasil diperbarui.","success");
         }
@@ -807,19 +815,28 @@ export function useAdminCRUD(props) {
         }
         if (action ==="edit") {
           const oldCode = String(data?.code || formData.code ||"").trim();
+          const nextCode = String(formData.code || oldCode).trim();
           const oldRole = (data?.role);
           const oldDivision = oldRole ==="waka" ? data?.division || WAKA_DIVISION_OPTIONS[0].value :"";
+          
           if (currentUser?.code && sameText(currentUser.code, oldCode) && (oldRole !== nextRole || oldDivision !== nextDivision)) {
             showNotification("Akses sesi aktif tidak bisa diubah dari akun yang sedang login. Gunakan SuperAdmin lain atau login ulang setelah perubahan.","warning");
             return;
           }
+          
+          const didCodeChange = !sameText(oldCode, nextCode);
+          if (didCodeChange && teachers.some(t => sameText(t.code, nextCode))) {
+            showNotification("Kode guru yang baru sudah digunakan oleh guru lain.","warning");
+            return;
+          }
+
           let didUpdate = false;
           const nextTeachers = teachers.map(t => {
             if (!sameText(t.code, oldCode)) return t;
             didUpdate = true;
             return {
               ...t,
-              code: t.code || oldCode,
+              code: nextCode,
               name: nextName,
               type: formData.type || "Umum",
               role: nextRole,
@@ -833,14 +850,29 @@ export function useAdminCRUD(props) {
               notify_phone: formData.notify_phone || t.notify_phone || ""
             };
           });
+          
           if (!didUpdate) {
             showNotification("Data guru tidak ditemukan. Tutup modal lalu buka ulang data guru.","warning");
             return;
           }
+
+          let dbUpdates = { teachers: nextTeachers };
+          if (didCodeChange) {
+            const nextClasses = (classes || []).map(c => sameText(c.homeroom, oldCode) ? { ...c, homeroom: nextCode } : c);
+            const nextTeachingLoads = (teachingLoads || []).map(tl => sameText(tl.teacherCode, oldCode) ? { ...tl, teacherCode: nextCode } : tl);
+            const nextTeacherAvailability = (teacherAvailability || []).map(ta => sameText(ta.teacherCode, oldCode) ? { ...ta, teacherCode: nextCode } : ta);
+            
+            dbUpdates.classes = nextClasses;
+            dbUpdates.teachingLoads = nextTeachingLoads;
+            dbUpdates.teacherAvailability = nextTeacherAvailability;
+            
+            if (setClasses) setClasses(nextClasses);
+            if (setTeachingLoads) setTeachingLoads(nextTeachingLoads);
+            if (setTeacherAvailability) setTeacherAvailability(nextTeacherAvailability);
+          }
+          
           await syncAuthSnapshotNow(adminUser, nextTeachers, staffs, "memperbarui data guru");
-          await saveDatabaseNow({
-            teachers: nextTeachers
-          },"memperbarui data guru");
+          await saveDatabaseNow(dbUpdates, "memperbarui data guru");
           setTeachers(nextTeachers);
           showNotification("Data guru berhasil diperbarui.","success");
         }

@@ -183,14 +183,9 @@ export default function CrudModals({
                   <input
                     type="text"
                     required
-                    disabled={modalConfig.action ==="edit"}
                     value={formData.code ||""}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className={`w-full border-none p-3 rounded-[var(--ui-radius-small)] text-xs font-mono font-bold ${
-                      modalConfig.action ==="edit"
-                        ?"bg-slate-100 cursor-not-allowed opacity-75"
-                        :"bg-slate-50 focus:bg-white focus:outline-[var(--ui-primary)]"
-                    }`}
+                    className="w-full border-none p-3 rounded-[var(--ui-radius-small)] text-xs font-mono font-bold bg-slate-50 focus:bg-white focus:outline-[var(--ui-primary)]"
                     placeholder={modalConfig.type ==="guru" ?"G01" :"K01"}
                   />
                 </div>
