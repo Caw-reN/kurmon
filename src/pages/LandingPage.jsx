@@ -1666,15 +1666,15 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Garis Batas Bawah Melengkung Landai (Convex Curve SVG - Lebih Halus & Landai) */}
+          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Lengkungan Busur Halus & Dalam Sesuai Gambar) */}
           <div className="absolute -bottom-[2px] left-0 right-0 w-full z-20 pointer-events-none leading-none overflow-visible">
             <svg 
-              viewBox="0 0 100 18" 
+              viewBox="0 0 100 36" 
               preserveAspectRatio="none" 
-              className="w-full h-6 sm:h-7 fill-white block"
+              className="w-full h-12 sm:h-14 fill-white block"
               style={{ shapeRendering: 'geometricPrecision' }}
             >
-              <path d="M 0,18 Q 50,0 100,18 L 100,22 L 0,22 Z" />
+              <path d="M 0,36 C 25,-4 75,-4 100,36 L 100,46 L 0,46 Z" />
             </svg>
           </div>
 
