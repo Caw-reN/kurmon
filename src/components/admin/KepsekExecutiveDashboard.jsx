@@ -653,11 +653,11 @@ export default function KepsekExecutiveDashboard({
         ))}
       </div>
 
-      {/* ═══════════════ BARIS 1: 3 BOX ANALISIS SEJAJAR (GRAFIK TREN + PERSENTASE DONUT + PRESENSI LIVE COMPACT) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+      {/* ═══════════════ BARIS 1: GRAFIK TREN (LEBAR 8-KOLOM) + PERSENTASE & PRESENSI LIVE TERPADU (4-KOLOM) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         
-        {/* Box 1 (Kiri): Grafik Tren & Jam Kehadiran */}
-        <div className="flex flex-col h-full">
+        {/* Box Kiri (8 Kolom - Lebar & Penuh): Grafik Tren & Jam Kehadiran */}
+        <div className="lg:col-span-8 flex flex-col h-full">
           <AttendanceTrendChartCard 
             dashLogs={dashLogs} 
             siswaStats={siswaStats} 
@@ -665,160 +665,107 @@ export default function KepsekExecutiveDashboard({
           />
         </div>
 
-        {/* Box 2 (Tengah): Donut Chart Persentase Kehadiran */}
-        <div className="flex flex-col h-full">
-          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 sm:p-4 flex flex-col justify-between h-full">
+        {/* Box Kanan (4 Kolom - Padat & Terpadu): Persentase Donut + Presensi Live */}
+        <div className="lg:col-span-4 flex flex-col h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+            
+            {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-1">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0 shadow-xs">
-                  <PieChart size={16} />
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0 shadow-xs">
+                  <PieChart size={14} />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-tight">Persentase Kehadiran</h4>
-                  <p className="text-[9.5px] text-slate-400 font-medium">Proporsi presensi sekolah hari ini</p>
+                  <h4 className="text-xs font-black text-slate-800 leading-tight">Persentase & Presensi Live</h4>
+                  <p className="text-[9px] text-slate-400 font-medium">Proporsi presensi & gateway sekolah</p>
                 </div>
               </div>
-              <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+              <span className="text-[9.5px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
                 {combinedAttendanceStats.overallPct}% Total
               </span>
             </div>
 
-            {/* Donut Chart with Center Stat */}
-            <div className="relative h-36 w-full flex items-center justify-center my-0.5">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={combinedAttendanceStats.chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={38}
-                    outerRadius={56}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {combinedAttendanceStats.chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(val, name) => [`${val} Orang (${pct(val, combinedAttendanceStats.totalPeople)}%)`, name]}
-                    contentStyle={{ fontSize: '11px', borderRadius: '8px', padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-base sm:text-lg font-black text-slate-800 tracking-tight leading-none">
-                  {combinedAttendanceStats.overallPct}%
-                </span>
-                <span className="text-[8.5px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5">
-                  Hadir
-                </span>
+            {/* Middle: Mini Donut Chart + Legend Badges */}
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={combinedAttendanceStats.chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={24}
+                      outerRadius={36}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {combinedAttendanceStats.chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xs font-black text-slate-800 leading-none">
+                    {combinedAttendanceStats.overallPct}%
+                  </span>
+                  <span className="text-[7.5px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
+                    Hadir
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1 flex-1 text-[8.5px] font-bold">
+                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
+                  <span className="text-emerald-700">Tepat Waktu</span>
+                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalHadir}</span>
+                </div>
+                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
+                  <span className="text-amber-600">Terlambat</span>
+                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalTelat}</span>
+                </div>
+                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
+                  <span className="text-sky-600">Izin/Sakit</span>
+                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalIzinSakit}</span>
+                </div>
+                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
+                  <span className="text-rose-600">Belum Absen</span>
+                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalAlpa}</span>
+                </div>
               </div>
             </div>
 
-            {/* Breakdown Legend */}
-            <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-100 text-[9.5px] font-bold">
-              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
-                <span className="text-emerald-700 flex items-center gap-1 truncate">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  Tepat Waktu
-                </span>
-                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalHadir}</span>
-              </div>
-              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
-                <span className="text-amber-600 flex items-center gap-1 truncate">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                  Terlambat
-                </span>
-                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalTelat}</span>
-              </div>
-              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
-                <span className="text-sky-600 flex items-center gap-1 truncate">
-                  <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
-                  Izin/Sakit
-                </span>
-                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalIzinSakit}</span>
-              </div>
-              <div className="flex items-center justify-between bg-slate-50/80 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/60">
-                <span className="text-rose-600 flex items-center gap-1 truncate">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                  Belum Absen
-                </span>
-                <span className="text-slate-800 font-black">{combinedAttendanceStats.totalAlpa}</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Box 3 (Kanan): Presensi Live Hari Ini (COMPACT VERSION) */}
-        <div className="flex flex-col h-full">
-          <SectionCard 
-            title="Presensi Live Hari Ini" 
-            subtitle="Data mesin Hikvision & gerbang" 
-            icon="/icons/084-fingerprint scan.svg" 
-            action="Detail Laporan" 
-            onAction={() => gotoTab('laporan_absensi')}
-            className="h-full flex flex-col justify-between"
-          >
-            <div className="flex flex-col gap-2">
+            {/* Bottom: 3 Live Progress Bars */}
+            <div className="flex flex-col gap-1.5 pt-1.5">
               {[
                 { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
                 { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                 { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
               ].filter(row => row.total > 0).map(row => (
-                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-2 border border-slate-200/60 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
-                      <span className="flex items-center gap-1 truncate">
-                        {row.label} 
-                        <span className="text-[9.5px] text-slate-400 font-medium">({row.total} org)</span>
-                      </span>
-                      <span className="text-emerald-700 font-black text-[10px] bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
-                        {pct(row.hadir + row.telat, row.total || 1)}% Hadir
-                      </span>
-                    </div>
-                    
-                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-1 shadow-inner">
-                      <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
-                      <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
-                      <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
-                      <div className="h-full bg-sky-400" style={{ width: `${pct(row.sakit, row.total)}%` }} title="Sakit" />
-                      <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[8px] font-bold text-slate-500">
-                      <span className="text-emerald-700">● {row.hadir} Hadir</span>
-                      <span className="text-amber-600">● {row.telat} Telat</span>
-                      <span className="text-orange-600">● {row.izin} Izin</span>
-                      <span className="text-rose-600">● {row.alpa} Alpa</span>
-                    </div>
+                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-1.5 border border-slate-200/60">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 mb-0.5">
+                    <span className="truncate">{row.label} ({row.total} org)</span>
+                    <span className="text-emerald-700 font-black text-[9.5px]">
+                      {pct(row.hadir + row.telat, row.total || 1)}% Hadir
+                    </span>
                   </div>
-
-                  {row.isSiswa && siswaStats.gradeStats && (
-                    <div className="mt-1.5 pt-1 border-t border-slate-200/60 grid grid-cols-3 gap-1">
-                      {['X', 'XI', 'XII'].map(g => {
-                        const gStat = siswaStats.gradeStats[g];
-                        const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
-                        return (
-                          <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-0.2 px-0.5 text-center shadow-xs">
-                            <span className="text-[7.5px] font-extrabold text-slate-500 mr-0.5">Kls {g}:</span>
-                            <span className="text-[8.5px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden flex shadow-inner">
+                    <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} />
+                    <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} />
+                    <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} />
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-1 p-1 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[9px] text-emerald-800 font-semibold mt-1.5">
+            {/* Footer Live Badge */}
+            <div className="flex items-center gap-1 p-1 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[8.5px] text-emerald-800 font-semibold mt-1">
               <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
               Gateway Hikvision Terhubung
               <span className="ml-auto text-[7.5px] font-black uppercase bg-emerald-200 px-1 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
             </div>
-          </SectionCard>
+
+          </div>
         </div>
 
       </div>

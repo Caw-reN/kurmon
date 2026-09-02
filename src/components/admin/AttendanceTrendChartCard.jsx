@@ -129,7 +129,7 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
         </div>
 
         {/* ── Chart Rendering ── */}
-        <div className="h-36 sm:h-40 w-full pt-1">
+        <div className="h-44 sm:h-48 w-full pt-1">
           {chartMode === 'hourly' ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={hourlyData} margin={{ top: 5, right: 8, left: -24, bottom: 0 }}>
