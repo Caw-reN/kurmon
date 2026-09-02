@@ -748,8 +748,8 @@ export default function LandingPage() {
                 style={{
                   left: `${(i * 4.2) + (i % 3)}%`,
                   top: '-40px',
-                  animationDuration: `${0.7 + ((i % 5) * 0.08)}s`,
-                  animationDelay: `-${(i % 6) * 0.16}s`
+                  animationDuration: `${0.45 + ((i % 5) * 0.05)}s`,
+                  animationDelay: `-${(i % 6) * 0.12}s`
                 }}
               />
             ))}
@@ -872,24 +872,24 @@ export default function LandingPage() {
         }
 
         .animate-aerial-cloud-1 {
-          animation: aerialCloudDrift1 28s linear infinite;
+          animation: aerialCloudDrift1 15s linear infinite;
           will-change: transform, opacity;
         }
 
         .animate-aerial-cloud-2 {
-          animation: aerialCloudDrift2 38s linear infinite;
-          animation-delay: -15s;
+          animation: aerialCloudDrift2 20s linear infinite;
+          animation-delay: -8s;
           will-change: transform, opacity;
         }
 
         .animate-aerial-cloud-3 {
-          animation: aerialCloudDrift3 48s linear infinite;
-          animation-delay: -28s;
+          animation: aerialCloudDrift3 26s linear infinite;
+          animation-delay: -14s;
           will-change: transform, opacity;
         }
 
         .animate-aerial-haze {
-          animation: aerialHazeSlow 20s ease-in-out infinite;
+          animation: aerialHazeSlow 12s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -933,16 +933,16 @@ export default function LandingPage() {
         }
 
         .animate-star-twinkle {
-          animation: starTwinkle 3.2s ease-in-out infinite;
+          animation: starTwinkle 2.0s ease-in-out infinite;
         }
 
         .animate-rain-fall {
-          animation: rainDropFall 0.85s linear infinite;
+          animation: rainDropFall 0.52s linear infinite;
           will-change: transform, opacity;
         }
 
         .animate-sunbeam {
-          animation: sunbeamSweep 12s ease-in-out infinite;
+          animation: sunbeamSweep 7s ease-in-out infinite;
           will-change: transform, opacity;
         }
       `}</style>
@@ -1027,8 +1027,8 @@ export default function LandingPage() {
                   style={{
                     left: `${(i * 5) + (i % 3)}%`,
                     top: '-40px',
-                    animationDuration: `${0.65 + ((i % 5) * 0.08)}s`,
-                    animationDelay: `-${(i % 7) * 0.15}s`
+                    animationDuration: `${0.42 + ((i % 5) * 0.05)}s`,
+                    animationDelay: `-${(i % 7) * 0.10}s`
                   }}
                 />
               ))}
