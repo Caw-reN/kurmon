@@ -1,48 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <!-- Gradient Hijau Stabilo (Top-Left) ke Hijau Tua (Bottom-Right) -->
-    <linearGradient id="ios_kg2_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#bef264" />
-      <stop offset="25%" stop-color="#84cc16" />
-      <stop offset="65%" stop-color="#047857" />
-      <stop offset="100%" stop-color="#052e16" />
-    </linearGradient>
+  <!-- Flat Emerald Squircle Background -->
+  <rect width="512" height="512" rx="118" ry="118" fill="#059669" />
 
-    <!-- Inner Radial Lighting Effect -->
-    <radialGradient id="ios_light_glow" cx="30%" cy="20%" r="70%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
-      <stop offset="60%" stop-color="#ffffff" stop-opacity="0" />
-    </radialGradient>
-
-    <!-- Drop Shadow untuk Angka 2 -->
-    <filter id="ios_shadow_2" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#052e16" flood-opacity="0.6" />
-    </filter>
-  </defs>
-
-  <!-- iOS App Icon Squircle (Kotak Beradius Khas iPhone) -->
-  <rect width="512" height="512" rx="118" ry="118" fill="url(#ios_kg2_gradient)" />
-  <!-- Glossy Ambient Top Light -->
-  <rect width="512" height="512" rx="118" ry="118" fill="url(#ios_light_glow)" />
-
-  <!-- Subtle iOS Border Stroke -->
-  <rect x="5" y="5" width="502" height="502" rx="114" ry="114" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3" />
-
-  <!-- Angka 2 Besar Saja di Tengah (Extra Bold dengan Shadow 3D) -->
-  <!-- Underlayer Shadow untuk Efek Timbul Maksimal -->
-  <text
-    x="256"
-    y="382"
-    text-anchor="middle"
-    font-family="system-ui, -apple-system, 'SF Pro Display', 'Plus Jakarta Sans', 'Inter', 'Arial Black', sans-serif"
-    font-size="340"
-    font-weight="900"
-    fill="#052e16"
-    opacity="0.35"
-    letter-spacing="-8"
-  >2</text>
-
-  <!-- Foreground Angka 2 Putih Bersih -->
+  <!-- Flat White Minimalist Typography "2" -->
   <text
     x="256"
     y="375"
@@ -51,7 +11,6 @@
     font-size="340"
     font-weight="900"
     fill="#ffffff"
-    filter="url(#ios_shadow_2)"
     letter-spacing="-8"
   >2</text>
 </svg>
