@@ -1,8 +1,8 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
-import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, MoreHorizontal, CalendarCheck } from 'lucide-react';
+import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from 'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
@@ -70,9 +70,9 @@ export default function LandingPage() {
     }
     if (progs.length === 0) {
       progs.push(
-        { index: 1, name: "Teknik Kendaraan Ringan", color: "#3DAA37", image: "/mobile_header_logo.png", icon: "monitor" },
-        { index: 2, name: "Teknik Komputer & Jaringan", color: "#0284C7", icon: "wifi" },
-        { index: 3, name: "Teknik Bisnis Sepeda Motor", color: "#D97706", icon: "book" },
+        { index: 1, name: "Manajemen Perkantoran", color: "#1FAA46", icon: "monitor" },
+        { index: 2, name: "Teknik Kendaraan Ringan", color: "#1FAA46", icon: "monitor" },
+        { index: 3, name: "Teknik Komputer & Jaringan", color: "#0284C7", icon: "wifi" },
         { index: 4, name: "Akuntansi & Keuangan", color: "#7C3AED", icon: "users" }
       );
     }
@@ -83,7 +83,7 @@ export default function LandingPage() {
     if (availablePrograms.length <= 1) return;
     const timer = setInterval(() => {
       setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length);
-    }, 4500);
+    }, 4000);
     return () => clearInterval(timer);
   }, [availablePrograms.length]);
 
@@ -93,11 +93,11 @@ export default function LandingPage() {
       return [...custom, ...custom, ...custom, ...custom];
     }
     const defaults = [
+      { name: "by.U", image: "" },
       { name: "Fibernet", image: "" },
       { name: "MikroTik", image: "" },
       { name: "Cisco", image: "" },
-      { name: "AWS Academy", image: "" },
-      { name: "by.U", image: "" }
+      { name: "AWS Academy", image: "" }
     ];
     return [...defaults, ...defaults, ...defaults, ...defaults];
   }, [appSettings.mitraKerjasama]);
@@ -546,164 +546,172 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE APP LANDING VIEW (Scrollable App Screen) */}
-      <div className="md:hidden flex flex-col min-h-screen w-full bg-white overflow-y-auto select-none relative font-sans">
+      {/* MOBILE APP LANDING VIEW (Scrollable App Screen Sesuai Mockup User) */}
+      <div className="md:hidden flex flex-col min-h-screen w-full bg-[#F6F8F7] overflow-y-auto select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
+        {/* 1. AREA HEADER (DARK GRADIENT SESUAI MOCKUP DENGAN LOGO KG2 SCHOOL) */}
         <div 
-          className="relative w-full h-[42vh] min-h-[280px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
+          className="relative w-full pt-14 pb-20 px-6 flex flex-col items-center justify-center overflow-hidden text-white shrink-0"
+          style={{
+            background: 'linear-gradient(180deg, #071310 0%, #092019 45%, #082d21 80%, #063d2b 100%)'
+          }}
         >
-          {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
-          <img 
-            src={appSettings?.heroImage || '/hero_illustration.jpg'} 
-            alt="School Hero Background" 
-            fetchpriority="high"
-            loading="eager"
-            className="absolute inset-0 w-full h-full object-cover object-[center_30%] z-0 pointer-events-none transition-transform duration-700" 
-            onError={(e) => {
-              if (e.currentTarget.src !== window.location.origin + '/hero_illustration.jpg') {
-                e.currentTarget.src = '/hero_illustration.jpg';
-              }
-            }}
-          />
+          {/* Ambient Green Glow di Pojok Kiri Atas */}
+          <div className="absolute top-4 left-4 w-28 h-28 rounded-full bg-emerald-500/20 blur-2xl pointer-events-none" />
 
-          {/* Scrim Overlay Lembut: Melindungi keterbacaan teks tanpa menutupi gambar gedung sekolah */}
-          <div 
-            className="absolute inset-0 z-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
-            }}
-          />
-
-          {/* Logo Sekolah di Tengah Header */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-6">
-            <img 
-              src="/mobile_header_logo.png" 
-              alt={appSettings.appName || "School Logo"} 
-              className="w-44 sm:w-52 max-h-32 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
-            />
-          </div>
-
-          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
-          <div className="absolute -bottom-[2px] left-0 right-0 w-full z-20 pointer-events-none leading-none overflow-visible">
-            <svg 
-              viewBox="0 0 100 24" 
-              preserveAspectRatio="none" 
-              className="w-full h-8 sm:h-10 fill-white block"
-              style={{ shapeRendering: 'geometricPrecision' }}
+          {/* Logo KG2 SCHOOL */}
+          <div className="flex flex-col items-center justify-center relative z-10 text-center">
+            <div className="text-[52px] sm:text-[58px] font-black tracking-tight text-white leading-none font-sans drop-shadow-md">
+              kg<span className="tracking-tighter">2</span>
+            </div>
+            <div 
+              className="px-6 py-1 rounded-xl text-white font-black text-sm sm:text-base tracking-wide shadow-md mt-1.5"
+              style={{ backgroundColor: '#1FAA46' }}
             >
-              <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
-            </svg>
+              School
+            </div>
+            <p className="text-xs sm:text-[13px] font-semibold text-slate-300/90 tracking-wide mt-3.5 drop-shadow-xs">
+              {appSettings.heroSubtitle || "Sistem Informasi Terpadu"}
+            </p>
           </div>
-
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA */}
-        <div className="relative w-full flex-1 bg-white px-5 pt-3 pb-[115px] flex flex-col items-center z-30 -mt-[1px]">
-          
+        {/* 2. AREA KONTEN FLOATING (LAYANAN PUBLIK, KEAHLIAN, MITRA) */}
+        <div className="relative w-full px-5 pb-[115px] flex flex-col items-center z-30 -mt-10">
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
-            {/* Judul: Layanan Publik (Warna Hitam, Nyaman & Tidak Mepet) */}
-            <div className="flex items-center justify-center gap-1.5 pt-4 pb-1 mb-4">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
-                Layanan Publik
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowPublicGuide(true)}
-                className="hover:opacity-80 cursor-pointer transition-opacity p-0.5 text-slate-400 hover:text-slate-700"
-                title="Informasi Layanan"
-              >
-                <Info size={14} strokeWidth={2.3} />
-              </button>
-            </div>
+            {/* CARD FLOATING: LAYANAN PUBLIK */}
+            <div className="w-full bg-white rounded-[28px] p-5 sm:p-6 shadow-xl shadow-slate-900/5 border border-slate-100">
+              
+              {/* Header dengan garis pemisah: — LAYANAN PUBLIK (?) — */}
+              <div className="flex items-center justify-center gap-3 mb-5">
+                <div className="h-px bg-slate-200 flex-1 max-w-[40px]" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#1FAA46]">
+                    Layanan Publik
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPublicGuide(true)}
+                    className="text-slate-400 hover:text-[#1FAA46] transition-colors p-0.5 cursor-pointer"
+                    title="Panduan Layanan"
+                  >
+                    <HelpCircle size={14} strokeWidth={2.2} />
+                  </button>
+                </div>
+                <div className="h-px bg-slate-200 flex-1 max-w-[40px]" />
+              </div>
 
-            {/* 8 Items Layanan: 2 Baris x 4 Kolom dengan Flex justify-between Sejajar Tombol Aksi */}
-            {(() => {
-              const gridServices = [
-                ...publicServices,
-                { label: "Lainnya", subtitle: "Bantuan", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#64748b" }
-              ].slice(0, 8);
+              {/* 8 Items Layanan: 2 Baris x 4 Kolom */}
+              {(() => {
+                const row1 = [
+                  {
+                    label: "Jadwal",
+                    path: "/jadwal",
+                    icon: (
+                      <div className="relative">
+                        <Calendar size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-white" />
+                      </div>
+                    )
+                  },
+                  {
+                    label: "Denah",
+                    path: "/denah",
+                    icon: <MapPin size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                  },
+                  {
+                    label: "Materi",
+                    path: "/materi-ajar",
+                    icon: <BookOpenText size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                  },
+                  {
+                    label: "Kalender",
+                    path: "/kalender-akademik",
+                    icon: <CalendarCheck size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                  }
+                ];
 
-              const rows = [gridServices.slice(0, 4), gridServices.slice(4, 8)];
+                const row2 = [
+                  {
+                    label: "PKL",
+                    path: "/pkl-locations",
+                    icon: <Briefcase size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                  },
+                  {
+                    label: "Struktur",
+                    path: "/organisasi",
+                    icon: (
+                      <div className="relative">
+                        <Users size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-white" />
+                      </div>
+                    )
+                  },
+                  {
+                    label: "Peraturan",
+                    onClick: () => setShowRulesModal(true),
+                    icon: <ShieldCheck size={22} strokeWidth={2.3} className="text-[#1FAA46]" />
+                  },
+                  {
+                    label: "Lainnya",
+                    onClick: () => setShowPublicGuide(true),
+                    icon: <MoreHorizontal size={22} strokeWidth={2.3} className="text-slate-500" />
+                  }
+                ];
 
-              return (
-                <div className="w-full flex flex-col gap-y-4 sm:gap-y-5">
-                  {rows.map((row, rowIdx) => (
-                    <div key={rowIdx} className="w-full flex items-start justify-between">
-                      {row.map((service, idx) => {
-                        const activeColor = service.customColor || service.defaultColor;
-                        return (
+                return (
+                  <div className="w-full flex flex-col gap-y-4 sm:gap-y-5">
+                    {[row1, row2].map((row, rowIdx) => (
+                      <div key={rowIdx} className="w-full flex items-start justify-between">
+                        {row.map((item, idx) => (
                           <button
                             key={idx}
                             type="button"
-                            onClick={() => {
-                              if (service.isLainnya) {
-                                setShowPublicGuide(true);
-                              } else if (service.isPdfRules) {
-                                setShowRulesModal(true);
-                              } else {
-                                navigate(service.path);
-                              }
-                            }}
-                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[64px]"
+                            onClick={item.onClick || (() => navigate(item.path))}
+                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[62px]"
                           >
-                            {/* Desain Icon Card Sesuai Desktop - Lebar Penuh Item */}
-                            <div 
-                              className="w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
-                              style={{ 
-                                backgroundColor: hexToRgba(activeColor, 0.08),
-                                border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
-                              }}
-                            >
-                              {service.customIcon ? (
-                                <img src={service.customIcon} alt="" className="w-7 h-7 object-contain" />
-                              ) : (
-                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-7 h-7 object-contain" />
-                              )}
+                            <div className="w-[56px] h-[56px] sm:w-[62px] sm:h-[62px] rounded-2xl bg-[#EEF9F1] border border-[#D8F2DE] flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-2xs">
+                              {item.icon}
                             </div>
-                            <span className="text-[10.5px] sm:text-xs font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
-                              {getShortLabel(service.label)}
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                              {item.label}
                             </span>
                           </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
-            {/* 3. PROGRAM KEAHLIAN UNGGULAN (COMPACT & FIT BANNER) */}
-            <div className="w-full mt-5 flex flex-col items-center">
-              <div className="flex flex-col items-center justify-center text-center mb-2.5">
-                <h2 className="text-[11px] sm:text-xs font-black text-slate-900 tracking-wider uppercase">
+            </div>
+
+            {/* 3. PROGRAM KEAHLIAN UNGGULAN */}
+            <div className="w-full mt-7 flex flex-col items-center">
+              <div className="flex flex-col items-center justify-center text-center mb-3">
+                <h2 className="text-xs sm:text-[13px] font-black text-slate-900 tracking-wider uppercase">
                   {appSettings.trustedByText || "Program Keahlian Unggulan"}
                 </h2>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                <p className="text-[10px] sm:text-[10.5px] text-slate-400 font-semibold mt-0.5">
                   Kompetensi keahlian terakreditasi berstandar industri
                 </p>
               </div>
 
-              {/* Banner Card Hijau Solid #3DAA37 - Compact & Fit Tanpa Badge Logo & Tanpa Teks Keahlian */}
+              {/* Banner Card Hijau Solid #1FAA46 Sesuai Mockup */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
-                const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full rounded-2xl py-3 px-4 shadow-sm text-white relative overflow-hidden transition-all duration-500 flex flex-col items-center justify-center"
-                    style={{
-                      backgroundColor: cardColor,
-                      boxShadow: `0 6px 18px ${hexToRgba(cardColor, 0.2)}`
-                    }}
+                    className="w-full rounded-2xl sm:rounded-3xl py-4 sm:py-5 px-5 shadow-lg shadow-green-700/20 text-white flex flex-col items-center justify-center transition-all duration-500"
+                    style={{ backgroundColor: '#1FAA46' }}
                   >
-                    {/* Nama Jurusan Saja (Tebal, Centered, Rapi) */}
-                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider text-center drop-shadow-xs truncate w-full px-2">
+                    <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-center text-white drop-shadow-xs truncate w-full px-2">
                       {activeProgram.name}
                     </h3>
 
-                    {/* Indikator Titik Carousel (Dots) di Bawahnya */}
-                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                    {/* Carousel indicator dots */}
+                    <div className="flex items-center justify-center gap-1.5 mt-2.5">
                       {availablePrograms.map((prog, pIdx) => {
                         const isActive = activeProgramIdx === pIdx;
                         return (
@@ -711,8 +719,8 @@ export default function LandingPage() {
                             key={pIdx}
                             type="button"
                             onClick={() => setActiveProgramIdx(pIdx)}
-                            className={`h-1 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
-                              isActive ? 'w-5 bg-white' : 'w-1 bg-white/45 hover:bg-white/75'
+                            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                              isActive ? 'w-6 bg-white' : 'w-1.5 bg-white/45 hover:bg-white/75'
                             }`}
                             title={`Keahlian 0${prog.index}`}
                           />
@@ -724,9 +732,9 @@ export default function LandingPage() {
               })()}
             </div>
 
-            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN (MITRA KERJASAMA CARD - COMPACT) */}
-            <div className="w-full bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-100 flex flex-col items-center mt-3">
-              <span className="text-[9px] sm:text-[9.5px] font-black text-slate-400 uppercase tracking-widest text-center mb-2.5">
+            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN */}
+            <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100 flex flex-col items-center mt-4">
+              <span className="text-[9px] sm:text-[9.5px] font-black text-slate-400 uppercase tracking-widest text-center mb-3">
                 Telah Dipercaya & Bekerjasama Dengan
               </span>
 
@@ -735,7 +743,7 @@ export default function LandingPage() {
                   {mitraList.map((mitra, idx) => (
                     <div 
                       key={idx} 
-                      className="h-7 sm:h-8 flex items-center justify-center shrink-0 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer"
+                      className="h-7 sm:h-8 flex items-center justify-center shrink-0 grayscale opacity-55 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer"
                       title={mitra.name}
                     >
                       {mitra.image ? (
@@ -1160,28 +1168,29 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
+      {/* Mobile Bottom Action Bar (Sesuai Mockup Gambar User) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white/95 backdrop-blur-md px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] border-t border-slate-100 select-none shadow-[0_-4px_25px_rgba(0,0,0,0.04)]">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
-          {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
+          {/* Tombol Pertama: Masuk Sekarang (Hijau solid #1FAA46, rounded-2xl, icon panah putih) */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            style={{ backgroundColor: '#3DAA37' }}
-            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+            style={{ backgroundColor: '#1FAA46' }}
+            className="flex-1 h-[52px] rounded-2xl text-white font-black text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:bg-[#188c3a] cursor-pointer border-none"
           >
-            Masuk Sekarang
+            <span>Masuk Sekarang</span>
+            <ArrowRight size={18} strokeWidth={2.8} />
           </button>
 
-          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau solid #3DAA37 sama, ikon Bantuan (Membuka Bottom Sheet) */}
+          {/* Tombol Kedua: Kotak Persegi rounded-2xl, bg-white, border-2 hijau #1FAA46, icon tanda tanya "?" */}
           <button
             type="button"
             onClick={() => setShowPublicHelp(true)}
             title="Bantuan & Panduan"
-            style={{ backgroundColor: '#3DAA37' }}
-            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+            style={{ borderColor: '#1FAA46', color: '#1FAA46' }}
+            className="w-[52px] h-[52px] shrink-0 rounded-2xl bg-white border-2 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-emerald-50 cursor-pointer text-2xl font-black leading-none"
           >
-            <HelpCircle size={23} strokeWidth={2.3} />
+            ?
           </button>
         </div>
       </div>
