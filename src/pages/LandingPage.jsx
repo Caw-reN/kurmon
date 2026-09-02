@@ -1670,29 +1670,11 @@ export default function LandingPage() {
                       <ChevronLeft size={18} strokeWidth={2.6} />
                     </button>
 
-                    {/* Area Konten Tengah: Nama Jurusan & Indikator Dots */}
-                    <div className="flex-1 flex flex-col items-center justify-center px-2 min-w-0 z-10">
+                    {/* Area Konten Tengah: Nama Jurusan */}
+                    <div className="flex-1 flex items-center justify-center px-2 min-w-0 z-10">
                       <h3 className="text-xs sm:text-[13.5px] font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-tight">
                         {activeProgram.name}
                       </h3>
-
-                      {/* Indikator Titik Carousel (Dots) */}
-                      <div className="flex items-center justify-center gap-1.5 mt-2">
-                        {availablePrograms.map((prog, pIdx) => {
-                          const isActive = activeProgramIdx === pIdx;
-                          return (
-                            <button
-                              key={pIdx}
-                              type="button"
-                              onClick={() => setActiveProgramIdx(pIdx)}
-                              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
-                                isActive ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                              }`}
-                              title={`Keahlian 0${prog.index}`}
-                            />
-                          );
-                        })}
-                      </div>
                     </div>
 
                     {/* Tombol Panah Kanan */}
