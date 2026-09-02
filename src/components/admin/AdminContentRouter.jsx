@@ -313,7 +313,7 @@ export default function AdminContentRouter({ context }) {
     }
     switch (activeTab) {
       case"dashboard":
-        return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} staffs={staffs} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} />;
+        return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} staffs={staffs} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} checkIsAllowed={context.checkIsAllowed} />;
       case"fitur":
         return <FiturManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
       case "hak_akses":

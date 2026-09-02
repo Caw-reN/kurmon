@@ -61,7 +61,8 @@ export default function DashboardPage({
   staffs: _staffs,
   setActiveTab,
   onOpenProfile,
-  handleLogout }) {
+  handleLogout,
+  checkIsAllowed }) {
   const storeStaffs = useDataStore(state => state.staffs);
   const classes = _classes || [];
   const teachers = _teachers || [];
@@ -294,19 +295,18 @@ export default function DashboardPage({
     }));
   }, [schedule, teacherCode]);
 
+  // Hooks harus selalu dipanggil di level atas komponen (bukan di dalam conditional)
+  const students = useDataStore((state) => state.students) || [];
+  // staffsStore dan studentsStore untuk view Kepsek/Admin — harus di level atas agar tidak melanggar Rules of Hooks
+  const staffsStore = useDataStore((state) => state.staffs) || [];
+  const studentsStore = students; // alias — students sudah include semua
 
-  // ===================== GURU VIEW =====================
-  if (isTeacher) {
-    const students = useDataStore((state) => state.students) || [];
-    // Calculate Wali Kelas students count dynamically
-    const myStudentsCount = (students || []).filter(s => {
-      return String(s.class_id) === String(currentUser?.walasClass) || String(s.className) === String(currentUser?.walasClass);
-    }).length || 75; // Fallback to 75 as in screenshot if database is empty
-
+  const teacherShortcuts = useMemo(() => {
+    if (!isTeacher) return [];
     const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
-    const teacherShortcuts = (() => {
-      // BP/BK: prioritaskan menu konseling & kesiswaan
-      if (teacherSubrole === 'bpbk') return [
+    let shortcuts = [];
+    if (teacherSubrole === 'bpbk') {
+      shortcuts = [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
@@ -316,8 +316,8 @@ export default function DashboardPage({
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-sky-50 text-sky-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
-      // Wali Kelas: prioritaskan menu kelas
-      if (teacherSubrole === 'walikelas') return [
+    } else if (teacherSubrole === 'walikelas') {
+      shortcuts = [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
         { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
@@ -327,8 +327,8 @@ export default function DashboardPage({
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
-      // Tim Kesiswaan (pembina OSIS, sekretaris kesiswaan, anggota kesiswaan)
-      if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) return [
+    } else if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) {
+      shortcuts = [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
@@ -336,8 +336,8 @@ export default function DashboardPage({
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
-      // Tim Kurikulum
-      if (['sekretaris_kurikulum', 'anggota_kurikulum'].includes(teacherSubrole)) return [
+    } else if (['sekretaris_kurikulum', 'anggota_kurikulum'].includes(teacherSubrole)) {
+      shortcuts = [
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Silabus Akademik", icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600", tab: "silabus" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
@@ -345,8 +345,8 @@ export default function DashboardPage({
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
-      // Guru default (biasa/pengajar)
-      return [
+    } else {
+      shortcuts = [
         { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
         { label: "Jurnal", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
@@ -356,15 +356,27 @@ export default function DashboardPage({
         { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-indigo-50 text-indigo-600", tab: "akademik" },
       ];
-    })();
+    }
+    if (checkIsAllowed) return shortcuts.filter(s => checkIsAllowed(s.tab, null));
+    return shortcuts;
+  }, [isTeacher, currentUser?.subrole, checkIsAllowed]);
 
-    const teacherStatCards = [
-      { label: "Siswa Saya", value: myStudentsCount, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600" },
-      { label: "Kelas Saya", value: myClasses || 4, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600" },
-      { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600" },
-      { label: "Modul Ajar", value: mySyllabuses || 0, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600" },
-    ];
+  const myStudentsCount = useMemo(() => {
+    if (!isTeacher) return 0;
+    return (students || []).filter(s =>
+      String(s.class_id) === String(currentUser?.walasClass) || String(s.className) === String(currentUser?.walasClass)
+    ).length || 75;
+  }, [isTeacher, students, currentUser?.walasClass]);
 
+  const teacherStatCards = useMemo(() => [
+    { label: "Siswa Saya", value: myStudentsCount, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600" },
+    { label: "Kelas Saya", value: myClasses || 4, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600" },
+    { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600" },
+    { label: "Modul Ajar", value: mySyllabuses || 0, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600" },
+  ], [myStudentsCount, myClasses, totalBebanJam, mySyllabuses]);
+
+  // ===================== GURU VIEW (early return) =====================
+  if (isTeacher) {
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
@@ -583,12 +595,12 @@ export default function DashboardPage({
                   <button
                     key={idx}
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none"
+                    className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none relative z-10"
                   >
-                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all`}>
-                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all pointer-events-none`}>
+                      <img src={shortcut.icon} className="w-5 h-5 object-contain pointer-events-none" alt="" />
                     </div>
-                    <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                    <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5 pointer-events-none">
                       {shortcut.label}
                     </span>
                   </button>
@@ -1196,10 +1208,6 @@ export default function DashboardPage({
                  : isTU ? [allStatCards.absen, allStatCards.kelas, allStatCards.guru, allStatCards.jadwal]
                  : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
 
-  // Remove dummy data references for PKL stats — use 0 defaults
-  const staffsStore = useDataStore((state) => state.staffs) || [];
-  const studentsStore = useDataStore((state) => state.students) || [];
-
   if (isKepsek) {
     return (
       <KepsekExecutiveDashboard
@@ -1750,21 +1758,19 @@ export default function DashboardPage({
             })().map((shortcut, i) => (
               <button
                 key={i}
+                type="button"
                 onClick={() => setActiveTab(shortcut.tab)}
-                className="bg-slate-50/90 py-2 px-1 rounded-[var(--ui-radius-control)] border border-slate-200/60 shadow-xs flex flex-col items-center justify-center gap-1 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-sm transition-all duration-200 cursor-pointer text-center w-full group min-h-[60px] sm:min-h-[70px]"
+                className="group relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-[var(--ui-radius-card)] bg-[var(--ui-card-bg,white)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/50 cursor-pointer overflow-hidden isolate h-full z-10"
               >
-                <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                  {typeof shortcut.icon === 'string' ? (
-                    <img src={shortcut.icon} className="w-6 h-6 object-contain" alt="" />
-                  ) : (
-                    <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 ${shortcut.color}`}>
-                      <shortcut.icon size={13} strokeWidth={2.2} />
-                    </div>
-                  )}
+                {/* Background Hover Effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-current" />
+                
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--ui-radius-control)] ${shortcut.color} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 mb-2 pointer-events-none`}>
+                  <img src={shortcut.icon} className="w-5 h-5 sm:w-6 sm:h-6 object-contain pointer-events-none" alt="" />
                 </div>
-                <div className="w-full">
-                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-700 leading-[1.15] text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
-                </div>
+                <span className="text-xs sm:text-[13px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-1 pointer-events-none">
+                  {shortcut.label}
+                </span>
               </button>
             ))}
           </div>
@@ -2458,8 +2464,6 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && activeDivision === 'kesiswaan');
 
-  if (!canSeeTeacherAttendance && !canSeeStudentAttendance) return null;
-
   // ── Statistik Guru dari attendanceRecords & dashLogs ──
   const guruStats = useMemo(() => {
     // 1. Buat Set daftar guru valid dari master data
@@ -2693,6 +2697,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const siswaPercent = (siswaStats.totalSiswaInSchool > 0)
     ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / siswaStats.totalSiswaInSchool) * 100)
     : (siswaStats.total > 0 ? Math.round((siswaStats.Hadir / siswaStats.total) * 100) : 0);
+
+  if (!canSeeTeacherAttendance && !canSeeStudentAttendance) return null;
 
   return (
     <div className="flex flex-col gap-3">

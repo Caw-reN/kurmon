@@ -29,6 +29,7 @@ export default function AdminMobileNav({
   setIsMobileMenuOpen,
   hasPiket,
   appSettings,
+  checkIsAllowed,
 }) {
   const [navStyle, setNavStyle] = React.useState(() => {
     return localStorage.getItem('kurmon_tabbar_nav_style') || appSettings?.tabbarStyle || 'top_line';
@@ -47,139 +48,131 @@ export default function AdminMobileNav({
     const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
     const subrole = (currentUser?.subrole || '').toLowerCase().trim();
 
+    let rawTabs = [];
+
     if (role === 'guru') {
-      // BP/BK: tampilkan menu kesiswaan
       if (subrole === 'bpbk') {
-        return [
+        rawTabs = [
           { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
           { id: 'kedisiplinan_bpbk', icon: ClipboardList, label: 'BK' },
           { id: 'riwayat_prestasi', icon: FileText, label: 'Prestasi' },
           { id: 'modul_ajar', icon: FileText, label: 'Modul' },
         ];
-      }
-      // Wali Kelas: tambahkan menu kelas
-      if (subrole === 'walikelas' || currentUser?.isWalas) {
-        return [
+      } else if (subrole === 'walikelas' || currentUser?.isWalas) {
+        rawTabs = [
           { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
           { id: 'catatan_walikelas', icon: FileText, label: 'Catatan' },
           { id: 'walas_report', icon: PieChart, label: 'Laporan' },
           { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
         ];
-      }
-      // Guru Kurikulum subroles
-      if (subrole === 'sekretaris_kurikulum' || subrole === 'anggota_kurikulum') {
-        return [
+      } else if (subrole === 'sekretaris_kurikulum' || subrole === 'anggota_kurikulum') {
+        rawTabs = [
           { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
           { id: 'silabus', icon: FileText, label: 'Silabus' },
           { id: 'modul_ajar', icon: FileText, label: 'Modul' },
           { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
         ];
+      } else {
+        rawTabs = [
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'generate', icon: Calendar, label: 'Jadwal' },
+          { id: 'modul_ajar', icon: FileText, label: 'Modul' },
+          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        ];
       }
-      // Guru umum default
-      return [
-        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-        { id: 'generate', icon: Calendar, label: 'Jadwal' },
-        { id: 'modul_ajar', icon: FileText, label: 'Modul' },
-        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
-      ];
-    }
-
-    if (role === 'tu' || role === 'tata_usaha') {
+    } else if (role === 'tu' || role === 'tata_usaha') {
       if (subrole === 'sekretaris_tu') {
-        return [
+        rawTabs = [
           { id: 'esurat', icon: FileText, label: 'E-Surat' },
           { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
           { id: 'laporan_absensi', icon: ClipboardList, label: 'Absensi' },
           { id: 'kartu_pelajar', icon: Users, label: 'Kartu' },
         ];
-      }
-      if (subrole === 'bendahara') {
-        return [
+      } else if (subrole === 'bendahara') {
+        rawTabs = [
           { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
           { id: 'guru', icon: Users, label: 'Guru' },
           { id: 'karyawan', icon: Briefcase, label: 'Karyawan' },
           { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
         ];
+      } else {
+        rawTabs = [
+          { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
+          { id: 'laporan_absensi', icon: ClipboardList, label: 'Absensi' },
+          { id: 'esurat', icon: FileText, label: 'E-Surat' },
+          { id: 'kartu_pelajar', icon: Users, label: 'Kartu' },
+        ];
       }
-      return [
-        { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
-        { id: 'laporan_absensi', icon: ClipboardList, label: 'Absensi' },
-        { id: 'esurat', icon: FileText, label: 'E-Surat' },
-        { id: 'kartu_pelajar', icon: Users, label: 'Kartu' },
-      ];
-    }
-
-    if (role === 'karyawan') {
-      return [
+    } else if (role === 'karyawan') {
+      rawTabs = [
         { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
         { id: 'laporan_absensi', icon: ClipboardList, label: 'Laporan' },
         { id: 'akademik', icon: Calendar, label: 'Kalender' },
         { id: 'pesan', icon: FileText, label: 'Pesan' },
       ];
-    }
-
-    if (role === 'kepsek') {
-      return [
+    } else if (role === 'kepsek') {
+      rawTabs = [
         { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
         { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
         { id: 'walas_report', icon: PieChart, label: 'Laporan' },
         { id: 'pesan', icon: FileText, label: 'Pesan' },
       ];
-    }
-
-    if (role === 'waka') {
+    } else if (role === 'waka') {
       if (div === 'hubin') {
-        return [
+        rawTabs = [
           { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
           { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
           { id: 'pkl_jurnal', icon: BookOpen, label: 'Jurnal' },
           { id: 'pesan', icon: FileText, label: 'Pesan' },
         ];
-      }
-      if (div === 'kesiswaan') {
-        return [
+      } else if (div === 'kesiswaan') {
+        rawTabs = [
           { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
           { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
           { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
           { id: 'tatib_skor', icon: FileText, label: 'Tatib' },
         ];
-      }
-      if (div === 'sarpras') {
-        return [
+      } else if (div === 'sarpras') {
+        rawTabs = [
           { id: 'ruangan', icon: Home, label: 'Ruangan' },
           { id: 'denah', icon: FileText, label: 'Denah' },
           { id: 'generate', icon: Calendar, label: 'Jadwal' },
           { id: 'siswa', icon: GraduationCap, label: 'Siswa' },
         ];
-      }
-      if (div === 'humas') {
-        return [
+      } else if (div === 'humas') {
+        rawTabs = [
           { id: 'pesan', icon: FileText, label: 'Pesan' },
           { id: 'akademik', icon: Calendar, label: 'Kalender' },
           { id: 'tampilan', icon: FileText, label: 'Tampilan' },
           { id: 'modul_ajar', icon: BookOpen, label: 'Modul' },
         ];
+      } else {
+        // Waka Kurikulum (default)
+        rawTabs = [
+          { id: 'generate', icon: Calendar, label: 'Jadwal' },
+          { id: 'silabus', icon: BookOpen, label: 'Silabus' },
+          { id: 'beban', icon: FileText, label: 'Beban' },
+          { id: 'jurnal_harian', icon: ClipboardList, label: 'Jurnal' },
+        ];
       }
-      // Waka Kurikulum (default)
-      return [
+    } else if (isSuperAdminRole(role)) {
+      rawTabs = [
+        { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
         { id: 'generate', icon: Calendar, label: 'Jadwal' },
-        { id: 'silabus', icon: BookOpen, label: 'Silabus' },
-        { id: 'beban', icon: FileText, label: 'Beban' },
-        { id: 'jurnal_harian', icon: ClipboardList, label: 'Jurnal' },
+        { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
+      ];
+    } else {
+      rawTabs = [
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
       ];
     }
 
-    if (isSuperAdminRole(role)) return [
-      { id: 'data_pegawai', icon: Users, label: 'Pegawai' },
-      { id: 'generate', icon: Calendar, label: 'Jadwal' },
-      { id: 'absensi', icon: CheckCircle2, label: 'Absensi' },
-    ];
-
-    return [
-      { id: 'generate', icon: Calendar, label: 'Jadwal' },
-      { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-      { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
-    ];
+    if (checkIsAllowed) {
+      return rawTabs.filter(tab => checkIsAllowed(tab.id, null));
+    }
+    return rawTabs;
   };
 
   const primaryRoleTabs = getRoleTabs().slice(0, 3);
@@ -201,7 +194,7 @@ export default function AdminMobileNav({
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 w-full z-50 print:hidden"
+      className="lg:hidden fixed bottom-0 left-0 right-0 w-full z-[100] print:hidden"
       role="navigation"
       aria-label="Navigasi Mobile"
     >

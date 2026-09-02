@@ -1401,7 +1401,10 @@ const getHeaders = (req) => {
     "X-XSS-Protection": "1; mode=block",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-    "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;",
+    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; sandbox",
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
   };
   if (origin) {
     headers["Access-Control-Allow-Origin"] = origin;
@@ -1512,7 +1515,10 @@ const send = (req, res, statusCode, payload) => {
 const logAudit = async (pool, session, req, action, targetType, detail, targetId = null) => {
   if (!pool) return;
   try {
-    const ip = (req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || '').split(',')[0].trim();
+    // Gunakan getClientIp agar tidak bisa di-spoof via x-forwarded-for tanpa TRUST_PROXY
+    const ip = (process.env.TRUST_PROXY === 'true')
+      ? String(req?.headers?.['x-forwarded-for'] || '').split(',')[0].trim() || (req?.socket?.remoteAddress || '')
+      : (req?.socket?.remoteAddress || req?.connection?.remoteAddress || '');
     const ua = req?.headers?.['user-agent'] || '';
     await pool.query(
       `INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, target_id, detail, ip_address, user_agent) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
@@ -1642,7 +1648,6 @@ const ensureDatabaseReadable = async (req, res) => {
 
 
 const server = createServer(async (req, res) => {
-  console.log("Req:", req.url);
   const corsOrigin = resolveCorsOrigin(req.headers.origin, ALLOWED_ORIGINS);
   req.__corsOrigin = corsOrigin;
 

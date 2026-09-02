@@ -406,7 +406,18 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                 const insertRes = await dbPool.query(`
                   INSERT INTO kedisiplinan_absensi 
                   (siswa_nis, tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name, gdrive_url) 
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+                  ON CONFLICT (siswa_nis, tanggal) 
+                  DO UPDATE SET 
+                    status = EXCLUDED.status,
+                    keterangan = EXCLUDED.keterangan,
+                    pelapor_id = EXCLUDED.pelapor_id,
+                    pelapor_nama = EXCLUDED.pelapor_nama,
+                    approval_status = EXCLUDED.approval_status,
+                    approved_by_id = EXCLUDED.approved_by_id,
+                    approved_by_name = EXCLUDED.approved_by_name,
+                    gdrive_url = COALESCE(EXCLUDED.gdrive_url, kedisiplinan_absensi.gdrive_url)
+                  RETURNING id
                 `, [
                   body.siswa_nis, 
                   body.tanggal, 

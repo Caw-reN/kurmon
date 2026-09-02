@@ -17,6 +17,18 @@ const getClientIp = (req) => {
   return req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown';
 };
 
+// Cleanup memory leak prevention
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of loginAttempts.entries()) {
+    if (val.lockUntil < now) loginAttempts.delete(key);
+  }
+  for (const [key, val] of loginAttemptsByIp.entries()) {
+    if (val.lockUntil < now) loginAttemptsByIp.delete(key);
+  }
+}, 3600000); // 1 jam
+
+
 export async function handleAuthRoutes(req, res, url, ctx) {
   const {
     dbPool,

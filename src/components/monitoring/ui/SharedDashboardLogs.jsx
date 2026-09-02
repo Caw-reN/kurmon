@@ -70,7 +70,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   // Store fallbacks
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
-  const storeTeachers = useDataStore(state => state.teachers) || useAppStore(state => state.teachers) || [];
+  const dataStoreTeachers = useDataStore(state => state.teachers);
+  const appStoreTeachers = useAppStore(state => state.teachers);
+  const storeTeachers = dataStoreTeachers || appStoreTeachers || [];
   const dataStoreStudents = useDataStore(state => state.students) || [];
   const storeStudents = useAppStore(state => state.students) || [];
   const snapshotStudents = getDatabaseSnapshot()?.students || [];

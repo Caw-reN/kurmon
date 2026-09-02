@@ -2635,32 +2635,20 @@ export default function App() {
       </span>
     </div>;
   };
-  const renderNavItem = ({
-    id,
-    icon,
-    label,
-    badge,
-    collapsed,
-    featureKey,
-    activeIds
-  }) => {
+  const checkIsAllowed = (id, featureKey) => {
     const activeRole = normalizeUserRole(currentUser?.role);
 
     if (id === 'beban') {
       const isKurikulumWaka = activeRole === "waka" && (currentUser?.division || "").toLowerCase() === "kurikulum";
       const isSuperAdminOrAdmin = activeRole === "superadmin" || activeRole === "admin";
-      if (!isSuperAdminOrAdmin && !isKurikulumWaka) return null;
+      if (!isSuperAdminOrAdmin && !isKurikulumWaka) return false;
     }
 
-    // Admin & superadmin always get everything
     if (activeRole === "superadmin" || activeRole === "admin") {
-      if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
-      const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
-      const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
-      return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
+      if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
+      return true;
     }
 
-    // Determine effective rolePermissions key
     let effectiveKey = activeRole;
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
     const KNOWN_SUBROLES = [
@@ -2681,7 +2669,6 @@ export default function App() {
       effectiveKey = "tu";
     }
 
-    // Look up permission — rolePermissions is the SINGLE source of truth
     const perms = rolePermissions?.[effectiveKey] || rolePermissions?.[activeRole];
     let level = null;
     if (perms && typeof perms === 'object' && !Array.isArray(perms)) {
@@ -2696,13 +2683,10 @@ export default function App() {
     if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
       isAllowed = true;
     } else if (level === "nonaktif" || level === "none" || level === "off") {
-      // STRICT: Jika dinonaktifkan di Hak Akses Role, tombol/menu TIDAK BOLEH tampil
       isAllowed = false;
     } else if (isWalasUser && ["catatan_walikelas", "walas_report"].includes(id)) {
-      // Wali Kelas default
       isAllowed = true;
     } else {
-      // Fallback DEFAULTS jika belum diatur di rolePermissions
       const DEFAULTS = {
         guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"],
         bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","siswa","hikvision_report_siswa"],
@@ -2724,13 +2708,26 @@ export default function App() {
       isAllowed = defaultList.includes(id);
     }
     
-    // STRICT OVERRIDE: Waka Kesiswaan tidak boleh melihat absensi (Jadwal & Sesi) dan laporan_absensi
     if ((id === 'absensi' || id === 'laporan_absensi') && (effectiveKey === 'waka_kesiswaan' || effectiveKey === 'kesiswaan')) {
       isAllowed = false;
     }
 
-    if (!isAllowed) return null;
-    if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return null;
+    if (!isAllowed) return false;
+    if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
+    return true;
+  };
+
+  const renderNavItem = ({
+    id,
+    icon,
+    label,
+    badge,
+    collapsed,
+    featureKey,
+    activeIds
+  }) => {
+    if (!checkIsAllowed(id, featureKey)) return null;
+
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
     const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
     return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
@@ -3870,7 +3867,7 @@ export default function App() {
         <div className="flex-1 flex flex-col w-full min-w-0">
 
           {databaseHydrated ? (
-            <AdminContentRouter context={tabProps} />
+            <AdminContentRouter context={{...tabProps, checkIsAllowed}} />
           ) : (
             <div className="flex-1 flex flex-col w-full min-w-0 gap-5 animate-pulse mt-1">
               <div className="flex items-center gap-4">
@@ -3929,6 +3926,7 @@ export default function App() {
         setIsMobileMenuOpen={setIsMobileMenuOpen} 
         hasPiket={hasPiket}
         appSettings={appSettings}
+        checkIsAllowed={checkIsAllowed}
       />
     </main>
 

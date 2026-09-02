@@ -824,16 +824,6 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const currentYear = new Date().getFullYear();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
 
-  if (user?.isWalas && !user.walasClass) {
-     return (
-        <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
-           <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
-           <h3 className="text-xl font-bold text-rose-700">Data Wali Kelas Belum Lengkap</h3>
-           <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
-        </div>
-     );
-  }
-
   const checkViolation = useCallback((d, daysList = []) => {
     let maxConsecutiveLate = 0;
     let currConsecutiveLate = 0;
@@ -972,6 +962,16 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       </div>
     );
   };
+
+  if (user?.isWalas && !user.walasClass) {
+     return (
+        <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
+           <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
+           <h3 className="text-xl font-bold text-rose-700">Data Wali Kelas Belum Lengkap</h3>
+           <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
+        </div>
+     );
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">
