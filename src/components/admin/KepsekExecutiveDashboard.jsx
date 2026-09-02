@@ -11,6 +11,7 @@ import { SharedDashboardLogs } from '../monitoring/ui/index.js';
 import LiveUserActivityLog from './LiveUserActivityLog.jsx';
 import UserLoginSessionTracker from './UserLoginSessionTracker.jsx';
 import JurusanKelasAttendanceSummary from './JurusanKelasAttendanceSummary.jsx';
+import AttendanceTrendChartCard from './AttendanceTrendChartCard.jsx';
 
 // ─── Mini Helpers ────────────────────────────────────────────────────────────
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
@@ -853,9 +854,19 @@ export default function KepsekExecutiveDashboard({
 
         </div>
 
-        {/* ── SISI KANAN (4 / 12 kolom): Monitor & Aktivitas Pemantauan Sekolah (Tinggi Penuh) ── */}
-        <div className="lg:col-span-4 h-full flex flex-col">
-          <SharedDashboardLogs onLogsFetched={setDashLogs} />
+        {/* ── SISI KANAN (4 / 12 kolom): Grafik Tren Kehadiran (Atas) + Monitor & Aktivitas (Bawah) ── */}
+        <div className="lg:col-span-4 flex flex-col gap-4 h-full">
+          {/* Box 1 (Atas Kanan): Grafik Tren & Jam Kehadiran */}
+          <AttendanceTrendChartCard 
+            dashLogs={dashLogs} 
+            siswaStats={siswaStats} 
+            guruStats={guruStats} 
+          />
+
+          {/* Box 2 (Bawah Kanan): Monitor & Aktivitas Pemantauan Sekolah */}
+          <div className="flex-1 flex flex-col">
+            <SharedDashboardLogs onLogsFetched={setDashLogs} />
+          </div>
         </div>
 
       </div>
