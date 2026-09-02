@@ -544,6 +544,7 @@ export default function AdminContentRouter({ context }) {
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
           <MonitoringImportData teachers={teachers} students={students} authToken={currentUser?.authToken || ''} setActiveTab={setActiveTab} />
         </Suspense>;
+      case"dataperusahaan":
       case"pkl_data_perusahaan":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
           <MonitoringDataPerusahaan students={students} readOnly={isTabReadOnly("pkl_data_perusahaan")} majors={majors} />
@@ -729,11 +730,8 @@ export default function AdminContentRouter({ context }) {
           <MasterDataBeban teachingLoads={teachingLoads} teachers={teachers} subjects={subjects} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} isSuperAdminRole={isSuperAdminRole} currentUser={currentUser} getTeacherName={getTeacherName} normalizeText={normalizeText} searchTerm={searchTerm} loadFilters={loadFilters} csvValueMatches={csvValueMatches} parseTeacherCodes={parseTeacherCodes} getActiveSortConfig={getActiveSortConfig} TABLE_SORT_OPTIONS={TABLE_SORT_OPTIONS} selectedRows={selectedRows} getTableSort={getTableSort} getLoadKey={getLoadKey} teacherAvailability={teacherAvailability} recommendedLoads={recommendedLoads} parsePositiveInt={parsePositiveInt} openImportGuide={openImportGuide} downloadMasterTemplate={downloadMasterTemplate} applyRecommendations={applyRecommendations} handleBulkDelete={handleBulkDelete} setSearchTerm={setSearchTerm} setLoadFilters={setLoadFilters} majors={majors} setTableSorts={setTableSorts} DEFAULT_TABLE_SORTS={DEFAULT_TABLE_SORTS} csvValuesIntersect={csvValuesIntersect} />
         </Suspense>;
       default:
-        return <div className="flex flex-col items-center justify-center h-full text-slate-500">
-          <PageHeader title="Kasus & Pelanggaran (BP/BK)" icon={AlertCircle} description={tabSubtitles["kedisiplinan_bpbk"] || tabSubtitles["default"]} />
-          <PageHeader title="Laporan Guru Piket" icon={ClipboardList} description={tabSubtitles["kedisiplinan_piket"] || tabSubtitles["default"]} />
-          <PageHeader title="Laporan Kedisiplinan Absensi" icon={UserX} description={tabSubtitles["kedisiplinan_absensi"] || tabSubtitles["default"]} />
-          <PageHeader title="Lokasi PKL" icon={MapPin} description={tabSubtitles["pkl_lokasi"] || tabSubtitles["default"]} />
+        return <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">
+          <AlertCircle size={48} className="text-slate-300 mb-4" />
           <h2 className="text-2xl font-bold mb-2">Halaman {activeTab}</h2>
           <p>Konten untuk halaman ini belum tersedia.</p>
         </div>;
