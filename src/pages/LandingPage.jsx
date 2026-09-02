@@ -501,105 +501,91 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain & Kustomisasi CSS Web) */}
-      <div className="md:hidden flex flex-col w-full pb-28 bg-[var(--ui-bg,#f8fafc)] min-h-screen relative">
+      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain & Palet Warna Mockup) */}
+      <div className="md:hidden flex flex-col w-full pb-28 bg-[#f5f8f6] min-h-screen relative">
 
-        {/* 1. TOP HEADER BAR (Mobile) */}
-        <header className="w-full bg-[var(--ui-card-bg,white)]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
+        {/* 1. TOP HEADER BAR (Mobile: Light Mint Background) */}
+        <header className="w-full bg-[#eaf4ee] px-4 py-3 flex items-center justify-between border-b border-[#d8ebe0] sticky top-0 z-30 shadow-2xs">
           <div className="flex items-center gap-2.5">
             {appSettings.logoUrl ? (
-              <div 
-                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex items-center justify-center p-1 shadow-xs"
-                style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
-              >
+              <div className="w-9 h-9 rounded-xl bg-[#16a34a] flex items-center justify-center p-1 shadow-xs">
                 <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div 
-                className="w-9 h-9 rounded-[var(--ui-radius-small,12px)] flex flex-col items-center justify-center text-white shadow-xs leading-none"
-                style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
-              >
-                <span className="text-[7.5px] font-black opacity-80">SMK</span>
-                <span className="text-[10.5px] font-black">{appSettings.logoText || "KG2"}</span>
+              <div className="w-9 h-9 rounded-xl bg-[#16a34a] flex flex-col items-center justify-center text-white shadow-xs leading-none">
+                <span className="text-[7.5px] font-black opacity-90 tracking-tighter">SMK</span>
+                <span className="text-[10.5px] font-black">KG2</span>
               </div>
             )}
             <div className="flex flex-col text-left">
-              <span className="text-[13px] font-black text-slate-800 leading-tight">Sistem Informasi</span>
-              <span 
-                className="text-[11px] font-bold leading-tight"
-                style={{ color: 'var(--ui-primary, #059669)' }}
-              >
-                {appSettings.appName || "Karya Guna 2"}
-              </span>
+              <span className="text-[13px] font-black text-slate-900 leading-tight">Sistem Informasi</span>
+              <span className="text-[11px] font-bold text-[#16a34a] leading-tight">Karya Guna 2</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setShowPublicGuide(true)}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-95 transition-all cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white border border-slate-200/90 shadow-xs flex items-center justify-center text-slate-700 hover:text-slate-950 active:scale-95 transition-all cursor-pointer"
             aria-label="Pencarian"
           >
-            <Search size={16} />
+            <Search size={16} strokeWidth={2.5} />
           </button>
         </header>
 
-        {/* 2. GREEN HERO CARD */}
+        {/* 2. GREEN HERO CARD (Rich Forest Emerald Gradient) */}
         <div
           className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-16 overflow-hidden"
           style={{
-            background: 'linear-gradient(180deg, var(--ui-primary, #0e5b38) 0%, color-mix(in srgb, var(--ui-primary, #0e5b38) 65%, #000) 100%)'
+            background: 'linear-gradient(180deg, #157444 0%, #0c4d2d 100%)'
           }}
         >
-          {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/15 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12" />
+          {/* Subtle Ambient Radial Glow */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-300/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/20 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12" />
 
           {/* Capsule Tag: TAHUN AJARAN 2026/2027 */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/25 backdrop-blur-md border border-white/20 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
             <span>Tahun Ajaran 2026/2027</span>
           </div>
 
           {/* Big Bold Headline */}
           <div className="text-left relative z-10">
-            <h1 className="text-[30px] sm:text-[34px] font-black leading-[1.12] tracking-tight">
+            <h1 className="text-[31px] sm:text-[35px] font-black leading-[1.12] tracking-tight">
               <span className="text-white block">Portal Pintar</span>
-              <span className="text-emerald-300 block">{appSettings.appName || "Karya Guna 2."}</span>
+              <span className="text-[#86efac] block">Karya Guna 2.</span>
             </h1>
             <p className="text-white/85 text-[12.5px] sm:text-[13px] font-medium leading-relaxed mt-2.5 max-w-[310px]">
-              {cleanHeroSubtitle || "Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman."}
+              Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman.
             </p>
           </div>
 
-          {/* Big CTA Button */}
+          {/* Big CTA Button: Vibrant Emerald */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            className="w-full mt-6 py-3.5 px-6 rounded-[var(--ui-radius-control,16px)] text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-black/20 cursor-pointer transition-all active:scale-98 relative z-10 hover:brightness-110"
-            style={{
-              backgroundColor: 'var(--ui-primary-button, var(--ui-primary, #16a34a))'
-            }}
+            className="w-full mt-6 py-3.5 px-6 rounded-2xl bg-[#16a34a] hover:bg-[#15803d] active:scale-98 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer transition-all relative z-10"
           >
             <span>Masuk Portal Aplikasi</span>
-            <ArrowRight size={17} />
+            <ArrowRight size={17} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* 3. CARD "AKSES CEPAT" (Floating Overlapping Card) */}
-        <div className="mx-4 -mt-8 bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 shadow-[var(--ui-card-shadow,0_10px_25px_rgba(0,0,0,0.06))] border border-slate-100 relative z-20 select-none">
-          <h3 className="text-sm font-black text-slate-800 tracking-tight text-left mb-3.5">Akses Cepat</h3>
+        <div className="mx-4 -mt-8 bg-white rounded-[28px] p-4.5 sm:p-5 shadow-[0_12px_36px_rgba(0,0,0,0.07)] border border-slate-100/90 relative z-20 select-none">
+          <h3 className="text-[14.5px] font-black text-slate-900 tracking-tight text-left mb-3.5">Akses Cepat</h3>
           
           <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 text-center">
             {[
-              { label: 'Jadwal', icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50', path: '/jadwal' },
-              { label: 'Denah', icon: MapPin, color: 'text-amber-500', bg: 'bg-amber-50', path: '/denah' },
-              { label: 'Materi', icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50', path: '/materi-ajar' },
-              { label: 'Absensi', icon: ClipboardCheck, color: 'text-emerald-500', bg: 'bg-emerald-50', path: '/dashboard' },
-              { label: 'Kalender', icon: CalendarDays, color: 'text-amber-600', bg: 'bg-amber-100/70', path: '/kalender' },
-              { label: 'Info PKL', icon: Building2, color: 'text-rose-500', bg: 'bg-rose-50', path: '/pkl-locations' },
-              { label: 'Struktur', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50', path: '/struktur' },
-              { label: 'Semua', icon: LayoutGrid, color: 'text-slate-600', bg: 'bg-slate-100', isGuide: true },
+              { label: 'Jadwal', icon: Calendar, color: 'text-[#2563eb]', bg: 'bg-[#eef5ff]', path: '/jadwal' },
+              { label: 'Denah', icon: MapPin, color: 'text-[#ea580c]', bg: 'bg-[#fff1e6]', path: '/denah' },
+              { label: 'Materi', icon: GraduationCap, color: 'text-[#9333ea]', bg: 'bg-[#f5eeff]', path: '/materi-ajar' },
+              { label: 'Absensi', icon: ClipboardCheck, color: 'text-[#059669]', bg: 'bg-[#e6f7ef]', path: '/dashboard' },
+              { label: 'Kalender', icon: CalendarDays, color: 'text-[#d97706]', bg: 'bg-[#fef8e7]', path: '/kalender' },
+              { label: 'Info PKL', icon: Building2, color: 'text-[#e11d48]', bg: 'bg-[#ffeef2]', path: '/pkl-locations' },
+              { label: 'Struktur', icon: Users, color: 'text-[#4f46e5]', bg: 'bg-[#eeefff]', path: '/struktur' },
+              { label: 'Semua', icon: LayoutGrid, color: 'text-[#475569]', bg: 'bg-[#f1f5f9]', isGuide: true },
             ].map((item, idx) => {
               const IconComp = item.icon;
               return (
@@ -615,8 +601,8 @@ export default function LandingPage() {
                   }}
                   className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group py-1"
                 >
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-[var(--ui-radius-small,14px)] ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
-                    <IconComp size={20} strokeWidth={2.2} />
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
+                    <IconComp size={20} strokeWidth={2.3} />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700 tracking-tight leading-none text-center truncate w-full">
                     {item.label}
@@ -627,25 +613,25 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 4. SECTION: PROGRAM KEAHLIAN */}
+        {/* 4. SECTION: PROGRAM KEAHLIAN (Horizontal Cards matching mockup) */}
         <section className="relative z-10 w-full px-4 mt-6">
           <div className="flex flex-col text-left mb-3">
-            <h2 className="text-[15px] font-black text-slate-800 tracking-tight">
+            <h2 className="text-[15.5px] font-black text-slate-900 tracking-tight">
               Program Keahlian
             </h2>
-            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Kompetensi unggulan berstandar industri.</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Kompetensi unggulan berstandar industri.</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
             {[
               {
                 id: 'tjkt',
                 code: 'TJKT / TKJ',
                 name: 'Teknik Jaringan Komputer & Telekomunikasi',
-                desc: 'Networking, Cyber Security, Cloud, AI & Server Enterprise.',
+                desc: 'Networking, Cyber Security, Cloud, AI & Enterprise Server.',
                 badge: 'Akreditasi A',
-                color: 'from-emerald-700 to-teal-900',
-                badgeBg: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
+                color: 'from-[#0f5232] to-[#0a3621]',
+                badgeBg: 'bg-[#22c55e]/25 text-[#86efac] border-[#22c55e]/30',
               },
               {
                 id: 'tkro',
@@ -653,8 +639,8 @@ export default function LandingPage() {
                 name: 'Teknik Kendaraan Ringan Otomotif',
                 desc: 'Teknologi Injeksi Otomotif, Engine Management & EV.',
                 badge: 'Standar Industri',
-                color: 'from-sky-700 to-blue-900',
-                badgeBg: 'bg-sky-500/20 text-sky-200 border-sky-400/30',
+                color: 'from-[#0369a1] to-[#0c4a6e]',
+                badgeBg: 'bg-sky-400/25 text-sky-200 border-sky-400/30',
               },
               {
                 id: 'mplb',
@@ -662,8 +648,8 @@ export default function LandingPage() {
                 name: 'Manajemen Perkantoran & Layanan Bisnis',
                 desc: 'Digital Office, Administrasi Modern & Public Relations.',
                 badge: 'Unggulan',
-                color: 'from-amber-600 to-orange-800',
-                badgeBg: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+                color: 'from-[#c2410c] to-[#7c2d12]',
+                badgeBg: 'bg-amber-400/25 text-amber-200 border-amber-400/30',
               },
               {
                 id: 'akl',
@@ -671,13 +657,13 @@ export default function LandingPage() {
                 name: 'Akuntansi & Keuangan Lembaga',
                 desc: 'Financial Tech, Akuntansi Digital & Perpajakan Terpadu.',
                 badge: 'Terakreditasi',
-                color: 'from-indigo-700 to-purple-900',
-                badgeBg: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
+                color: 'from-[#4338ca] to-[#312e81]',
+                badgeBg: 'bg-indigo-400/25 text-indigo-200 border-indigo-400/30',
               }
             ].map((major) => (
               <div
                 key={major.id}
-                className={`relative overflow-hidden rounded-[var(--ui-radius-card,18px)] p-4 text-white bg-gradient-to-r ${major.color} shadow-xs border border-white/10 flex flex-col justify-between`}
+                className={`min-w-[270px] max-w-[280px] shrink-0 snap-start relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-br ${major.color} shadow-sm border border-white/15 flex flex-col justify-between`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{major.code}</span>
@@ -686,13 +672,13 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <h3 className="text-sm font-black text-white tracking-tight leading-snug">{major.name}</h3>
-                <p className="text-[10.5px] text-white/80 font-medium mt-1 leading-relaxed">{major.desc}</p>
+                <p className="text-[10.5px] text-white/85 font-medium mt-1.5 leading-relaxed">{major.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 5. FLOATING MOBILE BOTTOM NAVIGATION BAR (Tanpa Tabrakan) */}
+        {/* 5. FLOATING MOBILE BOTTOM NAVIGATION BAR */}
         <nav 
           className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 px-2 pt-1.5 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
           style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}
@@ -703,15 +689,11 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex flex-col items-center justify-center gap-0.5 font-black cursor-pointer py-1"
-              style={{ color: 'var(--ui-primary, #059669)' }}
+              className="flex flex-col items-center justify-center gap-0.5 text-[#15803d] font-black cursor-pointer py-1"
             >
               <Home size={19} strokeWidth={2.5} />
               <span className="text-[10px] leading-none font-extrabold">Beranda</span>
-              <span 
-                className="w-1.5 h-1.5 rounded-full mt-0.5" 
-                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-              />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#15803d] mt-0.5" />
             </button>
 
             {/* 2. Tab: Jadwal */}
@@ -730,11 +712,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)}
-                className="w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center border-[3.5px] border-white active:scale-95 transition-transform cursor-pointer"
-                style={{ 
-                  backgroundColor: 'var(--ui-primary, #059669)',
-                  boxShadow: '0 8px 20px -4px rgba(5, 150, 105, 0.45)'
-                }}
+                className="w-12 h-12 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white shadow-[0_8px_20px_-4px_rgba(22,163,74,0.5)] flex items-center justify-center border-[3.5px] border-white active:scale-95 transition-transform cursor-pointer"
                 title="Masuk ke Portal Aplikasi"
                 aria-label="Masuk ke Portal Aplikasi"
               >
