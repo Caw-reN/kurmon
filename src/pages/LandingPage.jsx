@@ -526,18 +526,23 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Logo Sekolah & Teks Singkat Penjelasan Aplikasi di Tengah Header */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-3 pb-8">
+          {/* Logo Sekolah & Teks Singkat Penjelasan Aplikasi di Tengah Header (Proporsional, Bernapas & Rapi) */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-2 pb-7">
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
-              className="w-38 sm:w-46 max-h-26 object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:scale-105 active:scale-95" 
+              className="w-28 sm:w-32 max-h-20 object-contain drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:scale-105 active:scale-95" 
             />
 
-            {/* Teks Singkat Penjelasan Aplikasi */}
-            <p className="text-xs sm:text-[13px] font-semibold text-white/95 text-center max-w-[280px] sm:max-w-[320px] leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mt-2.5 px-2">
-              {cleanHeroSubtitle}
-            </p>
+            {/* Teks Singkat Penjelasan Aplikasi (Ringkas & Proporsional, Maksimal 2 Baris Bersih) */}
+            <div className="flex flex-col items-center text-center mt-3 max-w-[270px]">
+              <span className="text-xs sm:text-[13px] font-black text-white tracking-wide leading-tight drop-shadow-md">
+                Sistem Informasi Sekolah Terpadu
+              </span>
+              <span className="text-[10.5px] sm:text-[11px] font-semibold text-emerald-100/90 leading-snug drop-shadow-sm mt-1">
+                Jadwal KBM, denah ruang, kalender & materi ajar
+              </span>
+            </div>
           </div>
 
           {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
