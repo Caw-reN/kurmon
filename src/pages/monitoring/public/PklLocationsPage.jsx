@@ -25,6 +25,7 @@ import {
   Filter
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 // Fix Leaflet default marker icons for Webpack/Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -244,10 +245,10 @@ export default function PklLocationsPublicPage() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col gap-6 select-none animate-in fade-in duration-300">
+    <div className="w-full flex flex-col gap-6 select-none animate-in fade-in duration-300">
       
-      {/* ── HERO HEADER CARD (MODERN & ELEGAN) ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+      {/* ── HERO HEADER CARD (SEJAJAR PERSIS DENGAN NAVBAR) ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/80 shadow-sm">
         {/* Subtle Ambient Glow */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3DAA37]/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
@@ -317,7 +318,7 @@ export default function PklLocationsPublicPage() {
       </div>
 
       {/* ── TOOLBAR: SEARCH, FILTERS & VIEW MODES ── */}
-      <div className="flex flex-col gap-4 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 border border-slate-200/80 shadow-xs">
         
         {/* Row 1: Search Bar & View Mode Toggle */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -330,7 +331,7 @@ export default function PklLocationsPublicPage() {
               placeholder="Cari nama perusahaan, bidang, keahlian, atau alamat..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3DAA37] focus:bg-white focus:ring-3 focus:ring-emerald-500/10 transition-all"
+              className="w-full h-11 pl-10 pr-9 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,12px)] text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3DAA37] focus:bg-white focus:ring-3 focus:ring-emerald-500/10 transition-all"
             />
             {search && (
               <button
@@ -345,11 +346,11 @@ export default function PklLocationsPublicPage() {
           </div>
 
           {/* View Mode Switcher Buttons */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl shrink-0 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-[var(--ui-radius-control,12px)] shrink-0 self-start sm:self-auto">
             <button
               type="button"
               onClick={() => setViewMode('map')}
-              className={`flex items-center gap-2 px-3.5 h-9 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+              className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
                 viewMode === 'map'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -362,7 +363,7 @@ export default function PklLocationsPublicPage() {
             <button
               type="button"
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3.5 h-9 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+              className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
                 viewMode === 'grid'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -376,7 +377,7 @@ export default function PklLocationsPublicPage() {
             <button
               type="button"
               onClick={() => setViewMode('split')}
-              className={`hidden lg:flex items-center gap-2 px-3.5 h-9 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+              className={`hidden lg:flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
                 viewMode === 'split'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -436,19 +437,20 @@ export default function PklLocationsPublicPage() {
             );
           })}
 
-          {/* Kota Selector Dropdown */}
+          {/* Kota Selector Dropdown (Menggunakan CustomSelect Resmi Sistem Web) */}
           {uniqueKotas.length > 0 && (
-            <div className="ml-auto flex items-center gap-2">
-              <select
+            <div className="ml-auto flex items-center gap-2 w-full sm:w-auto min-w-[210px]">
+              <CustomSelect
                 value={selectedKota}
-                onChange={(e) => setSelectedKota(e.target.value)}
-                className="h-8 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#3DAA37] cursor-pointer"
-              >
-                <option value="ALL">Semua Wilayah ({uniqueKotas.length} Kota)</option>
-                {uniqueKotas.map((kota, idx) => (
-                  <option key={idx} value={kota.toLowerCase()}>{kota}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedKota(val)}
+                options={[
+                  { value: 'ALL', label: `Semua Wilayah (${uniqueKotas.length} Kota)` },
+                  ...uniqueKotas.map((kota) => ({ value: kota.toLowerCase(), label: kota }))
+                ]}
+                placeholder="Pilih Wilayah..."
+                searchable={false}
+                className="w-full"
+              />
             </div>
           )}
 
@@ -702,7 +704,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
 
   return (
     <div 
-      className={`rounded-3xl p-5 border transition-all duration-300 flex flex-col justify-between select-none ${
+      className={`rounded-[var(--ui-radius-card,20px)] p-5 border transition-all duration-300 flex flex-col justify-between select-none ${
         isSelected
           ? 'bg-emerald-50/70 border-[#3DAA37] shadow-md ring-2 ring-[#3DAA37]/20'
           : 'bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-0.5'
@@ -767,13 +769,13 @@ function PklCardItem({ loc, isSelected, onSelect }) {
           <button
             type="button"
             onClick={onSelect}
-            className="flex-1 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer border-none transition-all active:scale-95 shadow-xs"
+            className="flex-1 h-9 rounded-[var(--ui-radius-control,10px)] bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer border-none transition-all active:scale-95 shadow-xs"
           >
             <MapIcon size={13} strokeWidth={2.4} />
             <span>Lihat di Peta</span>
           </button>
         ) : (
-          <div className="flex-1 h-9 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center">
+          <div className="flex-1 h-9 rounded-[var(--ui-radius-control,10px)] bg-slate-100 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center">
             Lokasi Belum Terpetakan
           </div>
         )}
@@ -783,7 +785,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
             href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-9 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#3DAA37] font-extrabold text-xs flex items-center justify-center gap-1 no-underline active:scale-95 transition-all"
+            className="h-9 px-3 rounded-[var(--ui-radius-control,10px)] bg-emerald-50 hover:bg-emerald-100 text-[#3DAA37] font-extrabold text-xs flex items-center justify-center gap-1 no-underline active:scale-95 transition-all"
             title="Buka rute di Google Maps"
           >
             <Navigation size={13} strokeWidth={2.4} />
@@ -794,7 +796,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
         {loc.telepon && (
           <a
             href={`tel:${loc.telepon}`}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center no-underline shrink-0 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-[var(--ui-radius-control,10px)] bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center no-underline shrink-0 active:scale-95 transition-all"
             title={`Hubungi ${loc.telepon}`}
           >
             <Phone size={14} strokeWidth={2.2} />
@@ -806,7 +808,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
             href={loc.website.startsWith('http') ? loc.website : `https://${loc.website}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center no-underline shrink-0 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-[var(--ui-radius-control,10px)] bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center no-underline shrink-0 active:scale-95 transition-all"
             title="Kunjungi Website"
           >
             <Globe size={14} strokeWidth={2.2} />
