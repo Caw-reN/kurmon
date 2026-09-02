@@ -504,9 +504,35 @@ export default function LandingPage() {
         <div 
           className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
           style={{
-            background: `linear-gradient(165deg, ${primaryColor || '#064e3b'} 0%, #054031 42%, #033126 80%, #021f18 100%)`
+            backgroundColor: primaryColor || '#064e3b'
           }}
         >
+          {/* Background Image dari Kustomisasi Web Admin Desktop (Sedikit Transparan) */}
+          {appSettings.heroImage ? (
+            <img 
+              src={appSettings.heroImage} 
+              alt="Hero Background" 
+              fetchpriority="high"
+              loading="eager"
+              className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-25 pointer-events-none" 
+            />
+          ) : (
+            <img 
+              src="/hero_illustration.jpg" 
+              alt="Hero Background" 
+              className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-20 pointer-events-none"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          )}
+
+          {/* Dark Green Gradient Overlay agar tetap serasi dengan warna hijau desktop */}
+          <div 
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(165deg, ${hexToRgba(primaryColor || '#064e3b', 0.88)} 0%, ${hexToRgba('#054031', 0.91)} 42%, ${hexToRgba('#033126', 0.94)} 80%, ${hexToRgba('#021f18', 0.97)} 100%)`
+            }}
+          />
+
           {/* Efek Embun Air (Water Drops) Transparan di Area Hijau */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
             <div className="absolute top-[8%] left-[10%] w-3.5 h-5 rounded-full bg-white/20 blur-[0.3px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.08)] rotate-[-12deg]" />
@@ -598,21 +624,22 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG) */}
-          <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none leading-none">
+          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Tanpa Garis Horizontal / Subpixel Seam) */}
+          <div className="absolute -bottom-[2px] left-0 right-0 w-full z-20 pointer-events-none leading-none overflow-visible">
             <svg 
               viewBox="0 0 100 24" 
               preserveAspectRatio="none" 
-              className="w-full h-7 sm:h-9 fill-[#F5F6FA] block"
+              className="w-full h-8 sm:h-10 fill-[#F5F6FA] block"
+              style={{ shapeRendering: 'geometricPrecision' }}
             >
-              <path d="M 0,24 Q 50,-4 100,24 L 100,24 L 0,24 Z" />
+              <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
             </svg>
           </div>
 
         </div>
 
         {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEIMBANG & PROPORSIONAL TANPA SPACE KOSONG BERLEBIH, BG #F5F6FA) */}
-        <div className="relative w-full h-[46%] flex-1 bg-[#F5F6FA] px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30">
+        <div className="relative w-full h-[46%] flex-1 bg-[#F5F6FA] px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30 -mt-[1px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
