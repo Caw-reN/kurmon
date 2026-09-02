@@ -564,75 +564,49 @@ export default function KepsekExecutiveDashboard({
   return (
     <div className="w-full max-w-[1800px] mx-auto flex flex-col gap-4 animate-in fade-in duration-300 pb-12">
 
-      {/* ═══════════════ HERO ═══════════════ */}
+      {/* ═══════════════ HERO BANNER (1 BARIS DI DESKTOP, ICON GRID DI MOBILE) ═══════════════ */}
       <div
-        className="rounded-[var(--ui-radius-card)] text-white shadow-xl relative overflow-hidden border border-white/10"
+        className="rounded-[var(--ui-radius-card)] text-white shadow-md relative overflow-hidden border border-white/10"
         style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 55%, #000) 100%)' }}
       >
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-40" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-black/15 rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[60px] pointer-events-none -mr-20 -mt-20" />
 
-        <div className="relative z-10 p-4 sm:p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+        <div className="relative z-10 px-4 py-3 sm:px-6 sm:py-3.5">
+          {/* 1 Baris Horizontal Penuh di Desktop */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
             
-            {/* Left: User greeting & overview info */}
-            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {todayLong}
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 text-white/90 text-[9.5px] font-bold border border-white/15">
-                  <Sparkles size={10} className="text-amber-300" />
-                  Executive View
-                </span>
-              </div>
-
-              <div>
-                <p className="text-white/75 text-xs font-semibold">{greeting},</p>
-                <h1 className="text-lg sm:text-2xl font-black leading-tight mt-0.5">
+            {/* Kiri: Greeting & Nama Kepala Sekolah (1 Baris) */}
+            <div className="flex items-center gap-3 flex-wrap min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/80 font-semibold">{greeting},</span>
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-white truncate">
                   {currentUser?.name || 'Kepala Sekolah'}
                 </h1>
-                <p className="text-xs text-white/70 font-medium mt-0.5 max-w-xl leading-relaxed hidden sm:block">
-                  Pusat pemantauan operasional sekolah — kehadiran, KBM, fasilitas, PKL, dan kesiswaan realtime.
-                </p>
               </div>
+
+              <span className="hidden xl:inline-block text-white/30 font-light">•</span>
+
+              <p className="text-[11px] text-white/70 font-medium truncate hidden xl:block">
+                Pusat pemantauan operasional sekolah realtime
+              </p>
             </div>
 
-            {/* Right Desktop: Compact Minimalist Quick Action Strip (DESKTOP ONLY - Tidak berlebihan) */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0">
-              {[
-                { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
-                { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
-                { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
-                { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
-                { tab: 'pkl_dashboard', label: 'PKL', icon: '/icons/008-warehouse.svg' },
-              ].map(m => (
-                <button
-                  key={m.tab}
-                  type="button"
-                  onClick={() => gotoTab(m.tab)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left cursor-pointer shadow-xs hover:scale-105 active:scale-95 group"
-                >
-                  <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs">
-                    <img src={m.icon} alt={m.label} className="w-3 h-3 object-contain" />
-                  </div>
-                  <span className="text-xs font-black text-white whitespace-nowrap">{m.label}</span>
-                </button>
-              ))}
+            {/* Kanan: Badge Tanggal & Status Executive (1 Baris) */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10.5px] font-extrabold border border-white/15 backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {todayLong}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-white text-[10px] font-bold border border-white/15 backdrop-blur-sm">
+                <Sparkles size={11} className="text-amber-300" />
+                Executive View
+              </span>
             </div>
 
           </div>
 
-          {/* Bottom Mobile: Dedicated Modern Executive Mobile App Icon Grid (MOBILE ONLY - Didesain Khusus) */}
-          <div className="lg:hidden pt-3.5 mt-3 border-t border-white/15">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10.5px] font-black uppercase tracking-wider text-white/90 flex items-center gap-1.5">
-                <Sparkles size={11} className="text-amber-300" />
-                Menu Pintasan Cepat
-              </span>
-            </div>
-            
+          {/* Khusus Mobile: Menu Pintasan Cepat */}
+          <div className="lg:hidden pt-3 mt-2.5 border-t border-white/15">
             <div className="grid grid-cols-4 gap-2">
               {[
                 { tab: 'generate', label: 'Jadwal KBM', icon: '/icons/011-schedule.svg' },
@@ -650,10 +624,10 @@ export default function KepsekExecutiveDashboard({
                   onClick={() => gotoTab(m.tab)}
                   className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer shadow-xs group"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-xs mb-1 group-active:scale-95 transition-transform">
-                    <img src={m.icon} alt={m.label} className="w-5 h-5 object-contain" />
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-xs mb-1 group-active:scale-95 transition-transform">
+                    <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
                   </div>
-                  <span className="text-[10px] font-black text-white leading-tight truncate w-full text-center">
+                  <span className="text-[9.5px] font-black text-white leading-tight truncate w-full text-center">
                     {m.label}
                   </span>
                 </button>
