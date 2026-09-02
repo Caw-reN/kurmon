@@ -498,15 +498,17 @@ export default function AdminSidebar({
           </button>
         )}
         
-        {/* App Version Info */}
-        {!isSidebarCollapsed ? (
-          <div className="text-[10px] text-center font-semibold text-slate-400/80 cursor-default">
-            {appVersion.version} ({appVersion.detail})
-          </div>
-        ) : (
-          <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
-            {appVersion.version}
-          </div>
+        {/* App Version Info - Hanya Admin/Superadmin */}
+        {isSuperAdminRole(activeUserRole) && (
+          !isSidebarCollapsed ? (
+            <div className="text-[10px] text-center font-semibold text-slate-400/80 cursor-default">
+              {appVersion.version} ({appVersion.detail})
+            </div>
+          ) : (
+            <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
+              {appVersion.version}
+            </div>
+          )
         )}
       </div>
     </aside>
