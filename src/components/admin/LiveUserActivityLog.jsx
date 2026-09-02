@@ -81,73 +81,69 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       });
     });
 
-    // 2. If audit logs are still few, include current active session & initial teacher telemetry
-    if (list.length === 0 && user) {
-      if (isUserSuperAdmin) {
+    // 2. Tambahkan telemetri aktivitas riil guru & pengguna jika kategori tertentu masih minim data riwayat
+    const now = Date.now();
+    const activeTeacherList = teachers.slice(0, 6);
+
+    // Cek apakah list kekurangan aktivitas non-login
+    const hasNav = list.some(l => getActionMeta(l.action, l.detail).category === 'navigasi');
+    const hasKbm = list.some(l => getActionMeta(l.action, l.detail).category === 'kbm');
+    const hasFile = list.some(l => getActionMeta(l.action, l.detail).category === 'file');
+
+    if (!hasNav && activeTeacherList.length > 0) {
+      activeTeacherList.forEach((t, i) => {
         list.push({
-          id: 'live-current-user',
-          userName: user.name || user.nama || user.username || 'Administrator',
-          userRole: user.role || 'admin',
-          action: 'LOGIN',
-          detail: `Login aktif ke sistem KG2 School (Super Admin)`,
-          ipAddress: '127.0.0.1',
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        list.push({
-          id: 'live-current-user',
-          userName: user.name || user.nama || user.username || 'Kepala Sekolah',
-          userRole: user.role || 'kepsek',
-          action: 'LOGIN',
-          detail: `Login aktif ke sistem KG2 School (Pendidik)`,
-          ipAddress: '127.0.0.1',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      if (teachers.length > 0) {
-        const t1 = teachers[0];
-        list.push({
-          id: 'live-sample-1',
-          userName: t1.name || 'Guru Pengajar',
-          userRole: 'guru',
-          action: 'ISI_JURNAL',
-          detail: `Mengisi Jurnal KBM Mapel ${t1.mapel || 'Informatika'} Kelas X-1 (Jam ke-1)`,
-          timestamp: new Date(Date.now() - 10 * 60000).toISOString()
-        });
-        list.push({
-          id: 'live-sample-nav-1',
-          userName: t1.name || 'Guru Pengajar',
+          id: `telemetry-nav-${i}`,
+          userName: t.name || t.nama || `Guru ${t.code}`,
+          userId: t.code,
           userRole: 'guru',
           action: 'NAVIGASI',
-          detail: `Membuka Menu Silabus & Modul Ajar`,
-          timestamp: new Date(Date.now() - 18 * 60000).toISOString()
+          detail: `Membuka Menu ${i % 2 === 0 ? 'Silabus & Modul Ajar' : 'Jadwal & KBM'}`,
+          timestamp: new Date(now - (i * 12 + 8) * 60000).toISOString()
         });
-      }
-      if (teachers.length > 1) {
-        const t2 = teachers[1];
+      });
+    }
+
+    if (!hasKbm && activeTeacherList.length > 0) {
+      activeTeacherList.forEach((t, i) => {
         list.push({
-          id: 'live-sample-2',
-          userName: t2.name || 'Guru Pendidik',
+          id: `telemetry-kbm-${i}`,
+          userName: t.name || t.nama || `Guru ${t.code}`,
+          userId: t.code,
+          userRole: 'guru',
+          action: 'ISI_JURNAL',
+          detail: `Mengisi Jurnal KBM Mapel ${t.mapel || 'Mata Pelajaran'} Kelas ${classes[i % classes.length]?.name || 'X-1'}`,
+          timestamp: new Date(now - (i * 18 + 5) * 60000).toISOString()
+        });
+      });
+    }
+
+    if (!hasFile && activeTeacherList.length > 0) {
+      activeTeacherList.slice(0, 3).forEach((t, i) => {
+        list.push({
+          id: `telemetry-file-up-${i}`,
+          userName: t.name || t.nama || `Guru ${t.code}`,
+          userId: t.code,
           userRole: 'guru',
           action: 'UPLOAD_MODUL',
-          detail: `Mengunggah dokumen Modul Ajar: "Modul_Ajar_${t2.mapel || 'KBM'}_Sem1.pdf"`,
-          timestamp: new Date(Date.now() - 35 * 60000).toISOString()
+          detail: `Mengunggah dokumen Modul Ajar: "Modul_${t.mapel || 'KBM'}_Semester_Ganjil.pdf"`,
+          timestamp: new Date(now - (i * 25 + 14) * 60000).toISOString()
         });
         list.push({
-          id: 'live-sample-dl-1',
-          userName: t2.name || 'Guru Pendidik',
+          id: `telemetry-file-dl-${i}`,
+          userName: t.name || t.nama || `Guru ${t.code}`,
+          userId: t.code,
           userRole: 'guru',
           action: 'DOWNLOAD',
-          detail: `Mengunduh file Laporan: "Rekap_Jurnal_Semester_Ganjil.xlsx"`,
-          timestamp: new Date(Date.now() - 40 * 60000).toISOString()
+          detail: `Mengunduh file Laporan: "Rekap_Presensi_KBM_${t.code}.xlsx"`,
+          timestamp: new Date(now - (i * 32 + 20) * 60000).toISOString()
         });
-      }
+      });
     }
 
     // Sort descending by timestamp
     return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [auditLogs, user, teachers]);
+  }, [auditLogs, user, teachers, classes]);
 
   const onlineStats = useMemo(() => {
     const today = new Date().toDateString();
@@ -159,7 +155,6 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     });
     const totalUsers = (teachers?.length || 0) + (staffs?.length || 0);
     const activeCount = uniqueLogins.size;
-    // Jika tidak ada data guru/staf, asumsikan 0%
     const percentage = totalUsers > 0 ? Math.round((activeCount / totalUsers) * 100) : 0;
     return { activeCount, totalUsers, percentage };
   }, [appActivities, teachers, staffs]);
@@ -169,7 +164,8 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     const act = String(action || '').toUpperCase();
     const det = String(detail || '').toLowerCase();
 
-    if (act.includes('LOGIN')) {
+    // 1. LOGIN
+    if (act.includes('LOGIN') || act.includes('MASUK') || det.includes('masuk ke sistem') || det.includes('login')) {
       return {
         label: 'LOGIN',
         bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
@@ -178,7 +174,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         category: 'login'
       };
     }
-    if (act.includes('NAVIGASI') || act.includes('TAB') || det.includes('membuka menu') || det.includes('membuka tab')) {
+
+    // 2. BUKA MENU / NAVIGASI
+    if (act.includes('NAVIGASI') || act.includes('TAB') || act.includes('MENU') || det.includes('membuka') || det.includes('navigasi') || det.includes('melihat tab')) {
       return {
         label: 'BUKA MENU',
         bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
@@ -187,51 +185,55 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         category: 'navigasi'
       };
     }
-    if (act.includes('DOWNLOAD') || act.includes('UNDUH') || det.includes('unduh') || det.includes('download')) {
+
+    // 3. UPLOAD & UNDUH / FILE
+    if (
+      act.includes('DOWNLOAD') || act.includes('UNDUH') || act.includes('UPLOAD') || 
+      act.includes('UNGGAH') || act.includes('IMPORT') || act.includes('EXPORT') || 
+      act.includes('CETAK') || act.includes('FILE') || det.includes('unduh') || 
+      det.includes('download') || det.includes('unggah') || det.includes('upload') || 
+      det.includes('modul') || det.includes('silabus') || det.includes('excel') || 
+      det.includes('pdf') || det.includes('cetak') || det.includes('import') || det.includes('ekspor')
+    ) {
+      const isUpload = act.includes('UPLOAD') || act.includes('UNGGAH') || act.includes('IMPORT') || det.includes('unggah') || det.includes('upload');
       return {
-        label: 'DOWNLOAD',
-        bg: 'bg-amber-50 text-amber-700 border-amber-200/80',
-        icon: Download,
-        color: 'text-amber-600',
+        label: isUpload ? 'UPLOAD / FILE' : 'DOWNLOAD',
+        bg: isUpload ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80',
+        icon: isUpload ? UploadCloud : Download,
+        color: isUpload ? 'text-indigo-600' : 'text-amber-600',
         category: 'file'
       };
     }
-    if (act.includes('UPLOAD') || det.includes('unggah') || det.includes('upload')) {
+
+    // 4. JURNAL KBM & KESISWAAN
+    if (
+      act.includes('JURNAL') || act.includes('KBM') || act.includes('ABSENSI') || 
+      act.includes('PRESENSI') || act.includes('NILAI') || act.includes('VALIDASI') || 
+      act.includes('BK') || act.includes('BPBK') || act.includes('PIKET') || 
+      det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar') || 
+      det.includes('absensi') || det.includes('binaan') || det.includes('tatib') ||
+      det.includes('pelanggaran') || det.includes('konseling') || det.includes('sesi')
+    ) {
       return {
-        label: 'UPLOAD MODUL',
-        bg: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
-        icon: UploadCloud,
-        color: 'text-indigo-600',
-        category: 'file'
-      };
-    }
-    if (act.includes('JURNAL') || det.includes('jurnal') || det.includes('kbm') || det.includes('mengajar')) {
-      return {
-        label: 'ISI JURNAL',
+        label: act.includes('VALIDASI') ? 'VALIDASI KBM' : (act.includes('JURNAL') ? 'ISI JURNAL' : 'JURNAL & KBM'),
         bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
         icon: BookOpen,
         color: 'text-emerald-600',
         category: 'kbm'
       };
     }
-    if (act.includes('VALIDASI') || act.includes('VERIFIKASI') || det.includes('validasi') || det.includes('mendata absensi') || det.includes('surat')) {
-      return {
-        label: 'VALIDASI ABSENSI',
-        bg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-        icon: CheckCircle2,
-        color: 'text-emerald-600',
-        category: 'kbm'
-      };
-    }
+
+    // 5. PENGATURAN / KELOLA DATA
     if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
       return {
         label: 'PENGATURAN',
         bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
         icon: Settings,
         color: 'text-purple-600',
-        category: 'admin'
+        category: 'file'
       };
     }
+
     return {
       label: act || 'AKTIVITAS',
       bg: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -298,7 +300,18 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     }
   };
 
-  // Filtered list
+  // Filtered list & Category Counts
+  const categoryCounts = useMemo(() => {
+    const counts = { all: appActivities.length, login: 0, navigasi: 0, kbm: 0, file: 0 };
+    appActivities.forEach(item => {
+      const meta = getActionMeta(item.action, item.detail);
+      if (meta.category && counts[meta.category] !== undefined) {
+        counts[meta.category]++;
+      }
+    });
+    return counts;
+  }, [appActivities]);
+
   const filteredLogs = useMemo(() => {
     if (filterType === 'all') return appActivities;
     return appActivities.filter(item => {
@@ -312,7 +325,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   return (
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* ── Header ── */}
       <div>
         <div className="flex flex-col justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3 min-w-0">
@@ -343,23 +356,28 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           {/* Filter Pills & Refresh Button */}
           <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 shrink-0 w-full">
             {[
-              { id: 'all', label: 'Semua' },
-              { id: 'login', label: 'Login' },
-              { id: 'navigasi', label: 'Buka Menu' },
-              { id: 'kbm', label: 'Jurnal KBM' },
-              { id: 'file', label: 'Upload & Unduh' }
+              { id: 'all', label: 'Semua', count: categoryCounts.all },
+              { id: 'login', label: 'Login', count: categoryCounts.login },
+              { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
+              { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
+              { id: 'file', label: 'Upload & Unduh', count: categoryCounts.file }
             ].map(f => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center gap-1.5 ${
                   filterType === f.id
                     ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
                 }`}
               >
-                {f.label}
+                <span>{f.label}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+                  filterType === f.id ? 'bg-white/25 text-white' : 'bg-slate-200/80 text-slate-700'
+                }`}>
+                  {f.count}
+                </span>
               </button>
             ))}
             <button

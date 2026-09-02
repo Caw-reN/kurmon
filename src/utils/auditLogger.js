@@ -55,8 +55,9 @@ export const recordAuditLog = async ({ action, detail, targetType = 'APP', targe
     }
     lastLoggedActions.set(key, now);
 
-    const session = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}');
-    const token = session?.authToken || localStorage.getItem('token') || '';
+    const raw = sessionStorage.getItem('school_schedule_session_v1') || localStorage.getItem('school_schedule_session_v1');
+    const session = raw ? JSON.parse(raw) : null;
+    const token = session?.authToken || localStorage.getItem('token') || sessionStorage.getItem('token') || '';
     if (!token) return;
 
     await fetch('/api/audit-logs', {
