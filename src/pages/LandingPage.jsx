@@ -945,15 +945,48 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT MELINTAS DI LANGIT) */}
+          {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH */}
           <div className="absolute top-6 left-0 animate-single-plane flex items-center">
-            <div className="w-28 sm:w-36 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
-            <div className="relative">
+            {/* Jejak Asap Tipis */}
+            <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-r from-transparent via-white/35 to-white/60 blur-[0.5px] -mr-1" />
+            
+            {/* Bendera Merah Putih Berkibar di Belakang Pesawat */}
+            <div className="relative flex items-center -mr-0.5 animate-flag-wave">
+              <div className="w-4 sm:w-6 h-[1px] bg-white/70" />
+              <div className="w-7 h-4 sm:w-8 sm:h-4.5 rounded-[2px] overflow-hidden shadow-sm border border-black/15 flex flex-col shrink-0">
+                <div className="h-1/2 w-full bg-red-600" />
+                <div className="h-1/2 w-full bg-white" />
+              </div>
+            </div>
+
+            {/* Tali Penghubung ke Ekor Pesawat */}
+            <div className="w-2.5 sm:w-3.5 h-[1px] bg-white/80 -mr-0.5" />
+
+            {/* Body Pesawat */}
+            <div className="relative shrink-0">
               <svg viewBox="0 0 44 24" className="w-7 sm:w-8 h-4.5 fill-white drop-shadow-md">
                 <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
               </svg>
               <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
             </div>
+          </div>
+
+          {/* 4. PIRING TERBANG UFO (Melayang Bergantian dengan Pesawat) */}
+          <div className="absolute top-10 right-0 animate-ufo-fly flex flex-col items-center">
+            <div className="relative">
+              <svg viewBox="0 0 48 24" className="w-8 sm:w-9 h-4.5 drop-shadow-lg animate-ufo-glow">
+                <ellipse cx="24" cy="9" rx="9" ry="5.5" fill="#38bdf8" fillOpacity="0.85" />
+                <ellipse cx="22" cy="7.5" rx="4" ry="2" fill="#ffffff" fillOpacity="0.7" />
+                <ellipse cx="24" cy="14" rx="22" ry="5.5" fill="#475569" />
+                <ellipse cx="24" cy="13" rx="19" ry="4" fill="#94a3b8" />
+                <circle cx="9" cy="14" r="1.3" fill="#22c55e" />
+                <circle cx="16" cy="15.5" r="1.5" fill="#38bdf8" />
+                <circle cx="24" cy="16" r="1.7" fill="#ec4899" />
+                <circle cx="32" cy="15.5" r="1.5" fill="#38bdf8" />
+                <circle cx="39" cy="14" r="1.3" fill="#22c55e" />
+              </svg>
+            </div>
+            <div className="w-10 sm:w-12 h-12 -mt-1 bg-gradient-to-b from-sky-400/35 via-emerald-300/15 to-transparent blur-[1px] [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)] animate-pulse" />
           </div>
         </div>
       </div>
@@ -1185,22 +1218,70 @@ export default function LandingPage() {
           }
         }
 
-        /* ── PESAWAT (HANYA 1 PESAWAT MELINTAS DI LANGIT) ── */
+        /* ── KIBARAN BENDERA MERAH PUTIH PESAWAT ── */
+        @keyframes flagWave {
+          0%, 100% {
+            transform: skewY(-2deg) scaleY(1);
+          }
+          50% {
+            transform: skewY(3deg) scaleY(0.92);
+          }
+        }
+
+        .animate-flag-wave {
+          animation: flagWave 0.6s ease-in-out infinite;
+          transform-origin: left center;
+        }
+
+        /* ── PESAWAT DENGAN BENDERA (BERGANTIAN DENGAN UFO) ── */
         @keyframes singlePlaneFly {
           0% {
-            transform: translate3d(-150px, 20px, 0) rotate(-3deg);
+            transform: translate3d(-180px, 18px, 0) rotate(-2deg);
             opacity: 0;
           }
           5% { opacity: 0.95; }
-          42% { opacity: 0.95; }
-          48% {
-            transform: translate3d(670px, 10px, 0) rotate(-3deg);
+          40% { opacity: 0.95; }
+          46% {
+            transform: translate3d(670px, 10px, 0) rotate(-2deg);
             opacity: 0;
           }
-          48.1%, 100% {
+          46.1%, 100% {
             transform: translate3d(720px, 10px, 0);
             opacity: 0;
           }
+        }
+
+        /* ── PIRING TERBANG UFO (MELAYANG & BERGANTIAN DENGAN PESAWAT) ── */
+        @keyframes ufoFlyAcross {
+          0%, 48% {
+            transform: translate3d(660px, 35px, 0) scale(0.85);
+            opacity: 0;
+          }
+          52% {
+            transform: translate3d(620px, 38px, 0) scale(0.9);
+            opacity: 0.95;
+          }
+          68% {
+            transform: translate3d(320px, 20px, 0) scale(0.95) rotate(-4deg);
+            opacity: 1;
+          }
+          78% {
+            transform: translate3d(220px, 32px, 0) scale(0.9) rotate(3deg);
+            opacity: 1;
+          }
+          90% {
+            transform: translate3d(-140px, 18px, 0) scale(0.85) rotate(-2deg);
+            opacity: 0.95;
+          }
+          94%, 100% {
+            transform: translate3d(-200px, 18px, 0);
+            opacity: 0;
+          }
+        }
+
+        @keyframes ufoGlow {
+          0%, 100% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6)); }
+          50% { filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.8)); }
         }
 
         .animate-flock-east {
@@ -1224,8 +1305,17 @@ export default function LandingPage() {
         }
 
         .animate-single-plane {
-          animation: singlePlaneFly 30s linear infinite;
+          animation: singlePlaneFly 34s linear infinite;
           will-change: transform, opacity;
+        }
+
+        .animate-ufo-fly {
+          animation: ufoFlyAcross 34s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
+        .animate-ufo-glow {
+          animation: ufoGlow 2.5s ease-in-out infinite;
         }
       `}</style>
 
@@ -1491,15 +1581,47 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 3. PESAWAT TERBANG (HANYA 1 PESAWAT MELINTAS DI LANGIT) */}
+            {/* 3. PESAWAT TERBANG MEMBAWA BENDERA MERAH PUTIH */}
             <div className="absolute top-5 left-0 animate-single-plane flex items-center">
-              <div className="w-22 sm:w-30 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
-              <div className="relative">
+              <div className="w-18 sm:w-24 h-[1.5px] bg-gradient-to-r from-transparent via-white/35 to-white/60 blur-[0.5px] -mr-1" />
+              
+              {/* Bendera Merah Putih Berkibar */}
+              <div className="relative flex items-center -mr-0.5 animate-flag-wave">
+                <div className="w-3.5 sm:w-5 h-[1px] bg-white/70" />
+                <div className="w-6.5 h-3.5 sm:w-7.5 sm:h-4 rounded-[2px] overflow-hidden shadow-sm border border-black/15 flex flex-col shrink-0">
+                  <div className="h-1/2 w-full bg-red-600" />
+                  <div className="h-1/2 w-full bg-white" />
+                </div>
+              </div>
+
+              {/* Tali Penghubung ke Pesawat */}
+              <div className="w-2.5 sm:w-3 h-[1px] bg-white/80 -mr-0.5" />
+
+              {/* Body Pesawat */}
+              <div className="relative shrink-0">
                 <svg viewBox="0 0 44 24" className="w-6.5 sm:w-7.5 h-4.5 fill-white drop-shadow-md">
                   <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
                 </svg>
                 <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
               </div>
+            </div>
+
+            {/* 4. PIRING TERBANG UFO (Melayang Bergantian dengan Pesawat) */}
+            <div className="absolute top-9 right-0 animate-ufo-fly flex flex-col items-center">
+              <div className="relative">
+                <svg viewBox="0 0 48 24" className="w-7.5 sm:w-8.5 h-4 drop-shadow-lg animate-ufo-glow">
+                  <ellipse cx="24" cy="9" rx="9" ry="5.5" fill="#38bdf8" fillOpacity="0.85" />
+                  <ellipse cx="22" cy="7.5" rx="4" ry="2" fill="#ffffff" fillOpacity="0.7" />
+                  <ellipse cx="24" cy="14" rx="22" ry="5.5" fill="#475569" />
+                  <ellipse cx="24" cy="13" rx="19" ry="4" fill="#94a3b8" />
+                  <circle cx="9" cy="14" r="1.3" fill="#22c55e" />
+                  <circle cx="16" cy="15.5" r="1.5" fill="#38bdf8" />
+                  <circle cx="24" cy="16" r="1.7" fill="#ec4899" />
+                  <circle cx="32" cy="15.5" r="1.5" fill="#38bdf8" />
+                  <circle cx="39" cy="14" r="1.3" fill="#22c55e" />
+                </svg>
+              </div>
+              <div className="w-9 sm:w-11 h-10 -mt-1 bg-gradient-to-b from-sky-400/35 via-emerald-300/15 to-transparent blur-[1px] [clip-path:polygon(30%_0%,70%_0%,100%_100%,0%_100%)] animate-pulse" />
             </div>
           </div>
 
@@ -1651,10 +1773,10 @@ export default function LandingPage() {
                 const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full rounded-2xl h-[70px] px-3 shadow-md text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
+                    className="w-full rounded-xl sm:rounded-2xl h-[44px] sm:h-[46px] px-2.5 sm:px-3 shadow-xs text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
                     style={{
                       background: `linear-gradient(135deg, ${cardColor} 0%, color-mix(in srgb, ${cardColor} 85%, #000000) 100%)`,
-                      boxShadow: `0 6px 20px ${hexToRgba(cardColor, 0.28)}`
+                      boxShadow: `0 4px 14px ${hexToRgba(cardColor, 0.22)}`
                     }}
                   >
                     {/* Subtle Top Glass Highlight */}
@@ -1664,15 +1786,15 @@ export default function LandingPage() {
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev === 0 ? availablePrograms.length - 1 : prev - 1))}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/75 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Sebelumnya"
                     >
-                      <ChevronLeft size={18} strokeWidth={2.6} />
+                      <ChevronLeft size={16} strokeWidth={2.6} />
                     </button>
 
-                    {/* Area Konten Tengah: Nama Jurusan */}
+                    {/* Area Konten Tengah: Nama Jurusan (Lebih Compact & Rapi) */}
                     <div className="flex-1 flex items-center justify-center px-2 min-w-0 z-10">
-                      <h3 className="text-xs sm:text-[13.5px] font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-tight">
+                      <h3 className="text-[11.5px] sm:text-xs font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-none">
                         {activeProgram.name}
                       </h3>
                     </div>
@@ -1681,10 +1803,10 @@ export default function LandingPage() {
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/75 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Selanjutnya"
                     >
-                      <ChevronRight size={18} strokeWidth={2.6} />
+                      <ChevronRight size={16} strokeWidth={2.6} />
                     </button>
                   </div>
                 );
