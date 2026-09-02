@@ -549,16 +549,16 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (FULL PUTIH BERSIH - BG WHITE) */}
-        <div className="relative w-full h-[46%] flex-1 bg-white px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30 -mt-[1px]">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEJAJAR PERSIS DENGAN TOMBOL AKSI DI BAWAH) */}
+        <div className="relative w-full h-[46%] flex-1 bg-white px-5 pt-1 pb-[84px] sm:pb-[92px] flex flex-col justify-center items-center z-30 -mt-[1px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
             {/* Judul: Layanan Publik + Ikon Info */}
-            <div className="flex items-center justify-center gap-1.5 mb-2.5 sm:mb-3">
+            <div className="flex items-center justify-center gap-1.5 mb-3 sm:mb-4">
               <span 
                 className="text-xs sm:text-sm font-black uppercase tracking-wider"
-                style={{ color: primaryColor || '#064e3b' }}
+                style={{ color: '#2b8726' }}
               >
                 Layanan Publik
               </span>
@@ -566,59 +566,68 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => setShowPublicGuide(true)}
                 className="hover:opacity-80 cursor-pointer transition-opacity p-0.5"
-                style={{ color: primaryColor || '#064e3b' }}
+                style={{ color: '#2b8726' }}
                 title="Informasi Layanan"
               >
                 <Info size={14} strokeWidth={2.3} />
               </button>
             </div>
 
-            {/* Grid 8 Item: 4 Atas, 4 Bawah dengan Icon Desktop */}
-            <div className="grid grid-cols-4 gap-x-2.5 gap-y-4 sm:gap-x-4 sm:gap-y-5 w-full px-1">
-              {(() => {
-                const gridServices = [
-                  ...publicServices,
-                  { label: "Lainnya", subtitle: "Bantuan", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#64748b" }
-                ];
-                return gridServices.slice(0, 8).map((service, idx) => {
-                  const activeColor = service.customColor || service.defaultColor;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        if (service.isLainnya) {
-                          setShowPublicGuide(true);
-                        } else if (service.isPdfRules) {
-                          setShowRulesModal(true);
-                        } else {
-                          navigate(service.path);
-                        }
-                      }}
-                      className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-full"
-                    >
-                      {/* Desain Icon Card Sesuai Desktop */}
-                      <div 
-                        className="w-[52px] h-[52px] sm:w-[58px] sm:h-[58px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
-                        style={{ 
-                          backgroundColor: hexToRgba(activeColor, 0.08),
-                          border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
-                        }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-6.5 h-6.5 object-contain" />
-                        ) : (
-                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-6.5 h-6.5 object-contain" />
-                        )}
-                      </div>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
-                        {getShortLabel(service.label)}
-                      </span>
-                    </button>
-                  );
-                });
-              })()}
-            </div>
+            {/* 8 Items Layanan: 2 Baris x 4 Kolom dengan Flex justify-between Sejajar Tombol Aksi */}
+            {(() => {
+              const gridServices = [
+                ...publicServices,
+                { label: "Lainnya", subtitle: "Bantuan", svgIcon: "056-question.svg", icon: HelpCircle, isLainnya: true, defaultColor: "#64748b" }
+              ].slice(0, 8);
+
+              const rows = [gridServices.slice(0, 4), gridServices.slice(4, 8)];
+
+              return (
+                <div className="w-full flex flex-col gap-y-4 sm:gap-y-5">
+                  {rows.map((row, rowIdx) => (
+                    <div key={rowIdx} className="w-full flex items-start justify-between">
+                      {row.map((service, idx) => {
+                        const activeColor = service.customColor || service.defaultColor;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              if (service.isLainnya) {
+                                setShowPublicGuide(true);
+                              } else if (service.isPdfRules) {
+                                setShowRulesModal(true);
+                              } else {
+                                navigate(service.path);
+                              }
+                            }}
+                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none transition-transform active:scale-95 w-[56px] sm:w-[64px]"
+                          >
+                            {/* Desain Icon Card Sesuai Desktop - Lebar Penuh Item */}
+                            <div 
+                              className="w-[56px] h-[56px] sm:w-[64px] sm:h-[64px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-xs"
+                              style={{ 
+                                backgroundColor: hexToRgba(activeColor, 0.08),
+                                border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
+                              }}
+                            >
+                              {service.customIcon ? (
+                                <img src={service.customIcon} alt="" className="w-7 h-7 object-contain" />
+                              ) : (
+                                <img src={`/icons/${service.svgIcon}`} alt="" className="w-7 h-7 object-contain" />
+                              )}
+                            </div>
+                            <span className="text-[10.5px] sm:text-xs font-bold text-slate-700 tracking-tight leading-tight text-center truncate w-full">
+                              {getShortLabel(service.label)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
           </div>
 
