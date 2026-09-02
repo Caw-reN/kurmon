@@ -370,31 +370,31 @@ export default function TabAkademik(props) {
         onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
       >
         <div className="flex flex-wrap items-center gap-2">
-          {/* Quick Stat Chips */}
-          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-[var(--ui-radius-small)] backdrop-blur-md border border-white/15 shadow-xs">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/75">Total:</span>
-            <span className="text-xs font-black text-white bg-white/20 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+          {/* Quick Stat Chips (High Contrast & Clean) */}
+          <div className="flex items-center gap-1.5 bg-slate-100/90 border border-slate-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] shadow-2xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total:</span>
+            <span className="text-xs font-black text-slate-800 bg-white px-1.5 py-0.5 rounded shadow-2xs">
               {stats.total}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-[var(--ui-radius-small)] backdrop-blur-md border border-white/15 shadow-xs">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-200">Bulan Ini:</span>
-            <span className="text-xs font-black text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] shadow-2xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Bulan Ini:</span>
+            <span className="text-xs font-black text-amber-900 bg-amber-200/60 px-1.5 py-0.5 rounded shadow-2xs">
               {stats.thisMonth}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-[var(--ui-radius-small)] backdrop-blur-md border border-white/15 shadow-xs">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Mendatang:</span>
-            <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] shadow-2xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Mendatang:</span>
+            <span className="text-xs font-black text-emerald-900 bg-emerald-200/60 px-1.5 py-0.5 rounded shadow-2xs">
               {stats.upcoming}
             </span>
           </div>
         </div>
       </PageHeader>
 
-      {/* ── 2. Unified Control Toolbar (Search, Filter, Actions, View Switcher) ── */}
+      {/* ── 2. Unified Control Toolbar (Search, Filter, Actions) ── */}
       <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
         
         {/* Top Row: Search Bar & Primary Actions */}
@@ -486,7 +486,7 @@ export default function TabAkademik(props) {
           </div>
         </div>
 
-        {/* Bottom Row: Time Filter Pills, Category Dropdown & View Mode Switcher */}
+        {/* Bottom Row: Time Filter Pills & Category Dropdown */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100">
           
           {/* Time Scope Quick Filters (Segmented Control style) */}
@@ -540,11 +540,11 @@ export default function TabAkademik(props) {
             </button>
           </div>
 
-          {/* Right Controls: Category Filter & View Mode Switcher */}
+          {/* Right Controls: Category Filter & Clear Filter */}
           <div className="flex flex-wrap items-center gap-2">
             
             {/* Category Select */}
-            <div className="w-40">
+            <div className="w-44">
               <UISelect
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -557,43 +557,6 @@ export default function TabAkademik(props) {
                   </option>
                 ))}
               </UISelect>
-            </div>
-
-            {/* View Mode Switcher (Desktop) */}
-            <div className="hidden lg:inline-flex p-0.5 rounded-[var(--ui-radius-small)] bg-slate-100/90 border border-slate-200/60 items-center">
-              <button
-                type="button"
-                onClick={() => setViewMode("split")}
-                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
-                  viewMode === 'split'
-                    ? "bg-white text-slate-800 shadow-xs font-black"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Split View
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("cards")}
-                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
-                  viewMode === 'cards'
-                    ? "bg-white text-slate-800 shadow-xs font-black"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Daftar Penuh
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("calendar")}
-                className={`px-2.5 py-1 rounded-[calc(var(--ui-radius-small)-2px)] text-[11px] font-bold transition-all cursor-pointer ${
-                  viewMode === 'calendar'
-                    ? "bg-white text-slate-800 shadow-xs font-black"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Kalender Penuh
-              </button>
             </div>
 
             {/* Mobile Tab Switcher */}
@@ -668,107 +631,109 @@ export default function TabAkademik(props) {
         </div>
       )}
 
-      {/* ── 4. Main Layout Grid (Agenda Cards & Calendar) ── */}
+      {/* ── 4. Main Layout Grid (Agenda List in 1 Unified Box & Sidebar Calendar) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
-        {/* Left / Main Column: Agenda Cards */}
+        {/* Left / Main Column: Agenda List in 1 Unified Box */}
         <div className={`
-          ${viewMode === 'cards' ? 'lg:col-span-12' : viewMode === 'calendar' ? 'hidden' : 'lg:col-span-7 xl:col-span-8'}
+          lg:col-span-7 xl:col-span-8
           ${mobileTab === 'calendar' ? 'hidden lg:block' : 'block'}
-          flex flex-col gap-3
         `}>
-          {/* Subheader info */}
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Daftar Kegiatan ({filteredCalendar.length})
-              </span>
-              {selectedCategory !== "all" && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
-                  {calendarCategories.find(c => c.id === selectedCategory)?.name}
-                </span>
-              )}
-            </div>
+          <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
             
-            <span className="text-[11px] font-semibold text-slate-400">
-              Urutan berdasarkan tanggal
-            </span>
-          </div>
-
-          {/* Agenda Cards Container */}
-          {filteredCalendar.length === 0 ? (
-            <div className="ui-card p-10 sm:p-14 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/70 shadow-xs flex flex-col items-center justify-center text-center">
-              <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
-                <CalendarDays size={28} />
+            {/* Unified Box Header */}
+            <div className="p-3.5 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  Daftar Kegiatan ({filteredCalendar.length})
+                </span>
+                {selectedCategory !== "all" && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
+                    {calendarCategories.find(c => c.id === selectedCategory)?.name}
+                  </span>
+                )}
               </div>
-              <h3 className="text-sm font-black text-slate-700">
-                Tidak ada agenda yang cocok
-              </h3>
-              <p className="text-xs font-medium text-slate-500 mt-1 max-w-sm">
-                {activeFiltersCount > 0
-                  ? "Coba sesuaikan kata kunci pencarian atau bersihkan filter tanggal/kategori yang aktif."
-                  : "Belum ada agenda akademik yang terdaftar. Anda dapat menambahkan agenda baru sekarang."}
-              </p>
               
-              <div className="flex items-center gap-2 mt-4">
-                {activeFiltersCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={clearAllFilters}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Reset Filter
-                  </button>
-                )}
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddNewOnDate(selectedDate || todayStr)}
-                    className="px-3.5 py-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    <Plus size={13} strokeWidth={2.5} />
-                    <span>Tambah Agenda Baru</span>
-                  </button>
-                )}
-              </div>
+              <span className="text-[11px] font-semibold text-slate-400">
+                Urutan berdasarkan tanggal
+              </span>
             </div>
-          ) : (
-            <div className={`grid gap-2 ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-              {filteredCalendar.map((evt, index) => {
-                const cat = calendarCategories.find((c) => c.id === evt.categoryId);
-                const colors = getCategoryColor(cat?.color);
-                const status = getEventStatus(evt.dateStart, evt.dateEnd);
 
-                return (
-                  <div
-                    key={evt.id}
-                    className="group relative bg-white hover:bg-slate-50/70 border border-slate-200/80 hover:border-slate-300/90 rounded-[var(--ui-radius-card)] p-3 shadow-xs hover:shadow-sm transition-all flex flex-col gap-1"
-                  >
-                    <div className="flex items-start justify-between gap-2.5">
-                      <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[22px] pt-[2px]">
-                        {index + 1}.
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
-                          <h3 className="text-[13px] font-black text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
-                            {evt.title}
-                          </h3>
-                          {status.isToday && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                              Hari Ini
-                            </span>
-                          )}
-                          <div className="flex items-center gap-1 text-[9.5px] font-bold text-slate-500 bg-slate-100/70 px-2 py-0.5 rounded border border-slate-200/60 w-fit">
-                            <Calendar size={10} className="text-slate-400 shrink-0" />
-                            <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
-                          </div>
+            {/* Agenda List Items Container (1 Unified Box) */}
+            {filteredCalendar.length === 0 ? (
+              <div className="p-10 sm:p-14 text-center flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
+                  <CalendarDays size={28} />
+                </div>
+                <h3 className="text-sm font-black text-slate-700">
+                  Tidak ada agenda yang cocok
+                </h3>
+                <p className="text-xs font-medium text-slate-500 mt-1 max-w-sm">
+                  {activeFiltersCount > 0
+                    ? "Coba sesuaikan kata kunci pencarian atau bersihkan filter tanggal/kategori yang aktif."
+                    : "Belum ada agenda akademik yang terdaftar. Anda dapat menambahkan agenda baru sekarang."}
+                </p>
+                
+                <div className="flex items-center gap-2 mt-4">
+                  {activeFiltersCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Reset Filter
+                    </button>
+                  )}
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewOnDate(selectedDate || todayStr)}
+                      className="px-3.5 py-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <Plus size={13} strokeWidth={2.5} />
+                      <span>Tambah Agenda Baru</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredCalendar.map((evt, index) => {
+                  const cat = calendarCategories.find((c) => c.id === evt.categoryId);
+                  const colors = getCategoryColor(cat?.color);
+                  const status = getEventStatus(evt.dateStart, evt.dateEnd);
+
+                  return (
+                    <div
+                      key={evt.id}
+                      className="p-3 sm:px-4 sm:py-3 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group"
+                    >
+                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                        <div className="text-[12.5px] font-black text-slate-400 shrink-0 min-w-[20px] pt-[2px]">
+                          {index + 1}.
                         </div>
-                        {evt.description && (
-                          <p className="text-[11px] font-medium text-slate-500 line-clamp-1 leading-relaxed">
-                            {evt.description}
-                          </p>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mb-0.5">
+                            <h3 className="text-[13px] font-black text-slate-800 truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                              {evt.title}
+                            </h3>
+                            {status.isToday && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Hari Ini
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1 text-[9.5px] font-bold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200/60 w-fit shrink-0">
+                              <Calendar size={10} className="text-slate-400 shrink-0" />
+                              <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
+                            </div>
+                          </div>
+                          {evt.description && (
+                            <p className="text-[11px] font-medium text-slate-500 line-clamp-1 leading-relaxed">
+                              {evt.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="flex flex-col items-end gap-1 shrink-0">
@@ -798,16 +763,16 @@ export default function TabAkademik(props) {
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Interactive Monthly Calendar Grid & Interactive Legend */}
         <div className={`
-          ${viewMode === 'calendar' ? 'lg:col-span-12' : viewMode === 'cards' ? 'hidden' : 'lg:col-span-5 xl:col-span-4'}
+          lg:col-span-5 xl:col-span-4
           ${mobileTab === 'list' ? 'hidden lg:block' : 'block'}
           flex flex-col gap-4 sticky top-4
         `}>
