@@ -1088,12 +1088,19 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Logo Sekolah di Tengah Header + Live Weather Badge */}
-          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 py-4">
+          {/* TOP BAR MOBILE HEADER: Lokasi (Kiri Atas) & Weather (Kanan Atas) */}
+          <div className="absolute top-3.5 inset-x-4 z-25 flex items-center justify-between pointer-events-none select-none">
+            {/* 1. LOKASI PILL (POJOK KIRI ATAS) */}
+            <div className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-[10.5px] font-black tracking-wide shadow-sm">
+              <MapPin size={11} className="text-rose-400 shrink-0" />
+              <span>Bekasi</span>
+            </div>
+
+            {/* 2. WEATHER PILL (POJOK KANAN ATAS - INTERAKTIF / BISA DIKLIK GANTI) */}
             <button
               type="button"
               onClick={handleCycleWeather}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/25 text-white text-[10px] font-extrabold tracking-wide shadow-xs cursor-pointer transition-all duration-300 mb-2.5 select-none"
+              className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[10.5px] font-black tracking-wide shadow-sm cursor-pointer transition-all duration-300"
               title="Klik untuk mengganti simulasi cuaca (Malam, Hujan, Panas, Berawan)"
             >
               {weatherCondition === 'night' && <Moon size={11} className="text-amber-200" />}
@@ -1101,14 +1108,17 @@ export default function LandingPage() {
               {weatherCondition === 'hot' && <Sun size={11} className="text-amber-400 animate-spin" style={{ animationDuration: '10s' }} />}
               {weatherCondition === 'cloudy' && <CloudSun size={11} className="text-emerald-300" />}
               <span>
-                Bekasi {weatherTemp ? `${weatherTemp}°C` : ''} • {
-                  weatherCondition === 'night' ? 'Malam Hari 🌙' :
-                  weatherCondition === 'rain' ? 'Hujan 🌧️' :
-                  weatherCondition === 'hot' ? 'Panas Terik ☀️' : 'Cerah Berawan ⛅'
+                {weatherTemp ? `${weatherTemp}°C ` : ''}{
+                  weatherCondition === 'night' ? 'Malam' :
+                  weatherCondition === 'rain' ? 'Hujan' :
+                  weatherCondition === 'hot' ? 'Panas' : 'Cerah'
                 }
               </span>
             </button>
+          </div>
 
+          {/* Logo Sekolah di Tengah Header (Bersih & Elegan tanpa Tertutup Badge) */}
+          <div className="z-20 relative flex flex-col items-center justify-center my-auto px-6 pt-6 pb-4">
             <img 
               src="/mobile_header_logo.png" 
               alt={appSettings.appName || "School Logo"} 
