@@ -572,61 +572,92 @@ export default function KepsekExecutiveDashboard({
         <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-white/10 rounded-full blur-[80px] pointer-events-none -mr-32 -mt-40" />
         <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-black/15 rounded-full blur-[60px] pointer-events-none" />
 
-        <div className="relative z-10 p-5 sm:p-7">
-          {/* Top Row: Greeting (Left) & Menu Pintasan (Right) */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="relative z-10 p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+            
             {/* Left: User greeting & overview info */}
-            <div className="flex flex-col gap-2 min-w-0 flex-1">
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {todayLong}
                 </span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 text-white/90 text-[9.5px] font-bold border border-white/15">
+                  <Sparkles size={10} className="text-amber-300" />
+                  Executive View
+                </span>
               </div>
+
               <div>
                 <p className="text-white/75 text-xs font-semibold">{greeting},</p>
-                <h1 className="text-xl sm:text-2xl font-black leading-tight mt-0.5">
+                <h1 className="text-lg sm:text-2xl font-black leading-tight mt-0.5">
                   {currentUser?.name || 'Kepala Sekolah'}
                 </h1>
-                <p className="text-xs text-white/70 font-medium mt-1 max-w-sm leading-relaxed">
+                <p className="text-xs text-white/70 font-medium mt-0.5 max-w-xl leading-relaxed hidden sm:block">
                   Pusat pemantauan operasional sekolah — kehadiran, KBM, fasilitas, PKL, dan kesiswaan realtime.
                 </p>
               </div>
             </div>
 
-            {/* Right: Menu Pintasan Glassmorphic Grid */}
-            <div className="flex flex-col gap-2.5 w-full lg:w-auto shrink-0">
-              <div className="flex items-center gap-1.5 text-white/90">
-                <Sparkles size={13} className="text-amber-300" />
-                <span className="text-xs font-black uppercase tracking-wider">Menu Pintasan</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:max-w-3xl">
-                {[
-                  { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
-                  { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
-                  { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
-                  { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
-                  { tab: 'pkl_dashboard', label: 'Dashboard PKL', icon: '/icons/008-warehouse.svg' },
-                  { tab: 'dataguru', label: 'Data Guru', icon: '/icons/045-account.svg' },
-                  { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
-                  { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
-                ].map(m => {
+            {/* Right Desktop: Compact Minimalist Quick Action Strip (DESKTOP ONLY - Tidak berlebihan) */}
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
+              {[
+                { tab: 'generate', label: 'Jadwal & KBM', icon: '/icons/011-schedule.svg' },
+                { tab: 'laporan_absensi', label: 'Rekap Absensi', icon: '/icons/046-report.svg' },
+                { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
+                { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
+                { tab: 'pkl_dashboard', label: 'PKL', icon: '/icons/008-warehouse.svg' },
+              ].map(m => (
+                <button
+                  key={m.tab}
+                  type="button"
+                  onClick={() => gotoTab(m.tab)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left cursor-pointer shadow-xs hover:scale-105 active:scale-95 group"
+                >
+                  <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs">
+                    <img src={m.icon} alt={m.label} className="w-3 h-3 object-contain" />
+                  </div>
+                  <span className="text-xs font-black text-white whitespace-nowrap">{m.label}</span>
+                </button>
+              ))}
+            </div>
 
-                  return (
-                    <button
-                      key={m.tab}
-                      onClick={() => gotoTab(m.tab)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-[var(--ui-radius-control)] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all text-left group cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <div className="w-7 h-7 rounded-[var(--ui-radius-control)] bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                        <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
-                      </div>
-                      <span className="text-xs font-extrabold text-white whitespace-nowrap min-w-0 flex-1">{m.label}</span>
-                      <ChevronRight size={12} className="text-white/50 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
-                    </button>
-                  );
-                })}
-              </div>
+          </div>
+
+          {/* Bottom Mobile: Dedicated Modern Executive Mobile App Icon Grid (MOBILE ONLY - Didesain Khusus) */}
+          <div className="lg:hidden pt-3.5 mt-3 border-t border-white/15">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10.5px] font-black uppercase tracking-wider text-white/90 flex items-center gap-1.5">
+                <Sparkles size={11} className="text-amber-300" />
+                Menu Pintasan Cepat
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { tab: 'generate', label: 'Jadwal KBM', icon: '/icons/011-schedule.svg' },
+                { tab: 'laporan_absensi', label: 'Absensi', icon: '/icons/046-report.svg' },
+                { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
+                { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
+                { tab: 'pkl_dashboard', label: 'PKL', icon: '/icons/008-warehouse.svg' },
+                { tab: 'dataguru', label: 'Data Guru', icon: '/icons/045-account.svg' },
+                { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
+                { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
+              ].map(m => (
+                <button
+                  key={m.tab}
+                  type="button"
+                  onClick={() => gotoTab(m.tab)}
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer shadow-xs group"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-xs mb-1 group-active:scale-95 transition-transform">
+                    <img src={m.icon} alt={m.label} className="w-5 h-5 object-contain" />
+                  </div>
+                  <span className="text-[10px] font-black text-white leading-tight truncate w-full text-center">
+                    {m.label}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
