@@ -52,7 +52,7 @@ const KartuPelajar = lazy(() => import("../../pages/admin/pengaturan/KartuPelaja
 const ESurat = lazy(() => import("../../pages/admin/pengaturan/ESurat.jsx"));
 const KenaikanKelas = lazy(() => import("../../pages/admin/pengaturan/KenaikanKelas.jsx"));
 const AuditLog = lazy(() => import("../../pages/admin/pengaturan/AuditLog.jsx"));
-const BackupGDrive = lazy(() => import("../../pages/admin/pengaturan/BackupGDrive.jsx"));
+const BackupRestore = lazy(() => import("../../pages/admin/pengaturan/BackupRestore.jsx"));
 const TatibSkorKredit = lazy(() => import("../../pages/admin/pengaturan/TatibSkorKredit.jsx"));
 const SiswaKeluar = lazy(() => import("../../pages/admin/pengaturan/SiswaKeluar.jsx"));
 const ModulAjar = lazy(() => import("../../pages/admin/pengaturan/ModulAjar.jsx"));
@@ -700,9 +700,9 @@ export default function AdminContentRouter({ context }) {
         </Suspense>;
       case"gdrive_backup":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
-          Memuat GDrive Backup...
+          Memuat Backup & Restore...
         </div>}>
-          <BackupGDrive activeTab={activeTab} setActiveTab={setActiveTab} />
+          <BackupRestore activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"siswa_keluar":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">

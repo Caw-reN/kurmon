@@ -4,6 +4,7 @@ import { handleHikvisionRoutes, autoLinkHikvisionStudents, autoLinkHikvisionTeac
 import { handlePushRoutes, initializeWebPush } from "./routes/push.mjs";
 import { handleKedisiplinanRoutes } from "./routes/kedisiplinan.mjs";
 import { handleDataRoutes } from "./routes/data.mjs";
+import { handleBackupRoutes } from "./routes/backup.mjs";
 import { handleAuthRoutes } from "./routes/auth.mjs";
 import { handleSettingsRoutes } from "./routes/settings.mjs";
 import { handleJurnalRoutes } from "./routes/jurnal.mjs";
@@ -2916,6 +2917,9 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);
         if (handled !== false) return;
+        
+        const backupHandled = await handleBackupRoutes(req, res, url, ctx);
+        if (backupHandled !== false) return;
     }
     if (url.pathname.startsWith("/api/auth")) {
         const handled = await handleAuthRoutes(req, res, url, ctx);
