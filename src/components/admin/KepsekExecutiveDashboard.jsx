@@ -13,7 +13,7 @@ import LiveUserActivityLog from './LiveUserActivityLog.jsx';
 // ─── Mini Helpers ────────────────────────────────────────────────────────────
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
 
-const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 6 }) => (
+const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 4 }) => (
   <div className="w-full bg-slate-100 rounded-full overflow-hidden" style={{ height }}>
     <div
       className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
@@ -25,27 +25,31 @@ const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 6 }) 
 const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct, detail, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-4 border cursor-pointer group transition-all hover:shadow-[var(--ui-shadow-card-hover,var(--ui-shadow-card))]
+    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 border cursor-pointer group transition-all hover:shadow-[var(--ui-shadow-card-hover,var(--ui-shadow-card))] flex flex-col justify-between
       ${active
         ? 'border-[var(--ui-primary)] shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/10'
         : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30 shadow-[var(--ui-shadow-card)]'}`}
   >
-    <div className="flex items-start justify-between gap-2 mb-3">
-      <div className={`w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105
-        ${active ? 'bg-[var(--ui-primary)] shadow-[var(--ui-shadow-card)]' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
-        <img src={icon} alt={label} className={`w-6 h-6 object-contain ${active ? 'invert brightness-0' : ''}`} />
+    <div>
+      <div className="flex items-center justify-between gap-1.5 mb-1.5">
+        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-2xs transition-transform group-hover:scale-105
+          ${active ? 'bg-[var(--ui-primary)] text-white shadow-2xs' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
+          <img src={icon} alt={label} className={`w-4 h-4 object-contain ${active ? 'invert brightness-0' : ''}`} />
+        </div>
+        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border whitespace-nowrap shadow-2xs ${badgeColor}`}>
+          {badge}
+        </span>
       </div>
-      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border whitespace-nowrap ${badgeColor}`}>
-        {badge}
-      </span>
+      <p className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{label}</p>
+      <div className="flex items-baseline gap-1 mb-1.5">
+        <span className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none">{value}</span>
+        {sub && <span className="text-[10px] text-slate-400 font-semibold truncate leading-none">{sub}</span>}
+      </div>
     </div>
-    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
-    <div className="flex items-baseline gap-1.5 mb-2">
-      <span className="text-2xl font-black text-slate-800">{value}</span>
-      {sub && <span className="text-xs text-slate-400 font-semibold">{sub}</span>}
+    <div>
+      <ProgressBar value={barPct} max={100} colorClass={barColor} height={4} />
+      {detail && <p className="text-[9px] text-slate-400 font-medium mt-1 truncate leading-tight">{detail}</p>}
     </div>
-    <ProgressBar value={barPct} max={100} colorClass={barColor} />
-    {detail && <p className="text-[10px] text-slate-400 font-medium mt-1.5 truncate">{detail}</p>}
   </div>
 );
 
@@ -609,7 +613,7 @@ export default function KepsekExecutiveDashboard({
 
 
       {/* ═══════════════ 7 KPI PILLARS ═══════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-2.5">
         {[
           { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
           { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('laporan_absensi') },
