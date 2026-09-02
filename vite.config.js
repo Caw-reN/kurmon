@@ -4,9 +4,39 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'url'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+
+// Dapatkan versi dari package.json dan informasi Git commit
+let appVersion = 'v2.1.0';
+let gitCommit = 'dev';
+let gitDateStr = '';
+let gitTimeStr = '';
+
+try {
+  const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
+  appVersion = `v${pkg.version || '2.1.0'}`;
+  gitCommit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  const commitDate = execSync('git log -1 --format=%cd --date=iso', { encoding: 'utf8' }).trim();
+  const d = new Date(commitDate || Date.now());
+  gitDateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  gitTimeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':') + ' WIB';
+} catch {
+  const now = new Date();
+  gitDateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  gitTimeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':') + ' WIB';
+}
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+    __GIT_COMMIT__: JSON.stringify(gitCommit),
+    __GIT_DATE__: JSON.stringify(gitDateStr),
+    __GIT_TIME__: JSON.stringify(gitTimeStr),
+    __GIT_DATETIME__: JSON.stringify(`${gitDateStr}, ${gitTimeStr}`),
+    __GIT_FULL_DETAIL__: JSON.stringify(`Update ${gitDateStr}, ${gitTimeStr} (${gitCommit})`),
+  },
   plugins: [
     tailwindcss(),
     react(),

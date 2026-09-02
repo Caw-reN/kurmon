@@ -30,7 +30,10 @@ export default function AdminSidebar({
   const refToUse = sidebarScrollRef || fallbackScrollRef;
   const posToUse = sidebarScrollPos || fallbackScrollPos;
 
-  const [appVersion, setAppVersion] = useState({ version: 'v2.0.1', detail: 'Update 2 Sep' });
+  const [appVersion, setAppVersion] = useState({
+    version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
+    detail: typeof __GIT_FULL_DETAIL__ !== 'undefined' ? __GIT_FULL_DETAIL__ : 'Update Terbaru'
+  });
 
   useEffect(() => {
     fetch('/api/version')
@@ -501,11 +504,12 @@ export default function AdminSidebar({
         {/* App Version Info - Hanya Admin/Superadmin */}
         {isSuperAdminRole(activeUserRole) && (
           !isSidebarCollapsed ? (
-            <div className="text-[10px] text-center font-semibold text-slate-400/80 cursor-default">
-              {appVersion.version} ({appVersion.detail})
+            <div className="text-[10px] text-center font-medium text-slate-400 cursor-default px-1 leading-tight flex flex-col items-center gap-0.5">
+              <span className="font-bold text-slate-500">{appVersion.version}</span>
+              <span className="text-[9px] text-slate-400">{appVersion.detail}</span>
             </div>
           ) : (
-            <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
+            <div className="text-[8px] text-center font-bold text-slate-400 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
               {appVersion.version}
             </div>
           )

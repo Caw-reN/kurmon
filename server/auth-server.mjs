@@ -1676,17 +1676,43 @@ const server = createServer(async (req, res) => {
       if (req.method === "GET" && url.pathname === "/api/version") {
         try {
           const { execSync } = await import("node:child_process");
-          const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
-          const commitCount = execSync('git rev-list --count HEAD').toString().trim();
-          const dateOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' };
-          const buildDate = new Date().toLocaleDateString('id-ID', dateOptions).replace('.', ':');
+          const { readFileSync } = await import("node:fs");
+          
+          let version = "v2.1.0";
+          try {
+            const pkg = JSON.parse(readFileSync(resolve(rootDir, "package.json"), "utf8"));
+            if (pkg.version) version = `v${pkg.version}`;
+          } catch {}
+
+          let commitHash = "dev";
+          let dateStr = "";
+          let timeStr = "";
+
+          try {
+            commitHash = execSync('git rev-parse --short HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+            const commitDate = execSync('git log -1 --format=%cd --date=iso', { cwd: rootDir, encoding: 'utf8' }).trim();
+            const d = new Date(commitDate || Date.now());
+            dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+            timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':') + ' WIB';
+          } catch {
+            const now = new Date();
+            dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+            timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':') + ' WIB';
+          }
+
           return send(req, res, 200, {
             ok: true,
-            version: `v2.0.${commitCount}`,
-            detail: `Update ${buildDate} (${commitHash})`
+            version,
+            commit: commitHash,
+            date: dateStr,
+            time: timeStr,
+            detail: `Update ${dateStr}, ${timeStr} (${commitHash})`
           });
         } catch (err) {
-          return send(req, res, 200, { ok: true, version: 'v2.0.x', detail: 'Update (Git tidak tersedia)' });
+          const now = new Date();
+          const dStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+          const tStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':') + ' WIB';
+          return send(req, res, 200, { ok: true, version: 'v2.1.0', detail: `Update ${dStr}, ${tStr}` });
         }
       }
 
