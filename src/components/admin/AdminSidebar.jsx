@@ -30,6 +30,17 @@ export default function AdminSidebar({
   const refToUse = sidebarScrollRef || fallbackScrollRef;
   const posToUse = sidebarScrollPos || fallbackScrollPos;
 
+  const [appVersion, setAppVersion] = useState({ version: 'v2.0.1', detail: 'Update 2 Sep' });
+
+  useEffect(() => {
+    fetch('/api/version')
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) setAppVersion({ version: data.version, detail: data.detail });
+      })
+      .catch(() => {});
+  }, []);
+
   // Restore scroll position on mount
   useEffect(() => {
     const savedPos = sessionStorage.getItem("admin_sidebar_scroll_top");
@@ -489,11 +500,11 @@ export default function AdminSidebar({
         {/* App Version Info */}
         {!isSidebarCollapsed ? (
           <div className="text-[10px] text-center font-semibold text-slate-400/80 cursor-default">
-            v2.0.1 (Update 2 Sep)
+            {appVersion.version} ({appVersion.detail})
           </div>
         ) : (
-          <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title="v2.0.1 (Update 2 Sep)">
-            v2.0.1
+          <div className="text-[8px] text-center font-bold text-slate-400/80 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
+            {appVersion.version}
           </div>
         )}
       </div>

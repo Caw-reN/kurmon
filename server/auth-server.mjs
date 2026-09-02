@@ -1667,6 +1667,23 @@ const server = createServer(async (req, res) => {
   }
 
   try {
+      if (req.method === "GET" && url.pathname === "/api/version") {
+        try {
+          const { execSync } = await import("node:child_process");
+          const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+          const commitCount = execSync('git rev-list --count HEAD').toString().trim();
+          const dateOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' };
+          const buildDate = new Date().toLocaleDateString('id-ID', dateOptions).replace('.', ':');
+          return send(req, res, 200, {
+            ok: true,
+            version: `v2.0.${commitCount}`,
+            detail: `Update ${buildDate} (${commitHash})`
+          });
+        } catch (err) {
+          return send(req, res, 200, { ok: true, version: 'v2.0.x', detail: 'Update (Git tidak tersedia)' });
+        }
+      }
+
       if (req.method === "GET" && url.pathname === "/api/student/verify") {
         try {
           const nis = url.searchParams.get("nis");
