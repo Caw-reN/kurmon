@@ -1,12 +1,7 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { 
-  Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, 
-  HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, 
-  Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, Home, CheckSquare, 
-  LayoutGrid, Menu, GitFork, Building2 
-} from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, MessageCircleQuestion } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -48,6 +43,7 @@ export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showPublicGuide, setShowPublicGuide] = useState(false);
   const [showPublicHelp, setShowPublicHelp] = useState(false);
+  const [showFastMenuInfo, setShowFastMenuInfo] = useState(false);
   const [isNavScrolled, setIsNavScrolled] = useState(false);
 
   const [showRulesModal, setShowRulesModal] = useState(false);
@@ -502,279 +498,209 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain Screenshot Referensi) */}
-      <div className="md:hidden flex flex-col w-full pb-24 bg-slate-50/50">
+      {/* MOBILE LANDING VIEW (100% SERUPA DENGAN DESAIN REFERENSI & TEMA WARNA AKTIF) */}
+      <div className="md:hidden flex flex-col justify-between min-h-[100dvh] w-full bg-white relative overflow-x-hidden select-none">
+        
+        {/* BAGIAN ATAS: HERO BANNER & ILUSTRASI HIGH-FIVE */}
+        <div 
+          className="relative w-full overflow-hidden flex flex-col items-center justify-between text-white shrink-0"
+          style={{ 
+            background: `linear-gradient(180deg, color-mix(in srgb, var(--ui-primary, #064e3b) 90%, #000) 0%, color-mix(in srgb, var(--ui-primary, #059669) 92%, #000) 42%, var(--ui-primary, #059669) 100%)` 
+          }}
+        >
+          {/* Subtle water droplets / bokeh texture overlay */}
+          <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#fff_1.2px,transparent_1.2px)] [background-size:20px_20px]" />
+          <div className="absolute -top-12 -left-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-16 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-        {/* 1. Mobile Top Navbar Header */}
-        <div className="w-full bg-white px-4 py-2.5 flex items-center justify-between border-b border-slate-100/90 sticky top-0 z-30 select-none shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            {appSettings.logoUrl ? (
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center p-1.5 shadow-2xs">
-                <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-              </div>
-            ) : (
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex flex-col items-center justify-center text-white shadow-2xs font-black leading-none">
-                <span className="text-[7.5px] uppercase tracking-wider">SMK</span>
-                <span className="text-[10.5px] uppercase font-extrabold tracking-tight">KG2</span>
-              </div>
-            )}
-            <div className="flex flex-col text-left">
-              <span className="text-[13px] font-black text-slate-900 leading-tight">Sistem Informasi</span>
-              <span className="text-[11px] font-bold text-emerald-600 leading-tight">
-                {appSettings.appName || "Karya Guna 2"}
-              </span>
+          {/* Sparkles backdrop */}
+          <Sparkles className="absolute left-6 top-8 text-white/30 animate-pulse pointer-events-none" size={15} />
+          <Sparkles className="absolute right-7 top-14 text-white/40 animate-pulse pointer-events-none" size={13} />
+          <Sparkles className="absolute left-9 bottom-32 text-white/20 animate-pulse pointer-events-none" size={12} />
+
+          {/* Header Texts */}
+          <div className="pt-7 sm:pt-8 pb-1 px-4 text-center z-10 w-full">
+            <h1 className="text-[25px] sm:text-[27px] font-black text-white tracking-tight drop-shadow-sm leading-none">
+              {appSettings.appName || "KG2 School"}
+            </h1>
+            <p className="text-[9.5px] tracking-[0.28em] font-extrabold text-white/80 uppercase mt-1.5 leading-none">
+              MOBILE
+            </p>
+
+            <div className="mt-4 sm:mt-5">
+              <p className="text-[14.5px] sm:text-[15.5px] font-medium text-white/95 leading-snug">
+                Halo, {userName && userName !== "Pengguna" ? userName : "[Nama Pengguna]"}
+              </p>
+              <h2 className="text-[21px] sm:text-[23px] font-black text-white tracking-tight mt-0.5 drop-shadow-xs leading-tight">
+                Selamat Datang!
+              </h2>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowPublicGuide(true)}
-            className="w-9 h-9 rounded-full bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all active:scale-95 cursor-pointer shadow-2xs"
-            aria-label="Cari Layanan"
-            title="Cari Layanan Publik"
-          >
-            <Search size={16} strokeWidth={2.5} />
-          </button>
+          {/* High-Five Illustration with floating elements & bottom curve */}
+          <div className="relative w-full flex justify-center mt-1 z-10">
+            <img 
+              src="/mobile_hero_illustration.png" 
+              alt="KG2 School Mobile" 
+              className="w-full max-w-[340px] sm:max-w-[375px] object-contain drop-shadow-sm pointer-events-none select-none -mb-1"
+            />
+          </div>
         </div>
 
-        {/* 2. Deep Emerald Green Hero Section (Terkoneksi Penuh ke Kustomisasi Web) */}
-        <div className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-12 overflow-hidden bg-gradient-to-b from-[#0e5a36] via-[#0b4d2e] to-[#083b22]">
+        {/* BAGIAN BAWAH: WHITE SHEET DENGAN FAST MENU & TOMBOL AKSI */}
+        <div className="w-full bg-white flex-1 flex flex-col justify-between px-5 pt-3 pb-6 sm:pb-8 relative z-20 shadow-[0_-10px_25px_rgba(0,0,0,0.03)] -mt-1">
           
-          {/* Custom Hero Image from Kustomisasi Tampilan Web */}
-          {appSettings.heroImage && (
-            <img 
-              src={appSettings.heroImage} 
-              fetchpriority="high" 
-              loading="eager" 
-              className="absolute inset-0 w-full h-full object-cover object-center z-0 scale-105 transition-transform duration-700 opacity-40" 
-              alt="Background Sekolah" 
-            />
-          )}
+          <div>
+            {/* Fast Menu Title with (i) Icon */}
+            <div className="flex items-center justify-center gap-1.5 mb-4 mt-0.5">
+              <span 
+                className="text-[15px] font-extrabold tracking-tight"
+                style={{ color: 'var(--ui-primary, #059669)' }}
+              >
+                Fast Menu
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowFastMenuInfo(prev => !prev)}
+                className="text-[var(--ui-primary,#059669)] hover:opacity-80 transition-opacity cursor-pointer p-0.5 border-none bg-transparent"
+                title="Informasi Fast Menu"
+                aria-label="Tentang Fast Menu"
+              >
+                <Info size={14} className="stroke-[2.5]" />
+              </button>
+            </div>
 
-          {/* Gradient Overlay for high legibility */}
-          <div 
-            className="absolute inset-0 z-0"
-            style={{
-              background: appSettings.heroImage
-                ? `linear-gradient(180deg, rgba(14, 90, 54, 0.85) 0%, rgba(11, 77, 46, 0.90) 50%, rgba(8, 59, 34, 0.98) 100%)`
-                : `linear-gradient(180deg, #0e5a36 0%, #0b4d2e 50%, #083b22 100%)`
-            }}
-          />
+            {/* Fast Menu Info Toast/Drawer (if toggled) */}
+            {showFastMenuInfo && (
+              <div className="mb-3.5 p-2.5 bg-emerald-50/90 border border-emerald-200/80 rounded-xl text-center text-xs text-emerald-900 font-medium animate-in fade-in slide-in-from-top-1 duration-200 flex items-center justify-between">
+                <span>Akses cepat jadwal, denah, materi ajar, & kalender akademik sekolah tanpa perlu login.</span>
+                <button 
+                  onClick={() => setShowFastMenuInfo(false)} 
+                  className="ml-2 text-emerald-600 hover:text-emerald-900 p-0.5 cursor-pointer"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
 
-          {/* Subtle glow background */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20 z-0" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-300/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20 z-0" />
+            {/* 4 Circular Buttons Grid */}
+            <div className="grid grid-cols-4 gap-2 w-full max-w-[360px] mx-auto">
+              
+              {/* 1. Jadwal Pelajaran */}
+              <button
+                type="button"
+                onClick={() => navigate('/jadwal')}
+                className="flex flex-col items-center group cursor-pointer border-none bg-transparent active:scale-95 transition-transform"
+              >
+                <div 
+                  className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-200 shadow-2xs group-hover:scale-105 border"
+                  style={{ 
+                    backgroundColor: hexToRgba(primaryColor || '#059669', 0.1),
+                    borderColor: hexToRgba(primaryColor || '#059669', 0.25),
+                    color: 'var(--ui-primary, #059669)'
+                  }}
+                >
+                  <Calendar size={22} strokeWidth={2.2} />
+                </div>
+                <span className="text-[10.5px] font-semibold text-slate-700 leading-tight text-center mt-1.5 block">
+                  Jadwal<br />Pelajaran
+                </span>
+              </button>
 
-          {/* Academic Year Pill (Dinamis) */}
-          <div className="flex items-center text-left mb-4.5 relative z-10">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black tracking-wider text-white uppercase shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {appSettings.academicYear || "TAHUN AJARAN 2026/2027"}
-            </span>
+              {/* 2. Denah Ruang */}
+              <button
+                type="button"
+                onClick={() => navigate('/denah')}
+                className="flex flex-col items-center group cursor-pointer border-none bg-transparent active:scale-95 transition-transform"
+              >
+                <div 
+                  className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-200 shadow-2xs group-hover:scale-105 border"
+                  style={{ 
+                    backgroundColor: hexToRgba(primaryColor || '#059669', 0.1),
+                    borderColor: hexToRgba(primaryColor || '#059669', 0.25),
+                    color: 'var(--ui-primary, #059669)'
+                  }}
+                >
+                  <MapPin size={22} strokeWidth={2.2} />
+                </div>
+                <span className="text-[10.5px] font-semibold text-slate-700 leading-tight text-center mt-1.5 block">
+                  Denah<br />Ruang
+                </span>
+              </button>
+
+              {/* 3. Materi Ajar */}
+              <button
+                type="button"
+                onClick={() => navigate('/materi-ajar')}
+                className="flex flex-col items-center group cursor-pointer border-none bg-transparent active:scale-95 transition-transform"
+              >
+                <div 
+                  className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-200 shadow-2xs group-hover:scale-105 border"
+                  style={{ 
+                    backgroundColor: hexToRgba(primaryColor || '#059669', 0.1),
+                    borderColor: hexToRgba(primaryColor || '#059669', 0.25),
+                    color: 'var(--ui-primary, #059669)'
+                  }}
+                >
+                  <BookOpen size={22} strokeWidth={2.2} />
+                </div>
+                <span className="text-[10.5px] font-semibold text-slate-700 leading-tight text-center mt-1.5 block">
+                  Materi<br />Ajar
+                </span>
+              </button>
+
+              {/* 4. Kalender Akademik */}
+              <button
+                type="button"
+                onClick={() => navigate('/kalender')}
+                className="flex flex-col items-center group cursor-pointer border-none bg-transparent active:scale-95 transition-transform"
+              >
+                <div 
+                  className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-200 shadow-2xs group-hover:scale-105 border"
+                  style={{ 
+                    backgroundColor: hexToRgba(primaryColor || '#059669', 0.1),
+                    borderColor: hexToRgba(primaryColor || '#059669', 0.25),
+                    color: 'var(--ui-primary, #059669)'
+                  }}
+                >
+                  <CalendarDays size={22} strokeWidth={2.2} />
+                </div>
+                <span className="text-[10.5px] font-semibold text-slate-700 leading-tight text-center mt-1.5 block">
+                  Kalender<br />Akademik
+                </span>
+              </button>
+
+            </div>
           </div>
 
-          {/* Dynamic Hero Heading (Terkoneksi ke Kustomisasi Tampilan) */}
-          <div className="text-left relative z-10 mb-2">
-            {(() => {
-              const rawTitle = heroTitle || "Hello, Selamat Datang";
-              if (rawTitle === "Hello, Selamat Datang" || rawTitle.toLowerCase().startsWith("hello")) {
-                return (
-                  <>
-                    <h2 className="text-[20px] font-medium text-white/90 leading-tight drop-shadow-xs">
-                      Hello,
-                    </h2>
-                    <h1 className="text-[28px] sm:text-[32px] font-black text-white tracking-tight leading-tight mt-0.5 drop-shadow-xs">
-                      Selamat Datang{appSettings.appName ? <span className="text-emerald-300"> di {appSettings.appName}</span> : ''}
-                    </h1>
-                  </>
-                );
-              }
-              return (
-                <h1 className="text-[27px] sm:text-[30px] font-black text-white tracking-tight leading-tight drop-shadow-xs">
-                  {rawTitle}
-                </h1>
-              );
-            })()}
-
-            {/* Dynamic Subtitle from Kustomisasi Web */}
-            <p className="text-white/90 text-[12px] sm:text-[13px] font-medium leading-relaxed max-w-[340px] mt-2 mb-4 drop-shadow-xs">
-              {cleanHeroSubtitle || "di Sistem Informasi yang memudahkan guru dan siswa dalam mengakses jadwal pelajaran, memantau denah ruang kelas, kalender akademik, hingga melihat materi ajar."}
-            </p>
-          </div>
-
-          {/* Big Green CTA Button */}
-          <div className="relative z-10 w-full">
+          {/* BAR TOMBOL AKSI BAWAH: LOGIN + ASK BUTTON (ICON TANYA) */}
+          <div className="flex items-center gap-3 w-full max-w-[360px] mx-auto mt-6">
+            
+            {/* Tombol Login Lebar */}
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-98 text-white font-black text-[13.5px] uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all cursor-pointer select-none"
+              className="flex-1 h-12 rounded-2xl text-white font-extrabold text-[15px] shadow-sm hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer border-none select-none"
+              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #059669))' }}
             >
-              <span>Masuk ke Aplikasi</span>
-              <ArrowRight size={17} strokeWidth={2.5} />
+              Login
             </button>
+
+            {/* Tombol Ask Kotak (Menggantikan Icon Biometrik) */}
+            <button
+              type="button"
+              onClick={() => setShowPublicHelp(true)}
+              className="w-12 h-12 rounded-2xl text-white flex items-center justify-center shadow-sm hover:opacity-95 active:scale-[0.98] transition-all shrink-0 cursor-pointer border-none select-none"
+              style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #059669))' }}
+              title="Tanya & Pusat Bantuan"
+              aria-label="Tanya & Bantuan"
+            >
+              <MessageCircleQuestion size={24} strokeWidth={2.2} />
+            </button>
+
           </div>
 
         </div>
-
-        {/* 3. Floating Akses Cepat Card (Overlapping Hero) */}
-        <div className="relative -mt-7 mx-4 bg-white rounded-3xl p-5 shadow-[0_12px_32px_rgba(0,0,0,0.08)] border border-slate-100 z-20 flex flex-col select-none">
-          <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight text-left mb-4">
-            Akses Cepat
-          </h3>
-
-          <div className="grid grid-cols-4 gap-y-4 gap-x-2 w-full">
-            {[
-              {
-                label: getShortLabel(appSettings.serviceLabel1 || 'Jadwal Pelajaran'),
-                icon: Calendar,
-                bgColor: 'bg-blue-50/90 text-blue-600 border-blue-100/80',
-                onClick: () => navigate('/jadwal')
-              },
-              {
-                label: getShortLabel(appSettings.serviceLabel2 || 'Denah Kelas'),
-                icon: MapPin,
-                bgColor: 'bg-orange-50/90 text-orange-600 border-orange-100/80',
-                onClick: () => navigate('/denah')
-              },
-              {
-                label: getShortLabel(appSettings.serviceLabel3 || 'Materi Ajar'),
-                icon: GraduationCap,
-                bgColor: 'bg-purple-50/90 text-purple-600 border-purple-100/80',
-                onClick: () => navigate('/materi-ajar')
-              },
-              {
-                label: 'Absensi',
-                icon: CheckSquare,
-                bgColor: 'bg-emerald-50/90 text-emerald-600 border-emerald-100/80',
-                onClick: () => setIsLoginModalOpen(true)
-              },
-              {
-                label: getShortLabel(appSettings.serviceLabel4 || 'Kalender Akademik'),
-                icon: CalendarDays,
-                bgColor: 'bg-amber-50/90 text-amber-600 border-amber-100/80',
-                onClick: () => navigate('/kalender')
-              },
-              {
-                label: getShortLabel(appSettings.serviceLabel5 || 'Info PKL'),
-                icon: Building2,
-                bgColor: 'bg-rose-50/90 text-rose-600 border-rose-100/80',
-                onClick: () => navigate('/pkl-locations')
-              },
-              {
-                label: getShortLabel(appSettings.serviceLabel6 || 'Struktur Organisasi'),
-                icon: GitFork,
-                bgColor: 'bg-indigo-50/90 text-indigo-600 border-indigo-100/80',
-                onClick: () => navigate('/struktur')
-              },
-              {
-                label: 'Semua',
-                icon: LayoutGrid,
-                bgColor: 'bg-slate-100 text-slate-700 border-slate-200/80',
-                onClick: () => setShowPublicGuide(true)
-              },
-            ].map((item, idx) => {
-              const IconComp = item.icon;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={item.onClick}
-                  className="flex flex-col items-center justify-center gap-1.5 cursor-pointer border-none bg-transparent active:scale-95 transition-transform group"
-                >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-2xs transition-all duration-200 group-hover:scale-105 ${item.bgColor}`}>
-                    <IconComp size={22} strokeWidth={2.2} />
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-700 tracking-tight text-center truncate w-full">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 4. Section Program Keahlian (Dinamis dari Kustomisasi Tampilan Web) */}
-        <section className="relative z-10 w-full px-4 mt-6 mb-6">
-          <div className="text-left mb-3.5">
-            <h3 className="text-base font-black text-slate-900 tracking-tight">
-              {appSettings.trustedByText || "Program Keahlian"}
-            </h3>
-            <p className="text-[11.5px] text-slate-400 font-semibold mt-0.5">
-              Kompetensi unggulan berstandar industri.
-            </p>
-          </div>
-
-          {/* Horizontal Scroll Cards of Majors (Dinamis dari partners / fallback) */}
-          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar snap-x snap-mandatory">
-            {(partners && partners.length > 0 ? partners : [
-              { name: 'Manajemen Perkantoran (MPLB)', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&auto=format&fit=crop&q=60', color: 'from-amber-600 to-orange-700' },
-              { name: 'Teknik Kendaraan Ringan (TKR)', image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=500&auto=format&fit=crop&q=60', color: 'from-sky-700 to-indigo-800' },
-              { name: 'Teknik Komputer & Jaringan (TKJ)', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&auto=format&fit=crop&q=60', color: 'from-emerald-700 to-teal-800' },
-              { name: 'Akuntansi & Keuangan Lembaga (AKL)', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60', color: 'from-rose-700 to-pink-800' },
-            ]).map((partner, idx) => {
-              const defaultGradients = [
-                "from-amber-600 to-orange-700",
-                "from-sky-700 to-indigo-800",
-                "from-emerald-700 to-teal-800",
-                "from-rose-700 to-pink-800"
-              ];
-              const gradColor = partner.color && colorMap[partner.color] ? colorMap[partner.color] : (defaultGradients[idx % defaultGradients.length]);
-
-              return (
-                <div
-                  key={partner.id || idx}
-                  className="w-64 shrink-0 snap-start bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 relative h-36 flex flex-col justify-end p-3.5 text-white group"
-                >
-                  {partner.image ? (
-                    <img
-                      src={partner.image}
-                      alt={partner.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60"
-                      loading="lazy"
-                    />
-                  ) : null}
-                  <div className={`absolute inset-0 bg-gradient-to-t ${gradColor} opacity-85`} />
-                  <div className="relative z-10 flex flex-col text-left">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-white/80 mb-0.5">
-                      Keahlian 0{idx + 1}
-                    </span>
-                    <h4 className="text-[13px] font-black text-white leading-tight line-clamp-2">
-                      {partner.name}
-                    </h4>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* MITRA & KERJASAMA SLIDER (Mobile) */}
-        {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <section className="relative z-10 w-full overflow-hidden px-4 mb-4">
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-3 px-4 w-full">
-              <div className="w-full mb-2 text-center">
-                <h3 className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider inline-block">Telah Dipercaya & Bekerjasama Dengan</h3>
-              </div>
-
-              <div className="relative w-full overflow-hidden flex py-0.5">
-                <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-
-                <div className="flex w-max animate-marquee gap-7 items-center px-2 hover:[animation-play-state:paused]">
-                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id ||'m'}-${idx}`} className="w-[70px] h-[30px] flex items-center justify-center shrink-0 group grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
-                      {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform" title={mitra.name} />
-                      ) : (
-                        <span className="text-[10px] font-black text-slate-700 tracking-tight text-center">{mitra.name}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
 
       </div>
 
@@ -1183,64 +1109,25 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Mobile Floating Bottom Bar (Matching Screenshot) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-200/70 flex items-center justify-around px-2 z-[45] pb-safe-bottom shadow-[0_-4px_24px_rgba(0,0,0,0.06)] select-none">
-        
-        {/* Tab 1: Beranda (Active) */}
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer border-none bg-transparent active:scale-95 transition-all"
+      {/* Mobile Bottom Tab Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-[var(--ui-border-muted)] flex items-center justify-between z-[40] pb-safe-bottom shadow-[var(--ui-shadow-float)] px-4 gap-3 select-none">
+        <button 
+          onClick={() => setShowPublicHelp(true)} 
+          className="flex flex-col items-center justify-center cursor-pointer border-none bg-transparent text-slate-600 hover:text-slate-900 active:scale-95 transition-all w-16 h-12"
         >
-          <div className="relative flex flex-col items-center">
-            <Home size={19} strokeWidth={2.5} className="text-emerald-600" />
-            <span className="text-[9.5px] font-black text-emerald-600 mt-0.5">Beranda</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-0.5" />
-          </div>
+          <img src="/icons/012-support.svg" className="w-5 h-5 object-contain" alt="" />
+          <span className="text-[8px] font-extrabold tracking-tight mt-1 text-slate-500">Bantuan</span>
         </button>
 
-        {/* Tab 2: Jadwal */}
-        <button
-          type="button"
-          onClick={() => navigate('/jadwal')}
-          className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer border-none bg-transparent text-slate-400 hover:text-slate-700 active:scale-95 transition-all"
+        <button 
+          onClick={() => setIsLoginModalOpen(true)} 
+          data-slot="button"
+          data-variant="primary"
+          className="flex-1 h-11 flex items-center justify-center gap-1.5 cursor-pointer border-none text-white rounded-[var(--ui-radius-control)] font-extrabold text-xs uppercase tracking-wider active:scale-[0.98] transition-all btn-primary-theme"
+          style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary))' }}
         >
-          <Calendar size={19} strokeWidth={2} className="text-slate-400" />
-          <span className="text-[9.5px] font-bold text-slate-500 mt-0.5">Jadwal</span>
+          Masuk Sekarang
         </button>
-
-        {/* Center Floating Action Button (Masuk Portal) */}
-        <div className="flex flex-col items-center justify-center -mt-6 px-1">
-          <button
-            type="button"
-            onClick={() => setIsLoginModalOpen(true)}
-            aria-label="Masuk Portal"
-            className="w-13 h-13 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 border-4 border-white active:scale-90 transition-all cursor-pointer ring-4 ring-emerald-500/10"
-          >
-            <LogIn size={22} strokeWidth={2.5} className="ml-0.5" />
-          </button>
-        </div>
-
-        {/* Tab 3: Bantuan */}
-        <button
-          type="button"
-          onClick={() => setShowPublicHelp(true)}
-          className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer border-none bg-transparent text-slate-400 hover:text-slate-700 active:scale-95 transition-all"
-        >
-          <HelpCircle size={19} strokeWidth={2} className="text-slate-400" />
-          <span className="text-[9.5px] font-bold text-slate-500 mt-0.5">Bantuan</span>
-        </button>
-
-        {/* Tab 4: Menu */}
-        <button
-          type="button"
-          onClick={() => setShowPublicGuide(true)}
-          className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer border-none bg-transparent text-slate-400 hover:text-slate-700 active:scale-95 transition-all"
-        >
-          <Menu size={19} strokeWidth={2} className="text-slate-400" />
-          <span className="text-[9.5px] font-bold text-slate-500 mt-0.5">Menu</span>
-        </button>
-
       </div>
 
       {/* REMOVED LOGIN MODAL (NOW HANDLED IN PUBLIC LAYOUT) */}
