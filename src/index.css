@@ -1379,3 +1379,176 @@ input::-ms-clear {
   filter: brightness(1.08) !important;
   transform: translateY(-1px) !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   LANDING PAGE — ANIMASI LANGIT (STATIS, TIDAK DI JSX)
+   Dipindahkan dari inline <style> di LandingPage.jsx
+   agar browser tidak melakukan style recalculation tiap render.
+   ───────────────────────────────────────────────────────── */
+
+/* ── AWAN BERGERAK DESKTOP & MOBILE ── */
+@keyframes aerialCloudDrift1 {
+  0%   { transform: translate3d(-100%, -20%, 0) scale(0.92); opacity: 0; }
+  15%  { opacity: 0.38; }
+  85%  { opacity: 0.38; }
+  100% { transform: translate3d(145%, 35%, 0) scale(1.08); opacity: 0; }
+}
+@keyframes aerialCloudDrift2 {
+  0%   { transform: translate3d(-130%, 15%, 0) scale(0.78); opacity: 0; }
+  20%  { opacity: 0.32; }
+  80%  { opacity: 0.32; }
+  100% { transform: translate3d(135%, -15%, 0) scale(0.88); opacity: 0; }
+}
+@keyframes aerialCloudDrift3 {
+  0%   { transform: translate3d(-115%, -10%, 0) scale(1.18); opacity: 0; }
+  12%  { opacity: 0.28; }
+  88%  { opacity: 0.28; }
+  100% { transform: translate3d(155%, 25%, 0) scale(1.28); opacity: 0; }
+}
+@keyframes aerialHazeSlow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.08; }
+  50%       { transform: translate3d(4%, 3%, 0) scale(1.05); opacity: 0.16; }
+}
+
+.animate-aerial-cloud-1 {
+  animation: aerialCloudDrift1 15s linear infinite;
+  will-change: transform, opacity;
+}
+.animate-aerial-cloud-2 {
+  animation: aerialCloudDrift2 20s linear infinite;
+  animation-delay: -8s;
+  will-change: transform, opacity;
+}
+.animate-aerial-cloud-3 {
+  animation: aerialCloudDrift3 26s linear infinite;
+  animation-delay: -14s;
+  will-change: transform, opacity;
+}
+.animate-aerial-haze {
+  animation: aerialHazeSlow 12s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ── BINTANG BERKELIP (MALAM) ── */
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50%       { opacity: 0.95; transform: scale(1.3); }
+}
+.animate-star-twinkle {
+  animation: starTwinkle 2.0s ease-in-out infinite;
+}
+
+/* ── HUJAN ── */
+@keyframes rainDropFall {
+  0%   { transform: translate3d(0, -60px, 0); opacity: 0; }
+  15%  { opacity: 0.65; }
+  85%  { opacity: 0.65; }
+  100% { transform: translate3d(-35px, 380px, 0); opacity: 0; }
+}
+.animate-rain-fall {
+  animation: rainDropFall 0.52s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* ── SINAR MATAHARI PANAS TERIK ── */
+@keyframes sunbeamSweep {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.18; }
+  50%       { transform: rotate(6deg) scale(1.06); opacity: 0.35; }
+}
+.animate-sunbeam {
+  animation: sunbeamSweep 7s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ── KEPAKAN SAYAP BURUNG ── */
+@keyframes birdFlap {
+  0%, 100% { transform: scaleY(1); }
+  50%       { transform: scaleY(0.2); }
+}
+
+/* ── KAWANAN BURUNG SIANG/PAGI ── */
+@keyframes flockFlyEast {
+  0%      { transform: translate3d(-170px, 28px, 0) scale(1); opacity: 0; }
+  6%      { opacity: 0.92; }
+  36%     { opacity: 0.92; }
+  42%     { transform: translate3d(650px, 8px, 0) scale(1.05); opacity: 0; }
+  42.1%, 100% { transform: translate3d(700px, 8px, 0); opacity: 0; }
+}
+@keyframes flockFlyWest {
+  0%, 48% { transform: translate3d(660px, 50px, 0) scaleX(-1); opacity: 0; }
+  52%     { transform: translate3d(640px, 50px, 0) scaleX(-1); opacity: 0.88; }
+  84%     { opacity: 0.88; }
+  90%     { transform: translate3d(-170px, 25px, 0) scaleX(-1); opacity: 0; }
+  90.1%, 100% { transform: translate3d(-200px, 25px, 0) scaleX(-1); opacity: 0; }
+}
+
+/* ── KEPAKAN SAYAP KELELAWAR ── */
+@keyframes batFlap {
+  0%, 100% { transform: scaleY(1) rotate(0deg); }
+  50%       { transform: scaleY(-0.55) rotate(4deg); }
+}
+
+/* ── KAWANAN KELELAWAR MALAM ── */
+@keyframes swarmFlyWest {
+  0%      { transform: translate3d(650px, 22px, 0); opacity: 0; }
+  6%      { opacity: 0.95; }
+  22%     { transform: translate3d(420px, 12px, 0); }
+  36%     { opacity: 0.95; }
+  42%     { transform: translate3d(-160px, 32px, 0); opacity: 0; }
+  42.1%, 100% { transform: translate3d(-200px, 32px, 0); opacity: 0; }
+}
+@keyframes swarmFlyEast {
+  0%, 48% { transform: translate3d(-160px, 58px, 0) scaleX(-1); opacity: 0; }
+  52%     { transform: translate3d(-140px, 58px, 0) scaleX(-1); opacity: 0.92; }
+  70%     { transform: translate3d(240px, 42px, 0) scaleX(-1); }
+  84%     { opacity: 0.92; }
+  90%     { transform: translate3d(650px, 65px, 0) scaleX(-1); opacity: 0; }
+  90.1%, 100% { transform: translate3d(700px, 65px, 0) scaleX(-1); opacity: 0; }
+}
+
+/* ── PESAWAT BENDERA MERAH PUTIH ── */
+@keyframes flagWave {
+  0%, 100% { transform: skewY(-2deg) scaleY(1); }
+  50%       { transform: skewY(3deg) scaleY(0.92); }
+}
+.animate-flag-wave {
+  animation: flagWave 0.6s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+@keyframes singlePlaneFly {
+  0%      { transform: translate3d(-180px, 18px, 0) rotate(-2deg); opacity: 0; }
+  5%      { opacity: 0.95; }
+  40%     { opacity: 0.95; }
+  46%     { transform: translate3d(670px, 10px, 0) rotate(-2deg); opacity: 0; }
+  46.1%, 100% { transform: translate3d(720px, 10px, 0); opacity: 0; }
+}
+
+/* ── UFO PIRING TERBANG ── */
+@keyframes ufoFlyAcross {
+  0%, 48% { transform: translate3d(660px, 35px, 0) scale(0.85); opacity: 0; }
+  52%     { transform: translate3d(620px, 38px, 0) scale(0.9); opacity: 0.95; }
+  68%     { transform: translate3d(320px, 20px, 0) scale(0.95) rotate(-4deg); opacity: 1; }
+  78%     { transform: translate3d(220px, 32px, 0) scale(0.9) rotate(3deg); opacity: 1; }
+  90%     { transform: translate3d(-140px, 18px, 0) scale(0.85) rotate(-2deg); opacity: 0.95; }
+  94%, 100% { transform: translate3d(-200px, 18px, 0); opacity: 0; }
+}
+@keyframes ufoGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6)); }
+  50%       { filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.8)); }
+}
+
+/* ── UTILITY CLASSES ANIMASI LANDING PAGE ── */
+.animate-flock-east   { animation: flockFlyEast 28s linear infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-flock-west   { animation: flockFlyWest 28s linear infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-bird-wing    { animation: birdFlap 0.32s ease-in-out infinite; animation-play-state: var(--animation-play-state, running); }
+.animate-bat-wing     { animation: batFlap 0.22s ease-in-out infinite; animation-play-state: var(--animation-play-state, running); }
+.animate-swarm-west   { animation: swarmFlyWest 28s ease-in-out infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-swarm-east   { animation: swarmFlyEast 28s ease-in-out infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-single-plane { animation: singlePlaneFly 34s linear infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-ufo-fly      { animation: ufoFlyAcross 34s ease-in-out infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
+.animate-ufo-glow     { animation: ufoGlow 2.5s ease-in-out infinite; animation-play-state: var(--animation-play-state, running); }
+.animate-aerial-cloud-1, .animate-aerial-cloud-2, .animate-aerial-cloud-3, .animate-aerial-haze,
+.animate-star-twinkle, .animate-rain-fall, .animate-sunbeam, .animate-flag-wave {
+  animation-play-state: var(--animation-play-state, running);
+}

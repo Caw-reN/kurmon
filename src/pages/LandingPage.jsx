@@ -602,6 +602,24 @@ export default function LandingPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const WEATHER_CACHE_KEY = 'kurmon_weather_bekasi';
+    const WEATHER_CACHE_TTL = 5 * 60 * 1000; // 5 menit
+
+    // Cek cache sessionStorage dulu — hindari fetch berulang saat re-mount
+    try {
+      const cached = sessionStorage.getItem(WEATHER_CACHE_KEY);
+      if (cached) {
+        const { ts, condition, temp } = JSON.parse(cached);
+        if (Date.now() - ts < WEATHER_CACHE_TTL) {
+          if (isMounted) {
+            setLiveWeather(condition);
+            if (temp !== undefined) setWeatherTemp(temp);
+          }
+          return () => { isMounted = false; };
+        }
+      }
+    } catch { /* abaikan */ }
+
     // Koordinat Bekasi: Lat -6.2383, Lon 106.9756
     fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2383&longitude=106.9756&current=temperature_2m,is_day,precipitation,rain,weather_code&timezone=Asia%2FJakarta')
       .then(res => res.json())
@@ -628,12 +646,35 @@ export default function LandingPage() {
         } else {
           detected = 'cloudy';
         }
-        setLiveWeather(detected);
+        if (isMounted) {
+          setLiveWeather(detected);
+          // Simpan ke sessionStorage agar tidak fetch ulang dalam 5 menit
+          try {
+            sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+              ts: Date.now(),
+              condition: detected,
+              temp: Math.round(temperature_2m)
+            }));
+          } catch { /* abaikan */ }
+        }
       })
       .catch(() => {
         // Fallback otomatis berdasarkan jam Jakarta
       });
     return () => { isMounted = false; };
+  }, []);
+
+  // Pause semua CSS animations saat browser tab tidak aktif (hemat CPU)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        document.documentElement.style.setProperty('--animation-play-state', 'paused');
+      } else {
+        document.documentElement.style.setProperty('--animation-play-state', 'running');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
   const handleCycleWeather = () => {
@@ -756,12 +797,12 @@ export default function LandingPage() {
 
         {weatherCondition === 'rain' && (
           <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-            {[...Array(24)].map((_, i) => (
+            {[...Array(14)].map((_, i) => (
               <div
                 key={i}
                 className="absolute w-[1.5px] h-10 bg-gradient-to-b from-transparent via-sky-200/40 to-white/60 rotate-[12deg] animate-rain-fall"
                 style={{
-                  left: `${(i * 4.2) + (i % 3)}%`,
+                  left: `${(i * 7) + (i % 3)}%`,
                   top: '-40px',
                   animationDuration: `${0.45 + ((i % 5) * 0.05)}s`,
                   animationDelay: `-${(i % 6) * 0.12}s`
@@ -990,336 +1031,12 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
-        
-        @keyframes aerialCloudDrift1 {
-          0% {
-            transform: translate3d(-100%, -20%, 0) scale(0.92);
-            opacity: 0;
-          }
-          15% {
-            opacity: 0.38;
-          }
-          85% {
-            opacity: 0.38;
-          }
-          100% {
-            transform: translate3d(145%, 35%, 0) scale(1.08);
-            opacity: 0;
-          }
-        }
+      {/* Animasi CSS (keyframes) telah dipindahkan ke index.css agar tidak memicu
+          style recalculation tiap render — lihat bagian "LANDING PAGE — ANIMASI LANGIT" di akhir index.css */}
 
-        @keyframes aerialCloudDrift2 {
-          0% {
-            transform: translate3d(-130%, 15%, 0) scale(0.78);
-            opacity: 0;
-          }
-          20% {
-            opacity: 0.32;
-          }
-          80% {
-            opacity: 0.32;
-          }
-          100% {
-            transform: translate3d(135%, -15%, 0) scale(0.88);
-            opacity: 0;
-          }
-        }
-
-        @keyframes aerialCloudDrift3 {
-          0% {
-            transform: translate3d(-115%, -10%, 0) scale(1.18);
-            opacity: 0;
-          }
-          12% {
-            opacity: 0.28;
-          }
-          88% {
-            opacity: 0.28;
-          }
-          100% {
-            transform: translate3d(155%, 25%, 0) scale(1.28);
-            opacity: 0;
-          }
-        }
-
-        @keyframes aerialHazeSlow {
-          0%, 100% {
-            transform: translate3d(0, 0, 0) scale(1);
-            opacity: 0.08;
-          }
-          50% {
-            transform: translate3d(4%, 3%, 0) scale(1.05);
-            opacity: 0.16;
-          }
-        }
-
-        .animate-aerial-cloud-1 {
-          animation: aerialCloudDrift1 15s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-aerial-cloud-2 {
-          animation: aerialCloudDrift2 20s linear infinite;
-          animation-delay: -8s;
-          will-change: transform, opacity;
-        }
-
-        .animate-aerial-cloud-3 {
-          animation: aerialCloudDrift3 26s linear infinite;
-          animation-delay: -14s;
-          will-change: transform, opacity;
-        }
-
-        .animate-aerial-haze {
-          animation: aerialHazeSlow 12s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-
-        @keyframes starTwinkle {
-          0%, 100% {
-            opacity: 0.15;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 0.95;
-            transform: scale(1.3);
-          }
-        }
-
-        @keyframes rainDropFall {
-          0% {
-            transform: translate3d(0, -60px, 0);
-            opacity: 0;
-          }
-          15% {
-            opacity: 0.65;
-          }
-          85% {
-            opacity: 0.65;
-          }
-          100% {
-            transform: translate3d(-35px, 380px, 0);
-            opacity: 0;
-          }
-        }
-
-        @keyframes sunbeamSweep {
-          0%, 100% {
-            transform: rotate(0deg) scale(1);
-            opacity: 0.18;
-          }
-          50% {
-            transform: rotate(6deg) scale(1.06);
-            opacity: 0.35;
-          }
-        }
-
-        .animate-star-twinkle {
-          animation: starTwinkle 2.0s ease-in-out infinite;
-        }
-
-        .animate-rain-fall {
-          animation: rainDropFall 0.52s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-sunbeam {
-          animation: sunbeamSweep 7s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-
-        /* ── BURUNG BERKELOMPOK (BERGANTIAN, UKURAN LEBIH BESAR & JELAS) ── */
-        @keyframes birdFlap {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(0.2); }
-        }
-
-        @keyframes flockFlyEast {
-          0% {
-            transform: translate3d(-170px, 28px, 0) scale(1);
-            opacity: 0;
-          }
-          6% { opacity: 0.92; }
-          36% { opacity: 0.92; }
-          42% {
-            transform: translate3d(650px, 8px, 0) scale(1.05);
-            opacity: 0;
-          }
-          42.1%, 100% {
-            transform: translate3d(700px, 8px, 0);
-            opacity: 0;
-          }
-        }
-
-        @keyframes flockFlyWest {
-          0%, 48% {
-            transform: translate3d(660px, 50px, 0) scaleX(-1);
-            opacity: 0;
-          }
-          52% {
-            transform: translate3d(640px, 50px, 0) scaleX(-1);
-            opacity: 0.88;
-          }
-          84% { opacity: 0.88; }
-          90% {
-            transform: translate3d(-170px, 25px, 0) scaleX(-1);
-            opacity: 0;
-          }
-          90.1%, 100% {
-            transform: translate3d(-200px, 25px, 0) scaleX(-1);
-            opacity: 0;
-          }
-        }
-
-        /* ── KELELAWAR BERKELOMPOK (BERGANTIAN, UKURAN LEBIH BESAR & JELAS) ── */
-        @keyframes batFlap {
-          0%, 100% { transform: scaleY(1) rotate(0deg); }
-          50% { transform: scaleY(-0.55) rotate(4deg); }
-        }
-
-        @keyframes swarmFlyWest {
-          0% {
-            transform: translate3d(650px, 22px, 0);
-            opacity: 0;
-          }
-          6% { opacity: 0.95; }
-          22% { transform: translate3d(420px, 12px, 0); }
-          36% { opacity: 0.95; }
-          42% {
-            transform: translate3d(-160px, 32px, 0);
-            opacity: 0;
-          }
-          42.1%, 100% {
-            transform: translate3d(-200px, 32px, 0);
-            opacity: 0;
-          }
-        }
-
-        @keyframes swarmFlyEast {
-          0%, 48% {
-            transform: translate3d(-160px, 58px, 0) scaleX(-1);
-            opacity: 0;
-          }
-          52% {
-            transform: translate3d(-140px, 58px, 0) scaleX(-1);
-            opacity: 0.92;
-          }
-          70% { transform: translate3d(240px, 42px, 0) scaleX(-1); }
-          84% { opacity: 0.92; }
-          90% {
-            transform: translate3d(650px, 65px, 0) scaleX(-1);
-            opacity: 0;
-          }
-          90.1%, 100% {
-            transform: translate3d(700px, 65px, 0) scaleX(-1);
-            opacity: 0;
-          }
-        }
-
-        /* ── KIBARAN BENDERA MERAH PUTIH PESAWAT ── */
-        @keyframes flagWave {
-          0%, 100% {
-            transform: skewY(-2deg) scaleY(1);
-          }
-          50% {
-            transform: skewY(3deg) scaleY(0.92);
-          }
-        }
-
-        .animate-flag-wave {
-          animation: flagWave 0.6s ease-in-out infinite;
-          transform-origin: left center;
-        }
-
-        /* ── PESAWAT DENGAN BENDERA (BERGANTIAN DENGAN UFO) ── */
-        @keyframes singlePlaneFly {
-          0% {
-            transform: translate3d(-180px, 18px, 0) rotate(-2deg);
-            opacity: 0;
-          }
-          5% { opacity: 0.95; }
-          40% { opacity: 0.95; }
-          46% {
-            transform: translate3d(670px, 10px, 0) rotate(-2deg);
-            opacity: 0;
-          }
-          46.1%, 100% {
-            transform: translate3d(720px, 10px, 0);
-            opacity: 0;
-          }
-        }
-
-        /* ── PIRING TERBANG UFO (MELAYANG & BERGANTIAN DENGAN PESAWAT) ── */
-        @keyframes ufoFlyAcross {
-          0%, 48% {
-            transform: translate3d(660px, 35px, 0) scale(0.85);
-            opacity: 0;
-          }
-          52% {
-            transform: translate3d(620px, 38px, 0) scale(0.9);
-            opacity: 0.95;
-          }
-          68% {
-            transform: translate3d(320px, 20px, 0) scale(0.95) rotate(-4deg);
-            opacity: 1;
-          }
-          78% {
-            transform: translate3d(220px, 32px, 0) scale(0.9) rotate(3deg);
-            opacity: 1;
-          }
-          90% {
-            transform: translate3d(-140px, 18px, 0) scale(0.85) rotate(-2deg);
-            opacity: 0.95;
-          }
-          94%, 100% {
-            transform: translate3d(-200px, 18px, 0);
-            opacity: 0;
-          }
-        }
-
-        @keyframes ufoGlow {
-          0%, 100% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6)); }
-          50% { filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.8)); }
-        }
-
-        .animate-flock-east {
-          animation: flockFlyEast 28s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-flock-west {
-          animation: flockFlyWest 28s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-swarm-west {
-          animation: swarmFlyWest 28s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-swarm-east {
-          animation: swarmFlyEast 28s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-single-plane {
-          animation: singlePlaneFly 34s linear infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-ufo-fly {
-          animation: ufoFlyAcross 34s ease-in-out infinite;
-          will-change: transform, opacity;
-        }
-
-        .animate-ufo-glow {
-          animation: ufoGlow 2.5s ease-in-out infinite;
-        }
-      `}</style>
 
       {/* DESKTOP FULL-WIDTH HEADER */}
+
       <div className="hidden md:block">
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
@@ -1392,12 +1109,12 @@ export default function LandingPage() {
 
           {weatherCondition === 'rain' && (
             <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(12)].map((_, i) => (
                 <div
                   key={i}
                   className="absolute w-[1.5px] h-9 bg-gradient-to-b from-transparent via-sky-200/50 to-white/70 rotate-[12deg] animate-rain-fall"
                   style={{
-                    left: `${(i * 5) + (i % 3)}%`,
+                    left: `${(i * 8) + (i % 3)}%`,
                     top: '-40px',
                     animationDuration: `${0.42 + ((i % 5) * 0.05)}s`,
                     animationDelay: `-${(i % 7) * 0.10}s`
