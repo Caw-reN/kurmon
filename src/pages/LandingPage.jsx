@@ -1,8 +1,12 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, Bell, Home, FileText, Star, Award, CheckCircle2, ChevronRight, Compass, Shield } from'lucide-react';
-import { X, Search, ArrowRight, ChevronLeft, Check, Info, Mail } from'lucide-react';
+import { 
+  Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, 
+  HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, 
+  Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, Home, LayoutGrid,
+  ClipboardCheck, Building2, Menu as MenuIcon, X, Search, ArrowRight, ChevronLeft, Check, Info, Mail
+} from 'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
@@ -497,376 +501,243 @@ export default function LandingPage() {
         <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} onPanduanClick={() => setShowPublicGuide(true)} />
       </div>
 
-      {/* MOBILE SCROLLABLE VIEW (Sesuai Layout Referensi & CSS Design System) */}
-      <div className="md:hidden flex flex-col w-full pb-24 bg-slate-50/60 min-h-screen select-none">
+      {/* MOBILE SCROLLABLE VIEW (Sesuai Desain Mockup) */}
+      <div className="md:hidden flex flex-col w-full pb-24 bg-slate-50 min-h-screen">
 
-        {/* 1. TOP BAR (Search Icon, Current Location, Notification Bell) */}
-        <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5 w-full bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100 shadow-2xs">
-          {/* Left: Search Button */}
-          <button
-            type="button"
-            onClick={() => {
-              const el = document.getElementById('mobile-search-input');
-              if (el) el.focus();
-            }}
-            className="w-10 h-10 rounded-full bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer hover:bg-slate-50"
-            aria-label="Cari Layanan"
-          >
-            <Search size={18} className="text-slate-600" />
-          </button>
-
-          {/* Center: Current Location / School Information */}
-          <div className="flex flex-col items-center text-center">
-            <span className="text-[9.5px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">Current location</span>
-            <div className="flex items-center gap-1 mt-0.5">
-              <MapPin size={13} className="text-emerald-600 fill-emerald-600 shrink-0" />
-              <span className="text-xs font-black text-slate-800 tracking-tight truncate max-w-[170px]">
-                {appSettings.schoolLocation || 'SMK KG 2 · Bekasi, ID'}
-              </span>
+        {/* 1. TOP HEADER BAR (Mobile) */}
+        <header className="w-full bg-white/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            {appSettings.logoUrl ? (
+              <div className="w-9 h-9 rounded-xl bg-emerald-700 flex items-center justify-center p-1 shadow-xs">
+                <img src={appSettings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex flex-col items-center justify-center text-white shadow-xs leading-none">
+                <span className="text-[7.5px] font-black opacity-80">SMK</span>
+                <span className="text-[10.5px] font-black">KG2</span>
+              </div>
+            )}
+            <div className="flex flex-col text-left">
+              <span className="text-[13px] font-black text-slate-800 leading-tight">Sistem Informasi</span>
+              <span className="text-[11px] font-bold text-emerald-600 leading-tight">Karya Guna 2</span>
             </div>
           </div>
 
-          {/* Right: Notification Bell */}
+          <button
+            type="button"
+            onClick={() => setShowPublicGuide(true)}
+            className="w-9 h-9 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-600 hover:text-slate-900 active:scale-95 transition-all cursor-pointer"
+            aria-label="Pencarian"
+          >
+            <Search size={16} />
+          </button>
+        </header>
+
+        {/* 2. GREEN HERO CARD */}
+        <div
+          className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-14 overflow-hidden"
+          style={{
+            background: 'linear-gradient(180deg, #0e5b38 0%, #064528 100%)'
+          }}
+        >
+          {/* Subtle Ambient Light */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+
+          {/* Capsule Tag: TAHUN AJARAN 2026/2027 */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10.5px] font-black tracking-wider text-white/95 uppercase w-fit mb-5 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Tahun Ajaran 2026/2027</span>
+          </div>
+
+          {/* Big Bold Headline */}
+          <div className="text-left relative z-10">
+            <h1 className="text-[30px] font-black leading-[1.12] tracking-tight">
+              <span className="text-white block">Portal Pintar</span>
+              <span className="text-emerald-300 block">Karya Guna 2.</span>
+            </h1>
+            <p className="text-white/85 text-[12.5px] font-medium leading-relaxed mt-2.5 max-w-[310px]">
+              Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman.
+            </p>
+          </div>
+
+          {/* Big CTA Button */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            className="w-10 h-10 rounded-full bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer relative hover:bg-slate-50"
-            aria-label="Notifikasi & Masuk"
+            className="w-full mt-5 py-3.5 px-6 rounded-2xl bg-[#16a34a] hover:bg-[#15803d] active:scale-98 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 cursor-pointer transition-all relative z-10"
           >
-            <Bell size={18} className="text-slate-600" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+            <span>Masuk Portal Aplikasi</span>
+            <ArrowRight size={17} />
           </button>
         </div>
 
-        {/* Search Input Bar (Inline Quick Search) */}
-        <div className="px-4 mt-2.5">
-          <div className="relative w-full">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              id="mobile-search-input"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari jadwal, materi, lokasi PKL, tata tertib..."
-              className="w-full pl-9 pr-8 py-2 bg-white rounded-full border border-slate-200 text-xs font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs transition-all"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 2. PROMO / HERO BANNER CARD (Green Card with CTA & Illustration) */}
-        <div className="px-4 mt-3">
-          <div
-            className="w-full relative rounded-3xl p-5 text-white shadow-md overflow-hidden flex items-center justify-between border border-white/10"
-            style={{
-              background: `linear-gradient(135deg, var(--ui-primary, #059669) 0%, color-mix(in srgb, var(--ui-primary, #059669) 65%, #064e3b) 100%)`
-            }}
-          >
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 right-0 w-36 h-36 bg-white/15 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
-            <Sparkles className="absolute left-4 top-3 text-white/20 animate-pulse" size={16} />
-
-            <div className="relative z-10 max-w-[62%] flex flex-col items-start text-left">
-              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-100 bg-black/20 px-2 py-0.5 rounded-full mb-1.5 border border-white/10">
-                Portal Akademik KBM
-              </span>
-              <h3 className="text-sm sm:text-base font-black leading-tight tracking-tight text-white mb-1 drop-shadow-xs">
-                {appSettings.appName || 'Presensi & KBM Digital Terpadu!'}
-              </h3>
-              <p className="text-[10px] text-white/85 font-medium leading-snug mb-3 line-clamp-2">
-                {cleanHeroSubtitle || 'Akses cepat jadwal pelajaran, denah, presensi & materi ajar siswa.'}
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsLoginModalOpen(true)}
-                className="px-4 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-[10.5px] font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Masuk Sekarang</span>
-                <ArrowRight size={11} />
-              </button>
-            </div>
-
-            {/* Right Graphic / Emblem Badge */}
-            <div className="relative z-10 w-20 h-20 flex items-center justify-center shrink-0">
-              <div className="w-18 h-18 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex flex-col items-center justify-center shadow-inner text-white p-2">
-                {appSettings.logoUrl ? (
-                  <img src={appSettings.logoUrl} alt="Logo" className="w-9 h-9 object-contain drop-shadow-md" />
-                ) : (
-                  <GraduationCap size={28} className="text-white drop-shadow-md" />
-                )}
-                <span className="text-[8px] font-black uppercase tracking-wider text-white/90 mt-1 truncate max-w-full">
-                  {appSettings.logoSmallText || 'SMK KG 2'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. 8-GRID CATEGORY / FEATURE CARDS (2 Rows of 4 Squircles) */}
-        <div className="px-4 mt-4">
-          <div className="grid grid-cols-4 gap-2.5">
+        {/* 3. CARD "AKSES CEPAT" (Floating Overlapping Card) */}
+        <div className="mx-4 -mt-8 bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/60 border border-slate-100 relative z-20 select-none">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight text-left mb-4">Akses Cepat</h3>
+          
+          <div className="grid grid-cols-4 gap-y-4 gap-x-2 text-center">
             {[
-              {
-                label: 'Jadwal',
-                fullName: 'Jadwal Pelajaran',
-                icon: CalendarDays,
-                bgColor: '#fef3c7',
-                iconColor: '#d97706',
-                onClick: () => navigate('/jadwal')
-              },
-              {
-                label: 'Presensi',
-                fullName: 'Presensi KBM',
-                icon: CheckCircle2,
-                bgColor: '#d1fae5',
-                iconColor: '#059669',
-                onClick: () => navigate('/laporan_absensi')
-              },
-              {
-                label: 'Materi',
-                fullName: 'Materi Ajar',
-                icon: BookOpenText,
-                bgColor: '#ede9fe',
-                iconColor: '#7c3aed',
-                onClick: () => navigate('/materi-ajar')
-              },
-              {
-                label: 'Kalender',
-                fullName: 'Kalender Akademik',
-                icon: Calendar,
-                bgColor: '#e0f2fe',
-                iconColor: '#0284c7',
-                onClick: () => navigate('/kalender')
-              },
-              {
-                label: 'Tempat PKL',
-                fullName: 'Lokasi PKL & DUDI',
-                icon: Briefcase,
-                bgColor: '#fce7f3',
-                iconColor: '#db2777',
-                onClick: () => navigate('/pkl-locations')
-              },
-              {
-                label: 'Denah',
-                fullName: 'Denah Gedung & Kelas',
-                icon: MapPin,
-                bgColor: '#ccfbf1',
-                iconColor: '#0d9488',
-                onClick: () => navigate('/denah')
-              },
-              {
-                label: 'Tata Tertib',
-                fullName: 'Tata Tertib & Poin',
-                icon: ShieldCheck,
-                bgColor: '#ffe4e6',
-                iconColor: '#e11d48',
-                onClick: () => setShowRulesModal(true)
-              },
-              {
-                label: 'Panduan',
-                fullName: 'Panduan & Bantuan',
-                icon: HelpCircle,
-                bgColor: '#f1f5f9',
-                iconColor: '#475569',
-                onClick: () => setShowPublicGuide(true)
-              },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={item.onClick}
-                className="bg-white rounded-2xl border border-slate-100 shadow-2xs p-2 flex flex-col items-center justify-center gap-1.5 aspect-square active:scale-95 hover:shadow-xs transition-all cursor-pointer group"
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0"
-                  style={{ backgroundColor: item.bgColor }}
+              { label: 'Jadwal', icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50', path: '/jadwal' },
+              { label: 'Denah', icon: MapPin, color: 'text-amber-500', bg: 'bg-amber-50', path: '/denah' },
+              { label: 'Materi', icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50', path: '/materi-ajar' },
+              { label: 'Absensi', icon: ClipboardCheck, color: 'text-emerald-500', bg: 'bg-emerald-50', path: '/dashboard' },
+              { label: 'Kalender', icon: CalendarDays, color: 'text-amber-600', bg: 'bg-amber-100/70', path: '/kalender' },
+              { label: 'Info PKL', icon: Building2, color: 'text-rose-500', bg: 'bg-rose-50', path: '/pkl-locations' },
+              { label: 'Struktur', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50', path: '/struktur' },
+              { label: 'Semua', icon: LayoutGrid, color: 'text-slate-600', bg: 'bg-slate-100', isGuide: true },
+            ].map((item, idx) => {
+              const IconComp = item.icon;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    if (item.isGuide) {
+                      setShowPublicGuide(true);
+                    } else if (item.path) {
+                      navigate(item.path);
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform group"
                 >
-                  <item.icon size={20} style={{ color: item.iconColor }} strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] font-black text-slate-700 tracking-tight leading-none text-center truncate w-full">
-                  {item.label}
-                </span>
-              </button>
-            ))}
+                  <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shadow-2xs group-hover:scale-105 transition-all`}>
+                    <IconComp size={21} strokeWidth={2.2} />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-700 tracking-tight leading-none text-center truncate w-full">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 4. FEATURED SECTION (Horizontal Cards / 2-Column Cards) */}
-        <section className="px-4 mt-5">
-          <div className="flex items-center justify-between mb-2.5">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">Featured</h3>
-            <button
-              type="button"
-              onClick={() => navigate('/jurusan')}
-              className="text-[10.5px] font-black text-emerald-600 hover:text-emerald-700 cursor-pointer flex items-center gap-0.5"
-            >
-              <span>Lihat Semua</span>
-              <ChevronRight size={12} />
-            </button>
+        {/* 4. SECTION: PROGRAM KEAHLIAN */}
+        <section className="relative z-10 w-full px-4 mt-6">
+          <div className="flex flex-col text-left mb-3">
+            <h2 className="text-[15px] font-black text-slate-800 tracking-tight">
+              Program Keahlian
+            </h2>
+            <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Kompetensi unggulan berstandar industri.</p>
           </div>
 
-          {/* 2-Column Grid Cards matching reference image */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {[
               {
-                title: 'Teknik Komputer & Jaringan',
-                category: 'Axioo Class · Lab TKJ',
-                rating: '4.9',
-                gradient: 'from-sky-600 to-indigo-700',
-                icon: MonitorSmartphone,
-                badge: 'Unggulan',
-                onClick: () => navigate('/jurusan')
-              },
-              {
-                title: 'Teknik Kendaraan Ringan',
-                category: 'Bengkel Otomotif Modern',
-                rating: '4.8',
-                gradient: 'from-amber-500 to-orange-600',
-                icon: Award,
-                badge: 'Industri',
-                onClick: () => navigate('/jurusan')
-              },
-              {
-                title: 'Manajemen Perkantoran',
-                category: 'Simulasi Perkantoran Modern',
-                rating: '4.8',
-                gradient: 'from-emerald-600 to-teal-700',
-                icon: Briefcase,
+                id: 'tjkt',
+                code: 'TJKT / TKJ',
+                name: 'Teknik Jaringan Komputer & Telekomunikasi',
+                desc: 'Networking, Cyber Security, Cloud, AI & Server Enterprise.',
                 badge: 'Akreditasi A',
-                onClick: () => navigate('/jurusan')
+                color: 'from-emerald-700 to-teal-900',
+                badgeBg: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
               },
               {
-                title: 'Akuntansi Keuangan',
-                category: 'Komputer Akuntansi & Bank',
-                rating: '4.9',
-                gradient: 'from-rose-500 to-pink-600',
-                icon: FileText,
-                badge: 'Favorit',
-                onClick: () => navigate('/jurusan')
+                id: 'tkro',
+                code: 'TKRO / TKR',
+                name: 'Teknik Kendaraan Ringan Otomotif',
+                desc: 'Teknologi Injeksi Otomotif, Engine Management & EV.',
+                badge: 'Standar Industri',
+                color: 'from-sky-700 to-blue-900',
+                badgeBg: 'bg-sky-500/20 text-sky-200 border-sky-400/30',
               },
-            ].map((card, idx) => (
+              {
+                id: 'mplb',
+                code: 'MPLB / MP',
+                name: 'Manajemen Perkantoran & Layanan Bisnis',
+                desc: 'Digital Office, Administrasi Modern & Public Relations.',
+                badge: 'Unggulan',
+                color: 'from-amber-600 to-orange-800',
+                badgeBg: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+              },
+              {
+                id: 'akl',
+                code: 'AKL / AK',
+                name: 'Akuntansi & Keuangan Lembaga',
+                desc: 'Financial Tech, Akuntansi Digital & Perpajakan Terpadu.',
+                badge: 'Terakreditasi',
+                color: 'from-indigo-700 to-purple-900',
+                badgeBg: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
+              }
+            ].map((major, idx) => (
               <div
-                key={idx}
-                onClick={card.onClick}
-                className="bg-white rounded-2xl border border-slate-100 shadow-2xs overflow-hidden flex flex-col cursor-pointer active:scale-98 hover:shadow-xs transition-all text-left"
+                key={major.id}
+                className={`relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-r ${major.color} shadow-sm border border-white/10 flex flex-col justify-between`}
               >
-                {/* Visual Banner Header */}
-                <div className={`relative h-20 w-full bg-gradient-to-br ${card.gradient} p-2.5 flex flex-col justify-between text-white overflow-hidden`}>
-                  <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-white/10 rounded-full blur-md pointer-events-none" />
-                  
-                  {/* Rating Pill Top Right */}
-                  <div className="flex items-center justify-between w-full relative z-10">
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-black/25 px-1.5 py-0.5 rounded-full border border-white/15">
-                      {card.badge}
-                    </span>
-                    <div className="px-1.5 py-0.5 rounded-full bg-white/95 text-[9px] font-black text-slate-800 flex items-center gap-0.5 shadow-2xs">
-                      <Star size={9} className="text-amber-500 fill-amber-500" />
-                      <span>{card.rating}</span>
-                    </div>
-                  </div>
-
-                  {/* Icon Emblem Bottom Right */}
-                  <div className="self-end relative z-10 text-white/90">
-                    <card.icon size={18} strokeWidth={2.2} />
-                  </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{major.code}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border backdrop-blur-xs ${major.badgeBg}`}>
+                    {major.badge}
+                  </span>
                 </div>
-
-                {/* Body Details */}
-                <div className="p-2.5 flex flex-col gap-0.5">
-                  <h4 className="text-[11.5px] font-black text-slate-800 tracking-tight leading-snug line-clamp-1">
-                    {card.title}
-                  </h4>
-                  <p className="text-[9.5px] text-slate-400 font-semibold truncate">
-                    {card.category}
-                  </p>
-                </div>
+                <h3 className="text-sm font-black text-white tracking-tight leading-snug">{major.name}</h3>
+                <p className="text-[10.5px] text-white/80 font-medium mt-1 leading-relaxed">{major.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 5. MITRA & KERJASAMA SLIDER (Mobile Marquee) */}
-        {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <section className="relative z-10 w-full overflow-hidden px-4 mt-4 mb-2">
-            <div className="bg-white rounded-2xl shadow-2xs border border-slate-100 py-3 px-3.5 w-full">
-              <div className="w-full mb-1.5 text-center">
-                <h3 className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  Mitra Industri & Kerjasama Sekolah
-                </h3>
-              </div>
+        {/* 5. FLOATING MOBILE BOTTOM NAVIGATION BAR */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-4 py-1.5 flex items-center justify-around shadow-2xl">
+          
+          {/* Tab 1: Beranda */}
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex flex-col items-center justify-center gap-0.5 text-emerald-600 font-black cursor-pointer py-1"
+          >
+            <Home size={20} strokeWidth={2.5} />
+            <span className="text-[10px] leading-none">Beranda</span>
+            <span className="w-1 h-1 rounded-full bg-emerald-600 mt-0.5" />
+          </button>
 
-              <div className="relative w-full overflow-hidden flex py-0.5">
-                <div className="absolute left-0 top-0 w-6 h-full bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 w-6 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          {/* Tab 2: Jadwal */}
+          <button
+            type="button"
+            onClick={() => navigate('/jadwal')}
+            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+          >
+            <Calendar size={20} strokeWidth={2} />
+            <span className="text-[10px] leading-none">Jadwal</span>
+            <span className="w-1 h-1 opacity-0 mt-0.5" />
+          </button>
 
-                <div className="flex w-max animate-marquee gap-6 items-center px-1">
-                  {[...appSettings.mitraKerjasama, ...appSettings.mitraKerjasama].map((mitra, idx) => (
-                    <div key={`${mitra.id || 'm'}-${idx}`} className="w-[65px] h-[26px] flex items-center justify-center shrink-0 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all">
-                      {mitra.image ? (
-                        <img src={mitra.image} alt={mitra.name} loading="lazy" className="max-w-full max-h-full object-contain" />
-                      ) : (
-                        <span className="text-[9.5px] font-black text-slate-700 tracking-tight">{mitra.name}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 6. FLOATING DARK BOTTOM NAVIGATION BAR (Matching Reference Image) */}
-        <div className="fixed bottom-4 left-1/2 -translate-y-0 -translate-x-1/2 z-40 w-[88%] max-w-[340px]">
-          <div className="bg-slate-900/95 backdrop-blur-md rounded-full py-2 px-6 shadow-2xl border border-white/10 flex items-center justify-between text-white">
-            {/* Tab 1: Home (Active) */}
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="p-2 rounded-full text-white bg-white/20 active:scale-95 transition-all cursor-pointer shadow-xs"
-              aria-label="Beranda"
-            >
-              <Home size={18} strokeWidth={2.5} />
-            </button>
-
-            {/* Tab 2: Messages / Pengumuman */}
-            <button
-              type="button"
-              onClick={() => navigate('/pesan')}
-              className="p-2 rounded-full text-slate-400 hover:text-white active:scale-95 transition-all cursor-pointer"
-              aria-label="Pengumuman"
-            >
-              <MessageSquare size={18} />
-            </button>
-
-            {/* Tab 3: Documents / Tata Tertib */}
-            <button
-              type="button"
-              onClick={() => setShowRulesModal(true)}
-              className="p-2 rounded-full text-slate-400 hover:text-white active:scale-95 transition-all cursor-pointer"
-              aria-label="Tata Tertib"
-            >
-              <FileText size={18} />
-            </button>
-
-            {/* Tab 4: Account / Login */}
+          {/* Center FAB: Masuk / Portal */}
+          <div className="relative -top-4">
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="p-2 rounded-full text-slate-400 hover:text-white active:scale-95 transition-all cursor-pointer"
-              aria-label="Akun & Masuk"
+              className="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 flex items-center justify-center border-4 border-white active:scale-95 transition-transform cursor-pointer"
+              title="Masuk ke Portal Aplikasi"
+              aria-label="Masuk ke Portal Aplikasi"
             >
-              <User size={18} />
+              <LogIn size={20} strokeWidth={2.5} />
             </button>
           </div>
-        </div>
+
+          {/* Tab 3: Bantuan */}
+          <button
+            type="button"
+            onClick={handleFeedbackClick}
+            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+          >
+            <HelpCircle size={20} strokeWidth={2} />
+            <span className="text-[10px] leading-none">Bantuan</span>
+            <span className="w-1 h-1 opacity-0 mt-0.5" />
+          </button>
+
+          {/* Tab 4: Menu */}
+          <button
+            type="button"
+            onClick={() => setShowPublicGuide(true)}
+            className="flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:text-slate-700 font-bold cursor-pointer py-1"
+          >
+            <MenuIcon size={20} strokeWidth={2} />
+            <span className="text-[10px] leading-none">Menu</span>
+            <span className="w-1 h-1 opacity-0 mt-0.5" />
+          </button>
+
+        </nav>
 
       </div>
 
