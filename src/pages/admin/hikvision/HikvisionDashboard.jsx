@@ -190,24 +190,26 @@ export default function HikvisionDashboard() {
       </div>
 
       {syncMessage && (
-        <div className={`p-4 rounded-[var(--ui-radius-small)] border shadow-sm ${syncMessage.type ==='success' ?'bg-emerald-50/50 border-emerald-200/60 text-emerald-800' :'bg-rose-50/50 border-rose-200/60 text-rose-800'}`}>
+        <div className={`p-4 rounded-[var(--ui-radius-small)] border shadow-sm backdrop-blur-sm ${syncMessage.type ==='success' ?'bg-emerald-50/80 border-emerald-200/60 text-emerald-800' :'bg-rose-50/80 border-rose-200/60 text-rose-800'}`}>
           <div className="flex justify-between items-start">
             <p className="font-bold">{syncMessage.text}</p>
-            <Button variant="outline" onClick={() =>setSyncMessage(null)} >×</Button>
+            <button onClick={() =>setSyncMessage(null)} className="flex items-center justify-center p-1 hover:bg-black/5 rounded-full transition-colors border-none cursor-pointer">
+              <X size={16} className="opacity-70" />
+            </button>
           </div>
           
           {syncMessage.stats && (
-            <div className="flex gap-4 mt-2 text-sm font-medium text-emerald-700 bg-white/50 p-2 rounded">
-              <span className="flex items-center gap-1"><img src="/icons/045-account.svg" className="w-4 h-4 opacity-70" alt="" /> User Baru: {syncMessage.stats.usersSynced}</span>
-              <span className="flex items-center gap-1"><img src="/icons/092-file.svg" className="w-4 h-4 opacity-70" alt="" /> Log Masuk: {syncMessage.stats.logsPulled}</span>
-              <span className="flex items-center gap-1"><img src="/icons/079-checklist.svg" className="w-4 h-4 opacity-70" alt="" /> Absensi Terproses: {syncMessage.stats.attendanceProcessed}</span>
+            <div className="flex flex-wrap gap-4 mt-2 text-sm font-bold text-emerald-700 bg-white/60 p-2.5 rounded-[var(--ui-radius-small)] border border-emerald-100/50">
+              <span className="flex items-center gap-1.5"><img src="/icons/045-account.svg" className="w-4 h-4 opacity-80" alt="" /> User Baru: {syncMessage.stats.usersSynced}</span>
+              <span className="flex items-center gap-1.5"><img src="/icons/092-file.svg" className="w-4 h-4 opacity-80" alt="" /> Log Masuk: {syncMessage.stats.logsPulled}</span>
+              <span className="flex items-center gap-1.5"><img src="/icons/079-checklist.svg" className="w-4 h-4 opacity-80" alt="" /> Absensi Terproses: {syncMessage.stats.attendanceProcessed}</span>
             </div>
           )}
 
           {syncMessage.unmatchedCount > 0 && (
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded text-sm">
-              <p className="font-bold flex items-center gap-1"><AlertTriangle size={14}/> Peringatan: {syncMessage.unmatchedCount} ID Tidak Dikenali Sistem</p>
-              <p className="mb-2 opacity-80">ID di mesin tidak ditemukan pada database Siswa/Guru/Karyawan, lognya akan diabaikan.</p>
+            <div className="mt-3 p-3 bg-amber-50/80 border border-amber-200/60 text-amber-800 rounded-[var(--ui-radius-small)] text-sm backdrop-blur-sm">
+              <p className="font-bold flex items-center gap-1.5"><AlertTriangle size={15}/> Peringatan: {syncMessage.unmatchedCount} ID Tidak Dikenali Sistem</p>
+              <p className="mb-2 opacity-80 font-medium">ID di mesin tidak ditemukan pada database Siswa/Guru/Karyawan, lognya akan diabaikan.</p>
               <ul className="list-disc pl-5 max-h-32 overflow-auto text-xs">
                 {syncMessage.unmatched.map((u, i) => (
                   <li key={i}>ID Mesin: <strong>{u.id}</strong> - Nama: {u.name} (Tipe: {u.type}, Alat: {u.device})</li>
