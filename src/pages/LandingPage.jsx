@@ -500,11 +500,11 @@ export default function LandingPage() {
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
       <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-[#F5F6FA] overflow-hidden select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - SEKITAR 54% TINGGI LAYAR AGAR SEIMBANG DENGAN KONTEN DI BAWAH) */}
+        {/* 1. AREA HEADER (ATAS - SEKITAR 54% TINGGI LAYAR DENGAN WARNA #3DAA37) */}
         <div 
           className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
           style={{
-            backgroundColor: primaryColor || '#064e3b'
+            backgroundColor: '#3DAA37'
           }}
         >
           {/* Background Image dari Kustomisasi Web Admin Desktop (Sedikit Transparan) */}
@@ -525,11 +525,11 @@ export default function LandingPage() {
             />
           )}
 
-          {/* Dark Green Gradient Overlay agar tetap serasi dengan warna hijau desktop */}
+          {/* Gradient Overlay dengan warna hijau #3DAA37 ke hijau tua elegan */}
           <div 
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
-              background: `linear-gradient(165deg, ${hexToRgba(primaryColor || '#064e3b', 0.88)} 0%, ${hexToRgba('#054031', 0.91)} 42%, ${hexToRgba('#033126', 0.94)} 80%, ${hexToRgba('#021f18', 0.97)} 100%)`
+              background: 'linear-gradient(165deg, rgba(61, 170, 55, 0.90) 0%, rgba(40, 130, 36, 0.93) 42%, rgba(20, 80, 22, 0.96) 80%, rgba(9, 45, 12, 0.98) 100%)'
             }}
           />
 
@@ -1123,23 +1123,23 @@ export default function LandingPage() {
       {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-5 pt-3.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
-          {/* Tombol Pertama: Masuk Sekarang (Hijau desktop solid, flex-1, teks putih tebal, rounded-xl) */}
+          {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
-            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
+            style={{ backgroundColor: '#3DAA37' }}
+            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
           >
             Masuk Sekarang
           </button>
 
-          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau desktop sama, ikon Bantuan (Membuka Bottom Sheet) */}
+          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau solid #3DAA37 sama, ikon Bantuan (Membuka Bottom Sheet) */}
           <button
             type="button"
             onClick={() => setShowPublicHelp(true)}
             title="Bantuan & Panduan"
-            style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
-            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-emerald-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:opacity-95 cursor-pointer border-none"
+            style={{ backgroundColor: '#3DAA37' }}
+            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
           >
             <HelpCircle size={23} strokeWidth={2.3} />
           </button>
