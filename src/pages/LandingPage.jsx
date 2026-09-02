@@ -674,52 +674,36 @@ export default function LandingPage() {
               );
             })()}
 
-            {/* 3. PROGRAM KEAHLIAN UNGGULAN (CAROUSEL BANNER HIJAU SESUAI GAMBAR USER) */}
-            <div className="w-full mt-7 flex flex-col items-center">
-              <div className="flex flex-col items-center justify-center text-center mb-3">
-                <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-wider uppercase">
+            {/* 3. PROGRAM KEAHLIAN UNGGULAN (COMPACT & FIT BANNER) */}
+            <div className="w-full mt-5 flex flex-col items-center">
+              <div className="flex flex-col items-center justify-center text-center mb-2.5">
+                <h2 className="text-[11px] sm:text-xs font-black text-slate-900 tracking-wider uppercase">
                   {appSettings.trustedByText || "Program Keahlian Unggulan"}
                 </h2>
-                <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-0.5">
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                   Kompetensi keahlian terakreditasi berstandar industri
                 </p>
               </div>
 
-              {/* Banner Card Hijau Solid #3DAA37 dengan Slider Dots */}
+              {/* Banner Card Hijau Solid #3DAA37 - Compact & Fit Tanpa Badge Logo & Tanpa Teks Keahlian */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
                 const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full rounded-2xl sm:rounded-3xl p-5 shadow-sm text-white relative overflow-hidden transition-all duration-500"
+                    className="w-full rounded-2xl py-3 px-4 shadow-sm text-white relative overflow-hidden transition-all duration-500 flex flex-col items-center justify-center"
                     style={{
                       backgroundColor: cardColor,
-                      boxShadow: `0 8px 24px ${hexToRgba(cardColor, 0.22)}`
+                      boxShadow: `0 6px 18px ${hexToRgba(cardColor, 0.2)}`
                     }}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      {/* Info Kiri */}
-                      <div className="flex flex-col text-left min-w-0 flex-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/80 block mb-1">
-                          Keahlian 0{activeProgram.index}
-                        </span>
-                        <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight leading-snug drop-shadow-xs line-clamp-2">
-                          {activeProgram.name}
-                        </h3>
-                      </div>
+                    {/* Nama Jurusan Saja (Tebal, Centered, Rapi) */}
+                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider text-center drop-shadow-xs truncate w-full px-2">
+                      {activeProgram.name}
+                    </h3>
 
-                      {/* Badge Logo Putih Kanan */}
-                      <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-md p-2 flex items-center justify-center shrink-0">
-                        {activeProgram.image ? (
-                          <img src={activeProgram.image} alt={activeProgram.name} className="w-full h-full object-contain" />
-                        ) : (
-                          <img src="/mobile_header_logo.png" alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.src = "/icons/066-education.svg"; }} />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Indikator Titik Carousel (Dots) */}
-                    <div className="flex items-center justify-center gap-1.5 mt-4 pt-1">
+                    {/* Indikator Titik Carousel (Dots) di Bawahnya */}
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
                       {availablePrograms.map((prog, pIdx) => {
                         const isActive = activeProgramIdx === pIdx;
                         return (
@@ -727,8 +711,8 @@ export default function LandingPage() {
                             key={pIdx}
                             type="button"
                             onClick={() => setActiveProgramIdx(pIdx)}
-                            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
-                              isActive ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                            className={`h-1 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
+                              isActive ? 'w-5 bg-white' : 'w-1 bg-white/45 hover:bg-white/75'
                             }`}
                             title={`Keahlian 0${prog.index}`}
                           />
@@ -740,9 +724,9 @@ export default function LandingPage() {
               })()}
             </div>
 
-            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN (MITRA KERJASAMA CARD) */}
-            <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs border border-slate-100 flex flex-col items-center mt-4">
-              <span className="text-[9.5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-3">
+            {/* 4. TELAH DIPERCAYA & BEKERJASAMA DENGAN (MITRA KERJASAMA CARD - COMPACT) */}
+            <div className="w-full bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-100 flex flex-col items-center mt-3">
+              <span className="text-[9px] sm:text-[9.5px] font-black text-slate-400 uppercase tracking-widest text-center mb-2.5">
                 Telah Dipercaya & Bekerjasama Dengan
               </span>
 
