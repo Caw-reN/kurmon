@@ -75,7 +75,6 @@ export default function PublicLayout() {
   const isFeatureEnabled = (key) => featureSettings?.[key] !== false;
 
   const publicLinks = [
-    { to:"/", label:"Beranda", icon: Home },
     { to:"/jadwal", label:"Jadwal", icon: CalendarDays },
     { to:"/denah", label:"Denah", featureKey:"publicDenah", icon: Map },
     { to:"/materi-ajar", label:"Materi Ajar", icon: BookOpen },
@@ -147,8 +146,8 @@ export default function PublicLayout() {
               <HeaderNavbar setIsLoginModalOpen={setIsLoginModalOpen} appSettings={appSettings} schoolProfile={schoolProfile} />
             </div>
 
-            {/* Mobile Header (Judul & Tombol Back di Bagian Atas) */}
-            <header className="md:hidden w-full fixed top-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between shadow-2xs print:hidden transition-all">
+            {/* Mobile Header (Judul & Tombol Back di Bagian Atas - Ukuran Lebih Proporsional & Nyaman) */}
+            <header className="md:hidden w-full fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between shadow-2xs print:hidden transition-all">
               <button 
                 type="button"
                 onClick={() => {
@@ -158,52 +157,46 @@ export default function PublicLayout() {
                     navigate('/');
                   }
                 }}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer border border-slate-200/60 shadow-2xs shrink-0"
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer border border-slate-200/70 shadow-2xs shrink-0"
                 title="Kembali"
               >
-                <ChevronLeft size={20} strokeWidth={2.5} />
+                <ChevronLeft size={22} strokeWidth={2.5} />
               </button>
               
               <div className="flex flex-col items-center justify-center text-center px-2 flex-1 min-w-0">
                 <span 
-                  className="text-[9.5px] font-black uppercase tracking-widest leading-none mb-0.5" 
+                  className="text-[10px] font-black uppercase tracking-widest leading-none mb-1" 
                   style={{ color: 'var(--ui-primary, #059669)' }}
                 >
                   Layanan Publik
                 </span>
-                <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none truncate max-w-full">
+                <h1 className="text-base font-black text-slate-900 tracking-tight leading-none truncate max-w-full">
                   {getPageTitle(location.pathname)}
                 </h1>
               </div>
               
-              <Link 
-                to="/"
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center transition-all no-underline border border-slate-200/60 shadow-2xs shrink-0"
-                title="Beranda Utama"
-              >
-                <Home size={17} strokeWidth={2.2} />
-              </Link>
+              <div className="w-10 h-10 shrink-0" />
             </header>
           </>
         );
       })()}
 
       {/* MAIN CONTENT AREA (Sejajar Persis dengan HeaderNavbar) */}
-      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-4 sm:px-6 md:px-8 min-[1400px]:px-0 pt-16 sm:pt-28 pb-24 md:pb-12'}`}>
+      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1336px] mx-auto px-4 sm:px-6 md:px-8 min-[1400px]:px-0 pt-20 sm:pt-28 pb-24 md:pb-12'}`}>
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (Sesuai 100% Desain Tabbar Setelah Login) */}
+      {/* MOBILE BOTTOM NAVIGATION BAR (Sesuai Desain Landing - 5 Menu Publik Tanpa Beranda) */}
       {location.pathname !== '/' && (
         <nav 
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 py-2 px-2 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] print:hidden transition-all"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 py-2 px-3 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] print:hidden transition-all"
           style={{
             paddingBottom: 'max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem))'
           }}
           role="navigation"
           aria-label="Navigasi Layanan Publik"
         >
-          <div className="flex items-center justify-around gap-1">
+          <div className="flex items-center justify-around gap-1 max-w-md mx-auto">
             {publicLinks.map((l) => {
               const IconComponent = l.icon;
               const isActive = location.pathname === l.to;
@@ -215,23 +208,28 @@ export default function PublicLayout() {
                 <Link 
                   key={l.to} 
                   to={l.to} 
-                  className={`flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1 no-underline select-none active:scale-95 ${
-                    isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
-                  }`}
+                  className="flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1 no-underline select-none active:scale-95"
+                  style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#94a3b8' }}
                 >
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-                    isActive 
-                      ? 'bg-emerald-100/80 text-emerald-600 scale-105' 
-                      : 'text-slate-400 hover:text-slate-600'
-                  }`}>
+                  <div 
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                    style={isActive ? {
+                      backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 14%, transparent)',
+                      color: 'var(--ui-primary, #059669)',
+                      transform: 'scale(1.05)'
+                    } : {
+                      color: '#94a3b8'
+                    }}
+                  >
                     <IconComponent 
-                      size={20} 
-                      className={isActive ? 'text-emerald-600' : 'text-slate-400'} 
+                      size={21} 
+                      style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#94a3b8' }} 
                     />
                   </div>
-                  <span className={`text-[11px] leading-none text-center truncate w-full ${
-                    isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'
-                  }`}>
+                  <span 
+                    className={`text-[11.5px] leading-none text-center truncate w-full ${isActive ? 'font-black' : 'font-semibold'}`}
+                    style={isActive ? { color: 'var(--ui-primary, #059669)' } : { color: '#64748b' }}
+                  >
                     {shortLabel}
                   </span>
                 </Link>
