@@ -537,14 +537,35 @@ export default function LandingPage() {
           </button>
         </div>
 
-        {/* 2. Deep Emerald Green Hero Section */}
+        {/* 2. Deep Emerald Green Hero Section (Terkoneksi Penuh ke Kustomisasi Web) */}
         <div className="w-full relative flex flex-col text-white select-none px-5 pt-6 pb-12 overflow-hidden bg-gradient-to-b from-[#0e5a36] via-[#0b4d2e] to-[#083b22]">
           
-          {/* Subtle glow background */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-300/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+          {/* Custom Hero Image from Kustomisasi Tampilan Web */}
+          {appSettings.heroImage && (
+            <img 
+              src={appSettings.heroImage} 
+              fetchpriority="high" 
+              loading="eager" 
+              className="absolute inset-0 w-full h-full object-cover object-center z-0 scale-105 transition-transform duration-700 opacity-40" 
+              alt="Background Sekolah" 
+            />
+          )}
 
-          {/* Academic Year Pill */}
+          {/* Gradient Overlay for high legibility */}
+          <div 
+            className="absolute inset-0 z-0"
+            style={{
+              background: appSettings.heroImage
+                ? `linear-gradient(180deg, rgba(14, 90, 54, 0.85) 0%, rgba(11, 77, 46, 0.90) 50%, rgba(8, 59, 34, 0.98) 100%)`
+                : `linear-gradient(180deg, #0e5a36 0%, #0b4d2e 50%, #083b22 100%)`
+            }}
+          />
+
+          {/* Subtle glow background */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20 z-0" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-300/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20 z-0" />
+
+          {/* Academic Year Pill (Dinamis) */}
           <div className="flex items-center text-left mb-4.5 relative z-10">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black tracking-wider text-white uppercase shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -552,16 +573,32 @@ export default function LandingPage() {
             </span>
           </div>
 
-          {/* Heading Text */}
-          <div className="text-left relative z-10 mb-4">
-            <h1 className="text-[29px] sm:text-[32px] font-black text-white tracking-tight leading-none drop-shadow-xs">
-              Portal Pintar
-            </h1>
-            <h1 className="text-[29px] sm:text-[32px] font-black text-emerald-300 tracking-tight leading-tight mt-1 drop-shadow-xs">
-              {appSettings.appName ? `${appSettings.appName}.` : 'Karya Guna 2.'}
-            </h1>
-            <p className="text-white/85 text-[12px] sm:text-[13px] font-medium leading-relaxed max-w-[320px] mt-2.5">
-              Akses cepat ke jadwal pelajaran, denah kelas, dan materi e-learning dalam satu genggaman.
+          {/* Dynamic Hero Heading (Terkoneksi ke Kustomisasi Tampilan) */}
+          <div className="text-left relative z-10 mb-2">
+            {(() => {
+              const rawTitle = heroTitle || "Hello, Selamat Datang";
+              if (rawTitle === "Hello, Selamat Datang" || rawTitle.toLowerCase().startsWith("hello")) {
+                return (
+                  <>
+                    <h2 className="text-[20px] font-medium text-white/90 leading-tight drop-shadow-xs">
+                      Hello,
+                    </h2>
+                    <h1 className="text-[28px] sm:text-[32px] font-black text-white tracking-tight leading-tight mt-0.5 drop-shadow-xs">
+                      Selamat Datang{appSettings.appName ? <span className="text-emerald-300"> di {appSettings.appName}</span> : ''}
+                    </h1>
+                  </>
+                );
+              }
+              return (
+                <h1 className="text-[27px] sm:text-[30px] font-black text-white tracking-tight leading-tight drop-shadow-xs">
+                  {rawTitle}
+                </h1>
+              );
+            })()}
+
+            {/* Dynamic Subtitle from Kustomisasi Web */}
+            <p className="text-white/90 text-[12px] sm:text-[13px] font-medium leading-relaxed max-w-[340px] mt-2 mb-4 drop-shadow-xs">
+              {cleanHeroSubtitle || "di Sistem Informasi yang memudahkan guru dan siswa dalam mengakses jadwal pelajaran, memantau denah ruang kelas, kalender akademik, hingga melihat materi ajar."}
             </p>
           </div>
 
@@ -570,9 +607,9 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(true)}
-              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-98 text-white font-black text-[14px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all cursor-pointer select-none"
+              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-98 text-white font-black text-[13.5px] uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all cursor-pointer select-none"
             >
-              <span>Masuk Portal Aplikasi</span>
+              <span>Masuk ke Aplikasi</span>
               <ArrowRight size={17} strokeWidth={2.5} />
             </button>
           </div>
@@ -588,19 +625,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-4 gap-y-4 gap-x-2 w-full">
             {[
               {
-                label: 'Jadwal',
+                label: getShortLabel(appSettings.serviceLabel1 || 'Jadwal Pelajaran'),
                 icon: Calendar,
                 bgColor: 'bg-blue-50/90 text-blue-600 border-blue-100/80',
                 onClick: () => navigate('/jadwal')
               },
               {
-                label: 'Denah',
+                label: getShortLabel(appSettings.serviceLabel2 || 'Denah Kelas'),
                 icon: MapPin,
                 bgColor: 'bg-orange-50/90 text-orange-600 border-orange-100/80',
                 onClick: () => navigate('/denah')
               },
               {
-                label: 'Materi',
+                label: getShortLabel(appSettings.serviceLabel3 || 'Materi Ajar'),
                 icon: GraduationCap,
                 bgColor: 'bg-purple-50/90 text-purple-600 border-purple-100/80',
                 onClick: () => navigate('/materi-ajar')
@@ -612,19 +649,19 @@ export default function LandingPage() {
                 onClick: () => setIsLoginModalOpen(true)
               },
               {
-                label: 'Kalender',
+                label: getShortLabel(appSettings.serviceLabel4 || 'Kalender Akademik'),
                 icon: CalendarDays,
                 bgColor: 'bg-amber-50/90 text-amber-600 border-amber-100/80',
                 onClick: () => navigate('/kalender')
               },
               {
-                label: 'Info PKL',
+                label: getShortLabel(appSettings.serviceLabel5 || 'Info PKL'),
                 icon: Building2,
                 bgColor: 'bg-rose-50/90 text-rose-600 border-rose-100/80',
                 onClick: () => navigate('/pkl-locations')
               },
               {
-                label: 'Struktur',
+                label: getShortLabel(appSettings.serviceLabel6 || 'Struktur Organisasi'),
                 icon: GitFork,
                 bgColor: 'bg-indigo-50/90 text-indigo-600 border-indigo-100/80',
                 onClick: () => navigate('/struktur')
@@ -656,7 +693,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 4. Section Program Keahlian */}
+        {/* 4. Section Program Keahlian (Dinamis dari Kustomisasi Tampilan Web) */}
         <section className="relative z-10 w-full px-4 mt-6 mb-6">
           <div className="text-left mb-3.5">
             <h3 className="text-base font-black text-slate-900 tracking-tight">
@@ -667,35 +704,47 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Horizontal Scroll Cards of 4 Majors */}
+          {/* Horizontal Scroll Cards of Majors (Dinamis dari partners / fallback) */}
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar snap-x snap-mandatory">
-            {[
-              { id: 'mplb', code: 'MPLB', name: 'Manajemen Perkantoran', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&auto=format&fit=crop&q=60', color: 'from-amber-600 to-orange-700' },
-              { id: 'tkr', code: 'TKR', name: 'Teknik Kendaraan Ringan', image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=500&auto=format&fit=crop&q=60', color: 'from-sky-700 to-indigo-800' },
-              { id: 'tkj', code: 'TKJ', name: 'Teknik Komputer & Jaringan', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&auto=format&fit=crop&q=60', color: 'from-emerald-700 to-teal-800' },
-              { id: 'akl', code: 'AKL', name: 'Akuntansi & Keuangan Lembaga', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60', color: 'from-rose-700 to-pink-800' },
-            ].map((major, idx) => (
-              <div
-                key={major.id}
-                className="w-64 shrink-0 snap-start bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 relative h-36 flex flex-col justify-end p-3.5 text-white group"
-              >
-                <img
-                  src={major.image}
-                  alt={major.name}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60"
-                  loading="lazy"
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${major.color} opacity-85`} />
-                <div className="relative z-10 flex flex-col text-left">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-white/80 mb-0.5">
-                    Jurusan 0{idx + 1} · {major.code}
-                  </span>
-                  <h4 className="text-[13px] font-black text-white leading-tight line-clamp-2">
-                    {major.name}
-                  </h4>
+            {(partners && partners.length > 0 ? partners : [
+              { name: 'Manajemen Perkantoran (MPLB)', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&auto=format&fit=crop&q=60', color: 'from-amber-600 to-orange-700' },
+              { name: 'Teknik Kendaraan Ringan (TKR)', image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=500&auto=format&fit=crop&q=60', color: 'from-sky-700 to-indigo-800' },
+              { name: 'Teknik Komputer & Jaringan (TKJ)', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&auto=format&fit=crop&q=60', color: 'from-emerald-700 to-teal-800' },
+              { name: 'Akuntansi & Keuangan Lembaga (AKL)', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60', color: 'from-rose-700 to-pink-800' },
+            ]).map((partner, idx) => {
+              const defaultGradients = [
+                "from-amber-600 to-orange-700",
+                "from-sky-700 to-indigo-800",
+                "from-emerald-700 to-teal-800",
+                "from-rose-700 to-pink-800"
+              ];
+              const gradColor = partner.color && colorMap[partner.color] ? colorMap[partner.color] : (defaultGradients[idx % defaultGradients.length]);
+
+              return (
+                <div
+                  key={partner.id || idx}
+                  className="w-64 shrink-0 snap-start bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 relative h-36 flex flex-col justify-end p-3.5 text-white group"
+                >
+                  {partner.image ? (
+                    <img
+                      src={partner.image}
+                      alt={partner.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${gradColor} opacity-85`} />
+                  <div className="relative z-10 flex flex-col text-left">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-white/80 mb-0.5">
+                      Keahlian 0{idx + 1}
+                    </span>
+                    <h4 className="text-[13px] font-black text-white leading-tight line-clamp-2">
+                      {partner.name}
+                    </h4>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
