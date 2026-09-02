@@ -500,36 +500,29 @@ export default function LandingPage() {
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
       <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-[#F5F6FA] overflow-hidden select-none relative font-sans">
         
-        {/* 1. AREA HEADER (ATAS - SEKITAR 54% TINGGI LAYAR DENGAN WARNA #3DAA37) */}
+        {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
-          className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0"
-          style={{
-            backgroundColor: '#3DAA37'
-          }}
+          className="relative w-full h-[54%] min-h-[320px] flex flex-col justify-center items-center overflow-hidden text-white shrink-0 bg-slate-900"
         >
-          {/* Background Image dari Kustomisasi Web Admin Desktop (Sedikit Transparan) */}
-          {appSettings.heroImage ? (
-            <img 
-              src={appSettings.heroImage} 
-              alt="Hero Background" 
-              fetchpriority="high"
-              loading="eager"
-              className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-25 pointer-events-none" 
-            />
-          ) : (
-            <img 
-              src="/hero_illustration.jpg" 
-              alt="Hero Background" 
-              className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-20 pointer-events-none"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
+          {/* Background Image dari Kustomisasi Web Admin Desktop (Terlihat Jelas seperti di Desktop) */}
+          <img 
+            src={appSettings?.heroImage || '/hero_illustration.jpg'} 
+            alt="School Hero Background" 
+            fetchpriority="high"
+            loading="eager"
+            className="absolute inset-0 w-full h-full object-cover object-[center_30%] z-0 pointer-events-none transition-transform duration-700" 
+            onError={(e) => {
+              if (e.currentTarget.src !== window.location.origin + '/hero_illustration.jpg') {
+                e.currentTarget.src = '/hero_illustration.jpg';
+              }
+            }}
+          />
 
-          {/* Gradient Overlay dengan warna hijau #3DAA37 ke hijau tua elegan */}
+          {/* Scrim Overlay Lembut: Melindungi keterbacaan teks tanpa menutupi gambar gedung sekolah */}
           <div 
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(165deg, rgba(61, 170, 55, 0.90) 0%, rgba(40, 130, 36, 0.93) 42%, rgba(20, 80, 22, 0.96) 80%, rgba(9, 45, 12, 0.98) 100%)'
+              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
             }}
           />
 
