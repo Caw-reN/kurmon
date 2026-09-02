@@ -12,7 +12,7 @@ import SuperAdminAttendanceOverrideModal from '../../admin/SuperAdminAttendanceO
 export const getClassBadge = (className) => {
   if (!className || className === '-') return 'bg-slate-100 text-slate-600 border-slate-200';
   const upper = String(className).toUpperCase().trim();
-  
+
   if (upper.includes('TKJ') || upper.includes('TJKT')) {
     return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-xs';
   }
@@ -98,7 +98,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   useEffect(() => {
     const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
-    
+
     // Fetch both dashboard logs and recent hikvision logs concurrently
     Promise.all([
       fetch('/api/dashboard/logs', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false })),
@@ -111,25 +111,25 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           combined.recentLogs = d2.recentLogs || [];
           if (d2.staffLogs) combined.staffLogs = d2.staffLogs;
           if (d2.teacherLogs) {
-            combined.teacherLogs = combined.teacherLogs 
-              ? [...combined.teacherLogs, ...d2.teacherLogs] 
+            combined.teacherLogs = combined.teacherLogs
+              ? [...combined.teacherLogs, ...d2.teacherLogs]
               : d2.teacherLogs;
           }
         }
         setDashLogs(combined);
         if (onLogsFetched) onLogsFetched(combined);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLogsLoading(false));
   }, []);
 
   const fmtTime = (ts) => {
     // A5 FIX: Selalu gunakan timezone WIB agar jam tidak bergeser di browser luar WIB
-    try { 
-      return new Intl.DateTimeFormat('id-ID', { 
+    try {
+      return new Intl.DateTimeFormat('id-ID', {
         day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
         timeZone: 'Asia/Jakarta'
-      }).format(new Date(ts)); 
+      }).format(new Date(ts));
     } catch { return '-'; }
   };
 
@@ -145,7 +145,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     // karena nama bisa sama untuk orang berbeda
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
-    
+
     for (const item of sorted) {
       const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
       const role = String(item.role_type || item.true_person_type || '').toLowerCase();
@@ -166,7 +166,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const uniqueSiswaOptions = useMemo(() => {
     const defaultOption = { label: 'Semua Jurusan', value: 'all' };
     if (!allStudents || allStudents.length === 0) return [defaultOption];
-    
+
     const majorSet = new Set();
     allStudents.forEach(s => {
       let cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
@@ -187,7 +187,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     let logs = [];
     if ((dashLogs?.teacherLogs && dashLogs.teacherLogs.length > 0) || (dashLogs?.staffLogs && dashLogs.staffLogs.length > 0)) {
       logs = [...(dashLogs.teacherLogs || []), ...(dashLogs.staffLogs || [])].filter(item => {
-        if(item.name?.toLowerCase().includes('rosyidah')) console.log("ROSYIDAH FOUND IN teacherLogs:", item);
+        if (item.name?.toLowerCase().includes('rosyidah')) console.log("ROSYIDAH FOUND IN teacherLogs:", item);
         const logDate = item.timestamp || item.created_at || item.date || '';
         if (!logDate) return true;
         return new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) === todayStr;
@@ -227,7 +227,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           created_at: r.date
         };
       });
-      
+
     logs = [...logs, ...manualLogs];
 
     logs = dedupeFront(logs);
@@ -245,8 +245,8 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }, [dashLogs, storeAttendanceRecords, storeTeachers, todayStr, searchQuery, subFilter]);
 
   const terlambatGuruLogs = useMemo(() => {
-    let logs = guruKaryawanLogs.filter(item => 
-      String(item.status || '').toLowerCase().includes('terlambat') || 
+    let logs = guruKaryawanLogs.filter(item =>
+      String(item.status || '').toLowerCase().includes('terlambat') ||
       String(item.status || '').toLowerCase().includes('late')
     );
     // Diurutkan dari jam absen terakhir (DESC)
@@ -391,51 +391,51 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   const tabsConfig = useMemo(() => {
     const all = [
-      { 
-        id: 'guru_karyawan', 
+      {
+        id: 'guru_karyawan',
         label: 'Guru/Karyawan',
         labelShort: 'Guru/Staf',
-        count: guruKaryawanLogs.length, 
+        count: guruKaryawanLogs.length,
         icon: '/icons/045-account.svg',
         badgeBg: 'bg-indigo-100/90 text-indigo-800'
       },
-      { 
-        id: 'guru_terlambat', 
+      {
+        id: 'guru_terlambat',
         label: 'Guru/Karyawan Terlambat',
         labelShort: 'Guru Telat',
-        count: terlambatGuruLogs.length, 
+        count: terlambatGuruLogs.length,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-orange-100/90 text-orange-800'
       },
-      { 
-        id: 'kehadiran_siswa', 
+      {
+        id: 'kehadiran_siswa',
         label: 'Kehadiran Siswa',
         labelShort: 'Siswa Hadir',
-        count: kehadiranSiswaLogs.length, 
+        count: kehadiranSiswaLogs.length,
         icon: '/icons/066-education.svg',
         badgeBg: 'bg-purple-100/90 text-purple-800'
       },
-      { 
-        id: 'siswa_terlambat', 
+      {
+        id: 'siswa_terlambat',
         label: 'Siswa Terlambat',
         labelShort: 'Siswa Telat',
-        count: terlambatSiswaLogs.length, 
+        count: terlambatSiswaLogs.length,
         icon: '/icons/039-time.svg',
         badgeBg: 'bg-amber-100/90 text-amber-800'
       },
-      { 
-        id: 'siswa_bermasalah', 
+      {
+        id: 'siswa_bermasalah',
         label: 'Siswa Bermasalah',
         labelShort: 'Bermasalah',
-        count: bermasalahLogs.length, 
+        count: bermasalahLogs.length,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-rose-100/90 text-rose-800'
       },
-      { 
-        id: 'siswa_prestasi', 
+      {
+        id: 'siswa_prestasi',
         label: 'Siswa Berprestasi',
         labelShort: 'Prestasi',
-        count: siswaPrestasiLogs.length, 
+        count: siswaPrestasiLogs.length,
         icon: '/icons/063-follow.svg',
         badgeBg: 'bg-emerald-100/90 text-emerald-800'
       }
@@ -444,17 +444,17 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     if (isSiswa) {
       return all.filter(t => ['kehadiran_siswa', 'siswa_terlambat', 'siswa_prestasi'].includes(t.id));
     }
-    
+
     // Filter siswa bermasalah: hanya kesiswaan, kepsek, admin, dan guru (wali kelas) yang bisa melihat
-    const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(user?.role) || 
-                              (user?.role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan') || 
-                              (user?.role || "").includes('kesiswaan');
+    const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(user?.role) ||
+      (user?.role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan') ||
+      (user?.role || "").includes('kesiswaan');
     const isGuru = user?.role === 'guru';
-    
+
     if (!isKesiswaanOrAdmin && !isGuru) {
       return all.filter(t => t.id !== 'siswa_bermasalah');
     }
-    
+
     return all;
   }, [isSiswa, user, guruKaryawanLogs.length, terlambatGuruLogs.length, kehadiranSiswaLogs.length, terlambatSiswaLogs.length, bermasalahLogs.length, siswaPrestasiLogs.length, siswaRankingLogs.length]);
 
@@ -483,8 +483,8 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     }
 
     let name = resolvedStudent?.name || resolvedStudent?.nama || item.student_name || item.name || item.username || item.employee_id || item.nis || '-';
-    let className = item.class_name && item.class_name !== '-' && item.class_name !== 'siswa' 
-      ? item.class_name 
+    let className = item.class_name && item.class_name !== '-' && item.class_name !== 'siswa'
+      ? item.class_name
       : (resolvedStudent?.kelas || resolvedStudent?.class_name || '');
 
     let subtitleBadge = null;
@@ -493,7 +493,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     let rightBadgeText = '';
     let avatarChar = String(name).charAt(0).toUpperCase();
     let avatarBg = '';
-    
+
     let ts = item.timestamp || item.created_at || item.last_seen || item.date || new Date();
     let timeText = fmtTime(ts).replace(':', '.');
 
@@ -503,7 +503,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       avatarBg = isKaryawan ? 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200/80' : 'bg-indigo-50 text-indigo-800 border-indigo-200/80';
       subtitleBadge = <span className={`font-black uppercase px-1.5 py-0.5 rounded-[3px] text-[8px] whitespace-nowrap shrink-0 ${isKaryawan ? 'bg-fuchsia-100/80 text-fuchsia-700' : 'bg-indigo-100/80 text-indigo-700'}`}>{badgeRole}</span>;
       subtitleText = item.division && item.division !== '-' ? item.division : '';
-      
+
       const s = String(item.status || 'HADIR').toLowerCase();
       if (type === 'guru_terlambat' || s.includes('terlambat') || s.includes('late')) {
         rightBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200/80';
@@ -523,7 +523,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       ) : null;
 
       subtitleText = `NIS / ID: ${item.employee_id || item.nis || resolvedStudent?.nis || '-'}`;
-      
+
       if (type === 'siswa_terlambat') {
         avatarBg = 'bg-amber-50 text-amber-800 border-amber-200/60';
         rightBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200/80';
@@ -585,15 +585,15 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const renderPagination = (totalItems) => {
     if (totalItems <= itemsPerPage) return null;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
-    
 
-  return (
+
+    return (
       <div className="flex items-center justify-between px-4 py-3 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
         <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
           Data {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
         </span>
         <div className="flex items-center gap-1.5">
-          <button 
+          <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
@@ -601,7 +601,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             Prev
           </button>
           <span className="px-2.5 text-[10px] font-bold text-slate-700">{currentPage} / {totalPages}</span>
-          <button 
+          <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
@@ -625,7 +625,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   return (
     <div className="bg-white rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-card)] border border-[var(--ui-border-muted)] flex flex-col overflow-hidden h-auto transition-all duration-300">
-      
+
       {/* Dynamic Header */}
       <div className="px-4 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -674,9 +674,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           )}
           <div className="relative w-full sm:w-52">
             <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
-            <input 
-              type="text" 
-              placeholder="Cari nama / NIS / kelas..." 
+            <input
+              type="text"
+              placeholder="Cari nama / NIS / kelas..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full h-[34px] pl-8 pr-3 bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-control)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] placeholder:text-slate-400 transition-all"
@@ -700,7 +700,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           )}
         </div>
       </div>
-      
+
       {/* Navigation Tabs Bar - Responsive Mobile 3-Column Grid / Desktop 6-Column Grid */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3.5 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] select-none">
         {tabsConfig.map(tab => {
@@ -710,11 +710,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
-              className={`py-2 px-1.5 sm:px-2 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center w-full min-h-[56px] sm:min-h-[68px] relative touch-manipulation active:scale-95 ${
-                isActive
+              className={`py-2 px-1.5 sm:px-2 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center w-full min-h-[56px] sm:min-h-[68px] relative touch-manipulation active:scale-95 ${isActive
                   ? 'text-white shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/30 border-[var(--ui-primary)]'
-                  : 'bg-[var(--ui-card-bg,white)] [border:var(--ui-card-border,1px_solid_theme(colors.slate.200))] text-slate-700 shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 hover:border-slate-300'
-              }`}
+                  : 'bg-[var(--ui-card-bg,white)] border-[var(--ui-card-border,theme(colors.slate.200/80))] text-slate-700 shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 hover:border-slate-300'
+                }`}
               style={isActive ? {
                 backgroundColor: "var(--ui-primary)",
                 borderColor: "var(--ui-primary)",
@@ -722,15 +721,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               } : {}}
             >
               <div className="relative shrink-0 flex items-center justify-center">
-                <img 
-                  src={tab.icon} 
-                  alt={tab.label} 
-                  className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`} 
+                <img
+                  src={tab.icon}
+                  alt={tab.label}
+                  className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}
                   style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
-                <span className={`absolute -top-1.5 -right-3 px-1 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border ${
-                  isActive ? 'bg-white text-slate-900 border-white' : `border-white ${tab.badgeBg}`
-                }`}>
+                <span className={`absolute -top-1.5 -right-3 px-1 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border ${isActive ? 'bg-white text-slate-900 border-white' : `border-white ${tab.badgeBg}`
+                  }`}>
                   {tab.count}
                 </span>
               </div>
@@ -745,7 +743,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
       {/* Tab Contents */}
       <div className="p-3.5 bg-white min-h-[460px] h-auto [&>div]:h-full">
-        
+
         {/* TAB 1: Kehadiran Guru & Karyawan */}
         {activeLogTab === 'guru_karyawan' && (
           <div className="animate-in fade-in duration-200">
