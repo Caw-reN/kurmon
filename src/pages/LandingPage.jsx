@@ -805,6 +805,63 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* ── LIVING SKY LAYER (DESKTOP): Burung, Kelelawar, Pesawat & Roket ── */}
+        <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
+          {/* 1. BURUNG (Hanya muncul saat Pagi/Siang/Panas/Cerah/Hujan - bukan Malam) */}
+          {weatherCondition !== 'night' && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-10 left-0 animate-bird-1">
+                <svg viewBox="0 0 32 18" className="w-5 h-3 fill-slate-800 drop-shadow-sm animate-bird-wing">
+                  <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
+                </svg>
+              </div>
+              <div className="absolute top-14 left-0 animate-bird-2">
+                <svg viewBox="0 0 32 18" className="w-4 h-2.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.32s' }}>
+                  <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* 2. KELELAWAR (Hanya muncul saat MALAM HARI) */}
+          {weatherCondition === 'night' && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-12 right-0 animate-bat-1">
+                <svg viewBox="0 0 34 20" className="w-5 h-3.5 fill-slate-950 drop-shadow-sm animate-bat-wing">
+                  <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
+                </svg>
+              </div>
+              <div className="absolute top-16 right-0 animate-bat-2">
+                <svg viewBox="0 0 34 20" className="w-4 h-2.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.24s' }}>
+                  <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* 3. PESAWAT TERBANG (Lampu kedip + Jejak asap contrail) */}
+          <div className="absolute top-7 left-0 animate-plane flex items-center">
+            <div className="w-24 sm:w-32 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
+            <div className="relative">
+              <svg viewBox="0 0 44 24" className="w-7 h-4 fill-white drop-shadow-md">
+                <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
+              </svg>
+              <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+            </div>
+          </div>
+
+          {/* 4. ROKET LUAR ANGKASA (Meluncur miring ke atas dengan api semburan) */}
+          <div className="absolute bottom-6 left-0 animate-rocket flex flex-col items-center">
+            <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
+              <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
+              <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
+              <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
+            </svg>
+            <div className="w-2 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
+            <div className="w-2.5 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
+          </div>
+        </div>
       </div>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
@@ -943,6 +1000,142 @@ export default function LandingPage() {
 
         .animate-sunbeam {
           animation: sunbeamSweep 7s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
+        @keyframes birdFlap {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.25); }
+        }
+
+        @keyframes birdFly1 {
+          0% {
+            transform: translate3d(-80px, 35px, 0) scale(0.85);
+            opacity: 0;
+          }
+          10% { opacity: 0.85; }
+          90% { opacity: 0.85; }
+          100% {
+            transform: translate3d(550px, 10px, 0) scale(0.9);
+            opacity: 0;
+          }
+        }
+
+        @keyframes birdFly2 {
+          0% {
+            transform: translate3d(-100px, 55px, 0) scale(0.7);
+            opacity: 0;
+          }
+          10% { opacity: 0.75; }
+          90% { opacity: 0.75; }
+          100% {
+            transform: translate3d(530px, 25px, 0) scale(0.75);
+            opacity: 0;
+          }
+        }
+
+        @keyframes batFlap {
+          0%, 100% { transform: scaleY(1) rotate(0deg); }
+          50% { transform: scaleY(-0.5) rotate(4deg); }
+        }
+
+        @keyframes batFlutter1 {
+          0% {
+            transform: translate3d(520px, 45px, 0) scale(0.85);
+            opacity: 0;
+          }
+          10% { opacity: 0.85; }
+          35% { transform: translate3d(340px, 15px, 0) scale(0.9); }
+          65% { transform: translate3d(180px, 50px, 0) scale(0.85); }
+          90% { opacity: 0.85; }
+          100% {
+            transform: translate3d(-80px, 25px, 0) scale(0.8);
+            opacity: 0;
+          }
+        }
+
+        @keyframes batFlutter2 {
+          0% {
+            transform: translate3d(540px, 70px, 0) scale(0.7);
+            opacity: 0;
+          }
+          10% { opacity: 0.75; }
+          40% { transform: translate3d(320px, 40px, 0) scale(0.75); }
+          70% { transform: translate3d(160px, 75px, 0) scale(0.7); }
+          90% { opacity: 0.75; }
+          100% {
+            transform: translate3d(-60px, 50px, 0) scale(0.65);
+            opacity: 0;
+          }
+        }
+
+        @keyframes planeFly {
+          0% {
+            transform: translate3d(-120px, 28px, 0) rotate(-3deg);
+            opacity: 0;
+          }
+          5% { opacity: 0.9; }
+          95% { opacity: 0.9; }
+          100% {
+            transform: translate3d(650px, 12px, 0) rotate(-3deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes rocketFly {
+          0% {
+            transform: translate3d(-100px, 260px, 0) rotate(50deg) scale(0.7);
+            opacity: 0;
+          }
+          6% { opacity: 0.95; }
+          92% { opacity: 0.95; }
+          100% {
+            transform: translate3d(600px, -150px, 0) rotate(50deg) scale(1.15);
+            opacity: 0;
+          }
+        }
+
+        .animate-bird-1 {
+          animation: birdFly1 15s linear infinite;
+          will-change: transform, opacity;
+        }
+
+        .animate-bird-2 {
+          animation: birdFly2 15s linear infinite;
+          animation-delay: -0.6s;
+          will-change: transform, opacity;
+        }
+
+        .animate-bird-wing {
+          animation: birdFlap 0.35s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        .animate-bat-1 {
+          animation: batFlutter1 17s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
+        .animate-bat-2 {
+          animation: batFlutter2 17s ease-in-out infinite;
+          animation-delay: -2s;
+          will-change: transform, opacity;
+        }
+
+        .animate-bat-wing {
+          animation: batFlap 0.28s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        .animate-plane {
+          animation: planeFly 32s linear infinite;
+          animation-delay: -8s;
+          will-change: transform, opacity;
+        }
+
+        .animate-rocket {
+          animation: rocketFly 26s linear infinite;
+          animation-delay: -16s;
           will-change: transform, opacity;
         }
       `}</style>
@@ -1085,6 +1278,63 @@ export default function LandingPage() {
                 <div className="absolute top-4 left-10 w-2/3 h-3/4 bg-white/30 rounded-full blur-xl" />
                 <div className="absolute top-2 right-12 w-1/2 h-2/3 bg-white/25 rounded-full blur-xl" />
               </div>
+            </div>
+          </div>
+
+          {/* ── LIVING SKY LAYER (MOBILE): Burung (Siang), Kelelawar (Malam), Pesawat & Roket ── */}
+          <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
+            {/* 1. BURUNG (Hanya muncul saat Pagi/Siang/Panas/Cerah/Hujan - bukan Malam) */}
+            {weatherCondition !== 'night' && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-8 left-0 animate-bird-1">
+                  <svg viewBox="0 0 32 18" className="w-5 h-3 fill-slate-800 drop-shadow-sm animate-bird-wing">
+                    <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
+                  </svg>
+                </div>
+                <div className="absolute top-12 left-0 animate-bird-2">
+                  <svg viewBox="0 0 32 18" className="w-4 h-2.5 fill-slate-700 drop-shadow-sm animate-bird-wing" style={{ animationDuration: '0.32s' }}>
+                    <path d="M 0,9 Q 8,0 16,9 Q 24,0 32,9 Q 24,6 16,11 Q 8,6 0,9 Z" />
+                  </svg>
+                </div>
+              </div>
+            )}
+
+            {/* 2. KELELAWAR (Hanya muncul saat MALAM HARI) */}
+            {weatherCondition === 'night' && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-10 right-0 animate-bat-1">
+                  <svg viewBox="0 0 34 20" className="w-5 h-3.5 fill-slate-950 drop-shadow-sm animate-bat-wing">
+                    <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
+                  </svg>
+                </div>
+                <div className="absolute top-14 right-0 animate-bat-2">
+                  <svg viewBox="0 0 34 20" className="w-4 h-2.5 fill-slate-900 drop-shadow-sm animate-bat-wing" style={{ animationDuration: '0.24s' }}>
+                    <path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" />
+                  </svg>
+                </div>
+              </div>
+            )}
+
+            {/* 3. PESAWAT TERBANG (Lampu kedip + Jejak asap contrail) */}
+            <div className="absolute top-6 left-0 animate-plane flex items-center">
+              <div className="w-20 sm:w-28 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-white/70 blur-[0.5px] -mr-1" />
+              <div className="relative">
+                <svg viewBox="0 0 44 24" className="w-7 h-4 fill-white drop-shadow-md">
+                  <path d="M 2,12 L 20,9 L 26,2 L 30,2 L 28,9 L 40,11 L 44,12 L 40,13 L 28,15 L 30,22 L 26,22 L 20,15 L 2,12 Z" />
+                </svg>
+                <div className="absolute top-0 right-3 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+              </div>
+            </div>
+
+            {/* 4. ROKET LUAR ANGKASA (Meluncur miring ke atas dengan api semburan) */}
+            <div className="absolute bottom-4 left-0 animate-rocket flex flex-col items-center">
+              <svg viewBox="0 0 24 44" className="w-4 h-7 drop-shadow-lg">
+                <path d="M 12,0 Q 18,10 18,28 L 24,38 L 18,34 L 14,40 L 10,40 L 6,34 L 0,38 L 6,28 Q 6,10 12,0 Z" fill="#ffffff" />
+                <path d="M 12,3 Q 15,12 15,26 L 9,26 Q 9,12 12,3 Z" fill="#ef4444" />
+                <circle cx="12" cy="16" r="2.5" fill="#38bdf8" />
+              </svg>
+              <div className="w-2 h-10 -mt-1 bg-gradient-to-b from-amber-300 via-orange-500 to-transparent rounded-full blur-[1px] animate-pulse" />
+              <div className="w-2.5 h-16 -mt-2 bg-gradient-to-b from-white/70 via-white/20 to-transparent blur-xs" />
             </div>
           </div>
 
