@@ -685,20 +685,15 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* Banner Card Hijau Solid #3DAA37 - Proporsional dengan Padding Lega */}
+              {/* Banner Card Putih Bersih - Senada dengan Kartu Telah Dipercaya */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
-                const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
                 return (
                   <div 
-                    className="w-full rounded-2xl py-4 sm:py-5 px-5 sm:px-6 shadow-sm text-white relative overflow-hidden transition-all duration-500 flex flex-col items-center justify-center"
-                    style={{
-                      backgroundColor: cardColor,
-                      boxShadow: `0 8px 24px ${hexToRgba(cardColor, 0.22)}`
-                    }}
+                    className="w-full bg-white rounded-2xl sm:rounded-3xl py-5 px-5 sm:py-6 sm:px-6 shadow-xs border border-slate-100 flex flex-col items-center justify-center transition-all duration-300"
                   >
-                    {/* Nama Jurusan Saja (Tebal, Centered, Rapi & Elegan) */}
-                    <h3 className="text-[13px] sm:text-sm font-black text-white uppercase tracking-wider text-center drop-shadow-xs truncate w-full px-2">
+                    {/* Nama Jurusan Saja (Tebal, Centered, Teks Slate/Hitam Elegan) */}
+                    <h3 className="text-[13px] sm:text-sm font-black text-slate-800 uppercase tracking-wider text-center truncate w-full px-2">
                       {activeProgram.name}
                     </h3>
 
@@ -712,7 +707,7 @@ export default function LandingPage() {
                             type="button"
                             onClick={() => setActiveProgramIdx(pIdx)}
                             className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 ${
-                              isActive ? 'w-6 bg-white' : 'w-1.5 bg-white/45 hover:bg-white/75'
+                              isActive ? 'w-6 bg-[#3DAA37]' : 'w-1.5 bg-slate-200 hover:bg-slate-300'
                             }`}
                             title={`Keahlian 0${prog.index}`}
                           />
