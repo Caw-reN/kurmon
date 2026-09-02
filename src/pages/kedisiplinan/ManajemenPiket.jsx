@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo } from'react';
-import { ClipboardList, Calendar, ShieldCheck } from'lucide-react';
-import JadwalPiket from'./JadwalPiket.jsx';
-import PanelPiket from'./PanelPiket.jsx';
-import { PageHeader } from'../../components/monitoring/ui/index.js';
-
+import { useState, useMemo } from 'react';
+import { ClipboardList, Calendar, ShieldCheck } from 'lucide-react';
+import JadwalPiket from './JadwalPiket.jsx';
+import PanelPiket from './PanelPiket.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 export default function ManajemenPiket({
   teachers = [],
@@ -15,8 +14,6 @@ export default function ManajemenPiket({
   isSuperAdminRole
 }) {
   const [activeTab, setActiveTab] = useState('panel');
-  const [piketHariIni, setPiketHariIni] = useState(false);
-  const [checkingPiket, setCheckingPiket] = useState(true);
 
   const storageSession = useMemo(() => {
     try {
@@ -32,53 +29,13 @@ export default function ManajemenPiket({
   const subrole = String(user.subrole || '').toLowerCase().trim();
   const division = String(user.division || '').toLowerCase().trim();
 
-  const todayName = useMemo(() => {
-    const dayIdx = new Date().getDay();
-    const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-    return days[dayIdx];
-  }, []);
-
-  useEffect(() => {
-    const session = storageSession || currentUser;
-    const authToken = session?.authToken;
-    const myCode = session?.code || session?.id;
-
-    if (authToken && myCode) {
-      fetch("/api/kedisiplinan/jadwal", {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.ok && Array.isArray(data.data)) {
-            let isOnDuty = false;
-            data.data.forEach(s => {
-              if (String(s.hari).toLowerCase() === todayName.toLowerCase()) {
-                let ids = s.guru_ids;
-                if (typeof ids === "string") {
-                  try { ids = JSON.parse(ids); } catch { /* intentionally ignored */ }
-                }
-                if (Array.isArray(ids) && ids.some(id => String(id).trim().toLowerCase() === String(myCode).trim().toLowerCase())) {
-                  isOnDuty = true;
-                }
-              }
-            });
-            setPiketHariIni(isOnDuty);
-          }
-        })
-        .catch(e => console.error(e))
-        .finally(() => setCheckingPiket(false));
-    } else {
-      setCheckingPiket(false);
-    }
-  }, [todayName, storageSession, currentUser]);
-
-  // Evaluasi apakah user memiliki hak akses penuh (edit/input) ke Piket & Pelanggaran
-  const hasFullAccess = useMemo(() => {
+  // Evaluasi apakah user memiliki hak edit/kelola ke Piket & Pelanggaran
+  const canEdit = useMemo(() => {
     // 1. Superadmin / Admin / Kepsek
     if (rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'kepsek') return true;
     if (typeof isSuperAdminRole === 'function' && isSuperAdminRole(rawRole)) return true;
 
-    // 2. Waka Kesiswaan / Kesiswaan / BPBK / Pembina OSIS
+    // 2. BP/BK, Waka Kesiswaan, Kesiswaan, Pembina OSIS, Tim Kesiswaan
     if ((rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan') return true;
     if (subrole === 'bpbk' || rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk') return true;
     if (subrole === 'pembina_osis' || subrole === 'sekretaris_kesiswaan' || subrole === 'anggota_kesiswaan') return true;
@@ -87,6 +44,7 @@ export default function ManajemenPiket({
     if (typeof getTabPermissionLevel === 'function') {
       const level = getTabPermissionLevel('kedisiplinan_piket');
       if (level === 'edit' || level === 'otomatis') return true;
+      if (level === 'view') return false;
     }
 
     // 4. rolePermissions Matrix
@@ -108,48 +66,32 @@ export default function ManajemenPiket({
       } else if (typeof perms === 'object') {
         const p = perms['kedisiplinan_piket'];
         if (p === 'edit' || p === 'otomatis') return true;
+        if (p === 'view') return false;
       }
     }
 
-    // 5. User yang piket hari ini
-    if (piketHariIni) return true;
+    return true;
+  }, [rawRole, subrole, division, isSuperAdminRole, getTabPermissionLevel, rolePermissions]);
 
-    return false;
-  }, [rawRole, subrole, division, isSuperAdminRole, getTabPermissionLevel, rolePermissions, piketHariIni]);
-
-  // Hanya sembunyikan Panel Input jika sama sekali tidak memiliki akses penuh dan tidak sedang piket hari ini
-  const showOnlyJadwal = !hasFullAccess && !checkingPiket;
-
-  const tabs = useMemo(() => {
-    if (showOnlyJadwal) {
-      return [{ id: 'jadwal', label: 'Jadwal Piket', icon: Calendar }];
-    }
-    return [
-      { id: 'panel', label: 'Panel Input', icon: ClipboardList },
-      { id: 'jadwal', label: 'Jadwal Piket', icon: Calendar }
-    ];
-  }, [showOnlyJadwal]);
+  const tabs = [
+    { id: 'panel', label: 'Panel Input Pelanggaran', icon: ClipboardList },
+    { id: 'jadwal', label: 'Jadwal Piket', icon: Calendar }
+  ];
 
   return (
     <div className="flex flex-col gap-4 h-full animate-in fade-in duration-300">
       <PageHeader
         title="Piket & Pelanggaran"
         icon={ShieldCheck}
-        description={showOnlyJadwal ? "Lihat jadwal piket mingguan sekolah." : "Kelola jadwal guru piket dan input pelanggaran siswa secara cepat."}
-        tabs={showOnlyJadwal ? undefined : tabs}
-        activeTab={showOnlyJadwal ? 'jadwal' : activeTab}
+        description="Pusat penanganan kedisiplinan siswa (BP/BK, Kesiswaan & Piket) dan jadwal piket mingguan."
+        tabs={tabs}
+        activeTab={activeTab}
         onTabChange={setActiveTab}
       />
 
       <div className="flex-1 min-h-0 relative">
-        {showOnlyJadwal ? (
-          <JadwalPiket teachers={teachers} canEdit={false} />
-        ) : (
-          <>
-            {activeTab === 'panel' && <PanelPiket students={students} classes={classes} />}
-            {activeTab === 'jadwal' && <JadwalPiket teachers={teachers} canEdit={hasFullAccess} />}
-          </>
-        )}
+        {activeTab === 'panel' && <PanelPiket students={students} classes={classes} canEdit={canEdit} />}
+        {activeTab === 'jadwal' && <JadwalPiket teachers={teachers} canEdit={canEdit} />}
       </div>
     </div>
   );
