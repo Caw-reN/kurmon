@@ -653,10 +653,11 @@ export default function KepsekExecutiveDashboard({
         ))}
       </div>
 
-      {/* ═══════════════ BARIS 1: GRAFIK TREN KEHADIRAN (KIRI 8-KOL) + PERSENTASE KEHADIRAN PIE CHART (KANAN 4-KOL) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Box Kiri: Grafik Tren & Jam Kehadiran (8 Kolom) */}
-        <div className="lg:col-span-8 flex flex-col">
+      {/* ═══════════════ BARIS 1: 3 BOX ANALISIS SEJAJAR (GRAFIK TREN + PERSENTASE DONUT + PRESENSI LIVE COMPACT) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        
+        {/* Box 1 (Kiri): Grafik Tren & Jam Kehadiran */}
+        <div className="flex flex-col h-full">
           <AttendanceTrendChartCard 
             dashLogs={dashLogs} 
             siswaStats={siswaStats} 
@@ -664,8 +665,8 @@ export default function KepsekExecutiveDashboard({
           />
         </div>
 
-        {/* Box Kanan: Donut Chart Persentase Kehadiran (4 Kolom) */}
-        <div className="lg:col-span-4 flex flex-col">
+        {/* Box 2 (Tengah): Donut Chart Persentase Kehadiran */}
+        <div className="flex flex-col h-full">
           <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 sm:p-4 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-1">
               <div className="flex items-center gap-2">
@@ -749,49 +750,36 @@ export default function KepsekExecutiveDashboard({
 
           </div>
         </div>
-      </div>
 
-      {/* ═══════════════ BARIS 2: PRESENTASE PER JURUSAN & KELAS (KIRI 8-KOL) + PRESENSI LIVE HARI INI (KANAN 4-KOL) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Box Kiri: Persentase Kehadiran Per Jurusan dan Per Kelas (8 Kolom) */}
-        <div className="lg:col-span-8 flex flex-col">
-          <JurusanKelasAttendanceSummary 
-            students={students} 
-            classes={classes} 
-            dashLogs={dashLogs}
-            siswaStats={siswaStats}
-          />
-        </div>
-
-        {/* Box Kanan: Presensi Live Hari Ini (4 Kolom) */}
-        <div className="lg:col-span-4 flex flex-col">
+        {/* Box 3 (Kanan): Presensi Live Hari Ini (COMPACT VERSION) */}
+        <div className="flex flex-col h-full">
           <SectionCard 
             title="Presensi Live Hari Ini" 
-            subtitle="Data terpadu mesin absensi Hikvision & gerbang" 
+            subtitle="Data mesin Hikvision & gerbang" 
             icon="/icons/084-fingerprint scan.svg" 
             action="Detail Laporan" 
             onAction={() => gotoTab('laporan_absensi')}
             className="h-full flex flex-col justify-between"
           >
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               {[
                 { label: 'Guru Pengajar', total: guruStats.total, hadir: guruStats.Hadir, telat: guruStats.Terlambat, izin: guruStats.Izin, sakit: guruStats.Sakit, alpa: guruStats.Alpa },
                 { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                 { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
               ].filter(row => row.total > 0).map(row => (
-                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-2.5 border border-slate-200/60 flex flex-col justify-between">
+                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-2 border border-slate-200/60 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                      <span className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+                      <span className="flex items-center gap-1 truncate">
                         {row.label} 
-                        <span className="text-[10px] text-slate-400 font-medium">({row.total} org)</span>
+                        <span className="text-[9.5px] text-slate-400 font-medium">({row.total} org)</span>
                       </span>
-                      <span className="text-emerald-700 font-black text-[10.5px] bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200/60">
+                      <span className="text-emerald-700 font-black text-[10px] bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 shrink-0">
                         {pct(row.hadir + row.telat, row.total || 1)}% Hadir
                       </span>
                     </div>
                     
-                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-1.5 shadow-inner">
+                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-1 shadow-inner">
                       <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} title="Hadir" />
                       <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} title="Terlambat" />
                       <div className="h-full bg-orange-400" style={{ width: `${pct(row.izin, row.total)}%` }} title="Izin" />
@@ -799,7 +787,7 @@ export default function KepsekExecutiveDashboard({
                       <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} title="Alpa" />
                     </div>
 
-                    <div className="flex items-center justify-between text-[8.5px] font-bold text-slate-500 pt-0.5">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-slate-500">
                       <span className="text-emerald-700">● {row.hadir} Hadir</span>
                       <span className="text-amber-600">● {row.telat} Telat</span>
                       <span className="text-orange-600">● {row.izin} Izin</span>
@@ -808,14 +796,14 @@ export default function KepsekExecutiveDashboard({
                   </div>
 
                   {row.isSiswa && siswaStats.gradeStats && (
-                    <div className="mt-2 pt-1.5 border-t border-slate-200/60 grid grid-cols-3 gap-1">
+                    <div className="mt-1.5 pt-1 border-t border-slate-200/60 grid grid-cols-3 gap-1">
                       {['X', 'XI', 'XII'].map(g => {
                         const gStat = siswaStats.gradeStats[g];
                         const gPresent = (gStat?.hadir || 0) + (gStat?.telat || 0);
                         return (
-                          <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-0.5 px-0.5 text-center shadow-xs">
-                            <span className="text-[8px] font-extrabold text-slate-500 mr-0.5">Kls {g}:</span>
-                            <span className="text-[9px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
+                          <div key={g} className="bg-white border border-slate-200 rounded-[var(--ui-radius-control)] py-0.2 px-0.5 text-center shadow-xs">
+                            <span className="text-[7.5px] font-extrabold text-slate-500 mr-0.5">Kls {g}:</span>
+                            <span className="text-[8.5px] font-black text-slate-800">{pct(gPresent, gStat?.total || 1)}%</span>
                           </div>
                         );
                       })}
@@ -825,24 +813,40 @@ export default function KepsekExecutiveDashboard({
               ))}
             </div>
 
-            <div className="flex items-center gap-1.5 p-1.5 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[9.5px] text-emerald-800 font-semibold mt-2">
-              <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-1 p-1 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[9px] text-emerald-800 font-semibold mt-1.5">
+              <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
               Gateway Hikvision Terhubung
-              <span className="ml-auto text-[8px] font-black uppercase bg-emerald-200 px-1.5 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
+              <span className="ml-auto text-[7.5px] font-black uppercase bg-emerald-200 px-1 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
             </div>
           </SectionCard>
         </div>
+
       </div>
 
-      {/* ═══════════════ BARIS 3: LOG AKTIVITAS & SESI TERPADU (KIRI 8-KOL) + MONITOR & AKTIVITAS (KANAN 4-KOL) ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Box Kiri (8 Kolom): Log Aktivitas Pengguna & Sesi/Durasi Login (Gabungan Terpadu) */}
-        <div className="lg:col-span-8 flex flex-col">
+      {/* ═══════════════ BARIS 2: PRESENTASE PER JURUSAN & KELAS (LEBAR PENUH 100%) ═══════════════ */}
+      <div className="w-full">
+        <JurusanKelasAttendanceSummary 
+          students={students} 
+          classes={classes} 
+          dashLogs={dashLogs}
+          siswaStats={siswaStats}
+        />
+      </div>
+
+      {/* ═══════════════ BARIS 3: 3 BOX LOG & MONITOR AKTIVITAS SEJAJAR (RATA 100%) ═══════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Box 1: Live Log Aktivitas Pengguna */}
+        <div className="flex flex-col h-full">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
         </div>
 
-        {/* Box Kanan (4 Kolom): Monitor & Aktivitas Pemantauan Sekolah */}
-        <div className="lg:col-span-4 flex flex-col">
+        {/* Box 2: Log Siapa Saja yang Login, Frekuensi & Durasi Aktif */}
+        <div className="flex flex-col h-full">
+          <UserLoginSessionTracker onNavigateTab={gotoTab} />
+        </div>
+
+        {/* Box 3: Monitor & Aktivitas Pemantauan Sekolah */}
+        <div className="flex flex-col h-full md:col-span-2 lg:col-span-1">
           <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
       </div>
