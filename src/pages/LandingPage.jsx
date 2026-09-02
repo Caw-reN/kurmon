@@ -498,7 +498,7 @@ export default function LandingPage() {
       </div>
 
       {/* MOBILE APP LANDING VIEW (100dvh App Screen) */}
-      <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-[#F5F6FA] overflow-hidden select-none relative font-sans">
+      <div className="md:hidden flex flex-col h-[100dvh] max-h-[100dvh] w-full bg-white overflow-hidden select-none relative font-sans">
         
         {/* 1. AREA HEADER (ATAS - BACKGROUND GAMBAR SEKOLAH DARI KUSTOMISASI ADMIN WEB) */}
         <div 
@@ -617,12 +617,12 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Tanpa Garis Horizontal / Subpixel Seam) */}
+          {/* Garis Batas Bawah Melengkung Menjorok ke Atas (Convex Curve SVG - Warna Putih Murni) */}
           <div className="absolute -bottom-[2px] left-0 right-0 w-full z-20 pointer-events-none leading-none overflow-visible">
             <svg 
               viewBox="0 0 100 24" 
               preserveAspectRatio="none" 
-              className="w-full h-8 sm:h-10 fill-[#F5F6FA] block"
+              className="w-full h-8 sm:h-10 fill-white block"
               style={{ shapeRendering: 'geometricPrecision' }}
             >
               <path d="M 0,24 Q 50,-4 100,24 L 100,32 L 0,32 Z" />
@@ -631,8 +631,8 @@ export default function LandingPage() {
 
         </div>
 
-        {/* 2. AREA KONTEN: LAYANAN PUBLIK (SEIMBANG & PROPORSIONAL TANPA SPACE KOSONG BERLEBIH, BG #F5F6FA) */}
-        <div className="relative w-full h-[46%] flex-1 bg-[#F5F6FA] px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30 -mt-[1px]">
+        {/* 2. AREA KONTEN: LAYANAN PUBLIK (FULL PUTIH BERSIH - BG WHITE) */}
+        <div className="relative w-full h-[46%] flex-1 bg-white px-4 pt-1 pb-[82px] sm:pb-[90px] flex flex-col justify-center items-center z-30 -mt-[1px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
@@ -1113,8 +1113,8 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white/95 backdrop-blur-lg border-t border-slate-200/80 px-5 pt-3.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] select-none">
+      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
           {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
           <button
