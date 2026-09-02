@@ -6,7 +6,7 @@ import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom
 import { BarChart2 } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
-
+import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
 
 // ── Core schedule app (lazy)
 const AdminApp = lazy(() => import("./AdminApp.jsx"));
@@ -367,6 +367,7 @@ export default function App() {
           {/* ── 404 fallback ── */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <PwaInstallPrompt />
       </Suspense>
         </BrowserRouter>
       </GlobalDialogProvider>
