@@ -1,7 +1,7 @@
 import { Button } from '../components/ui.jsx';
 import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap } from'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -157,56 +157,92 @@ export default function LandingPage() {
   const renderRulesModal = () => {
     if (!showRulesModal) return null;
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 animate-in fade-in duration-200">
-        <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-100 shadow-xs w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-300 p-0 md:p-4 text-left">
+        {/* Backdrop overlay listener to close */}
+        <div 
+          className="absolute inset-0 z-0 cursor-pointer" 
+          onClick={() => setShowRulesModal(false)} 
+        />
+
+        {/* Bottom Sheet Drawer on Mobile, Centered Dialog on Desktop */}
+        <div className="bg-white rounded-t-[28px] md:rounded-[var(--ui-radius-card,24px)] border border-slate-100/80 shadow-2xl w-full max-w-4xl h-[88vh] md:h-[82vh] max-h-[90vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom md:zoom-in-95 duration-300 ease-out z-10">
           
+          {/* iOS / Mobile Drag Handle Bar */}
+          <div 
+            className="w-12 h-1.5 bg-slate-200 hover:bg-slate-300 rounded-full mx-auto my-2.5 shrink-0 md:hidden cursor-pointer" 
+            onClick={() => setShowRulesModal(false)} 
+          />
+
           {/* Header */}
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-            <div className="text-left">
-              <h3 className="font-black text-slate-800 text-[16px] tracking-tight flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-rose-50 flex items-center justify-center text-rose-500">
-                  <ShieldCheck size={18} strokeWidth={2.5} />
-                </div>
-                Peraturan &amp; Tata Tertib Sekolah
-              </h3>
-              <p className="text-[11.5px] text-slate-400 font-medium mt-1">Dokumen resmi tata tertib, kriteria pelanggaran, dan prestasi siswa</p>
+          <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+            <div className="flex items-center gap-3 text-left">
+              <div 
+                className="w-10 h-10 rounded-[var(--ui-radius-control,12px)] flex items-center justify-center shrink-0 shadow-2xs"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 12%, transparent)',
+                  color: 'var(--ui-primary, #059669)'
+                }}
+              >
+                <ShieldCheck size={22} strokeWidth={2.3} />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 text-base sm:text-lg tracking-tight leading-tight">
+                  Peraturan &amp; Tata Tertib Sekolah
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                  Dokumen resmi tata tertib, kriteria pelanggaran, dan prestasi siswa
+                </p>
+              </div>
             </div>
+            
             <button 
+              type="button"
               onClick={() => setShowRulesModal(false)} 
-              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none"
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none shrink-0"
+              title="Tutup"
             >
               <X size={16} strokeWidth={2.5} />
             </button>
           </div>
 
           {/* Underline Tabs */}
-          <div className="flex border-b border-slate-100 bg-white shrink-0 px-6">
+          <div className="flex border-b border-slate-100 bg-white shrink-0 px-4 sm:px-6 gap-2 pt-1">
             <button
               type="button"
               onClick={() => setActiveRulesTab("pdf")}
-              className={`px-4 py-3 text-xs font-black transition-all duration-300 cursor-pointer border-b-2 ${
+              className={`px-3 sm:px-4 py-2.5 text-xs font-black transition-all duration-200 cursor-pointer border-b-2 flex items-center gap-2 ${
                 activeRulesTab === 'pdf'
-                  ? 'text-[var(--ui-primary)] border-[var(--ui-primary)]'
-                  : 'text-slate-500 border-transparent hover:text-slate-800'
+                  ? 'border-b-2'
+                  : 'text-slate-400 border-transparent hover:text-slate-700'
               }`}
+              style={activeRulesTab === 'pdf' ? {
+                color: 'var(--ui-primary, #059669)',
+                borderColor: 'var(--ui-primary, #059669)'
+              } : {}}
             >
-              Dokumen Resmi (PDF)
+              <FileText size={14} strokeWidth={2.2} />
+              <span>Dokumen Resmi (PDF)</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveRulesTab("data")}
-              className={`px-4 py-3 text-xs font-black transition-all duration-300 cursor-pointer border-b-2 ${
+              className={`px-3 sm:px-4 py-2.5 text-xs font-black transition-all duration-200 cursor-pointer border-b-2 flex items-center gap-2 ${
                 activeRulesTab === 'data'
-                  ? 'text-[var(--ui-primary)] border-[var(--ui-primary)]'
-                  : 'text-slate-500 border-transparent hover:text-slate-800'
+                  ? 'border-b-2'
+                  : 'text-slate-400 border-transparent hover:text-slate-700'
               }`}
+              style={activeRulesTab === 'data' ? {
+                color: 'var(--ui-primary, #059669)',
+                borderColor: 'var(--ui-primary, #059669)'
+              } : {}}
             >
-              Kriteria Skor Poin (Data)
+              <Sparkles size={14} strokeWidth={2.2} />
+              <span>Kriteria Skor Poin (Data)</span>
             </button>
           </div>
 
           {/* Content Body */}
-          <div className="flex-1 min-h-0 bg-slate-50">
+          <div className="flex-1 min-h-0 bg-slate-50 overflow-hidden flex flex-col">
             {activeRulesTab === "pdf" ? (
               hasPdf ? (
                 <iframe
@@ -215,110 +251,197 @@ export default function LandingPage() {
                   title="Peraturan Sekolah PDF"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-50 text-center">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
-                    <ShieldCheck size={32} strokeWidth={1.5} />
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-8 bg-slate-50/60 text-center">
+                  <div 
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3.5 shadow-xs"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
+                      color: 'var(--ui-primary, #059669)'
+                    }}
+                  >
+                    <ShieldCheck size={32} strokeWidth={1.8} />
                   </div>
-                  <h4 className="text-sm font-black text-slate-700">Dokumen PDF Belum Tersedia</h4>
-                  <p className="text-[12px] text-slate-400 max-w-sm mt-1.5 font-medium leading-relaxed">Admin belum mengunggah dokumen PDF peraturan sekolah. Silakan cek tab "Kriteria Skor Poin" untuk melihat daftar aturan.</p>
+                  <h4 className="text-base font-black text-slate-800 tracking-tight">Dokumen PDF Belum Tersedia</h4>
+                  <p className="text-xs text-slate-400 max-w-sm mt-1.5 font-medium leading-relaxed mb-4">
+                    Admin belum mengunggah dokumen PDF peraturan sekolah. Silakan cek tab &quot;Kriteria Skor Poin&quot; untuk melihat daftar aturan lengkap.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveRulesTab("data")}
+                    className="px-4 py-2.5 rounded-[var(--ui-radius-control,10px)] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer border-none shadow-xs transition-all hover:opacity-90 active:scale-95"
+                    style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+                  >
+                    <span>Buka Kriteria Skor Poin</span>
+                  </button>
                 </div>
               )
             ) : (
-              <div className="flex flex-col h-full bg-white p-6">
+              <div className="flex flex-col h-full bg-white p-4 sm:p-6 overflow-hidden">
                 
                 {/* Search & Filter Header */}
-                <div className="flex flex-col md:flex-row gap-4 mb-4 justify-between items-center shrink-0">
-                  <div className="relative w-full md:w-80">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between items-stretch sm:items-center shrink-0">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={15} />
                     <input
                       type="text"
                       placeholder="Cari aturan/tata tertib..."
                       value={rulesSearch}
                       onChange={e => setRulesSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-[12px] focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/10 focus:border-[var(--ui-primary)] font-semibold transition-all"
+                      className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control,10px)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary,#059669)]/10 focus:border-[var(--ui-primary,#059669)] font-semibold transition-all text-slate-800 placeholder-slate-400"
                     />
+                    {rulesSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setRulesSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                   
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 w-full md:w-auto">
-                    {['all', 'pelanggaran', 'prestasi'].map((type) => (
-                      <Button
-                        key={type}
-                        variant={rulesFilterType === type ? 'primary' : 'ghost'}
-                        onClick={() => setRulesFilterType(type)}
-                        className={`flex-1 md:flex-none shrink-0 text-[11px] font-black uppercase tracking-wider ${
-                          rulesFilterType !== type ? 'text-slate-500' : ''
-                        }`}
-                      >
-                        {type === 'all' ? 'Semua' : type}
-                      </Button>
-                    ))}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setRulesFilterType('all')}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider cursor-pointer transition-all border ${
+                        rulesFilterType === 'all'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Semua
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRulesFilterType('pelanggaran')}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider cursor-pointer transition-all border ${
+                        rulesFilterType === 'pelanggaran'
+                          ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
+                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Pelanggaran
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRulesFilterType('prestasi')}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider cursor-pointer transition-all border ${
+                        rulesFilterType === 'prestasi'
+                          ? 'text-white shadow-2xs border-transparent'
+                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                      }`}
+                      style={rulesFilterType === 'prestasi' ? {
+                        backgroundColor: 'var(--ui-primary, #059669)',
+                        borderColor: 'var(--ui-primary, #059669)'
+                      } : {}}
+                    >
+                      Prestasi
+                    </button>
                   </div>
                 </div>
 
-                {/* Table Area */}
-                <div className="flex-1 overflow-y-auto border border-slate-100 rounded-[var(--ui-radius-card)] custom-scrollbar text-left">
+                {/* List Container (Cards on Mobile, Table on Desktop) */}
+                <div className="flex-1 overflow-y-auto border border-slate-100 rounded-[var(--ui-radius-card,16px)] custom-scrollbar text-left">
                   {loadingRules ? (
                     <div className="p-12 text-center text-slate-400 text-xs font-semibold">Memuat kriteria poin...</div>
                   ) : filteredRules.length === 0 ? (
                     <div className="p-12 text-center text-slate-400 text-xs font-medium">Tidak ditemukan kriteria poin.</div>
                   ) : (
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-slate-50 text-slate-400 uppercase font-black tracking-wider sticky top-0 border-b border-slate-100 text-[10px]">
-                        <tr>
-                          <th className="px-5 py-3">Tata Tertib / Tindakan</th>
-                          <th className="px-5 py-3 text-center w-28">Tipe</th>
-                          <th className="px-5 py-3 text-right w-24">Skor Poin</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
+                    <>
+                      {/* Mobile Cards List */}
+                      <div className="block sm:hidden divide-y divide-slate-100">
                         {filteredRules.map((r) => {
                           const isPrestasi = r.jenis === 'prestasi';
                           return (
-                            <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-5 py-3.5 align-middle break-words text-slate-700 text-[12px]">{r.nama_tindakan}</td>
-                              <td className="px-5 py-3.5 text-center align-middle">
-                                <span className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-extrabold border ${
-                                  isPrestasi
-                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                    : 'bg-rose-50 text-rose-600 border-rose-100'
-                                }`}>
-                                  {isPrestasi ? 'Prestasi' : 'Pelanggaran'}
-                                </span>
-                              </td>
-                              <td className={`px-5 py-3.5 text-right font-black text-sm align-middle ${
-                                isPrestasi ? 'text-emerald-600' : 'text-rose-600'
+                            <div key={r.id} className="p-3.5 flex items-start justify-between gap-3 bg-white">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-xs text-slate-800 leading-snug">
+                                  {r.nama_tindakan}
+                                </p>
+                                <div className="mt-1.5">
+                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${
+                                    isPrestasi
+                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                      : 'bg-rose-50 text-rose-600 border-rose-100'
+                                  }`}>
+                                    {isPrestasi ? 'Prestasi' : 'Pelanggaran'}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className={`px-2 py-1 rounded-[var(--ui-radius-small,8px)] font-black text-xs shrink-0 ${
+                                isPrestasi
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-rose-50 text-rose-700'
                               }`}>
                                 {isPrestasi ? '-' : '+'}{r.nilai_poin}
-                              </td>
-                            </tr>
+                              </span>
+                            </div>
                           );
                         })}
-                      </tbody>
-                    </table>
+                      </div>
+
+                      {/* Desktop Table View */}
+                      <table className="hidden sm:table w-full text-left text-xs border-collapse">
+                        <thead className="bg-slate-50 text-slate-400 uppercase font-black tracking-wider sticky top-0 border-b border-slate-100 text-[10px]">
+                          <tr>
+                            <th className="px-5 py-3">Tata Tertib / Tindakan</th>
+                            <th className="px-5 py-3 text-center w-28">Tipe</th>
+                            <th className="px-5 py-3 text-right w-24">Skor Poin</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
+                          {filteredRules.map((r) => {
+                            const isPrestasi = r.jenis === 'prestasi';
+                            return (
+                              <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-5 py-3.5 align-middle break-words text-slate-700 text-[12px]">{r.nama_tindakan}</td>
+                                <td className="px-5 py-3.5 text-center align-middle">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-extrabold border ${
+                                    isPrestasi
+                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                      : 'bg-rose-50 text-rose-600 border-rose-100'
+                                  }`}>
+                                    {isPrestasi ? 'Prestasi' : 'Pelanggaran'}
+                                  </span>
+                                </td>
+                                <td className={`px-5 py-3.5 text-right font-black text-sm align-middle ${
+                                  isPrestasi ? 'text-emerald-600' : 'text-rose-600'
+                                }`}>
+                                  {isPrestasi ? '-' : '+'}{r.nilai_poin}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </>
                   )}
                 </div>
+
               </div>
             )}
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+          {/* Footer (Safe area for mobile) */}
+          <div className="px-5 sm:px-6 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
             {activeRulesTab === "pdf" && hasPdf && (
               <a
                 href="/api/kedisiplinan/rules.pdf"
                 download="peraturan_sekolah.pdf"
-                className="px-5 py-2 text-white rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer text-center no-underline transition-all hover:opacity-90"
-                style={{ backgroundColor: 'var(--ui-primary)' }}
+                className="h-10 px-5 text-white rounded-[var(--ui-radius-control,10px)] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer text-center no-underline transition-all hover:opacity-90 shadow-xs"
+                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
               >
                 Unduh PDF
               </a>
             )}
-            <Button
-              variant="outline"
+            <button
+              type="button"
               onClick={() => setShowRulesModal(false)}
+              className="h-10 px-5 rounded-[var(--ui-radius-control,10px)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider border border-slate-200 cursor-pointer transition-all active:scale-95 shadow-2xs"
             >
               Tutup
-            </Button>
+            </button>
           </div>
 
         </div>
