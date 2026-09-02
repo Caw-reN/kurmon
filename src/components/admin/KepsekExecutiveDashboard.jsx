@@ -25,14 +25,14 @@ const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 6 }) 
 const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct, detail, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-[var(--ui-radius-card)] p-4 border cursor-pointer group transition-all hover:shadow-lg
+    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-4 border cursor-pointer group transition-all hover:shadow-[var(--ui-shadow-card-hover,var(--ui-shadow-card))]
       ${active
-        ? 'border-[var(--ui-primary)] shadow-md ring-2 ring-[var(--ui-primary)]/10'
-        : 'border-slate-200 hover:border-slate-300 shadow-sm'}`}
+        ? 'border-[var(--ui-primary)] shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/10'
+        : 'border-[var(--ui-card-border,theme(colors.slate.200))] hover:border-[var(--ui-primary)]/30 shadow-[var(--ui-shadow-card)]'}`}
   >
     <div className="flex items-start justify-between gap-2 mb-3">
       <div className={`w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105
-        ${active ? 'bg-[var(--ui-primary)] shadow-md' : 'bg-slate-50 border border-slate-200'}`}>
+        ${active ? 'bg-[var(--ui-primary)] shadow-[var(--ui-shadow-card)]' : 'bg-slate-50 border border-[var(--ui-card-border,theme(colors.slate.200))]'}`}>
         <img src={icon} alt={label} className={`w-6 h-6 object-contain ${active ? 'invert brightness-0' : ''}`} />
       </div>
       <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border whitespace-nowrap ${badgeColor}`}>
@@ -50,29 +50,32 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
 );
 
 const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
-  <div className={`bg-white rounded-[var(--ui-radius-card)] shadow-sm border overflow-hidden flex flex-col ${accent ? 'border-[var(--ui-primary)]/20' : 'border-slate-200'} ${className}`}>
-    <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${accent ? 'bg-[var(--ui-primary)]/5 border-[var(--ui-primary)]/10' : 'border-slate-100 bg-slate-50/60'}`}>
-      <div className="flex items-center gap-3">
+  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border ${accent ? 'border-[var(--ui-primary)]/20' : 'border-[var(--ui-card-border,theme(colors.slate.200/80))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 shrink-0 mb-4`}>
+      <div className="flex items-center gap-3 min-w-0">
         {icon && (
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border,theme(colors.slate.200))] shadow-xs flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}
-        <div>
-          <h3 className="text-sm font-black text-slate-800">{title}</h3>
-          {subtitle && <p className="text-[10px] text-slate-400 font-medium">{subtitle}</p>}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">{title}</h3>
+          </div>
+          {subtitle && <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{subtitle}</p>}
         </div>
       </div>
       {action && (
-        <button
-          onClick={onAction}
-          className="text-[11px] font-extrabold text-[var(--ui-primary)] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
-        >
-          {action} <ChevronRight size={12} />
-        </button>
+        <div className="flex justify-start sm:justify-end shrink-0">
+          <button onClick={onAction} className="text-[10.5px] font-bold text-[var(--ui-primary)] hover:text-emerald-700 flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
+            {action} <span aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
       )}
     </div>
-    <div className="p-5 flex-1 flex flex-col justify-between gap-3">{children}</div>
+    <div className="flex-1 min-h-0 flex flex-col">
+      {children}
+    </div>
   </div>
 );
 
