@@ -754,6 +754,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const checkViolation = useCallback((d, daysList = []) => {
     let maxConsecutiveLate = 0;
     let currConsecutiveLate = 0;
+    let maxConsecutiveAlpa = 0;
+    let currConsecutiveAlpa = 0;
 
     daysList.forEach(dayNum => {
       const dayData = (d.days || {})[dayNum];
@@ -765,12 +767,21 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
         currConsecutiveLate = 0;
       }
+
+      if (dayData && (dayData.status === "Alpa" || dayData.status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa")) {
+        currConsecutiveAlpa++;
+        if (currConsecutiveAlpa > maxConsecutiveAlpa) {
+          maxConsecutiveAlpa = currConsecutiveAlpa;
+        }
+      } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
+        currConsecutiveAlpa = 0;
+      }
     });
 
     const totalLate = d.total_terlambat || 0;
     const totalAlpa = d.total_alpa || 0;
     const isLateViolation = maxConsecutiveLate >= 3 || totalLate >= 3;
-    const isAlpaViolation = totalAlpa > 4;
+    const isAlpaViolation = maxConsecutiveAlpa >= 3 || totalAlpa >= 3;
 
     let level = 0;
     let bgClass = "border-slate-100 hover:bg-slate-50/50";
@@ -1075,7 +1086,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
           <div style="margin-top: 10px; font-size: 8.5px; border-top: 1px solid #cbd5e1; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: #475569;">
             <span style="font-weight: bold;">Keterangan Sorotan Peringatan:</span>
-            <span><span style="display:inline-block; width:9px; height:9px; background:#fef3c7; border:1px solid #fde68a; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Kuning: Peringatan (Telat ≥3x / Alpa >4x)</span>
+            <span><span style="display:inline-block; width:9px; height:9px; background:#fef3c7; border:1px solid #fde68a; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Kuning: Peringatan (Telat ≥3x / Alpa ≥3x)</span>
             <span><span style="display:inline-block; width:9px; height:9px; background:#ffedd5; border:1px solid #fed7aa; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Orange: Pelanggaran Sedang (≥5x)</span>
             <span><span style="display:inline-block; width:9px; height:9px; background:#fee2e2; border:1px solid #fca5a5; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Merah: Pelanggaran Berat (≥7x)</span>
             <span><span style="display:inline-block; width:9px; height:9px; background:#9f1239; border-radius:2px; vertical-align:middle; margin-right:3px;"></span> Merah Gelap: Pelanggaran SP (≥10x)</span>
@@ -1579,7 +1590,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                             <div className="flex items-center gap-1.5 min-w-0">
                               <span className={`font-bold text-xs truncate max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
                               {v.level > 0 && (
-                                <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa >4x)"}>
+                                <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa ≥3x)"}>
                                   <AlertTriangle 
                                     size={13} 
                                     className={`shrink-0 ${v.level === 4 ? "text-amber-300 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`} 
