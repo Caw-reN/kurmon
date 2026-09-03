@@ -496,8 +496,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     let avatarChar = String(name).charAt(0).toUpperCase();
     let avatarBg = '';
 
-    let ts = item.timestamp || item.created_at || item.last_seen || item.date || new Date();
-    let timeText = fmtTime(ts).replace(':', '.');
+    let rawTs = item.timestamp || item.created_at || item.last_seen || item.date;
+    let ts = rawTs ? new Date(rawTs) : null;
+    let timeText = ts ? fmtTime(ts).replace(':', '.') : '--.--';
 
     if (type === 'guru_karyawan' || type === 'guru_terlambat') {
       const isKaryawan = String(item.role_type || item.true_person_type || '').toUpperCase().includes('KARYAWAN');
@@ -506,12 +507,17 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       subtitleBadge = <span className={`font-black uppercase px-1.5 py-0.5 rounded-[3px] text-[8px] whitespace-nowrap shrink-0 ${isKaryawan ? 'bg-fuchsia-100/80 text-fuchsia-700' : 'bg-indigo-100/80 text-indigo-700'}`}>{badgeRole}</span>;
       subtitleText = item.division && item.division !== '-' ? item.division : '';
 
-      const s = String(item.status || 'HADIR').toLowerCase();
+      let s = String(item.status || 'HADIR').toLowerCase();
+      // FIX: If they actually scanned today (has raw timestamp) but are marked ALPA, override to TERLAMBAT
+      if ((s.includes('absen') || s.includes('alpa')) && rawTs) {
+        s = 'terlambat';
+      }
+
       if (type === 'guru_terlambat' || s.includes('terlambat') || s.includes('late')) {
         rightBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200/80';
         rightBadgeText = 'TERLAMBAT';
       } else if (s.includes('absen') || s.includes('alpa')) {
-        rightBadgeBg = 'bg-rose-50 text-rose-700 border-rose-200/80';
+        rightBadgeBg = 'bg-rose-500 text-white border-rose-600/80';
         rightBadgeText = 'ALPA';
       } else {
         rightBadgeBg = 'bg-purple-50 text-purple-700 border-purple-200/80';
@@ -542,12 +548,18 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       } else {
         avatarBg = 'bg-purple-50 text-purple-800 border-purple-200/60';
         rightBadgeBg = 'bg-purple-50 text-purple-700 border-purple-200/80';
-        rightBadgeText = String(item.status || item.true_person_type || 'HADIR').toUpperCase();
-        if (rightBadgeText.includes('TERLAMBAT') || rightBadgeText.includes('LATE')) {
+        let s = String(item.status || item.true_person_type || 'HADIR').toLowerCase();
+        // FIX: Override ALPA to TERLAMBAT if they actually have a valid timestamp today
+        if ((s.includes('alpa') || s.includes('absen')) && rawTs) {
+          s = 'terlambat';
+        }
+        
+        rightBadgeText = s.toUpperCase();
+        if (s.includes('terlambat') || s.includes('late')) {
           rightBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200/80';
           rightBadgeText = 'TERLAMBAT';
-        } else if (rightBadgeText.includes('ALPA')) {
-          rightBadgeBg = 'bg-rose-50 text-rose-700 border-rose-200/80';
+        } else if (s.includes('alpa') || s.includes('absen')) {
+          rightBadgeBg = 'bg-rose-500 text-white border-rose-600/80';
           rightBadgeText = 'ALPA';
         } else {
           rightBadgeText = 'HADIR';
@@ -573,10 +585,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           </div>
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
-          <span className={`text-[8.5px] font-black px-1.5 py-0.2 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
+          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
+          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
             {timeText}
           </span>
         </div>
