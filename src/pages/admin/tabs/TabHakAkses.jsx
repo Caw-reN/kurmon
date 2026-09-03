@@ -330,6 +330,10 @@ export default function TabHakAkses(props) {
       ];
       editList.forEach(t => { next[t] = 'edit'; });
       showNotification('Preset Tata Usaha (Full Administrasi) diterapkan.', 'info');
+    } else if (presetKey === 'karyawan') {
+      const editList = ['dashboard', 'pesan', 'absensiguru', 'akademik'];
+      editList.forEach(t => { next[t] = 'edit'; });
+      showNotification('Preset Karyawan diterapkan.', 'info');
     } else if (presetKey === 'guru_biasa') {
       next['dashboard'] = 'edit';
       next['silabusguru'] = 'edit';

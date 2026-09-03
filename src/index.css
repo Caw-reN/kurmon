@@ -1,12 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
-
 /* Direktif resmi Tailwind v4 */
+/* Font utama (Plus Jakarta Sans + Caveat) dimuat via index.html dengan non-blocking pattern */
+/* Inter & Montserrat dari @fontsource-variable dihapus — tidak dipakai aplikasi ini */
 @import "tailwindcss";
-/* @import "tw-animate-css"; */
-/* @import "shadcn/tailwind.css"; */
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/montserrat";
+
 
 @custom-variant dark (&:is(.dark *));
 

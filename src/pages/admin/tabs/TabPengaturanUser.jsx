@@ -148,6 +148,30 @@ export default function TabPengaturanUser(props) {
     return { admin, kepsek, waka, guru, tu, karyawan, total: allUsers.length + 1 };
   }, [allUsers]);
 
+  // Handle Toggle Status (Disable/Enable Account)
+  const handleToggleStatus = async (user) => {
+    if (user.id === 'admin' || user._source === 'admin') {
+      showNotification("Status Admin Utama tidak dapat dinonaktifkan.", "error");
+      return;
+    }
+    const currentStatus = user.isActive !== false;
+    const newStatus = !currentStatus;
+    const isTeacher = user._source === 'teachers';
+    const isStaff = user._source === 'staffs';
+
+    if (isTeacher) {
+      const updated = teachers.map(t => (t.id === user.id || t.code === user.code) ? { ...t, isActive: newStatus } : t);
+      setTeachers(updated);
+      await saveDatabaseNow({ teachers: updated }, `Mengubah status guru ${user.name}`);
+      showNotification(`Akun ${user.name} berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}.`, "success");
+    } else if (isStaff) {
+      const updated = staffs.map(t => (t.id === user.id || t.code === user.code) ? { ...t, isActive: newStatus } : t);
+      setStaffs(updated);
+      await saveDatabaseNow({ staffs: updated }, `Mengubah status staf ${user.name}`);
+      showNotification(`Akun ${user.name} berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}.`, "success");
+    }
+  };
+
   // Handle Approve Password Request Queue
   const handleApproveReset = async (request) => {
     if (processingIds.has(request.id)) return;
@@ -619,10 +643,21 @@ export default function TabPengaturanUser(props) {
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase">
                             <Activity size={10} /> Sesi Anda
                           </span>
-                        ) : (
+                        ) : user.id === 'admin' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
                             Aktif
                           </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(user)}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${user.isActive !== false ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            title={user.isActive !== false ? "Nonaktifkan Akun" : "Aktifkan Akun"}
+                          >
+                            <span
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${user.isActive !== false ? 'translate-x-4' : 'translate-x-1'}`}
+                            />
+                          </button>
                         )}
                       </td>
 

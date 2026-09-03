@@ -295,6 +295,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       }
 
       if (teacher && isTeacherValid) {
+        if (teacher.isActive === false || teacher.status === 'nonaktif') {
+          send(req, res, 403, { ok: false, error: "Akun Anda telah dinonaktifkan oleh Administrator." });
+          return true;
+        }
         if (!await ensureDatabaseReadable(req, res)) return true;
 
         let rawRole = teacher.role;
@@ -409,6 +413,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
                   }
 
                   if (isStudentValid) {
+                     if (student.isActive === false || student.status === 'nonaktif') {
+                       send(req, res, 403, { ok: false, error: "Akun Anda telah dinonaktifkan oleh Administrator." });
+                       return true;
+                     }
                      const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
                      const hasChangedPassword = student.hasChangedPassword === true;
                      const isDefaultPassword = !hasChangedPassword;

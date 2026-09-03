@@ -1,6 +1,6 @@
 import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 

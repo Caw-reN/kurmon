@@ -1539,6 +1539,13 @@ export default function App() {
         effectiveKey = "tu";
       }
 
+      // STRICT OVERRIDE KARYAWAN: Hanya boleh akses 4 tab ini terlepas dari setting Hak Akses di database
+      if (effectiveKey === "karyawan") {
+        if (!["dashboard", "pesan", "absensiguru", "akademik"].includes(tabId)) {
+          return false;
+        }
+      }
+
       const perms = rolePermissions?.[effectiveKey] || rolePermissions?.[role];
       if (perms) {
         if (Array.isArray(perms)) {
@@ -1567,7 +1574,7 @@ export default function App() {
         kepsek: ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","absensiguru","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket","siswa","guru","karyawan","data_pegawai","dataguru","datasiswa","dataperusahaan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","kedisiplinan_absensi","kedisiplinan_bpbk","buku_konseling","riwayat_prestasi","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","ruangan","fasilitas","beban","silabus","keamanan","audit_log","activity_logs","pengumuman"],
         tu: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
         tata_usaha: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik"],
-        karyawan: ["dashboard","absensiguru","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","akademik","pesan"],
+        karyawan: ["dashboard","absensiguru","akademik","pesan"],
         waka_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","data_pegawai","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi","hikvision_report_guru"],
         waka_sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
         waka_humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
@@ -2669,6 +2676,13 @@ export default function App() {
       effectiveKey = `waka_${div}`;
     } else if (activeRole === "tata_usaha") {
       effectiveKey = "tu";
+    }
+
+    // STRICT OVERRIDE KARYAWAN: Hanya boleh akses 4 tab ini terlepas dari setting Hak Akses di database
+    if (effectiveKey === "karyawan") {
+      if (!["dashboard", "pesan", "absensiguru", "akademik"].includes(id)) {
+        return false;
+      }
     }
 
     const perms = rolePermissions?.[effectiveKey] || rolePermissions?.[activeRole];

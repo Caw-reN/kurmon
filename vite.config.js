@@ -130,6 +130,12 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
     target: 'es2020',
+    // Jangan generate sourcemap di production — menghemat waktu build dan ukuran output
+    sourcemap: false,
+    // Jangan hitung compressed size saat build — mempercepat proses build
+    reportCompressedSize: false,
+    // Split CSS per chunk — setiap halaman hanya muat CSS yang dibutuhkan (dari satu 344KB → banyak file kecil)
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -156,6 +162,11 @@ export default defineConfig({
           if (id.includes('node_modules/dompurify') || id.includes('node_modules/purify')) return 'dompurify';
           // QR code
           if (id.includes('node_modules/qrcode')) return 'qrcode';
+          // Dashboard Components
+          if (id.includes('SharedDashboardLogs')) return 'shared-dashboard-logs';
+          if (id.includes('DashboardCharts')) return 'dashboard-charts';
+          // @fontsource-variable tidak dipakai lagi — pastikan tidak masuk bundle
+          if (id.includes('@fontsource-variable')) return undefined;
         },
       },
     },
