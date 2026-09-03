@@ -141,6 +141,25 @@ async function _handleUpdate(update) {
   const text = msg.text.trim();
   const from = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || chatId);
 
+  const parts = text.split(/\s+/);
+  const cmd = parts[0].toLowerCase().split('@')[0];
+  const args = parts.slice(1);
+
+  // Perintah /start selalu diizinkan agar admin/pengguna baru bisa langsung melihat Chat ID mereka
+  if (cmd === '/start') {
+    const isRegistered = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
+    const safeFrom = from.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+    await _sendMessage(chatId,
+      `👋 *Halo ${safeFrom}\\!*\n\n` +
+      `ID Chat Telegram Anda adalah: \`${chatId}\`\n\n` +
+      (isRegistered
+        ? `✅ Chat ID Anda sudah terdaftar dan terhubung ke sistem Kurmon\\.\nKetik /help untuk melihat menu perintah\\.`
+        : `⚠️ Chat ID ini belum didaftarkan di sistem Kurmon\\.\nSalin Chat ID: \`${chatId}\` lalu masukkan ke menu *Pengaturan > Backup & Bot Telegram > API Key* di aplikasi Kurmon\\.`
+      )
+    );
+    return;
+  }
+
   // Whitelist check
   if (_allowedChatIds.size > 0 && !_allowedChatIds.has(chatId)) {
     await _sendMessage(chatId, `⛔ Akses tidak diizinkan.\nChat ID Anda: \`${chatId}\`\nHubungi administrator untuk mendaftarkan ID ini.`);
@@ -148,18 +167,15 @@ async function _handleUpdate(update) {
   }
   if (_allowedChatIds.size === 0 && _chatId && chatId !== String(_chatId)) return;
 
-  const parts = text.split(/\s+/);
-  const cmd = parts[0].toLowerCase().split('@')[0];
-  const args = parts.slice(1);
-
   switch (cmd) {
-    case '/start':
     case '/help':   await _cmdHelp(chatId); break;
     case '/status': await _cmdStatus(chatId); break;
     case '/logs':   await _cmdLogs(chatId, parseInt(args[0]) || 10); break;
     case '/backup': await _cmdBackup(chatId, from); break;
     case '/alerts': await _cmdAlerts(chatId); break;
     case '/stats':  await _cmdStats(chatId); break;
+    case '/absen':
+    case '/rekap':  await sendDailyMorningAttendanceReport(chatId); break;
     default: await _sendMessage(chatId, `❓ Perintah tidak dikenal. Ketik /help untuk daftar perintah.`);
   }
 }
@@ -170,12 +186,13 @@ async function _cmdHelp(chatId) {
   await _sendMessage(chatId,
     `🤖 *Kurmon Bot Monitoring*\n\n` +
     `Perintah yang tersedia:\n` +
-    `/status — Status server \\& database\n` +
-    `/logs \\[n\\] — n log terakhir (max 20)\n` +
-    `/backup — Trigger backup manual\n` +
+    `/status — Status server & database\n` +
+    `/absen — Rekap absensi guru & siswa hari ini\n` +
+    `/logs [n] — n log audit terakhir (max 20)\n` +
+    `/backup — Trigger backup manual langsung\n` +
     `/alerts — Alert keamanan terkini\n` +
-    `/stats — Statistik sistem\n` +
-    `/help — Tampilkan pesan ini`
+    `/stats — Statistik jumlah data sistem\n` +
+    `/help — Tampilkan petunjuk ini`
   );
 }
 
@@ -320,6 +337,112 @@ export async function sendTelegramAlert(type, message, level = 'warning') {
   await _sendMessage(_chatId, fullMsg);
 }
 
+/**
+ * Kirim Rekap Absensi Siswa & Guru (dijalankan otomatis pk 07:05 atau via /absen di bot)
+ */
+export async function sendDailyMorningAttendanceReport(targetChatId = null) {
+  if (!_dbPool) return;
+  if (!_initialized) await _loadConfig();
+  const destChatId = targetChatId || _chatId;
+  if (!_botToken || !destChatId) return;
+
+  try {
+    const today = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta' }).split(',')[0];
+    const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+
+    // 1. Data Guru & Karyawan dari hikvision_logs hari ini
+    const { rows: todayLogs } = await _dbPool.query(`
+      SELECT employee_id, true_name, true_person_type, timestamp, status
+      FROM hikvision_logs
+      WHERE timestamp::date = $1::date
+      ORDER BY timestamp ASC
+    `, [today]).catch(() => ({ rows: [] }));
+
+    // Ambil total guru & karyawan terdaftar
+    const { rows: tRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_teachers`).catch(() => ({ rows: [{ count: 0 }] }));
+    const { rows: sRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_staffs`).catch(() => ({ rows: [{ count: 0 }] }));
+    const { rows: stdRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_students`).catch(() => ({ rows: [{ count: 0 }] }));
+    
+    const totalGuruMaster = parseInt(tRows[0]?.count || 0, 10);
+    const totalStaffMaster = parseInt(sRows[0]?.count || 0, 10);
+    const totalStudentMaster = parseInt(stdRows[0]?.count || 0, 10);
+
+    // Filter unique tap per user
+    const teacherTaps = new Map();
+    const staffTaps = new Map();
+    const studentTaps = new Map();
+
+    todayLogs.forEach(r => {
+      const type = String(r.true_person_type || '').toLowerCase();
+      const id = String(r.employee_id || '').trim();
+      if (type === 'guru') {
+        if (!teacherTaps.has(id)) teacherTaps.set(id, r);
+      } else if (type === 'karyawan') {
+        if (!staffTaps.has(id)) staffTaps.set(id, r);
+      } else {
+        if (!studentTaps.has(id)) studentTaps.set(id, r);
+      }
+    });
+
+    // Hitung guru tepat waktu vs terlambat (batas masuk 07:15)
+    let guruTepat = 0, guruTelat = 0;
+    teacherTaps.forEach(r => {
+      const tsStr = String(r.timestamp || '');
+      const timeOnly = tsStr.includes('T') ? tsStr.split('T')[1].substring(0, 5) : tsStr.substring(11, 16);
+      if (timeOnly > "07:15") guruTelat++;
+      else guruTepat++;
+    });
+    const guruBelum = Math.max(0, totalGuruMaster - teacherTaps.size);
+
+    // Hitung siswa
+    let siswaTepat = 0, siswaTelat = 0;
+    studentTaps.forEach(r => {
+      const tsStr = String(r.timestamp || '');
+      const timeOnly = tsStr.includes('T') ? tsStr.split('T')[1].substring(0, 5) : tsStr.substring(11, 16);
+      if (timeOnly > "07:00") siswaTelat++;
+      else siswaTepat++;
+    });
+    const siswaBelum = Math.max(0, totalStudentMaster - studentTaps.size);
+
+    // Ambil rekap surat izin / sakit siswa
+    const { rows: suratRows } = await _dbPool.query(`
+      SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi 
+      WHERE date = $1 GROUP BY status
+    `, [today]).catch(() => ({ rows: [] }));
+
+    let siswaIzin = 0, siswaSakit = 0;
+    suratRows.forEach(sr => {
+      if (sr.status === 'Izin') siswaIzin += parseInt(sr.cnt, 10);
+      if (sr.status === 'Sakit') siswaSakit += parseInt(sr.cnt, 10);
+    });
+
+    const msg = 
+`📋 *LAPORAN KEHADIRAN PAGI (Pukul ${nowTime} WIB)*
+📅 ${todayFormatted}
+
+👨‍🏫 *GURU & KARYAWAN*
+• Hadir Tepat Waktu: *${guruTepat}* guru
+• Terlambat: *${guruTelat}* guru
+• Sudah Scan: *${teacherTaps.size}* / ${totalGuruMaster} guru
+• Belum Terdata Scan: *${guruBelum}* guru
+
+🎓 *PRESENSI SISWA*
+• Hadir Tepat Waktu: *${siswaTepat}* siswa
+• Terlambat: *${siswaTelat}* siswa
+• Izin / Sakit: *${siswaIzin + siswaSakit}* siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
+• Total Tap Mesin: *${studentTaps.size}* / ${totalStudentMaster} siswa
+• Belum Absen: *${siswaBelum}* siswa
+
+_Laporan otomatis dikirim dari Mesin Absensi Hikvision & Sistem Kurmon._`;
+
+    await _sendMessage(destChatId, msg);
+    console.log('[TelegramBot] ✅ Laporan kehadiran pagi 07:05 berhasil dikirim ke Telegram.');
+  } catch (err) {
+    console.error('[TelegramBot] Gagal kirim laporan kehadiran pagi:', err.message);
+  }
+}
+
 // ── HTTP Handler ─────────────────────────────────────────
 
 export async function handleTelegramBotRoutes(req, res, url, ctx) {
@@ -347,7 +470,7 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     if (!['admin', 'superadmin'].includes(normalizeServerRole(session.role))) {
       send(req, res, 403, { ok: false, error: 'Hanya admin' });
       return true;
-    }
+    await _loadConfig(); // Selalu refresh konfigurasi dari DB sebelum uji coba
     if (!_botToken || !_chatId) {
       send(req, res, 400, { ok: false, error: 'Bot belum dikonfigurasi. Tambahkan API Key dengan service_name=telegram_bot_monitor.' });
       return true;
@@ -362,7 +485,11 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       );
       send(req, res, 200, { ok: true });
     } catch (err) {
-      send(req, res, 500, { ok: false, error: err.message });
+      let errorMsg = err.message || 'Gagal mengirim pesan';
+      if (errorMsg.toLowerCase().includes('chat not found')) {
+        errorMsg = 'Chat tidak ditemukan di Telegram! Buka bot Anda di Telegram dan tekan tombol "START" (/start) atau kirim pesan ke bot terlebih dahulu agar bot diizinkan mengirim pesan.';
+      }
+      send(req, res, 500, { ok: false, error: errorMsg });
     }
     return true;
   }
@@ -399,9 +526,25 @@ async function _sendMessage(chatId, text) {
     });
     const d = await r.json();
     if (!d.ok) {
+      // Fallback jika formatting MarkdownV2 ditolak oleh Telegram
+      if (d.description && (d.description.includes("can't parse entities") || d.description.includes("character"))) {
+        const plainText = text.replace(/\\([_*[\]()~`>#+\-=|{}.!])/g, '$1');
+        const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: plainText,
+            disable_web_page_preview: true,
+          }),
+        });
+        const retryData = await retryRes.json();
+        if (retryData.ok) return retryData;
+      }
       console.warn('[TelegramBot] sendMessage failed:', d.description);
       throw new Error(d.description);
     }
+    return d;
   } catch (err) {
     console.error('[TelegramBot] network error:', err.message);
     throw err;

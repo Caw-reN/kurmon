@@ -498,9 +498,8 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
               <li>Buka aplikasi Telegram dan cari <b>@BotFather</b>.</li>
               <li>Ketik <code className="bg-slate-100 px-1 rounded text-pink-600">/newbot</code> dan ikuti instruksi untuk membuat bot baru.</li>
               <li>Salin <b>HTTP API Token</b> yang diberikan.</li>
-              <li>Cari bot yang baru Anda buat, tekan Start, lalu kirim satu pesan bebas.</li>
-              <li>Buka <b><a href="https://api.telegram.org/botTOKEN/getUpdates" target="_blank" className="text-sky-600 hover:underline">https://api.telegram.org/bot&lt;TOKEN_ANDA&gt;/getUpdates</a></b> untuk melihat Chat ID Anda.</li>
-              <li>Masuk ke tab <b>API Key</b> (ikon kunci) di halaman ini.</li>
+              <li>Cari bot yang baru Anda buat di Telegram, tekan tombol <b>Start (/start)</b>. Bot Kurmon akan otomatis membalas dan menampilkan <b>Chat ID Anda</b> secara instan!</li>
+              <li>Masuk ke tab <b>API Key</b> (ikon kunci) di menu ini.</li>
               <li>Tambahkan API Key baru dengan <b>Service Name</b>: <code className="bg-slate-100 px-1 rounded font-mono text-xs">telegram_bot_monitor</code></li>
               <li>Masukkan Token sebagai API Key, dan isi JSON berikut pada Extra Config:<br/>
                 <code className="block bg-slate-800 text-emerald-400 p-3 rounded-lg mt-2 font-mono text-xs shadow-inner whitespace-pre-wrap">

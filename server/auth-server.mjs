@@ -3125,6 +3125,11 @@ const server = createServer(async (req, res) => {
           }
           await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
             [session?.id || "system", session?.name || "Admin", session?.role || "admin", "UPSERT", "api_keys", `API Key ${body.service_name}: ${maskedKey}`]);
+          
+          if (String(body.service_name || '').toLowerCase().includes('telegram')) {
+            reloadTelegramBotConfig().catch(e => console.warn('[TelegramBot] Auto-reload error:', e.message));
+          }
+
           send(req, res, 200, { ok: true });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;
@@ -3389,7 +3394,14 @@ const server = createServer(async (req, res) => {
         return;
       }
       try {
-        const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
+        let { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
+        if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
+          // Fallback otomatis ke telegram_bot_monitor jika telegram_backup belum disetel
+          const monitorRes = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' AND is_active = true LIMIT 1");
+          if (monitorRes.rows.length > 0 && monitorRes.rows[0].api_key && monitorRes.rows[0].extra_config?.chat_id) {
+            rows = monitorRes.rows;
+          }
+        }
         if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
           send(req, res, 400, { ok: false, error: "Telegram Backup belum dikonfigurasi atau tidak aktif (Bot Token & Chat ID wajib diisi)." });
           return;
@@ -3449,7 +3461,11 @@ const server = createServer(async (req, res) => {
         send(req, res, 200, { ok: true, data: { filename: fileName, size: (backupJsonStr.length / 1024 / 1024).toFixed(2) + ' MB' } });
       } catch (err) { 
         console.error("Manual Telegram Backup Error:", err);
-        send(req, res, 500, { ok: false, error: err.message }); 
+        let errorMsg = err.message || "Gagal mengirim ke Telegram";
+        if (errorMsg.toLowerCase().includes('chat not found')) {
+          errorMsg = 'Chat tidak ditemukan di Telegram! Buka bot Anda di Telegram dan tekan tombol "START" (/start) atau kirim pesan ke bot terlebih dahulu.';
+        }
+        send(req, res, 500, { ok: false, error: errorMsg }); 
       }
       return;
     }
@@ -5021,6 +5037,18 @@ cron.schedule('*/5 * * * *', async () => {
 cron.schedule('0 12 * * *', () => {
   console.log("[CRON] Mengirim Rekap Harian ke Wali Kelas...");
   sendDailyClassSummary().catch(console.error);
+});
+
+// ==================== TELEGRAM MORNING ATTENDANCE REPORT CRON (07:05 WIB) ====================
+cron.schedule('5 7 * * *', async () => {
+  console.log("[CRON] ⏰ Mengirim Laporan Absensi Lengkap Pagi (07:05 WIB) ke Telegram...");
+  try {
+    await pullHikvisionLogs();
+    const { sendDailyMorningAttendanceReport } = await import('./telegram-bot.mjs');
+    await sendDailyMorningAttendanceReport();
+  } catch (e) {
+    console.error("[CRON] Gagal mengirim laporan absensi pagi 07:05:", e.message);
+  }
 });
 
 // ==================== TELEGRAM DAILY REPORT CRON ====================

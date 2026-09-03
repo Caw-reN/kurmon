@@ -277,6 +277,9 @@ export default function DashboardPage({
     return syllabuses.filter((s) => String(s.teacherCode ||"").split(",").map((c) => c.trim()).includes(teacherCode)).length;
   }, [isTeacher, syllabuses, teacherCode]);
 
+  const timeSlots = useDataStore((state) => state.timeSlots) || {};
+  const [selectedTodayClassIdx, setSelectedTodayClassIdx] = useState(0);
+
   const todayClasses = useMemo(() => {
     if (!teacherCode || !schedule) return [];
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -286,14 +289,95 @@ export default function DashboardPage({
       const isDayMatch = String(s.day || "").trim().toLowerCase() === currentDay.toLowerCase();
       return isTeacherMatch && isDayMatch;
     });
-    return todaySched.map(s => ({
-      subject: s.subject || s.subjectName || "Mata Pelajaran",
-      className: s.className || s.targetGrade || "-",
-      jamStart: s.jamKe || s.slot || 1,
-      jamEnd: s.jamKe || s.slot || 1,
-      room: s.roomName || s.roomId || ""
-    }));
-  }, [schedule, teacherCode]);
+
+    const dailySlots = timeSlots[currentDay] || [];
+    const getSlotInfo = (slotId) => {
+      let counter = 0;
+      for (let i = 0; i < dailySlots.length; i++) {
+        const slot = dailySlots[i];
+        if (!slot.isBreak) {
+          counter++;
+          if (slot.id === slotId) return { index: counter, label: slot.label || '' };
+        }
+      }
+      return { index: null, label: '' };
+    };
+
+    const mapped = todaySched.map((s, idx) => {
+      const info = s.slotId ? getSlotInfo(s.slotId) : {};
+      const jamNum = Number(s.jamKe) || info.index || (idx + 1);
+      return {
+        ...s,
+        subject: s.subject || s.subjectName || "Mata Pelajaran",
+        className: s.className || s.targetGrade || "-",
+        jamStart: jamNum,
+        jamEnd: jamNum,
+        room: s.roomName || s.roomId || "R. Kelas",
+        timeLabel: info.label || s.time || '',
+        slotId: s.slotId
+      };
+    });
+
+    // Group consecutive slots for the same class and subject (Mapel Blok)
+    const groupedMap = new Map();
+    mapped.forEach(item => {
+      const key = `${item.className}-${item.subject}-${item.room}`;
+      if (!groupedMap.has(key)) groupedMap.set(key, []);
+      groupedMap.get(key).push(item);
+    });
+
+    const result = [];
+    groupedMap.forEach((groupItems) => {
+      groupItems.sort((a, b) => a.jamStart - b.jamStart);
+      const first = groupItems[0];
+      const last = groupItems[groupItems.length - 1];
+      const minJam = first.jamStart;
+      const maxJam = last.jamStart;
+
+      let rangeTime = first.timeLabel;
+      if (groupItems.length > 1 && first.timeLabel && last.timeLabel) {
+        const startPart = first.timeLabel.split('-')[0]?.trim();
+        const endPart = last.timeLabel.split('-')[1]?.trim();
+        if (startPart && endPart) rangeTime = `${startPart} - ${endPart}`;
+      }
+
+      result.push({
+        ...first,
+        jamStart: minJam,
+        jamEnd: maxJam,
+        jamLabel: minJam === maxJam ? `Jam Ke-${minJam}` : `Jam ${minJam} - ${maxJam}`,
+        timeLabel: rangeTime || '',
+        totalHours: groupItems.length
+      });
+    });
+
+    return result.sort((a, b) => a.jamStart - b.jamStart);
+  }, [schedule, teacherCode, timeSlots]);
+
+  // Cari index kelas yang sedang berlangsung atau yang terdekat berikutnya
+  const activeClassIdx = useMemo(() => {
+    if (!todayClasses.length) return 0;
+    const now = new Date();
+    const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    for (let i = 0; i < todayClasses.length; i++) {
+      const tc = todayClasses[i];
+      if (tc.timeLabel && tc.timeLabel.includes('-')) {
+        const [start, end] = tc.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+        if (curHhMm >= start && curHhMm <= end) return i;
+      }
+    }
+    for (let i = 0; i < todayClasses.length; i++) {
+      const tc = todayClasses[i];
+      if (tc.timeLabel && tc.timeLabel.includes('-')) {
+        const [start] = tc.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+        if (curHhMm < start) return i;
+      }
+    }
+    return 0;
+  }, [todayClasses]);
+
+  const selectedClass = todayClasses[selectedTodayClassIdx] || todayClasses[activeClassIdx] || todayClasses[0];
 
   // Hooks harus selalu dipanggil di level atas komponen (bukan di dalam conditional)
   const students = useDataStore((state) => state.students) || [];
@@ -517,62 +601,178 @@ export default function DashboardPage({
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (< sm) ======= */}
         <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
 
-          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM */}
-          <div className="flex flex-col gap-2">
+          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM (REVAMPED) */}
+          <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between px-0.5">
-              <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Anda Sekarang</h3>
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
-                Hari ini, {todayShort}
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Mengajar Anda</h3>
+                {todayClasses.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
+                    {todayClasses.length} Sesi KBM
+                  </span>
+                )}
+              </div>
+              <span className="bg-slate-100/90 text-slate-600 border border-slate-200 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
+                {todayShort}
               </span>
             </div>
 
-            <div 
-              className="rounded-[var(--ui-radius-card)] p-4 text-white shadow-[var(--ui-shadow-card)] relative overflow-hidden flex flex-col gap-3.5 border border-white/20"
-              style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 68%, #000) 100%)" }}
-            >
-              <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            {/* Horizontal Class Switcher (If multiple classes today) */}
+            {todayClasses.length > 1 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
+                {todayClasses.map((cItem, cIdx) => {
+                  const isSelected = (selectedTodayClassIdx === cIdx);
+                  const now = new Date();
+                  const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                  let isOngoing = false;
+                  if (cItem.timeLabel && cItem.timeLabel.includes('-')) {
+                    const [st, en] = cItem.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+                    if (curHhMm >= st && curHhMm <= en) isOngoing = true;
+                  }
 
-              <div className="flex items-center justify-between gap-2 relative z-10">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--ui-radius-pill)] bg-white/20 backdrop-blur-md text-[11px] font-black text-white border border-white/25 shadow-xs">
-                  <Clock3 size={13} strokeWidth={2.5} />
-                  <span>{todayClasses[0]?.jamStart ? `Jam Ke-${todayClasses[0].jamStart}` : "Jadwal Hari Ini"}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-semibold text-white/70 block uppercase tracking-wider">Ruang Kelas</span>
-                  <span className="text-xs font-black text-white leading-tight block">{todayClasses[0]?.room || "Ruang Kelas"}</span>
-                </div>
+                  return (
+                    <button
+                      key={cIdx}
+                      type="button"
+                      onClick={() => setSelectedTodayClassIdx(cIdx)}
+                      className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer border shadow-xs ${
+                        isSelected
+                          ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {isOngoing && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+                      )}
+                      <span>{cItem.jamLabel}</span>
+                      <span className={`text-[10px] font-bold opacity-80 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                        • {cItem.className}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+            )}
 
-              <div className="relative z-10">
-                <h2 className="text-lg font-black text-white leading-tight tracking-tight ">
-                  {todayClasses[0]?.subject || "Tidak Ada KBM Berlangsung"}
-                </h2>
-                <p className="text-xs text-white/85 font-semibold mt-0.5">
-                  {todayClasses[0]?.className ? `Kelas ${todayClasses[0].className}` : "Semua jadwal KBM hari ini telah selesai atau belum ada slot aktif."}
-                </p>
-              </div>
-
-              {todayClasses.length > 0 && (
-                <div className="flex flex-col gap-1.5 relative z-10 pt-0.5">
-                  <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-wider text-white/80">
-                    <span>BERLANGSUNG</span>
-                    <span>SLOT AKTIF</span>
-                  </div>
-                  <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/15">
-                    <div className="w-[75%] h-full bg-emerald-400 rounded-full shadow-xs animate-pulse" />
-                  </div>
+            {/* Main Featured Class Card */}
+            {!selectedClass ? (
+              <div className="rounded-[var(--ui-radius-card)] p-6 bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] text-center flex flex-col items-center justify-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                  <Calendar size={22} strokeWidth={2.5} />
                 </div>
-              )}
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-800">Tidak Ada Jadwal Mengajar Hari Ini</h4>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xs">
+                    Anda tidak memiliki slot KBM terjadwal untuk hari {todayShort}.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('generate')}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-control)] cursor-pointer transition-all"
+                >
+                  Lihat Jadwal Lengkap
+                </button>
+              </div>
+            ) : (() => {
+              const now = new Date();
+              const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+              let stLabel = 'Slot Hari Ini';
+              let stBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+              let isOngoing = false;
 
-              <button
-                type="button"
-                onClick={() => setActiveTab(todayClasses.length > 0 ? 'jurnal_harian' : 'generate')}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 active:scale-[0.98] text-[var(--ui-primary)] font-black text-xs rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-control)] flex items-center justify-center gap-2 cursor-pointer transition-all border border-white relative z-10 touch-manipulation select-none"
-              >
-                <FileText size={15} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
-                <span>{todayClasses.length > 0 ? "Isi Jurnal & Absen Kelas" : "Lihat Seluruh Jadwal Mengajar"}</span>
-              </button>
-            </div>
+              if (selectedClass.timeLabel && selectedClass.timeLabel.includes('-')) {
+                const [start, end] = selectedClass.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+                if (curHhMm >= start && curHhMm <= end) {
+                  stLabel = 'Sedang Berlangsung';
+                  stBadgeClass = 'bg-emerald-600 text-white shadow-xs animate-pulse';
+                  isOngoing = true;
+                } else if (curHhMm < start) {
+                  stLabel = `Mulai pk ${start}`;
+                  stBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs';
+                } else {
+                  stLabel = 'Jam Telah Selesai';
+                  stBadgeClass = 'bg-slate-100 text-slate-600 border-slate-200';
+                }
+              }
+
+              return (
+                <div 
+                  className="rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-slate-200/90 shadow-[var(--ui-shadow-card)] flex flex-col gap-3.5 relative overflow-hidden transition-all"
+                >
+                  {/* Top Decorative Accent Bar */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 h-1.5"
+                    style={{ background: 'var(--ui-primary)' }}
+                  />
+
+                  {/* Header: Period & Status Badge */}
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 text-slate-800 font-black text-xs border border-slate-200">
+                        <Clock3 size={13} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
+                        <span>{selectedClass.jamLabel}</span>
+                      </span>
+                      {selectedClass.timeLabel && (
+                        <span className="text-xs font-bold text-slate-500">
+                          {selectedClass.timeLabel} WIB
+                        </span>
+                      )}
+                    </div>
+
+                    <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10.5px] font-black uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${stBadgeClass}`}>
+                      {isOngoing && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
+                      <span>{stLabel}</span>
+                    </span>
+                  </div>
+
+                  {/* Body: Subject, Class & Room Info */}
+                  <div className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50 border border-slate-200/70 flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Mata Pelajaran
+                        </span>
+                        <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                          {selectedClass.subject}
+                        </h2>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Ruang
+                        </span>
+                        <span className="text-xs font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200 inline-block shadow-2xs">
+                          {selectedClass.room || 'R. Kelas'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 text-xs">
+                      <span className="text-slate-500 font-medium">Target Siswa:</span>
+                      <span className="font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs">
+                        Kelas {selectedClass.className}
+                      </span>
+                      {selectedClass.totalHours > 1 && (
+                        <span className="text-[11px] font-bold text-[var(--ui-primary)] ml-auto">
+                          Durasi: {selectedClass.totalHours} JP
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Button: Direct to Jurnal Harian */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('jurnal_harian')}
+                    className="w-full py-2.5 px-4 bg-[var(--ui-primary)] hover:opacity-95 active:scale-[0.98] text-white font-extrabold text-xs rounded-[var(--ui-radius-control)] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all touch-manipulation select-none"
+                  >
+                    <FileText size={15} strokeWidth={2.5} />
+                    <span>Isi Jurnal & Absen Kelas {selectedClass.className}</span>
+                    <ChevronRight size={14} strokeWidth={2.5} className="ml-auto" />
+                  </button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* 2. PINTASAN CEPAT (DYNAMIC SHORTCUTS) */}
