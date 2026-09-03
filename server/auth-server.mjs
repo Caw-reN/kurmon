@@ -1658,7 +1658,25 @@ const ensureDatabaseReadable = async (req, res) => {
 
 
 
+let globalRequestCount = 0;
+let currentMinuteRequests = 0;
+let lastTrafficCheck = Date.now();
+
 const server = createServer(async (req, res) => {
+  globalRequestCount++;
+  currentMinuteRequests++;
+  
+  const now = Date.now();
+  if (now - lastTrafficCheck > 60000) {
+    if (currentMinuteRequests > 500) {
+      import('./telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+         sendTelegramAlert('serverError', `🚦 Trafik sangat tinggi terdeteksi!\n\nJumlah request: ${currentMinuteRequests} req/menit\nServer berpotensi melambat atau mengalami DDoS.`, 'warning');
+      }).catch(()=>{});
+    }
+    currentMinuteRequests = 0;
+    lastTrafficCheck = now;
+  }
+
   const corsOrigin = resolveCorsOrigin(req.headers.origin, ALLOWED_ORIGINS);
   req.__corsOrigin = corsOrigin;
 
@@ -3394,21 +3412,31 @@ const server = createServer(async (req, res) => {
         }
 
         const backupJsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json.gz`;
         
         const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
-        let multipartBody = "--" + boundary + "\r\n";
-        multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
-        multipartBody += "--" + boundary + "\r\n";
-        multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
-        multipartBody += "Content-Type: application/json\r\n\r\n";
-        multipartBody += backupJsonStr + "\r\n";
-        multipartBody += "--" + boundary + "--\r\n";
+        const compressedBuffer = zlib.gzipSync(backupJsonStr);
+        const captionText = `📦 *Backup Manual Kurmon*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Backup berhasil dikirim._`;
+        
+        const multipartHeader = Buffer.from(
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
+          `Content-Type: application/gzip\r\n\r\n`,
+          'utf-8'
+        );
+        const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+        const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
 
         const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
           method: 'POST',
           headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-          body: Buffer.from(multipartBody, 'utf-8')
+          body: finalBody
         });
 
         const telegramData = await telegramRes.json();
@@ -3571,18 +3599,29 @@ const server = createServer(async (req, res) => {
              const botToken = telegramKey.api_key;
              const chatId = telegramKey.extra_config.chat_id;
              const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
-             let multipartBody = "--" + boundary + "\r\n";
-             multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
-             multipartBody += "--" + boundary + "\r\n";
-             multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
-             multipartBody += "Content-Type: application/json\r\n\r\n";
-             multipartBody += archiveJsonStr + "\r\n";
-             multipartBody += "--" + boundary + "--\r\n";
+             
+             const compressedBuffer = zlib.gzipSync(archiveJsonStr);
+             const captionText = `📦 *Arsip Pembersihan Database*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Pembersihan data berhasil diarsipkan._`;
+             
+             const multipartHeader = Buffer.from(
+               `--${boundary}\r\n` +
+               `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
+               `--${boundary}\r\n` +
+               `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
+               `--${boundary}\r\n` +
+               `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
+               `--${boundary}\r\n` +
+               `Content-Disposition: form-data; name="document"; filename="${fileName}.gz"\r\n` +
+               `Content-Type: application/gzip\r\n\r\n`,
+               'utf-8'
+             );
+             const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+             const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
 
              const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
                method: 'POST',
                headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-               body: Buffer.from(multipartBody, 'utf-8')
+               body: finalBody
              });
              const telegramData = await telegramRes.json();
              if (telegramData.ok) uploaded = true;
@@ -3751,6 +3790,10 @@ const server = createServer(async (req, res) => {
                 const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
                 let multipartBody = "--" + boundary + "\r\n";
                 multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${tgRows[0].extra_config?.chat_id || ''}\r\n`;
+                multipartBody += "--" + boundary + "\r\n";
+                multipartBody += `Content-Disposition: form-data; name="caption"\r\n\r\n📦 *Arsip Kurmon (Fallback Telegram)*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n\n_Diunggah ke Telegram karena R2 gagal._\r\n`;
+                multipartBody += "--" + boundary + "\r\n";
+                multipartBody += `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
                 multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
                 multipartBody += "Content-Type: application/json\r\n\r\n";
@@ -5067,21 +5110,30 @@ cron.schedule('15 2 * * *', async () => {
     }
 
     const backupJsonStr = JSON.stringify(backupData, null, 2);
-    const fileName = `Backup_Kurmon_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    const fileName = `Backup_Kurmon_${new Date().toISOString().replace(/[:.]/g, '-')}.json.gz`;
     
     const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
-    let multipartBody = "--" + boundary + "\r\n";
-    multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`;
-    multipartBody += "--" + boundary + "\r\n";
-    multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
-    multipartBody += "Content-Type: application/json\r\n\r\n";
-    multipartBody += backupJsonStr + "\r\n";
-    multipartBody += "--" + boundary + "--\r\n";
+    const compressedBuffer = zlib.gzipSync(backupJsonStr);
+    const captionText = `📦 *Backup Otomatis Harian*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Sistem bekerja dengan normal._`;
+    const multipartHeader = Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
+      `Content-Type: application/gzip\r\n\r\n`,
+      'utf-8'
+    );
+    const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+    const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
 
     const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
       method: 'POST',
       headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-      body: Buffer.from(multipartBody, 'utf-8')
+      body: finalBody
     });
 
     const telegramData = await telegramRes.json();
@@ -5169,11 +5221,45 @@ server.listen(PORT, AUTH_BIND_HOST, async () => {
     // Set database pool untuk auto-backup JSON
     const { setBackupDbPool } = await import('./auto-backup.mjs');
     setBackupDbPool(dbPool);
+
+    // Health Monitor: Trafik & Resource
+    setInterval(() => {
+      const memory = process.memoryUsage();
+      const heapMB = memory.heapUsed / 1024 / 1024;
+      const rpm = globalRequestCount;
+      globalRequestCount = 0; // reset
+
+      // Alert jika traffic tinggi (misal > 500 requests per menit)
+      if (rpm > 500) {
+        sendTelegramAlert('serverError', `🚦 Trafik Server Sangat Tinggi!\n\nPermintaan: ${rpm} req/menit\nRAM terpakai: ${heapMB.toFixed(2)} MB`, 'warning').catch(() => {});
+      }
+      
+      // Alert jika memori hampir penuh (misal > 500MB)
+      if (heapMB > 500) {
+        sendTelegramAlert('serverError', `🚨 RAM Server Kritis!\n\nTerpakai: ${heapMB.toFixed(2)} MB\nMohon periksa beban server.`, 'critical').catch(() => {});
+      }
+    }, 60000); // Cek tiap 1 menit
+
   } else {
     console.warn("[PUSH] Database not initialized, skipping Web Push setup.");
     console.warn("[BK] Database not initialized, skipping BK tables setup.");
     console.warn("[TelegramBot] Database not initialized, skipping bot setup.");
   }
+});
+
+// Penanganan Crash Otomatis
+process.on('uncaughtException', (err) => {
+  console.error("FATAL UNCAUGHT EXCEPTION:", err);
+  sendTelegramAlert('serverError', `🔥 SERVER CRASH (Uncaught Exception)\n\nError: ${err.message}\nStack: ${String(err.stack).slice(0,200)}`, 'critical')
+    .catch(() => {})
+    .finally(() => process.exit(1));
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error("FATAL UNHANDLED REJECTION:", reason);
+  sendTelegramAlert('serverError', `🔥 SERVER CRASH (Unhandled Rejection)\n\nReason: ${String(reason).slice(0, 200)}`, 'critical')
+    .catch(() => {})
+    .finally(() => process.exit(1));
 });
 
 // restarted

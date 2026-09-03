@@ -449,6 +449,20 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
             </div>
           )}
 
+          {form.service_name === 'telegram_bot_monitor' && (
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chat ID Telegram (Wajib)</label>
+              <input 
+                type="text" 
+                value={form.extra_config?.chat_id || ''} 
+                onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, chat_id: e.target.value } }))}
+                placeholder="Contoh: 123456789 atau -100987654321"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-semibold" 
+              />
+              <p className="text-[10px] text-slate-400 mt-1 font-semibold">Pesan notifikasi error, gagal login, dan status backup akan dikirim ke Chat ID ini.</p>
+            </div>
+          )}
+
           {form.service_name === 'cloudflare_r2' && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <div>

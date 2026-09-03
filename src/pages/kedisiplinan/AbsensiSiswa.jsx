@@ -234,6 +234,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       Izin: baseSuratItems.filter(i => i.status === "Izin").length,
       // Normalize: Database bisa simpan sebagai "Alpa" atau "Alpha"
       Alpa: baseSuratItems.filter(i => i.status === "Alpa" || i.status === "Alpha").length,
+      Terlambat: baseSuratItems.filter(i => i.status === "Terlambat").length,
     };
   }, [baseSuratItems]);
 
@@ -490,6 +491,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-xs" },
               { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-xs" },
               { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-xs" },
+              { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-xs" },
             ].map(tab => (
               <button
                 key={tab.id}

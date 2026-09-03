@@ -325,14 +325,20 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           }
 
           let query = "SELECT id, siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name, gdrive_url, created_at FROM kedisiplinan_absensi";
+          let conditions = [
+            "(pelapor_nama IS NULL OR pelapor_nama != 'Mesin Hikvision')"
+          ];
           let params = [];
           if (startDate) {
-            query += " WHERE tanggal >= $1";
             params.push(startDate);
+            conditions.push(`tanggal >= $${params.length}`);
+          }
+          if (conditions.length > 0) {
+            query += " WHERE " + conditions.join(" AND ");
           }
           query += " ORDER BY tanggal DESC, id DESC";
           
-          const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10), 500);
+          const limit = Math.min(parseInt(url.searchParams.get('limit') || '500', 10), 1000);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);
           query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
           params.push(limit, offset);

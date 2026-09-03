@@ -78,8 +78,15 @@ async function _loadConfig() {
     );
     if (rows.length > 0) {
       _botToken = rows[0].api_key || null;
-      const cfg = rows[0].extra_config || {};
-      _chatId = cfg.chat_id || null;
+      let cfg = {};
+      try {
+        cfg = typeof rows[0].extra_config === 'string' && rows[0].extra_config.trim().startsWith('{') 
+          ? JSON.parse(rows[0].extra_config) 
+          : (typeof rows[0].extra_config === 'object' ? rows[0].extra_config : {});
+      } catch (e) {
+        console.error("Format JSON pada Extra Config telegram bot tidak valid.");
+      }
+      _chatId = cfg?.chat_id || null;
       _allowedChatIds = new Set(cfg.allowed_chat_ids || (_chatId ? [String(_chatId)] : []));
       if (cfg.alerts && typeof cfg.alerts === 'object') {
         _alertConfig = { ..._alertConfig, ...cfg.alerts };
@@ -347,8 +354,11 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     }
     try {
       const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+      const safeTime = time.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+      const safeName = String(session.name || session.id).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+      
       await _sendMessage(_chatId,
-        `✅ *Test Koneksi Berhasil\\!*\n\nBot Kurmon aktif dan siap memantau sistem\\.\n🕐 ${time}\n👤 Dikirim oleh: ${session.name || session.id}`
+        `🚀 *Test Koneksi Berhasil\\!*\n\nBot Kurmon aktif dan siap memantau sistem\\.\n🕒 ${safeTime}\n👤 Dikirim oleh: ${safeName}`
       );
       send(req, res, 200, { ok: true });
     } catch (err) {
@@ -388,9 +398,13 @@ async function _sendMessage(chatId, text) {
       }),
     });
     const d = await r.json();
-    if (!d.ok) console.warn('[TelegramBot] sendMessage failed:', d.description);
+    if (!d.ok) {
+      console.warn('[TelegramBot] sendMessage failed:', d.description);
+      throw new Error(d.description);
+    }
   } catch (err) {
-    console.warn('[TelegramBot] sendMessage error:', err.message);
+    console.error('[TelegramBot] network error:', err.message);
+    throw err;
   }
 }
 

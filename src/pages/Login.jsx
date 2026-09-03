@@ -87,6 +87,37 @@ export default function Login({
       {/* Ambient blur */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
 
+      {/* Animations (Bird/Bat, Plane, UFO) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-60">
+        <div className="absolute top-[15%] right-[20%] scale-75">
+          <div className="relative">
+            <div className="absolute top-0 left-0"><svg viewBox="0 0 34 20" className="w-7 h-4.5 fill-slate-800 drop-shadow-md animate-bat-wing"><path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" /></svg></div>
+            <div className="absolute -top-4 left-6"><svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-700 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.24s' }}><path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" /></svg></div>
+            <div className="absolute top-5 left-6"><svg viewBox="0 0 34 20" className="w-5.5 h-3.5 fill-slate-700 drop-shadow-md animate-bat-wing" style={{ animationDuration: '0.26s' }}><path d="M 17,6 Q 14,0 12,4 Q 8,2 2,9 Q 7,12 11,10 Q 14,14 17,11 Q 20,14 23,10 Q 27,12 32,9 Q 26,2 22,4 Q 20,0 17,6 Z" /></svg></div>
+          </div>
+        </div>
+        <div className="absolute top-[38%] left-0 animate-single-plane flex items-center">
+          <div className="w-18 sm:w-24 h-[1.5px] bg-gradient-to-r from-transparent via-slate-400/35 to-slate-400/60 blur-[0.5px] -mr-1" />
+          <svg viewBox="0 0 24 24" className="w-5 h-5 text-slate-500 drop-shadow-md transform -rotate-12">
+            <path fill="currentColor" d="M21,16V14L13,9V3.5C13,2.67 12.33,2 11.5,2C10.67,2 10,2.67 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" />
+          </svg>
+        </div>
+        <div className="absolute top-[64%] right-0 animate-ufo-fly flex flex-col items-center">
+          <div className="relative">
+            <svg viewBox="0 0 48 24" className="w-8 h-4.5 drop-shadow-lg animate-ufo-glow">
+              <ellipse cx="24" cy="9" rx="9" ry="5.5" fill="#38bdf8" fillOpacity="0.85" />
+              <ellipse cx="22" cy="7.5" rx="4" ry="2" fill="#ffffff" fillOpacity="0.7" />
+              <path d="M 6,14 C 6,8 42,8 42,14 C 42,20 6,20 6,14 Z" fill="#94a3b8" />
+              <path d="M 12,14 C 12,16 36,16 36,14 C 36,12 12,12 12,14 Z" fill="#64748b" />
+              <circle cx="16" cy="14" r="1.5" fill="#38bdf8" className="animate-pulse" />
+              <circle cx="24" cy="14" r="1.5" fill="#38bdf8" className="animate-pulse" style={{ animationDelay: "0.2s" }} />
+              <circle cx="32" cy="14" r="1.5" fill="#38bdf8" className="animate-pulse" style={{ animationDelay: "0.4s" }} />
+            </svg>
+          </div>
+          <div className="w-16 h-24 bg-gradient-to-b from-sky-400/20 via-sky-400/5 to-transparent blur-sm rounded-t-full transform -mt-1" style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }} />
+        </div>
+      </div>
+
       <div className="w-full max-w-[340px] flex flex-col relative z-10">
 
         {/* Logo */}

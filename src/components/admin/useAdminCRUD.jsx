@@ -456,7 +456,7 @@ export function useAdminCRUD(props) {
     if (!ensureDatabaseReadyForWrite("menyimpan data")) return;
     setIsSavingModal(true);
     try {
-      if (type ==="admin") {
+      if (type ==="admin" || type ==="profile_edit") {
         const nextUsername = String(formData.username ||"").trim();
         const nextName = String(formData.name ||"").trim();
         if (!nextUsername || !nextName) {

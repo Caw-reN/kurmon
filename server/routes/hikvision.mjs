@@ -266,8 +266,15 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         // Since we use DISTINCT ON (employee_id) ORDER BY employee_id, timestamp ASC,
         // each row is already the FIRST scan — no JS dedup loop needed
         const mapLogStatus = (r) => {
-          const tsStr = String(r.timestamp || '').replace('T', ' ');
-          const scanTime = tsStr.substring(11, 19);
+          let scanTime = "";
+          if (r.timestamp instanceof Date) {
+            scanTime = r.timestamp.toTimeString().slice(0, 8);
+          } else {
+            const tsStr = String(r.timestamp || '');
+            if (tsStr.includes('T')) scanTime = tsStr.split('T')[1].substring(0, 8);
+            else if (tsStr.match(/\d{2}:\d{2}:\d{2}/)) scanTime = tsStr.match(/\d{2}:\d{2}:\d{2}/)[0];
+            else scanTime = tsStr.substring(11, 19);
+          }
           const personType = String(r.true_person_type).toLowerCase();
           let lateLimit = siswaMasukLate, closeLimit = siswaMasukClose;
           if (personType === 'karyawan') { lateLimit = karyawanMasukLate; closeLimit = karyawanMasukClose; }
