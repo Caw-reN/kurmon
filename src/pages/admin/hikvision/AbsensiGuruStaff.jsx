@@ -16,6 +16,8 @@ import {
   User,
   Users,
   Briefcase,
+  BookOpen,
+  RotateCcw,
   Download,
   Check,
   RefreshCw,
@@ -91,6 +93,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   const [formPersonType, setFormPersonType] = useState(personType === 'karyawan' ? 'karyawan' : 'guru');
   const [selectedPersonCode, setSelectedPersonCode] = useState('');
   const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [isSelectingPerson, setIsSelectingPerson] = useState(false);
   const [formStatus, setFormStatus] = useState('Izin');
   const [formDateMode, setFormDateMode] = useState('single'); // 'single' | 'range'
   const [formStartDate, setFormStartDate] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
@@ -1206,266 +1209,422 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
 
       {/* ── MODAL INPUT SURAT IZIN / SAKIT GURU & KARYAWAN ── */}
       {showInputModal && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-[var(--ui-shadow-card)] max-w-lg w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-200/80 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-xs">
-                  <FileText size={18} />
+                <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shadow-xs shrink-0">
+                  <FileText size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-800">Input Surat Izin / Sakit Pegawai</h3>
-                  <p className="text-[10px] text-slate-400 font-medium">Verifikasi guru oleh Kurikulum, karyawan oleh Tata Usaha</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-black text-slate-800 tracking-tight">
+                      Input Surat Izin / Sakit Pegawai
+                    </h3>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                      {formPersonType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    Verifikasi persetujuan: Guru oleh Kurikulum, Karyawan oleh Tata Usaha
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowInputModal(false)}
-                className="w-8 h-8 rounded-[var(--ui-radius-small)] hover:bg-slate-200 text-slate-400 flex items-center justify-center cursor-pointer transition-colors"
+                className="w-8 h-8 rounded-[var(--ui-radius-small)] hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Form Body */}
-            <form onSubmit={handleSubmitInput} className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+            {/* Form */}
+            <form onSubmit={handleSubmitInput} className="flex flex-col flex-1 overflow-hidden">
               {formError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-small)] text-rose-700 flex items-center gap-2 font-semibold text-xs">
+                <div className="mx-5 sm:mx-6 mt-4 p-3 bg-rose-50 border border-rose-200/80 rounded-[var(--ui-radius-small)] text-rose-700 flex items-center gap-2.5 font-bold text-xs">
                   <AlertTriangle size={15} className="shrink-0 text-rose-600" />
                   <span>{formError}</span>
                 </div>
               )}
 
-              {/* 1. Kategori: Guru atau Karyawan */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                  1. Kategori Pegawai
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setFormPersonType('guru'); setSelectedPersonCode(''); setPersonSearchQuery(''); }}
-                    className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      formPersonType === 'guru'
-                        ? 'border-blue-600 bg-blue-600 text-white shadow-xs'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Users size={14} />
-                    <span>Guru Pendidik</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setFormPersonType('karyawan'); setSelectedPersonCode(''); setPersonSearchQuery(''); }}
-                    className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-extrabold border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      formPersonType === 'karyawan'
-                        ? 'border-purple-600 bg-purple-600 text-white shadow-xs'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Briefcase size={14} />
-                    <span>Staf / Karyawan</span>
-                  </button>
-                </div>
-              </div>
+              {/* Scrollable Form Body (2-Column Grid) */}
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 text-xs">
+                
+                {/* ══ KOLOM KIRI: Identitas & Status ══ */}
+                <div className="space-y-4">
+                  
+                  {/* 1. Kategori Pegawai */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
+                      1. Kategori Pegawai
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/80">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormPersonType('guru');
+                          setSelectedPersonCode('');
+                          setPersonSearchQuery('');
+                          setIsSelectingPerson(true);
+                        }}
+                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          formPersonType === 'guru'
+                            ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/70'
+                            : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                        }`}
+                      >
+                        <BookOpen size={14} className={formPersonType === 'guru' ? 'text-emerald-600' : 'text-slate-400'} />
+                        <span>Guru Pendidik</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormPersonType('karyawan');
+                          setSelectedPersonCode('');
+                          setPersonSearchQuery('');
+                          setIsSelectingPerson(true);
+                        }}
+                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          formPersonType === 'karyawan'
+                            ? 'bg-white text-teal-700 shadow-xs border border-teal-200/70'
+                            : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                        }`}
+                      >
+                        <Briefcase size={14} className={formPersonType === 'karyawan' ? 'text-teal-600' : 'text-slate-400'} />
+                        <span>Staf / Karyawan</span>
+                      </button>
+                    </div>
+                  </div>
 
-              {/* 2. Pilih Person */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                  2. Pilih {formPersonType === 'karyawan' ? 'Staf Karyawan' : 'Guru Pendidik'}
-                </label>
-                <div className="relative mb-2">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder={`Cari nama atau NIP ${formPersonType}...`}
-                    value={personSearchQuery}
-                    onChange={e => setPersonSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-emerald-600"
-                  />
+                  {/* 2. Pilih Pegawai */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                        2. Pilih {formPersonType === 'karyawan' ? 'Staf Karyawan' : 'Guru Pendidik'}
+                      </label>
+                      {selectedPersonObj && !isSelectingPerson && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSelectingPerson(true)}
+                          className="text-[11px] font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw size={12} />
+                          <span>Ganti Pegawai</span>
+                        </button>
+                      )}
+                      {selectedPersonObj && isSelectingPerson && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSelectingPerson(false)}
+                          className="text-[10.5px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          Batal Ganti
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Jika pegawai sudah dipilih dan tidak sedang mengganti */}
+                    {selectedPersonObj && !isSelectingPerson ? (
+                      <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-[var(--ui-radius-card)] flex items-center justify-between gap-3 shadow-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+                            {(selectedPersonObj.name || selectedPersonObj.nama || 'P').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-black text-slate-900 truncate">
+                              {selectedPersonObj.name || selectedPersonObj.nama}
+                            </h4>
+                            <p className="text-[10.5px] font-bold text-slate-500 mt-0.5">
+                              Kode: <span className="font-mono text-emerald-800">{selectedPersonObj.code || selectedPersonObj.id}</span>
+                              {selectedPersonObj.division ? ` • ${selectedPersonObj.division}` : (selectedPersonObj.mapel ? ` • ${selectedPersonObj.mapel}` : (formPersonType === 'karyawan' ? ' • Tenaga Kependidikan' : ' • Guru Pendidik'))}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                          <Check size={14} strokeWidth={3} />
+                        </span>
+                      </div>
+                    ) : (
+                      /* Pencarian & List Pegawai */
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder={`Ketik nama atau kode ${formPersonType}...`}
+                            value={personSearchQuery}
+                            onChange={e => setPersonSearchQuery(e.target.value)}
+                            className="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-emerald-600 transition-all"
+                            autoFocus
+                          />
+                          {personSearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => setPersonSearchQuery('')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-[var(--ui-radius-small)] divide-y divide-slate-100 bg-white shadow-xs">
+                          {availablePeople.length === 0 ? (
+                            <div className="p-4 text-center text-slate-400 text-xs font-semibold">
+                              Tidak ada data {formPersonType} ditemukan
+                            </div>
+                          ) : (
+                            availablePeople.map(p => {
+                              const code = String(p.code || p.id);
+                              const isSelected = selectedPersonCode === code;
+                              const hasDistinctNip = p.nip && p.nip !== '198501152010011000' && String(p.nip).length > 5;
+                              return (
+                                <div
+                                  key={code}
+                                  onClick={() => {
+                                    setSelectedPersonCode(code);
+                                    setIsSelectingPerson(false);
+                                    setFormError('');
+                                  }}
+                                  className={`p-2.5 flex items-center justify-between cursor-pointer transition-colors ${
+                                    isSelected ? 'bg-emerald-50/80 text-emerald-900 font-black' : 'hover:bg-slate-50/80 text-slate-700'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-black text-xs text-slate-700 shrink-0">
+                                      {(p.name || p.nama || 'P').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-extrabold text-xs truncate">{p.name || p.nama}</p>
+                                      <p className="text-[10px] text-slate-400 font-medium">
+                                        Kode: <span className="font-mono text-slate-700 font-bold">{code}</span>
+                                        {hasDistinctNip ? ` • NIP: ${p.nip}` : ''}
+                                        {p.division ? ` • ${p.division}` : (p.mapel ? ` • ${p.mapel}` : '')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {isSelected && <Check size={14} strokeWidth={3} className="text-emerald-600 shrink-0" />}
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. Status Izin / Ketidakhadiran */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
+                      3. Status Izin / Ketidakhadiran
+                    </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                      {[
+                        { id: 'Izin', label: 'Izin', activeClass: 'bg-emerald-600 text-white border-emerald-700 shadow-xs' },
+                        { id: 'Sakit', label: 'Sakit', activeClass: 'bg-amber-600 text-white border-amber-700 shadow-xs' },
+                        { id: 'Dinas Luar', label: 'Dinas Luar', activeClass: 'bg-teal-600 text-white border-teal-700 shadow-xs' },
+                        { id: 'Cuti', label: 'Cuti', activeClass: 'bg-sky-600 text-white border-sky-700 shadow-xs' },
+                        { id: 'Alpa', label: 'Alpa', activeClass: 'bg-rose-600 text-white border-rose-700 shadow-xs' }
+                      ].map(st => {
+                        const isChosen = formStatus === st.id;
+                        return (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => setFormStatus(st.id)}
+                            className={`py-2 px-1.5 rounded-[var(--ui-radius-small)] text-xs font-black border transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                              isChosen
+                                ? st.activeClass
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            <span>{st.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                 </div>
 
-                <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-[var(--ui-radius-small)] divide-y divide-slate-100 bg-white">
-                  {availablePeople.length === 0 ? (
-                    <div className="p-3 text-center text-slate-400 text-xs">Tidak ditemukan</div>
-                  ) : (
-                    availablePeople.map(p => {
-                      const code = String(p.code || p.nip || p.id);
-                      const isSelected = selectedPersonCode === code;
-                      return (
-                        <div
-                          key={code}
-                          onClick={() => setSelectedPersonCode(code)}
-                          className={`p-2.5 flex items-center justify-between cursor-pointer transition-colors ${
-                            isSelected ? 'bg-emerald-50 text-emerald-800 font-black' : 'hover:bg-slate-50 text-slate-700'
+                {/* ══ KOLOM KANAN: Tanggal, Keterangan & Lampiran ══ */}
+                <div className="space-y-4">
+                  
+                  {/* 4. Tanggal Absensi */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider">
+                        4. Tanggal Absensi
+                      </label>
+                      <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/80">
+                        <button
+                          type="button"
+                          onClick={() => setFormDateMode('single')}
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
+                            formDateMode === 'single'
+                              ? 'bg-white text-slate-800 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
                           }`}
                         >
-                          <div>
-                            <p className="font-extrabold text-xs">{p.name || p.nama}</p>
-                            <p className="text-[10px] text-slate-400">Kode/NIP: {p.nip || p.code || p.id} {p.division ? `• ${p.division}` : ''}</p>
-                          </div>
-                          {isSelected && <Check size={16} className="text-emerald-600 shrink-0" />}
+                          1 Hari
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormDateMode('range')}
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer ${
+                            formDateMode === 'range'
+                              ? 'bg-white text-slate-800 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          Rentang Tanggal
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={`grid gap-2.5 ${formDateMode === 'range' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      <div>
+                        {formDateMode === 'range' && (
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Mulai Dari</span>
+                        )}
+                        <input
+                          type="date"
+                          value={formStartDate}
+                          onChange={e => setFormStartDate(e.target.value)}
+                          required
+                          className="w-full h-9 bg-slate-50 border border-slate-200 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 transition-all"
+                        />
+                      </div>
+                      {formDateMode === 'range' && (
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Sampai Dengan</span>
+                          <input
+                            type="date"
+                            value={formEndDate}
+                            onChange={e => setFormEndDate(e.target.value)}
+                            min={formStartDate}
+                            required
+                            className="w-full h-9 bg-slate-50 border border-slate-200 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 transition-all"
+                          />
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-
-                {selectedPersonObj && (
-                  <div className="mt-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-[var(--ui-radius-small)] text-emerald-800 text-xs font-bold flex items-center justify-between">
-                    <span>Terpilih: <strong>{selectedPersonObj.name || selectedPersonObj.nama}</strong></span>
-                    <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full">Siap</span>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {/* 3. Status Kehadiran */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                  3. Status Izin / Ketidakhadiran
-                </label>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {['Izin', 'Sakit', 'Dinas Luar', 'Cuti', 'Alpa'].map(st => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setFormStatus(st)}
-                      className={`py-2 px-2 rounded-[var(--ui-radius-small)] text-xs font-extrabold border transition-all cursor-pointer text-center ${
-                        formStatus === st
-                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. Pilihan Mode Tanggal: 1 Hari vs Rentang */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                    4. Tanggal Absensi
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormDateMode('single')}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        formDateMode === 'single' ? 'bg-emerald-100 text-emerald-800' : 'text-slate-400 hover:text-slate-600'
-                      }`}
-                    >
-                      1 Hari
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormDateMode('range')}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        formDateMode === 'range' ? 'bg-emerald-100 text-emerald-800' : 'text-slate-400 hover:text-slate-600'
-                      }`}
-                    >
-                      Rentang Tanggal (Multi Hari)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">
-                      {formDateMode === 'range' ? 'Dari Tanggal' : 'Tanggal'}
+                  {/* 5. Keterangan / Alasan */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
+                      5. Keterangan / Alasan
                     </label>
-                    <input
-                      type="date"
-                      value={formStartDate}
-                      onChange={e => setFormStartDate(e.target.value)}
-                      required
-                      className="w-full h-9 bg-slate-50 border border-slate-200 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600"
+                    <textarea
+                      value={formNote}
+                      onChange={e => setFormNote(e.target.value)}
+                      rows={2}
+                      placeholder="Contoh: Mengikuti kegiatan MGMP / Sakit flu surat dokter terlampir / Dinas luar koordinasi"
+                      className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 transition-all resize-none"
                     />
                   </div>
-                  {formDateMode === 'range' && (
-                    <div>
-                      <label className="text-[10px] text-slate-400 block mb-1">
-                        Sampai Tanggal
+
+                  {/* 6. Upload Bukti Surat / Foto */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
+                      6. Upload Surat / Bukti (Foto/PDF)
+                    </label>
+                    
+                    {formFileData ? (
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {formFileData.startsWith('data:image') ? (
+                            <img src={formFileData} alt="Bukti" className="w-10 h-10 object-cover rounded shadow-xs border border-slate-200 shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 rounded bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                              <FileText size={18} />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-xs font-black text-slate-800 truncate">
+                              {formFileName || 'File Lampiran'}
+                            </p>
+                            <p className="text-[10px] text-emerald-600 font-bold">
+                              ✓ Siap diunggah
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setFormFileData(''); setFormFileName(''); }}
+                          className="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-small)] font-bold cursor-pointer transition-colors"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-[var(--ui-radius-small)] p-3.5 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50/80 hover:bg-emerald-50/30 transition-all group">
+                        <UploadCloud size={22} className="text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                        <span className="text-xs font-black text-slate-700 group-hover:text-emerald-800 transition-colors">
+                          Pilih file dokumen atau foto surat
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          PNG, JPG, PDF (Otomatis dikompres &lt; 80 KB)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
                       </label>
-                      <input
-                        type="date"
-                        value={formEndDate}
-                        onChange={e => setFormEndDate(e.target.value)}
-                        min={formStartDate}
-                        required
-                        className="w-full h-9 bg-slate-50 border border-slate-200 px-3 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 5. Alasan / Catatan */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                  5. Keterangan / Alasan
-                </label>
-                <textarea
-                  value={formNote}
-                  onChange={e => setFormNote(e.target.value)}
-                  rows={2}
-                  placeholder="Contoh: Mengikuti MGMP / Sakit flu surat dokter terlampir / Dinas luar koordinasi MKKS"
-                  className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 resize-none"
-                />
-              </div>
-
-              {/* 6. Upload Bukti Surat */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                  6. Upload Surat / Bukti (Foto/PDF)
-                </label>
-                <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-[var(--ui-radius-small)] p-3 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50 hover:bg-slate-100/60 transition-colors">
-                  <UploadCloud size={20} className="text-slate-400" />
-                  <span className="text-xs font-bold text-slate-600">
-                    {formFileName ? formFileName : 'Pilih file dokumen / foto surat'}
-                  </span>
-                  <span className="text-[9.5px] text-slate-400 font-medium">PNG, JPG, PDF (Otomatis dikompres &lt; 80 KB)</span>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </label>
-
-                {formFileData && formFileData.startsWith('data:image') && (
-                  <div className="mt-2 flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
-                    <img src={formFileData} alt="Preview" className="w-12 h-12 object-cover rounded shadow-xs" />
-                    <span className="text-[10px] text-emerald-700 font-bold">Foto surat berhasil disiapkan</span>
+                    )}
                   </div>
-                )}
+
+                </div>
+
               </div>
 
-              {/* Footer */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[10.5px] text-slate-400 font-medium">
-                  {canApproveItem({ person_type: formPersonType }) ? '✓ Otomatis disetujui' : `⏳ Menunggu ACC ${getApproverRoleName(formPersonType)}`}
-                </span>
+              {/* ══ FOOTER MODAL ══ */}
+              <div className="px-5 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold px-2.5 py-1 rounded-full border ${
+                    canApproveItem({ person_type: formPersonType })
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
+                      : 'bg-amber-50 text-amber-800 border-amber-200/80'
+                  }`}>
+                    {canApproveItem({ person_type: formPersonType }) ? (
+                      <>
+                        <Check size={13} strokeWidth={3} className="text-emerald-600" />
+                        <span>Disetujui Otomatis (Anda Berwenang)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock size={13} className="text-amber-600" />
+                        <span>Alur Persetujuan: {getApproverRoleName(formPersonType)}</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={() => setShowInputModal(false)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-[var(--ui-radius-small)] cursor-pointer"
+                    className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs cursor-pointer transition-colors"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={actionLoading}
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-[var(--ui-radius-small)] shadow-xs cursor-pointer border-none flex items-center gap-1.5"
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-[var(--ui-radius-small)] shadow-xs cursor-pointer border-none flex items-center gap-1.5 active:scale-95 transition-all"
                   >
-                    {actionLoading ? 'Menyimpan...' : 'Simpan Surat Izin'}
+                    {actionLoading && <RefreshCw size={13} className="animate-spin" />}
+                    <span>{actionLoading ? 'Menyimpan...' : 'Simpan Surat Izin'}</span>
                   </button>
                 </div>
               </div>
+
             </form>
           </div>
         </div>
@@ -1493,37 +1652,43 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Status</label>
                 <div className="grid grid-cols-5 gap-1.5">
-                  {['Izin', 'Sakit', 'Dinas Luar', 'Cuti', 'Alpa'].map(st => (
+                  {[
+                    { id: 'Izin', label: 'Izin', activeClass: 'bg-emerald-600 text-white border-emerald-700 shadow-xs' },
+                    { id: 'Sakit', label: 'Sakit', activeClass: 'bg-amber-600 text-white border-amber-700 shadow-xs' },
+                    { id: 'Dinas Luar', label: 'Dinas Luar', activeClass: 'bg-teal-600 text-white border-teal-700 shadow-xs' },
+                    { id: 'Cuti', label: 'Cuti', activeClass: 'bg-sky-600 text-white border-sky-700 shadow-xs' },
+                    { id: 'Alpa', label: 'Alpa', activeClass: 'bg-rose-600 text-white border-rose-700 shadow-xs' }
+                  ].map(st => (
                     <button
-                      key={st}
+                      key={st.id}
                       type="button"
-                      onClick={() => setEditStatus(st)}
-                      className={`py-1.5 px-1 rounded text-xs font-extrabold border transition-all cursor-pointer text-center ${
-                        editStatus === st
-                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      onClick={() => setEditStatus(st.id)}
+                      className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black border transition-all cursor-pointer text-center ${
+                        editStatus === st.id
+                          ? st.activeClass
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
                       }`}
                     >
-                      {st}
+                      {st.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Keterangan</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Keterangan / Alasan</label>
                 <textarea
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
                   rows={2}
-                  className="w-full bg-slate-50 border border-slate-200 p-2 rounded text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-600 resize-none transition-all"
                 />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Perbarui Lampiran Surat</label>
-                <label className="border border-dashed border-slate-300 hover:border-emerald-500 rounded p-2.5 flex items-center justify-center gap-2 cursor-pointer bg-slate-50">
-                  <UploadCloud size={16} className="text-slate-400" />
+                <label className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-[var(--ui-radius-small)] p-3 flex items-center justify-center gap-2 cursor-pointer bg-slate-50/80 hover:bg-slate-100 transition-all">
+                  <UploadCloud size={18} className="text-slate-400" />
                   <span className="text-xs font-bold text-slate-600">
                     {editFileName ? editFileName : editFileData ? 'Ganti file lampiran' : 'Upload file baru'}
                   </span>
@@ -1551,16 +1716,17 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                 <button
                   type="button"
                   onClick={() => setEditItem(null)}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded cursor-pointer"
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs cursor-pointer transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded shadow-xs cursor-pointer border-none"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-[var(--ui-radius-small)] shadow-xs cursor-pointer border-none flex items-center gap-1.5 active:scale-95 transition-all"
                 >
-                  {actionLoading ? 'Menyimpan...' : 'Perbarui'}
+                  {actionLoading && <RefreshCw size={13} className="animate-spin" />}
+                  <span>{actionLoading ? 'Menyimpan...' : 'Perbarui'}</span>
                 </button>
               </div>
             </form>
