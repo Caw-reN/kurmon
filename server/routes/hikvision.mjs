@@ -966,7 +966,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             COALESCE(gar.person_type, 'guru') as person_type,
             gar.created_at
           FROM guru_attendance_records gar
-          WHERE (gar.status IN ('Izin', 'Sakit', 'Dinas Luar', 'Alpa') OR gar.mode = 'manual' OR (gar.note IS NOT NULL AND gar.note != '' AND gar.note NOT LIKE 'Dari mesin%'))
+          WHERE (gar.status IN ('Izin', 'Sakit', 'Dinas Luar', 'Cuti', 'Alpa', 'Dispensasi') 
+                 OR gar.approval_status = 'pending' 
+                 OR (gar.gdrive_url IS NOT NULL AND gar.gdrive_url != ''))
+            AND (gar.status NOT IN ('Hadir', 'Terlambat') OR gar.approval_status = 'pending' OR (gar.gdrive_url IS NOT NULL AND gar.gdrive_url != ''))
         `;
         const conditions = [];
         const params = [];
@@ -1054,52 +1057,141 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       if (!session) return;
       try {
         const body = await readJsonBody(req);
-        const userRole = String(session.role || '').toLowerCase();
-        const hasApprovalPermission = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(userRole) || userRole.startsWith('waka');
+        const userRole = String(session.role || '').toLowerCase().trim();
+        const userSubrole = String(session.subrole || '').toLowerCase().trim();
+        const userDivision = String(session.division || '').toLowerCase().trim();
+        const userJabatan = String(session.jabatan || '').toLowerCase().trim();
+
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || session.username === 'admin';
+
+        // Wewenang persetujuan (ACC):
+        // Guru -> Wewenang Bagian Kurikulum
+        const canApproveGuru = isSuperAdmin || 
+          userRole.includes('kurikulum') || 
+          userSubrole.includes('kurikulum') || 
+          userDivision.includes('kurikulum') ||
+          userJabatan.includes('kurikulum') ||
+          (userRole === 'waka' && (userDivision.includes('kurikulum') || !userDivision));
+
+        // Karyawan -> Wewenang Bagian Tata Usaha (TU)
+        const canApproveKaryawan = isSuperAdmin || 
+          ['tu', 'tata_usaha', 'tata usaha', 'kepala_tu', 'staf_tu'].includes(userRole) || 
+          userSubrole.includes('tu') || userSubrole.includes('tata_usaha') || userSubrole.includes('tata usaha') ||
+          userDivision.includes('tu') || userDivision.includes('tata_usaha') || userDivision.includes('tata usaha') ||
+          userJabatan.includes('tu') || userJabatan.includes('tata_usaha') || userJabatan.includes('tata usaha');
 
         if (body.action === 'approve') {
-          if (!hasApprovalPermission) {
-            return send(req, res, 403, { ok: false, error: "Hanya Admin, Pimpinan, atau Tata Usaha yang dapat menyetujui surat izin/sakit." });
+          const recRes = await dbPool.query("SELECT * FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
+          if (recRes.rows.length === 0) {
+            return send(req, res, 404, { ok: false, error: "Data perizinan tidak ditemukan." });
           }
+          const rec = recRes.rows[0];
+          const pType = String(rec.person_type || 'guru').toLowerCase();
+
+          if (pType === 'karyawan') {
+            if (!canApproveKaryawan) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak: Persetujuan (ACC) surat izin/sakit karyawan adalah wewenang Bagian Tata Usaha (TU)." });
+            }
+          } else {
+            if (!canApproveGuru) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak: Persetujuan (ACC) surat izin/sakit guru adalah wewenang Bagian Kurikulum." });
+            }
+          }
+
+          const roleTag = pType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum';
+          const approverName = `${session.name || session.username || 'Petugas'} (${roleTag})`;
+
           await dbPool.query(
             "UPDATE guru_attendance_records SET approval_status = 'approved', approved_by_id = $1, approved_by_name = $2 WHERE record_id = $3",
-            [session.id || 'admin', session.name || session.username || 'Admin', body.recordId || body.id]
+            [session.id || 'admin', approverName, body.recordId || body.id]
           );
-          send(req, res, 200, { ok: true, message: "Surat izin/sakit berhasil disetujui (ACC)." });
+          send(req, res, 200, { ok: true, message: `Surat izin/sakit ${pType === 'karyawan' ? 'karyawan' : 'guru'} berhasil disetujui (ACC).` });
           return;
         }
 
         if (body.action === 'reject') {
-          if (!hasApprovalPermission) {
-            return send(req, res, 403, { ok: false, error: "Hanya Admin, Pimpinan, atau Tata Usaha yang dapat menolak surat izin/sakit." });
+          const recRes = await dbPool.query("SELECT * FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
+          if (recRes.rows.length === 0) {
+            return send(req, res, 404, { ok: false, error: "Data perizinan tidak ditemukan." });
           }
+          const rec = recRes.rows[0];
+          const pType = String(rec.person_type || 'guru').toLowerCase();
+
+          if (pType === 'karyawan') {
+            if (!canApproveKaryawan) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak: Penolakan surat izin/sakit karyawan adalah wewenang Bagian Tata Usaha (TU)." });
+            }
+          } else {
+            if (!canApproveGuru) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak: Penolakan surat izin/sakit guru adalah wewenang Bagian Kurikulum." });
+            }
+          }
+
+          const roleTag = pType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum';
+          const approverName = `${session.name || session.username || 'Petugas'} (${roleTag})`;
+
           await dbPool.query(
             "UPDATE guru_attendance_records SET approval_status = 'rejected', approved_by_id = $1, approved_by_name = $2 WHERE record_id = $3",
-            [session.id || 'admin', session.name || session.username || 'Admin', body.recordId || body.id]
+            [session.id || 'admin', approverName, body.recordId || body.id]
           );
-          send(req, res, 200, { ok: true, message: "Surat izin/sakit telah ditolak." });
+          send(req, res, 200, { ok: true, message: `Surat izin/sakit ${pType === 'karyawan' ? 'karyawan' : 'guru'} telah ditolak.` });
+          return;
+        }
+
+        if (body.action === 'update') {
+          const recRes = await dbPool.query("SELECT * FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
+          if (recRes.rows.length === 0) {
+            return send(req, res, 404, { ok: false, error: "Data perizinan tidak ditemukan." });
+          }
+          const rec = recRes.rows[0];
+          const pType = String(rec.person_type || 'guru').toLowerCase();
+          const hasPerm = pType === 'karyawan' ? canApproveKaryawan : canApproveGuru;
+          const isOwn = String(rec.teacher_code) === String(session.code || session.id);
+
+          if (!hasPerm && !isOwn) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak untuk mengedit data ini." });
+          }
+
+          const newStatus = body.status || rec.status;
+          const newNote = body.note !== undefined ? body.note : rec.note;
+          const newGdrive = body.gdrive_url || body.fileData || rec.gdrive_url;
+
+          await dbPool.query(
+            `UPDATE guru_attendance_records 
+             SET status = $1, note = $2, gdrive_url = $3 
+             WHERE record_id = $4`,
+            [newStatus, newNote, newGdrive, body.recordId || body.id]
+          );
+          send(req, res, 200, { ok: true, message: "Data surat izin/sakit berhasil diperbarui." });
           return;
         }
 
         if (body.action === 'delete') {
-          if (!hasApprovalPermission) {
-            return send(req, res, 403, { ok: false, error: "Akses ditolak untuk menghapus data izin/sakit." });
+          const recRes = await dbPool.query("SELECT * FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
+          if (recRes.rows.length > 0) {
+            const pType = String(recRes.rows[0].person_type || 'guru').toLowerCase();
+            const hasPerm = pType === 'karyawan' ? canApproveKaryawan : canApproveGuru;
+            if (!hasPerm) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak untuk menghapus data izin/sakit." });
+            }
           }
           await dbPool.query("DELETE FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
           send(req, res, 200, { ok: true, message: "Data izin/sakit berhasil dihapus." });
           return;
         }
 
-        // FITUR INPUT SURAT IZIN / SAKIT (OLEH ADMIN / TU MAUPUN GURU)
+        // FITUR INPUT SURAT IZIN / SAKIT (OLEH ADMIN, KURIKULUM, TU MAUPUN PEGAWAI SENDIRI)
         const { personType = 'guru', teacherCode, startDate, endDate, status, note, fileData, gdrive_url } = body;
         if (!teacherCode || !startDate || !status) {
           return send(req, res, 400, { ok: false, error: "Pilih person/pegawai, tanggal, dan status terlebih dahulu." });
         }
 
+        const isApproverForThisType = personType === 'karyawan' ? canApproveKaryawan : canApproveGuru;
         const gdriveUrl = gdrive_url || fileData || null;
-        const approvalStatus = hasApprovalPermission ? 'approved' : 'pending';
-        const approvedById = hasApprovalPermission ? (session.id || 'admin') : null;
-        const approvedByName = hasApprovalPermission ? (session.name || session.username || 'Admin') : null;
+        const approvalStatus = isApproverForThisType ? 'approved' : 'pending';
+        const roleTag = personType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum';
+        const approvedById = isApproverForThisType ? (session.id || 'admin') : null;
+        const approvedByName = isApproverForThisType ? `${session.name || session.username || 'Admin'} (${roleTag})` : null;
 
         const startD = new Date(startDate);
         const endD = endDate ? new Date(endDate) : new Date(startDate);
@@ -1124,7 +1216,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           );
         }
 
-        send(req, res, 200, { ok: true, message: `Surat izin/sakit untuk ${teacherCode} berhasil disimpan.` });
+        send(req, res, 200, { 
+          ok: true, 
+          message: isApproverForThisType 
+            ? `Surat izin/sakit untuk ${teacherCode} berhasil dicatat dan disetujui.` 
+            : `Pengajuan surat izin/sakit untuk ${teacherCode} berhasil dikirim. Menunggu persetujuan ${roleTag}.`
+        });
       } catch (err) {
         sendDatabaseError(req, res, err);
       }
