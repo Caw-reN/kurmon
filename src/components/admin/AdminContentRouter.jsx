@@ -751,5 +751,30 @@ export default function AdminContentRouter({ context }) {
     }
   };
 
-  return renderContent();
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex flex-col w-full min-w-0 gap-5 animate-pulse mt-1">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-slate-200 rounded-[var(--ui-radius-card)]" />
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="h-5 w-48 bg-slate-200 rounded" />
+            <div className="h-3 w-64 bg-slate-100 rounded" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-24 bg-slate-100 rounded-[var(--ui-radius-card)] border border-slate-200/50" />
+          ))}
+        </div>
+        <div className="flex-1 min-h-[400px] w-full bg-slate-50/80 rounded-[var(--ui-radius-card)] border border-slate-200/50 p-4">
+          <div className="h-10 w-full bg-slate-200/60 rounded-[var(--ui-radius-small)] mb-4" />
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="h-12 w-full bg-slate-100/80 rounded-[var(--ui-radius-small)] mb-2" />
+          ))}
+        </div>
+      </div>
+    }>
+      {renderContent()}
+    </Suspense>
+  );
 }

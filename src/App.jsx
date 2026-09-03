@@ -8,6 +8,32 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
 
+// Pre-hydrate snapshot immediately from cache so branding (school name, primary color) is ready synchronously on frame 0
+if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+  try {
+    const raw = localStorage.getItem("kurmon_offline_payload");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const payload = parsed?.payload || (typeof parsed === "object" && !parsed._savedAt ? parsed : null);
+      if (payload?.appSettings) {
+        setDatabaseSnapshot(payload);
+        applyDocumentBranding(payload.appSettings);
+      }
+    }
+  } catch {}
+}
+
+// Preload route chunks in parallel with initial API fetch to prevent loading waterfall & double loader
+if (typeof window !== "undefined") {
+  const pathname = window.location.pathname || "";
+  if (pathname.startsWith("/dashboard")) {
+    import("./AdminApp.jsx");
+    import("./pages/DashboardPage.jsx");
+  } else if (pathname === "/" || pathname === "") {
+    import("./pages/LandingPage.jsx");
+  }
+}
+
 // ── Core schedule app (lazy)
 const AdminApp = lazy(() => import("./AdminApp.jsx"));
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
@@ -108,10 +134,22 @@ const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
   return <Outlet />;
 };
 
-const GlobalLoader = ({ title = "Menyiapkan Ruang Kelas...", showTip = false, error = null }) => {
+const DEFAULT_LOADER_TITLE = "Sedang Menyiapkan Ruang Kelas...";
+
+const LOADING_TIPS = [
+  "💡 Guru piket dapat menambahkan pelanggaran siswa secara cepat melalui menu Piket Harian.",
+  "💡 Anda dapat memperbarui profil, mengubah password, atau mengganti username langsung dengan mengklik foto profil Anda.",
+  "💡 Waka Kurikulum dapat mengunggah file CSV guru & siswa untuk memperbarui data massal.",
+  "💡 Pastikan izin akses GPS pada peramban Anda aktif agar absensi guru KBM tervalidasi dengan tepat.",
+  "💡 Susunan letak bangku dan tata ruang kelas dapat diubah secara visual dan interaktif di tab Denah.",
+  "💡 Laporan kehadiran guru dapat diekspor langsung ke berkas Excel yang siap cetak.",
+  "💡 Buku bimbingan konseling membantu mencatat tindak lanjut setiap kejadian siswa secara terpadu."
+];
+
+const GlobalLoader = ({ title = DEFAULT_LOADER_TITLE, showTip = true, error = null }) => {
   const brandSnapshot = getDatabaseSnapshot();
   const appSettings = brandSnapshot?.appSettings || {};
-  const brandName = appSettings.appName || "TimeSchedule";
+  const brandName = appSettings.appName || "KG2 School";
   const primaryColor = appSettings.primaryColor || "#064e3b";
 
   const [tip, setTip] = useState("");
@@ -182,17 +220,7 @@ const GlobalLoader = ({ title = "Menyiapkan Ruang Kelas...", showTip = false, er
   );
 };
 
-const Spinner = () => <GlobalLoader title="Memuat Halaman..." showTip={false} />;
-
-const LOADING_TIPS = [
-  "💡 Guru piket dapat menambahkan pelanggaran siswa secara cepat melalui menu Piket Harian.",
-  "💡 Anda dapat memperbarui profil, mengubah password, atau mengganti username langsung dengan mengklik foto profil Anda.",
-  "💡 Waka Kurikulum dapat mengunggah file CSV guru & siswa untuk memperbarui data massal.",
-  "💡 Pastikan izin akses GPS pada peramban Anda aktif agar absensi guru KBM tervalidasi dengan tepat.",
-  "💡 Susunan letak bangku dan tata ruang kelas dapat diubah secara visual dan interaktif di tab Denah.",
-  "💡 Laporan kehadiran guru dapat diekspor langsung ke berkas Excel yang siap cetak.",
-  "💡 Buku bimbingan konseling membantu mencatat tindak lanjut setiap kejadian siswa secara terpadu."
-];
+const Spinner = () => <GlobalLoader title={DEFAULT_LOADER_TITLE} showTip={true} />;
 
 
 // Cache TTL constant — defined outside component to avoid useEffect dependency warning
