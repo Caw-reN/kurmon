@@ -958,7 +958,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     if (status === "Terlambat" || dayData.isLate) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-900 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px]" 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-900 border border-rose-300 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>
@@ -1208,10 +1208,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                           <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>{d.class_name || d.nis || 'Karyawan'}</div>
                        </td>
                        <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                       <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">{d.total_terlambat}</td>
+                       <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_terlambat}</td>
                        <td className="px-3 py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
                        <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                       <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">{d.total_alpa || 0}</td>
+                       <td className="px-3 py-3 text-center font-black text-slate-800 border-r border-slate-100">{d.total_alpa || 0}</td>
                        {daysToRender.map((dayNum) => {
                           const dayData = d.days[dayNum];
                           return (
