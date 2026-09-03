@@ -292,9 +292,13 @@ export default function PublicLayout() {
                     <span className="text-slate-500 text-[11px] font-bold">{appSettings.instansiName ||'Institusi Pendidikan Terpadu'}</span>
                   </div>
                 </div>
-                <p className="text-slate-500 text-[11px] font-medium max-w-sm mt-1">
-                  {appSettings.footerDescription || schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}
-                </p>
+                <div className="text-slate-500 text-[11px] font-medium max-w-sm mt-1">
+                  {appSettings.footerDescription ? (
+                    <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+                  ) : (
+                    <>{schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}</>
+                  )}
+                </div>
               </div>
 
               {/* Right: Links & Social */}
@@ -342,7 +346,13 @@ export default function PublicLayout() {
 
             {/* Row 2: Copyright */}
             <div className="w-full border-t border-slate-200 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] font-semibold text-slate-400">
-              <p>{footerText || `© ${new Date().getFullYear()} ${appName ||'Sistem Akademik'}. All rights reserved.`}</p>
+              <div>
+                {footerText ? (
+                  <span dangerouslySetInnerHTML={{ __html: footerText }} />
+                ) : (
+                  <p>{`© ${new Date().getFullYear()} ${appName ||'Sistem Akademik'}. All rights reserved.`}</p>
+                )}
+              </div>
               <div className="flex items-center gap-4">
                 <span className="hover:text-[var(--ui-primary)] cursor-pointer transition-colors text-slate-500">Kebijakan Privasi</span>
                 <span className="w-1 h-1 bg-slate-300 rounded-full"></span>

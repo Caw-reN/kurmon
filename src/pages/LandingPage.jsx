@@ -1626,7 +1626,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={handleCycleWeather}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-bold tracking-wide shadow-xs cursor-pointer transition-all duration-300 select-none"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/85 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-bold tracking-wide shadow-xs cursor-pointer transition-all duration-300 select-none"
                 title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
               >
                 {weatherCondition === 'night' && <Moon size={13} className="text-indigo-500" />}
@@ -1640,7 +1640,7 @@ export default function LandingPage() {
                     weatherCondition === 'hot' ? 'Panas Terik ☀️' : 'Cerah Berawan ⛅'
                   }
                 </span>
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${manualWeather ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${manualWeather ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
                   {manualWeather ? 'Manual' : 'Live'}
                 </span>
               </button>
@@ -1895,9 +1895,13 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <p className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
-                {appSettings.footerDescription || appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
-              </p>
+              <div className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
+                {appSettings.footerDescription ? (
+                  <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+                ) : (
+                  appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."
+                )}
+              </div>
             </div>
 
             {/* Column 2: Layanan Publik (4 cols) */}
@@ -1981,7 +1985,11 @@ export default function LandingPage() {
           {/* Bottom Copyright Row */}
           <div className="w-full border-t border-slate-200/70 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
             <p>
-              {appSettings.footerText || `© ${new Date().getFullYear()} ${appSettings.appName || "Sistem Akademik"}. Seluruh hak cipta dilindungi undang-undang.`}
+              {appSettings.footerText ? (
+                <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
+              ) : (
+                `© ${new Date().getFullYear()} ${appSettings.appName || "Sistem Akademik"}. Seluruh hak cipta dilindungi undang-undang.`
+              )}
             </p>
             <div className="flex items-center gap-4 text-slate-500">
               <span className="hover:text-[var(--ui-primary)] cursor-pointer transition-colors">Kebijakan Privasi</span>

@@ -3919,9 +3919,13 @@ export default function App() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 pb-3 shrink-0 print:hidden">
-          <p className="text-xs font-medium text-muted-foreground">
-            {appSettings.footerText || `© ${new Date().getFullYear()} ${appSettings.appName || "TimeSchedule"}. All rights reserved.`}
-          </p>
+          <div className="text-xs font-medium text-muted-foreground">
+            {appSettings.footerText ? (
+              <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
+            ) : (
+              `© ${new Date().getFullYear()} ${appSettings.appName || "TimeSchedule"}. All rights reserved.`
+            )}
+          </div>
           <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
             <button type="button" onClick={openImportGuide} className="hover:text-foreground cursor-pointer transition-colors bg-transparent border-none p-0">
               Bantuan
