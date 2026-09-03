@@ -1189,9 +1189,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
       {/* When isNested, show Segmented Tabs at top so user can switch between Matriks and Surat */}
       {isNested && (
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-xs border border-slate-200/80">
+        <div className="bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-card)] flex items-center gap-1.5 border border-slate-200/80 shadow-2xs">
           {[
-            { id: 'matriks', label: 'Rekap Matriks', icon: Calendar },
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
             { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
             { id: 'perguru', label: 'Rapor Kinerja Guru', icon: Award }
           ].map(t => (
@@ -1199,13 +1199,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              className={`flex-1 py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 px-3.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
                 subTab === t.id
-                  ? 'bg-[var(--ui-primary)] text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 bg-transparent hover:bg-slate-50'
+                  ? 'bg-white text-emerald-700 font-black shadow-xs border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent hover:bg-white/60'
               }`}
             >
-              <t.icon size={14} />
+              <t.icon size={15} className={subTab === t.id ? 'text-emerald-600' : 'text-slate-400'} />
               <span>{t.label}</span>
             </button>
           ))}
@@ -1583,35 +1583,31 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
       {/* ── TAB CONTENT: DATA PER GURU ── */}
       {subTab ==='perguru' && (
-        <div className="relative z-10">
-          <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
-             <div className="relative w-full md:w-80">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Cari nama / kode guru..." 
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-[var(--ui-primary)]"
-                />
-             </div>
-             <span className="text-xs text-slate-500 font-bold">{filteredData.length} guru terdaftar</span>
+        <div className="relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
+          <div className="p-3.5 sm:p-4 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <h4 className="text-xs font-black text-slate-800">Rekap Kinerja &amp; Rapor Evaluasi Guru</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Beban mengajar (JP), akumulasi poin kinerja, dan evaluasi ketidakhadiran per guru</p>
+            </div>
+            <span className="text-xs text-slate-600 font-bold bg-white px-3 py-1 rounded-[var(--ui-radius-pill)] border border-slate-200 shadow-2xs">
+              Total: <strong className="text-emerald-700">{filteredData.length} Guru</strong>
+            </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-[10px] text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <thead className="text-[10px] text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 font-bold text-center w-12">No</th>
-                  <th className="px-4 py-3 font-bold">Nama Guru</th>
-                  <th className="px-4 py-3 font-bold text-center">Hadir</th>
-                  <th className="px-4 py-3 font-bold text-center">Telat</th>
-                  <th className="px-4 py-3 font-bold text-center">Izin</th>
-                  <th className="px-4 py-3 font-bold text-center">Sakit</th>
-                  <th className="px-4 py-3 font-bold text-center">Alpa</th>
-                  <th className="px-4 py-3 font-bold text-center">Target JP</th>
-                  <th className="px-4 py-3 font-bold text-center">Skor Kinerja</th>
-                  <th className="px-4 py-3 font-bold text-center w-28">Rapor</th>
+                  <th className="px-4 py-3 font-black text-center w-12">No</th>
+                  <th className="px-4 py-3 font-black">Nama Guru</th>
+                  <th className="px-4 py-3 font-black text-center">Hadir</th>
+                  <th className="px-4 py-3 font-black text-center">Telat</th>
+                  <th className="px-4 py-3 font-black text-center">Izin</th>
+                  <th className="px-4 py-3 font-black text-center">Sakit</th>
+                  <th className="px-4 py-3 font-black text-center">Alpa</th>
+                  <th className="px-4 py-3 font-black text-center">Target JP</th>
+                  <th className="px-4 py-3 font-black text-center">Skor Kinerja</th>
+                  <th className="px-4 py-3 font-black text-center w-28">Rapor</th>
                 </tr>
               </thead>
               <tbody>
@@ -1622,38 +1618,43 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((d, idx) => {
+                  paginatedData.map((d, idx) => {
                     const matchedGuru = (teachers || []).find(g => String(g.code).trim().toLowerCase() === String(d.nis).trim().toLowerCase());
                     const targetJP = matchedGuru?.targetWeeklyJp || 24;
                     const deductions = (d.total_alpa || 0) * 5 + (d.total_terlambat || 0) * 1;
                     const score = Math.max(0, 100 - deductions);
 
                     return (
-                      <tr key={d.nis} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3 text-center text-slate-400 font-bold">{idx + 1}</td>
+                      <tr key={d.nis} className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
+                        <td className="px-4 py-3 text-center text-slate-400 font-bold">
+                          {(currentPage - 1) * itemsPerPage + idx + 1}
+                        </td>
                         <td className="px-4 py-3">
-                          <p className="font-bold text-slate-800">{d.name}</p>
-                          <p className="text-[10px] text-slate-450 font-bold">{d.nis ||"-"} • {d.class_name ||"Guru"}</p>
+                          <p className="font-extrabold text-slate-900">{d.name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold mt-0.5">{d.nis ||"-"} • {d.class_name ||"Guru"}</p>
                         </td>
                         <td className="px-4 py-3 text-center font-bold text-emerald-600">{d.total_hadir}</td>
                         <td className="px-4 py-3 text-center font-bold text-amber-600">{d.total_terlambat}</td>
                         <td className="px-4 py-3 text-center font-bold text-indigo-600">{d.total_izin}</td>
                         <td className="px-4 py-3 text-center font-bold text-yellow-600">{d.total_sakit}</td>
                         <td className="px-4 py-3 text-center font-bold text-rose-500">{d.total_alpa}</td>
-                        <td className="px-4 py-3 text-center font-bold text-slate-650">{targetJP} JP</td>
+                        <td className="px-4 py-3 text-center font-bold text-slate-600">{targetJP} JP</td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`px-2.5 py-1 rounded font-black text-xs ${
-                            score >= 85 ?'bg-emerald-50 text-emerald-700' : score >= 70 ?'bg-amber-50 text-amber-700' :'bg-rose-50/65 text-rose-600'
+                          <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] font-black text-xs border shadow-2xs ${
+                            score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-600 border-rose-200'
                           }`}>
                             {score} Poin
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <Button variant="outline"
-                            onClick={() =>setSelectedTeacherForRapor(d)}
-                            className="flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedTeacherForRapor(d)}
+                            className="flex items-center justify-center gap-1 mx-auto cursor-pointer text-xs font-bold"
                           >
-                            <Printer size={12} /> Cetak Rapor</Button>
+                            <Printer size={12} /> Cetak Rapor
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -1662,6 +1663,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               </tbody>
             </table>
           </div>
+
+          <TablePagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredData.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+          />
         </div>
       )}
       </>

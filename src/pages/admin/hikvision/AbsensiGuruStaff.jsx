@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useDataStore } from '../../../store/useDataStore';
-import { Button } from '../../../components/ui.jsx';
+import { Button, TablePagination } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -214,6 +214,20 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
       rejected: items.filter(i => i.approval_status === 'rejected').length,
     };
   }, [items]);
+
+  // Pagination State (Maksimal 20 data per halaman dengan tombol Next/Prev)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterTanggal, filterStatus, activePersonType, filterMonth, filterYear]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
 
   // Handle Approve / ACC
   const handleApprove = async (recordId) => {
@@ -800,7 +814,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item, idx) => {
+                paginatedItems.map((item, idx) => {
                   const isPending = item.approval_status === 'pending';
                   const isApproved = item.approval_status === 'approved';
                   const isRejected = item.approval_status === 'rejected';
@@ -813,7 +827,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                   return (
                     <tr key={item.record_id || idx} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-4 text-center font-bold text-slate-400">
-                        {idx + 1}
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
                         {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -963,7 +977,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
               <div className="font-extrabold text-slate-700 text-xs">Tidak ada data surat izin / sakit</div>
             </div>
           ) : (
-            filteredItems.map((item, idx) => {
+            paginatedItems.map((item, idx) => {
               const isPending = item.approval_status === 'pending';
               const isApproved = item.approval_status === 'approved';
               const hasFile = Boolean(item.gdrive_url);
@@ -1079,6 +1093,17 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
             })
           )}
         </div>
+
+        {/* Pagination Controls (Max 20 data per page) */}
+        <TablePagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredItems.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+          isLoading={loading}
+        />
 
       </div>
 

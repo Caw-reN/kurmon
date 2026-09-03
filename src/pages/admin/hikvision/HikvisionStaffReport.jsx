@@ -1001,22 +1001,22 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
       {/* When isNested, show Segmented Tabs at top */}
       {isNested && (
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-xs border border-slate-200/80">
+        <div className="bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-card)] flex items-center gap-1.5 border border-slate-200/80 shadow-2xs">
           {[
-            { id: 'matriks', label: 'Rekap Matriks Karyawan', icon: Calendar },
-            { id: 'surat', label: 'Manajemen Surat Izin/Sakit Karyawan', icon: UserX }
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
           ].map(t => (
             <button
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              className={`flex-1 py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
                 subTab === t.id
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 bg-transparent hover:bg-slate-50'
+                  ? 'bg-white text-emerald-700 font-black shadow-xs border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent hover:bg-white/60'
               }`}
             >
-              <t.icon size={14} />
+              <t.icon size={15} className={subTab === t.id ? 'text-emerald-600' : 'text-slate-400'} />
               <span>{t.label}</span>
             </button>
           ))}
