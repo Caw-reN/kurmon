@@ -12,6 +12,7 @@ import { Modal } from'../../../components/ui.jsx';
 import { UISelect } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
+import { useDataStore } from '../../../store/useDataStore.js';
 import { compareTableValues } from '../../../utils/adminHelpers.js';
 import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
 import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
@@ -22,6 +23,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   
+  const storeTeachers = useDataStore(state => state.teachers) || [];
+  const [teachers, setTeachers] = useState(storeTeachers);
+
+  useEffect(() => {
+    if (storeTeachers && storeTeachers.length > 0 && (!teachers || teachers.length === 0)) {
+      setTeachers(storeTeachers);
+    }
+  }, [storeTeachers]);
+
   const [data, setData] = useState([]);
   const [toast, setToast] = useState(null);
   const [subTab, setSubTab] = useState("matriks"); //"matriks" |"perguru"
@@ -592,7 +602,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       doc.setFont("Helvetica", "normal");
 
       // Find teaching stats
-      const matchedGuruObj = teachers.find(g => String(g.code).trim().toLowerCase() === String(teacher.nis).trim().toLowerCase());
+      const matchedGuruObj = (teachers || []).find(g => String(g.code).trim().toLowerCase() === String(teacher.nis).trim().toLowerCase());
       const targetJP = matchedGuruObj?.targetWeeklyJp || 24;
       const preferredGrade = matchedGuruObj?.preferredGrade || "Semua";
       const preferredMajor = matchedGuruObj?.preferredMajor || "Semua";
@@ -1613,7 +1623,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   </tr>
                 ) : (
                   filteredData.map((d, idx) => {
-                    const matchedGuru = teachers.find(g => String(g.code).trim().toLowerCase() === String(d.nis).trim().toLowerCase());
+                    const matchedGuru = (teachers || []).find(g => String(g.code).trim().toLowerCase() === String(d.nis).trim().toLowerCase());
                     const targetJP = matchedGuru?.targetWeeklyJp || 24;
                     const deductions = (d.total_alpa || 0) * 5 + (d.total_terlambat || 0) * 1;
                     const score = Math.max(0, 100 - deductions);
