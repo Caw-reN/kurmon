@@ -2118,13 +2118,26 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
                                       <span className="font-extrabold">{dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
                                     </div>
-                                  ) : (
-                                    <>
-                                      <div>{dayData.in?.substring(0,5) ||'--:--'}</div>
-                                      <div className="border-t border-black/10 my-0.5"></div>
-                                      <div>{dayData.out?.substring(0,5) ||'--:--'}</div>
-                                    </>
-                                  )}
+                                  ) : (() => {
+                                    const formatTime = (val) => {
+                                      if (!val) return null;
+                                      const s = String(val).trim();
+                                      if (/^\d{1,2}:\d{2}/.test(s)) return s.substring(0, 5);
+                                      return null;
+                                    };
+                                    const inTime = formatTime(dayData.in);
+                                    const outTime = formatTime(dayData.out);
+                                    const hasNote = Boolean(dayData.note || (typeof dayData.in === 'string' && !inTime));
+                                    const noteText = dayData.note || (typeof dayData.in === 'string' && !inTime ? dayData.in : '');
+
+                                    return (
+                                      <div title={noteText ? `Catatan: ${noteText}` : undefined}>
+                                        <div>{inTime || (hasNote ? (noteText.length > 5 ? noteText.substring(0, 5) : noteText) : '--:--')}</div>
+                                        <div className="border-t border-black/10 my-0.5"></div>
+                                        <div>{outTime || '--:--'}</div>
+                                      </div>
+                                    );
+                                  })()}
                                </div>
                             </td>
                          );

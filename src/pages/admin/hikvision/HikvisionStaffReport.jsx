@@ -934,13 +934,22 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       );
     }
     const renderTaps = (dayData) => {
-      const inTime = dayData.in ? dayData.in.substring(0, 5) : '--:--';
-      const outTime = dayData.out ? dayData.out.substring(0, 5) : '--:--';
+      const formatTime = (val) => {
+        if (!val) return null;
+        const s = String(val).trim();
+        if (/^\d{1,2}:\d{2}/.test(s)) return s.substring(0, 5);
+        return null;
+      };
+      const inTime = formatTime(dayData.in);
+      const outTime = formatTime(dayData.out);
+      const hasNote = Boolean(dayData.note || (typeof dayData.in === 'string' && !inTime));
+      const noteText = dayData.note || (typeof dayData.in === 'string' && !inTime ? dayData.in : '');
+
       return (
-        <div className="flex flex-col gap-0.5">
-          <div>{inTime}</div>
+        <div className="flex flex-col gap-0.5" title={noteText ? `Catatan: ${noteText}` : undefined}>
+          <div>{inTime || (hasNote ? (noteText.length > 5 ? noteText.substring(0, 5) : noteText) : '--:--')}</div>
           <div className="border-t border-black/10 w-full my-0.5"></div>
-          <div>{outTime}</div>
+          <div>{outTime || '--:--'}</div>
         </div>
       );
     };

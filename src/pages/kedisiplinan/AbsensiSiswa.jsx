@@ -172,16 +172,22 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const baseSuratItems = useMemo(() => {
     return items.filter(item => {
-      // Exclude automatic machine attendance logs (Mesin Hikvision) from Surat Izin/Sakit management
-      if (
-        item.pelapor_nama === "Mesin Hikvision" || 
-        item.source === "hikvision" || 
-        item.is_machine || 
-        String(item.keterangan || '').startsWith("Mesin:") ||
-        item.status === 'Terlambat' ||
-        item.status === 'Hadir'
-      ) {
-        return false;
+      const ket = String(item.keterangan || '').trim();
+      // Catatan bermakna (bukan sekadar prefix default scan mesin otomatis "Mesin: ...")
+      const hasCatatan = ket.length > 0 && !ket.startsWith("Mesin:");
+
+      // Absensi mesin murni tanpa catatan manual dikecualikan dari manajemen surat
+      if (!hasCatatan) {
+        if (
+          item.pelapor_nama === "Mesin Hikvision" || 
+          item.source === "hikvision" || 
+          item.is_machine || 
+          ket.startsWith("Mesin:") ||
+          item.status === 'Terlambat' ||
+          item.status === 'Hadir'
+        ) {
+          return false;
+        }
       }
 
       const student = students.find(s => {
@@ -223,6 +229,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     if (filterStatus === "pending") return baseSuratItems.filter(i => i.approval_status === "pending");
     // Normalize Alpa/Alpha matching
     if (filterStatus === "Alpa") return baseSuratItems.filter(i => i.status === "Alpa" || i.status === "Alpha");
+    if (filterStatus === "Terlambat") return baseSuratItems.filter(i => i.status === "Terlambat" || i.status === "Dispensasi");
     return baseSuratItems.filter(i => i.status === filterStatus);
   }, [baseSuratItems, filterStatus]);
 
@@ -234,7 +241,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       Izin: baseSuratItems.filter(i => i.status === "Izin").length,
       // Normalize: Database bisa simpan sebagai "Alpa" atau "Alpha"
       Alpa: baseSuratItems.filter(i => i.status === "Alpa" || i.status === "Alpha").length,
-      Terlambat: baseSuratItems.filter(i => i.status === "Terlambat").length,
+      Terlambat: baseSuratItems.filter(i => i.status === "Terlambat" || i.status === "Dispensasi").length,
     };
   }, [baseSuratItems]);
 
@@ -491,7 +498,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-xs" },
               { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-xs" },
               { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-xs" },
-              { id: "Terlambat", label: "Terlambat", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-xs" },
+              { id: "Terlambat", label: "Dispensasi / Catatan", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-xs" },
             ].map(tab => (
               <button
                 key={tab.id}

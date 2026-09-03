@@ -1027,6 +1027,25 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               [personId, date, finalStatus, note || `Koreksi jam ${validTime} oleh Super Admin`, session.username || 'super_admin']
             );
           } catch(e) {}
+
+          // Sinkronkan catatan/koreksi ke tabel kedisiplinan_absensi (Manajemen Surat Izin/Sakit) agar terdata lengkap
+          try {
+            await dbPool.query(`
+              INSERT INTO kedisiplinan_absensi (siswa_nis, tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name)
+              VALUES ($1, $2, $3, $4, $5, $6, 'approved', $5, $6)
+              ON CONFLICT (siswa_nis, tanggal) 
+              DO UPDATE SET 
+                status = EXCLUDED.status, 
+                keterangan = EXCLUDED.keterangan, 
+                pelapor_id = EXCLUDED.pelapor_id, 
+                pelapor_nama = EXCLUDED.pelapor_nama, 
+                approval_status = 'approved', 
+                approved_by_id = EXCLUDED.approved_by_id, 
+                approved_by_name = EXCLUDED.approved_by_name
+            `, [personId, date, finalStatus, note || `Koreksi absensi (${validTime.substring(0, 5)}) oleh Super Admin`, session.id || 'admin', session.name || session.username || 'Super Admin']);
+          } catch(e) {
+            console.error('[Override] Gagal sync ke kedisiplinan_absensi:', e.message);
+          }
         }
 
         global._dashLogsCache = { time: 0, data: null };
@@ -1643,9 +1662,18 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  };
               } else {
                  const existingPending = matrix[targetKey].days[day]?.pending_permission;
+                 const prevDayData = matrix[targetKey].days[day] || {};
+                 
+                 // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
+                 const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
+                 const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
+                 const actualIn = prevDayData.in || parsedTime || (isLate ? "Terlambat" : status);
+                 const actualOut = prevDayData.out || (isLate ? null : status);
+
                  matrix[targetKey].days[day] = {
-                   in: isLate ? (rec.keterangan || "Terlambat") : status,
-                   out: isLate ? null : status,
+                   ...prevDayData,
+                   in: actualIn,
+                   out: actualOut,
                    isLate: isLate,
                    isManual: true,
                    status: status,
