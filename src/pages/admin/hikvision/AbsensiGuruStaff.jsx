@@ -562,71 +562,167 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
         </div>
       )}
 
-      {/* Info Wewenang Persetujuan Banner (Sesuai Alur Siswa) */}
-      <div className="p-3.5 bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Info Wewenang Persetujuan (Sleek Modern Header) */}
+      <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 sm:px-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-800 shrink-0">
-            <ShieldCheck size={20} />
+          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+            <ShieldCheck size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <h4 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-              <span>Alur Persetujuan Resmi (ACC)</span>
-              <span className="text-[10px] px-2 py-0.2 bg-emerald-600 text-white rounded-full font-bold">Terverifikasi</span>
-            </h4>
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-0.5">
-              Surat izin/sakit <strong>Guru</strong> diverifikasi oleh <strong>Bagian Kurikulum</strong>, sedangkan surat izin <strong>Karyawan</strong> diverifikasi oleh <strong>Bagian Tata Usaha (TU)</strong>.
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-black text-slate-800 tracking-tight">Alur Verifikasi Surat Izin &amp; Sakit</h4>
+              <span className="text-[9px] px-2 py-0.5 bg-emerald-600 text-white rounded-full font-extrabold uppercase tracking-wide">
+                Resmi
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium leading-normal mt-0.5">
+              Surat <strong>Guru</strong> diverifikasi oleh <strong>Bagian Kurikulum</strong> • Surat <strong>Karyawan</strong> diverifikasi oleh <strong>Bagian Tata Usaha (TU)</strong>
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-bold text-slate-400">Hak Akses Anda:</span>
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded-[var(--ui-radius-pill)] border ${
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <span className="text-[10px] font-bold text-slate-400">Hak Akses:</span>
+          <span className={`text-[10.5px] font-black px-3 py-1 rounded-[var(--ui-radius-pill)] border shadow-2xs flex items-center gap-1.5 ${
             canApproveGuru && canApproveKaryawan
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
               : canApproveGuru
               ? 'bg-blue-50 text-blue-700 border-blue-200'
               : canApproveKaryawan
               ? 'bg-purple-50 text-purple-700 border-purple-200'
-              : 'bg-slate-100 text-slate-600 border-slate-200'
+              : 'bg-slate-50 text-slate-600 border-slate-200'
           }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              canApproveGuru || canApproveKaryawan ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+            }`} />
             {canApproveGuru && canApproveKaryawan
               ? 'Admin / Pimpinan (Semua Hak)'
               : canApproveGuru
               ? 'Penyetujui Kurikulum (Guru)'
               : canApproveKaryawan
               ? 'Penyetujui Tata Usaha (Karyawan)'
-              : 'Pegawai (Pengaju Izin)'}
+              : 'Pegawai (Pengaju Surat)'}
           </span>
         </div>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5">
-        {[
-          { label: 'Semua Record', count: counts.all, color: 'text-slate-800', bg: 'bg-white', border: 'border-slate-200/80', filter: 'all' },
-          { label: 'Menunggu ACC', count: counts.pending, color: 'text-amber-700', bg: 'bg-amber-50/70', border: 'border-amber-200', filter: 'pending' },
-          { label: 'Total Izin', count: counts.Izin, color: 'text-indigo-700', bg: 'bg-indigo-50/70', border: 'border-indigo-200', filter: 'Izin' },
-          { label: 'Total Sakit', count: counts.Sakit, color: 'text-rose-700', bg: 'bg-rose-50/70', border: 'border-rose-200', filter: 'Sakit' },
-          { label: 'Dinas Luar', count: counts.DinasLuar, color: 'text-amber-600', bg: 'bg-amber-50/70', border: 'border-amber-200', filter: 'Dinas Luar' },
-          { label: 'Cuti', count: counts.Cuti, color: 'text-purple-700', bg: 'bg-purple-50/70', border: 'border-purple-200', filter: 'Cuti' },
-          { label: 'Ditolak', count: counts.rejected, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200', filter: 'rejected' },
-        ].map(kpi => (
-          <button
-            key={kpi.label}
-            type="button"
-            onClick={() => setFilterStatus(kpi.filter)}
-            className={`p-3 rounded-[var(--ui-radius-card)] border ${kpi.border} ${kpi.bg} shadow-xs text-left cursor-pointer transition-all hover:-translate-y-0.5 active:scale-95 flex flex-col justify-between ${
-              filterStatus === kpi.filter ? 'ring-2 ring-emerald-500 shadow-sm' : ''
-            }`}
-          >
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block truncate">
-              {kpi.label}
+      {/* 4 Rich KPI Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Card 1: Total Pengajuan */}
+        <button
+          type="button"
+          onClick={() => setFilterStatus('all')}
+          className={`bg-white border rounded-[var(--ui-radius-card)] p-4 text-left transition-all hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+            filterStatus === 'all'
+              ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+              : 'border-slate-200/80 shadow-2xs hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Total Pengajuan
             </span>
-            <span className={`text-xl font-black mt-1 ${kpi.color}`}>
-              {kpi.count}
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+              <FileText size={16} />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {counts.all}
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              Semua permohonan izin/sakit
+            </p>
+          </div>
+        </button>
+
+        {/* Card 2: Menunggu ACC */}
+        <button
+          type="button"
+          onClick={() => setFilterStatus('pending')}
+          className={`bg-white border rounded-[var(--ui-radius-card)] p-4 text-left transition-all hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+            filterStatus === 'pending'
+              ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-xs'
+              : 'border-slate-200/80 shadow-2xs hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Menunggu ACC
             </span>
-          </button>
-        ))}
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 relative">
+              <Clock size={16} />
+              {counts.pending > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white animate-pulse" />
+              )}
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <div className={`text-2xl sm:text-3xl font-black tracking-tight leading-none ${
+              counts.pending > 0 ? 'text-amber-600' : 'text-slate-900'
+            }`}>
+              {counts.pending}
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {counts.pending > 0 ? `${counts.pending} surat perlu verifikasi` : 'Tidak ada antrean pending'}
+            </p>
+          </div>
+        </button>
+
+        {/* Card 3: Izin & Sakit */}
+        <button
+          type="button"
+          onClick={() => setFilterStatus(filterStatus === 'Izin' ? 'Sakit' : 'Izin')}
+          className={`bg-white border rounded-[var(--ui-radius-card)] p-4 text-left transition-all hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+            filterStatus === 'Izin' || filterStatus === 'Sakit'
+              ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
+              : 'border-slate-200/80 shadow-2xs hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Izin &amp; Sakit
+            </span>
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={16} />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {counts.Izin + counts.Sakit}
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {counts.Izin} Izin • {counts.Sakit} Sakit
+            </p>
+          </div>
+        </button>
+
+        {/* Card 4: Dinas Luar & Cuti */}
+        <button
+          type="button"
+          onClick={() => setFilterStatus(filterStatus === 'Dinas Luar' ? 'Cuti' : 'Dinas Luar')}
+          className={`bg-white border rounded-[var(--ui-radius-card)] p-4 text-left transition-all hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex flex-col justify-between ${
+            filterStatus === 'Dinas Luar' || filterStatus === 'Cuti'
+              ? 'border-purple-500 ring-2 ring-purple-500/20 shadow-xs'
+              : 'border-slate-200/80 shadow-2xs hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Dinas Luar &amp; Cuti
+            </span>
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0">
+              <Briefcase size={16} />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {counts.DinasLuar + counts.Cuti}
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {counts.DinasLuar} Dinas • {counts.Cuti} Cuti
+            </p>
+          </div>
+        </button>
       </div>
 
       {/* Main Card Container */}
