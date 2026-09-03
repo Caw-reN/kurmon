@@ -425,7 +425,6 @@ export default function LandingPage() {
             )}
           </div>
 
-          </DeferRender>
           {/* Footer (Safe area for mobile) */}
           <div className="px-5 sm:px-6 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
             {activeRulesTab === "pdf" && hasPdf && (
@@ -1997,6 +1996,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      </DeferRender>
       {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
