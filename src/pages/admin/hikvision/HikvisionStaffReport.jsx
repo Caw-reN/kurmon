@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX } from 'lucide-react';
+import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -39,6 +39,40 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
+
+  const today = React.useMemo(() => new Date(), []);
+  const todayNum = today.getDate();
+  const isCurrentMonthYear = filter.month === (today.getMonth() + 1) && filter.year === today.getFullYear();
+
+  const [dailyDetailModal, setDailyDetailModal] = useState(null); // 'present' | 'late' | 'absent' | null
+  const [dailySearchQuery, setDailySearchQuery] = useState('');
+
+  const lateStaffToday = React.useMemo(() => {
+    if (!isCurrentMonthYear) return [];
+    return data.filter(staff => {
+      const dayData = (staff.days || {})[todayNum];
+      return dayData && (dayData.isLate || dayData.status === "Terlambat");
+    });
+  }, [data, isCurrentMonthYear, todayNum]);
+
+  const absentStaffToday = React.useMemo(() => {
+    if (!isCurrentMonthYear) return [];
+    return data.filter(staff => {
+      const dayData = (staff.days || {})[todayNum];
+      if (!dayData) return true;
+      return ["Sakit", "Izin", "Dinas Luar", "Cuti", "Alpa"].includes(dayData.status) || dayData.in === "Alpa" || dayData.in === "Sakit" || dayData.in === "Izin";
+    });
+  }, [data, isCurrentMonthYear, todayNum]);
+
+  const presentStaffToday = React.useMemo(() => {
+    if (!isCurrentMonthYear) return [];
+    return data.filter(staff => {
+      const dayData = (staff.days || {})[todayNum];
+      if (!dayData) return false;
+      return !["Sakit", "Izin", "Dinas Luar", "Cuti", "Alpa"].includes(dayData.status) 
+        && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin";
+    });
+  }, [data, isCurrentMonthYear, todayNum]);
 
   const daysToRender = React.useMemo(() => {
     let list = [];
@@ -1140,6 +1174,113 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         </div>
       </div>
 
+      {/* Daily Attendance KPI Summary Cards (Karyawan) */}
+      {isCurrentMonthYear && data.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
+          {/* Card 1: Karyawan Hadir */}
+          <div 
+            onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
+            className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+              <div className="min-w-0">
+                <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
+                  <span className="sm:hidden">Hadir (Hari Ini)</span>
+                  <span className="hidden sm:inline">Total Karyawan Hadir (Hari Ini)</span>
+                </span>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                    {presentStaffToday.length}
+                  </h3>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400">/{data.length}</span>
+                </div>
+              </div>
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                <UserCheck size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+              <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
+                {data.length > 0 ? Math.round((presentStaffToday.length / data.length) * 100) : 0}% Hadir
+              </span>
+              <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-emerald-700 items-center gap-1 transition-colors">
+                Lihat &rarr;
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2: Karyawan Terlambat */}
+          <div 
+            onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
+            className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+              <div className="min-w-0">
+                <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
+                  Terlambat (Hari Ini)
+                </span>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                    {lateStaffToday.length}
+                  </h3>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400">Karyawan</span>
+                </div>
+              </div>
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                <Clock size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+              <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border text-[9px] sm:text-[10px] truncate ${
+                lateStaffToday.length > 0 
+                  ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
+                  : 'text-slate-500 bg-slate-50 border-slate-200/60'
+              }`}>
+                {lateStaffToday.length > 0 ? `${lateStaffToday.length} Telat` : 'Nihil'}
+              </span>
+              <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-amber-600 items-center gap-1 transition-colors">
+                Lihat &rarr;
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: Karyawan Belum Hadir / Izin / Sakit */}
+          <div 
+            onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
+            className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+              <div className="min-w-0">
+                <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-0.5 truncate">
+                  <span className="sm:hidden">Tidak Hadir (Hari Ini)</span>
+                  <span className="hidden sm:inline">Belum Hadir / Izin / Sakit (Hari Ini)</span>
+                </span>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                    {absentStaffToday.length}
+                  </h3>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400">Karyawan</span>
+                </div>
+              </div>
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
+                <UserX size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+              <span className="font-bold text-rose-700 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200/60 text-[9px] sm:text-[10px] truncate">
+                {absentStaffToday.length > 0 ? `${absentStaffToday.length} Karyawan` : 'Nihil'}
+              </span>
+              <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-rose-600 items-center gap-1 transition-colors">
+                Kelola &rarr;
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
         <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
            <div className="text-xs font-bold text-slate-700">
@@ -1466,6 +1607,165 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
              </div>
            </div>
          </div>
+       )}
+
+       {/* Interactive Modal for Daily Attendance Lists (Karyawan) */}
+       {dailyDetailModal && (
+         <Modal
+           isOpen={Boolean(dailyDetailModal)}
+           onClose={() => { setDailyDetailModal(null); setDailySearchQuery(''); }}
+           title="Monitoring Kehadiran Karyawan Hari Ini"
+           maxWidth="max-w-2xl"
+         >
+           <div className="space-y-3.5">
+             {/* Segmented Filter Tabs inside Modal */}
+             <div className="flex items-center gap-1.5 p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] overflow-x-auto">
+               <button
+                 type="button"
+                 onClick={() => setDailyDetailModal('present')}
+                 className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                   dailyDetailModal === 'present'
+                     ? 'bg-white text-emerald-700 border-emerald-200 shadow-xs'
+                     : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                 }`}
+               >
+                 <UserCheck size={14} className="shrink-0 text-emerald-600" />
+                 <span>Masuk ({presentStaffToday.length})</span>
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setDailyDetailModal('late')}
+                 className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                   dailyDetailModal === 'late'
+                     ? 'bg-white text-amber-700 border-amber-200 shadow-xs'
+                     : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                 }`}
+               >
+                 <Clock size={14} className="shrink-0 text-amber-600" />
+                 <span>Terlambat ({lateStaffToday.length})</span>
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setDailyDetailModal('absent')}
+                 className={`flex-1 min-w-[140px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                   dailyDetailModal === 'absent'
+                     ? 'bg-white text-rose-700 border-rose-200 shadow-xs'
+                     : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                 }`}
+               >
+                 <UserX size={14} className="shrink-0 text-rose-600" />
+                 <span>Belum Hadir ({absentStaffToday.length})</span>
+               </button>
+             </div>
+
+             {/* Search Input in Modal */}
+             <div className="relative">
+               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+               <input
+                 type="text"
+                 value={dailySearchQuery}
+                 onChange={e => setDailySearchQuery(e.target.value)}
+                 placeholder="Cari nama karyawan, NIP, atau divisi..."
+                 className="w-full h-9 pl-9 pr-3 text-xs font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] transition-all"
+               />
+               {dailySearchQuery && (
+                 <button
+                   type="button"
+                   onClick={() => setDailySearchQuery('')}
+                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                 >
+                   ×
+                 </button>
+               )}
+             </div>
+
+             {/* List Container */}
+             <div className="border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] max-h-[340px] overflow-y-auto custom-scrollbar bg-white">
+               {(() => {
+                 const currentList = dailyDetailModal === 'present' 
+                   ? presentStaffToday 
+                   : dailyDetailModal === 'late' 
+                     ? lateStaffToday 
+                     : absentStaffToday;
+
+                 const filtered = currentList.filter(s => {
+                   if (!dailySearchQuery) return true;
+                   const q = dailySearchQuery.toLowerCase();
+                   const name = String(s.name || '').toLowerCase();
+                   const code = String(s.nis || s.code || '').toLowerCase();
+                   const div = String(s.division || s.class_name || '').toLowerCase();
+                   return name.includes(q) || code.includes(q) || div.includes(q);
+                 });
+
+                 if (filtered.length === 0) {
+                   return (
+                     <div className="p-8 text-center text-xs text-slate-400 font-bold flex flex-col items-center justify-center gap-2">
+                       <Users size={28} className="text-slate-300 stroke-[1.5]" />
+                       <span>{dailySearchQuery ? 'Tidak ada karyawan yang sesuai pencarian.' : 'Tidak ada data karyawan untuk kategori ini.'}</span>
+                     </div>
+                   );
+                 }
+
+                 return filtered.map((s, idx) => {
+                   const dayData = (s.days || {})[todayNum] || {};
+                   const isLate = dayData.isLate || dayData.status === "Terlambat";
+                   const status = dayData?.status || dayData?.in || "Belum Scan";
+                   const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+
+                   let avatarColor = 'bg-emerald-100 text-emerald-700 border-emerald-200/60';
+                   if (dailyDetailModal === 'late') avatarColor = 'bg-amber-100 text-amber-700 border-amber-200/60';
+                   if (dailyDetailModal === 'absent') avatarColor = 'bg-rose-100 text-rose-700 border-rose-200/60';
+
+                   return (
+                     <div key={s.nis || s.code || idx} className="p-2.5 px-3.5 flex items-center justify-between gap-3 text-xs hover:bg-[var(--ui-surface-muted)] transition-colors">
+                       <div className="min-w-0 flex-1 flex items-center gap-2.5">
+                         <div className={`w-8 h-8 rounded-full text-xs font-black flex items-center justify-center shrink-0 border ${avatarColor}`}>
+                           {s.name ? s.name.charAt(0).toUpperCase() : 'K'}
+                         </div>
+                         <div className="min-w-0 flex-1">
+                           <div className="font-bold text-slate-800 truncate text-[12px]" title={s.name}>{s.name}</div>
+                           <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 truncate">
+                             <span>Kode: {s.nis || s.code || '-'}</span>
+                             {(s.division || s.class_name) && <span className="text-slate-600 font-bold">• {s.division || s.class_name}</span>}
+                             {displayNote && <span className="text-slate-500 font-normal truncate" title={displayNote}>({displayNote})</span>}
+                           </div>
+                         </div>
+                       </div>
+
+                       <div className="flex items-center gap-2 shrink-0">
+                         {dailyDetailModal === 'present' && (
+                           <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
+                             isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                           }`}>
+                             {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
+                           </span>
+                         )}
+
+                         {dailyDetailModal === 'late' && (
+                           <span className="px-2 py-0.5 bg-rose-50 text-rose-700 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border border-rose-200 shadow-xs">
+                             {dayData.in?.substring(0, 5) || "Terlambat"}
+                           </span>
+                         )}
+
+                         {dailyDetailModal === 'absent' && (
+                           <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
+                             status === "Sakit" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                             status === "Izin" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                             status === "Dinas Luar" ? "bg-teal-50 text-teal-700 border-teal-200" :
+                             status === "Cuti" ? "bg-sky-50 text-sky-700 border-sky-200" :
+                             "bg-rose-50 text-rose-700 border-rose-200"
+                           }`}>
+                             {status === "Alpa" || status === "Alpa (Tanpa Keterangan)" ? "Belum Scan" : status}
+                           </span>
+                         )}
+                       </div>
+                     </div>
+                   );
+                 });
+               })()}
+             </div>
+           </div>
+         </Modal>
        )}
       {toast && (
         <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
