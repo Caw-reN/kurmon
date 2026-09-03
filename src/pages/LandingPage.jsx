@@ -3,8 +3,6 @@ import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText, Sun, CloudRain, Moon, CloudSun } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
-import { PublicHelpModal, PublicRulesModal, StudentIllustration } from '../components/landing/LandingModals.jsx';
-import DeferRender from '../components/landing/DeferRender.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
@@ -1399,8 +1397,7 @@ export default function LandingPage() {
 
         </div>
 
-        <DeferRender delay={150}>
-          {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA (Posisi Putih Lebih Naik ke Atas) */}
+                  {/* 2. AREA KONTEN: LAYANAN PUBLIK, PROGRAM KEAHLIAN & MITRA KERJASAMA (Posisi Putih Lebih Naik ke Atas) */}
         <div className="relative w-full flex-1 bg-white px-5 pt-1 sm:pt-1.5 pb-[115px] flex flex-col items-center z-30 -mt-[2px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
@@ -1566,8 +1563,7 @@ export default function LandingPage() {
 
       {/* DESKTOP VIEW COMPACT WRAPPER */}
       <div className="hidden md:flex flex-col h-screen max-h-screen justify-between w-full max-w-[1400px] mx-auto px-6 md:px-8 overflow-hidden relative z-10 select-none pt-[62px] desktop-layout-wrapper">
-        <DeferRender delay={100}>
-        <style>{`
+                <style>{`
           @media (max-height: 850px) {
             .desktop-layout-wrapper {
               padding-top: 48px !important;
@@ -1870,8 +1866,7 @@ export default function LandingPage() {
 
       </div>
 
-      </DeferRender>
-      {/* DESKTOP FOOTER */}
+            {/* DESKTOP FOOTER */}
       <footer className="hidden md:block w-full bg-white/85 backdrop-blur-xl border-t border-slate-200/90 relative z-20 mt-auto print:hidden">
         <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
@@ -1996,8 +1991,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      </DeferRender>
-      {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
+            {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
           {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
