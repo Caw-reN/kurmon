@@ -272,7 +272,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           let lateLimit = siswaMasukLate, closeLimit = siswaMasukClose;
           if (personType === 'karyawan') { lateLimit = karyawanMasukLate; closeLimit = karyawanMasukClose; }
           else if (personType === 'guru') { lateLimit = guruMasukLate; closeLimit = guruMasukClose; }
-          const status = (closeLimit && scanTime > closeLimit) ? 'alpa' : (lateLimit && scanTime > lateLimit) ? 'terlambat' : 'hadir';
+          const status = (lateLimit && scanTime > lateLimit) ? 'terlambat' : 'hadir';
           return { ...r, status, role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA') };
         };
 
@@ -649,7 +649,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           let sessionName = "";
           let status = "";
 
-          if (time >= roleConf.masuk_open && time <= roleConf.masuk_close) {
+          if (time >= roleConf.masuk_open && time < roleConf.pulang_open) {
             sessionName = "Masuk Pagi";
             status = time > roleConf.masuk_late ? "Terlambat" : "Hadir";
           } else if (time >= roleConf.pulang_open && time <= roleConf.pulang_close) {
