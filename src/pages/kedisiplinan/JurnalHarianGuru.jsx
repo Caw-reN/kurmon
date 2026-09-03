@@ -7,7 +7,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { drawKopSurat, getPrimaryColorRgb, getPrimaryColorLight } from '../../utils/pdfHelpers.js';
-import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench, Printer } from'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, ChevronRight, Eye, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench, Printer } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
 import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
@@ -1564,6 +1564,17 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [activeView, setActiveView] = useState('harian'); // harian | rekap
   const [toast, setToast] = useState(null);
 
+  // States for Rekap Per Guru overhaul
+  const [rekapSearch, setRekapSearch] = useState('');
+  const [rekapStatusFilter, setRekapStatusFilter] = useState('all'); // all | sudah | belum | terlambat
+  const [rekapSortBy, setRekapSortBy] = useState('name'); // name | total | terlambat
+  const [rekapCurrentPage, setRekapCurrentPage] = useState(1);
+  const [rekapPerPage, setRekapPerPage] = useState(15);
+  const [rekapDetailTeacher, setRekapDetailTeacher] = useState(null);
+  const [rekapDetailJournals, setRekapDetailJournals] = useState([]);
+  const [rekapDetailLoading, setRekapDetailLoading] = useState(false);
+  const [isRekapLoading, setIsRekapLoading] = useState(false);
+
   const appSettings = useDataStore(state => state.appSettings) || {};
   const schoolProfile = useDataStore(state => state.schoolProfile) || {};
 
@@ -1799,6 +1810,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
   const fetchRekap = useCallback(async () => {
     if (!authToken || !isKurikulum) return;
+    setIsRekapLoading(true);
     try {
       const res = await fetch(`/api/jurnal/rekap?bulan=${filterMonth}`, {
         headers: { Authorization: `Bearer ${authToken}` }
@@ -1806,7 +1818,189 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       const data = await res.json();
       if (data.ok) setRekapList(data.data || []);
     } catch (e) { console.error(e); }
+    setIsRekapLoading(false);
   }, [authToken, isKurikulum, filterMonth]);
+
+  const monthLabel = useMemo(() => {
+    try {
+      const [y, m] = filterMonth.split('-').map(Number);
+      return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(y, m - 1, 1));
+    } catch {
+      return filterMonth;
+    }
+  }, [filterMonth]);
+
+  const handlePrevMonth = () => {
+    const [y, m] = filterMonth.split('-').map(Number);
+    const d = new Date(y, m - 2, 1);
+    const prev = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    setFilterMonth(prev);
+    setRekapCurrentPage(1);
+  };
+
+  const handleNextMonth = () => {
+    const [y, m] = filterMonth.split('-').map(Number);
+    const d = new Date(y, m, 1);
+    const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    setFilterMonth(next);
+    setRekapCurrentPage(1);
+  };
+
+  const handleResetThisMonth = () => {
+    setFilterMonth(new Date().toISOString().slice(0, 7));
+    setRekapCurrentPage(1);
+  };
+
+  const combinedRekap = useMemo(() => {
+    const rekapMap = new Map();
+    rekapList.forEach(r => {
+      rekapMap.set(String(r.teacher_code || '').toLowerCase(), r);
+    });
+
+    const list = [];
+    const processedCodes = new Set();
+
+    (teachers || []).forEach(t => {
+      const code = String(t.code || t.id || '').trim();
+      const key = code.toLowerCase();
+      if (!key) return;
+      processedCodes.add(key);
+
+      const r = rekapMap.get(key);
+      const totalJurnal = r ? parseInt(r.total_jurnal, 10) || 0 : 0;
+      const totalSubmitted = r ? parseInt(r.total_submitted, 10) || 0 : 0;
+      const totalTerlambat = r ? parseInt(r.total_terlambat, 10) || 0 : 0;
+      const totalTepatWaktu = Math.max(0, totalSubmitted - totalTerlambat);
+
+      list.push({
+        teacher_code: code,
+        teacher_name: t.name || t.nama || code,
+        nip: t.nip || t.nuptk || '',
+        total_jurnal: totalJurnal,
+        total_submitted: totalSubmitted,
+        total_tepat_waktu: totalTepatWaktu,
+        total_terlambat: totalTerlambat,
+        jurnal_terakhir: r?.jurnal_terakhir || null,
+        has_data: totalJurnal > 0
+      });
+    });
+
+    rekapList.forEach(r => {
+      const code = String(r.teacher_code || '').trim();
+      const key = code.toLowerCase();
+      if (key && !processedCodes.has(key)) {
+        const totalJurnal = parseInt(r.total_jurnal, 10) || 0;
+        const totalSubmitted = parseInt(r.total_submitted, 10) || 0;
+        const totalTerlambat = parseInt(r.total_terlambat, 10) || 0;
+        list.push({
+          teacher_code: code,
+          teacher_name: r.teacher_name || code,
+          nip: '',
+          total_jurnal: totalJurnal,
+          total_submitted: totalSubmitted,
+          total_tepat_waktu: Math.max(0, totalSubmitted - totalTerlambat),
+          total_terlambat: totalTerlambat,
+          jurnal_terakhir: r.jurnal_terakhir || null,
+          has_data: totalJurnal > 0
+        });
+      }
+    });
+
+    return list;
+  }, [teachers, rekapList]);
+
+  const rekapStats = useMemo(() => {
+    const totalTeachers = combinedRekap.length;
+    const activeTeachers = combinedRekap.filter(r => r.has_data).length;
+    const inactiveTeachers = Math.max(0, totalTeachers - activeTeachers);
+    const totalJurnals = combinedRekap.reduce((acc, r) => acc + r.total_jurnal, 0);
+    const totalTepat = combinedRekap.reduce((acc, r) => acc + r.total_tepat_waktu, 0);
+    const totalTelat = combinedRekap.reduce((acc, r) => acc + r.total_terlambat, 0);
+    const onTimePct = totalJurnals > 0 ? Math.round((totalTepat / totalJurnals) * 100) : 100;
+    const activePct = totalTeachers > 0 ? Math.round((activeTeachers / totalTeachers) * 100) : 0;
+
+    return {
+      totalTeachers,
+      activeTeachers,
+      inactiveTeachers,
+      totalJurnals,
+      totalTepat,
+      totalTelat,
+      onTimePct,
+      activePct
+    };
+  }, [combinedRekap]);
+
+  const filteredRekapList = useMemo(() => {
+    return combinedRekap.filter(r => {
+      const q = rekapSearch.toLowerCase().trim();
+      const matchSearch = !q ||
+        r.teacher_name.toLowerCase().includes(q) ||
+        r.teacher_code.toLowerCase().includes(q) ||
+        (r.nip && r.nip.toLowerCase().includes(q));
+
+      let matchStatus = true;
+      if (rekapStatusFilter === 'sudah') matchStatus = r.has_data;
+      if (rekapStatusFilter === 'belum') matchStatus = !r.has_data;
+      if (rekapStatusFilter === 'terlambat') matchStatus = r.total_terlambat > 0;
+
+      return matchSearch && matchStatus;
+    }).sort((a, b) => {
+      if (rekapSortBy === 'total') return b.total_jurnal - a.total_jurnal;
+      if (rekapSortBy === 'terlambat') return b.total_terlambat - a.total_terlambat;
+      return a.teacher_name.localeCompare(b.teacher_name);
+    });
+  }, [combinedRekap, rekapSearch, rekapStatusFilter, rekapSortBy]);
+
+  const paginatedRekapList = useMemo(() => {
+    const start = (rekapCurrentPage - 1) * rekapPerPage;
+    return filteredRekapList.slice(start, start + rekapPerPage);
+  }, [filteredRekapList, rekapCurrentPage, rekapPerPage]);
+
+  const openRekapDetail = async (teacher) => {
+    setRekapDetailTeacher(teacher);
+    setRekapDetailLoading(true);
+    setRekapDetailJournals([]);
+    try {
+      const res = await fetch(`/api/jurnal/harian?bulan=${filterMonth}&teacher_code=${encodeURIComponent(teacher.teacher_code)}&limit=all`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRekapDetailJournals(data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRekapDetailLoading(false);
+    }
+  };
+
+  const exportRekapExcel = () => {
+    const data = filteredRekapList.map((r, idx) => ({
+      No: idx + 1,
+      'Nama Guru': r.teacher_name,
+      'Kode Guru': r.teacher_code,
+      'NIP': r.nip || '-',
+      'Status': r.has_data ? 'Aktif Mengisi' : 'Belum Mengisi',
+      'Total Jurnal': r.total_jurnal,
+      'Tepat Waktu': r.total_tepat_waktu,
+      'Terlambat': r.total_terlambat,
+      'Persentase Disiplin': r.total_jurnal > 0 ? `${Math.round((r.total_tepat_waktu / r.total_jurnal) * 100)}%` : '0%',
+      'Jurnal Terakhir': r.jurnal_terakhir ? new Date(r.jurnal_terakhir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'
+    }));
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(`Rekap Jurnal ${filterMonth}`);
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      ws.addRow(keys);
+      data.forEach(item => ws.addRow(keys.map(k => item[k])));
+    }
+    wb.xlsx.writeBuffer().then(buf => {
+      saveAs(new Blob([buf]), `Rekap_Jurnal_Guru_${filterMonth}.xlsx`);
+    });
+  };
 
   useEffect(() => { fetchJurnal(); }, [fetchJurnal]);
   useEffect(() => { if (activeView ==='rekap') fetchRekap(); }, [activeView, fetchRekap]);
@@ -2377,70 +2571,716 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         </>
       )}
 
-      {/* === REKAP VIEW (Kurikulum) === */}
-      {activeView ==='rekap' && isKurikulum && (
-        <div className="ui-card overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-            <h3 className="font-bold text-slate-800 text-xs flex items-center gap-2 shrink-0">
-              <Filter size={14} className="text-[var(--ui-primary)]" />
-              Rekap Pengisian Jurnal Per Guru
-            </h3>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input
-                type="month"
-                value={filterMonth}
-                onChange={e => setFilterMonth(e.target.value)}
-                className="px-3 py-1.5 bg-white border-none rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:outline-[var(--ui-primary)] transition-all"
-              />
-              <Button variant="ghost" size="sm" onClick={fetchRekap} >
-                <RefreshCw size={12} />
-              </Button>
+      {/* === REKAP VIEW (Kurikulum) OVERHAULED === */}
+      {activeView === 'rekap' && isKurikulum && (
+        <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300">
+          
+          {/* TOP TOOLBAR: Bulan & Kontrol Export */}
+          <div className="ui-card p-4 rounded-[var(--ui-radius-card)] flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm border border-slate-100/90">
+            <div className="flex items-center gap-2.5">
+              <div 
+                className="w-9 h-9 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 shadow-inner"
+                style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+              >
+                <Users size={18} strokeWidth={2.5} />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-800 tracking-tight flex items-center gap-2">
+                  Rekap Jurnal Guru
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 border border-slate-200">
+                    {rekapStats.totalTeachers} Guru Terdata
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Monitoring kepatuhan & disiplin waktu pengisian KBM periode <strong className="text-slate-700">{monthLabel}</strong>
+                </p>
+              </div>
+            </div>
+
+            {/* Month Navigator & Export */}
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+              {/* Prev Month */}
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                title="Bulan Sebelumnya"
+                className="p-2 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <ChevronLeft size={16} strokeWidth={2.5} />
+              </button>
+
+              {/* Month Picker Input */}
+              <div className="relative flex items-center bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-control)] px-3 py-1.5 transition-all shadow-xs">
+                <Calendar size={14} className="text-[var(--ui-primary)] shrink-0 mr-2" />
+                <span className="text-xs font-black text-slate-800 pointer-events-none">
+                  {monthLabel}
+                </span>
+                <input
+                  type="month"
+                  value={filterMonth}
+                  onChange={e => {
+                    setFilterMonth(e.target.value);
+                    setRekapCurrentPage(1);
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+              </div>
+
+              {/* Next Month */}
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                title="Bulan Berikutnya"
+                className="p-2 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <ChevronRight size={16} strokeWidth={2.5} />
+              </button>
+
+              {/* Bulan Ini */}
+              <button
+                type="button"
+                onClick={handleResetThisMonth}
+                className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-slate-200/80 text-[10px] font-extrabold text-slate-700 transition-all cursor-pointer shadow-xs"
+              >
+                Bulan Ini
+              </button>
+
+              {/* Refresh */}
+              <button
+                type="button"
+                onClick={fetchRekap}
+                disabled={isRekapLoading}
+                title="Refresh Rekap"
+                className="p-2 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-50"
+              >
+                <RefreshCw size={15} strokeWidth={2.2} className={isRekapLoading ? "animate-spin text-[var(--ui-primary)]" : ""} />
+              </button>
+
+              {/* Export Excel Rekap */}
+              <button
+                type="button"
+                onClick={exportRekapExcel}
+                className="px-3.5 py-2 rounded-[var(--ui-radius-control)] font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
+                style={{
+                  background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
+                  color: "var(--ui-primary)",
+                  border: "1px solid color-mix(in srgb, var(--ui-primary) 30%, transparent)"
+                }}
+              >
+                <Download size={14} strokeWidth={2.2} />
+                <span>Export Excel</span>
+              </button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase border-b border-slate-200">
-                <tr>
-                  <th className="px-5 py-3 font-bold">Guru</th>
-                  <th className="px-5 py-3 text-center font-bold">Total Jurnal</th>
-                  <th className="px-5 py-3 text-center font-bold">Tepat Waktu</th>
-                  <th className="px-5 py-3 text-center font-bold">Terlambat</th>
-                  <th className="px-5 py-3 font-bold">Jurnal Terakhir</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rekapList.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-slate-400 font-medium">
-                      Tidak ada data jurnal untuk bulan {filterMonth}
-                    </td>
-                  </tr>
-                ) : rekapList.map(r => (
-                  <tr key={r.teacher_code} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-2.5">
-                      <p className="font-bold text-slate-800">{r.teacher_name || r.teacher_code}</p>
-                      <p className="text-[10px] text-slate-400">{r.teacher_code}</p>
-                    </td>
-                    <td className="px-5 py-2.5 text-center">
-                      <span className="font-black text-slate-700 text-base">{r.total_jurnal}</span>
-                    </td>
-                    <td className="px-5 py-2.5 text-center">
-                      <span className="font-bold text-emerald-600">{parseInt(r.total_submitted) - parseInt(r.total_terlambat)}</span>
-                    </td>
-                    <td className="px-5 py-2.5 text-center">
-                      <span className={`font-bold ${parseInt(r.total_terlambat) > 0 ?'text-amber-600' :'text-slate-400'}`}>
-                        {r.total_terlambat}
-                      </span>
-                    </td>
-                    <td className="px-5 py-2.5 text-slate-500">
-                      {r.jurnal_terakhir ? new Date(r.jurnal_terakhir).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) :'-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          {/* 4 KPI SUMMARY CARDS */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* KPI 1: Total Jurnal */}
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[var(--ui-primary)]/30 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-500">Total Jurnal</span>
+                <div 
+                  className="w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-inner"
+                  style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
+                >
+                  <BookOpen size={16} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-slate-800 tracking-tight">
+                  {rekapStats.totalJurnals}
+                  <span className="text-xs font-bold text-slate-400 ml-1">Jurnal</span>
+                </div>
+                <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Akumulasi KBM terisi bulan ini</p>
+              </div>
+            </div>
+
+            {/* KPI 2: Guru Aktif Mengisi */}
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-emerald-800">Guru Aktif</span>
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200/60 shadow-inner">
+                  <UserCheck size={16} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-emerald-700 tracking-tight">
+                  {rekapStats.activeTeachers}
+                  <span className="text-xs font-bold text-slate-400 ml-1">/ {rekapStats.totalTeachers} Guru</span>
+                </div>
+                <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">{rekapStats.activePct}% guru sudah input</p>
+              </div>
+            </div>
+
+            {/* KPI 3: Tepat Waktu */}
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-teal-200 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-teal-800">Tepat Waktu</span>
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60 shadow-inner">
+                  <CheckCircle2 size={16} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-teal-700 tracking-tight">
+                  {rekapStats.totalTepat}
+                  <span className="text-xs font-bold text-slate-400 ml-1">Jurnal</span>
+                </div>
+                <p className="text-[10px] font-semibold text-teal-600 mt-0.5">{rekapStats.onTimePct}% disiplin tepat waktu</p>
+              </div>
+            </div>
+
+            {/* KPI 4: Terlambat Diisi */}
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-amber-800">Terlambat</span>
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-inner">
+                  <Clock size={16} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-amber-700 tracking-tight">
+                  {rekapStats.totalTelat}
+                  <span className="text-xs font-bold text-slate-400 ml-1">Jurnal</span>
+                </div>
+                <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Diisi lewat tanggal KBM</p>
+              </div>
+            </div>
           </div>
+
+          {/* TABLE CONTAINER & CONTROLS */}
+          <div className="ui-card rounded-[var(--ui-radius-card)] overflow-hidden shadow-sm border border-slate-100/90">
+            
+            {/* SEARCH & FILTER TABS TOOLBAR */}
+            <div className="p-3.5 sm:p-4 bg-slate-50/70 border-b border-slate-200/70 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              
+              {/* Left: Filter Status Segmented Buttons */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => { setRekapStatusFilter('all'); setRekapCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                    rekapStatusFilter === 'all'
+                      ? 'bg-[var(--ui-primary)] text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                  }`}
+                >
+                  Semua Guru ({rekapStats.totalTeachers})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRekapStatusFilter('sudah'); setRekapCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                    rekapStatusFilter === 'sudah'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                  }`}
+                >
+                  Sudah Mengisi ({rekapStats.activeTeachers})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRekapStatusFilter('belum'); setRekapCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                    rekapStatusFilter === 'belum'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                  }`}
+                >
+                  Belum Mengisi ({rekapStats.inactiveTeachers})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRekapStatusFilter('terlambat'); setRekapCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                    rekapStatusFilter === 'terlambat'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                  }`}
+                >
+                  Ada Terlambat ({combinedRekap.filter(r => r.total_terlambat > 0).length})
+                </button>
+              </div>
+
+              {/* Right: Search & Sort */}
+              <div className="flex items-center gap-2 w-full lg:w-auto">
+                <div className="relative flex-1 lg:w-56">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={rekapSearch}
+                    onChange={e => {
+                      setRekapSearch(e.target.value);
+                      setRekapCurrentPage(1);
+                    }}
+                    placeholder="Cari nama / NIP / kode..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-control)] text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--ui-primary)] shadow-xs"
+                  />
+                  {rekapSearch && (
+                    <button 
+                      type="button" 
+                      onClick={() => setRekapSearch('')} 
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <select
+                  value={rekapSortBy}
+                  onChange={e => setRekapSortBy(e.target.value)}
+                  className="px-3 py-1.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-700 focus:outline-none focus:border-[var(--ui-primary)] shadow-xs cursor-pointer"
+                >
+                  <option value="name">Urut: Nama (A-Z)</option>
+                  <option value="total">Urut: Jurnal Terbanyak</option>
+                  <option value="terlambat">Urut: Terlambat Terbanyak</option>
+                </select>
+              </div>
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-200/70">
+                  <tr>
+                    <th className="px-4 py-3.5 text-center w-12">No</th>
+                    <th className="px-4 py-3.5">Guru Pengajar</th>
+                    <th className="px-4 py-3.5 text-center">Status</th>
+                    <th className="px-4 py-3.5 text-center">Total Jurnal</th>
+                    <th className="px-4 py-3.5 text-center">Disiplin Waktu</th>
+                    <th className="px-4 py-3.5">Jurnal Terakhir</th>
+                    <th className="px-4 py-3.5 text-right w-28">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedRekapList.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Users size={32} className="text-slate-300" />
+                          <p className="text-xs font-bold text-slate-600">Tidak ada data guru yang cocok</p>
+                          <p className="text-[11px] text-slate-400">Coba ubah kata kunci pencarian atau filter status.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedRekapList.map((r, idx) => {
+                      const absoluteIndex = (rekapCurrentPage - 1) * rekapPerPage + idx + 1;
+                      const initial = String(r.teacher_name || r.teacher_code).charAt(0).toUpperCase();
+                      const disiplinPct = r.total_jurnal > 0 ? Math.round((r.total_tepat_waktu / r.total_jurnal) * 100) : 0;
+
+                      return (
+                        <tr 
+                          key={r.teacher_code} 
+                          className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                          onClick={() => openRekapDetail(r)}
+                        >
+                          {/* No */}
+                          <td className="px-4 py-3 text-center font-bold text-slate-400">
+                            {absoluteIndex}
+                          </td>
+
+                          {/* Guru Name & Info */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div 
+                                className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 shadow-xs border"
+                                style={{ 
+                                  background: r.has_data ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)" : "#f1f5f9",
+                                  color: r.has_data ? "var(--ui-primary)" : "#64748b",
+                                  borderColor: r.has_data ? "color-mix(in srgb, var(--ui-primary) 25%, transparent)" : "#e2e8f0"
+                                }}
+                              >
+                                {initial}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-extrabold text-slate-800 text-xs truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                                  {r.teacher_name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[9.5px] font-bold px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 border border-slate-200/80">
+                                    Kode: {r.teacher_code}
+                                  </span>
+                                  {r.nip && r.nip !== '-' && (
+                                    <span className="text-[9.5px] font-semibold text-slate-400 truncate">
+                                      NIP: {r.nip}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-4 py-3 text-center">
+                            {r.has_data ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
+                                <Check size={11} strokeWidth={3} />
+                                <span>Aktif Mengisi</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200">
+                                <X size={11} strokeWidth={3} />
+                                <span>Belum Mengisi</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Total Jurnal */}
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-block px-2.5 py-1 rounded-[var(--ui-radius-control)] font-black text-xs ${
+                              r.total_jurnal > 0 
+                                ? 'bg-slate-100 text-slate-800 border border-slate-200' 
+                                : 'text-slate-300'
+                            }`}>
+                              {r.total_jurnal} Jurnal
+                            </span>
+                          </td>
+
+                          {/* Disiplin Waktu (Tepat vs Terlambat) */}
+                          <td className="px-4 py-3 text-center">
+                            {r.total_jurnal > 0 ? (
+                              <div className="inline-flex flex-col items-center gap-1 min-w-[120px]">
+                                <div className="flex items-center gap-1.5 text-[10.5px]">
+                                  <span className="font-extrabold text-emerald-600 flex items-center gap-0.5" title="Tepat Waktu">
+                                    <CheckCircle2 size={11} /> {r.total_tepat_waktu}
+                                  </span>
+                                  <span className="text-slate-300">/</span>
+                                  <span className={`font-extrabold flex items-center gap-0.5 ${r.total_terlambat > 0 ? 'text-amber-600' : 'text-slate-400'}`} title="Terlambat">
+                                    <Clock size={11} /> {r.total_terlambat} Telat
+                                  </span>
+                                </div>
+                                {/* Mini Progress bar */}
+                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200/60 shadow-inner">
+                                  <div 
+                                    style={{ width: `${disiplinPct}%` }} 
+                                    className="bg-emerald-500 h-full transition-all" 
+                                    title={`${disiplinPct}% Tepat Waktu`} 
+                                  />
+                                  {r.total_terlambat > 0 && (
+                                    <div 
+                                      style={{ width: `${100 - disiplinPct}%` }} 
+                                      className="bg-amber-400 h-full transition-all" 
+                                      title={`${100 - disiplinPct}% Terlambat`} 
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-[11px]">-</span>
+                            )}
+                          </td>
+
+                          {/* Jurnal Terakhir */}
+                          <td className="px-4 py-3">
+                            {r.jurnal_terakhir ? (
+                              <span className="text-xs font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-[var(--ui-radius-control)] border border-slate-200/70 inline-block">
+                                {new Date(r.jurnal_terakhir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 text-[11px] italic">Belum ada jurnal</span>
+                            )}
+                          </td>
+
+                          {/* Aksi Button */}
+                          <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => openRekapDetail(r)}
+                              className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white hover:bg-[var(--ui-primary)]/10 text-slate-700 hover:text-[var(--ui-primary)] border border-slate-200 hover:border-[var(--ui-primary)]/30 font-extrabold text-[11px] inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                            >
+                              <Eye size={12} strokeWidth={2.5} />
+                              <span>Detail</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE CARD VIEW */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {paginatedRekapList.length === 0 ? (
+                <div className="p-8 text-center flex flex-col items-center justify-center gap-2">
+                  <Users size={32} className="text-slate-300" />
+                  <p className="text-xs font-bold text-slate-600">Tidak ada data guru yang cocok</p>
+                  <p className="text-[11px] text-slate-400">Coba ubah filter atau pencarian Anda.</p>
+                </div>
+              ) : (
+                paginatedRekapList.map((r, idx) => {
+                  const initial = String(r.teacher_name || r.teacher_code).charAt(0).toUpperCase();
+                  const disiplinPct = r.total_jurnal > 0 ? Math.round((r.total_tepat_waktu / r.total_jurnal) * 100) : 0;
+
+                  return (
+                    <div 
+                      key={r.teacher_code} 
+                      className="p-4 flex flex-col gap-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div 
+                            className="w-9 h-9 rounded-full flex items-center justify-center font-black text-xs shrink-0 shadow-xs border"
+                            style={{ 
+                              background: r.has_data ? "color-mix(in srgb, var(--ui-primary) 12%, transparent)" : "#f1f5f9",
+                              color: r.has_data ? "var(--ui-primary)" : "#64748b",
+                              borderColor: r.has_data ? "color-mix(in srgb, var(--ui-primary) 25%, transparent)" : "#e2e8f0"
+                            }}
+                          >
+                            {initial}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-extrabold text-xs text-slate-800 truncate">
+                              {r.teacher_name}
+                            </h4>
+                            <p className="text-[10px] text-slate-400 font-semibold">
+                              Kode: <strong className="text-slate-600">{r.teacher_code}</strong> {r.nip && `• NIP: ${r.nip}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        {r.has_data ? (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200 shrink-0">
+                            Belum
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Mini Stats Chips */}
+                      <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-[var(--ui-radius-control)] border border-slate-100 text-center">
+                        <div>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase">Total</p>
+                          <p className="text-xs font-black text-slate-800 mt-0.5">{r.total_jurnal} Jurnal</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold text-emerald-600 uppercase">Tepat</p>
+                          <p className="text-xs font-black text-emerald-700 mt-0.5">{r.total_tepat_waktu}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold text-amber-600 uppercase">Telat</p>
+                          <p className={`text-xs font-black mt-0.5 ${r.total_terlambat > 0 ? 'text-amber-700' : 'text-slate-400'}`}>
+                            {r.total_terlambat}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Footer: Last Journal & Button */}
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Terakhir: <strong className="text-slate-700">{r.jurnal_terakhir ? new Date(r.jurnal_terakhir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}</strong>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => openRekapDetail(r)}
+                          className="px-3 py-1.5 rounded-[var(--ui-radius-control)] font-extrabold text-xs flex items-center gap-1.5 text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 shadow-xs active:scale-95 cursor-pointer"
+                        >
+                          <Eye size={12} strokeWidth={2.5} />
+                          <span>Rincian Jurnal</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Rekap Pagination Controls */}
+            {filteredRekapList.length > 0 && (
+              <PaginationControls
+                currentPage={rekapCurrentPage}
+                totalItems={filteredRekapList.length}
+                itemsPerPage={rekapPerPage}
+                onPageChange={setRekapCurrentPage}
+                onItemsPerPageChange={(v) => { setRekapPerPage(v); setRekapCurrentPage(1); }}
+              />
+            )}
+          </div>
+
         </div>
+      )}
+
+      {/* MODAL DETAIL JURNAL GURU (Kurikulum Drilldown) */}
+      {rekapDetailTeacher && (
+        <Modal
+          isOpen={!!rekapDetailTeacher}
+          onClose={() => setRekapDetailTeacher(null)}
+          title={`Rincian Jurnal: ${rekapDetailTeacher.teacher_name}`}
+          size="xl"
+        >
+          <div className="flex flex-col gap-4 p-1 sm:p-2">
+            
+            {/* Teacher Profile Card in Modal */}
+            <div className="p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm shrink-0 shadow-xs border"
+                  style={{ 
+                    background: "color-mix(in srgb, var(--ui-primary) 15%, transparent)", 
+                    color: "var(--ui-primary)",
+                    borderColor: "color-mix(in srgb, var(--ui-primary) 30%, transparent)"
+                  }}
+                >
+                  {String(rekapDetailTeacher.teacher_name || rekapDetailTeacher.teacher_code).charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-800">
+                    {rekapDetailTeacher.teacher_name}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                    Kode Guru: <span className="text-slate-700">{rekapDetailTeacher.teacher_code}</span> {rekapDetailTeacher.nip && `• NIP: ${rekapDetailTeacher.nip}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Month & Summary Badges */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-white border border-slate-200 font-black text-xs text-slate-700 shadow-xs">
+                  {monthLabel}
+                </span>
+                <span className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-emerald-50 border border-emerald-200 text-emerald-700 font-black text-xs shadow-xs">
+                  {rekapDetailTeacher.total_tepat_waktu} Tepat Waktu
+                </span>
+                {rekapDetailTeacher.total_terlambat > 0 && (
+                  <span className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-amber-50 border border-amber-200 text-amber-700 font-black text-xs shadow-xs">
+                    {rekapDetailTeacher.total_terlambat} Terlambat
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Journals List or Empty State */}
+            {rekapDetailLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2">
+                <RefreshCw size={24} className="animate-spin text-[var(--ui-primary)]" />
+                <p className="text-xs font-bold text-slate-500">Memuat riwayat jurnal guru...</p>
+              </div>
+            ) : rekapDetailJournals.length === 0 ? (
+              <div className="py-12 px-4 text-center rounded-[var(--ui-radius-card)] bg-slate-50/50 border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                <FileText size={36} className="text-slate-300" />
+                <h5 className="font-extrabold text-sm text-slate-700">Belum Ada Jurnal Terisi</h5>
+                <p className="text-xs text-slate-400 max-w-sm">
+                  Guru ini belum menginput jurnal pembelajaran untuk periode {monthLabel}.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                {rekapDetailJournals.map((j, jIdx) => {
+                  const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+                  const tanggalFormatted = j.tanggal 
+                    ? new Date(j.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })
+                    : '-';
+
+                  return (
+                    <div 
+                      key={j.id || jIdx} 
+                      className="p-3.5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 hover:border-slate-300 transition-all shadow-xs flex flex-col gap-2"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 border-b border-slate-100">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-extrabold text-xs text-slate-800">
+                            {tanggalFormatted}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-700 font-black text-[10px]">
+                            Jam ke-{j.jam_ke}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] font-black text-[10px]">
+                            {j.kelas}
+                          </span>
+                          <span className="font-extrabold text-xs text-[var(--ui-primary)]">
+                            {j.mapel}
+                          </span>
+                        </div>
+
+                        {/* Status Submit Badge */}
+                        <div className="shrink-0">
+                          <StatusBadge 
+                            submitted={!!j.submitted_at} 
+                            submittedAt={j.submitted_at} 
+                            tanggal={j.tanggal} 
+                            showTime={true} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Content details */}
+                      <div className="text-xs text-slate-600 space-y-1">
+                        <p>
+                          <strong className="text-slate-700">Materi Pokok:</strong> {j.materi_pokok || '-'}
+                        </p>
+                        {j.kegiatan_pembelajaran && (
+                          <p className="text-[11.5px] text-slate-500 line-clamp-2">
+                            <strong className="text-slate-700">Kegiatan:</strong> {j.kegiatan_pembelajaran}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap pt-0.5">
+                          {j.metode_pembelajaran && (
+                            <span><strong>Metode:</strong> {j.metode_pembelajaran}</span>
+                          )}
+                          <span><strong>Siswa Hadir:</strong> {j.jumlah_hadir || 0} siswa</span>
+                          {j.catatan && (
+                            <span className="italic text-slate-400">Catatan: {j.catatan}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200 mt-2">
+              <span className="text-xs font-bold text-slate-500">
+                Total: <strong className="text-slate-800">{rekapDetailJournals.length} Jurnal</strong>
+              </span>
+
+              <div className="flex items-center gap-2">
+                {rekapDetailJournals.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      generateRekapJurnalPDF({
+                        jurnalRecords: rekapDetailJournals,
+                        teacherInfo: {
+                          name: rekapDetailTeacher.teacher_name,
+                          code: rekapDetailTeacher.teacher_code,
+                          nip: rekapDetailTeacher.nip
+                        },
+                        semester: 'Bulanan',
+                        tahunAjaran: filterMonth,
+                        kelasFilter: 'Semua Kelas',
+                        mapelFilter: 'Semua Mapel',
+                        appSettings,
+                        schoolProfile
+                      });
+                    }}
+                    className="cursor-pointer font-bold text-xs flex items-center gap-1.5"
+                  >
+                    <FileText size={14} />
+                    <span>Cetak PDF Guru Ini</span>
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => setRekapDetailTeacher(null)}
+                  className="cursor-pointer font-bold text-xs"
+                >
+                  Tutup
+                </Button>
+              </div>
+            </div>
+
+          </div>
+        </Modal>
       )}
 
       {/* Modal Isi Jurnal */}
