@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from'react';
 import { useOutletContext, useNavigate, Link } from'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText, Sun, CloudRain, Moon, CloudSun } from'lucide-react';
 import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
+import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 
