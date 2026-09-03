@@ -9,6 +9,8 @@ import { handleAuthRoutes } from "./routes/auth.mjs";
 import { handleSettingsRoutes } from "./routes/settings.mjs";
 import { handleJurnalRoutes } from "./routes/jurnal.mjs";
 import { handleAdministrasiRoutes } from "./routes/administrasi.mjs";
+import { handleBackupRoutes } from "./routes/backup.mjs";
+import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert } from "./telegram-bot.mjs";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -1625,9 +1627,18 @@ const getHikvisionConfig = async () => {
 
 const sendDatabaseError = (req, res, err) => {
   const statusCode = err?.statusCode || (!dbPool ? 503 : 500);
+  const errMsg = getDatabaseErrorMessage(err);
+  
+  if (statusCode >= 500) {
+    // Fire & forget alert
+    import('./telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+      sendTelegramAlert('serverError', `HTTP ${statusCode}\nEndpoint: ${req.url}\nDetail: ${errMsg}`, 'warning').catch(() => {});
+    }).catch(() => {});
+  }
+
   send(req, res, statusCode, {
     ok: false,
-    error: getDatabaseErrorMessage(err),
+    error: errMsg,
     code: err?.code || dbStatus.code || "DATABASE_ERROR",
   });
 };
@@ -2979,6 +2990,14 @@ const server = createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/push")) {
         const handled = await handlePushRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
+    if (url.pathname.startsWith("/api/telegram-bot")) {
+        const handled = await handleTelegramBotRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
+    if (url.pathname.startsWith("/api/backup")) {
+        const handled = await handleBackupRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
 
@@ -5145,9 +5164,15 @@ server.listen(PORT, AUTH_BIND_HOST, async () => {
     await initializeWebPush(dbPool);
     // Initialize BK module tables (once, not on every request)
     await initBkTables(dbPool);
+    // Initialize Telegram Bot monitoring
+    initTelegramBot(dbPool).catch(err => console.warn('[TelegramBot] Init error:', err.message));
+    // Set database pool untuk auto-backup JSON
+    const { setBackupDbPool } = await import('./auto-backup.mjs');
+    setBackupDbPool(dbPool);
   } else {
     console.warn("[PUSH] Database not initialized, skipping Web Push setup.");
     console.warn("[BK] Database not initialized, skipping BK tables setup.");
+    console.warn("[TelegramBot] Database not initialized, skipping bot setup.");
   }
 });
 

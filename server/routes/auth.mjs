@@ -218,6 +218,11 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           att.lockUntil = Date.now() + 15 * 60 * 1000;
           att.count = 0;
           if (data) data.error = `${data.error || "Username atau password salah."} Akun Anda telah terkunci selama 15 menit.`;
+          
+          // Telegram Alert
+          import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+            sendTelegramAlert('bruteForce', `Target: ${username}\nIP: ${clientIp}\nAksi: Akun dikunci (15 menit).`, 'critical').catch(()=>{});
+          }).catch(()=>{});
         }
         loginAttempts.set(username, att);
 
@@ -227,6 +232,11 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (ipAtt.count >= 20) {
           ipAtt.lockUntil = Date.now() + 30 * 60 * 1000; // 30 min IP block
           ipAtt.count = 0;
+          
+          // Telegram Alert
+          import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+            sendTelegramAlert('bruteForce', `IP: ${clientIp}\nAksi: IP di-banned (30 menit).\nAlasan: 20x gagal login.`, 'critical').catch(()=>{});
+          }).catch(()=>{});
         }
         loginAttemptsByIp.set(clientIp, ipAtt);
       }
@@ -264,6 +274,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           if (!await ensureDatabaseReadable(req, res)) return true;
           try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [username, 'admin', req.socket?.remoteAddress || '']); } catch {}
           await logAudit(dbPool, { id: username, name: payload.adminUser.name || "Admin", role: "admin" }, req, "LOGIN", "session", "Admin berhasil masuk ke sistem");
+          
+          import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+            sendTelegramAlert('adminLogin', `Admin (${username}) login dari IP: ${req.socket?.remoteAddress || 'Unknown'}`, 'info').catch(()=>{});
+          }).catch(()=>{});
           const hasChangedPassword = payload.adminUser?.hasChangedPassword === true;
           const isDefaultPassword = !hasChangedPassword;
           send(req, res, 200, { ok: true, user: { role: "admin", name: payload.adminUser.name, isDefaultPassword, hasChangedPassword, authToken: createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name }) } });
