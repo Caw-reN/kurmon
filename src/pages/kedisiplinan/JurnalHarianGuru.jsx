@@ -2826,15 +2826,18 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                   )}
                 </div>
 
-                <select
-                  value={rekapSortBy}
-                  onChange={e => setRekapSortBy(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-700 focus:outline-none focus:border-[var(--ui-primary)] shadow-xs cursor-pointer"
-                >
-                  <option value="name">Urut: Nama (A-Z)</option>
-                  <option value="total">Urut: Jurnal Terbanyak</option>
-                  <option value="terlambat">Urut: Terlambat Terbanyak</option>
-                </select>
+                <div className="w-48 sm:w-52 shrink-0">
+                  <CustomSelect
+                    options={[
+                      { value: 'name', label: 'Urut: Nama (A-Z)' },
+                      { value: 'total', label: 'Urut: Jurnal Terbanyak' },
+                      { value: 'terlambat', label: 'Urut: Terlambat Terbanyak' }
+                    ]}
+                    value={rekapSortBy}
+                    onChange={v => setRekapSortBy(v)}
+                    searchable={false}
+                  />
+                </div>
               </div>
             </div>
 
