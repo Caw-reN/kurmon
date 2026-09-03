@@ -253,30 +253,32 @@ const StudentLayout = () => {
           className={`md:hidden z-50 transition-all duration-200 ${
             tabbarMode === 'floating'
               ? 'fixed bottom-3 left-4 right-4 rounded-[var(--ui-radius-card)] bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-2 py-2'
-              : 'fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2.5 px-3 shadow-sm'
+              : 'fixed bottom-0 left-0 right-0 bg-white rounded-t-[26px] border-t border-slate-100/90 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] pt-2.5 pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.4rem))] px-2'
           }`}
         >
-          <div className="flex items-center justify-around gap-1">
+          <div className="flex items-center justify-around">
             {filteredMobileNavItems.map(({ to, label, Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 className={({ isActive }) => [
-                  'flex-1 flex flex-col items-center justify-center py-1 transition-all rounded-[var(--ui-radius-small)] cursor-pointer gap-1',
-                  isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold',
+                  'flex-1 flex flex-col items-center justify-center py-1 transition-transform active:scale-95 cursor-pointer',
+                  isActive ? 'text-slate-900' : 'text-slate-500',
                 ].join(' ')}
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-9 h-9 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-all ${
-                      isActive 
-                        ? 'bg-emerald-100/80 text-emerald-600 scale-105' 
-                        : 'text-slate-400'
-                    }`}>
-                      <Icon size={20} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
+                    <div className="h-6 w-6 flex items-center justify-center">
+                      <Icon 
+                        size={21} 
+                        strokeWidth={isActive ? 2.2 : 1.85}
+                        className={isActive ? 'text-emerald-600' : 'text-slate-500'} 
+                      />
                     </div>
-                    <span className={`text-[11px] leading-none ${isActive ? 'text-emerald-600 font-extrabold' : 'text-slate-400 font-semibold'}`}>
+                    <span className={`mt-1 block text-center text-[11px] leading-tight tracking-tight ${
+                      isActive ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'
+                    }`}>
                       {label}
                     </span>
                   </>

@@ -136,24 +136,32 @@ const TeacherLayout = () => {
         </main>
 
         {/* Mobile Bottom Tab Bar (Hidden on Desktop) */}
-        <nav className="md:hidden bg-white border-t border-slate-200 flex-shrink-0 z-10 pb-safe">
-          <div className="flex">
+        <nav className="md:hidden bg-white rounded-t-[26px] border-t border-slate-100/90 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] flex-shrink-0 z-10 pt-2.5 pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.4rem))] px-2">
+          <div className="flex items-center justify-around">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className={({ isActive }) => ['flex-1 flex flex-col items-center justify-center py-2.5 gap-1','text-[9px] font-black transition-colors duration-150',
-                  isActive ?'text-[var(--ui-primary)]' :'text-slate-400',
-                ].join('')}
+                className={({ isActive }) => [
+                  'flex-1 flex flex-col items-center justify-center py-1 transition-transform active:scale-95 cursor-pointer',
+                  isActive ? 'text-slate-900' : 'text-slate-500',
+                ].join(' ')}
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-8 h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center transition-all
-                      ${isActive ?'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]' :'text-slate-400'}`}>
-                      <item.icon size={17} />
+                    <div className="h-6 w-6 flex items-center justify-center">
+                      <item.icon 
+                        size={21} 
+                        strokeWidth={isActive ? 2.2 : 1.85}
+                        className={isActive ? 'text-[var(--ui-primary)]' : 'text-slate-500'} 
+                      />
                     </div>
-                    <span>{item.label}</span>
+                    <span className={`mt-1 block text-center text-[11px] leading-tight tracking-tight ${
+                      isActive ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'
+                    }`}>
+                      {item.label}
+                    </span>
                   </>
                 )}
               </NavLink>
