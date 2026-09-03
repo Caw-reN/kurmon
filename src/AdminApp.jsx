@@ -3920,7 +3920,9 @@ export default function App() {
 
         <div className="mt-6 pt-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 pb-3 shrink-0 print:hidden">
           <div className="text-xs font-medium text-muted-foreground">
-            {appSettings.footerText ? (
+            {appSettings.footerDescription ? (
+              <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+            ) : appSettings.footerText ? (
               <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
             ) : (
               `© ${new Date().getFullYear()} ${appSettings.appName || "TimeSchedule"}. All rights reserved.`

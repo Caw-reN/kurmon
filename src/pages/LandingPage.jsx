@@ -1896,11 +1896,7 @@ export default function LandingPage() {
               </div>
 
               <div className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
-                {appSettings.footerDescription ? (
-                  <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
-                ) : (
-                  appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."
-                )}
+                {appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
               </div>
             </div>
 
@@ -1985,7 +1981,9 @@ export default function LandingPage() {
           {/* Bottom Copyright Row */}
           <div className="w-full border-t border-slate-200/70 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
             <p>
-              {appSettings.footerText ? (
+              {appSettings.footerDescription ? (
+                <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+              ) : appSettings.footerText ? (
                 <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
               ) : (
                 `© ${new Date().getFullYear()} ${appSettings.appName || "Sistem Akademik"}. Seluruh hak cipta dilindungi undang-undang.`

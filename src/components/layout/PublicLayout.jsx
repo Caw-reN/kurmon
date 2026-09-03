@@ -293,11 +293,7 @@ export default function PublicLayout() {
                   </div>
                 </div>
                 <div className="text-slate-500 text-[11px] font-medium max-w-sm mt-1">
-                  {appSettings.footerDescription ? (
-                    <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
-                  ) : (
-                    <>{schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}</>
-                  )}
+                  <>{schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}</>
                 </div>
               </div>
 
@@ -347,7 +343,9 @@ export default function PublicLayout() {
             {/* Row 2: Copyright */}
             <div className="w-full border-t border-slate-200 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] font-semibold text-slate-400">
               <div>
-                {footerText ? (
+                {appSettings.footerDescription ? (
+                  <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+                ) : footerText ? (
                   <span dangerouslySetInnerHTML={{ __html: footerText }} />
                 ) : (
                   <p>{`© ${new Date().getFullYear()} ${appName ||'Sistem Akademik'}. All rights reserved.`}</p>
