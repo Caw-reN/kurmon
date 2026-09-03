@@ -838,6 +838,16 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           return;
         }
 
+        const session = getSession(req) || {};
+        const roleStr = String(session.role || '').toLowerCase();
+        const isManagement = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) || roleStr.startsWith('waka');
+
+        const approvalStatus = isManagement ? 'approved' : 'pending';
+        const approvedById = isManagement ? (session.id || 'admin') : null;
+        const approvedByName = isManagement ? (session.name || session.username || 'Admin') : null;
+        const personType = body.personType || 'guru';
+        const gdriveUrl = body.gdrive_url || body.fileData || null;
+
         // 1. Hapus record lama pada tanggal tersebut jika ada (agar tidak double/tumpang tindih)
         await dbPool.query("DELETE FROM guru_attendance_records WHERE teacher_code = $1 AND tanggal = $2", [teacherCode, date]);
 
@@ -845,8 +855,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const recordId = `hik-manual-${teacherCode}-${date}`;
         
         await dbPool.query(
-          "INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-          [recordId, teacherCode, date, new Date().toTimeString().substring(0, 5), 'Manual', status, 'manual', note || `Diinput manual oleh admin`]
+          `INSERT INTO guru_attendance_records 
+           (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note, approval_status, approved_by_id, approved_by_name, gdrive_url, person_type) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          [recordId, teacherCode, date, new Date().toTimeString().substring(0, 5), 'Manual', status, 'manual', note || `Pengajuan ${status} oleh ${session.name || 'Guru'}`, approvalStatus, approvedById, approvedByName, gdriveUrl, personType]
         );
 
         // 2. WHATSAPP NOTIFIKASI
@@ -922,6 +934,200 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         send(req, res, 200, { ok: true, message: `Berhasil mencatat status ${status} guru ${teacherCode}.` });
       } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+
+    // ── MANAJEMEN SURAT IZIN / SAKIT GURU & KARYAWAN ──
+    if (req.method === "GET" && url.pathname === "/api/hikvision/guru-permits") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        const personType = url.searchParams.get("person_type") || "all"; // guru | karyawan | all
+        const month = url.searchParams.get("month");
+        const year = url.searchParams.get("year");
+        const status = url.searchParams.get("status");
+        const approvalStatus = url.searchParams.get("approval_status");
+        const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+
+        let query = `
+          SELECT 
+            gar.record_id,
+            gar.teacher_code,
+            TO_CHAR(gar.tanggal, 'YYYY-MM-DD') as tanggal,
+            gar.waktu::text as waktu,
+            gar.session_name,
+            gar.status,
+            gar.mode,
+            gar.note,
+            COALESCE(gar.approval_status, 'approved') as approval_status,
+            gar.approved_by_id,
+            gar.approved_by_name,
+            gar.gdrive_url,
+            COALESCE(gar.person_type, 'guru') as person_type,
+            gar.created_at
+          FROM guru_attendance_records gar
+          WHERE (gar.status IN ('Izin', 'Sakit', 'Dinas Luar', 'Alpa') OR gar.mode = 'manual' OR (gar.note IS NOT NULL AND gar.note != '' AND gar.note NOT LIKE 'Dari mesin%'))
+        `;
+        const conditions = [];
+        const params = [];
+
+        if (personType && personType !== "all") {
+          params.push(personType);
+          conditions.push(`gar.person_type = $${params.length}`);
+        }
+        if (month) {
+          params.push(parseInt(month));
+          conditions.push(`EXTRACT(MONTH FROM gar.tanggal) = $${params.length}`);
+        }
+        if (year) {
+          params.push(parseInt(year));
+          conditions.push(`EXTRACT(YEAR FROM gar.tanggal) = $${params.length}`);
+        }
+        if (status && status !== "all") {
+          params.push(status);
+          conditions.push(`gar.status = $${params.length}`);
+        }
+        if (approvalStatus && approvalStatus !== "all") {
+          params.push(approvalStatus);
+          conditions.push(`gar.approval_status = $${params.length}`);
+        }
+
+        if (conditions.length > 0) {
+          query += " AND " + conditions.join(" AND ");
+        }
+        query += " ORDER BY gar.tanggal DESC, gar.created_at DESC LIMIT 600";
+
+        const { rows } = await dbPool.query(query, params);
+
+        // Map nama & NIP dari mst_teachers dan mst_staffs
+        const teachersRes = await dbPool.query("SELECT id, payload FROM mst_teachers");
+        const staffsRes = await dbPool.query("SELECT id, payload FROM mst_staffs");
+        
+        const teacherMap = {};
+        teachersRes.rows.forEach(t => {
+          const p = t.payload || {};
+          const code = String(p.code || t.id).trim().toLowerCase();
+          teacherMap[code] = p;
+          if (p.nip) teacherMap[String(p.nip).trim().toLowerCase()] = p;
+        });
+
+        const staffMap = {};
+        staffsRes.rows.forEach(s => {
+          const p = s.payload || {};
+          const code = String(p.code || s.id).trim().toLowerCase();
+          staffMap[code] = p;
+          if (p.nip) staffMap[String(p.nip).trim().toLowerCase()] = p;
+        });
+
+        let enriched = rows.map(r => {
+          const codeKey = String(r.teacher_code || '').trim().toLowerCase();
+          const isStaff = r.person_type === 'karyawan';
+          const personData = isStaff ? (staffMap[codeKey] || teacherMap[codeKey]) : (teacherMap[codeKey] || staffMap[codeKey]);
+          
+          return {
+            ...r,
+            name: personData?.name || personData?.nama || r.teacher_code,
+            nip: personData?.nip || personData?.code || r.teacher_code,
+            division: personData?.division || personData?.type || (isStaff ? 'Tenaga Kependidikan' : 'Guru Pendidik'),
+            phone: personData?.phone || personData?.notify_phone || ''
+          };
+        });
+
+        if (search) {
+          enriched = enriched.filter(item => 
+            String(item.name || '').toLowerCase().includes(search) ||
+            String(item.nip || '').toLowerCase().includes(search) ||
+            String(item.teacher_code || '').toLowerCase().includes(search) ||
+            String(item.note || '').toLowerCase().includes(search)
+          );
+        }
+
+        send(req, res, 200, { ok: true, data: enriched });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/hikvision/guru-permits") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        const body = await readJsonBody(req);
+        const userRole = String(session.role || '').toLowerCase();
+        const hasApprovalPermission = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(userRole) || userRole.startsWith('waka');
+
+        if (body.action === 'approve') {
+          if (!hasApprovalPermission) {
+            return send(req, res, 403, { ok: false, error: "Hanya Admin, Pimpinan, atau Tata Usaha yang dapat menyetujui surat izin/sakit." });
+          }
+          await dbPool.query(
+            "UPDATE guru_attendance_records SET approval_status = 'approved', approved_by_id = $1, approved_by_name = $2 WHERE record_id = $3",
+            [session.id || 'admin', session.name || session.username || 'Admin', body.recordId || body.id]
+          );
+          send(req, res, 200, { ok: true, message: "Surat izin/sakit berhasil disetujui (ACC)." });
+          return;
+        }
+
+        if (body.action === 'reject') {
+          if (!hasApprovalPermission) {
+            return send(req, res, 403, { ok: false, error: "Hanya Admin, Pimpinan, atau Tata Usaha yang dapat menolak surat izin/sakit." });
+          }
+          await dbPool.query(
+            "UPDATE guru_attendance_records SET approval_status = 'rejected', approved_by_id = $1, approved_by_name = $2 WHERE record_id = $3",
+            [session.id || 'admin', session.name || session.username || 'Admin', body.recordId || body.id]
+          );
+          send(req, res, 200, { ok: true, message: "Surat izin/sakit telah ditolak." });
+          return;
+        }
+
+        if (body.action === 'delete') {
+          if (!hasApprovalPermission) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak untuk menghapus data izin/sakit." });
+          }
+          await dbPool.query("DELETE FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
+          send(req, res, 200, { ok: true, message: "Data izin/sakit berhasil dihapus." });
+          return;
+        }
+
+        // FITUR INPUT SURAT IZIN / SAKIT (OLEH ADMIN / TU MAUPUN GURU)
+        const { personType = 'guru', teacherCode, startDate, endDate, status, note, fileData, gdrive_url } = body;
+        if (!teacherCode || !startDate || !status) {
+          return send(req, res, 400, { ok: false, error: "Pilih person/pegawai, tanggal, dan status terlebih dahulu." });
+        }
+
+        const gdriveUrl = gdrive_url || fileData || null;
+        const approvalStatus = hasApprovalPermission ? 'approved' : 'pending';
+        const approvedById = hasApprovalPermission ? (session.id || 'admin') : null;
+        const approvedByName = hasApprovalPermission ? (session.name || session.username || 'Admin') : null;
+
+        const startD = new Date(startDate);
+        const endD = endDate ? new Date(endDate) : new Date(startDate);
+
+        for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split('T')[0];
+          const recId = `hik-manual-${teacherCode}-${dateStr}`;
+
+          await dbPool.query(
+            `INSERT INTO guru_attendance_records 
+             (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note, approval_status, approved_by_id, approved_by_name, gdrive_url, person_type)
+             VALUES ($1, $2, $3, '07:00:00', 'Manual', $4, 'manual', $5, $6, $7, $8, $9, $10)
+             ON CONFLICT (record_id) DO UPDATE SET 
+               status = EXCLUDED.status,
+               note = EXCLUDED.note,
+               approval_status = EXCLUDED.approval_status,
+               approved_by_id = EXCLUDED.approved_by_id,
+               approved_by_name = EXCLUDED.approved_by_name,
+               gdrive_url = COALESCE(EXCLUDED.gdrive_url, guru_attendance_records.gdrive_url),
+               person_type = EXCLUDED.person_type`,
+            [recId, teacherCode, dateStr, status, note || `Input ${status} oleh ${session.name || 'Admin'}`, approvalStatus, approvedById, approvedByName, gdriveUrl, personType]
+          );
+        }
+
+        send(req, res, 200, { ok: true, message: `Surat izin/sakit untuk ${teacherCode} berhasil disimpan.` });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
       return;
     }
 
@@ -1565,7 +1771,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         // Ambil guru_attendance_records (manual & hikvision sync)
         const attendanceRes = await dbPool.query(`
-          SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note 
+          SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note, COALESCE(approval_status, 'approved') as "approvalStatus", gdrive_url as "gdriveUrl" 
           FROM guru_attendance_records 
           WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
         `, [month, year]);
@@ -1601,27 +1807,39 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const day = recDate.getDate();
             const status = rec.status;
             
-            if (["Izin", "Sakit", "Dinas Luar", "Alpa"].includes(status)) {
-              matrix[matchedNis].days[day] = {
-                in: status,
-                out: status,
-                isLate: false,
-                isManual: true,
-                status: status,
-                note: rec.note
+            if (rec.approvalStatus === 'pending') {
+              if (!matrix[matchedNis].days[day]) matrix[matchedNis].days[day] = {};
+              matrix[matchedNis].days[day].pending_permission = {
+                status: rec.status,
+                note: rec.note,
+                gdrive_url: rec.gdriveUrl,
+                approval_status: rec.approvalStatus
               };
-            } else if (["Hadir", "Terlambat"].includes(status)) {
-              if (!matrix[matchedNis].days[day] || typeof matrix[matchedNis].days[day] !== 'object') {
-                matrix[matchedNis].days[day] = { in: null, out: null, isLate: false };
-              }
-              const recTime = rec.time || "07:00";
-              const isPulang = (rec.sessionName && rec.sessionName.toLowerCase().includes('pulang')) || recTime >= "12:00";
-              
-              if (isPulang) {
-                matrix[matchedNis].days[day].out = recTime;
-              } else {
-                matrix[matchedNis].days[day].in = recTime;
-                if (status === "Terlambat") matrix[matchedNis].days[day].isLate = true;
+            } else if (rec.approvalStatus !== 'rejected') {
+              if (["Izin", "Sakit", "Dinas Luar", "Alpa"].includes(status)) {
+                matrix[matchedNis].days[day] = {
+                  in: status,
+                  out: status,
+                  isLate: false,
+                  isManual: true,
+                  status: status,
+                  note: rec.note,
+                  approval_status: rec.approvalStatus
+                };
+              } else if (["Hadir", "Terlambat"].includes(status)) {
+                if (!matrix[matchedNis].days[day] || typeof matrix[matchedNis].days[day] !== 'object') {
+                  matrix[matchedNis].days[day] = { in: null, out: null, isLate: false };
+                }
+                const recTime = rec.time || "07:00";
+                const isPulang = (rec.sessionName && rec.sessionName.toLowerCase().includes('pulang')) || recTime >= "12:00";
+                
+                if (isPulang) {
+                  matrix[matchedNis].days[day].out = recTime;
+                } else {
+                  matrix[matchedNis].days[day].in = recTime;
+                  if (status === "Terlambat") matrix[matchedNis].days[day].isLate = true;
+                }
+                if (rec.note) matrix[matchedNis].days[day].note = rec.note;
               }
             }
           }

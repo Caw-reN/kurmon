@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle } from 'lucide-react';
+import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle, UserX } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
@@ -14,6 +14,7 @@ import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { compareTableValues } from '../../../utils/adminHelpers.js';
 import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
+import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
 import { Shield } from 'lucide-react';
 
 
@@ -1163,11 +1164,12 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     <div className="space-y-4 animate-fade-in">
       {!isNested && (
         <PageHeader 
-          title="Laporan & Rekap Absensi Guru"
-          description="Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."
-          icon={Users}
+          title={subTab === 'surat' ? "Manajemen Surat Izin/Sakit Guru" : "Laporan & Rekap Absensi Guru"}
+          description={subTab === 'surat' ? "Kelola permohonan izin, sakit, dan dinas luar guru serta proses persetujuan (ACC)." : "Pantau laporan kehadiran bulanan dan cetak rapor evaluasi kinerja guru."}
+          icon={subTab === 'surat' ? UserX : Users}
           tabs={[
             { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
             { id: 'perguru', label: 'Data Kinerja & Rapor Guru', icon: Award }
           ]}
           activeTab={subTab}
@@ -1175,9 +1177,38 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         />
       )}
 
-      <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Filter Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* When isNested, show Segmented Tabs at top so user can switch between Matriks and Surat */}
+      {isNested && (
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-xs border border-slate-200/80">
+          {[
+            { id: 'matriks', label: 'Rekap Matriks', icon: Calendar },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
+            { id: 'perguru', label: 'Rapor Kinerja Guru', icon: Award }
+          ].map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSubTab(t.id)}
+              className={`flex-1 py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
+                subTab === t.id
+                  ? 'bg-[var(--ui-primary)] text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 bg-transparent hover:bg-slate-50'
+              }`}
+            >
+              <t.icon size={14} />
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {subTab === 'surat' ? (
+        <AbsensiGuruStaff personType="guru" />
+      ) : (
+        <>
+          <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
+            {/* Top Filter Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="min-w-0">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Guru</label>
             <div className="relative w-full">
@@ -1622,6 +1653,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             </table>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {/* Modal Cetak Rapor Guru */}

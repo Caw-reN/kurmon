@@ -5,13 +5,13 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X } from 'lucide-react';
+import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { compareTableValues } from '../../../utils/adminHelpers.js';
-
+import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
 
 export default function HikvisionStaffReport({ classes = [], isNested = false }) {
   const user = useAuthStore(state => state.user);
@@ -19,6 +19,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   
   const [data, setData] = useState([]);
   const [toast, setToast] = useState(null);
+  const [subTab, setSubTab] = useState('matriks'); // 'matriks' | 'surat'
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -986,14 +987,48 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     <div className="space-y-4 animate-fade-in">
       {!isNested && (
         <PageHeader 
-          title={`Laporan Absensi Karyawan ${user?.isWalas ? `(Kelas ${user.walasClass})` :''}`}
-          description="Rekap kehadiran karyawan per bulan dalam bentuk matriks."
-          icon={Briefcase}
+          title={subTab === 'surat' ? "Manajemen Surat Izin/Sakit Karyawan" : `Laporan Absensi Karyawan ${user?.isWalas ? `(Kelas ${user.walasClass})` :''}`}
+          description={subTab === 'surat' ? "Kelola permohonan izin, sakit, dan dinas luar staf/karyawan serta proses persetujuan (ACC)." : "Rekap kehadiran karyawan per bulan dalam bentuk matriks."}
+          icon={subTab === 'surat' ? UserX : Briefcase}
+          tabs={[
+            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
+          ]}
+          activeTab={subTab}
+          onTabChange={setSubTab}
         />
       )}
 
-      <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Filter Grid */}
+      {/* When isNested, show Segmented Tabs at top */}
+      {isNested && (
+        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-xs border border-slate-200/80">
+          {[
+            { id: 'matriks', label: 'Rekap Matriks Karyawan', icon: Calendar },
+            { id: 'surat', label: 'Manajemen Surat Izin/Sakit Karyawan', icon: UserX }
+          ].map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSubTab(t.id)}
+              className={`flex-1 py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black uppercase tracking-wider transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
+                subTab === t.id
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 bg-transparent hover:bg-slate-50'
+              }`}
+            >
+              <t.icon size={14} />
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {subTab === 'surat' ? (
+        <AbsensiGuruStaff personType="karyawan" />
+      ) : (
+        <>
+          <div className="ui-card p-4 sm:p-5 flex flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
+            {/* Top Filter Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="min-w-0">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Karyawan</label>
@@ -1304,6 +1339,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           />
         </div>
       </div>
+      </>
+      )}
        {/* Modal Cetak Laporan Per Periode */}
        {showPrintModal && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">

@@ -1148,9 +1148,24 @@ const initDb = async () => {
         status VARCHAR(20) NOT NULL,
         mode VARCHAR(20) DEFAULT 'hikvision',
         note TEXT,
+        approval_status VARCHAR(20) DEFAULT 'approved',
+        approved_by_id VARCHAR(50),
+        approved_by_name VARCHAR(100),
+        gdrive_url TEXT,
+        person_type VARCHAR(20) DEFAULT 'guru',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    try {
+      await dbPool.query(`
+        ALTER TABLE guru_attendance_records 
+        ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'approved',
+        ADD COLUMN IF NOT EXISTS approved_by_id VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS approved_by_name VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS gdrive_url TEXT,
+        ADD COLUMN IF NOT EXISTS person_type VARCHAR(20) DEFAULT 'guru'
+      `);
+    } catch(e) {}
 
     // Auto-align sequences to prevent duplicate key violations (hikvision_logs_pkey, etc.)
     try {
