@@ -227,69 +227,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       });
     });
 
-    // 2. Tambahkan telemetri aktivitas riil guru & pengguna jika kategori tertentu masih minim data riwayat
-    const now = Date.now();
-    const activeTeacherList = teachers.slice(0, 6);
-
-    // Cek apakah list kekurangan aktivitas non-login
-    const hasNav = list.some(l => getActionMeta(l.action, l.detail).category === 'navigasi');
-    const hasKbm = list.some(l => getActionMeta(l.action, l.detail).category === 'kbm');
-    const hasFile = list.some(l => getActionMeta(l.action, l.detail).category === 'file');
-
-    if (!hasNav && activeTeacherList.length > 0) {
-      activeTeacherList.forEach((t, i) => {
-        list.push({
-          id: `telemetry-nav-${i}`,
-          userName: t.name || t.nama || `Guru ${t.code}`,
-          userId: t.code,
-          userRole: 'guru',
-          action: 'NAVIGASI',
-          detail: `Membuka Menu ${i % 2 === 0 ? 'Silabus & Modul Ajar' : 'Jadwal & KBM'}`,
-          timestamp: new Date(now - (i * 12 + 8) * 60000).toISOString()
-        });
-      });
-    }
-
-    if (!hasKbm && activeTeacherList.length > 0) {
-      activeTeacherList.forEach((t, i) => {
-        list.push({
-          id: `telemetry-kbm-${i}`,
-          userName: t.name || t.nama || `Guru ${t.code}`,
-          userId: t.code,
-          userRole: 'guru',
-          action: 'ISI_JURNAL',
-          detail: `Mengisi Jurnal KBM Mapel ${t.mapel || 'Mata Pelajaran'} Kelas ${classes[i % classes.length]?.name || 'X-1'}`,
-          timestamp: new Date(now - (i * 18 + 5) * 60000).toISOString()
-        });
-      });
-    }
-
-    if (!hasFile && activeTeacherList.length > 0) {
-      activeTeacherList.slice(0, 3).forEach((t, i) => {
-        list.push({
-          id: `telemetry-file-up-${i}`,
-          userName: t.name || t.nama || `Guru ${t.code}`,
-          userId: t.code,
-          userRole: 'guru',
-          action: 'UPLOAD_MODUL',
-          detail: `Mengunggah dokumen Modul Ajar: "Modul_${t.mapel || 'KBM'}_Semester_Ganjil.pdf"`,
-          timestamp: new Date(now - (i * 25 + 14) * 60000).toISOString()
-        });
-        list.push({
-          id: `telemetry-file-dl-${i}`,
-          userName: t.name || t.nama || `Guru ${t.code}`,
-          userId: t.code,
-          userRole: 'guru',
-          action: 'DOWNLOAD',
-          detail: `Mengunduh file Laporan: "Rekap_Presensi_KBM_${t.code}.xlsx"`,
-          timestamp: new Date(now - (i * 32 + 20) * 60000).toISOString()
-        });
-      });
-    }
-
     // Sort descending by timestamp
     return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [auditLogs, user, teachers, classes]);
+  }, [auditLogs, user]);
 
   const onlineStats = useMemo(() => {
     const today = new Date().toDateString();
@@ -307,7 +247,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   // Filtered list & Category Counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: appActivities.length, navigasi: 0, kbm: 0, file: 0, admin: 0 };
+    const counts = { all: appActivities.length, login: 0, navigasi: 0, kbm: 0, file: 0 };
     appActivities.forEach(item => {
       const meta = getActionMeta(item.action, item.detail);
       if (meta.category && counts[meta.category] !== undefined) {
@@ -362,9 +302,10 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 shrink-0 w-full">
             {[
               { id: 'all', label: 'Semua', count: categoryCounts.all },
+              { id: 'login', label: 'Login', count: categoryCounts.login },
               { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
               { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
-              { id: 'file', label: 'Upload & Unduh', count: categoryCounts.file }
+              { id: 'file', label: 'Upload & File', count: categoryCounts.file }
             ].map(f => (
               <button
                 key={f.id}

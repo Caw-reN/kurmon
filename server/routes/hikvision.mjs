@@ -966,23 +966,31 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             COALESCE(gar.person_type, 'guru') as person_type,
             gar.created_at
           FROM guru_attendance_records gar
-          WHERE (gar.status IN ('Izin', 'Sakit', 'Dinas Luar', 'Cuti', 'Alpa', 'Dispensasi') 
-                 OR gar.approval_status = 'pending' 
-                 OR (gar.gdrive_url IS NOT NULL AND gar.gdrive_url != ''))
-            AND (gar.status NOT IN ('Hadir', 'Terlambat') OR gar.approval_status = 'pending' OR (gar.gdrive_url IS NOT NULL AND gar.gdrive_url != ''))
+          WHERE (
+            LOWER(gar.status) IN ('izin', 'sakit', 'dinas luar', 'dinas', 'cuti', 'alpa', 'alpha', 'dispensasi') 
+            OR gar.approval_status = 'pending' 
+            OR (gar.gdrive_url IS NOT NULL AND gar.gdrive_url != '')
+            OR (gar.mode = 'manual' AND LOWER(gar.status) NOT IN ('hadir', 'terlambat'))
+            OR (gar.note IS NOT NULL AND (
+                LOWER(gar.note) LIKE '%izin%' 
+                OR LOWER(gar.note) LIKE '%sakit%' 
+                OR LOWER(gar.note) LIKE '%cuti%' 
+                OR LOWER(gar.note) LIKE '%dinas luar%'
+            ))
+          )
         `;
         const conditions = [];
         const params = [];
 
         if (personType && personType !== "all") {
           params.push(personType);
-          conditions.push(`gar.person_type = $${params.length}`);
+          conditions.push(`COALESCE(gar.person_type, 'guru') = $${params.length}`);
         }
-        if (month) {
+        if (month && month !== "all") {
           params.push(parseInt(month));
           conditions.push(`EXTRACT(MONTH FROM gar.tanggal) = $${params.length}`);
         }
-        if (year) {
+        if (year && year !== "all") {
           params.push(parseInt(year));
           conditions.push(`EXTRACT(YEAR FROM gar.tanggal) = $${params.length}`);
         }

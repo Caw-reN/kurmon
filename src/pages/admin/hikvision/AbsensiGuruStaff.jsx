@@ -516,8 +516,8 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
     return list.find(p => String(p.code || p.nip || p.id) === selectedPersonCode);
   }, [formPersonType, teachers, staffs, selectedPersonCode]);
 
-  // Month Options
   const monthOptions = [
+    { value: 'all', label: 'Semua Bulan' },
     { value: 1, label: 'Januari' }, { value: 2, label: 'Februari' },
     { value: 3, label: 'Maret' }, { value: 4, label: 'April' },
     { value: 5, label: 'Mei' }, { value: 6, label: 'Juni' },
@@ -527,6 +527,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   ];
 
   const yearOptions = [
+    { value: 'all', label: 'Semua Tahun' },
     { value: 2025, label: '2025' },
     { value: 2026, label: '2026' },
     { value: 2027, label: '2027' }
@@ -826,14 +827,14 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
               <CustomSelect
                 options={monthOptions}
                 value={filterMonth}
-                onChange={val => setFilterMonth(parseInt(val))}
+                onChange={val => setFilterMonth(val === 'all' ? 'all' : parseInt(val))}
               />
             </div>
             <div className="w-full sm:w-[100px]">
               <CustomSelect
                 options={yearOptions}
                 value={filterYear}
-                onChange={val => setFilterYear(parseInt(val))}
+                onChange={val => setFilterYear(val === 'all' ? 'all' : parseInt(val))}
               />
             </div>
           </div>

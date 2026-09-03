@@ -155,7 +155,7 @@ export const MENU_REGISTRY = [
   {
     id: 'laporan_absensi',
     icon: ClipboardList,
-    label: 'Laporan Presensi & Absensi',
+    label: 'Laporan Kehadiran',
     section: 'Kehadiran',
     adminGroup: 'Tata Usaha',
     adminGroupIcon: Briefcase,
