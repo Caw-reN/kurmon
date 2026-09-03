@@ -1649,7 +1649,13 @@ const sendDatabaseError = (req, res, err) => {
   if (statusCode >= 500) {
     // Fire & forget alert
     import('./telegram-bot.mjs').then(({ sendTelegramAlert }) => {
-      sendTelegramAlert('serverError', `HTTP ${statusCode}\nEndpoint: ${req.url}\nDetail: ${errMsg}`, 'warning').catch(() => {});
+      sendTelegramAlert('serverError', `Terjadi kegagalan proses pada sisi backend.`, 'warning', {
+        method: req.method,
+        path: req.url,
+        ip: typeof getClientIP === 'function' ? getClientIP(req) : req.socket?.remoteAddress,
+        user: req.user ? req.user.username || req.user.role : 'Guest',
+        stack: err?.stack || String(err)
+      }).catch(() => {});
     }).catch(() => {});
   }
 

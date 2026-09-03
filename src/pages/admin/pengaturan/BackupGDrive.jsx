@@ -228,6 +228,23 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
     }
   };
 
+  const handleToggleAlert = async (key, value) => {
+    if (!botStatus) return;
+    const newAlerts = { ...(botStatus.alertConfig || {}), [key]: value };
+    setBotStatus(prev => ({ ...prev, alertConfig: newAlerts }));
+    try {
+      const res = await fetch('/api/telegram-bot/config', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alerts: newAlerts })
+      });
+      const data = await res.json();
+      if (!data.ok) showToast('Gagal menyimpan konfigurasi.', 'error');
+    } catch(e) {
+      showToast('Koneksi bermasalah saat menyimpan.', 'error');
+    }
+  };
+
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -841,6 +858,46 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Configuration Toggles */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+              <div className="p-1.5 bg-slate-100 rounded-md text-slate-600"><Settings size={14} /></div>
+              Pengaturan Notifikasi (Toggles)
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {[
+                { key: 'attendance', label: 'Laporan Absensi Harian', desc: 'Rekap kehadiran otomatis & request manual via /absen' },
+                { key: 'serverError', label: 'Log Error Server (HTTP 500)', desc: 'Notifikasi saat backend crash atau unhandled exceptions' },
+                { key: 'bruteForce', label: 'Keamanan & Brute-Force', desc: 'Peringatan otomatis saat ada serangan login beruntun' },
+                { key: 'backupStatus', label: 'Status Backup & Restore', desc: 'Laporan keberhasilan atau kegagalan proses backup' },
+                { key: 'adminLogin', label: 'Notifikasi Login Admin', desc: 'Catat setiap kali SuperAdmin masuk ke sistem' },
+                { key: 'apiKeyAdded', label: 'Perubahan API Key', desc: 'Peringatan ketika ada perubahan pengaturan API Key' }
+              ].map((item) => (
+                <div key={item.key} className="flex items-start justify-between gap-3 p-3 rounded-[var(--ui-radius-small)] border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  <div>
+                    <h5 className="font-bold text-[13px] text-slate-700">{item.label}</h5>
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-0.5">{item.desc}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={botStatus?.alertConfig?.[item.key] ?? false}
+                      onChange={(e) => handleToggleAlert(item.key, e.target.checked)}
+                      disabled={!botStatus?.hasBotToken}
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            {!botStatus?.hasBotToken && (
+               <p className="text-[10px] text-amber-600 font-bold bg-amber-50 p-2 rounded-md">
+                 Tambahkan API Key terlebih dahulu untuk dapat mengatur fitur notifikasi.
+               </p>
+            )}
           </div>
 
           {/* Guide */}

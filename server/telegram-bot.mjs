@@ -27,6 +27,7 @@ let _alertConfig = {
   adminLogin: false,
   restoreDatabase: true,
   apiKeyAdded: true,
+  attendance: true,
 };
 let _dbPool = null;
 let _isRunning = false;
@@ -304,19 +305,21 @@ async function _cmdStats(chatId) {
 
 /**
  * Kirim alert push ke Telegram.
- * @param {string} type - 'bruteForce'|'serverError'|'backupStatus'|'adminLogin'|'restoreDatabase'|'apiKeyAdded'
+ * @param {string} type - 'bruteForce'|'serverError'|'backupStatus'|'adminLogin'|'restoreDatabase'|'apiKeyAdded'|'attendance'
  * @param {string} message - Pesan (plain text, bukan markdown)
  * @param {'info'|'warning'|'critical'} level
+ * @param {object} extraContext - Data tambahan spesifik error (req, err, ip)
  */
-export async function sendTelegramAlert(type, message, level = 'warning') {
+export async function sendTelegramAlert(type, message, level = 'warning', extraContext = null) {
   if (!_initialized && _dbPool) await _loadConfig();
   if (!_botToken || !_chatId) return;
   if (_alertConfig[type] === false) return;
 
-  // Rate limiting
+  // Rate limiting (bypass untuk attendance atau backup)
+  const bypassRateLimit = ['backupStatus', 'attendance'].includes(type);
   const now = Date.now();
   const lastSent = _recentAlerts.get(type) || 0;
-  if (now - lastSent < RATE_LIMIT_MS) return;
+  if (!bypassRateLimit && (now - lastSent < RATE_LIMIT_MS)) return;
   _recentAlerts.set(type, now);
 
   const emoji = { info: 'ℹ️', warning: '⚠️', critical: '🚨' }[level] || '⚠️';
@@ -327,11 +330,24 @@ export async function sendTelegramAlert(type, message, level = 'warning') {
     adminLogin:      '🔵 ADMIN LOGIN',
     restoreDatabase: '🔴 RESTORE DATABASE',
     apiKeyAdded:     '🔑 API KEY BARU',
+    attendance:      '📋 LAPORAN KEHADIRAN',
   }[type] || '📢 NOTIFIKASI';
 
   const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-  // Escape karakter Markdown yang bisa merusak format
-  const safeMsg = message.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
+  let safeMsg = message.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
+  
+  if (extraContext) {
+    let contextStr = '';
+    if (extraContext.method && extraContext.path) contextStr += `\n*Endpoint:* \`${extraContext.method} ${extraContext.path}\``;
+    if (extraContext.ip) contextStr += `\n*IP:* \`${extraContext.ip}\``;
+    if (extraContext.user) contextStr += `\n*User:* ${String(extraContext.user).replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}`;
+    if (extraContext.stack) {
+       const stackHead = extraContext.stack.split('\\n').slice(0, 3).join('\\n').replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
+       contextStr += `\n\n*Stack Trace:*\n\`\`\`\n${stackHead}\n\`\`\``;
+    }
+    safeMsg += contextStr;
+  }
+
   const fullMsg = `${emoji} *${header}*\n\n${safeMsg}\n\n🕐 ${time}`;
 
   await _sendMessage(_chatId, fullMsg);
@@ -343,6 +359,7 @@ export async function sendTelegramAlert(type, message, level = 'warning') {
 export async function sendDailyMorningAttendanceReport(targetChatId = null) {
   if (!_dbPool) return;
   if (!_initialized) await _loadConfig();
+  if (_alertConfig['attendance'] === false && !targetChatId) return; // Ignore if disabled globally unless requested via bot cmd
   const destChatId = targetChatId || _chatId;
   if (!_botToken || !destChatId) return;
 
@@ -446,7 +463,7 @@ _Laporan otomatis dikirim dari Mesin Absensi Hikvision & Sistem Kurmon._`;
 // ── HTTP Handler ─────────────────────────────────────────
 
 export async function handleTelegramBotRoutes(req, res, url, ctx) {
-  const { send, requireAuthenticated, normalizeServerRole } = ctx;
+  const { send, requireAuthenticated, normalizeServerRole, getRawBody } = ctx;
 
   if (req.method === 'GET' && url.pathname === '/api/telegram-bot/status') {
     const session = requireAuthenticated(req, res);
@@ -461,6 +478,46 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
         uptime: Math.floor((Date.now() - _startTime) / 1000),
       }
     });
+    return true;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/telegram-bot/config') {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+    if (!['admin', 'superadmin'].includes(normalizeServerRole(session.role))) {
+      send(req, res, 403, { ok: false, error: 'Hanya admin' });
+      return true;
+    }
+    
+    let body;
+    try {
+      body = JSON.parse(await getRawBody(req));
+    } catch(e) {
+      send(req, res, 400, { ok: false, error: 'Invalid JSON' });
+      return true;
+    }
+    
+    if (body.alerts) {
+       _alertConfig = { ..._alertConfig, ...body.alerts };
+       try {
+         // Ambil existing config dari DB
+         const { rows } = await _dbPool.query("SELECT extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' LIMIT 1");
+         if (rows.length > 0) {
+            let existingCfg = rows[0].extra_config || {};
+            if (typeof existingCfg === 'string') existingCfg = JSON.parse(existingCfg);
+            existingCfg.alerts = _alertConfig;
+            
+            await _dbPool.query(
+              "UPDATE api_keys SET extra_config = $1 WHERE service_name = 'telegram_bot_monitor'",
+              [JSON.stringify(existingCfg)]
+            );
+         }
+       } catch (err) {
+         console.warn("[TelegramBot] Failed to save config to DB:", err.message);
+       }
+    }
+    
+    send(req, res, 200, { ok: true, alertConfig: _alertConfig });
     return true;
   }
 

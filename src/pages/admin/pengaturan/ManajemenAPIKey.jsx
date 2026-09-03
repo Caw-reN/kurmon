@@ -4,7 +4,7 @@ import {
   LayoutDashboard, KeyRound, DatabaseBackup, CheckCircle2, EyeOff, 
   Eye, RefreshCw, Edit2, Trash2, ShieldCheck, AlertCircle, 
   Plus, AlertTriangle, Copy, Check, Search, Shield, Server,
-  Sparkles, ExternalLink, Lock
+  Sparkles, ExternalLink, Lock, Info
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
