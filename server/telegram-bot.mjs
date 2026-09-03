@@ -470,6 +470,7 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     if (!['admin', 'superadmin'].includes(normalizeServerRole(session.role))) {
       send(req, res, 403, { ok: false, error: 'Hanya admin' });
       return true;
+    }
     await _loadConfig(); // Selalu refresh konfigurasi dari DB sebelum uji coba
     if (!_botToken || !_chatId) {
       send(req, res, 400, { ok: false, error: 'Bot belum dikonfigurasi. Tambahkan API Key dengan service_name=telegram_bot_monitor.' });
