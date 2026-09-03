@@ -44,7 +44,7 @@ export default function ManajemenPiket({
     if (typeof getTabPermissionLevel === 'function') {
       const level = getTabPermissionLevel('kedisiplinan_piket');
       if (level === 'edit' || level === 'otomatis') return true;
-      if (level === 'view') return false;
+      if (level === 'view' || level === 'nonaktif') return false;
     }
 
     // 4. rolePermissions Matrix
@@ -66,11 +66,12 @@ export default function ManajemenPiket({
       } else if (typeof perms === 'object') {
         const p = perms['kedisiplinan_piket'];
         if (p === 'edit' || p === 'otomatis') return true;
-        if (p === 'view') return false;
+        if (p === 'view' || p === 'nonaktif') return false;
       }
     }
 
-    return true;
+    // Default fallback: tidak bisa edit jika tidak ada di whitelist
+    return false;
   }, [rawRole, subrole, division, isSuperAdminRole, getTabPermissionLevel, rolePermissions]);
 
   const tabs = [

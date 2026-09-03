@@ -1,12 +1,17 @@
-import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useRef } from 'react';
-import { CloudUpload, Settings, LayoutDashboard, KeyRound, DatabaseBackup, MessageSquare } from 'lucide-react';
+import { 
+  CloudUpload, Settings, LayoutDashboard, KeyRound, DatabaseBackup, 
+  MessageSquare, HardDrive, Send, Cloud, UploadCloud, Trash2, 
+  FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, 
+  Info, Shield, Calendar, FileJson, Sparkles, Clock, Trash, 
+  ExternalLink, ArrowRight, ShieldAlert, Check, AlertTriangle
+} from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
-import { HardDrive, Send, Cloud, UploadCloud, Trash2, FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, Info, Shield, Calendar, FileJson, Sparkles, Clock, Trash } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { Button } from '../../../components/ui.jsx';
 
 export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab: setSystemTab }) {
-  const [activeTab, setActiveTab] = useState('local'); //'local','telegram','r2','gdrive','restore','archive'
+  const [activeTab, setActiveTab] = useState('local'); // 'local' | 'gdrive' | 'r2' | 'telegram' | 'restore' | 'archive'
   
   const [isTelegramConfigured, setIsTelegramConfigured] = useState(false);
   const [isR2Configured, setIsR2Configured] = useState(false);
@@ -30,7 +35,10 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
   
   const authToken = useAuthStore(state => state.user?.authToken);
 
-  const showToast = (msg, type = 'success') => { setToast({ message: msg, type }); setTimeout(() => setToast(null), 3500); };
+  const showToast = (msg, type = 'success') => { 
+    setToast({ message: msg, type }); 
+    setTimeout(() => setToast(null), 3500); 
+  };
 
   const loadData = async () => {
     if (!authToken) return;
@@ -55,7 +63,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       if (bkRes.ok) { const b = await bkRes.json(); setLocalBackups(b.data || []); }
       if (schRes.ok) { const s = await schRes.json(); setSchedule(s.data || schedule); }
       if (botRes.ok) { const b = await botRes.json(); setBotStatus(b.data); }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    }
     setIsCheckingConfig(false);
   };
 
@@ -73,9 +83,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
     if (type === 'telegram') { apiEndpoint = '/api/backup-telegram'; label = 'Telegram'; }
     if (type === 'gdrive') { apiEndpoint = '/api/backup-gdrive'; label = 'Google Drive'; }
     if (type === 'r2') { apiEndpoint = '/api/backup-r2'; label = 'Cloudflare R2'; }
-    if (type === 'local') { apiEndpoint = '/api/backup/local'; label = 'Local Storage'; }
+    if (type === 'local') { apiEndpoint = '/api/backup/local'; label = 'Lokal Server'; }
     
-    showToast(`Memulai backup ke ${label}...`, 'success');
+    showToast(`Memulai pencadangan data ke ${label}...`, 'success');
     
     try {
       const res = await fetch(apiEndpoint, {
@@ -88,16 +98,21 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         const filename = data.data?.filename || data.data?.fileName || 'backup.json';
         const size = data.data?.size || '-';
         const newLog = { 
-          id: Date.now(), type: label, status: 'success', filename, size, created_at: new Date().toISOString() 
+          id: Date.now(), 
+          type: label, 
+          status: 'success', 
+          filename, 
+          size, 
+          created_at: new Date().toISOString() 
         };
         setBackupLogs(prev => [newLog, ...prev]);
-        showToast(`Backup berhasil dikirim ke ${label}! 🎉`);
-        if (type === 'local') loadData(); // refresh list
+        showToast(`Pencadangan database ke ${label} berhasil diselesaikan! 🎉`);
+        if (type === 'local') loadData(); // refresh file list
       } else {
-        showToast(data.error || 'Terjadi kesalahan saat mem-backup.', 'error');
+        showToast(data.error || 'Terjadi kesalahan saat memproses backup.', 'error');
       }
     } catch (e) {
-      showToast('Gagal memanggil API backup.', 'error');
+      showToast('Gagal memanggil antarmuka API backup.', 'error');
     } finally {
       setIsBackingUp(false);
     }
@@ -113,7 +128,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
       if (!res.ok) {
         const errJson = await res.json().catch(() => null);
-        showToast(errJson?.error || `Gagal mengunduh backup.`, 'error');
+        showToast(errJson?.error || `Gagal mengunduh berkas cadangan.`, 'error');
         return;
       }
       const blob = await res.blob();
@@ -133,30 +148,30 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
       
-      showToast(`Berhasil mengunduh backup!`);
+      showToast(`Berkas cadangan berhasil diunduh ke komputer Anda!`);
     } catch (err) {
-      showToast(`Gagal mengunduh backup.`, 'error');
+      showToast(`Gagal mengunduh file cadangan.`, 'error');
     } finally {
       setIsDownloading(prev => ({ ...prev, [typeOrFilename]: false }));
     }
   };
 
   const handleDeleteLocal = async (filename) => {
-    if (!await window.confirmAsync(`Hapus permanen file backup: ${filename}?`)) return;
+    if (!await window.confirmAsync(`Hapus permanen berkas backup: ${filename}?`)) return;
     try {
       const res = await fetch(`/api/backup/delete/${filename}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${authToken}` }
       });
       if (res.ok) {
-        showToast(`File ${filename} berhasil dihapus.`);
+        showToast(`Berkas ${filename} berhasil dihapus dari server.`);
         loadData();
       } else {
         const data = await res.json();
-        showToast(data.error || 'Gagal menghapus file.', 'error');
+        showToast(data.error || 'Gagal menghapus berkas.', 'error');
       }
     } catch (e) {
-      showToast('Gagal memanggil API.', 'error');
+      showToast('Terjadi kesalahan koneksi saat menghapus.', 'error');
     }
   };
 
@@ -169,13 +184,13 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         body: JSON.stringify(schedule)
       });
       if (res.ok) {
-        showToast('Jadwal backup berhasil disimpan!');
+        showToast('Konfigurasi jadwal auto-backup berhasil diperbarui!');
       } else {
         const data = await res.json();
         showToast(data.error || 'Gagal menyimpan jadwal.', 'error');
       }
     } catch (e) {
-      showToast('Gagal memanggil API.', 'error');
+      showToast('Gagal memanggil API jadwal.', 'error');
     } finally {
       setIsSavingSchedule(false);
     }
@@ -188,9 +203,11 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await res.json();
-      if (data.ok) showToast('Test pesan berhasil dikirim ke Telegram!');
-      else showToast(data.error || 'Gagal test bot.', 'error');
-    } catch (e) { showToast('Gagal koneksi ke server.', 'error'); }
+      if (data.ok) showToast('Pesan uji coba berhasil terkirim ke Telegram!');
+      else showToast(data.error || 'Gagal mengirim pesan uji coba.', 'error');
+    } catch (e) { 
+      showToast('Gagal terhubung ke bot server.', 'error'); 
+    }
   };
 
   const handleReloadBot = async () => {
@@ -201,28 +218,31 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('Bot berhasil direstart/direload.');
+        showToast('Bot Telegram berhasil dimuat ulang!');
         loadData();
+      } else {
+        showToast(data.error || 'Gagal memuat ulang bot.', 'error');
       }
-      else showToast(data.error || 'Gagal reload bot.', 'error');
-    } catch (e) { showToast('Gagal koneksi ke server.', 'error'); }
+    } catch (e) { 
+      showToast('Gagal menghubungi bot server.', 'error'); 
+    }
   };
 
   const handleFileChange = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     if (!file.name.endsWith('.json')) {
-      showToast('File backup harus berformat .json', 'error');
+      showToast('Berkas cadangan harus berekstensi .json', 'error');
       return;
     }
 
-    if (!await window.confirmAsync('PERINGATAN: Memulihkan database akan menimpa SEMUA data yang ada saat ini. Apakah Anda yakin?')) {
+    if (!await window.confirmAsync('PERINGATAN KRITIKAL: Memulihkan database akan menimpa SELURUH data sekolah yang ada saat ini dengan data dari file backup. Apakah Anda benar-benar yakin ingin melanjutkan?')) {
       e.target.value = '';
       return;
     }
 
     setIsRestoring(true);
-    showToast('Memulihkan database, mohon tunggu...', 'success');
+    showToast('Sedang memulihkan database sekolah, mohon tunggu...', 'success');
     
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -238,13 +258,13 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         const data = await res.json();
         
         if (data.ok) {
-          showToast('Database berhasil dipulihkan! 🎉');
+          showToast('Database berhasil dipulihkan! Halaman akan dimuat ulang...');
           setTimeout(() => window.location.reload(), 2000);
         } else {
-          showToast(data.error || 'Terjadi kesalahan saat memulihkan.', 'error');
+          showToast(data.error || 'Terjadi kesalahan saat memulihkan data.', 'error');
         }
       } catch (e) {
-        showToast('File tidak valid atau gagal terhubung ke server.', 'error');
+        showToast('Berkas JSON tidak valid atau struktur tidak cocok.', 'error');
       } finally {
         setIsRestoring(false);
       }
@@ -255,12 +275,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
 
   const handleArchive = async () => {
     if (!archiveDate) return;
-    if (!await window.confirmAsync(`PERINGATAN KRITIKAL! Anda akan MENGHAPUS PERMANEN seluruh data log/absensi yang dibuat sebelum tanggal ${archiveDate}. Lanjutkan?`)) {
+    if (!await window.confirmAsync(`PERINGATAN KEAMANAN: Anda akan MENGHAPUS PERMANEN riwayat log dan absensi yang dibuat sebelum tanggal ${archiveDate}. Data guru, siswa, dan kelas tidak akan terhapus. Lanjutkan?`)) {
       return;
     }
     
     setIsArchiving(true);
-    showToast('Memulai proses pengarsipan dan pembersihan...', 'success');
+    showToast('Memulai proses pengarsipan dan pembersihan data lampau...', 'success');
     
     try {
       const res = await fetch('/api/archive-data', {
@@ -269,175 +289,302 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         body: JSON.stringify({ dateBefore: archiveDate + 'T00:00:00Z' })
       });
       const data = await res.json();
-      if (data.ok) showToast(data.message);
+      if (data.ok) showToast(data.message || 'Pembersihan database berhasil diselesaikan!');
       else showToast(data.error || 'Gagal melakukan pembersihan.', 'error');
     } catch (e) {
-      showToast('Gagal memanggil API.', 'error');
+      showToast('Gagal memanggil API pengarsipan.', 'error');
     } finally {
       setIsArchiving(false);
     }
   };
 
+  const TAB_ITEMS = [
+    { id: 'local', icon: HardDrive, label: 'Backup Lokal & SQL', isConfigured: true },
+    { id: 'gdrive', icon: HardDrive, label: 'Google Drive', isConfigured: isGDriveConfigured },
+    { id: 'r2', icon: Cloud, label: 'Cloudflare R2', isConfigured: isR2Configured },
+    { id: 'telegram', icon: Send, label: 'Telegram Bot', isConfigured: isTelegramConfigured },
+    { id: 'restore', icon: UploadCloud, label: 'Pulihkan Data', isConfigured: true },
+    { id: 'archive', icon: Trash2, label: 'Arsip & Bersihkan', isConfigured: true },
+  ];
+
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
       <PageHeader 
         title="Manajemen Backup & Arsip"
-        description="Kelola pencadangan database sekolah ke berbagai platform (Lokal, R2, Telegram, GDrive) dan bersihkan data lampau."
+        description="Pencadangan terpusat database sekolah ke berbagai platform (Lokal, Google Drive, Cloudflare R2, Telegram) serta pemulihan dan pembersihan data berkala."
         icon={CloudUpload}
         tabs={[
-          { id:"fitur", label:"Fitur", icon: Settings },
-          { id:"tampilan", label:"Tampilan Web", icon: LayoutDashboard },
-          { id:"whatsapp", label:"WhatsApp", icon: MessageSquare },
-          { id:"api_keys", label:"API Key", icon: KeyRound },
-          { id:"gdrive_backup", label:"Backup", icon: DatabaseBackup }
+          { id: "fitur", label: "Fitur", icon: Settings },
+          { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
+          { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+          { id: "api_keys", label: "API Key", icon: KeyRound },
+          { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }
         ]}
         activeTab={activeSystemTab}
         onTabChange={setSystemTab}
       />
       
-      {/* TABS */}
-      <div className="flex gap-2 p-1.5 bg-slate-100/80 backdrop-blur-md rounded-2xl w-max max-w-full overflow-x-auto shadow-inner border border-slate-200/60 mb-8">
-        {[
-          { id: 'local', icon: HardDrive, label: 'Backup Lokal', color: 'var(--ui-primary)' },
-          { id: 'telegram', icon: Send, label: 'Telegram Bot', color: '#0284c7' },
-          { id: 'r2', icon: Cloud, label: 'Cloudflare R2', color: '#f59e0b' },
-          { id: 'gdrive', icon: HardDrive, label: 'Google Drive', color: '#10b981' },
-          { id: 'restore', icon: UploadCloud, label: 'Pulihkan Data', color: '#8b5cf6' },
-          { id: 'archive', icon: Trash2, label: 'Arsip & Bersihkan', color: '#e11d48' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === tab.id
-                ? 'bg-white shadow-md text-slate-800 scale-100'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95 hover:scale-100'
-            }`}
-          >
-            <tab.icon size={16} className={activeTab === tab.id ? '' : 'opacity-70'} style={activeTab === tab.id ? { color: tab.color } : {}} />
-            <span className={activeTab === tab.id ? 'tracking-tight' : ''}>{tab.label}</span>
-          </button>
-        ))}
+      {/* SEGMENTED TAB BAR */}
+      <div className="flex gap-1.5 p-1.5 bg-slate-100/90 backdrop-blur-md rounded-[var(--ui-radius-card)] w-full max-w-full overflow-x-auto border border-slate-200/80 shadow-inner">
+        {TAB_ITEMS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] font-bold text-xs transition-all duration-200 shrink-0 cursor-pointer ${
+                isActive
+                  ? 'bg-white shadow-xs text-slate-800 font-black scale-100 border border-slate-200/80'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
+              }`}
+            >
+              <tab.icon size={15} className={isActive ? 'text-emerald-600' : 'opacity-70'} />
+              <span>{tab.label}</span>
+              {tab.id !== 'local' && tab.id !== 'restore' && tab.id !== 'archive' && (
+                <span 
+                  className={`w-1.5 h-1.5 rounded-full ${tab.isConfigured ? 'bg-emerald-500' : 'bg-slate-300'}`} 
+                  title={tab.isConfigured ? "Terkonfigurasi" : "Belum Dikonfigurasi"} 
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* TAB CONTENT: LOCAL BACKUP */}
+      {/* ── 1. TAB: BACKUP LOKAL & SQL ── */}
       {activeTab === 'local' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-indigo-50 to-white rounded-[24px] border border-indigo-200 p-6 flex flex-col justify-between relative group hover:shadow-xl transition-all">
-              <div className="flex items-start gap-4 mb-4 relative z-10">
-                <div className="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-indigo-200">
-                  <DatabaseBackup size={28} />
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Quick Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* SQL Dump */}
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-indigo-50/50 via-white to-white border border-indigo-100 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200">
+                  <DatabaseBackup size={22} />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-slate-800 text-base">Backup Relasional DB</h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">Unduh struktur dan data mentah (SQL Dump).</p>
+                  <h4 className="font-black text-slate-800 text-sm">Backup Relasional DB</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                    Unduh struktur skema dan seluruh baris data dalam format PostgreSQL SQL Dump.
+                  </p>
                 </div>
               </div>
-              <Button onClick={() => handleDownloadBackup('postgresql')} disabled={!!isDownloading['postgresql']} className="w-full mt-2 font-bold rounded-xl" variant="outline">
-                {isDownloading['postgresql'] ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />} Unduh SQL Dump
-              </Button>
+              <button
+                type="button"
+                onClick={() => handleDownloadBackup('postgresql')}
+                disabled={!!isDownloading['postgresql']}
+                className="w-full py-2.5 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isDownloading['postgresql'] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+                <span>Unduh Berkas SQL</span>
+              </button>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-white rounded-[24px] border border-emerald-200 p-6 flex flex-col justify-between relative group hover:shadow-xl transition-all">
-              <div className="flex items-start gap-4 mb-4 relative z-10">
-                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-emerald-200">
-                  <FileSpreadsheet size={28} />
+            {/* Excel Master Data */}
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-100 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                  <FileSpreadsheet size={22} />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-slate-800 text-base">Backup Master Data</h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">Ekspor data akademik utama (Excel).</p>
+                  <h4 className="font-black text-slate-800 text-sm">Master Data Spreadsheet</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                    Ekspor seluruh data siswa, guru, jadwal, dan kelas ke dokumen Microsoft Excel (.xlsx).
+                  </p>
                 </div>
               </div>
-              <Button onClick={() => handleDownloadBackup('excel')} disabled={!!isDownloading['excel']} className="w-full mt-2 font-bold rounded-xl" variant="outline">
-                {isDownloading['excel'] ? <RefreshCw size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />} Unduh Excel
-              </Button>
+              <button
+                type="button"
+                onClick={() => handleDownloadBackup('excel')}
+                disabled={!!isDownloading['excel']}
+                className="w-full py-2.5 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isDownloading['excel'] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
+                <span>Unduh Format Excel</span>
+              </button>
             </div>
 
-            <div className="bg-gradient-to-br from-amber-50 to-white rounded-[24px] border border-amber-300 p-6 flex flex-col justify-between relative group hover:shadow-xl transition-all shadow-sm">
-              <div className="flex items-start gap-4 mb-4 relative z-10">
-                <div className="w-14 h-14 bg-amber-200 text-amber-700 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-amber-300">
-                  <FileJson size={28} />
+            {/* JSON Full Snapshot */}
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-amber-50/50 via-white to-white border border-amber-200 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
+                  <FileJson size={22} />
                 </div>
                 <div>
-                  <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-200 text-amber-900 mb-1">Rekomendasi</span>
-                  <h4 className="font-extrabold text-slate-800 text-base">Backup JSON Lokal</h4>
-                  <p className="text-xs text-slate-600 mt-1 font-medium">Buat arsip JSON lengkap dari seluruh sistem saat ini.</p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[9px] font-black bg-amber-200 text-amber-900 uppercase">
+                      Snapshot Penuh
+                    </span>
+                  </div>
+                  <h4 className="font-black text-slate-800 text-sm">Arsip JSON Lokal</h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Buat file cadangan JSON instan dari seluruh database server saat ini.
+                  </p>
                 </div>
               </div>
-              <Button onClick={() => handleManualBackup('local')} disabled={isBackingUp} className="w-full mt-2 font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white shadow-md">
-                {isBackingUp ? <RefreshCw size={16} className="animate-spin mr-2" /> : <DatabaseBackup size={16} className="mr-2" />} Buat Backup Baru
-              </Button>
+              <button
+                type="button"
+                onClick={() => handleManualBackup('local')}
+                disabled={isBackingUp}
+                className="w-full py-2.5 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isBackingUp ? <RefreshCw size={14} className="animate-spin" /> : <DatabaseBackup size={14} />}
+                <span>Buat Backup Baru di Server</span>
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          {/* Schedule & History Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Auto Schedule Form */}
-            <div className="md:col-span-1 bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4"><Clock size={18} className="text-slate-400" /> Jadwal Otomatis</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-slate-600">Aktifkan Auto-Backup</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={schedule.enabled} onChange={e => setSchedule({...schedule, enabled: e.target.checked})} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
-                  </label>
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <Clock size={18} className="text-slate-400" />
+                <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">Jadwal Auto-Backup Otomatis</h3>
+              </div>
+
+              <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-100">
+                  <div>
+                    <span className="font-black text-slate-800 block">Jadwal Harian Otomatis</span>
+                    <span className="text-[10.5px] text-slate-400 font-medium">Backup otomatis setiap malam</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={schedule.enabled} 
+                    onChange={e => setSchedule({...schedule, enabled: e.target.checked})} 
+                    className="w-4 h-4 accent-emerald-600 rounded cursor-pointer" 
+                  />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Jam Eksekusi (0-23)</label>
-                  <input type="number" min="0" max="23" value={schedule.hour} onChange={e => setSchedule({...schedule, hour: parseInt(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-bold" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Simpan File Lama (Hari)</label>
-                  <input type="number" min="1" max="30" value={schedule.keepDays} onChange={e => setSchedule({...schedule, keepDays: parseInt(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-bold" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-slate-600">Kirim Notif Telegram</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={schedule.sendToTelegram} onChange={e => setSchedule({...schedule, sendToTelegram: e.target.checked})} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+                  <label className="block text-[10.5px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                    Jam Eksekusi (0 - 23 WIB)
                   </label>
+                  <input 
+                    type="number" 
+                    min="0" 
+                    max="23" 
+                    value={schedule.hour} 
+                    onChange={e => setSchedule({...schedule, hour: parseInt(e.target.value) || 0})} 
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold" 
+                  />
                 </div>
-                <Button onClick={handleSaveSchedule} disabled={isSavingSchedule} className="w-full mt-2" variant="outline">
-                  {isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}
-                </Button>
+
+                <div>
+                  <label className="block text-[10.5px] font-black text-slate-500 uppercase tracking-wider mb-1">
+                    Retensi File (Simpan Selama Hari)
+                  </label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="60" 
+                    value={schedule.keepDays} 
+                    onChange={e => setSchedule({...schedule, keepDays: parseInt(e.target.value) || 7})} 
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold" 
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium">File lebih lama dari jumlah hari ini akan otomatis dibersihkan.</p>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-100">
+                  <div>
+                    <span className="font-black text-slate-800 block">Kirim Berkas ke Telegram</span>
+                    <span className="text-[10.5px] text-slate-400 font-medium">Kirim file saat auto-backup selesai</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={schedule.sendToTelegram} 
+                    onChange={e => setSchedule({...schedule, sendToTelegram: e.target.checked})} 
+                    className="w-4 h-4 accent-emerald-600 rounded cursor-pointer" 
+                  />
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={handleSaveSchedule} 
+                  disabled={isSavingSchedule} 
+                  className="w-full py-2.5 rounded-[var(--ui-radius-small)] font-black text-xs bg-slate-800 hover:bg-slate-900 text-white transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  {isSavingSchedule ? 'Menyimpan Pengaturan...' : 'Simpan Jadwal Backup'}
+                </button>
               </div>
             </div>
 
-            {/* Local Backup List */}
-            <div className="md:col-span-2 bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4"><HardDrive size={18} className="text-slate-400" /> Riwayat File Backup (Di Server)</h3>
+            {/* Local Server Backup History Table */}
+            <div className="lg:col-span-2 p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <HardDrive size={18} className="text-slate-400" />
+                  <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">
+                    Arsip Berkas Backup di Server ({localBackups.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadData}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
+                  title="Segarkan List"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-bold uppercase">Nama File</th>
-                      <th className="px-4 py-3 text-left font-bold uppercase">Waktu</th>
-                      <th className="px-4 py-3 text-right font-bold uppercase">Ukuran</th>
-                      <th className="px-4 py-3 text-center font-bold uppercase">Aksi</th>
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/60 text-[10.5px] font-black uppercase tracking-wider text-slate-400">
+                      <th className="px-4 py-2.5">Nama Berkas</th>
+                      <th className="px-3 py-2.5">Waktu Pembuatan</th>
+                      <th className="px-3 py-2.5 text-right">Ukuran</th>
+                      <th className="px-4 py-2.5 text-center">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {localBackups.length === 0 ? (
-                      <tr><td colSpan="4" className="text-center py-8 text-slate-400">Belum ada file backup.</td></tr>
+                      <tr>
+                        <td colSpan="4" className="text-center py-10 text-slate-400 font-medium">
+                          Belum ada berkas backup yang tersimpan di server lokal.
+                        </td>
+                      </tr>
                     ) : localBackups.map(file => (
-                      <tr key={file.filename} className="border-b border-slate-50 hover:bg-slate-50/50">
+                      <tr key={file.filename} className="hover:bg-slate-50/60 transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-bold text-slate-700">{file.filename}</p>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5" title={file.fullChecksum}>SHA-256: {file.checksum}</p>
+                          <p className="font-bold text-slate-800 font-mono text-[11px]">{file.filename}</p>
+                          {file.checksum && (
+                            <p className="text-[9.5px] text-slate-400 font-mono mt-0.5" title={file.fullChecksum}>
+                              SHA-256: {file.checksum}
+                            </p>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-slate-500 text-xs">
-                          {new Date(file.createdAt).toLocaleString('id-ID')}
+                        <td className="px-3 py-3 text-slate-500 font-medium text-[11px]">
+                          {new Date(file.createdAt).toLocaleString('id-ID', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                          })}
                         </td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-600">{file.size}</td>
-                        <td className="px-4 py-3 flex items-center justify-center gap-2">
-                          <button onClick={() => handleDownloadBackup(file.filename, true)} disabled={isDownloading[file.filename]} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-[var(--ui-primary)] hover:text-white text-slate-500 flex items-center justify-center transition-colors">
-                            {isDownloading[file.filename] ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
-                          </button>
-                          <button onClick={() => handleDeleteLocal(file.filename)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-500 flex items-center justify-center transition-colors">
-                            <Trash size={14} />
-                          </button>
+                        <td className="px-3 py-3 text-right font-black text-slate-700 text-[11px]">
+                          {file.size}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button 
+                              type="button"
+                              onClick={() => handleDownloadBackup(file.filename, true)} 
+                              disabled={isDownloading[file.filename]} 
+                              className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer"
+                              title="Unduh Berkas"
+                            >
+                              {isDownloading[file.filename] ? <RefreshCw size={12} className="animate-spin" /> : <Download size={12} />}
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleDeleteLocal(file.filename)} 
+                              className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-100 hover:bg-rose-600 hover:text-white text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer"
+                              title="Hapus Berkas"
+                            >
+                              <Trash size={12} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -449,110 +596,379 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         </div>
       )}
 
-      {/* TAB CONTENT: TELEGRAM BOT */}
-      {activeTab === 'telegram' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className={`p-6 rounded-[24px] border shadow-sm flex flex-col md:flex-row gap-6 ${botStatus?.isRunning ? 'bg-gradient-to-br from-sky-50 to-white border-sky-200' : 'bg-slate-50 border-slate-200'}`}>
-            <div className="flex-1">
-              <div className="flex items-center gap-4 mb-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${botStatus?.isRunning ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                  <Send size={28} />
+      {/* ── 2. TAB: GOOGLE DRIVE ── */}
+      {activeTab === 'gdrive' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
+            isGDriveConfigured 
+              ? 'bg-gradient-to-br from-teal-50/40 via-white to-white border-teal-200' 
+              : 'bg-white border-slate-200/80'
+          }`}>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
+                  isGDriveConfigured 
+                    ? 'bg-teal-100 text-teal-700 border-teal-200 shadow-sm' 
+                    : 'bg-slate-100 text-slate-400 border-slate-200'
+                }`}>
+                  <HardDrive size={28} />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-xl text-slate-800 flex items-center gap-2">
-                    Telegram Monitoring Bot 
-                    {botStatus?.isRunning && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] uppercase font-black tracking-widest">Online</span>}
-                  </h3>
-                  <p className="text-sm text-slate-500 font-medium">Terima notifikasi keamanan, error server, dan backup langsung ke Telegram.</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-slate-800">Google Drive Cloud Storage</h3>
+                    <span className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border ${
+                      isGDriveConfigured 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                    }`}>
+                      {isGDriveConfigured ? 'Terkoneksi (Aktif)' : 'Belum Dikonfigurasi'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-xl leading-relaxed">
+                    Unggah cadangan database sekolah terenkripsi langsung ke folder Google Drive institusi menggunakan Google Cloud Service Account.
+                  </p>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4 mt-6 max-w-lg">
-                <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <p className="text-[10px] uppercase font-black text-slate-400 mb-1">Status Bot</p>
-                  <p className="font-bold text-slate-700">{botStatus?.isRunning ? 'Berjalan (Polling)' : 'Berhenti'}</p>
-                </div>
-                <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <p className="text-[10px] uppercase font-black text-slate-400 mb-1">Bot Token & Chat ID</p>
-                  <p className="font-bold text-slate-700">{botStatus?.hasBotToken && botStatus?.hasChatId ? 'Dikonfigurasi' : 'Belum Lengkap'}</p>
-                </div>
+
+              <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto">
+                {isGDriveConfigured ? (
+                  <button
+                    type="button"
+                    onClick={() => handleManualBackup('gdrive')}
+                    disabled={isBackingUp}
+                    className="w-full md:w-auto py-2.5 px-5 rounded-[var(--ui-radius-small)] font-black text-xs bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    {isBackingUp ? <RefreshCw size={14} className="animate-spin" /> : <UploadCloud size={14} />}
+                    <span>Backup ke Google Drive Sekarang</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setSystemTab?.('api_keys')}
+                    className="w-full md:w-auto py-2.5 px-5 rounded-[var(--ui-radius-small)] font-black text-xs bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <span>Konfigurasi di Tab API Key</span>
+                    <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
-            </div>
-            
-            <div className="flex flex-col gap-3 shrink-0 md:w-48 justify-center">
-              <Button onClick={() => handleManualBackup('telegram')} disabled={isBackingUp || !botStatus?.hasBotToken} className="w-full bg-sky-600 hover:bg-sky-700 text-white shadow-md">
-                {isBackingUp ? 'Memproses...' : 'Kirim Backup Manual'}
-              </Button>
-              <Button onClick={handleTestBot} disabled={!botStatus?.hasBotToken} variant="outline" className="w-full">
-                Kirim Pesan Uji Coba
-              </Button>
-              <Button onClick={handleReloadBot} variant="outline" className="w-full border-slate-300 text-slate-600 hover:bg-slate-100">
-                <RefreshCw size={14} className="mr-2" /> Reload Konfigurasi
-              </Button>
             </div>
           </div>
-          
-          <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-8">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4"><Info size={18} className="text-slate-400" /> Cara Menghubungkan Bot</h3>
-            <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-600 font-medium">
-              <li>Buka aplikasi Telegram dan cari <b>@BotFather</b>.</li>
-              <li>Ketik <code className="bg-slate-100 px-1 rounded text-pink-600">/newbot</code> dan ikuti instruksi untuk membuat bot baru.</li>
-              <li>Salin <b>HTTP API Token</b> yang diberikan.</li>
-              <li>Cari bot yang baru Anda buat di Telegram, tekan tombol <b>Start (/start)</b>. Bot Kurmon akan otomatis membalas dan menampilkan <b>Chat ID Anda</b> secara instan!</li>
-              <li>Masuk ke tab <b>API Key</b> (ikon kunci) di menu ini.</li>
-              <li>Tambahkan API Key baru dengan <b>Service Name</b>: <code className="bg-slate-100 px-1 rounded font-mono text-xs">telegram_bot_monitor</code></li>
-              <li>Masukkan Token sebagai API Key, dan isi JSON berikut pada Extra Config:<br/>
-                <code className="block bg-slate-800 text-emerald-400 p-3 rounded-lg mt-2 font-mono text-xs shadow-inner whitespace-pre-wrap">
-                  {`{\n  "chat_id": "CHAT_ID_ANDA_DISINI",\n  "alerts": {\n    "bruteForce": true,\n    "serverError": true,\n    "backupStatus": true,\n    "adminLogin": true,\n    "restoreDatabase": true\n  }\n}`}
-                </code>
+
+          {/* Setup Guide */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+              <Info size={16} className="text-teal-600" />
+              Panduan Konfigurasi Google Drive Backup
+            </h4>
+            <ol className="list-decimal pl-5 space-y-2.5 text-xs text-slate-600 font-medium leading-relaxed">
+              <li>
+                Buka <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="text-teal-600 font-bold hover:underline inline-flex items-center gap-0.5">Google Cloud Console <ExternalLink size={10} /></a> dan buat project baru.
               </li>
-              <li className="pt-2 text-rose-600 font-bold">Catatan: Setelah menyimpan API Key, kembali ke tab ini dan klik "Reload Konfigurasi".</li>
+              <li>Aktifkan <b>Google Drive API</b> pada menu Library/API & Services.</li>
+              <li>Buat <b>Service Account</b> baru, lalu buat dan unduh file <b>Key (JSON)</b>.</li>
+              <li>Buka Google Drive Anda, buat folder khusus (misal: <code>Backup-Kurmon</code>), lalu bagikan akses folder sebagai <b>Editor</b> ke email Service Account tersebut.</li>
+              <li>Salin isi berkas JSON Service Account dan <b>Folder ID</b> dari URL Google Drive.</li>
+              <li>
+                Masuk ke tab <button type="button" onClick={() => setSystemTab?.('api_keys')} className="text-teal-700 font-bold hover:underline bg-transparent border-none cursor-pointer p-0">API Key</button>, pilih kartu <b>Google Drive</b>, lalu tempelkan kredensial tersebut.
+              </li>
             </ol>
           </div>
         </div>
       )}
 
-      {/* OTHER TABS (R2, GDRIVE, RESTORE, ARCHIVE) - Sama seperti sebelumnya */}
-      
+      {/* ── 3. TAB: CLOUDFLARE R2 ── */}
       {activeTab === 'r2' && (
-        <div className="p-8 bg-white border border-slate-200 rounded-[24px] text-center text-slate-500 font-medium">Fitur Cloudflare R2 sedang dimaintenance. (Telah dipindahkan ke versi sebelumnya)</div>
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
+            isR2Configured 
+              ? 'bg-gradient-to-br from-amber-50/40 via-white to-white border-amber-200' 
+              : 'bg-white border-slate-200/80'
+          }`}>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
+                  isR2Configured 
+                    ? 'bg-amber-100 text-amber-800 border-amber-200 shadow-sm' 
+                    : 'bg-slate-100 text-slate-400 border-slate-200'
+                }`}>
+                  <Cloud size={28} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-slate-800">Cloudflare R2 Storage (S3-Compatible)</h3>
+                    <span className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border ${
+                      isR2Configured 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                    }`}>
+                      {isR2Configured ? 'Terkoneksi (Aktif)' : 'Belum Dikonfigurasi'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-xl leading-relaxed">
+                    Penyimpanan objek cloud berkecepatan tinggi dengan proteksi enkripsi AES-256, gratis 10 GB kapasitas setiap bulan tanpa biaya transfer keluar (zero egress fee).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto">
+                {isR2Configured ? (
+                  <button
+                    type="button"
+                    onClick={() => handleManualBackup('r2')}
+                    disabled={isBackingUp}
+                    className="w-full md:w-auto py-2.5 px-5 rounded-[var(--ui-radius-small)] font-black text-xs bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    {isBackingUp ? <RefreshCw size={14} className="animate-spin" /> : <UploadCloud size={14} />}
+                    <span>Backup ke Cloudflare R2 Sekarang</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setSystemTab?.('api_keys')}
+                    className="w-full md:w-auto py-2.5 px-5 rounded-[var(--ui-radius-small)] font-black text-xs bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <span>Konfigurasi di Tab API Key</span>
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* R2 Guide */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+              <Info size={16} className="text-amber-600" />
+              Panduan Konfigurasi Cloudflare R2
+            </h4>
+            <ol className="list-decimal pl-5 space-y-2.5 text-xs text-slate-600 font-medium leading-relaxed">
+              <li>Login ke akun <a href="https://dash.cloudflare.com" target="_blank" rel="noreferrer" className="text-amber-600 font-bold hover:underline inline-flex items-center gap-0.5">Cloudflare Dashboard <ExternalLink size={10} /></a>.</li>
+              <li>Pilih menu <b>R2 Object Storage</b> dan buat sebuah Bucket baru (misal: <code>kurmon-backup</code>).</li>
+              <li>Masuk ke menu <b>Manage R2 API Tokens</b> dan klik <b>Create API Token</b> dengan hak akses Object Read & Write.</li>
+              <li>Salin <b>Access Key ID</b>, <b>Secret Access Key</b>, dan <b>Endpoint URL</b>.</li>
+              <li>
+                Buka tab <button type="button" onClick={() => setSystemTab?.('api_keys')} className="text-amber-700 font-bold hover:underline bg-transparent border-none cursor-pointer p-0">API Key</button>, pilih kartu <b>Cloudflare R2 Backup</b>, lalu masukkan kredensial tersebut.
+              </li>
+            </ol>
+          </div>
+        </div>
       )}
-      {activeTab === 'gdrive' && (
-        <div className="p-8 bg-white border border-slate-200 rounded-[24px] text-center text-slate-500 font-medium">Fitur Google Drive sedang dimaintenance. (Telah dipindahkan ke versi sebelumnya)</div>
+
+      {/* ── 4. TAB: TELEGRAM BOT ── */}
+      {activeTab === 'telegram' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
+            botStatus?.isRunning 
+              ? 'bg-gradient-to-br from-sky-50/50 via-white to-white border-sky-200' 
+              : 'bg-white border-slate-200/80'
+          }`}>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
+                  botStatus?.isRunning 
+                    ? 'bg-sky-500 text-white border-sky-600 shadow-sm' 
+                    : 'bg-slate-100 text-slate-400 border-slate-200'
+                }`}>
+                  <Send size={28} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-slate-800">Telegram Bot Notifikasi & Backup</h3>
+                    {botStatus?.isRunning ? (
+                      <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-700 text-[10px] uppercase font-black tracking-wider border border-emerald-200">
+                        Online (Polling)
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-500 text-[10px] uppercase font-bold border border-slate-200">
+                        Berhenti / Offline
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-xl leading-relaxed">
+                    Kirim laporan otomatis kehadiran, log error sistem, percobaan brute-force, dan berkas cadangan langsung ke ruang obrolan Telegram.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleManualBackup('telegram')}
+                  disabled={isBackingUp || !botStatus?.hasBotToken}
+                  className="py-2.5 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-sky-600 hover:bg-sky-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  {isBackingUp ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+                  <span>Kirim Backup Manual</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleTestBot}
+                  disabled={!botStatus?.hasBotToken}
+                  className="py-2.5 px-3.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Test Pesan
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReloadBot}
+                  className="py-2.5 px-3.5 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RefreshCw size={13} />
+                  <span>Reload Bot</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Status Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-slate-100">
+              <div className="p-3 bg-slate-50/70 rounded-[var(--ui-radius-small)] border border-slate-100">
+                <p className="text-[10px] uppercase font-black text-slate-400">Status Server Bot</p>
+                <p className="font-extrabold text-slate-700 text-xs mt-0.5">
+                  {botStatus?.isRunning ? 'Berjalan Normal' : 'Tidak Aktif'}
+                </p>
+              </div>
+              <div className="p-3 bg-slate-50/70 rounded-[var(--ui-radius-small)] border border-slate-100">
+                <p className="text-[10px] uppercase font-black text-slate-400">Bot Token</p>
+                <p className="font-extrabold text-slate-700 text-xs mt-0.5">
+                  {botStatus?.hasBotToken ? 'Terkonfigurasi' : 'Belum Ada'}
+                </p>
+              </div>
+              <div className="p-3 bg-slate-50/70 rounded-[var(--ui-radius-small)] border border-slate-100">
+                <p className="text-[10px] uppercase font-black text-slate-400">Target Chat ID</p>
+                <p className="font-extrabold text-slate-700 text-xs mt-0.5">
+                  {botStatus?.hasChatId ? 'Tersimpan' : 'Belum Lengkap'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Guide */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+              <Info size={16} className="text-sky-600" />
+              Petunjuk Menghubungkan Bot Telegram
+            </h4>
+            <ol className="list-decimal pl-5 space-y-2 text-xs text-slate-600 font-medium leading-relaxed">
+              <li>Buka aplikasi Telegram dan hubungi <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-sky-600 font-bold hover:underline">@BotFather</a>.</li>
+              <li>Kirim perintah <code>/newbot</code> dan ikuti arahan untuk memberi nama serta username bot Anda.</li>
+              <li>Salin <b>HTTP API Token</b> yang diberikan oleh BotFather.</li>
+              <li>Buka bot yang baru dibuat di Telegram Anda, lalu tekan <b>Start</b>.</li>
+              <li>
+                Masuk ke tab <button type="button" onClick={() => setSystemTab?.('api_keys')} className="text-sky-600 font-bold hover:underline bg-transparent border-none cursor-pointer p-0">API Key</button>, pilih kartu <b>Telegram Auto-Backup</b>, dan masukkan Token beserta Chat ID Anda.
+              </li>
+              <li>Setelah tersimpan, kembali ke tab ini dan klik <b>Reload Bot</b> untuk mengaktifkannya.</li>
+            </ol>
+          </div>
+        </div>
       )}
-      
+
+      {/* ── 5. TAB: PULIHKAN DATA (RESTORE) ── */}
       {activeTab === 'restore' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white rounded-[24px] border border-slate-200 shadow-xl p-10 text-center relative overflow-hidden max-w-3xl mx-auto">
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-3">Pulihkan Database <span className="text-violet-600">(Restore)</span></h2>
-            <p className="text-slate-500 mb-8 max-w-lg mx-auto font-medium text-sm">Sistem akan membaca file JSON dari backup dan memasukkan seluruh datanya kembali ke database.</p>
-            <div className="relative z-10">
-              <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-              <Button onClick={() => fileInputRef.current?.click()} disabled={isRestoring} className="bg-violet-600 hover:bg-violet-700 text-white h-14 px-10 rounded-xl shadow-lg font-extrabold">
-                {isRestoring ? 'Memulihkan Data...' : 'Pilih File JSON & Jalankan Restore'}
-              </Button>
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="p-8 sm:p-10 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs text-center max-w-2xl mx-auto space-y-6">
+            <div className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-purple-100 text-purple-700 flex items-center justify-center mx-auto border border-purple-200 shadow-xs">
+              <UploadCloud size={32} />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-black text-slate-800 text-xl tracking-tight">
+                Pulihkan Database Sekolah <span className="text-purple-600">(Restore)</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+                Pilih berkas arsip <code>.json</code> cadangan dari komputer Anda. Sistem akan memvalidasi skema dan memasukkan seluruh data kembali ke database.
+              </p>
+            </div>
+
+            {/* Warning Alert Box */}
+            <div className="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-[var(--ui-radius-small)] text-left flex items-start gap-3">
+              <AlertTriangle size={18} className="shrink-0 text-amber-700 mt-0.5" />
+              <div className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                <span className="font-black block">Perhatian Sebelum Memulihkan:</span>
+                Proses pemulihan akan menimpa data yang sedang aktif dengan data dari berkas cadangan yang Anda unggah. Pastikan Anda telah membuat cadangan data terkini terlebih dahulu.
+              </div>
+            </div>
+
+            <div>
+              <input 
+                type="file" 
+                accept=".json" 
+                className="hidden" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isRestoring}
+                className="w-full sm:w-auto py-3 px-8 rounded-[var(--ui-radius-small)] font-black text-xs bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs mx-auto disabled:opacity-50"
+              >
+                {isRestoring ? <RefreshCw size={15} className="animate-spin" /> : <UploadCloud size={15} />}
+                <span>{isRestoring ? 'Memulihkan Data Database...' : 'Pilih Berkas JSON & Jalankan Restore'}</span>
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── 6. TAB: ARSIP & PEMBERSIHAN DATA ── */}
       {activeTab === 'archive' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white rounded-[24px] border border-slate-200 shadow-xl p-10 text-center relative max-w-3xl mx-auto">
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-3">Arsip & <span className="text-rose-600">Pembersihan</span></h2>
-            <div className="max-w-xs mx-auto mb-10 text-left">
-              <input type="date" value={archiveDate} onChange={e => setArchiveDate(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700" />
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="p-8 sm:p-10 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs text-center max-w-2xl mx-auto space-y-6">
+            <div className="w-16 h-16 rounded-[var(--ui-radius-card)] bg-rose-100 text-rose-700 flex items-center justify-center mx-auto border border-rose-200 shadow-xs">
+              <Trash2 size={32} />
             </div>
-            <Button onClick={handleArchive} disabled={isArchiving || !archiveDate} className="bg-rose-600 hover:bg-rose-700 text-white h-14 px-10 rounded-xl font-extrabold shadow-lg">
-              {isArchiving ? 'Memproses...' : 'Mulai Bersihkan Database'}
-            </Button>
+
+            <div className="space-y-2">
+              <h3 className="font-black text-slate-800 text-xl tracking-tight">
+                Arsip & <span className="text-rose-600">Pembersihan Database</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+                Hapus catatan log aktivitas, notifikasi lama, dan histori absensi kadaluarsa untuk mempercepat performa database server sekolah.
+              </p>
+            </div>
+
+            {/* Scope Information */}
+            <div className="p-4 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-left space-y-2">
+              <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-500 block">
+                Cakupan Pembersihan:
+              </span>
+              <ul className="list-disc pl-4 space-y-1 text-xs text-slate-600 font-medium">
+                <li>Log aktivitas sistem & riwayat audit lampau</li>
+                <li>Riwayat notifikasi dan antrean webhook kadaluarsa</li>
+                <li><b>Aman:</b> Data pokok guru, siswa, kelas, mapel, dan jadwal <u>tidak akan terhapus</u></li>
+              </ul>
+            </div>
+
+            <div className="max-w-xs mx-auto space-y-1.5 text-left">
+              <label className="block text-[10.5px] font-black text-slate-500 uppercase tracking-wider">
+                Hapus Seluruh Data Sebelum Tanggal:
+              </label>
+              <input 
+                type="date" 
+                value={archiveDate} 
+                onChange={e => setArchiveDate(e.target.value)} 
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20" 
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleArchive}
+              disabled={isArchiving || !archiveDate}
+              className="w-full sm:w-auto py-3 px-8 rounded-[var(--ui-radius-small)] font-black text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs mx-auto disabled:opacity-50"
+            >
+              {isArchiving ? <RefreshCw size={15} className="animate-spin" /> : <Trash2 size={15} />}
+              <span>{isArchiving ? 'Sedang Membersihkan...' : 'Mulai Pembersihan Data Lampau'}</span>
+            </button>
           </div>
         </div>
       )}
 
+      {/* TOAST NOTIFIKASI */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-2xl shadow-lg font-bold text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white max-w-sm ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'} z-50`}>
-          {toast.type ==='error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />} {toast.message}
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+          {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} {toast.message}
         </div>
       )}
     </div>

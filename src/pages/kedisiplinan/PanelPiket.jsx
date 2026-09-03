@@ -13,7 +13,7 @@ const getViolationStyle = (poin) => {
   return { icon: Clock, color: 'text-teal-600', bg: 'bg-teal-50 border-teal-200' };
 };
 
-export default function PanelPiket({ students = [], classes = [] }) {
+export default function PanelPiket({ students = [], classes = [], canEdit = false }) {
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("all");
   const [mobileTab, setMobileTab] = useState("siswa"); //'siswa','pelanggaran','riwayat'
@@ -186,6 +186,20 @@ export default function PanelPiket({ students = [], classes = [] }) {
       showToast("Gagal menghapus riwayat", "error");
     }
   };
+
+  if (!canEdit) {
+    return (
+      <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
+        <div className="ui-card p-6 sm:p-8 border border-slate-200/80 shadow-xs bg-white text-center">
+          <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert size={32} className="text-rose-500" />
+          </div>
+          <h2 className="text-lg font-black text-slate-800 mb-2">Akses Ditolak</h2>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">Role Anda saat ini dikonfigurasi sebagai <strong className="text-slate-700">Nonaktif</strong> atau <strong className="text-slate-700">View Only</strong> untuk modul Piket & Pelanggaran. Anda tidak dapat menambahkan atau mengubah data pelanggaran.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10 pb-24 lg:pb-0">

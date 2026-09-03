@@ -316,7 +316,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             let fontColor = "FF334155"; // slate-700
 
             if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
-              content = dayData.taps.slice(0, 4).map(t => t.substring(0,5)).join('\n');
+              content = dayData.taps.length === 1 
+                ? (dayData.taps[0] || "").substring(0,5) 
+                : (dayData.taps[0] || "").substring(0,5) + '\n' + (dayData.taps[dayData.taps.length - 1] || "").substring(0,5);
             } else {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
@@ -431,7 +433,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           } else {
             let content = "-";
             if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
-              content = dayData.taps.slice(0, 4).map(t => (t || "").substring(0,5)).join('\n');
+              content = dayData.taps.length === 1 
+                ? (dayData.taps[0] || "").substring(0,5) 
+                : (dayData.taps[0] || "").substring(0,5) + '\n' + (dayData.taps[dayData.taps.length - 1] || "").substring(0,5);
             } else {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
@@ -446,8 +450,40 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   content = status === "Terlambat" ? "T" : "H";
                 }
               }
+            } // Close if (dayData.taps && ...)
+            
+            const statusForColor = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            let fillColor = [255, 255, 255];
+            let textColor = [51, 65, 85];
+            
+            if (statusForColor === 'Hadir') {
+              fillColor = [220, 252, 231]; 
+              textColor = [22, 101, 52];
+            } else if (statusForColor === 'Terlambat') {
+              fillColor = [254, 226, 226]; 
+              textColor = [153, 27, 27];
+            } else if (statusForColor === 'Sakit') {
+              fillColor = [254, 243, 199]; 
+              textColor = [146, 64, 14];
+            } else if (statusForColor === 'Izin') {
+              fillColor = [219, 234, 254]; 
+              textColor = [30, 58, 138];
+            } else if (statusForColor === 'Alpa' || statusForColor === 'Alpa (Tanpa Keterangan)') {
+              fillColor = [15, 23, 42]; 
+              textColor = [255, 255, 255];
             }
-            row.push(content);
+
+            if (content.includes(':')) {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
+               });
+            } else {
+               row.push({
+                 content,
+                 styles: { fillColor, textColor }
+               });
+            }
           }
         }
         return row;
@@ -752,13 +788,27 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   }, [filteredData, currentPage, itemsPerPage]);
 
   const checkViolation = useCallback((d, daysList = []) => {
+    if (!d) return {};
     let maxConsecutiveLate = 0;
     let currConsecutiveLate = 0;
     let maxConsecutiveAlpa = 0;
     let currConsecutiveAlpa = 0;
 
+    let computedTotalAlpa = 0;
+    let computedTotalLate = 0;
+
     daysList.forEach(dayNum => {
       const dayData = (d.days || {})[dayNum];
+      if (dayData) {
+        const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+        if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+          computedTotalAlpa++;
+        }
+        if (dayData.isLate || status === "Terlambat") {
+          computedTotalLate++;
+        }
+      }
+
       if (dayData && (dayData.isLate || dayData.status === "Terlambat")) {
         currConsecutiveLate++;
         if (currConsecutiveLate > maxConsecutiveLate) {
@@ -778,8 +828,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       }
     });
 
-    const totalLate = d.total_terlambat || 0;
-    const totalAlpa = d.total_alpa || 0;
+    const totalLate = Math.max(computedTotalLate, d.total_terlambat || 0);
+    const totalAlpa = Math.max(computedTotalAlpa, d.total_alpa || 0);
     const isLateViolation = maxConsecutiveLate >= 3 || totalLate >= 3;
     const isAlpaViolation = maxConsecutiveAlpa >= 3 || totalAlpa >= 3;
 
