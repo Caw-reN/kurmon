@@ -2526,6 +2526,10 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     Object.entries(mergedLogs).forEach(([key, r]) => {
       if (!validTeachers.has(key)) unknownCount++;
       let s = String(r.status || 'Hadir').toLowerCase();
+      const hasScan = !!(r.timestamp || r.created_at || r.date || r.scan_time);
+      if ((s.includes('alpa') || s.includes('absen')) && hasScan) {
+        s = 'terlambat';
+      }
       if (s === 'late') s = 'terlambat';
       if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
       if (s.includes('hadir')) statuses.Hadir++;
@@ -2601,6 +2605,10 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     Object.entries(mergedLogs).forEach(([key, r]) => {
       if (!validStaffs.has(key)) unknownCount++;
       let s = String(r.status || 'Hadir').toLowerCase();
+      const hasScan = !!(r.timestamp || r.created_at || r.date || r.scan_time);
+      if ((s.includes('alpa') || s.includes('absen')) && hasScan) {
+        s = 'terlambat';
+      }
       if (s === 'late') s = 'terlambat';
       if (s === 'dinas luar' || s === 'dinas_luar') s = 'dinas luar';
       if (s.includes('hadir')) statuses.Hadir++;

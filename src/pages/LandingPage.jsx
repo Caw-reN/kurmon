@@ -637,12 +637,14 @@ export default function LandingPage() {
         // Proteksi ketat: Jam 06:00 - 17:59 WIB PASTI SIANG/PAGI HARI (Kelelawar tidak boleh muncul)
         const isDaytimeHour = (jktHour >= 6 && jktHour < 18);
 
+        const isMiddayPeak = (jktHour >= 11 && jktHour <= 14);
+
         let detected = 'cloudy';
         if (rain > 0.1 || precipitation > 0.1 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(weather_code)) {
           detected = 'rain';
         } else if (!isDaytimeHour) {
           detected = 'night';
-        } else if (temperature_2m >= 31 || [0, 1].includes(weather_code)) {
+        } else if (isMiddayPeak && (temperature_2m >= 32 || [0, 1].includes(weather_code))) {
           detected = 'hot';
         } else {
           detected = 'cloudy';
@@ -1629,15 +1631,15 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/85 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-bold tracking-wide shadow-xs cursor-pointer transition-all duration-300 select-none"
                 title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
               >
-                {weatherCondition === 'night' && <Moon size={13} className="text-indigo-500" />}
-                {weatherCondition === 'rain' && <CloudRain size={13} className="text-sky-500 animate-bounce" />}
-                {weatherCondition === 'hot' && <Sun size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '12s' }} />}
-                {weatherCondition === 'cloudy' && <CloudSun size={13} className="text-emerald-500" />}
+                {weatherCondition === 'night' && <Moon size={14} className="text-indigo-500 shrink-0" />}
+                {weatherCondition === 'rain' && <CloudRain size={14} className="text-sky-500 shrink-0 animate-bounce" />}
+                {weatherCondition === 'hot' && <Sun size={14} className="text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
+                {weatherCondition === 'cloudy' && <CloudSun size={14} className="text-emerald-500 shrink-0" />}
                 <span>
                   Bekasi {weatherTemp ? `${weatherTemp}°C` : ''} • {
-                    weatherCondition === 'night' ? 'Malam Bertabur Bintang 🌙' :
-                    weatherCondition === 'rain' ? 'Cuaca Hujan 🌧️' :
-                    weatherCondition === 'hot' ? 'Panas Terik ☀️' : 'Cerah Berawan ⛅'
+                    weatherCondition === 'night' ? 'Malam Hari' :
+                    weatherCondition === 'rain' ? 'Cuaca Hujan' :
+                    weatherCondition === 'hot' ? 'Panas Terik' : 'Cerah Berawan'
                   }
                 </span>
                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${manualWeather ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>

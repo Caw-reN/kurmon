@@ -948,7 +948,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     if (status === "Terlambat" || dayData.isLate) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 border border-rose-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-900 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>

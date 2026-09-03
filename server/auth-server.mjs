@@ -2749,9 +2749,7 @@ const server = createServer(async (req, res) => {
             }
 
             let status = 'hadir';
-            if (closeLimit && firstScanTime > closeLimit) {
-              status = 'alpa';
-            } else if (lateLimit && firstScanTime > lateLimit) {
+            if (lateLimit && firstScanTime > lateLimit) {
               status = 'terlambat';
             }
 
