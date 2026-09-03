@@ -293,7 +293,7 @@ export default function PublicLayout() {
                   </div>
                 </div>
                 <p className="text-slate-500 text-[11px] font-medium max-w-sm mt-1">
-                  {schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}
+                  {appSettings.footerDescription || schoolProfile?.alamat || appSettings.schoolProfile?.alamat ||'Jl. Pendidikan No. 1, Kota Pelajar'} • {contactPhone ||'+62 123 4567 890'}
                 </p>
               </div>
 

@@ -5025,6 +5025,46 @@ cron.schedule('0 12 * * *', () => {
   sendDailyClassSummary().catch(console.error);
 });
 
+// ==================== TELEGRAM DAILY REPORT CRON ====================
+cron.schedule('0 16 * * *', async () => {
+  console.log("[CRON] Mengirim Laporan Harian Aplikasi ke Telegram...");
+  try {
+    const { sendTelegramAlert } = await import('./telegram-bot.mjs');
+    const today = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta' }).split(',')[0];
+    
+    const loginStats = await dbPool.query(`SELECT COUNT(*) as cnt FROM audit_logs WHERE action='LOGIN' AND created_at >= CURRENT_DATE`);
+    const studentAbsensi = await dbPool.query(`SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi WHERE date = $1 GROUP BY status`, [today]);
+    const lateHikvision = await dbPool.query(`SELECT COUNT(*) as cnt FROM hikvision_attendance_logs WHERE date = $1 AND is_late = true`, [today]);
+    
+    let reportText = `📊 *LAPORAN HARIAN APLIKASI*\n\n`;
+    reportText += `Tanggal: ${new Date().toLocaleDateString('id-ID', {timeZone: 'Asia/Jakarta'})}\n\n`;
+    reportText += `🔹 Total Login Hari Ini: ${loginStats.rows[0].cnt}\n\n`;
+    
+    let hadirs = 0, telats = 0, izins = 0, sakits = 0, alpas = 0;
+    for(const r of studentAbsensi.rows) {
+      if(r.status === 'Hadir') hadirs += parseInt(r.cnt);
+      else if(r.status === 'Terlambat') telats += parseInt(r.cnt);
+      else if(r.status === 'Izin') izins += parseInt(r.cnt);
+      else if(r.status === 'Sakit') sakits += parseInt(r.cnt);
+      else if(r.status === 'Alpa') alpas += parseInt(r.cnt);
+    }
+    
+    telats += parseInt(lateHikvision.rows[0]?.cnt || 0);
+    
+    reportText += `🔹 *Rekap Kehadiran & Surat (Siswa)*:\n`;
+    reportText += ` - Terlambat: ${telats} siswa\n`;
+    reportText += ` - Izin: ${izins} surat\n`;
+    reportText += ` - Sakit: ${sakits} surat\n`;
+    reportText += ` - Alpa/Tanpa Keterangan: ${alpas} rekaman\n\n`;
+    
+    reportText += `_Sistem beroperasi dengan normal._`;
+    
+    await sendTelegramAlert('dailyReport', reportText, 'info');
+  } catch(e) {
+    console.error("[CRON] Gagal mengirim laporan harian telegram:", e);
+  }
+});
+
 // ==================== GOOGLE DRIVE BACKUP CRON ====================
 cron.schedule('0 2 * * *', async () => {
   console.log("[CRON] Memulai otomatisasi Google Drive Backup...");

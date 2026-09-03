@@ -1784,9 +1784,11 @@ export default function DashboardPage({
           <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
         {/* Log Aktivitas & Login (Lebih Kecil & Kanan) */}
-        <div className="w-full xl:w-[420px] shrink-0">
-          <LiveUserActivityLog onNavigateTab={setActiveTab} />
-        </div>
+        {(isSuperAdmin || isKepsek || isWaka) && (
+          <div className="w-full xl:w-[420px] shrink-0">
+            <LiveUserActivityLog onNavigateTab={setActiveTab} />
+          </div>
+        )}
       </div>
 
 

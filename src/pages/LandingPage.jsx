@@ -1896,7 +1896,7 @@ export default function LandingPage() {
               </div>
 
               <p className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
-                {appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
+                {appSettings.footerDescription || appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
               </p>
             </div>
 
