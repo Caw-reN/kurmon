@@ -793,6 +793,8 @@ const initDb = async () => {
     `);
 
     await dbPool.query(`ALTER TABLE pkl_students ADD COLUMN IF NOT EXISTS location_update_count INT DEFAULT 0`);
+    await dbPool.query(`ALTER TABLE pkl_students ADD COLUMN IF NOT EXISTS start_date DATE`);
+    await dbPool.query(`ALTER TABLE pkl_students ADD COLUMN IF NOT EXISTS end_date DATE`);
 
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS pkl_surat_pengantar (
