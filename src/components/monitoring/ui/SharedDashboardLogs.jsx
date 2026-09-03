@@ -135,6 +135,15 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     } catch { return '-'; }
   };
 
+  const fmtDateOnly = (ts) => {
+    try {
+      return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        timeZone: 'Asia/Jakarta'
+      }).format(new Date(ts));
+    } catch { return '-'; }
+  };
+
   const todayStr = useMemo(() => {
     // Gunakan sv-SE locale dengan timezone Asia/Jakarta untuk format YYYY-MM-DD yang benar
     return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
@@ -496,9 +505,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     let avatarChar = String(name).charAt(0).toUpperCase();
     let avatarBg = '';
 
-    let rawTs = item.timestamp || item.created_at || item.last_seen || item.date;
+    let rawTs = item.tanggal_prestasi || item.tanggal_juara || item.tanggal || item.timestamp || item.created_at || item.last_seen || item.date;
     let ts = rawTs ? new Date(rawTs) : null;
-    let timeText = ts ? fmtTime(ts).replace(':', '.') : '--.--';
+    let timeText = ts ? (type === 'siswa_prestasi' ? fmtDateOnly(ts) : fmtTime(ts).replace(':', '.')) : '--.--';
 
     if (type === 'guru_karyawan' || type === 'guru_terlambat') {
       const isKaryawan = String(item.role_type || item.true_person_type || '').toUpperCase().includes('KARYAWAN');
