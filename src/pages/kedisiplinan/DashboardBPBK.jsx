@@ -16,6 +16,8 @@ import { useAppStore } from "../../store/useAppStore.js";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
+const getInitials = (name) => { if (!name) return '?'; const parts = name.trim().split(' '); if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase(); return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase(); };
+
 export default function DashboardBPBK({ students = [], classes = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
