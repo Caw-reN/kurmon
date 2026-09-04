@@ -245,6 +245,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Laporan Absensi Guru');
 
+      let exportDays = [];
+      if (viewMode === "monthly") {
+        for (let i = 1; i <= daysInMonth; i++) exportDays.push(i);
+      } else {
+        const startDay = (selectedWeek - 1) * 7 + 1;
+        const endDay = Math.min(selectedWeek * 7, daysInMonth);
+        for (let i = startDay; i <= endDay; i++) exportDays.push(i);
+      }
+
       // Define columns
       const columns = [
         { header: 'NIP / ID', key: 'nis', width: 20 },
@@ -255,9 +264,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         { header: 'S', key: 's', width: 5 },
         { header: 'A', key: 'a', width: 5 }
       ];
-      for (let i = 1; i <= daysInMonth; i++) {
+      exportDays.forEach(i => {
         columns.push({ header: i.toString(), key: `d${i}`, width: 10 });
-      }
+      });
       sheet.columns = columns;
 
       // Style Header Row
@@ -298,7 +307,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
         row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
 
-        for (let i = 1; i <= daysInMonth; i++) {
+        exportDays.forEach(i => {
           const dayData = item.days[i];
           const cell = row.getCell(`d${i}`);
           
@@ -360,7 +369,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           } else {
             cell.value = "";
           }
-        }
+        });
       });
 
       // Legend
@@ -413,10 +422,19 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       doc.setFont("Helvetica", "normal");
       doc.text(`Periode: ${monthName} ${filter.year}`, 14, startY + 12);
       
-      const headers = [["NIP / Kode", "Nama Guru", "H", "T"]];
-      for (let i = 1; i <= daysInMonth; i++) {
-        headers[0].push(i.toString());
+      let exportDays = [];
+      if (viewMode === "monthly") {
+        for (let i = 1; i <= daysInMonth; i++) exportDays.push(i);
+      } else {
+        const startDay = (selectedWeek - 1) * 7 + 1;
+        const endDay = Math.min(selectedWeek * 7, daysInMonth);
+        for (let i = startDay; i <= endDay; i++) exportDays.push(i);
       }
+
+      const headers = [["NIP / Kode", "Nama Guru", "H", "T"]];
+      exportDays.forEach(i => {
+        headers[0].push(i.toString());
+      });
 
       const body = filteredData.map(item => {
         const row = [
@@ -426,7 +444,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           String(item.total_terlambat ?? 0)
         ];
         
-        for (let i = 1; i <= daysInMonth; i++) {
+        exportDays.forEach(i => {
           const dayData = (item.days || {})[i];
           if (!dayData) {
             row.push("-");
@@ -485,16 +503,16 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                });
             }
           }
-        }
+        });
         return row;
       });
 
       const pdfFooters = [
-        ["TOTAL HADIR (HDR)", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.hadir[i + 1] || 0))],
-        ["TOTAL TERLAMBAT (TLT)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.terlambat[i + 1] || 0))],
-        ["TOTAL IZIN (IZN)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.izin[i + 1] || 0))],
-        ["TOTAL SAKIT (SKT)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.sakit[i + 1] || 0))],
-        ["TOTAL ALPA (ALP)", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.alpa[i + 1] || 0))]
+        ["TOTAL HADIR (HDR)", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...exportDays.map(day => String(dailyTotals.hadir[day] || 0))],
+        ["TOTAL TERLAMBAT (TLT)", "", "-", "-", ...exportDays.map(day => String(dailyTotals.terlambat[day] || 0))],
+        ["TOTAL IZIN (IZN)", "", "-", "-", ...exportDays.map(day => String(dailyTotals.izin[day] || 0))],
+        ["TOTAL SAKIT (SKT)", "", "-", "-", ...exportDays.map(day => String(dailyTotals.sakit[day] || 0))],
+        ["TOTAL ALPA (ALP)", "", "-", "-", ...exportDays.map(day => String(dailyTotals.alpa[day] || 0))]
       ];
 
       autoTable(doc, {

@@ -427,6 +427,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Laporan Absensi Siswa');
 
+      let exportDays = [];
+      if (viewMode === "monthly") {
+        for (let i = 1; i <= daysInMonth; i++) exportDays.push(i);
+      } else {
+        const startDay = (selectedWeek - 1) * 7 + 1;
+        const endDay = Math.min(selectedWeek * 7, daysInMonth);
+        for (let i = startDay; i <= endDay; i++) exportDays.push(i);
+      }
+
       // Define columns
       const columns = [
         { header: 'NIS', key: 'nis', width: 15 },
@@ -438,9 +447,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         { header: 'S', key: 's', width: 5 },
         { header: 'A', key: 'a', width: 5 }
       ];
-      for (let i = 1; i <= daysInMonth; i++) {
+      exportDays.forEach(i => {
         columns.push({ header: i.toString(), key: `d${i}`, width: isDetailed ? 10 : 5 });
-      }
+      });
       sheet.columns = columns;
 
       // Style Header Row
@@ -482,7 +491,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         row.getCell('s').alignment = { horizontal: 'center', vertical: 'middle' };
         row.getCell('a').alignment = { horizontal: 'center', vertical: 'middle' };
 
-        for (let i = 1; i <= daysInMonth; i++) {
+        exportDays.forEach(i => {
           const dayData = item.days[i];
           const cell = row.getCell(`d${i}`);
           
@@ -531,16 +540,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           } else {
             cell.value = "";
           }
-        }
+        });
       });
 
       // Summary Rows for Excel
       sheet.addRow([]);
-      sheet.addRow(['TOTAL HADIR (HDR)', '', '', filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.hadir[i + 1] || 0)]).font = { bold: true };
-      sheet.addRow(['TOTAL TERLAMBAT (TLT)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.terlambat[i + 1] || 0)]).font = { bold: true };
-      sheet.addRow(['TOTAL IZIN (IZN)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.izin[i + 1] || 0)]).font = { bold: true };
-      sheet.addRow(['TOTAL SAKIT (SKT)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.sakit[i + 1] || 0)]).font = { bold: true };
-      sheet.addRow(['TOTAL ALPA (ALP)', '', '', '-', '-', ...Array.from({ length: daysInMonth }, (_, i) => dailyTotals.alpa[i + 1] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL HADIR (HDR)', '', '', filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...exportDays.map(day => dailyTotals.hadir[day] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL TERLAMBAT (TLT)', '', '', '-', '-', ...exportDays.map(day => dailyTotals.terlambat[day] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL IZIN (IZN)', '', '', '-', '-', ...exportDays.map(day => dailyTotals.izin[day] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL SAKIT (SKT)', '', '', '-', '-', ...exportDays.map(day => dailyTotals.sakit[day] || 0)]).font = { bold: true };
+      sheet.addRow(['TOTAL ALPA (ALP)', '', '', '-', '-', ...exportDays.map(day => dailyTotals.alpa[day] || 0)]).font = { bold: true };
 
       const legendRow = sheet.addRow([]);
       const legendRow2 = sheet.addRow(['Keterangan:']);
@@ -588,10 +597,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       doc.setFont("Helvetica", "normal");
       doc.text(`Kelas: ${filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name} | Periode: ${monthName} ${filter.year}`, 14, startY + 12);
 
-      const headers = [["NIS", "Nama Siswa", "Kelas", "H", "T"]];
-      for (let i = 1; i <= daysInMonth; i++) {
-        headers[0].push(i.toString());
+      let exportDays = [];
+      if (viewMode === "monthly") {
+        for (let i = 1; i <= daysInMonth; i++) exportDays.push(i);
+      } else {
+        const startDay = (selectedWeek - 1) * 7 + 1;
+        const endDay = Math.min(selectedWeek * 7, daysInMonth);
+        for (let i = startDay; i <= endDay; i++) exportDays.push(i);
       }
+
+      const headers = [["NIS", "Nama Siswa", "Kelas", "H", "T"]];
+      exportDays.forEach(i => {
+        headers[0].push(i.toString());
+      });
 
       const body = filteredData.map(item => {
         const row = [
@@ -602,7 +620,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           String(item.total_terlambat ?? 0)
         ];
         
-        for (let i = 1; i <= daysInMonth; i++) {
+        exportDays.forEach(i => {
           const dayData = (item.days || {})[i];
           if (!dayData) {
             row.push("-");
@@ -649,16 +667,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                });
             }
           }
-        }
+        });
         return row;
       });
 
       const pdfFooters = [
-        ["TOTAL HADIR (HDR)", "", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.hadir[i + 1] || 0))],
-        ["TOTAL TERLAMBAT (TLT)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.terlambat[i + 1] || 0))],
-        ["TOTAL IZIN (IZN)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.izin[i + 1] || 0))],
-        ["TOTAL SAKIT (SKT)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.sakit[i + 1] || 0))],
-        ["TOTAL ALPA (ALP)", "", "", "-", "-", ...Array.from({ length: daysInMonth }, (_, i) => String(dailyTotals.alpa[i + 1] || 0))]
+        ["TOTAL HADIR (HDR)", "", "", String(filteredData.reduce((a, s) => a + (s.total_hadir || 0), 0)), String(filteredData.reduce((a, s) => a + (s.total_terlambat || 0), 0)), ...exportDays.map(day => String(dailyTotals.hadir[day] || 0))],
+        ["TOTAL TERLAMBAT (TLT)", "", "", "-", "-", ...exportDays.map(day => String(dailyTotals.terlambat[day] || 0))],
+        ["TOTAL IZIN (IZN)", "", "", "-", "-", ...exportDays.map(day => String(dailyTotals.izin[day] || 0))],
+        ["TOTAL SAKIT (SKT)", "", "", "-", "-", ...exportDays.map(day => String(dailyTotals.sakit[day] || 0))],
+        ["TOTAL ALPA (ALP)", "", "", "-", "-", ...exportDays.map(day => String(dailyTotals.alpa[day] || 0))]
       ];
 
       autoTable(doc, {
