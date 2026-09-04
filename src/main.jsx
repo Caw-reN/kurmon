@@ -10,7 +10,9 @@ const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
     console.log('[PWA] Versi baru tersedia, memperbarui cache...');
-    updateSW(true);
+    updateSW(true).then(() => {
+      window.location.reload(true);
+    });
   },
   onOfflineReady() {
     console.log('[PWA] Aplikasi siap offline');
