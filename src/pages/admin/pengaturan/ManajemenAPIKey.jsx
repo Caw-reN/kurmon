@@ -796,6 +796,20 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
           </div>
 
           {/* EXTRA CONFIGURATION FIELDS */}
+          {form.service_name.startsWith('telegram') && (
+            <div className="p-3 bg-sky-50/40 rounded-[var(--ui-radius-small)] border border-sky-100 space-y-2">
+              <label className="block text-[10.5px] font-black text-sky-800 uppercase tracking-wider">Target Chat ID</label>
+              <input 
+                type="text" 
+                value={form.extra_config?.chat_id || ''} 
+                onChange={e => setForm(p => ({ ...p, extra_config: { ...p.extra_config, chat_id: e.target.value } }))}
+                placeholder="Contoh: 123456789 atau -100123456789"
+                className="w-full px-3 py-2 bg-white border border-sky-200 rounded-[var(--ui-radius-small)] text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 font-semibold" 
+              />
+              <p className="text-[10px] text-slate-500 font-medium">ID personal atau grup (biasanya berawalan -100) sebagai target utama notifikasi bot.</p>
+            </div>
+          )}
+
           {form.service_name.startsWith('whatsapp') && (
             <div className="p-3 bg-emerald-50/40 rounded-[var(--ui-radius-small)] border border-emerald-100 space-y-2">
               <label className="block text-[10.5px] font-black text-emerald-800 uppercase tracking-wider">Peruntukan Jurusan</label>
