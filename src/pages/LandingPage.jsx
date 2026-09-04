@@ -1703,17 +1703,7 @@ export default function LandingPage() {
           {/* Right Column (Illustration) - Only render if custom background image is NOT set */}
           {!appSettings.heroImage && (
             <div className="w-[380px] lg:w-[450px] flex items-center justify-center shrink-0 min-h-0">
-              <div className="w-full max-w-[320px] lg:max-w-[380px] aspect-square flex items-center justify-center p-6 bg-slate-800 rounded-[var(--ui-radius-card)] border border-slate-700 shadow-xs relative overflow-hidden">
-                {/* Glowing decorative background behind illustration */}
-                <div className="absolute inset-4 rounded-full blur-2xl opacity-10 bg-gradient-to-tr from-sky-500 to-purple-500"></div>
-                <div className="flex flex-col items-center justify-center gap-4 text-white/90">
-                  <MonitorSmartphone size={80} strokeWidth={1.5} className="animate-pulse" />
-                  <div className="flex gap-4">
-                    <BookOpen size={40} strokeWidth={1.5} className="text-indigo-300" />
-                    <Sparkles size={40} strokeWidth={1.5} className="text-purple-300" />
-                  </div>
-                </div>
-              </div>
+              {/* Dikosongkan sesuai permintaan agar jadi blank saja ketika tidak ada gambar */}
             </div>
           )}
 
