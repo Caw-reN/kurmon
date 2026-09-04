@@ -351,6 +351,13 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             conditions.push("(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')");
           }
           let params = [];
+          
+          const bulan = queryParams.get("bulan");
+          if (bulan) {
+            params.push(`${bulan}%`);
+            conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
+          }
+          
           if (startDate) {
             params.push(startDate);
             conditions.push(`k.tanggal >= $${params.length}`);
@@ -360,8 +367,8 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           }
           query += " ORDER BY k.tanggal DESC, k.id DESC";
           
-          const limit = Math.min(parseInt(url.searchParams.get('limit') || '500', 10), 1000);
-          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+          const limit = parseInt(queryParams.get('limit') || '500', 10);
+          const offset = parseInt(queryParams.get('offset') || '0', 10);
           query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
           params.push(limit, offset);
 

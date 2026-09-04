@@ -370,7 +370,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   const fetchAbsensi = useCallback(async () => {
     if (!authToken) return;
     try {
-      const res = await fetch('/api/kedisiplinan/absensi?limit=5000&includeHikvision=true', {
+      const res = await fetch('/api/kedisiplinan/absensi?limit=999999&includeHikvision=true', {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await res.json();
