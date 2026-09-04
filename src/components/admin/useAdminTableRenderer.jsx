@@ -567,7 +567,7 @@ export function useAdminTableRenderer(context) {
                             type="button"
                             onClick={() => {
                               setItemsPerPage(val);
-                              setTablePage(1);
+                              setTablePage(p => ({ ...p, [tabKey]: 1 }));
                               setShowRowsDropdown(false);
                             }}
                             className={cn("w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-colors cursor-pointer",
@@ -588,7 +588,7 @@ export function useAdminTableRenderer(context) {
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  onClick={() => setTablePage(p => Math.max(1, p - 1))}
+                  onClick={() => setTablePage(p => ({ ...p, [tabKey]: Math.max(1, (p[tabKey] || 1) - 1) }))}
                   disabled={safeTablePage === 1}
                 >
                   <ChevronLeft size={13} />
@@ -599,7 +599,7 @@ export function useAdminTableRenderer(context) {
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  onClick={() => setTablePage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setTablePage(p => ({ ...p, [tabKey]: Math.min(totalPages, (p[tabKey] || 1) + 1) }))}
                   disabled={safeTablePage === totalPages}
                 >
                   <ChevronRight size={13} />
