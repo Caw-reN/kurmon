@@ -1051,7 +1051,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
               </div>
 
               {/* Filter Bar EWS */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50/70 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/60">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 bg-slate-50/70 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-200/60">
                 <div className="relative sm:col-span-1">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
@@ -1073,6 +1073,17 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                     value={filterTingkat}
                     onChange={v => { setFilterTingkat(v); setFilterClass('all'); }}
                     placeholder="Tingkat"
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <CustomSelect
+                    options={[
+                      { value: 'all', label: 'Semua Jurusan' },
+                      ...Array.from(new Set(classes.map(c => c.major || (c.name.split(' ').length >= 2 ? c.name.split(' ')[1] : null)))).filter(Boolean).sort().map(j => ({ value: j, label: j }))
+                    ]}
+                    value={filterJurusan}
+                    onChange={v => { setFilterJurusan(v); setFilterClass('all'); }}
+                    placeholder="Jurusan"
                   />
                 </div>
                 <div className="sm:col-span-1">
@@ -1190,7 +1201,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         <span className="font-mono text-slate-500">{cat.count} Sesi ({pct}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/40">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${cat.gradient} transition-all duration-500`} style={{ width: `${Math.max(pct, 4)}%` }}></div>
+                        <div className={`h-full rounded-full bg-gradient-to-r ${cat.gradient} transition-all duration-500`} style={{ width: `${pct > 0 ? Math.max(pct, 4) : 0}%` }}></div>
                       </div>
                     </div>
                   );
@@ -1267,7 +1278,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
             </div>
 
             {/* Smart Filters Grid: Tingkat, Jurusan, Kelas, Kategori, Status, Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t border-slate-100">
               <div className="relative lg:col-span-1">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -1290,6 +1301,18 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                     { value: 'XII', label: 'Kelas XII' }
                   ]}
                   placeholder="Tingkat"
+                />
+              </div>
+
+              <div>
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: 'Semua Jurusan' },
+                    ...Array.from(new Set(classes.map(c => c.major || (c.name.split(' ').length >= 2 ? c.name.split(' ')[1] : null)))).filter(Boolean).sort().map(j => ({ value: j, label: j }))
+                  ]}
+                  value={filterJurusan}
+                  onChange={v => { setFilterJurusan(v); setFilterClass('all'); }}
+                  placeholder="Jurusan"
                 />
               </div>
 
