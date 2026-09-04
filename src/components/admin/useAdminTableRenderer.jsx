@@ -528,7 +528,7 @@ export function useAdminTableRenderer(context) {
           <div className="p-2.5 border-t border-border bg-muted/20 flex items-center justify-between shrink-0 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-muted-foreground font-medium">
-                  {sortedData.length === 0 ? 0 : (safeTablePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safeTablePage * ITEMS_PER_PAGE, sortedData.length)} dari {sortedData.length}
+                  {actualTotal === 0 ? 0 : (safeTablePage - 1) * itemsPerPage + 1}–{Math.min(safeTablePage * itemsPerPage, actualTotal)} dari {actualTotal}
                 </span>
                 <div className="relative inline-block text-left">
                   <button
