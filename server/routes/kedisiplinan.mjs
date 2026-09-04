@@ -345,9 +345,11 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
               s.payload->>'nis' = k.siswa_nis OR 
               s.payload->>'code' = k.siswa_nis
           `;
-          let conditions = [
-            "(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')"
-          ];
+          let conditions = [];
+          const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+          if (queryParams.get("includeHikvision") !== "true") {
+            conditions.push("(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')");
+          }
           let params = [];
           if (startDate) {
             params.push(startDate);

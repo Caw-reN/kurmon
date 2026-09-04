@@ -67,7 +67,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     try {
       const [resRiwayat, resAbsensi, resCatatan, resKonseling] = await Promise.all([
         fetch("/api/kedisiplinan/riwayat", { headers: { "Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/kedisiplinan/absensi?limit=5000", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/kedisiplinan/absensi?limit=5000&includeHikvision=true", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kesiswaan/catatan-walikelas", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
