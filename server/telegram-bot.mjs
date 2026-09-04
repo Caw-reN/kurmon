@@ -546,6 +546,8 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       let errorMsg = err.message || 'Gagal mengirim pesan';
       if (errorMsg.toLowerCase().includes('chat not found')) {
         errorMsg = 'Chat tidak ditemukan di Telegram! Buka bot Anda di Telegram dan tekan tombol "START" (/start) atau kirim pesan ke bot terlebih dahulu agar bot diizinkan mengirim pesan.';
+      } else if (errorMsg.toLowerCase() === 'not found') {
+        errorMsg = 'Bot Token tidak valid (Not Found). Pastikan Anda memasukkan HTTP API Token yang benar dari @BotFather.';
       }
       send(req, res, 500, { ok: false, error: errorMsg });
     }
