@@ -13,7 +13,7 @@ import { handleBackupRoutes } from "./routes/backup.mjs";
 import { handleStudentRoutes } from "./routes/students.mjs";
 import { handleTeacherRoutes } from "./routes/teachers.mjs";
 import { handleStaffRoutes } from "./routes/staffs.mjs";
-import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert } from "./telegram-bot.mjs";
+import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert, reloadTelegramBotConfig } from "./telegram-bot.mjs";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
