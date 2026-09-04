@@ -126,6 +126,23 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     return map;
   }, [riwayat]);
 
+  // Dynamically calculate weekdays in the selected month
+  const totalSchoolDays = useMemo(() => {
+    if (!filterBulan) return 0;
+    const [year, month] = filterBulan.split('-');
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); 
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === parseInt(year) && today.getMonth() === parseInt(month) - 1;
+    const finalEndDate = isCurrentMonth ? today : endDate;
+
+    let weekdays = 0;
+    for (let d = new Date(startDate); d <= finalEndDate; d.setDate(d.getDate() + 1)) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) weekdays++;
+    }
+    return weekdays;
+  }, [filterBulan]);
+
   // Aggregate student attendance
   const studentAttendance = useMemo(() => {
     const map = {};
@@ -140,8 +157,22 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       else if (st === 'alpa' || st === 'belum scan') map[nisStr].alpa += 1;
       else map[nisStr].hadir += 1;
     });
+
+    if (filterBulan && totalSchoolDays > 0) {
+      students.forEach(s => {
+        const nisStr = String(s.nis);
+        if (!map[nisStr]) {
+          map[nisStr] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+        }
+        const att = map[nisStr];
+        const knownDays = att.hadir + att.sakit + att.izin + att.alpa;
+        const missingDays = Math.max(0, totalSchoolDays - knownDays);
+        att.alpa += missingDays;
+      });
+    }
+
     return map;
-  }, [absensi]);
+  }, [absensi, filterBulan, totalSchoolDays, students]);
 
   // Filtered Students List
   const filteredStudentsList = useMemo(() => {
