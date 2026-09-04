@@ -2825,7 +2825,7 @@ export default function App() {
     itemsPerPage, tablePage, getRowKeyForTab, tabSubtitles, setSearchTerm, setTablePage,
     handleSelectAll, handleSort, handleBulkDelete, renderTableFilters: undefined, setShowImportModal: undefined,
     openModal, deletedHistory, undoLastDelete, handleResetRuangan, setItemsPerPage, setTableSorts,
-    updateSelectionForTab
+    updateSelectionForTab, currentUser, classes
   });
 
   const tabProps = {

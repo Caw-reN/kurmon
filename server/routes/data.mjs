@@ -18,20 +18,20 @@ export async function handleDataRoutes(req, res, url, ctx) {
     try {
       const payload = await readMainPayload();
       
-      // Merge with relational tables (small datasets only)
+      // Merge with relational tables (all master data sources)
       try {
         const [majors, classes, rooms, subjects] = await Promise.all([
-          dbPool.query('SELECT payload FROM mst_majors'),
-          dbPool.query('SELECT payload FROM mst_classes'),
-          dbPool.query('SELECT payload FROM mst_rooms'),
-          dbPool.query('SELECT payload FROM mst_subjects')
+          dbPool.query('SELECT payload FROM mst_majors ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_classes ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_rooms ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_subjects ORDER BY id ASC')
         ]);
-        if (majors.rows.length > 0) payload.majors = majors.rows.map(r => r.payload);
-        if (classes.rows.length > 0) payload.classes = classes.rows.map(r => r.payload);
-        if (rooms.rows.length > 0) payload.rooms = rooms.rows.map(r => r.payload);
-        if (subjects.rows.length > 0) payload.subjects = subjects.rows.map(r => r.payload);
-        
-        // Ensure arrays exist for empty relations
+        // Always set from DB (even if empty) so public payload is in sync
+        payload.majors = majors.rows.map(r => r.payload);
+        payload.classes = classes.rows.map(r => r.payload);
+        payload.rooms = rooms.rows.map(r => r.payload);
+        payload.subjects = subjects.rows.map(r => r.payload);
+        // Do not include teachers/students in public endpoint for security
         payload.teachers = [];
         payload.students = [];
       } catch (e) {
@@ -52,23 +52,26 @@ export async function handleDataRoutes(req, res, url, ctx) {
     try {
       const payload = await readMainPayload();
 
-      // Merge with relational tables (small datasets only)
+      // Merge with relational tables (all master data sources)
       try {
-        const [majors, classes, rooms, subjects] = await Promise.all([
-          dbPool.query('SELECT payload FROM mst_majors'),
-          dbPool.query('SELECT payload FROM mst_classes'),
-          dbPool.query('SELECT payload FROM mst_rooms'),
-          dbPool.query('SELECT payload FROM mst_subjects')
+        const [majors, classes, rooms, subjects, teachers, students, staffs] = await Promise.all([
+          dbPool.query('SELECT payload FROM mst_majors ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_classes ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_rooms ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_subjects ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_teachers ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_students ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_staffs ORDER BY id ASC')
         ]);
-        if (majors.rows.length > 0) payload.majors = majors.rows.map(r => r.payload);
-        if (classes.rows.length > 0) payload.classes = classes.rows.map(r => r.payload);
-        if (rooms.rows.length > 0) payload.rooms = rooms.rows.map(r => r.payload);
-        if (subjects.rows.length > 0) payload.subjects = subjects.rows.map(r => r.payload);
-        
-        // Ensure arrays exist for empty relations
-        payload.teachers = [];
-        payload.students = [];
-        payload.staffs = [];
+        // Always set from DB (even if empty) so store is in sync with database
+        payload.majors = majors.rows.map(r => r.payload);
+        payload.classes = classes.rows.map(r => r.payload);
+        payload.rooms = rooms.rows.map(r => r.payload);
+        payload.subjects = subjects.rows.map(r => r.payload);
+        // Remove passwords from teachers/students/staffs before sending to client
+        payload.teachers = teachers.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
+        payload.students = students.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
+        payload.staffs = staffs.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
       } catch (e) {
         console.warn("Failed to merge relational tables on load", e);
       }

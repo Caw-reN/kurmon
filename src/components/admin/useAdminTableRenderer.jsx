@@ -62,7 +62,9 @@ export function useAdminTableRenderer(context) {
     handleResetRuangan,
     setItemsPerPage,
     setTableSorts,
-    updateSelectionForTab
+    updateSelectionForTab,
+    currentUser,
+    classes
   } = context;
 
   const [showRowsDropdown, setShowRowsDropdown] = React.useState(false);
@@ -72,39 +74,51 @@ export function useAdminTableRenderer(context) {
   const [serverTotal, setServerTotal] = React.useState({});
   const [isLoadingServerData, setIsLoadingServerData] = React.useState(false);
 
+  // Map semua alias activeTab ke canonical key yang digunakan server-side
+  const TAB_CANONICAL_KEY = {
+    siswa: "siswa", datasiswa: "siswa",
+    guru: "guru", dataguru: "guru", data_pegawai: "guru",
+    karyawan: "karyawan"
+  };
+
   React.useEffect(() => {
-    if (!["siswa", "guru", "karyawan"].includes(activeTab)) return;
+    const canonicalTab = TAB_CANONICAL_KEY[activeTab];
+    if (!canonicalTab) return;
+    const authToken = currentUser?.authToken || '';
+    if (!authToken) return;
     
     const fetchServerData = async () => {
       setIsLoadingServerData(true);
       try {
-        const page = tablePage[activeTab] || 1;
+        const page = tablePage[canonicalTab] || tablePage[activeTab] || 1;
         const search = searchTerm || "";
         
         let filterQuery = "";
-        if (activeTab === "siswa") {
+        if (canonicalTab === "siswa") {
           const classFilter = tableFilters[`siswa_class_name`] || "Semua";
           if (classFilter !== "Semua") filterQuery += `&class_name=${encodeURIComponent(classFilter)}`;
-        } else if (activeTab === "guru") {
+        } else if (canonicalTab === "guru") {
           const typeFilter = tableFilters[`guru_type`] || "Semua";
           const roleFilter = tableFilters[`guru_role`] || "Semua";
           if (typeFilter !== "Semua") filterQuery += `&type=${encodeURIComponent(typeFilter)}`;
           if (roleFilter !== "Semua") filterQuery += `&role=${encodeURIComponent(roleFilter)}`;
-        } else if (activeTab === "karyawan") {
+        } else if (canonicalTab === "karyawan") {
           const divFilter = tableFilters[`karyawan_division`] || "Semua";
           if (divFilter !== "Semua") filterQuery += `&division=${encodeURIComponent(divFilter)}`;
         }
         
-        const apiPath = activeTab === "karyawan" ? "staffs" : activeTab === "guru" ? "teachers" : "students";
-        const res = await fetch(`/api/${apiPath}?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}${filterQuery}`);
+        const apiPath = canonicalTab === "karyawan" ? "staffs" : canonicalTab === "guru" ? "teachers" : "students";
+        const res = await fetch(`/api/${apiPath}?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}${filterQuery}`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
         const json = await res.json();
         
         if (json.ok) {
-          setServerData(prev => ({ ...prev, [activeTab]: json.data }));
-          setServerTotal(prev => ({ ...prev, [activeTab]: json.meta.total }));
+          setServerData(prev => ({ ...prev, [canonicalTab]: json.data }));
+          setServerTotal(prev => ({ ...prev, [canonicalTab]: json.meta.total }));
         }
       } catch (err) {
-        console.error("Failed to fetch server data for " + activeTab, err);
+        console.error("Failed to fetch server data for " + canonicalTab, err);
       } finally {
         setIsLoadingServerData(false);
       }
@@ -112,7 +126,7 @@ export function useAdminTableRenderer(context) {
     
     const timeout = setTimeout(fetchServerData, 300);
     return () => clearTimeout(timeout);
-  }, [activeTab, tablePage, searchTerm, itemsPerPage, tableFilters]);
+  }, [activeTab, tablePage, searchTerm, itemsPerPage, tableFilters, currentUser?.authToken]);
   const renderTable = (title, columns, data, renderRow, options = {}) => {
     const permLevel = getTabPermissionLevel(options.tabKey || activeTab);
     const isViewOnly = permLevel ==="view" || (permLevel ==="otomatis" && activeUserRole ==="kepsek");
@@ -124,7 +138,7 @@ export function useAdminTableRenderer(context) {
 
     const getFilterValues = (filterKey, altKeys = []) => {
       if (isServerSide) {
-        if (tabKey === "siswa" && filterKey === "class_name") return ["Semua", ...(context.classes || []).map(c => c.name).sort()];
+        if (tabKey === "siswa" && filterKey === "class_name") return ["Semua", ...(classes || []).map(c => c.name).sort()];
         if (tabKey === "guru" && filterKey === "type") return ["Semua", "Umum", "Kejuruan", "BP/BK", "Agama", "Lainnya"];
         if (tabKey === "guru" && filterKey === "role") return ["Semua", "guru", "waka", "kepsek", "kurikulum", "kesiswaan", "admin", "superadmin"];
         if (tabKey === "karyawan" && filterKey === "division") return ["Semua", "Tata Usaha", "Kebersihan", "Keamanan", "Perpustakaan", "Teknisi", "Lainnya"];
