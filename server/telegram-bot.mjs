@@ -372,9 +372,9 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
     const { rows: todayLogs } = await _dbPool.query(`
       SELECT employee_id, true_name, true_person_type, timestamp, status
       FROM hikvision_logs
-      WHERE timestamp::date = $1::date
-      ORDER BY timestamp ASC
-    `, [today]).catch(() => ({ rows: [] }));
+      WHERE "timestamp"::date = $1::date
+      ORDER BY "timestamp" ASC
+    `, [today]).catch((e) => { console.error('[TelegramBot] Query Absensi Error:', e.message); return { rows: [] }; });
 
     // Ambil total guru & karyawan terdaftar
     const { rows: tRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_teachers`).catch(() => ({ rows: [{ count: 0 }] }));
@@ -539,7 +539,7 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       const safeName = String(session.name || session.id).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
       
       await _sendMessage(_chatId,
-        `🚀 *Test Koneksi Berhasil\\!*\n\nBot Kurmon aktif dan siap memantau sistem\\.\n🕒 ${safeTime}\n👤 Dikirim oleh: ${safeName}`
+        `🚀 *Test Koneksi Berhasil\\!*\n\nSistem Notifikasi Telegram dari *Website Sistem Kurmon* telah terhubung dengan baik\\.\n\n🕒 Waktu: ${safeTime}\n👤 Admin: ${safeName}\n🌐 Pengirim: Aplikasi Web Kurmon`
       );
       send(req, res, 200, { ok: true });
     } catch (err) {
