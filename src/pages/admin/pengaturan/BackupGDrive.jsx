@@ -900,22 +900,54 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             )}
           </div>
 
-          {/* Guide */}
-          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
-            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-              <Info size={16} className="text-sky-600" />
-              Petunjuk Menghubungkan Bot Telegram
-            </h4>
-            <ol className="list-decimal pl-5 space-y-2 text-xs text-slate-600 font-medium leading-relaxed">
-              <li>Buka aplikasi Telegram dan hubungi <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-sky-600 font-bold hover:underline">@BotFather</a>.</li>
-              <li>Kirim perintah <code>/newbot</code> dan ikuti arahan untuk memberi nama serta username bot Anda.</li>
-              <li>Salin <b>HTTP API Token</b> yang diberikan oleh BotFather.</li>
-              <li>Buka bot yang baru dibuat di Telegram Anda, lalu tekan <b>Start</b>.</li>
-              <li>
-                Masuk ke tab <button type="button" onClick={() => setSystemTab?.('api_keys')} className="text-sky-600 font-bold hover:underline bg-transparent border-none cursor-pointer p-0">API Key</button>, pilih kartu <b>Telegram Auto-Backup</b>, dan masukkan Token beserta Chat ID Anda.
-              </li>
-              <li>Setelah tersimpan, kembali ke tab ini dan klik <b>Reload Bot</b> untuk mengaktifkannya.</li>
-            </ol>
+          {/* ── Guide / Manual Telegram Bot ── */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-5 relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <Send size={120} />
+            </div>
+
+            <div className="relative z-10">
+              <h4 className="font-extrabold text-slate-800 text-base flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
+                <Info size={18} className="text-sky-500" />
+                Buku Panduan: Konfigurasi Bot Telegram
+              </h4>
+              
+              <div className="space-y-4">
+                {/* Step 1: Dapatkan Token */}
+                <div className="flex gap-4 p-4 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 relative group transition-all hover:shadow-xs hover:bg-white hover:border-sky-100">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center shrink-0 border border-sky-200">1</div>
+                  <div>
+                    <h5 className="font-extrabold text-slate-800 text-[13px] mb-1">Dapatkan Bot Token</h5>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                      Buka Telegram, cari <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-sky-600 font-bold hover:underline">@BotFather</a>. Kirim perintah <code className="bg-slate-200/60 px-1 py-0.5 rounded text-slate-700">/newbot</code>, berikan nama bot Anda, lalu salin <b>HTTP API Token</b> yang diberikan.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2: Dapatkan Chat ID */}
+                <div className="flex gap-4 p-4 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 relative group transition-all hover:shadow-xs hover:bg-white hover:border-emerald-100">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-black text-sm flex items-center justify-center shrink-0 border border-emerald-200">2</div>
+                  <div>
+                    <h5 className="font-extrabold text-slate-800 text-[13px] mb-1">Dapatkan Target Chat ID</h5>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                      Cari bot <a href="https://t.me/userinfobot" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold hover:underline">@userinfobot</a> di Telegram, tekan <b>Start</b>. Salin angka <b>Id</b> (contoh: <code className="bg-slate-200/60 px-1 py-0.5 rounded text-slate-700">123456789</code>) yang merupakan Chat ID Anda atau Grup Anda.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Aktivasi */}
+                <div className="flex gap-4 p-4 rounded-[var(--ui-radius-small)] bg-slate-50 border border-slate-100 relative group transition-all hover:shadow-xs hover:bg-white hover:border-purple-100">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-black text-sm flex items-center justify-center shrink-0 border border-purple-200">3</div>
+                  <div>
+                    <h5 className="font-extrabold text-slate-800 text-[13px] mb-1">Masukkan ke Sistem & Mulai</h5>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                      Pindah ke tab <button type="button" onClick={() => setSystemTab?.('api_keys')} className="text-purple-600 font-bold hover:underline bg-transparent border-none cursor-pointer p-0">API Key</button>, pilih kartu <b>Telegram Auto-Backup</b>, lalu masukkan Token dan Chat ID. Buka Bot Anda di Telegram dan tekan <b>Start</b>. Terakhir, kembali ke halaman ini dan tekan <b>Reload Bot</b>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
