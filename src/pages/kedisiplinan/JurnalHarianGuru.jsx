@@ -1620,12 +1620,12 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
     return studentAttendance.filter(item => {
       const isSameDate = item.tanggal === date || item.tanggal.startsWith(date);
       if (!isSameDate) return false;
-      const student = students.find(s => s.nis === item.siswa_nis || s.code === item.siswa_nis);
+      const student = students.find(s => String(s.nis) === String(item.siswa_nis) || s.code === item.siswa_nis);
       const studentClass = student ? (student.class_name || student.kelas ||'') :'';
       return studentClass.trim().toLowerCase() === className.trim().toLowerCase() && 
              ['sakit','izin','alpa'].includes(String(item.status ||'').toLowerCase());
     }).map(item => {
-      const student = students.find(s => s.nis === item.siswa_nis || s.code === item.siswa_nis);
+      const student = students.find(s => String(s.nis) === String(item.siswa_nis) || s.code === item.siswa_nis);
       return {
         name: student ? (student.namaSiswa || student.name || student.nama || student.nama_siswa) : item.siswa_nis,
         status: item.status

@@ -548,7 +548,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
               ) : (
                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                     {history.map(item => {
-                       const student = students.find(s => s.nis === item.siswa_nis);
+                       const student = students.find(s => String(s.nis) === String(item.siswa_nis));
                        const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
                        return (
                           <div key={item.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded-[var(--ui-radius-small)] gap-2">

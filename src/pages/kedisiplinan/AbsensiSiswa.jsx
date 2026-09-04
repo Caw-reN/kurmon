@@ -434,7 +434,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   
   const exportExcel = () => {
     const data = filteredItems.map(item => {
-      const student = students.find(s => s.nis === item.siswa_nis);
+      const student = students.find(s => String(s.nis) === String(item.siswa_nis));
       return {
         Tanggal: new Date(item.tanggal).toLocaleDateString('id-ID'),
         NIS: item.siswa_nis,
@@ -611,7 +611,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               </tr>
             ) : (
               paginatedSuratItems.map((item, idx) => {
-                const student = students.find(s => s.nis === item.siswa_nis);
+                const student = students.find(s => String(s.nis) === String(item.siswa_nis));
                 const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
                 return (
                 <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
@@ -736,7 +736,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           </div>
         ) : (
           paginatedSuratItems.map(item => {
-            const student = students.find(s => s.nis === item.siswa_nis);
+            const student = students.find(s => String(s.nis) === String(item.siswa_nis));
             const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
             return (
               <div key={item.id} className="p-3.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs flex flex-col gap-2.5">
@@ -860,7 +860,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 {form.siswa_nis.length > 0 && (
                   <div className="mt-3 bg-slate-50 border-none rounded-[var(--ui-radius-small)] p-3 flex flex-wrap gap-2">
                     {form.siswa_nis.map(nis => {
-                      const student = students.find(s => s.nis === nis);
+                      const student = students.find(s => String(s.nis) === String(nis));
                       return (
                         <div key={nis} className="bg-white border-none rounded-[var(--ui-radius-small)] px-2.5 py-1.5 text-xs font-bold text-slate-700 flex items-center gap-2 shadow-sm">
                           <span>{student ? (student.namaSiswa || student.name) : nis}</span>
@@ -918,7 +918,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           <form onSubmit={handleUpdate} className="space-y-4">
             <div className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border-none mb-4">
               <p className="text-xs font-bold text-slate-500 uppercase">Siswa</p>
-              <p className="font-bold text-slate-800 text-sm mt-1">{students.find(s => s.nis === editForm.siswa_nis)?.namaSiswa || students.find(s => s.nis === editForm.siswa_nis)?.name || editForm.siswa_nis}</p>
+              <p className="font-bold text-slate-800 text-sm mt-1">{students.find(s => String(s.nis) === String(editForm.siswa_nis))?.namaSiswa || students.find(s => String(s.nis) === String(editForm.siswa_nis))?.name || editForm.siswa_nis}</p>
               <p className="text-xs text-slate-500">{new Date(editForm.tanggal).toLocaleDateString('id-ID')}</p>
             </div>
             <div className="grid grid-cols-1 gap-4">
@@ -981,7 +981,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               <div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Siswa &amp; Tanggal</div>
                 <div className="font-extrabold text-slate-900 text-sm mt-0.5">
-                  {students.find(s => s.nis === previewItem.siswa_nis)?.namaSiswa || students.find(s => s.nis === previewItem.siswa_nis)?.name || previewItem.siswa_nis}
+                  {students.find(s => String(s.nis) === String(previewItem.siswa_nis))?.namaSiswa || students.find(s => String(s.nis) === String(previewItem.siswa_nis))?.name || previewItem.siswa_nis}
                 </div>
                 <div className="text-xs font-semibold text-slate-500 mt-0.5">
                   Tanggal: {new Date(previewItem.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
