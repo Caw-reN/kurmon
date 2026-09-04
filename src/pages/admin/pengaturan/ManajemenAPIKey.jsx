@@ -796,7 +796,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
           </div>
 
           {/* EXTRA CONFIGURATION FIELDS */}
-          {form.service_name.startsWith('telegram') && (
+          {form?.service_name?.includes('telegram') && (
             <div className="p-3 bg-sky-50/40 rounded-[var(--ui-radius-small)] border border-sky-100 space-y-2">
               <label className="block text-[10.5px] font-black text-sky-800 uppercase tracking-wider">Target Chat ID</label>
               <input 
@@ -959,7 +959,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
 
       {/* TOAST NOTIFIKASI */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-50 ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[9999] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} {toast.message}
         </div>
       )}
