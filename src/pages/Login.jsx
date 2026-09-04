@@ -80,12 +80,21 @@ export default function Login({
   const inputClass = "w-full border border-[var(--ui-border-soft)] bg-white py-2.5 px-3.5 text-base font-semibold text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] hover:border-slate-300 shadow-[var(--ui-shadow-control)]";
 
   return (
+  return (
     <div
-      className="min-h-screen w-full flex flex-col justify-center items-center p-5 sm:p-8 relative bg-white font-sans text-slate-900 overflow-hidden"
-      style={uiTheme}
+      className="min-h-screen w-full flex flex-col justify-center items-center p-5 sm:p-8 relative font-sans overflow-hidden"
+      style={{
+        ...uiTheme,
+        backgroundImage: appSettings.bgImage ? `url(${appSettings.bgImage})` : 'radial-gradient(circle at top right, var(--ui-primary), #0f172a)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
     >
-      {/* Ambient blur */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--ui-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* Dark overlay for better contrast if using background image */}
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] z-0"></div>
+
+      {/* Ambient blur effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-sky-500/20 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Animations (Bird/Bat, Plane, UFO) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-60">
@@ -118,15 +127,15 @@ export default function Login({
         </div>
       </div>
 
-      <div className="w-full max-w-[340px] flex flex-col relative z-10">
+      <div className="w-full max-w-[380px] flex flex-col relative z-10 bg-white/95 backdrop-blur-xl p-8 sm:p-10 shadow-2xl border border-white/20" style={{ borderRadius: "var(--ui-radius-card, 24px)" }}>
 
         {/* Logo */}
-        <div className="flex justify-center mb-5">
+        <div className="flex justify-center mb-6">
           <div
-            className="w-12 h-12 flex items-center justify-center text-[18px] font-black text-white shadow-[var(--ui-shadow-float)]"
+            className="w-14 h-14 flex items-center justify-center text-[20px] font-black text-white shadow-lg ring-4 ring-white/50"
             style={{
               backgroundColor: "var(--ui-primary)",
-              borderRadius: "var(--ui-radius-control, 14px)"
+              borderRadius: "var(--ui-radius-control, 16px)"
             }}
           >
             {appSettings.logoText || "TS"}
@@ -134,11 +143,11 @@ export default function Login({
         </div>
 
           {/* Title */}
-          <div className="text-center mb-7">
-            <h1 className="text-[22px] font-black text-slate-900 mb-1 tracking-tight">
+          <div className="text-center mb-8">
+            <h1 className="text-[24px] font-black text-slate-900 mb-1.5 tracking-tight">
               {viewMode === "forgot" ? "Lupa Kata Sandi" : "Masuk ke Akun"}
             </h1>
-            <p className="text-[12px] text-slate-500 font-medium">
+            <p className="text-[13px] text-slate-500 font-medium">
               {viewMode === "forgot"
                 ? "Minta reset kata sandi ke Administrator"
                 : <span>Portal akademik <span className="text-[var(--ui-primary)] font-bold">{appSettings.appName || "TimeSchedule"}</span></span>
@@ -314,21 +323,23 @@ export default function Login({
 
                 {/* Remember me + Forgot */}
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-[12px] font-semibold text-slate-600 cursor-pointer group">
+                  <label className="flex items-center gap-2.5 text-[13px] font-semibold text-slate-600 cursor-pointer group">
                     <div className="relative flex items-center justify-center">
                       <input
                         type="checkbox"
                         checked={rememberMe}
                         onChange={e => setRememberMe(e.target.checked)}
-                        className="peer absolute h-4 w-4 cursor-pointer opacity-0"
+                        className="peer absolute h-5 w-5 cursor-pointer opacity-0"
                       />
-                      <div className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-slate-300 transition-all peer-checked:border-[var(--ui-primary)] peer-checked:bg-[var(--ui-primary)]">
-                        <svg className="h-2.5 w-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                      <div className={`flex h-5 w-5 items-center justify-center rounded-[6px] border transition-all ${rememberMe ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]' : 'border-slate-300 bg-white group-hover:border-[var(--ui-primary)]'}`}>
+                        {rememberMe && (
+                          <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                       </div>
                     </div>
-                    <span className="group-hover:text-slate-900 transition-colors">Ingat saya</span>
+                    <span className="group-hover:text-slate-900 transition-colors select-none">Ingat saya</span>
                   </label>
 
                   <button
@@ -350,18 +361,18 @@ export default function Login({
                 <Button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 h-11 text-[13px] font-bold shadow-lg shadow-[var(--ui-primary)]/20"
                 >
                   {isLoggingIn ? (
                     <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4.5 w-4.5" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                       Memproses...
                     </span>
                   ) : (
-                    <>Masuk ke Akun <ArrowRight size={15} /></>
+                    <>Masuk ke Akun <ArrowRight size={16} strokeWidth={2.5} /></>
                   )}
                 </Button>
               </form>
