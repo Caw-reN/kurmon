@@ -80,7 +80,6 @@ export default function Login({
   const inputClass = "w-full border border-[var(--ui-border-soft)] bg-white py-2.5 px-3.5 text-base font-semibold text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] hover:border-slate-300 shadow-[var(--ui-shadow-control)]";
 
   return (
-  return (
     <div
       className="min-h-screen w-full flex flex-col justify-center items-center p-5 sm:p-8 relative font-sans overflow-hidden"
       style={{
