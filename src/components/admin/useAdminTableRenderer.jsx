@@ -68,7 +68,51 @@ export function useAdminTableRenderer(context) {
   const [showRowsDropdown, setShowRowsDropdown] = React.useState(false);
   const [tableFilters, setTableFilters] = React.useState({});
 
-   
+  const [serverData, setServerData] = React.useState({});
+  const [serverTotal, setServerTotal] = React.useState({});
+  const [isLoadingServerData, setIsLoadingServerData] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!["siswa", "guru", "karyawan"].includes(activeTab)) return;
+    
+    const fetchServerData = async () => {
+      setIsLoadingServerData(true);
+      try {
+        const page = tablePage[activeTab] || 1;
+        const search = searchTerm || "";
+        
+        let filterQuery = "";
+        if (activeTab === "siswa") {
+          const classFilter = tableFilters[`siswa_class_name`] || "Semua";
+          if (classFilter !== "Semua") filterQuery += `&class_name=${encodeURIComponent(classFilter)}`;
+        } else if (activeTab === "guru") {
+          const typeFilter = tableFilters[`guru_type`] || "Semua";
+          const roleFilter = tableFilters[`guru_role`] || "Semua";
+          if (typeFilter !== "Semua") filterQuery += `&type=${encodeURIComponent(typeFilter)}`;
+          if (roleFilter !== "Semua") filterQuery += `&role=${encodeURIComponent(roleFilter)}`;
+        } else if (activeTab === "karyawan") {
+          const divFilter = tableFilters[`karyawan_division`] || "Semua";
+          if (divFilter !== "Semua") filterQuery += `&division=${encodeURIComponent(divFilter)}`;
+        }
+        
+        const apiPath = activeTab === "karyawan" ? "staffs" : activeTab === "guru" ? "teachers" : "students";
+        const res = await fetch(`/api/${apiPath}?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}${filterQuery}`);
+        const json = await res.json();
+        
+        if (json.ok) {
+          setServerData(prev => ({ ...prev, [activeTab]: json.data }));
+          setServerTotal(prev => ({ ...prev, [activeTab]: json.meta.total }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch server data for " + activeTab, err);
+      } finally {
+        setIsLoadingServerData(false);
+      }
+    };
+    
+    const timeout = setTimeout(fetchServerData, 300);
+    return () => clearTimeout(timeout);
+  }, [activeTab, tablePage, searchTerm, itemsPerPage, tableFilters]);
   const renderTable = (title, columns, data, renderRow, options = {}) => {
     const permLevel = getTabPermissionLevel(options.tabKey || activeTab);
     const isViewOnly = permLevel ==="view" || (permLevel ==="otomatis" && activeUserRole ==="kepsek");
@@ -76,7 +120,15 @@ export function useAdminTableRenderer(context) {
 
     // Dynamic Filter lists & application
     const activeFilters = TAB_FILTER_KEYS[tabKey] || [];
+    const isServerSide = ["siswa", "guru", "karyawan"].includes(tabKey);
+
     const getFilterValues = (filterKey, altKeys = []) => {
+      if (isServerSide) {
+        if (tabKey === "siswa" && filterKey === "class_name") return ["Semua", ...(context.classes || []).map(c => c.name).sort()];
+        if (tabKey === "guru" && filterKey === "type") return ["Semua", "Umum", "Kejuruan", "BP/BK", "Agama", "Lainnya"];
+        if (tabKey === "guru" && filterKey === "role") return ["Semua", "guru", "waka", "kepsek", "kurikulum", "kesiswaan", "admin", "superadmin"];
+        if (tabKey === "karyawan" && filterKey === "division") return ["Semua", "Tata Usaha", "Kebersihan", "Keamanan", "Perpustakaan", "Teknisi", "Lainnya"];
+      }
       const values = new Set();
       data.forEach(item => {
         let val = item[filterKey];
@@ -124,14 +176,26 @@ export function useAdminTableRenderer(context) {
     const sortOptions = options.sortOptions || TABLE_SORT_OPTIONS[tabKey] || [];
     const sortConfig = getActiveSortConfig(tabKey);
     const selectedKeys = selectedRows[tabKey] || [];
-    const filteredData = processedData.filter(item => normalizeText(getSearchTextForTab(tabKey, item)).includes(normalizeText(searchTerm)));
-    const sortedData = getTableSort(tabKey, filteredData);
-
-    // Pagination
-    const ITEMS_PER_PAGE = itemsPerPage;
-    const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
-    const safeTablePage = Math.max(1, Math.min(tablePage, totalPages || 1));
-    const paginatedData = sortedData.slice((safeTablePage - 1) * ITEMS_PER_PAGE, safeTablePage * ITEMS_PER_PAGE);
+    
+    let paginatedData = [];
+    let totalPages = 1;
+    let actualTotal = 0;
+    
+    if (isServerSide) {
+      paginatedData = serverData[tabKey] || [];
+      actualTotal = serverTotal[tabKey] || 0;
+      totalPages = Math.ceil(actualTotal / itemsPerPage) || 1;
+    } else {
+      const filteredData = processedData.filter(item => normalizeText(getSearchTextForTab(tabKey, item)).includes(normalizeText(searchTerm)));
+      const sortedData = getTableSort(tabKey, filteredData);
+      
+      actualTotal = sortedData.length;
+      totalPages = Math.ceil(actualTotal / itemsPerPage) || 1;
+      const safeTablePage = Math.max(1, Math.min(tablePage[tabKey] || 1, totalPages));
+      paginatedData = sortedData.slice((safeTablePage - 1) * itemsPerPage, safeTablePage * itemsPerPage);
+    }
+    
+    const safeTablePage = Math.max(1, Math.min(tablePage[tabKey] || 1, totalPages));
     const visibleKeys = paginatedData.map(item => getRowKeyForTab(tabKey, item));
     const allVisibleSelected = visibleKeys.length > 0 && visibleKeys.every(key => selectedKeys.includes(key));
     const selectedCount = selectedKeys.length;
@@ -255,7 +319,7 @@ export function useAdminTableRenderer(context) {
             {/* Bottom Toolbar Row: Stats Info + Filters & Sorting */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
               <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                <span>Menampilkan <strong className="text-slate-800">{filteredData.length}</strong> dari {data.length} data</span>
+                <span>Menampilkan <strong className="text-slate-800">{paginatedData.length}</strong> dari total {actualTotal} data</span>
                 {selectedCount > 0 && (
                   <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black">
                     {selectedCount} Dipilih
@@ -438,7 +502,14 @@ export function useAdminTableRenderer(context) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.length === 0 ? (
+                {isLoadingServerData ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length + 3} className="px-6 py-14 text-center">
+                      <div className="mx-auto mb-2 w-6 h-6 border-2 border-[var(--ui-primary)] border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-sm font-semibold text-foreground">Memuat data...</p>
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={columns.length + 3} className="px-6 py-14 text-center">
                       <Search size={22} className="mx-auto mb-2 text-muted-foreground/40" />

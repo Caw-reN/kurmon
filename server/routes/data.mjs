@@ -18,22 +18,22 @@ export async function handleDataRoutes(req, res, url, ctx) {
     try {
       const payload = await readMainPayload();
       
-      // Merge with relational tables
+      // Merge with relational tables (small datasets only)
       try {
-        const [majors, classes, rooms, teachers, subjects, students] = await Promise.all([
+        const [majors, classes, rooms, subjects] = await Promise.all([
           dbPool.query('SELECT payload FROM mst_majors'),
           dbPool.query('SELECT payload FROM mst_classes'),
           dbPool.query('SELECT payload FROM mst_rooms'),
-          dbPool.query('SELECT payload FROM mst_teachers'),
-          dbPool.query('SELECT payload FROM mst_subjects'),
-          dbPool.query('SELECT payload FROM mst_students')
+          dbPool.query('SELECT payload FROM mst_subjects')
         ]);
         if (majors.rows.length > 0) payload.majors = majors.rows.map(r => r.payload);
         if (classes.rows.length > 0) payload.classes = classes.rows.map(r => r.payload);
         if (rooms.rows.length > 0) payload.rooms = rooms.rows.map(r => r.payload);
-        if (teachers.rows.length > 0) payload.teachers = teachers.rows.map(r => r.payload);
         if (subjects.rows.length > 0) payload.subjects = subjects.rows.map(r => r.payload);
-        if (students.rows.length > 0) payload.students = students.rows.map(r => r.payload);
+        
+        // Ensure arrays exist for empty relations
+        payload.teachers = [];
+        payload.students = [];
       } catch (e) {
         console.warn("Failed to merge relational tables on load", e);
       }
@@ -52,24 +52,23 @@ export async function handleDataRoutes(req, res, url, ctx) {
     try {
       const payload = await readMainPayload();
 
-      // Merge with relational tables
+      // Merge with relational tables (small datasets only)
       try {
-        const [majors, classes, rooms, teachers, subjects, students, staffs] = await Promise.all([
+        const [majors, classes, rooms, subjects] = await Promise.all([
           dbPool.query('SELECT payload FROM mst_majors'),
           dbPool.query('SELECT payload FROM mst_classes'),
           dbPool.query('SELECT payload FROM mst_rooms'),
-          dbPool.query('SELECT payload FROM mst_teachers'),
-          dbPool.query('SELECT payload FROM mst_subjects'),
-          dbPool.query('SELECT payload FROM mst_students'),
-          dbPool.query('SELECT payload FROM mst_staffs')
+          dbPool.query('SELECT payload FROM mst_subjects')
         ]);
         if (majors.rows.length > 0) payload.majors = majors.rows.map(r => r.payload);
         if (classes.rows.length > 0) payload.classes = classes.rows.map(r => r.payload);
         if (rooms.rows.length > 0) payload.rooms = rooms.rows.map(r => r.payload);
-        if (teachers.rows.length > 0) payload.teachers = teachers.rows.map(r => r.payload);
         if (subjects.rows.length > 0) payload.subjects = subjects.rows.map(r => r.payload);
-        if (students.rows.length > 0) payload.students = students.rows.map(r => r.payload);
-        if (staffs.rows.length > 0) payload.staffs = staffs.rows.map(r => r.payload);
+        
+        // Ensure arrays exist for empty relations
+        payload.teachers = [];
+        payload.students = [];
+        payload.staffs = [];
       } catch (e) {
         console.warn("Failed to merge relational tables on load", e);
       }
@@ -247,7 +246,8 @@ export async function handleDataRoutes(req, res, url, ctx) {
 
       // --- RELATIONAL NORMALIZATION ---
       // Extract master data arrays and save them into individual tables
-      const { majors, classes, rooms, teachers, subjects, students, ...restPayload } = payload;
+      // NOTE: students, teachers, and staffs are no longer managed by this global save endpoint
+      const { majors, classes, rooms, subjects, teachers, students, staffs, ...restPayload } = payload;
       
       const saveToTable = async (tableName, items, idKey = 'id') => {
         if (!Array.isArray(items)) return;
@@ -299,15 +299,11 @@ export async function handleDataRoutes(req, res, url, ctx) {
         }
       };
 
-      await Promise.all([
-        saveToTable('mst_majors', majors, 'name'),
-        saveToTable('mst_classes', classes, 'name'),
-        saveToTable('mst_rooms', rooms, 'id'),
-        saveToTable('mst_teachers', teachers, 'code'),
-        saveToTable('mst_subjects', subjects, 'id'),
-        saveToTable('mst_students', students, 'nis'),
-        saveToTable('mst_staffs', payload.staffs || [], 'code')
-      ]);
+      if (majors !== undefined) await saveToTable('mst_majors', majors, 'name');
+      if (classes !== undefined) await saveToTable('mst_classes', classes, 'name');
+      if (rooms !== undefined) await saveToTable('mst_rooms', rooms, 'id');
+      if (subjects !== undefined) await saveToTable('mst_subjects', subjects, 'id');
+      // teachers, students, and staffs are updated via separate paginated endpoints
 
       // Save the rest of the config back to app_data
       const dataString = JSON.stringify(restPayload);

@@ -230,6 +230,7 @@ const OFFLINE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
 export default function App() {
   const [dbLoaded, setDbLoaded] = useState(false);
   const [error, setError] = useState(null);
+  const [isFatalOffline, setIsFatalOffline] = useState(false);
 
   useEffect(() => {
     applyDocumentBranding(getDatabaseSnapshot().appSettings || {});
@@ -318,17 +319,23 @@ export default function App() {
         if (!recovered) {
           setDatabaseSnapshot({});
           resetDocumentBranding();
+          setIsFatalOffline(true);
+        } else {
+          setDbLoaded(true);
         }
         clearLegacyLocalStorage();
-        setDbLoaded(true);
       }
     };
     loadDbData();
   }, []);
 
 
-  if (!dbLoaded) {
+  if (!dbLoaded && !isFatalOffline) {
     return <GlobalLoader title="Sedang Menyiapkan Ruang Kelas..." showTip={true} error={error} />;
+  }
+
+  if (isFatalOffline) {
+    throw new Error(error || "Koneksi ke server utama terputus dan tidak ada data luring (cache) yang tersedia.");
   }
 
   const featureSettings = getDatabaseSnapshot().featureSettings || {};

@@ -324,19 +324,39 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             console.warn("Gagal membaca tanggal mulai absensi:", err.message);
           }
 
-          let query = "SELECT id, siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal, status, keterangan, pelapor_id, pelapor_nama, approval_status, approved_by_id, approved_by_name, gdrive_url, created_at FROM kedisiplinan_absensi";
+          let query = `
+            SELECT 
+              k.id, 
+              k.siswa_nis, 
+              s.payload->>'name' as student_name,
+              COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'rombel') as class_name,
+              TO_CHAR(k.tanggal, 'YYYY-MM-DD') as tanggal, 
+              k.status, 
+              k.keterangan, 
+              k.pelapor_id, 
+              k.pelapor_nama, 
+              k.approval_status, 
+              k.approved_by_id, 
+              k.approved_by_name, 
+              k.gdrive_url, 
+              k.created_at 
+            FROM kedisiplinan_absensi k
+            LEFT JOIN mst_students s ON 
+              s.payload->>'nis' = k.siswa_nis OR 
+              s.payload->>'code' = k.siswa_nis
+          `;
           let conditions = [
-            "(pelapor_nama IS NULL OR pelapor_nama != 'Mesin Hikvision')"
+            "(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')"
           ];
           let params = [];
           if (startDate) {
             params.push(startDate);
-            conditions.push(`tanggal >= $${params.length}`);
+            conditions.push(`k.tanggal >= $${params.length}`);
           }
           if (conditions.length > 0) {
             query += " WHERE " + conditions.join(" AND ");
           }
-          query += " ORDER BY tanggal DESC, id DESC";
+          query += " ORDER BY k.tanggal DESC, k.id DESC";
           
           const limit = Math.min(parseInt(url.searchParams.get('limit') || '500', 10), 1000);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);

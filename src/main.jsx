@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
 import { registerSW } from 'virtual:pwa-register';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // Register Service Worker for PWA with auto-update
 const updateSW = registerSW({
@@ -55,43 +56,6 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
-class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
-  static getDerivedStateFromError(error) { return { hasError: true, error }; }
-  componentDidCatch(error, errorInfo) { 
-    console.error('EB Caught:', error, errorInfo);
-    
-    // Auto-recover from React DOM corruption (e.g. removeChild errors from Google Translate)
-    const errorMsg = String(error?.message || '');
-    if (errorMsg.includes('removeChild') || errorMsg.includes('Node')) {
-      const lastCrash = sessionStorage.getItem('dom_crash_recovery');
-      if (!lastCrash || (Date.now() - parseInt(lastCrash)) > 5000) {
-        sessionStorage.setItem('dom_crash_recovery', Date.now().toString());
-        // Since they were trying to navigate when this unmount error happened,
-        // we can just reload the page to clear the corrupted DOM and complete the navigation.
-        console.warn("DOM corruption detected, recovering via reload...");
-        window.location.reload();
-      }
-    }
-  }
-  render() {
-    if (this.state.hasError) {
-      // If we are recovering from a DOM crash, just show nothing momentarily
-      const isRecovering = sessionStorage.getItem('dom_crash_recovery') && (Date.now() - parseInt(sessionStorage.getItem('dom_crash_recovery'))) < 5000;
-      if (isRecovering) return null;
-
-      return (
-        <div style={{ padding: 40, background: '#fee2e2', color: '#991b1b', fontFamily: 'sans-serif' }}>
-          <h2 style={{ fontWeight: 'bold', fontSize: 24, marginBottom: 10 }}>Aplikasi Mengalami Crash</h2>
-          <pre style={{ background: '#f87171', padding: 15, color: 'white', borderRadius: 8, whiteSpace: 'pre-wrap' }}>
-            {String(this.state.error?.stack || this.state.error)}
-          </pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

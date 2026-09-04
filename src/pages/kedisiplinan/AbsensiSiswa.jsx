@@ -190,17 +190,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         }
       }
 
-      const student = students.find(s => {
-        const sNis = String(s.nis || s.code || '').trim();
-        const iNis = String(item.siswa_nis || '').trim();
-        if (!sNis || !iNis) return false;
-        return sNis === iNis || (sNis.length >= 5 && iNis.length >= 5 && (sNis.endsWith(iNis) || iNis.endsWith(sNis)));
-      });
-      
-      if (!student) return false; // Abaikan surat milik siswa yang sudah dihapus
-
-      const studentName = student.namaSiswa || student.name || item.siswa_nis;
-      const studentClass = student.class_name || student.kelas || "";
+      const studentName = item.student_name || item.siswa_nis;
+      const studentClass = item.class_name || "";
 
       // Pembatasan akses guru biasa non-walas
       if (!isFullAccess) {

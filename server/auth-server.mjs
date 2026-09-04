@@ -10,6 +10,9 @@ import { handleSettingsRoutes } from "./routes/settings.mjs";
 import { handleJurnalRoutes } from "./routes/jurnal.mjs";
 import { handleAdministrasiRoutes } from "./routes/administrasi.mjs";
 import { handleBackupRoutes } from "./routes/backup.mjs";
+import { handleStudentRoutes } from "./routes/students.mjs";
+import { handleTeacherRoutes } from "./routes/teachers.mjs";
+import { handleStaffRoutes } from "./routes/staffs.mjs";
 import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert } from "./telegram-bot.mjs";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
@@ -2997,6 +3000,18 @@ const server = createServer(async (req, res) => {
     
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
+    if (url.pathname.startsWith("/api/students")) {
+        const handled = await handleStudentRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
+    if (url.pathname.startsWith("/api/teachers")) {
+        const handled = await handleTeacherRoutes(req, res, url, ctx);
+        if (handled !== false) return;
+    }
+    if (url.pathname.startsWith("/api/staffs")) {
+        const handled = await handleStaffRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
     if (url.pathname.startsWith("/api/auth")) {
