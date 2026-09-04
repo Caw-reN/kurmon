@@ -87,15 +87,11 @@ export default function Login({
 
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <div
-            className="w-14 h-14 flex items-center justify-center text-[20px] font-black text-white shadow-lg ring-4 ring-white/50"
-            style={{
-              backgroundColor: "var(--ui-primary)",
-              borderRadius: "var(--ui-radius-control, 16px)"
-            }}
-          >
-            {appSettings.logoText || "TS"}
-          </div>
+          <img 
+            src={appSettings?.logoWebUrl || "/logo-kg2.png"} 
+            alt="Logo" 
+            className="w-[72px] h-[72px] object-contain drop-shadow-sm"
+          />
         </div>
 
           {/* Title */}
