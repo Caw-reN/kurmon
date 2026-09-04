@@ -323,7 +323,7 @@ export default function KepsekExecutiveDashboard({
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
     });
-    const allLogs = filteredScans;
+    const allLogs = [...hikLogs, ...recentLogs];
     
     const uniq = {};
     allLogs.forEach(r => {
