@@ -7,10 +7,29 @@ export function LegacyScheduleTable({
   displayClasses, 
   primaryColor ="#064e3b", 
 }) {
-  const { getSchedule, getDays, getTimeSlots } = useAppStore();
+  const { getSchedule, getDays, getTimeSlots, getTeachers } = useAppStore();
   const schedule = getSchedule();
   const days = getDays();
   const timeSlots = getTimeSlots();
+  const teachers = (typeof getTeachers === 'function' ? getTeachers() : []) || [];
+
+  const teacherMap = React.useMemo(() => {
+    const map = new Map();
+    teachers.forEach(t => {
+      const name = t.name || t.nama;
+      if (!name) return;
+      if (t.code !== undefined && t.code !== null) map.set(String(t.code).trim().toLowerCase(), name);
+      if (t.id !== undefined && t.id !== null) map.set(String(t.id).trim().toLowerCase(), name);
+      map.set(String(name).trim().toLowerCase(), name);
+    });
+    return map;
+  }, [teachers]);
+
+  const getTeacherName = (codeOrId) => {
+    if (!codeOrId) return '';
+    const key = String(codeOrId).trim().toLowerCase();
+    return teacherMap.get(key) || codeOrId;
+  };
 
   const getMajorColorHex = (className) => {
     const name = String(className).toUpperCase();
@@ -39,6 +58,7 @@ export function LegacyScheduleTable({
             <th className="p-3 bg-slate-50 text-slate-700 font-bold sticky top-0 left-[80px] z-40 border-b border-slate-200 min-w-[100px] print:static print:bg-white print:text-black print:border-slate-300 print:border print:!shadow-none">Waktu</th>
             {displayClasses.map((c) => {
               const colColor = getMajorColorHex(c.name);
+              const walasName = getTeacherName(c.homeroom);
               return (
                 <th 
                   key={c.name} 
@@ -49,9 +69,9 @@ export function LegacyScheduleTable({
                   {c.homeroom && (
                     <div 
                       className="text-[9px] opacity-90 mt-0.5 truncate print:hidden" 
-                      title={`Wali Kelas: ${c.homeroom}`}
+                      title={`Wali Kelas: ${walasName}`}
                     >
-                      Wali: {c.homeroom}
+                      Wali: {walasName}
                     </div>
                   )}
                 </th>
@@ -148,15 +168,18 @@ export function LegacyScheduleTable({
             <td className="p-2 border border-slate-300 font-bold sticky left-0 z-20 text-center text-slate-500 min-w-[50px] print:static print:border-slate-300 print:border print:!shadow-none">-</td>
             <td className="p-2 border border-slate-300 font-bold sticky left-[50px] z-20 text-center text-slate-500 min-w-[30px] max-w-[30px] print:static print:border-slate-300 print:border print:!shadow-none">-</td>
             <td className="p-2 border border-slate-300 font-bold sticky left-[80px] z-20 text-center text-slate-500 min-w-[100px] whitespace-nowrap print:static print:border-slate-300 print:border print:text-black print:!shadow-none">Wali Kelas</td>
-            {displayClasses.map((c) => (
-              <td 
-                key={`foot-${c.name}`} 
-                className="p-2 text-center border border-slate-300 bg-slate-50/10 print:!bg-white text-slate-600 font-bold text-[10px] truncate max-w-[150px] print:border-slate-300 print:border print:text-slate-800"
-                title={c.homeroom ||"-"}
-              >
-                {c.homeroom ||"-"}
-              </td>
-            ))}
+            {displayClasses.map((c) => {
+              const walasName = getTeacherName(c.homeroom);
+              return (
+                <td 
+                  key={`foot-${c.name}`} 
+                  className="p-2 text-center border border-slate-300 bg-slate-50/10 print:!bg-white text-slate-600 font-bold text-[10px] truncate max-w-[150px] print:border-slate-300 print:border print:text-slate-800"
+                  title={walasName || "-"}
+                >
+                  {walasName || "-"}
+                </td>
+              );
+            })}
           </tr>
         </tfoot>
       </table>

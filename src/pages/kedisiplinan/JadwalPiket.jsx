@@ -1,13 +1,41 @@
-import { useState, useEffect, useCallback } from'react';
-import useAuthStore from'../../store/monitoring/authStore.js';
-import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2, Search, X } from'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAppStore } from '../../store/useAppStore.js';
+import { useDataStore } from '../../store/useDataStore.js';
+import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2, Search, X } from 'lucide-react';
 import { Modal, Button } from '../../components/ui.jsx';
-import { CustomSelect } from'../../components/CustomSelect.jsx';
+import { CustomSelect } from '../../components/CustomSelect.jsx';
 
 
 const DAYS = ["Senin","Selasa","Rabu","Kamis","Jumat"];
 
-export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
+export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canEditProp }) {
+  const storeTeachers = useDataStore((state) => state.teachers) || [];
+  const appStoreTeachers = useAppStore((state) => state.getTeachers?.()) || [];
+
+  const teachers = useMemo(() => {
+    if (Array.isArray(propTeachers) && propTeachers.length > 0) return propTeachers;
+    if (Array.isArray(storeTeachers) && storeTeachers.length > 0) return storeTeachers;
+    if (Array.isArray(appStoreTeachers) && appStoreTeachers.length > 0) return appStoreTeachers;
+    return [];
+  }, [propTeachers, storeTeachers, appStoreTeachers]);
+
+  const teacherMap = useMemo(() => {
+    const map = new Map();
+    teachers.forEach(tc => {
+      const name = tc.name || tc.nama || '';
+      if (tc.code !== undefined && tc.code !== null) map.set(String(tc.code).trim().toLowerCase(), tc);
+      if (tc.id !== undefined && tc.id !== null) map.set(String(tc.id).trim().toLowerCase(), tc);
+      if (name) map.set(name.trim().toLowerCase(), tc);
+    });
+    return map;
+  }, [teachers]);
+
+  const findTeacher = useCallback((idOrCode) => {
+    if (!idOrCode) return null;
+    const key = String(idOrCode).trim().toLowerCase();
+    return teacherMap.get(key) || null;
+  }, [teacherMap]);
   const [schedules, setSchedules] = useState([]);
   const [filterKampus, setFilterKampus] = useState("Kampus A");
   
@@ -245,8 +273,11 @@ export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
                      ) : (
                         <div className="space-y-2">
                            {(jadwalHariIni.guru_ids || []).map(tid => {
-                              const t = (teachers || []).find(x => x.code === tid);
+                              const t = findTeacher(tid);
                               const isPj = String(jadwalHariIni.pj_code ||'').trim().toLowerCase() === String(tid).trim().toLowerCase();
+                              const teacherName = t?.name || (typeof tid === 'string' && isNaN(Number(tid)) ? tid : `Guru (${tid})`);
+                              const teacherInitial = teacherName.charAt(0).toUpperCase();
+                              const teacherCode = t?.code ? `Kode: ${t.code}` : (typeof tid === 'number' || !isNaN(Number(tid)) ? `Kode: ${tid}` : '-');
                               return (
                                  <div key={tid} className={`px-3 py-2 border rounded-[var(--ui-radius-small)] shadow-sm flex items-center gap-3 transition-all ${
                                     isPj 
@@ -258,18 +289,18 @@ export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
                                        ?'bg-amber-500 text-white shadow-sm shadow-amber-200' 
                                        :'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]'
                                     }`}>
-                                       {t ? t.name?.charAt(0) :'?'}
+                                       {teacherInitial}
                                     </div>
                                     <div className="flex-1 overflow-hidden">
                                        <div className="flex items-center gap-1.5">
-                                          <p className={`text-sm font-bold truncate ${isPj ?'text-amber-800' :'text-slate-800'}`}>{t ? t.name : tid}</p>
+                                          <p className={`text-sm font-bold truncate ${isPj ?'text-amber-800' :'text-slate-800'}`} title={teacherName}>{teacherName}</p>
                                           {isPj && (
                                              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[8px] font-black tracking-wider uppercase shadow-sm">
                                                 PJ
                                              </span>
                                           )}
                                        </div>
-                                       <p className={`text-[10px] font-semibold ${isPj ?'text-amber-600' :'text-slate-500'}`}>{t?.code ||'-'}</p>
+                                       <p className={`text-[10px] font-semibold ${isPj ?'text-amber-600' :'text-slate-500'}`}>{teacherCode}</p>
                                     </div>
                                     {canEdit && (
                                         <Button variant="outline"
@@ -361,12 +392,12 @@ export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
                     });
                   })()}
                </div>
-               {form.guru_ids && form.guru_ids.filter(id => !teachers.find(t => t.code === id)).length > 0 && (
+               {form.guru_ids && form.guru_ids.filter(id => !findTeacher(id)).length > 0 && (
                   <div className="mt-2 p-2 bg-rose-50 border border-rose-200 rounded text-xs text-rose-600">
                     <AlertTriangle size={14} className="inline mr-1" />
                     Terdeteksi data guru tidak valid. Silakan uncheck semua atau hapus jadwal ini.
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {form.guru_ids.filter(id => !teachers.find(t => t.code === id)).map(id => (
+                      {form.guru_ids.filter(id => !findTeacher(id)).map(id => (
                         <span key={id} className="bg-rose-100 px-2 py-0.5 rounded cursor-pointer hover:bg-rose-200" onClick={() => toggleTeacher(id)}>
                           Hapus ID: {id} &times;
                         </span>
@@ -384,8 +415,8 @@ export default function JadwalPiket({ teachers = [], canEdit: canEditProp }) {
                         options={[
                            { value:'', label:'-- Pilih PJ Piket --' },
                            ...(form.guru_ids || []).map(code => {
-                              const t = (teachers || []).find(x => x.code === code);
-                              return { value: code, label: t ? t.name : code };
+                              const t = findTeacher(code);
+                              return { value: code, label: t ? `${t.name} (${t.code || code})` : `Guru (${code})` };
                            })
                         ]}
                         value={form.pj_code ||''}

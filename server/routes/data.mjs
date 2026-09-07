@@ -20,19 +20,29 @@ export async function handleDataRoutes(req, res, url, ctx) {
       
       // Merge with relational tables (all master data sources)
       try {
-        const [majors, classes, rooms, subjects] = await Promise.all([
+        const [majors, classes, rooms, subjects, teachers] = await Promise.all([
           dbPool.query('SELECT payload FROM mst_majors ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_classes ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_rooms ORDER BY id ASC'),
-          dbPool.query('SELECT payload FROM mst_subjects ORDER BY id ASC')
+          dbPool.query('SELECT payload FROM mst_subjects ORDER BY id ASC'),
+          dbPool.query('SELECT payload FROM mst_teachers ORDER BY id ASC')
         ]);
         // Always set from DB (even if empty) so public payload is in sync
         payload.majors = majors.rows.map(r => r.payload);
         payload.classes = classes.rows.map(r => r.payload);
         payload.rooms = rooms.rows.map(r => r.payload);
         payload.subjects = subjects.rows.map(r => r.payload);
-        // Do not include teachers/students in public endpoint for security
-        payload.teachers = [];
+        // Expose safe public teacher info (name, code, id, walasClass, type) for schedule & piket displays without sensitive data
+        payload.teachers = teachers.rows.map(r => {
+          const p = r.payload || {};
+          return {
+            id: p.id || r.id,
+            code: p.code || p.id || r.id,
+            name: p.name || '',
+            type: p.type || '',
+            walasClass: p.walasClass || ''
+          };
+        });
         payload.students = [];
       } catch (e) {
         console.warn("Failed to merge relational tables on load", e);
