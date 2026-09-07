@@ -894,6 +894,8 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   const [laporSiswaKasus, setLaporSiswaKasus] = useState('');
 
   // DRAFT LOGIC - Muat Draf Saat Inisialisasi
+  // FIX: Draft hanya boleh me-restore konten tulisan (materi, kegiatan, metode, catatan).
+  // Jangan override mapel/kelas/jam_ke/slot_label yang sudah ditentukan dari slot jadwal.
   useEffect(() => {
     if (!jurnal?.id) {
       try {
@@ -901,7 +903,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
         const savedDraft = localStorage.getItem(draftKey);
         if (savedDraft) {
           const parsed = JSON.parse(savedDraft);
-          setForm(prev => ({ ...prev, ...parsed, id: prev.id, kelas: prev.kelas || parsed.kelas }));
+          setForm(prev => ({
+            ...prev,
+            // Hanya restore field konten — jangan sentuh identitas slot (mapel, kelas, jam_ke, slot_label)
+            materi_pokok: parsed.materi_pokok || prev.materi_pokok,
+            kegiatan_pembelajaran: parsed.kegiatan_pembelajaran || prev.kegiatan_pembelajaran,
+            metode_pembelajaran: parsed.metode_pembelajaran || prev.metode_pembelajaran,
+            catatan: parsed.catatan || prev.catatan,
+          }));
         }
       } catch (e) {
         console.error("Gagal membaca draf jurnal:", e);
