@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   BookOpen, Search, ShieldAlert, CheckCircle2, History, MessageSquare, 
   Download, Users, TrendingUp, AlertOctagon, Printer, X, Trash2, Plus, 
@@ -13,22 +13,83 @@ import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
 import { useAppStore } from "../../store/useAppStore.js";
+import { useDataStore } from "../../store/useDataStore.js";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const getInitials = (name) => { if (!name) return '?'; const parts = name.trim().split(' '); if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase(); return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase(); };
 
-export default function DashboardBPBK({ students = [], classes = [], tab = 'ringkasan', onTabChange }) {
+export default function DashboardBPBK({ students = [], classes = [], teachers = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
-  const storeAppSettings = useAppStore(state => state.appSettings) || {};
+  const dataStoreAppSettings = useDataStore(state => state.appSettings) || {};
+  const appStoreAppSettings = useAppStore(state => state.appSettings) || {};
+  const storeTeachers = useDataStore(state => state.teachers) || [];
+  const allTeachers = teachers && teachers.length > 0 ? teachers : storeTeachers;
+  const storeClasses = useDataStore(state => state.classes) || [];
+  const allClasses = classes && classes.length > 0 ? classes : storeClasses;
+  const storeSchoolProfile = useDataStore(state => state.schoolProfile) || {};
+  const [fetchedSchoolProfile, setFetchedSchoolProfile] = useState({});
+
+  const schoolProfile = useMemo(() => ({
+    ...storeSchoolProfile,
+    ...fetchedSchoolProfile
+  }), [storeSchoolProfile, fetchedSchoolProfile]);
+
   const appSettings = useMemo(() => ({
-    kopSuratBaris1: 'PEMERINTAH DAERAH PROVINSI',
-    kopSuratBaris2: 'DINAS PENDIDIKAN',
-    kopSuratBaris3: 'SEKOLAH MENENGAH KEJURUAN',
     defaultPaperSize: 'a4',
-    ...storeAppSettings
-  }), [storeAppSettings]);
+    ...dataStoreAppSettings,
+    ...appStoreAppSettings,
+    kopSuratBaris1: (dataStoreAppSettings.kopSuratBaris1 || appStoreAppSettings.kopSuratBaris1 || 'PEMERINTAH DAERAH PROVINSI JAWA BARAT'),
+    kopSuratBaris2: (dataStoreAppSettings.kopSuratBaris2 || appStoreAppSettings.kopSuratBaris2 || 'DINAS PENDIDIKAN'),
+    kopSuratBaris3: (dataStoreAppSettings.kopSuratBaris3 || appStoreAppSettings.kopSuratBaris3 || schoolProfile?.nama_sekolah || dataStoreAppSettings.schoolName || 'SMK KARYA GUNA 2 BEKASI'),
+    kopSuratAlamat: (dataStoreAppSettings.kopSuratAlamat || appStoreAppSettings.kopSuratAlamat || schoolProfile?.alamat || ''),
+    kopSuratKontak: (dataStoreAppSettings.kopSuratKontak || appStoreAppSettings.kopSuratKontak || (schoolProfile?.telepon ? `Telp: ${schoolProfile.telepon} | Website: ${schoolProfile.website || '-'}` : '')),
+    kopSuratLogo: (dataStoreAppSettings.kopSuratLogo || appStoreAppSettings.kopSuratLogo || schoolProfile?.logo_url || dataStoreAppSettings.logoUrl || ''),
+    useKopSuratGambar: (dataStoreAppSettings.useKopSuratGambar !== undefined ? dataStoreAppSettings.useKopSuratGambar : (appStoreAppSettings.useKopSuratGambar !== undefined ? appStoreAppSettings.useKopSuratGambar : false)),
+    kopSuratGambar: (dataStoreAppSettings.kopSuratGambar || appStoreAppSettings.kopSuratGambar || '')
+  }), [dataStoreAppSettings, appStoreAppSettings, schoolProfile]);
+
+  // Helper resolusi Wali Kelas dari kelas siswa
+  const getHomeroomInfo = (className, studentNis) => {
+    let cls = className;
+    if (!cls || cls === '-') {
+      const st = (students || []).find(s => String(getStudentNis(s)) === String(studentNis));
+      cls = getStudentClass(st) || '-';
+    }
+
+    const targetClass = (allClasses || []).find(c => 
+      String(c.name || c.id || '').trim().toLowerCase() === String(cls).trim().toLowerCase()
+    );
+
+    let walasName = '';
+    let walasNip = '';
+
+    if (targetClass?.homeroom) {
+      const teacher = (allTeachers || []).find(t => 
+        String(t.code || '').trim().toLowerCase() === String(targetClass.homeroom).trim().toLowerCase() ||
+        String(t.name || '').trim().toLowerCase() === String(targetClass.homeroom).trim().toLowerCase()
+      );
+      if (teacher) {
+        walasName = teacher.name || targetClass.homeroom;
+        walasNip = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
+      } else {
+        walasName = targetClass.homeroom;
+      }
+    }
+
+    if (!walasName) {
+      const teacherByWalas = (allTeachers || []).find(t => 
+        String(t.walasClass || '').trim().toLowerCase() === String(cls).trim().toLowerCase()
+      );
+      if (teacherByWalas) {
+        walasName = teacherByWalas.name;
+        walasNip = teacherByWalas.nip && teacherByWalas.nip !== '-' ? teacherByWalas.nip : '';
+      }
+    }
+
+    return { walasName: walasName || '-', walasNip, resolvedClass: cls };
+  };
 
   // Active view: 'ringkasan' (or 'ews') | 'konseling' | 'surat'
   const currentSubTab = tab === 'ringkasan' || tab === 'ews' ? 'ringkasan' : tab;
@@ -96,6 +157,10 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     reason: ''
   });
 
+  // Pratinjau Surat Resmi Modal State
+  const [previewLetter, setPreviewLetter] = useState(null);
+  const printPaperRef = useRef(null);
+
   // Dossier 360° Modal
   const [dossierStudent, setDossierStudent] = useState(null);
   const [showDossierModal, setShowDossierModal] = useState(false);
@@ -112,17 +177,26 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     if (!authToken) return;
     setIsLoading(true);
     try {
-      const [resRiwayat, resSessions, resVisits, resLetters] = await Promise.all([
+      const [resRiwayat, resSessions, resVisits, resLetters, resProfile] = await Promise.all([
         fetch("/api/kedisiplinan/riwayat?limit=5000", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/sessions", { headers: { "Authorization": `Bearer ${authToken}` } }),
         fetch("/api/kedisiplinan/bk/home-visits", { headers: { "Authorization": `Bearer ${authToken}` } }),
-        fetch("/api/kedisiplinan/bk/letters", { headers: { "Authorization": `Bearer ${authToken}` } })
+        fetch("/api/kedisiplinan/bk/letters", { headers: { "Authorization": `Bearer ${authToken}` } }),
+        fetch("/api/school-profile", { headers: { "Authorization": `Bearer ${authToken}` } }).catch(() => null)
       ]);
 
       const dataRiwayat = await resRiwayat.json();
       const dataSessions = await resSessions.json();
       const dataVisits = await resVisits.json();
       const dataLetters = await resLetters.json();
+      if (resProfile) {
+        try {
+          const dataProfile = await resProfile.json();
+          if (dataProfile.ok && dataProfile.data) {
+            setFetchedSchoolProfile(dataProfile.data);
+          }
+        } catch {}
+      }
 
       if (dataRiwayat.ok) setRiwayat(dataRiwayat.data || []);
       if (dataSessions.ok) setBkSessions(dataSessions.data || []);
@@ -557,7 +631,12 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         setEditingLetter(null);
         fetchData();
         if (data.data) {
-          downloadLetterPDF(data.data);
+          const selectedStudent = (students || []).find(s => String(getStudentNis(s)) === String(formLetter.student_nis));
+          setPreviewLetter({
+            ...data.data,
+            student_name: getStudentName(selectedStudent) || formLetter.student_name,
+            class_name: getStudentClass(selectedStudent) || formLetter.class_name
+          });
         }
       } else {
         showToast(data.error || "Gagal menyimpan surat", "error");
@@ -588,6 +667,52 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
     }
   };
 
+  // Cetak Langsung Browser via Dialog Print
+  const handlePrintDirect = (letter) => {
+    if (!printPaperRef.current) {
+      downloadLetterPDF(letter);
+      return;
+    }
+    const printContent = printPaperRef.current.innerHTML;
+    const printWindow = window.open('', '_blank', 'width=900,height=800');
+    if (!printWindow) {
+      downloadLetterPDF(letter);
+      return;
+    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${letter.letter_type || 'Surat BK'} - ${letter.student_name || 'Siswa'}</title>
+          <style>
+            @page { size: A4; margin: 15mm 15mm; }
+            * { box-sizing: border-box; }
+            body { font-family: 'Times New Roman', Times, serif; color: #111; margin: 0; padding: 0; font-size: 13px; line-height: 1.5; }
+            table { width: 100%; border-collapse: collapse; }
+            td { vertical-align: top; }
+            .kop-container { text-align: center; margin-bottom: 8px; position: relative; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .font-bold { font-weight: bold; }
+            .uppercase { text-transform: uppercase; }
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 350);
+  };
+
   // Download PDF Surat Resmi BK
   const downloadLetterPDF = (letter) => {
     if (!letter) return;
@@ -599,11 +724,27 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       });
 
       const pageWidth = 210;
-      const studentName = letter.student_name || 'Siswa Terkait';
       const studentNis = letter.student_nis || '-';
-      const className = letter.class_name || '-';
-      const letterNo = letter.letter_no || `421.5/082/SMK-BK/${new Date().getFullYear()}`;
-      const letterType = letter.letter_type || 'Surat Panggilan Orang Tua';
+      
+      let studentName = letter.student_name;
+      let className = letter.class_name;
+      if (!studentName || studentName === 'Siswa Terkait' || !className || className === '-') {
+        const st = (students || []).find(s => String(getStudentNis(s)) === String(studentNis));
+        if (st) {
+          studentName = studentName && studentName !== 'Siswa Terkait' ? studentName : getStudentName(st);
+          className = className && className !== '-' ? className : getStudentClass(st);
+        }
+      }
+      studentName = studentName || 'Siswa Terkait';
+      className = className || '-';
+
+      // Dapatkan data Wali Kelas
+      const homeroomInfo = getHomeroomInfo(className, studentNis);
+      const walasName = homeroomInfo.walasName !== '-' ? homeroomInfo.walasName : '';
+      const walasNip = homeroomInfo.walasNip || '';
+
+      const letterNo = letter.letter_no || `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`;
+      const letterType = letter.letter_type || 'Panggilan Orang Tua I';
       const issueDateStr = new Date(letter.issue_date || Date.now()).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
@@ -617,49 +758,112 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
       const appointPerson = letter.appointed_person || 'Guru BK / Koordinator BK';
       const reason = letter.reason || 'Koordinasi pembinaan kedisiplinan dan evaluasi perkembangan belajar siswa.';
 
+      const profileObj = useDataStore.getState().schoolProfile || useAppStore.getState().schoolProfile || appSettings.schoolProfile || {};
+      const namaSekolah = profileObj.nama_sekolah || appSettings.kopSuratBaris3 || 'SMK KARYA GUNA 2 BEKASI';
+      const namaKepsek = appSettings.namaKepsek || profileObj.kepala_sekolah || profileObj.nama_kepala_sekolah || appSettings.namaKepalaSekolah || 'Kepala Sekolah';
+      const nipKepsek = appSettings.nipKepsek || profileObj.nip_kepala_sekolah || profileObj.nip || appSettings.nipKepalaSekolah || '';
+
+      let kota = profileObj.kabupaten || profileObj.kota || appSettings.kopSuratKota || appSettings.lokasiSurat || '';
+      if (!kota || kota.toLowerCase() === 'di tempat') {
+        if (appSettings.kopSuratAlamat && appSettings.kopSuratAlamat.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+        else if (appSettings.kopSuratBaris2 && appSettings.kopSuratBaris2.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+        else kota = 'Bekasi';
+      }
+
+      const guruBkName = user?.name || user?.username || 'Guru Bimbingan & Konseling';
+      const guruBkNip = user?.nip && user?.nip !== '-' ? user.nip : '';
+
       const isSP = letterType.toUpperCase().includes('SP') || letterType.toUpperCase().includes('PERINGATAN');
       const isPerjanjian = letterType.toUpperCase().includes('PERJANJIAN') || letterType.toUpperCase().includes('PERNYATAAN');
 
-      let yPos = 20;
+      let yPos = 12;
 
-      // Kop Surat
+      // ─── KOP SURAT RESMI SESUAI SETTING ADMIN ───
       if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
         try {
+          let format = 'PNG';
+          if (String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg')) {
+            format = 'JPEG';
+          }
+          const props = doc.getImageProperties(appSettings.kopSuratGambar);
+          const aspect = (props.width || 1) / (props.height || 1);
+          const maxKopW = pageWidth - 28;
+          let calcH = maxKopW / aspect;
+          if (calcH > 34) calcH = 34;
+          const calcW = calcH * aspect;
+          const xPos = (pageWidth - calcW) / 2;
+          doc.addImage(appSettings.kopSuratGambar, format, xPos, 8, calcW, calcH);
+          yPos = 8 + calcH + 6;
+        } catch (e) {
+          console.error("Gagal menggambar kop surat gambar:", e);
           const format = String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg') ? 'JPEG' : 'PNG';
-          doc.addImage(appSettings.kopSuratGambar, format, 15, 10, pageWidth - 30, 28);
-        } catch (e) { console.error(e); }
-        yPos = 44;
-      } else if (appSettings.kopSuratLogo) {
-        try {
-          const format = String(appSettings.kopSuratLogo).includes('data:image/jpeg') || String(appSettings.kopSuratLogo).includes('data:image/jpg') ? 'JPEG' : 'PNG';
-          doc.addImage(appSettings.kopSuratLogo, format, 15, 10, 24, 24);
-        } catch (e) { console.error(e); }
-        doc.setFont("Helvetica", "bold");
-        doc.setFontSize(10);
-        doc.text(appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH PROVINSI", pageWidth / 2, 16, { align: "center" });
-        doc.setFontSize(13);
-        doc.text(appSettings.kopSuratBaris2 || "DINAS PENDIDIKAN", pageWidth / 2, 22, { align: "center" });
-        doc.setFontSize(15);
-        doc.text(appSettings.kopSuratBaris3 || "LAYANAN BIMBINGAN & KONSELING (BK)", pageWidth / 2, 29, { align: "center" });
-        doc.setLineWidth(0.8);
-        doc.line(15, 36, pageWidth - 15, 36);
-        doc.setLineWidth(0.2);
-        doc.line(15, 37, pageWidth - 15, 37);
-        yPos = 44;
+          doc.addImage(appSettings.kopSuratGambar, format, 14, 8, pageWidth - 28, 28);
+          yPos = 42;
+        }
       } else {
+        const logoData = appSettings.kopSuratLogo || profileObj.logo_url || appSettings.logoUrl;
+        if (logoData && typeof logoData === 'string' && logoData.startsWith('data:image/')) {
+          try {
+            const format = logoData.includes('data:image/jpeg') || logoData.includes('data:image/jpg') ? 'JPEG' : 'PNG';
+            doc.addImage(logoData, format, 14, yPos - 2, 22, 22);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        const baris1 = appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH PROVINSI JAWA BARAT";
+        const baris2 = appSettings.kopSuratBaris2 || "DINAS PENDIDIKAN";
+        const baris3 = appSettings.kopSuratBaris3 || namaSekolah;
+        const unit = "LAYANAN BIMBINGAN DAN KONSELING (BK)";
+        const alamat = appSettings.kopSuratAlamat || profileObj.alamat || "";
+        const kontak = appSettings.kopSuratKontak || (profileObj.telepon ? `Telp: ${profileObj.telepon} | Website: ${profileObj.website || "-"}` : "");
+
         doc.setFont("Helvetica", "bold");
+        doc.setFontSize(9.5);
+        doc.text(baris1, pageWidth / 2, yPos + 2, { align: "center" });
+
         doc.setFontSize(11);
-        doc.text(appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH / DINAS PENDIDIKAN", pageWidth / 2, 16, { align: "center" });
-        doc.setFontSize(13);
-        doc.text(appSettings.kopSuratBaris2 || "LAYANAN BIMBINGAN DAN KONSELING (BK)", pageWidth / 2, 22, { align: "center" });
-        doc.setFontSize(10);
+        doc.text(baris2, pageWidth / 2, yPos + 7, { align: "center" });
+
+        doc.setFontSize(13.5);
+        doc.text(baris3, pageWidth / 2, yPos + 13, { align: "center" });
+
+        doc.setFontSize(9.5);
+        doc.text(unit, pageWidth / 2, yPos + 18, { align: "center" });
+
         doc.setFont("Helvetica", "normal");
-        doc.text("Pusat Bimbingan, Konseling & Pemantauan Kedisiplinan Siswa", pageWidth / 2, 27, { align: "center" });
-        doc.setLineWidth(0.8);
-        doc.line(15, 30, pageWidth - 15, 30);
-        doc.setLineWidth(0.2);
-        doc.line(15, 31, pageWidth - 15, 31);
-        yPos = 38;
+        doc.setFontSize(7.5);
+        let currentY = yPos + 22.5;
+        if (alamat) {
+          const splitAlamat = doc.splitTextToSize(alamat, pageWidth - 44);
+          doc.text(splitAlamat, pageWidth / 2, currentY, { align: "center" });
+          currentY += (splitAlamat.length * 3.5);
+        }
+        if (kontak) {
+          doc.setFontSize(7);
+          doc.text(kontak, pageWidth / 2, currentY, { align: "center" });
+          currentY += 4;
+        }
+
+        yPos = currentY + 2;
+
+        // Garis Pembatas Kop Surat Sesuai Setting Admin (kopDivider: double / single / thick / none)
+        if (appSettings.kopDivider === 'single') {
+          doc.setLineWidth(0.6);
+          doc.line(14, yPos, pageWidth - 14, yPos);
+          yPos += 7;
+        } else if (appSettings.kopDivider === 'thick') {
+          doc.setLineWidth(1.2);
+          doc.line(14, yPos, pageWidth - 14, yPos);
+          yPos += 7;
+        } else if (appSettings.kopDivider !== 'none') {
+          // Double lines (Standar Kop Kedinasan)
+          doc.setLineWidth(0.8);
+          doc.line(14, yPos, pageWidth - 14, yPos);
+          doc.setLineWidth(0.2);
+          doc.line(14, yPos + 1, pageWidth - 14, yPos + 1);
+          yPos += 8;
+        }
       }
 
       if (isPerjanjian) {
@@ -683,33 +887,55 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         doc.setFont("Helvetica", "normal");
         doc.text(`: ${studentNis} / ${className}`, 65, yPos + 6);
 
-        yPos += 16;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Wali Kelas", 25, yPos + 12);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${walasName || '-'}`, 65, yPos + 12);
+
+        yPos += 20;
         const textPerjanjian = `Menyatakan dengan sesungguhnya dan penuh kesadaran bahwa saya telah melakukan pelanggaran tata tertib sekolah berupa: "${reason}".\n\nDengan ini saya berjanji dengan sungguh-sungguh untuk:\n1. Menaati dan mematuhi seluruh peraturan serta tata tertib yang berlaku di sekolah.\n2. Tidak akan mengulangi perbuatan pelanggaran tersebut maupun pelanggaran tata tertib lainnya.\n3. Bersungguh-sungguh mengikuti kegiatan pembelajaran dan memperbaiki sikap serta kedisiplinan.\n\nApabila di kemudian hari saya melanggar pernyataan ini, maka saya bersedia menerima sanksi yang lebih berat dari pihak sekolah sampai dengan dikembalikan kepada orang tua / dikeluarkan dari sekolah.`;
         const splitPerjanjian = doc.splitTextToSize(textPerjanjian, pageWidth - 30);
         doc.text(splitPerjanjian, 15, yPos);
 
-        yPos += 68;
-        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
+        yPos += 64;
+        doc.text(`${kota}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
         yPos += 7;
 
         doc.text("Mengetahui,", 20, yPos);
         doc.text("Orang Tua / Wali Siswa,", 20, yPos + 5);
         doc.text("Yang Membuat Pernyataan,", pageWidth - 20, yPos + 5, { align: "right" });
 
-        yPos += 24;
+        yPos += 22;
         doc.setFont("Helvetica", "bold");
         doc.text("( .......................................... )", 20, yPos);
         doc.text(`( ${studentName} )`, pageWidth - 20, yPos, { align: "right" });
 
         yPos += 14;
         doc.setFont("Helvetica", "normal");
-        doc.text("Guru BK / Wali Kelas,", 20, yPos);
-        doc.text("Kepala Sekolah,", pageWidth - 20, yPos, { align: "right" });
+        const col1X = 42;
+        const col2X = 105;
+        const col3X = 168;
+
+        doc.text("Mengetahui,", col1X, yPos, { align: "center" });
+        doc.text("Kepala Sekolah,", col1X, yPos + 4.5, { align: "center" });
+
+        doc.text("Wali Kelas,", col2X, yPos, { align: "center" });
+        doc.text(`${className},`, col2X, yPos + 4.5, { align: "center" });
+
+        doc.text("Guru Bimbingan &", col3X, yPos, { align: "center" });
+        doc.text("Konseling (BK),", col3X, yPos + 4.5, { align: "center" });
 
         yPos += 22;
         doc.setFont("Helvetica", "bold");
-        doc.text(user?.name || user?.username || "( Guru BK )", 20, yPos);
-        doc.text(appSettings.namaKepsek || "( .......................................... )", pageWidth - 20, yPos, { align: "right" });
+        doc.text(namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : "( ........................................ )", col1X, yPos, { align: "center" });
+        doc.text(walasName ? walasName : "( ........................................ )", col2X, yPos, { align: "center" });
+        doc.text(guruBkName, col3X, yPos, { align: "center" });
+
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(8.5);
+        if (nipKepsek && nipKepsek !== '-') doc.text(`NIP. ${nipKepsek}`, col1X, yPos + 4, { align: "center" });
+        if (walasNip && walasNip !== '-') doc.text(`NIP. ${walasNip}`, col2X, yPos + 4, { align: "center" });
+        if (guruBkNip && guruBkNip !== '-') doc.text(`NIP. ${guruBkNip}`, col3X, yPos + 4, { align: "center" });
 
       } else if (isSP) {
         doc.setFont("Helvetica", "bold");
@@ -732,30 +958,50 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         doc.setFont("Helvetica", "normal");
         doc.text(`: ${studentNis} / ${className}`, 65, yPos + 6);
 
-        yPos += 16;
+        doc.setFont("Helvetica", "bold");
+        doc.text("Wali Kelas", 25, yPos + 12);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${walasName || '-'}`, 65, yPos + 12);
+
+        yPos += 20;
         const textSP = `Bahwa siswa tersebut di atas telah melakukan pelanggaran terhadap peraturan dan tata tertib sekolah, yaitu:\n"${reason}".\n\nSehubungan dengan hal tersebut di atas, pihak sekolah memberikan sanksi pembinaan berupa ${letterType.toUpperCase()}.\n\nKami mengingatkan kepada siswa bersangkutan serta orang tua/wali murid agar segera melakukan pembinaan intensif. Apabila setelah diterbitkannya surat peringatan ini siswa tetap tidak menunjukkan perubahan sikap positif, pihak sekolah akan mengambil tindakan tegas berikutnya sesuai regulasi kedisiplinan yang berlaku.`;
         const splitSP = doc.splitTextToSize(textSP, pageWidth - 30);
         doc.text(splitSP, 15, yPos);
 
-        yPos += 60;
-        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
+        yPos += 54;
+        doc.text(`${kota}, ${issueDateStr}`, pageWidth - 20, yPos, { align: 'right' });
         yPos += 7;
 
-        doc.text("Mengetahui,", 25, yPos);
-        doc.text("Kepala Sekolah,", 25, yPos + 5);
-        doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
-
-        yPos += 26;
-        doc.setFont("Helvetica", "bold");
-        doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
-        doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+        const col1X = 42;
+        const col2X = 105;
+        const col3X = 168;
 
         doc.setFont("Helvetica", "normal");
-        doc.setFontSize(9);
-        if (appSettings.nipKepsek) doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
-        if (user?.nip) doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
+        doc.setFontSize(9.5);
+
+        doc.text("Mengetahui,", col1X, yPos, { align: "center" });
+        doc.text("Kepala Sekolah,", col1X, yPos + 4.5, { align: "center" });
+
+        doc.text("Wali Kelas,", col2X, yPos, { align: "center" });
+        doc.text(`${className},`, col2X, yPos + 4.5, { align: "center" });
+
+        doc.text("Guru Bimbingan &", col3X, yPos, { align: "center" });
+        doc.text("Konseling (BK),", col3X, yPos + 4.5, { align: "center" });
+
+        yPos += 24;
+        doc.setFont("Helvetica", "bold");
+        doc.text(namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : "( ........................................ )", col1X, yPos, { align: "center" });
+        doc.text(walasName ? walasName : "( ........................................ )", col2X, yPos, { align: "center" });
+        doc.text(guruBkName, col3X, yPos, { align: "center" });
+
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(8.5);
+        if (nipKepsek && nipKepsek !== '-') doc.text(`NIP. ${nipKepsek}`, col1X, yPos + 4, { align: "center" });
+        if (walasNip && walasNip !== '-') doc.text(`NIP. ${walasNip}`, col2X, yPos + 4, { align: "center" });
+        if (guruBkNip && guruBkNip !== '-') doc.text(`NIP. ${guruBkNip}`, col3X, yPos + 4, { align: "center" });
 
       } else {
+        // === SURAT PANGGILAN ORANG TUA ===
         doc.setFont("Helvetica", "normal");
         doc.setFontSize(10);
         doc.text("Nomor", 15, yPos);
@@ -767,7 +1013,7 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         doc.text(`: ${letterType.toUpperCase()}`, 35, yPos + 10);
 
         doc.setFont("Helvetica", "normal");
-        doc.text(`${appSettings.lokasiSurat || 'Di Tempat'}, ${issueDateStr}`, pageWidth - 15, yPos, { align: 'right' });
+        doc.text(`${kota}, ${issueDateStr}`, pageWidth - 15, yPos, { align: 'right' });
 
         yPos += 18;
         doc.text("Kepada Yth.", 15, yPos);
@@ -784,62 +1030,99 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
         doc.text(splitParagraf1, 15, yPos);
 
         yPos += 12;
-        doc.setFont("Helvetica", "bold");
-        doc.text("Nama Siswa", 25, yPos);
-        doc.setFont("Helvetica", "normal");
-        doc.text(`: ${studentName}`, 60, yPos);
+        const lblX = 25;
+        const valX = 60;
+        const rowH = 5.5;
 
+        // Nama Siswa
         doc.setFont("Helvetica", "bold");
-        doc.text("NIS / Kelas", 25, yPos + 6);
-        doc.setFont("Helvetica", "normal");
-        doc.text(`: ${studentNis} / ${className}`, 60, yPos + 6);
-
-        yPos += 14;
+        doc.text("Nama Siswa", lblX, yPos);
         doc.setFont("Helvetica", "bold");
-        doc.text("Hari / Tanggal", 25, yPos);
-        doc.setFont("Helvetica", "normal");
-        doc.text(`: ${appointDateStr}`, 60, yPos);
+        doc.text(`: ${studentName}`, valX, yPos);
+        yPos += rowH;
 
+        // NIS / Kelas
         doc.setFont("Helvetica", "bold");
-        doc.text("Waktu / Pukul", 25, yPos + 6);
+        doc.text("NIS / Kelas", lblX, yPos);
         doc.setFont("Helvetica", "normal");
-        doc.text(`: ${appointTime}`, 60, yPos + 6);
+        doc.text(`: ${studentNis} / ${className}`, valX, yPos);
+        yPos += rowH;
 
+        // Wali Kelas (WAJIB DITAMBAHKAN!)
         doc.setFont("Helvetica", "bold");
-        doc.text("Tempat", 25, yPos + 12);
+        doc.text("Wali Kelas", lblX, yPos);
         doc.setFont("Helvetica", "normal");
-        doc.text(`: ${appointPlace}`, 60, yPos + 12);
+        doc.text(`: ${walasName || '-'}`, valX, yPos);
+        yPos += rowH + 2;
 
+        // Hari / Tanggal
         doc.setFont("Helvetica", "bold");
-        doc.text("Menghadap", 25, yPos + 18);
+        doc.text("Hari / Tanggal", lblX, yPos);
         doc.setFont("Helvetica", "normal");
-        doc.text(`: ${appointPerson}`, 60, yPos + 18);
+        doc.text(`: ${appointDateStr}`, valX, yPos);
+        yPos += rowH;
 
+        // Waktu / Pukul
         doc.setFont("Helvetica", "bold");
-        doc.text("Keperluan", 25, yPos + 24);
+        doc.text("Waktu / Pukul", lblX, yPos);
         doc.setFont("Helvetica", "normal");
-        const splitReason = doc.splitTextToSize(`: ${reason}`, pageWidth - 75);
-        doc.text(splitReason, 60, yPos + 24);
+        doc.text(`: ${appointTime}`, valX, yPos);
+        yPos += rowH;
 
-        yPos += (splitReason.length * 5) + 26;
+        // Tempat
+        doc.setFont("Helvetica", "bold");
+        doc.text("Tempat", lblX, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointPlace}`, valX, yPos);
+        yPos += rowH;
+
+        // Menghadap
+        doc.setFont("Helvetica", "bold");
+        doc.text("Menghadap", lblX, yPos);
+        doc.setFont("Helvetica", "normal");
+        doc.text(`: ${appointPerson}`, valX, yPos);
+        yPos += rowH;
+
+        // Keperluan
+        doc.setFont("Helvetica", "bold");
+        doc.text("Keperluan", lblX, yPos);
+        doc.setFont("Helvetica", "normal");
+        const splitReason = doc.splitTextToSize(`: ${reason}`, pageWidth - valX - 15);
+        doc.text(splitReason, valX, yPos);
+
+        yPos += (splitReason.length * 5) + 6;
         const paragrafPenutup = "Mengingat pentingnya koordinasi ini demi kebaikan dan kelancaran pendidikan putra/putri Bapak/Ibu, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.";
         const splitPenutup = doc.splitTextToSize(paragrafPenutup, pageWidth - 30);
         doc.text(splitPenutup, 15, yPos);
 
-        yPos += 20;
-        doc.text("Mengetahui,", 25, yPos);
-        doc.text("Kepala Sekolah,", 25, yPos + 5);
-        doc.text("Guru Bimbingan & Konseling (BK),", pageWidth - 25, yPos + 5, { align: "right" });
-
-        yPos += 26;
-        doc.setFont("Helvetica", "bold");
-        doc.text(appSettings.namaKepsek || "( .................................................... )", 25, yPos);
-        doc.text(user?.name || user?.username || "( Guru BK )", pageWidth - 25, yPos, { align: "right" });
+        yPos += 14;
+        const col1X = 42;
+        const col2X = 105;
+        const col3X = 168;
 
         doc.setFont("Helvetica", "normal");
-        doc.setFontSize(9);
-        if (appSettings.nipKepsek) doc.text(`NIP. ${appSettings.nipKepsek}`, 25, yPos + 4);
-        if (user?.nip) doc.text(`NIP. ${user.nip}`, pageWidth - 25, yPos + 4, { align: "right" });
+        doc.setFontSize(9.5);
+
+        doc.text("Mengetahui,", col1X, yPos, { align: "center" });
+        doc.text("Kepala Sekolah,", col1X, yPos + 4.5, { align: "center" });
+
+        doc.text("Wali Kelas,", col2X, yPos, { align: "center" });
+        doc.text(`${className},`, col2X, yPos + 4.5, { align: "center" });
+
+        doc.text("Guru Bimbingan &", col3X, yPos, { align: "center" });
+        doc.text("Konseling (BK),", col3X, yPos + 4.5, { align: "center" });
+
+        yPos += 24;
+        doc.setFont("Helvetica", "bold");
+        doc.text(namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : "( ........................................ )", col1X, yPos, { align: "center" });
+        doc.text(walasName ? walasName : "( ........................................ )", col2X, yPos, { align: "center" });
+        doc.text(guruBkName, col3X, yPos, { align: "center" });
+
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(8.5);
+        if (nipKepsek && nipKepsek !== '-') doc.text(`NIP. ${nipKepsek}`, col1X, yPos + 4, { align: "center" });
+        if (walasNip && walasNip !== '-') doc.text(`NIP. ${walasNip}`, col2X, yPos + 4, { align: "center" });
+        if (guruBkNip && guruBkNip !== '-') doc.text(`NIP. ${guruBkNip}`, col3X, yPos + 4, { align: "center" });
       }
 
       const cleanFileName = `${letterType.replace(/[^a-zA-Z0-9]/g, '_')}_${studentName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
@@ -1710,7 +1993,22 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                             {lettr.letter_type}
                           </span>
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500">Kelas: {lettr.class_name || '-'} • NIS: {lettr.student_nis}</div>
+                        {(() => {
+                          const hr = getHomeroomInfo(lettr.class_name, lettr.student_nis);
+                          return (
+                            <div className="text-[10px] font-bold text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
+                              <span>Kelas: {lettr.class_name || '-'}</span>
+                              <span>•</span>
+                              <span>NIS: {lettr.student_nis}</span>
+                              {hr.walasName && hr.walasName !== '-' && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-emerald-700 font-semibold">Walas: {hr.walasName}</span>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex items-center gap-1.5">
@@ -1743,9 +2041,32 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         </button>
                         <button
                           type="button"
-                          onClick={() => downloadLetterPDF(lettr)}
+                          onClick={() => {
+                            const st = (students || []).find(s => String(getStudentNis(s)) === String(lettr.student_nis));
+                            setPreviewLetter({
+                              ...lettr,
+                              student_name: getStudentName(st) || lettr.student_name,
+                              class_name: getStudentClass(st) || lettr.class_name
+                            });
+                          }}
+                          className="p-1.5 rounded-[var(--ui-radius-small)] text-purple-600 hover:bg-purple-50 transition-all border border-purple-200 bg-white cursor-pointer shadow-xs flex items-center gap-1 text-[11px] font-bold"
+                          title="Lihat Pratinjau Surat Resmi"
+                        >
+                          <Eye size={13} />
+                          <span className="hidden sm:inline">Pratinjau</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const st = (students || []).find(s => String(getStudentNis(s)) === String(lettr.student_nis));
+                            setPreviewLetter({
+                              ...lettr,
+                              student_name: getStudentName(st) || lettr.student_name,
+                              class_name: getStudentClass(st) || lettr.class_name
+                            });
+                          }}
                           className="p-1.5 rounded-[var(--ui-radius-small)] text-emerald-600 hover:bg-emerald-50 transition-all border border-emerald-200 bg-white cursor-pointer shadow-xs"
-                          title="Cetak Ulang PDF"
+                          title="Pratinjau & Cetak Surat"
                         >
                           <Printer size={13} />
                         </button>
@@ -2012,6 +2333,28 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                   options={modalStudentOptions}
                   placeholder="Cari atau pilih nama siswa..."
                 />
+                {(() => {
+                  if (!formLetter.student_nis) return null;
+                  const selectedStudent = (students || []).find(s => String(getStudentNis(s)) === String(formLetter.student_nis));
+                  if (!selectedStudent) return null;
+                  const cls = getStudentClass(selectedStudent);
+                  const hr = getHomeroomInfo(cls, getStudentNis(selectedStudent));
+                  return (
+                    <div className="mt-2 p-2.5 bg-emerald-50/80 border border-emerald-200/90 rounded-[var(--ui-radius-small)] flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800">{getStudentName(selectedStudent)}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-emerald-700 border border-emerald-200 shadow-2xs">
+                          Kelas: {cls || '-'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-slate-500 text-[11px] font-medium">Wali Kelas:</span>
+                        <span className="font-bold text-slate-800">{hr.walasName !== '-' ? hr.walasName : '(Belum diatur)'}</span>
+                        {hr.walasNip && <span className="text-[10px] text-slate-500 font-mono">({hr.walasNip})</span>}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -2102,18 +2445,483 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
-              <Button type="button" variant="outline" onClick={() => { setShowLetterModal(false); setEditingLetter(null); }}>
-                Batal
+            <div className="flex flex-wrap justify-between items-center gap-2 pt-3 border-t border-slate-100 shrink-0">
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => {
+                  if (!formLetter.student_nis) {
+                    showToast("Pilih siswa terlebih dahulu untuk melihat pratinjau", "error");
+                    return;
+                  }
+                  const selectedStudent = (students || []).find(s => String(getStudentNis(s)) === String(formLetter.student_nis));
+                  setPreviewLetter({
+                    ...formLetter,
+                    student_name: getStudentName(selectedStudent),
+                    class_name: getStudentClass(selectedStudent)
+                  });
+                }}
+                className="font-bold text-xs flex items-center gap-1.5 text-purple-700 border-purple-200 hover:bg-purple-50"
+              >
+                <Eye size={14} />
+                <span>Pratinjau Draf Surat</span>
               </Button>
-              <Button type="submit" className="font-bold bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 shadow-xs">
-                <Printer size={14} />
-                <span>{editingLetter ? 'Simpan Perubahan & Unduh PDF' : 'Terbitkan & Unduh PDF'}</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" onClick={() => { setShowLetterModal(false); setEditingLetter(null); }}>
+                  Batal
+                </Button>
+                <Button type="submit" className="font-bold bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 shadow-xs">
+                  <Printer size={14} />
+                  <span>{editingLetter ? 'Simpan & Pratinjau Surat' : 'Terbitkan & Pratinjau Surat'}</span>
+                </Button>
+              </div>
             </div>
           </form>
         </Modal>
       )}
+
+      {/* ── MODAL: PRATINJAU SURAT RESMI (PREVIEW SEBELUM CETAK) ───── */}
+      {previewLetter && (() => {
+        const studentNis = previewLetter.student_nis || '-';
+        const st = (students || []).find(s => String(getStudentNis(s)) === String(studentNis));
+        const studentName = previewLetter.student_name && previewLetter.student_name !== 'Siswa Terkait' 
+          ? previewLetter.student_name 
+          : (getStudentName(st) || 'Siswa Terkait');
+        const className = previewLetter.class_name && previewLetter.class_name !== '-' 
+          ? previewLetter.class_name 
+          : (getStudentClass(st) || '-');
+
+        const hrInfo = getHomeroomInfo(className, studentNis);
+        const walasName = hrInfo.walasName !== '-' ? hrInfo.walasName : '';
+        const walasNip = hrInfo.walasNip || '';
+
+        const letterNo = previewLetter.letter_no || `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`;
+        const letterType = previewLetter.letter_type || 'Panggilan Orang Tua I';
+        const issueDateStr = new Date(previewLetter.issue_date || Date.now()).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        const appointDateStr = previewLetter.appointment_date 
+          ? new Date(previewLetter.appointment_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+          : 'Hari Kerja Efektif';
+        const appointTime = previewLetter.appointment_time || '09.00 WIB s/d Selesai';
+        const appointPlace = previewLetter.appointment_place || 'Ruang Bimbingan & Konseling (BK)';
+        const appointPerson = previewLetter.appointed_person || 'Guru BK / Koordinator BK';
+        const reason = previewLetter.reason || 'Koordinasi pembinaan kedisiplinan dan evaluasi perkembangan belajar siswa.';
+
+        const profileObj = useDataStore.getState().schoolProfile || useAppStore.getState().schoolProfile || appSettings.schoolProfile || {};
+        const namaSekolah = profileObj.nama_sekolah || appSettings.kopSuratBaris3 || 'SMK KARYA GUNA 2 BEKASI';
+        const namaKepsek = appSettings.namaKepsek || profileObj.kepala_sekolah || profileObj.nama_kepala_sekolah || appSettings.namaKepalaSekolah || 'Kepala Sekolah';
+        const nipKepsek = appSettings.nipKepsek || profileObj.nip_kepala_sekolah || profileObj.nip || appSettings.nipKepalaSekolah || '';
+
+        let kota = profileObj.kabupaten || profileObj.kota || appSettings.kopSuratKota || appSettings.lokasiSurat || '';
+        if (!kota || kota.toLowerCase() === 'di tempat') {
+          if (appSettings.kopSuratAlamat && appSettings.kopSuratAlamat.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+          else if (appSettings.kopSuratBaris2 && appSettings.kopSuratBaris2.toLowerCase().includes('bekasi')) kota = 'Bekasi';
+          else kota = 'Bekasi';
+        }
+
+        const guruBkName = user?.name || user?.username || 'Guru Bimbingan & Konseling';
+        const guruBkNip = user?.nip && user?.nip !== '-' ? user.nip : '';
+
+        const isSP = letterType.toUpperCase().includes('SP') || letterType.toUpperCase().includes('PERINGATAN');
+        const isPerjanjian = letterType.toUpperCase().includes('PERJANJIAN') || letterType.toUpperCase().includes('PERNYATAAN');
+
+        const logoData = appSettings.kopSuratLogo || profileObj.logo_url || appSettings.logoUrl;
+
+        return (
+          <Modal
+            isOpen={!!previewLetter}
+            onClose={() => setPreviewLetter(null)}
+            title="Pratinjau Surat Resmi (Sebelum Cetak)"
+            maxWidth="max-w-4xl"
+          >
+            <div className="p-4 sm:p-6 bg-slate-100 flex flex-col gap-4">
+              {/* Toolbar Atas */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-xs font-black bg-purple-100 text-purple-800 border border-purple-200">
+                    {letterType}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    No: {letterNo}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handlePrintDirect(previewLetter)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100"
+                    title="Cetak langsung menggunakan dialog printer"
+                  >
+                    <Printer size={14} className="text-slate-600" />
+                    <span>Cetak Langsung</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => downloadLetterPDF(previewLetter)}
+                    className="flex items-center gap-1.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs"
+                    title="Unduh file PDF resmi dokumen ini"
+                  >
+                    <Download size={14} />
+                    <span>Unduh PDF</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPreviewLetter(null)}
+                    className="text-xs font-bold"
+                  >
+                    Tutup
+                  </Button>
+                </div>
+              </div>
+
+              {/* Canvas Kertas A4 Pratinjau */}
+              <div className="max-h-[72vh] overflow-y-auto p-2 sm:p-4 flex justify-center bg-slate-200/60 rounded-[var(--ui-radius-card)] border border-slate-300/70">
+                <div 
+                  ref={printPaperRef}
+                  className="preview-paper w-full max-w-[210mm] bg-white border border-slate-300 shadow-xl rounded-sm p-8 sm:p-12 font-serif text-slate-900 leading-relaxed text-[13px] select-text"
+                >
+                  {/* KOP SURAT SESUAI SETTING ADMIN */}
+                  {appSettings.useKopSuratGambar && appSettings.kopSuratGambar ? (
+                    <div className="w-full flex justify-center overflow-hidden pb-3 border-b-2 border-slate-900 mb-4">
+                      <img 
+                        src={appSettings.kopSuratGambar} 
+                        alt="Kop Surat Resmi" 
+                        className="w-full max-h-[140px] object-contain mx-auto"
+                      />
+                    </div>
+                  ) : (
+                    <div className={`kop-container relative pb-3 text-center mb-3 ${
+                      appSettings.kopDivider === 'single' ? 'border-b-2 border-slate-900' :
+                      appSettings.kopDivider === 'thick' ? 'border-b-4 border-slate-900' :
+                      appSettings.kopDivider === 'dashed' ? 'border-b-2 border-dashed border-slate-900' :
+                      appSettings.kopDivider === 'none' ? '' :
+                      'border-b-[3.5px] border-double border-slate-900'
+                    }`}>
+                      {logoData && (
+                        <div className="absolute left-0 top-0 bottom-3 flex items-center">
+                          <img 
+                            src={logoData} 
+                            alt="Logo Sekolah" 
+                            className="w-16 h-16 object-contain"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      <div className="px-14">
+                        <p className="text-[11px] font-sans font-black tracking-wider uppercase text-slate-700">
+                          {appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH PROVINSI JAWA BARAT"}
+                        </p>
+                        <p className="text-[12px] font-sans font-black tracking-wider uppercase text-slate-800">
+                          {appSettings.kopSuratBaris2 || "DINAS PENDIDIKAN"}
+                        </p>
+                        <p className="text-[15px] font-sans font-black tracking-wide uppercase text-slate-950 mt-0.5">
+                          {appSettings.kopSuratBaris3 || namaSekolah}
+                        </p>
+                        <p className="text-[10.5px] font-sans font-bold tracking-wide uppercase text-slate-700">
+                          LAYANAN BIMBINGAN DAN KONSELING (BK)
+                        </p>
+                        {appSettings.kopSuratAlamat && (
+                          <p className="text-[10px] font-sans text-slate-600 mt-1 whitespace-pre-line">
+                            {appSettings.kopSuratAlamat}
+                          </p>
+                        )}
+                        {appSettings.kopSuratKontak && (
+                          <p className="text-[9.5px] font-sans text-slate-500">
+                            {appSettings.kopSuratKontak}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* KONTEN SURAT */}
+                  {isPerjanjian ? (
+                    <div className="pt-6 space-y-4">
+                      <div className="text-center">
+                        <h2 className="text-base font-bold uppercase tracking-wide">SURAT PERNYATAAN &amp; PERJANJIAN KEDISIPLINAN</h2>
+                        <p className="text-xs font-sans text-slate-600 font-mono mt-0.5">Nomor: {letterNo}</p>
+                      </div>
+                      <p className="text-justify">Yang bertanda tangan di bawah ini, saya:</p>
+                      <table className="w-full text-xs font-sans ml-3 my-2">
+                        <tbody>
+                          <tr>
+                            <td className="w-32 py-1 font-bold">Nama Siswa</td>
+                            <td className="w-4 py-1">:</td>
+                            <td className="py-1 font-bold">{studentName}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">NIS / Kelas</td>
+                            <td className="py-1">:</td>
+                            <td className="py-1">{studentNis} / {className}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">Wali Kelas</td>
+                            <td className="py-1">:</td>
+                            <td className="py-1 font-semibold">{walasName || '-'} {walasNip && `(NIP. ${walasNip})`}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p className="text-justify leading-relaxed">
+                        Menyatakan dengan sesungguhnya dan penuh kesadaran bahwa saya telah melakukan pelanggaran tata tertib sekolah berupa: <strong>"{reason}"</strong>.
+                      </p>
+                      <div className="space-y-1">
+                        <p>Dengan ini saya berjanji dengan sungguh-sungguh untuk:</p>
+                        <ol className="list-decimal list-inside ml-2 space-y-1">
+                          <li>Menaati dan mematuhi seluruh peraturan serta tata tertib yang berlaku di sekolah.</li>
+                          <li>Tidak akan mengulangi perbuatan pelanggaran tersebut maupun pelanggaran tata tertib lainnya.</li>
+                          <li>Bersungguh-sungguh mengikuti kegiatan pembelajaran dan memperbaiki sikap serta kedisiplinan.</li>
+                        </ol>
+                      </div>
+                      <p className="text-justify leading-relaxed">
+                        Apabila di kemudian hari saya melanggar pernyataan ini, maka saya bersedia menerima sanksi yang lebih berat dari pihak sekolah sampai dengan dikembalikan kepada orang tua / dikeluarkan dari sekolah.
+                      </p>
+
+                      <div className="pt-4 flex justify-end">
+                        <p>{kota}, {issueDateStr}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-center text-xs font-sans pt-2">
+                        <div>
+                          <p>Mengetahui,</p>
+                          <p>Orang Tua / Wali Siswa,</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold">( .......................................... )</p>
+                        </div>
+                        <div>
+                          <p>&nbsp;</p>
+                          <p>Yang Membuat Pernyataan,</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold">( {studentName} )</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-sans pt-6 border-t border-slate-200">
+                        <div>
+                          <p>Mengetahui,</p>
+                          <p className="font-bold">Kepala Sekolah,</p>
+                          <div className="h-14"></div>
+                          <p className="font-bold underline">{namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : '( ........................................ )'}</p>
+                          {nipKepsek && <p className="text-[10px] text-slate-500">NIP. {nipKepsek}</p>}
+                        </div>
+                        <div>
+                          <p>Wali Kelas,</p>
+                          <p className="font-bold">{className},</p>
+                          <div className="h-14"></div>
+                          <p className="font-bold underline">{walasName || '( ........................................ )'}</p>
+                          {walasNip && <p className="text-[10px] text-slate-500">NIP. {walasNip}</p>}
+                        </div>
+                        <div>
+                          <p>Guru Bimbingan &amp;</p>
+                          <p className="font-bold">Konseling (BK),</p>
+                          <div className="h-14"></div>
+                          <p className="font-bold underline">{guruBkName}</p>
+                          {guruBkNip && <p className="text-[10px] text-slate-500">NIP. {guruBkNip}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ) : isSP ? (
+                    <div className="pt-6 space-y-4">
+                      <div className="text-center">
+                        <h2 className="text-base font-bold uppercase tracking-wide">SURAT PERINGATAN ({letterType.toUpperCase()})</h2>
+                        <p className="text-xs font-sans text-slate-600 font-mono mt-0.5">Nomor: {letterNo}</p>
+                      </div>
+                      <p className="text-justify">Berdasarkan evaluasi tata tertib dan catatan buku kedisiplinan siswa, diterbitkan kepada:</p>
+                      <table className="w-full text-xs font-sans ml-3 my-2">
+                        <tbody>
+                          <tr>
+                            <td className="w-32 py-1 font-bold">Nama Siswa</td>
+                            <td className="w-4 py-1">:</td>
+                            <td className="py-1 font-bold">{studentName}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">NIS / Kelas</td>
+                            <td className="py-1">:</td>
+                            <td className="py-1">{studentNis} / {className}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 font-bold">Wali Kelas</td>
+                            <td className="py-1">:</td>
+                            <td className="py-1 font-semibold">{walasName || '-'} {walasNip && `(NIP. ${walasNip})`}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p className="text-justify leading-relaxed">
+                        Bahwa siswa tersebut di atas telah melakukan pelanggaran terhadap peraturan dan tata tertib sekolah, yaitu:<br />
+                        <span className="font-semibold italic">"{reason}"</span>.
+                      </p>
+                      <p className="text-justify leading-relaxed">
+                        Sehubungan dengan hal tersebut di atas, pihak sekolah memberikan sanksi pembinaan berupa <strong>{letterType.toUpperCase()}</strong>.
+                      </p>
+                      <p className="text-justify leading-relaxed">
+                        Kami mengingatkan kepada siswa bersangkutan serta orang tua/wali murid agar segera melakukan pembinaan intensif. Apabila setelah diterbitkannya surat peringatan ini siswa tetap tidak menunjukkan perubahan sikap positif, pihak sekolah akan mengambil tindakan tegas berikutnya sesuai regulasi kedisiplinan yang berlaku.
+                      </p>
+
+                      <div className="pt-4 flex justify-end">
+                        <p>{kota}, {issueDateStr}</p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-sans pt-6">
+                        <div>
+                          <p>Mengetahui,</p>
+                          <p className="font-bold">Kepala Sekolah,</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline">{namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : '( ........................................ )'}</p>
+                          {nipKepsek && <p className="text-[10px] text-slate-500">NIP. {nipKepsek}</p>}
+                        </div>
+                        <div>
+                          <p>Wali Kelas,</p>
+                          <p className="font-bold">{className},</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline">{walasName || '( ........................................ )'}</p>
+                          {walasNip && <p className="text-[10px] text-slate-500">NIP. {walasNip}</p>}
+                        </div>
+                        <div>
+                          <p>Guru Bimbingan &amp;</p>
+                          <p className="font-bold">Konseling (BK),</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline">{guruBkName}</p>
+                          {guruBkNip && <p className="text-[10px] text-slate-500">NIP. {guruBkNip}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // === SURAT PANGGILAN ORANG TUA ===
+                    <div className="pt-5 space-y-3.5">
+                      <div className="flex justify-between items-start text-xs font-sans">
+                        <table className="w-auto">
+                          <tbody>
+                            <tr>
+                              <td className="w-20 font-semibold py-0.5">Nomor</td>
+                              <td className="w-4 py-0.5">:</td>
+                              <td className="py-0.5 font-mono">{letterNo}</td>
+                            </tr>
+                            <tr>
+                              <td className="font-semibold py-0.5">Lampiran</td>
+                              <td className="py-0.5">:</td>
+                              <td className="py-0.5">-</td>
+                            </tr>
+                            <tr>
+                              <td className="font-semibold py-0.5">Perihal</td>
+                              <td className="py-0.5">:</td>
+                              <td className="py-0.5 font-black uppercase text-purple-950">{letterType}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <div className="text-right">
+                          <p className="font-semibold">{kota}, {issueDateStr}</p>
+                        </div>
+                      </div>
+
+                      <div className="text-xs pt-1">
+                        <p>Kepada Yth.</p>
+                        <p className="font-bold">Bapak / Ibu Orang Tua / Wali Siswa</p>
+                        <p>di Tempat</p>
+                      </div>
+
+                      <div className="text-xs space-y-2 pt-1">
+                        <p>Dengan hormat,</p>
+                        <p className="text-justify leading-relaxed">
+                          Sehubungan dengan perkembangan pembinaan ketertiban dan kedisiplinan putra/putri Bapak/Ibu di sekolah, dengan ini kami mengharap kehadiran Bapak/Ibu pada:
+                        </p>
+
+                        <div className="bg-slate-50/70 p-3 rounded border border-slate-200/80 my-2">
+                          <table className="w-full text-xs font-sans">
+                            <tbody>
+                              <tr>
+                                <td className="w-36 py-1 font-bold text-slate-700">Nama Siswa</td>
+                                <td className="w-4 py-1">:</td>
+                                <td className="py-1 font-bold text-slate-900">{studentName}</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700">NIS / Kelas</td>
+                                <td className="py-1">:</td>
+                                <td className="py-1 text-slate-800">{studentNis} / {className}</td>
+                              </tr>
+                              <tr className="bg-emerald-50/60">
+                                <td className="py-1 font-bold text-emerald-800">Wali Kelas</td>
+                                <td className="py-1 text-emerald-800">:</td>
+                                <td className="py-1 font-bold text-emerald-900">
+                                  {walasName || '(Belum diatur)'} {walasNip && <span className="font-normal text-slate-600 font-mono text-[11px]">(NIP. {walasNip})</span>}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700">Hari / Tanggal</td>
+                                <td className="py-1">:</td>
+                                <td className="py-1 text-slate-900">{appointDateStr}</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700">Waktu / Pukul</td>
+                                <td className="py-1">:</td>
+                                <td className="py-1 text-slate-900">{appointTime}</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700">Tempat</td>
+                                <td className="py-1">:</td>
+                                <td className="py-1 text-slate-900">{appointPlace}</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700">Menghadap</td>
+                                <td className="py-1">:</td>
+                                <td className="py-1 text-slate-900">{appointPerson}</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 font-bold text-slate-700 align-top">Keperluan</td>
+                                <td className="py-1 align-top">:</td>
+                                <td className="py-1 text-slate-900 leading-relaxed">{reason}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <p className="text-justify leading-relaxed">
+                          Mengingat pentingnya koordinasi ini demi kebaikan dan kelancaran pendidikan putra/putri Bapak/Ibu, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.
+                        </p>
+                      </div>
+
+                      {/* KOLOM TANDA TANGAN 3 KOLOM */}
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-sans pt-6">
+                        <div>
+                          <p>Mengetahui,</p>
+                          <p className="font-bold">Kepala Sekolah,</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline text-slate-900">
+                            {namaKepsek && namaKepsek !== 'Kepala Sekolah' ? namaKepsek : '( ........................................ )'}
+                          </p>
+                          {nipKepsek && <p className="text-[10px] text-slate-500 font-mono">NIP. {nipKepsek}</p>}
+                        </div>
+
+                        <div>
+                          <p>Wali Kelas,</p>
+                          <p className="font-bold">{className},</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline text-slate-900">
+                            {walasName || '( ........................................ )'}
+                          </p>
+                          {walasNip && <p className="text-[10px] text-slate-500 font-mono">NIP. {walasNip}</p>}
+                        </div>
+
+                        <div>
+                          <p>Guru Bimbingan &amp;</p>
+                          <p className="font-bold">Konseling (BK),</p>
+                          <div className="h-16"></div>
+                          <p className="font-bold underline text-slate-900">
+                            {guruBkName}
+                          </p>
+                          {guruBkNip && <p className="text-[10px] text-slate-500 font-mono">NIP. {guruBkNip}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* ── MODAL: 360° STUDENT DOSSIER INTERAKTIF ───────────────────── */}
       {showDossierModal && dossierStudent && (
@@ -2281,10 +3089,14 @@ export default function DashboardBPBK({ students = [], classes = [], tab = 'ring
                         </div>
                         <button
                           type="button"
-                          onClick={() => downloadLetterPDF(lt)}
-                          className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1"
+                          onClick={() => setPreviewLetter({
+                            ...lt,
+                            student_name: dossierStudent.name || lt.student_name,
+                            class_name: dossierStudent.class_name || lt.class_name
+                          })}
+                          className="px-2.5 py-1 bg-white hover:bg-purple-50 border border-purple-200 rounded text-xs font-bold text-purple-700 cursor-pointer flex items-center gap-1 shadow-xs"
                         >
-                          <Printer size={12} /> Unduh PDF
+                          <Eye size={12} /> Pratinjau &amp; Cetak
                         </button>
                       </div>
                     ))

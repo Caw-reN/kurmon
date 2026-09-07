@@ -38,7 +38,7 @@ const BASE_GURU_PERMISSIONS = {
   walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-  kedisiplinan_piket: "otomatis"
+  kedisiplinan_piket: "nonaktif"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -49,14 +49,14 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-    kedisiplinan_piket: "otomatis"
+    kedisiplinan_piket: "nonaktif"
   },
   walikelas: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
-    beban: "otomatis", pesan: "otomatis", kedisiplinan_piket: "otomatis",
+    beban: "otomatis", pesan: "otomatis", kedisiplinan_piket: "nonaktif",
     hikvision_report_siswa: "otomatis"
   },
 
@@ -530,6 +530,9 @@ export const useAppStore = create((set) => ({
   removeCalendarEvent: (id) => set((state) => ({ academicCalendar: state.academicCalendar.filter(e => e.id !== id) })),
   setAcademicCalendar: (academicCalendar) => set({ academicCalendar }),
 
+  appSettings: (initialState.appSettings && typeof initialState.appSettings === "object") ? initialState.appSettings : {},
+  setAppSettings: (appSettings) => set({ appSettings }),
+
   getTeachers: () => readPrimaryState().teachers || [],
   getSubjects: () => readPrimaryState().subjects || [],
   getSchedule: () => readPrimaryState().schedule || [],
@@ -548,6 +551,10 @@ const syncPersistedSlicesFromDatabase = () => {
     if (!latest || typeof latest !== "object") return;
 
     const nextState = {};
+
+    if (latest.appSettings && typeof latest.appSettings === "object") {
+      nextState.appSettings = latest.appSettings;
+    }
 
     if (latest.attendanceSettings && typeof latest.attendanceSettings === "object") {
       nextState.attendanceSettings = {

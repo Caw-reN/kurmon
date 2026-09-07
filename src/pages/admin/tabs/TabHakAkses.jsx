@@ -339,7 +339,7 @@ export default function TabHakAkses(props) {
       next['silabusguru'] = 'edit';
       next['jurnal_harian'] = 'edit';
       next['absensiguru'] = 'edit';
-      next['kedisiplinan_piket'] = 'edit';
+      next['kedisiplinan_piket'] = 'nonaktif';
       showNotification('Preset Guru Pengajar (KBM & Jurnal) diterapkan.', 'info');
     }
 

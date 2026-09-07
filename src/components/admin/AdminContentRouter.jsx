@@ -163,7 +163,7 @@ export default function AdminContentRouter({ context }) {
     const isTabAllowed = () => {
       if (role ==="admin" || role ==="superadmin") return true;
       if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
-      if (activeTab ==="kedisiplinan_piket" && role ==="guru") return true;
+      if (activeTab ==="kedisiplinan_piket" && role ==="guru" && hasPiket) return true;
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;
 
       // Allow all attendance report tabs for tu, tata_usaha, karyawan, kepsek, waka roles unconditionally
@@ -217,7 +217,7 @@ export default function AdminContentRouter({ context }) {
           const guruDefaultTabs = [
             "dashboard","generate","akademik","absensi","jurnal_harian",
             "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-            "absensiguru","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket"
+            "absensiguru","silabusguru","ketersediaan","beban","pesan"
           ];
           const guruPermissionedTabs = [
             "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
@@ -640,6 +640,7 @@ export default function AdminContentRouter({ context }) {
             rolePermissions={rolePermissions}
             getTabPermissionLevel={getTabPermissionLevel}
             isSuperAdminRole={isSuperAdminRole}
+            hasPiket={hasPiket}
           />
         </Suspense>;
       case"kedisiplinan_bpbk":

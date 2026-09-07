@@ -71,11 +71,14 @@ export default function AdminMobileNav({
     const role = (activeUserRole || currentUser?.role || '').toLowerCase();
     const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
 
-    // Default 3 menu utama (Jurnal, Laporan, Piket) sesuai referensi screenshot
+    // Default 3 menu utama (Jurnal, Laporan, Piket/Jadwal)
+    const canAccessPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket') : false;
     const defaultGuruAdminTabs = [
       { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
       { id: 'walas_report', icon: PieChart, label: 'Laporan' },
-      { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
+      canAccessPiket
+        ? { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' }
+        : { id: 'generate', icon: Calendar, label: 'Jadwal' },
     ];
 
     if (role === 'guru' || isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {

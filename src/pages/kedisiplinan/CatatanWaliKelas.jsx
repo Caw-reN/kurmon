@@ -15,6 +15,7 @@ import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { useAppStore } from '../../store/useAppStore.js';
+import { useDataStore } from '../../store/useDataStore.js';
 
 const JENIS_CATATAN = [
   { value: 'umum', label: 'Catatan Umum', color: 'bg-slate-50 text-slate-700 border-slate-200/60', icon: MessageSquare },
@@ -321,18 +322,20 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
   const [siswaPage, setSiswaPage] = useState(1);
   const [siswaPerPage, setSiswaPerPage] = useState(20);
 
-  // useAppStore untuk sinkronisasi real-time dengan pengaturan admin
-  const storeAppSettings = useAppStore((state) => state.appSettings) || {};
+  // Gunakan useDataStore dan useAppStore untuk sinkronisasi real-time dengan pengaturan admin
+  const dataStoreAppSettings = useDataStore((state) => state.appSettings) || {};
+  const appStoreAppSettings = useAppStore((state) => state.appSettings) || {};
   const appSettings = useMemo(() => ({
     useKopSuratGambar: false,
     kopSuratGambar: '',
     kopSuratLogo: '',
-    kopSuratBaris1: '',
-    kopSuratBaris2: '',
-    kopSuratBaris3: '',
+    kopSuratBaris1: 'PEMERINTAH DAERAH PROVINSI JAWA BARAT',
+    kopSuratBaris2: 'DINAS PENDIDIKAN',
+    kopSuratBaris3: 'SMK Karya Guna 2 Bekasi',
     primaryColor: 'var(--ui-primary)',
-    ...storeAppSettings
-  }), [storeAppSettings]);
+    ...dataStoreAppSettings,
+    ...appStoreAppSettings
+  }), [dataStoreAppSettings, appStoreAppSettings]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });

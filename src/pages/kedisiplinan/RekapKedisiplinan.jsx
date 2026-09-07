@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAppStore } from '../../store/useAppStore.js';
+import { useDataStore } from '../../store/useDataStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -43,18 +44,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const [lbPage, setLbPage] = useState(1);
   const [lbPerPage, setLbPerPage] = useState(20);
 
-  // Gunakan useAppStore agar sinkron real-time dengan pengaturan admin
-  const storeAppSettings = useAppStore((state) => state.appSettings) || {};
+  // Gunakan useDataStore dan useAppStore agar sinkron real-time dengan pengaturan kop surat admin
+  const dataStoreAppSettings = useDataStore((state) => state.appSettings) || {};
+  const appStoreAppSettings = useAppStore((state) => state.appSettings) || {};
   const appSettings = useMemo(() => ({
     useKopSuratGambar: false,
     kopSuratGambar: '',
     kopSuratLogo: '',
-    kopSuratBaris1: '',
-    kopSuratBaris2: '',
-    kopSuratBaris3: '',
+    kopSuratBaris1: 'PEMERINTAH DAERAH PROVINSI JAWA BARAT',
+    kopSuratBaris2: 'DINAS PENDIDIKAN',
+    kopSuratBaris3: 'SMK Karya Guna 2 Bekasi',
     primaryColor: 'var(--ui-primary)',
-    ...storeAppSettings
-  }), [storeAppSettings]);
+    ...dataStoreAppSettings,
+    ...appStoreAppSettings
+  }), [dataStoreAppSettings, appStoreAppSettings]);
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });

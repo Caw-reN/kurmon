@@ -11,6 +11,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore';
+import { useDataStore } from '../../../store/useDataStore';
 import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
 import { Button, Modal } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
@@ -38,6 +39,7 @@ Bapak/Ibu Orang Tua / Wali dari:
 Nama Siswa : {NAMA_SISWA}
 NIS / NISN : {NIS} / {NISN}
 Kelas / Jurusan : {KELAS} / {JURUSAN}
+Wali Kelas : {WALI_KELAS}
 
 Dengan hormat,
 Sehubungan dengan adanya catatan kedisiplinan siswa di sekolah, dengan ini kami mengharap kehadiran Bapak/Ibu Orang Tua/Wali murid pada:
@@ -120,6 +122,8 @@ const PLACEHOLDER_VARIABLES = [
   { var: '{NOMOR_SURAT}', desc: 'Nomor agenda/penomoran surat' },
   { var: '{KETERANGAN}', desc: 'Keterangan / alasan khusus' },
   { var: '{TOTAL_POIN}', desc: 'Total poin pelanggaran siswa' },
+  { var: '{WALI_KELAS}', desc: 'Nama Guru Wali Kelas' },
+  { var: '{NIP_WALI_KELAS}', desc: 'NIP Guru Wali Kelas' },
 ];
 
 function PrintPreviewPaper({ template, student, school, appSettings = {}, customValues = {}, liveMargins = {}, paperRef }) {
@@ -133,12 +137,41 @@ function PrintPreviewPaper({ template, student, school, appSettings = {}, custom
     const nipKepsek = school?.nip_kepsek || appSettings?.kepsekNip || '19750512 200501 2 003';
     const studentNisn = student?.nisn || student?.payload?.nisn || student?.nis || '-';
 
+    // Wali Kelas detection
+    const classes = useDataStore.getState().classes || [];
+    const teachers = useDataStore.getState().teachers || [];
+    const clsName = student?.class_name || student?.kelas || '';
+    const targetClass = classes.find(c => String(c.name || c.id || '').trim().toLowerCase() === String(clsName).trim().toLowerCase());
+    let walasName = '';
+    let walasNip = '';
+    if (targetClass?.homeroom) {
+      const t = teachers.find(tc => 
+        String(tc.code || '').trim().toLowerCase() === String(targetClass.homeroom).trim().toLowerCase() || 
+        String(tc.name || '').trim().toLowerCase() === String(targetClass.homeroom).trim().toLowerCase()
+      );
+      if (t) {
+        walasName = t.name;
+        walasNip = t.nip && t.nip !== '-' ? t.nip : '';
+      } else {
+        walasName = targetClass.homeroom;
+      }
+    }
+    if (!walasName) {
+      const t = teachers.find(tc => String(tc.walasClass || '').trim().toLowerCase() === String(clsName).trim().toLowerCase());
+      if (t) {
+        walasName = t.name;
+        walasNip = t.nip && t.nip !== '-' ? t.nip : '';
+      }
+    }
+
     let content = template.isi_template;
     content = content.replace(/{NAMA_SISWA}/g, student?.namaSiswa || student?.name || student?.nama || '[NAMA_SISWA]');
     content = content.replace(/{NIS}/g, student?.nis || '[NIS]');
     content = content.replace(/{NISN}/g, studentNisn);
     content = content.replace(/{KELAS}/g, student?.class_name || student?.kelas || '[KELAS]');
     content = content.replace(/{JURUSAN}/g, student?.major || student?.jurusan || (student?.class_name?.split(' ')[1] || 'Umum'));
+    content = content.replace(/{WALI_KELAS}/g, walasName || '-');
+    content = content.replace(/{NIP_WALI_KELAS}/g, walasNip || '-');
     content = content.replace(/{NAMA_SEKOLAH}/g, namaSekolah);
     content = content.replace(/{NAMA_KEPSEK}/g, namaKepsek);
     content = content.replace(/{NIP_KEPSEK}/g, nipKepsek);

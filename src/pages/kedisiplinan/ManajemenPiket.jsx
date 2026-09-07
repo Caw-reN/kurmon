@@ -11,7 +11,8 @@ export default function ManajemenPiket({
   currentUser,
   rolePermissions,
   getTabPermissionLevel,
-  isSuperAdminRole
+  isSuperAdminRole,
+  hasPiket = false
 }) {
   const [activeTab, setActiveTab] = useState('panel');
 
@@ -39,6 +40,9 @@ export default function ManajemenPiket({
     if ((rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan') return true;
     if (subrole === 'bpbk' || rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk') return true;
     if (subrole === 'pembina_osis' || subrole === 'sekretaris_kesiswaan' || subrole === 'anggota_kesiswaan') return true;
+
+    // 2b. Guru yang terjadwal dalam piket
+    if (hasPiket) return true;
 
     // 3. getTabPermissionLevel
     if (typeof getTabPermissionLevel === 'function') {
@@ -72,7 +76,7 @@ export default function ManajemenPiket({
 
     // Default fallback: tidak bisa edit jika tidak ada di whitelist
     return false;
-  }, [rawRole, subrole, division, isSuperAdminRole, getTabPermissionLevel, rolePermissions]);
+  }, [rawRole, subrole, division, isSuperAdminRole, getTabPermissionLevel, rolePermissions, hasPiket]);
 
   const tabs = [
     { id: 'panel', label: 'Panel Input Pelanggaran', icon: ClipboardList },
