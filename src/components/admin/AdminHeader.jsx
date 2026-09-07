@@ -439,11 +439,19 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xs shrink-0 border border-primary/20">
             {getInitials(currentUser?.name)}
           </div>
-          <div className="flex flex-col hidden sm:flex min-w-0 max-w-[140px]">
-            <span className="text-[12px] font-bold text-foreground leading-tight truncate">
+          <div className="flex flex-col hidden sm:flex min-w-0 max-w-[280px] md:max-w-[360px] xl:max-w-[460px]">
+            <span 
+              className="text-[12px] font-bold text-foreground leading-tight truncate"
+              title={currentUser?.name || appSettings.appName}
+            >
               {currentUser?.name || appSettings.appName}
             </span>
-            <span className="text-[10px] text-muted-foreground font-semibold leading-tight mt-0.5 truncate">{activeRoleLabel}</span>
+            <span 
+              className="text-[10px] text-muted-foreground font-semibold leading-tight mt-0.5 truncate"
+              title={activeRoleLabel}
+            >
+              {activeRoleLabel}
+            </span>
           </div>
         </div>
 
