@@ -152,16 +152,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   const dedupeFront = (arr) => {
     const seenId = new Set();
-    // Dedup HANYA berdasarkan ID (employee_id/nis), bukan nama
-    // karena nama bisa sama untuk orang berbeda
+    // Dedup berdasarkan ID unik (employee_id/nis/username) atau nama yang dinormalisasi
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
 
     for (const item of sorted) {
       const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
-      const role = String(item.role_type || item.true_person_type || '').toLowerCase();
-      // Hanya dedup jika ada ID — jangan dedup berdasarkan nama
-      const idKey = rawId ? `${role}_${rawId}` : null;
+      const normName = String(item.name || item.student_name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const idKey = rawId ? rawId : normName;
 
       if (idKey) {
         if (seenId.has(idKey)) continue;
@@ -240,6 +238,21 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       });
 
     logs = [...logs, ...manualLogs];
+
+    // Standarisasi role_type: jika terdaftar di storeTeachers (termasuk KS/Kepsek/Waka), wajib 'GURU'
+    logs = logs.map(item => {
+      const empId = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
+      const normName = String(item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const isTeacher = (storeTeachers || []).some(t => {
+        const c = String(t.code || t.nip || t.id || t.username || '').trim().toLowerCase();
+        const tn = String(t.name || t.nama || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        return (c && c === empId) || (normName && normName === tn);
+      });
+      if (isTeacher) {
+        return { ...item, role_type: 'GURU', true_person_type: 'guru' };
+      }
+      return item;
+    });
 
     logs = dedupeFront(logs);
 

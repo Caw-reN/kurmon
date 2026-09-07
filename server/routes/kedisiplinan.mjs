@@ -124,44 +124,10 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
-        // NOTE: GET /api/kesiswaan/catatan-walikelas is handled by jurnal.mjs
-        // which includes proper authentication and teacher_code filtering.
-        // The duplicate handler that was here WITHOUT auth has been removed (security fix).
-
-
-        if (req.method === "POST" && url.pathname === "/api/kesiswaan/catatan-walikelas") {
-          try {
-            const body = await readJsonBody(req);
-            const session = getSession(req);
-            const teacher_code = session?.code || session?.username || session?.id || '';
-            const teacher_name = session?.name || teacher_code;
-            
-            if (body.action === "delete") {
-              await dbPool.query("DELETE FROM catatan_walikelas WHERE id = $1", [body.id]);
-              send(req, res, 200, { ok: true });
-              return;
-            }
-            
-            if (body.id) {
-              await dbPool.query(`
-                UPDATE catatan_walikelas
-                SET siswa_nis=$1, siswa_name=$2, tanggal=$3, jenis_catatan=$4, isi_catatan=$5, tindak_lanjut=$6, poin_pelanggaran_id=$7, kelas=$8, updated_at=CURRENT_TIMESTAMP
-                WHERE id=$9
-              `, [body.siswa_nis, body.siswa_name, body.tanggal, body.jenis_catatan, body.isi_catatan, body.tindak_lanjut, body.poin_pelanggaran_id || null, body.kelas, body.id]);
-            } else {
-              await dbPool.query(`
-                INSERT INTO catatan_walikelas 
-                (teacher_code, teacher_name, kelas, siswa_nis, siswa_name, tanggal, jenis_catatan, isi_catatan, tindak_lanjut, poin_pelanggaran_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-              `, [teacher_code, teacher_name, body.kelas, body.siswa_nis, body.siswa_name, body.tanggal, body.jenis_catatan, body.isi_catatan, body.tindak_lanjut, body.poin_pelanggaran_id || null]);
-            }
-            send(req, res, 200, { ok: true });
-          } catch(e) {
-            console.error("catatan-walikelas POST error:", e);
-            sendDatabaseError(req, res, e);
-          }
-          return;
-        }
+        // SECURITY FIX (BUG-02): Handler POST /api/kesiswaan/catatan-walikelas yang ada di sini
+        // telah DIHAPUS karena merupakan duplikat yang bypass security check (ownership/role).
+        // Semua request POST catatan-walikelas sekarang di-handle HANYA oleh jurnal.mjs
+        // yang sudah memiliki full auth + ownership validation yang benar.
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/master") {
           const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_master_poin WHERE is_deleted = false ORDER BY nama_tindakan ASC");
@@ -597,8 +563,8 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     const pklSettings = pklRes.rows.length > 0 ? JSON.parse(pklRes.rows[0].data) : { eligibleClass: "XII" };
     const eligibleClass = String(pklSettings.eligibleClass || "XII").toUpperCase();
 
-    // Fetch kedisiplinan settings from main_payload
-    const payloadRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_payload'").catch(() => ({ rows: [] }));
+    // Fetch kedisiplinan settings from main_store (or legacy main_payload)
+    const payloadRes = await dbPool.query("SELECT data FROM app_data WHERE store_key IN ('main_store', 'main_payload') ORDER BY (CASE WHEN store_key = 'main_store' THEN 1 ELSE 2 END) LIMIT 1").catch(() => ({ rows: [] }));
     let kSettings = { batasAlpa: 5, poinAlpa: 15, batasTerlambat: 3, poinTerlambat: 10 };
     if (payloadRes.rows.length > 0) {
       try {

@@ -1,12 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as XLSX from "xlsx";
 
 import {
   parseBulkTextRows,
   splitBulkColumns,
   workbookSheetToDelimitedText,
 } from "../src/utils/bulkImport.js";
+
+function createMockWorkbook(sheetName, aoa) {
+  return {
+    SheetNames: [sheetName],
+    Sheets: {
+      [sheetName]: aoa,
+    },
+  };
+}
+
+const mockSheetToJson = (sheet) => sheet;
 
 test("splitBulkColumns handles quoted commas and tabs", () => {
   assert.deepEqual(
@@ -28,32 +38,27 @@ test("parseBulkTextRows removes template headers", () => {
 });
 
 test("workbookSheetToDelimitedText reads the correct sheet and skips headers", () => {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
+  const wb = createMockWorkbook("2_Kelas", [
     ["Nama Kelas (wajib)", "Jurusan (pilih dari Data Jurusan)"],
     ["X TKR 1", "TKR"],
     ["XI TKJ 1", "TKJ"],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws, "2_Kelas");
 
-  const text = workbookSheetToDelimitedText(wb, "kelas", XLSX.utils.sheet_to_json);
+  const text = workbookSheetToDelimitedText(wb, "kelas", mockSheetToJson);
   assert.equal(text.trim(), "X TKR 1\tTKR\nXI TKJ 1\tTKJ");
 });
 
 test("workbookSheetToDelimitedText rejects invalid headers", () => {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
+  const wb = createMockWorkbook("2_Kelas", [
     ["Bukan header yang benar"],
     ["X TKR 1"],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws, "2_Kelas");
 
-  assert.throws(() => workbookSheetToDelimitedText(wb, "kelas", XLSX.utils.sheet_to_json), /tidak sesuai template impor/i);
+  assert.throws(() => workbookSheetToDelimitedText(wb, "kelas", mockSheetToJson), /tidak sesuai template impor/i);
 });
 
 test("workbookSheetToDelimitedText accepts updated syllabus headers", () => {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
+  const wb = createMockWorkbook("Silabus", [
     [
       "Mata Pelajaran (wajib)",
       "Guru Pengajar (wajib)",
@@ -65,15 +70,13 @@ test("workbookSheetToDelimitedText accepts updated syllabus headers", () => {
     ],
     ["Pemrograman Dasar", "G02", "Pertemuan 1: Pengenalan Algoritma", "X / Ganjil", "Siswa paham algoritma", "Definisi algoritma", ""],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws, "Silabus");
 
-  const text = workbookSheetToDelimitedText(wb, "silabusguru", XLSX.utils.sheet_to_json);
+  const text = workbookSheetToDelimitedText(wb, "silabusguru", mockSheetToJson);
   assert.match(text, /Pemrograman Dasar\tG02\tPertemuan 1: Pengenalan Algoritma\tX \/ Ganjil\tSiswa paham algoritma\tDefinisi algoritma\t/);
 });
 
 test("workbookSheetToDelimitedText accepts teacher syllabus sheet for admin syllabus import", () => {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
+  const wb = createMockWorkbook("Silabus", [
     [
       "Mata Pelajaran (wajib)",
       "Guru Pengajar (wajib)",
@@ -85,20 +88,17 @@ test("workbookSheetToDelimitedText accepts teacher syllabus sheet for admin syll
     ],
     ["Pemrograman Dasar", "G02", "Pertemuan 2: Flowchart", "X / Ganjil", "Siswa paham flowchart", "Simbol flowchart", ""],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws, "Silabus");
 
-  const text = workbookSheetToDelimitedText(wb, "silabus", XLSX.utils.sheet_to_json);
+  const text = workbookSheetToDelimitedText(wb, "silabus", mockSheetToJson);
   assert.match(text, /Pemrograman Dasar\tG02\tPertemuan 2: Flowchart/);
 });
 
 test("workbookSheetToDelimitedText accepts academic calendar headers", () => {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet([
+  const wb = createMockWorkbook("10_Kalender_Akademik", [
     ["Judul Kegiatan", "Mulai", "Selesai", "Kategori", "Keterangan"],
     ["Ujian Tengah Semester", "2026-09-15", "2026-09-19", "Kurikulum", "Pelaksanaan UTS"],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws, "10_Kalender_Akademik");
 
-  const text = workbookSheetToDelimitedText(wb, "akademik", XLSX.utils.sheet_to_json);
+  const text = workbookSheetToDelimitedText(wb, "akademik", mockSheetToJson);
   assert.equal(text.trim(), "Ujian Tengah Semester\t2026-09-15\t2026-09-19\tKurikulum\tPelaksanaan UTS");
 });

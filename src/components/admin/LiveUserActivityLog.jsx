@@ -161,7 +161,11 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  const userRole = (user?.role || '').toLowerCase();
+  const isAllowed = ['admin', 'superadmin', 'kepsek'].includes(userRole);
+
   const fetchAuditLogs = useCallback(async () => {
+    if (!isAllowed) return;
     setLoading(true);
     try {
       const token = user?.authToken
@@ -267,6 +271,8 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  if (!isAllowed) return null;
 
   return (
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">

@@ -49,6 +49,192 @@ const messageTone = (priority) => {
   return 'bg-indigo-50 text-indigo-600';
 };
 
+function TeachingScheduleCard({
+  todayClasses = [],
+  selectedClass,
+  selectedTodayClassIdx = 0,
+  setSelectedTodayClassIdx,
+  setActiveTab,
+  isDesktop = false,
+}) {
+  const now = new Date();
+  const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  let stLabel = 'Tersedia';
+  let stBadgeClass = 'bg-slate-100 text-slate-600 font-semibold';
+  let isOngoing = false;
+
+  if (selectedClass?.timeLabel && selectedClass.timeLabel.includes('-')) {
+    const [start, end] = selectedClass.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+    if (curHhMm >= start && curHhMm <= end) {
+      stLabel = 'Sedang Berlangsung';
+      stBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold';
+      isOngoing = true;
+    } else if (curHhMm < start) {
+      stLabel = `Mulai pk ${start}`;
+      stBadgeClass = 'bg-amber-50 text-amber-800 border border-amber-200/80 font-bold';
+    } else {
+      stLabel = 'Selesai';
+      stBadgeClass = 'bg-slate-100 text-slate-500 font-medium';
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2 text-left">
+      {/* Clean Section Header */}
+      <div className="flex items-center justify-between px-0.5">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Mengajar Hari Ini</h3>
+          {todayClasses.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-emerald-100 text-emerald-800">
+              {todayClasses.length} Sesi
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('jurnal_harian')}
+          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer bg-transparent border-none p-0 flex items-center gap-1"
+        >
+          <span>Buka Jurnal KBM</span>
+          <ChevronRight size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Main Integrated Card */}
+      {!selectedClass ? (
+        <div className="rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-[var(--ui-border-soft)] shadow-xs text-center flex flex-col items-center justify-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
+            <Calendar size={18} strokeWidth={2.2} />
+          </div>
+          <div>
+            <h4 className="font-bold text-xs sm:text-sm text-slate-800">Tidak Ada Jadwal Mengajar Hari Ini</h4>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Anda tidak memiliki slot KBM terjadwal untuk hari ini.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab('jurnal_harian')}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
+            >
+              <FileText size={13} strokeWidth={2.2} />
+              <span>Buka Jurnal KBM</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('generate')}
+              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer active:scale-98 transition-all"
+            >
+              Lihat Jadwal
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 bg-white border border-[var(--ui-border-soft)] shadow-xs flex flex-col gap-3 transition-all">
+          {/* Integrated Segmented Class Switcher Tabs (Inside Card Header) */}
+          {todayClasses.length > 1 && (
+            <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 overflow-x-auto no-scrollbar">
+              {todayClasses.map((cItem, cIdx) => {
+                const isSelected = selectedTodayClassIdx === cIdx;
+                let itemOngoing = false;
+                if (cItem.timeLabel && cItem.timeLabel.includes('-')) {
+                  const [st, en] = cItem.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
+                  if (curHhMm >= st && curHhMm <= en) itemOngoing = true;
+                }
+
+                return (
+                  <button
+                    key={cIdx}
+                    type="button"
+                    onClick={() => setSelectedTodayClassIdx && setSelectedTodayClassIdx(cIdx)}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
+                      isSelected
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {itemOngoing && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    )}
+                    <span className="truncate">{cItem.className}</span>
+                    <span className={`text-[10px] shrink-0 font-medium ${isSelected ? 'text-emerald-700' : 'text-slate-400'}`}>
+                      ({cItem.jamLabel?.replace('Jam ', '') || cItem.jamLabel})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Time Slot & Status Header */}
+          <div className="flex items-center justify-between gap-2 pt-0.5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Clock3 size={14} strokeWidth={2.4} />
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-extrabold text-slate-800">
+                  {selectedClass.jamLabel}
+                </span>
+                {selectedClass.timeLabel && (
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    • {selectedClass.timeLabel} WIB
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <span className={`px-2.5 py-1 rounded-full text-[10px] tracking-wide flex items-center gap-1.5 shrink-0 ${stBadgeClass}`}>
+              {isOngoing && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping" />}
+              <span>{stLabel}</span>
+            </span>
+          </div>
+
+          {/* Subject & Clean Metadata Chips */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <h4 className="text-base sm:text-lg font-black text-slate-900 leading-snug tracking-tight">
+                {selectedClass.subject}
+              </h4>
+              {selectedClass.totalHours > 0 && (
+                <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md shrink-0">
+                  {selectedClass.totalHours} JP
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-600">
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/60">
+                <GraduationCap size={13} className="text-indigo-500 shrink-0" strokeWidth={2.2} />
+                <span>Kelas {selectedClass.className}</span>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/60">
+                <DoorOpen size={13} className="text-amber-500 shrink-0" strokeWidth={2.2} />
+                <span>Ruang {selectedClass.room || 'Kelas'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button: Direct to Jurnal Harian */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('jurnal_harian')}
+            className="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm flex items-center justify-between cursor-pointer transition-all touch-manipulation select-none group"
+          >
+            <div className="flex items-center gap-2">
+              <FileText size={15} strokeWidth={2.2} className="text-white shrink-0" />
+              <span>Isi Jurnal & Absen Kelas {selectedClass.className}</span>
+            </div>
+            <ChevronRight size={15} strokeWidth={2.5} className="text-white/80 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage({
   currentUser,
   classes: _classes,
@@ -109,8 +295,31 @@ export default function DashboardPage({
   const isTeacher = activeRole ==="guru";
   const isKepsek = activeRole ==="kepsek";
   const isWaka = activeRole ==="waka";
-  const isSuperAdmin = activeRole ==="admin";
   const isTU = activeRole ==="tu" || activeRole ==="tata_usaha";
+  const isSuperAdmin = activeRole === "admin";
+
+  const userRolesDisplay = useMemo(() => {
+    if (!currentUser) return 'Guru / Pengajar';
+    const parts = [];
+    const r = (currentUser.role || '').toLowerCase();
+    if (r === 'superadmin' || r === 'admin') parts.push('Super Admin');
+    else if (r === 'kepsek') parts.push('Kepala Sekolah');
+    else if (r === 'waka') {
+      const div = currentUser.division ? `Waka ${currentUser.division.charAt(0).toUpperCase() + currentUser.division.slice(1)}` : 'Waka';
+      parts.push(div);
+    } else if (r === 'tu' || r === 'tata_usaha') parts.push('Tata Usaha');
+    else if (r === 'karyawan') parts.push('Karyawan');
+    else parts.push('Guru');
+
+    if (currentUser.isWalas || currentUser.walasClass) {
+      parts.push(`Wali Kelas ${currentUser.walasClass || ''}`.trim());
+    }
+    if (currentUser.subrole && !['walikelas', 'guru'].includes(currentUser.subrole.toLowerCase())) {
+      const sub = currentUser.subrole.replace(/_/g, ' ').toUpperCase();
+      parts.push(sub);
+    }
+    return parts.join(' • ');
+  }, [currentUser]);
 
   const wakaProfiles = {
     kurikulum: {
@@ -237,8 +446,6 @@ export default function DashboardPage({
   const attendanceRecords = useAppStore((state) => state.attendanceRecords);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [activityPage, setActivityPage] = React.useState(0);
-  const [activeDataTab, setActiveDataTab] = React.useState("semua");
-  const [summaryPage, setSummaryPage] = React.useState(0);
   const [dashLogs, setDashLogs] = React.useState(null);
   const [logsLoading, setLogsLoading] = React.useState(true);
   const [logPages, setLogPages] = React.useState({});
@@ -492,7 +699,7 @@ export default function DashboardPage({
                   {currentUser?.name || currentUser?.username || 'Bapak/Ibu Guru'}
                 </h1>
                 <span className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">
-                  {currentUser?.role || 'Guru / Pengajar'}
+                  {userRolesDisplay}
                 </span>
               </div>
             </button>
@@ -524,8 +731,8 @@ export default function DashboardPage({
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>
                     <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white text-slate-600 mt-0.5 border border-[var(--ui-border-soft)]">
-                      {currentUser?.role || 'Guru / Pengajar'}
+                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white text-slate-600 mt-0.5 border border-[var(--ui-border-soft)] truncate max-w-full">
+                      {userRolesDisplay}
                     </span>
                   </div>
                 </div>
@@ -601,179 +808,14 @@ export default function DashboardPage({
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (< sm) ======= */}
         <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
 
-          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM (REVAMPED) */}
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">Jadwal Mengajar Anda</h3>
-                {todayClasses.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
-                    {todayClasses.length} Sesi KBM
-                  </span>
-                )}
-              </div>
-              <span className="bg-slate-100/90 text-slate-600 border border-slate-200 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
-                {todayShort}
-              </span>
-            </div>
-
-            {/* Horizontal Class Switcher (If multiple classes today) */}
-            {todayClasses.length > 1 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
-                {todayClasses.map((cItem, cIdx) => {
-                  const isSelected = (selectedTodayClassIdx === cIdx);
-                  const now = new Date();
-                  const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                  let isOngoing = false;
-                  if (cItem.timeLabel && cItem.timeLabel.includes('-')) {
-                    const [st, en] = cItem.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
-                    if (curHhMm >= st && curHhMm <= en) isOngoing = true;
-                  }
-
-                  return (
-                    <button
-                      key={cIdx}
-                      type="button"
-                      onClick={() => setSelectedTodayClassIdx(cIdx)}
-                      className={`px-3 py-1.5 rounded-[var(--ui-radius-control)] text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer border shadow-xs ${
-                        isSelected
-                          ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      {isOngoing && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-                      )}
-                      <span>{cItem.jamLabel}</span>
-                      <span className={`text-[10px] font-bold opacity-80 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
-                        • {cItem.className}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Main Featured Class Card */}
-            {!selectedClass ? (
-              <div className="rounded-[var(--ui-radius-card)] p-6 bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] text-center flex flex-col items-center justify-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
-                  <Calendar size={22} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-sm text-slate-800">Tidak Ada Jadwal Mengajar Hari Ini</h4>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xs">
-                    Anda tidak memiliki slot KBM terjadwal untuk hari {todayShort}.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('generate')}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-control)] cursor-pointer transition-all"
-                >
-                  Lihat Jadwal Lengkap
-                </button>
-              </div>
-            ) : (() => {
-              const now = new Date();
-              const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-              let stLabel = 'Slot Hari Ini';
-              let stBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
-              let isOngoing = false;
-
-              if (selectedClass.timeLabel && selectedClass.timeLabel.includes('-')) {
-                const [start, end] = selectedClass.timeLabel.split('-').map(t => t.trim().replace('.', ':'));
-                if (curHhMm >= start && curHhMm <= end) {
-                  stLabel = 'Sedang Berlangsung';
-                  stBadgeClass = 'bg-emerald-600 text-white shadow-xs animate-pulse';
-                  isOngoing = true;
-                } else if (curHhMm < start) {
-                  stLabel = `Mulai pk ${start}`;
-                  stBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs';
-                } else {
-                  stLabel = 'Jam Telah Selesai';
-                  stBadgeClass = 'bg-slate-100 text-slate-600 border-slate-200';
-                }
-              }
-
-              return (
-                <div 
-                  className="rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-slate-200/90 shadow-[var(--ui-shadow-card)] flex flex-col gap-3.5 relative overflow-hidden transition-all"
-                >
-                  {/* Top Decorative Accent Bar */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 h-1.5"
-                    style={{ background: 'var(--ui-primary)' }}
-                  />
-
-                  {/* Header: Period & Status Badge */}
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 text-slate-800 font-black text-xs border border-slate-200">
-                        <Clock3 size={13} strokeWidth={2.5} className="text-[var(--ui-primary)]" />
-                        <span>{selectedClass.jamLabel}</span>
-                      </span>
-                      {selectedClass.timeLabel && (
-                        <span className="text-xs font-bold text-slate-500">
-                          {selectedClass.timeLabel} WIB
-                        </span>
-                      )}
-                    </div>
-
-                    <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10.5px] font-black uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${stBadgeClass}`}>
-                      {isOngoing && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
-                      <span>{stLabel}</span>
-                    </span>
-                  </div>
-
-                  {/* Body: Subject, Class & Room Info */}
-                  <div className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50 border border-slate-200/70 flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Mata Pelajaran
-                        </span>
-                        <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                          {selectedClass.subject}
-                        </h2>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Ruang
-                        </span>
-                        <span className="text-xs font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200 inline-block shadow-2xs">
-                          {selectedClass.room || 'R. Kelas'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 text-xs">
-                      <span className="text-slate-500 font-medium">Target Siswa:</span>
-                      <span className="font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs">
-                        Kelas {selectedClass.className}
-                      </span>
-                      {selectedClass.totalHours > 1 && (
-                        <span className="text-[11px] font-bold text-[var(--ui-primary)] ml-auto">
-                          Durasi: {selectedClass.totalHours} JP
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Button: Direct to Jurnal Harian */}
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('jurnal_harian')}
-                    className="w-full py-2.5 px-4 bg-[var(--ui-primary)] hover:opacity-95 active:scale-[0.98] text-white font-extrabold text-xs rounded-[var(--ui-radius-control)] shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all touch-manipulation select-none"
-                  >
-                    <FileText size={15} strokeWidth={2.5} />
-                    <span>Isi Jurnal & Absen Kelas {selectedClass.className}</span>
-                    <ChevronRight size={14} strokeWidth={2.5} className="ml-auto" />
-                  </button>
-                </div>
-              );
-            })()}
-          </div>
+          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM */}
+          <TeachingScheduleCard
+            todayClasses={todayClasses}
+            selectedClass={selectedClass}
+            selectedTodayClassIdx={selectedTodayClassIdx}
+            setSelectedTodayClassIdx={setSelectedTodayClassIdx}
+            setActiveTab={setActiveTab}
+          />
 
           {/* 2. PINTASAN CEPAT (DYNAMIC SHORTCUTS) */}
           <div className="flex flex-col gap-2 text-left">
@@ -1380,11 +1422,6 @@ export default function DashboardPage({
     return defaultRows;
   })();
 
-  const filteredRows = activeDataTab ==="semua" ? summaryRows
-    : activeDataTab ==="selesai" ? summaryRows.filter(r => r.statusLabel ==="Selesai")
-    : activeDataTab ==="proses" ? summaryRows.filter(r => r.statusLabel ==="In Progress")
-    : summaryRows.filter(r => r.statusLabel ==="Belum Ada");
-
   // Define role-specific cards to ensure different content per role
   const allStatCards = {
     kelas: { label:"Total Kelas", value: classes.length, icon:"/icons/008-warehouse.svg", color:"bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab:"kelas" },
@@ -1465,38 +1502,103 @@ export default function DashboardPage({
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (ADMIN/MANAGEMENT) (< sm) ======= */}
         <div className="sm:hidden flex flex-col gap-3 text-left mb-2">
 
-          {/* 1. STATUS PEMANTAAN / HERO CARD */}
-          <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 shadow-xs border border-slate-200/80 bg-white rounded-[var(--ui-radius-card)]">
-            <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span>Sistem Terpantau Aktif</span>
+          {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
+          {!isWaka && (
+            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 shadow-xs border border-slate-200/80 bg-white rounded-[var(--ui-radius-card)]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span>Sistem Terpantau Aktif</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 border border-slate-200">
+                  {activeRole}
+                </span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 border border-slate-200">
-                {activeRole}
-              </span>
-            </div>
 
-            <div className="flex flex-col gap-0.5">
-              <h2 className="text-base font-extrabold text-slate-800 tracking-tight leading-snug">
-                {dashboardMode.label || "Kurikulum & KBM Sekolah"}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
-              </p>
-            </div>
+              <div className="flex flex-col gap-0.5">
+                <h2 className="text-base font-extrabold text-slate-800 tracking-tight leading-snug">
+                  {dashboardMode.label || "Kurikulum & KBM Sekolah"}
+                </h2>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
+                </p>
+              </div>
 
-            <div className="flex items-center gap-2 pt-0.5">
-              <button
-                type="button"
-                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
-                className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
-              >
-                <CheckCircle2 size={14} strokeWidth={2.5} />
-                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
-              </button>
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
+                  className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
+                >
+                  <CheckCircle2 size={14} strokeWidth={2.5} />
+                  <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* PENGUMUMAN SEKOLAH (Ringkas & Nyaman) */}
+          {(!dashboardMessages || dashboardMessages.length === 0) ? (
+            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-50/90 border border-slate-200/70 text-slate-500 text-xs shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <Megaphone size={13} className="text-slate-400 shrink-0" strokeWidth={2.2} />
+                <span className="text-[11px] font-semibold text-slate-500 truncate">Tidak ada pengumuman baru hari ini</span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">Info Sekolah</span>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 text-left">
+              <div className="flex items-center justify-between px-0.5">
+                <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-1.5">
+                  <Megaphone size={14} className="text-rose-500 shrink-0" strokeWidth={2.4} />
+                  <span>Pengumuman Sekolah</span>
+                </h3>
+                <button 
+                  type="button"
+                  onClick={handleLihatSemuaPengumuman}
+                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
+                >
+                  Lihat Semua
+                </button>
+              </div>
+
+              {dashboardMessages.slice(0, 2).map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  role="button"
+                  tabIndex="0"
+                  onClick={() => setActiveAnnouncementDetail(msg)}
+                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                  className="bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                    <Megaphone size={16} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{msg.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
+          {isWaka && (
+            <TeachingScheduleCard
+              todayClasses={todayClasses}
+              selectedClass={selectedClass}
+              selectedTodayClassIdx={selectedTodayClassIdx}
+              setSelectedTodayClassIdx={setSelectedTodayClassIdx}
+              setActiveTab={setActiveTab}
+            />
+          )}
 
           {/* 2. PINTASAN CEPAT (8 DYNAMIC PASTEL SVG ICON CARDS - TAILORED PER ROLE) */}
           <div className="flex flex-col gap-2 text-left">
@@ -1553,43 +1655,46 @@ export default function DashboardPage({
                   } else if (activeDivision === 'kesiswaan') {
                     dynamicShortcuts = [
                       { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
                       { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
                       { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
                       { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
                       { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Siswa Keluar", icon: "/icons/045-account.svg", tab: "siswa_keluar" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                     ];
                   } else if (activeDivision === 'hubin') {
                     dynamicShortcuts = [
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
                       { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", tab: "pkl_data_perusahaan" },
                       { label: "Penugasan", icon: "/icons/066-education.svg", tab: "pkl_penugasan" },
                       { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
                       { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
                       { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
-                      { label: "GPS PKL", icon: "/icons/016-map pin.svg", tab: "pkl_absensi_setting" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                     ];
                   } else if (activeDivision === 'sarpras') {
                     dynamicShortcuts = [
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
                       { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
                       { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
                       { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
                       { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                       { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" }
+                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
                     ];
                   } else if (activeDivision === 'humas') {
                     dynamicShortcuts = [
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                       { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
                       { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                       { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
+                      { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                       { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" }
                     ];
                   }
                 } else if (activeRole === 'karyawan') {
@@ -1692,58 +1797,7 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* 4. PENGUMUMAN SEKOLAH (REAL MESSAGES) */}
-          <div className="flex flex-col gap-2 text-left">
-            <div className="flex items-center justify-between px-0.5">
-              <h3 className="text-sm font-black text-slate-800 tracking-tight">Pengumuman Sekolah</h3>
-              {dashboardMessages && dashboardMessages.length > 0 && (
-                <button 
-                  type="button"
-                  onClick={handleLihatSemuaPengumuman}
-                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Lihat Semua
-                </button>
-              )}
-            </div>
 
-            {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                  <Megaphone size={18} strokeWidth={2.2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-black text-slate-700">Belum ada pengumuman hari ini</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Pengumuman dan informasi resmi sekolah akan tampil di sini.</p>
-                </div>
-              </div>
-            ) : (
-              dashboardMessages.slice(0, 2).map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  role="button"
-                  tabIndex="0"
-                  onClick={() => setActiveAnnouncementDetail(msg)}
-                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10"
-                >
-                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                    <Megaphone size={18} strokeWidth={2.2} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
-                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
-                    </div>
-                    <h4 className="text-xs font-black text-slate-800 truncate">{msg.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
 
         </div>
 
@@ -1843,6 +1897,20 @@ export default function DashboardPage({
           setActiveTab={setActiveTab}
         />
 
+        {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
+        {isWaka && (
+          <div className="pt-2 border-t border-slate-100/80">
+            <TeachingScheduleCard
+              todayClasses={todayClasses}
+              selectedClass={selectedClass}
+              selectedTodayClassIdx={selectedTodayClassIdx}
+              setSelectedTodayClassIdx={setSelectedTodayClassIdx}
+              setActiveTab={setActiveTab}
+              isDesktop={true}
+            />
+          </div>
+        )}
+
         {/* ======= QUICK SHORTCUTS ======= */}
         <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
           <div className="flex items-center gap-2 ml-0.5">
@@ -1905,39 +1973,43 @@ export default function DashboardPage({
                 ];
                 if (activeDivision === 'kesiswaan') return [
                   { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
+                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
                   { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
                   { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
                   { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
                   { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
                   { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
-                  { label:"Siswa Keluar", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa_keluar" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'hubin') return [
+                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
                   { label:"Siswa PKL", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"pkl_data_siswa" },
                   { label:"Mitra DUDI", icon:"/icons/008-warehouse.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_data_perusahaan" },
                   { label:"Penugasan", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"pkl_penugasan" },
                   { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"pkl_jurnal" },
                   { label:"Administrasi", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_administrasi" },
                   { label:"Laporan PKL", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"pkl_laporan" },
-                  { label:"GPS PKL", icon:"/icons/016-map pin.svg", color:"bg-indigo-50 text-indigo-600", tab:"pkl_absensi_setting" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'sarpras') return [
+                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
                   { label:"Data Ruangan", icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-600", tab:"ruangan" },
                   { label:"Denah Sekolah", icon:"/icons/008-warehouse.svg", color:"bg-emerald-50 text-emerald-600", tab:"denah" },
                   { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
                   { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
                   { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"generate" },
                   { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"walas_report" },
-                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'humas') return [
+                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
                   { label:"Pesan Dashboard", icon:"/icons/087-chat.svg", color:"bg-amber-50 text-amber-600", tab:"pesan" },
                   { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-emerald-50 text-emerald-600", tab:"tampilan" },
                   { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
                   { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"modul_ajar" },
+                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
+                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"walas_report" },
+                  { label:"Silabus", icon:"/icons/092-file.svg", color:"bg-rose-50 text-rose-600", tab:"silabus" },
                 ];
               }
               if (activeRole === 'karyawan') return [
@@ -1983,8 +2055,8 @@ export default function DashboardPage({
         <div className="flex-1 min-w-0">
           <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
-        {/* Log Aktivitas & Login (Lebih Kecil & Kanan) */}
-        {(isSuperAdmin || isKepsek || isWaka) && (
+        {/* Log Aktivitas & Login (Hanya Kepala Sekolah & Admin) */}
+        {(isSuperAdmin || isKepsek) && (
           <div className="w-full xl:w-[420px] shrink-0">
             <LiveUserActivityLog onNavigateTab={setActiveTab} />
           </div>
@@ -2002,7 +2074,7 @@ export default function DashboardPage({
           <span className="text-[9px] font-bold text-slate-400">Ringkasan Real-time</span>
         </div>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
           {topCards.map((card, idx) => {
             const cardThemes = [
               { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/60' },
@@ -2017,9 +2089,9 @@ export default function DashboardPage({
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white px-3 py-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-xs hover:border-slate-300 transition-all duration-200 group cursor-pointer text-left w-full relative overflow-hidden"
+                className="bg-white p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-sm active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
               >
-                <div className="flex items-center justify-between w-full mb-1.5">
+                <div className="flex items-center justify-between w-full gap-1 mb-2">
                   <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
                     {typeof card.icon === 'string' ? (
                       <img src={card.icon} className="w-4 h-4 object-contain" alt="" />
@@ -2027,25 +2099,20 @@ export default function DashboardPage({
                       <card.icon size={14} strokeWidth={2.2} />
                     )}
                   </div>
-                  <div className="w-5 h-5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-100">
-                    <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
-                  </div>
+                  {card.sub && (
+                    <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border truncate max-w-[105px] ${theme.badge}`}>
+                      {card.sub}
+                    </span>
+                  )}
                 </div>
 
                 <div className="min-w-0 w-full flex flex-col">
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
                     {card.value}
                   </h3>
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider truncate">
-                      {card.label}
-                    </p>
-                    {card.sub && (
-                      <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border ${theme.badge}`}>
-                        {card.sub}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                    {card.label}
+                  </p>
                 </div>
               </button>
             );
@@ -2058,210 +2125,140 @@ export default function DashboardPage({
       <div className="w-full flex flex-col gap-3">
         
         {/* Full-width Ringkasan & Grafik Card */}
-        <div className="w-full flex flex-col gap-3">
-          <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3 flex flex-col flex-1 min-h-[300px]">
-            
-            {/* Header Bar: Tabs Navigation & Export Action */}
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
-                <button
-                  type="button"
-                  onClick={() => setActiveMiddleTab('ringkasan')}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
-                    activeMiddleTab === 'ringkasan'
-                      ? 'bg-white text-slate-800 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                  }`}
-                >
-                  <img src="/icons/046-report.svg" alt="Ringkasan" className="w-3.5 h-3.5 opacity-85" />
-                  <span>Ringkasan System</span>
-                </button>
+        <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex flex-col">
+          
+          {/* Header Bar: Tabs Navigation */}
+          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-slate-100">
+            <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
+              <button
+                type="button"
+                onClick={() => setActiveMiddleTab('ringkasan')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
+                  activeMiddleTab === 'ringkasan'
+                    ? 'bg-white text-slate-800 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
+                <img src="/icons/046-report.svg" alt="Ringkasan" className="w-3.5 h-3.5 opacity-85" />
+                <span>Ringkasan Sistem</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveMiddleTab('statistik')}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
-                    activeMiddleTab === 'statistik'
-                      ? 'bg-white text-slate-800 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                  }`}
-                >
-                  <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-3.5 h-3.5 opacity-85" />
-                  <span>Statistik & Visualisasi</span>
-                </button>
-              </div>
-
-              {activeMiddleTab === 'ringkasan' && (
-                <button className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95">
-                  <Printer size={13} className="text-slate-500" /> 
-                  <span>Export</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setActiveMiddleTab('statistik')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
+                  activeMiddleTab === 'statistik'
+                    ? 'bg-white text-slate-800 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
+                <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-3.5 h-3.5 opacity-85" />
+                <span>Statistik & Visualisasi</span>
+              </button>
             </div>
 
-            {/* TAB CONTENT: Ringkasan Sistem Sekolah */}
-            {activeMiddleTab === 'ringkasan' && (
-              <div className="flex flex-col flex-1 animate-in fade-in duration-200">
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
-                  {[
-                    { id:"semua", label:"Semua", count: summaryRows.length },
-                    { id:"selesai", label:"Selesai", count: summaryRows.filter(r => r.statusLabel ==="Selesai").length },
-                    { id:"proses", label:"Proses", count: summaryRows.filter(r => r.statusLabel ==="In Progress").length },
-                    { id:"kosong", label:"Kosong", count: summaryRows.filter(r => r.statusLabel ==="Belum Ada").length },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() =>{ setActiveDataTab(tab.id); setSummaryPage(0); }}
-                      className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                        activeDataTab === tab.id
-                          ? "bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs font-extrabold"
-                          : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-800"
-                      }`}
-                    >
-                      <span>{tab.label}</span>
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] leading-none ${
-                        activeDataTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
-                      }`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              <span className="hidden min-[420px]:inline">{summaryRows.length} Modul Terpantau</span>
+            </div>
+          </div>
 
-                {/* Compact List View */}
-                <div className="flex flex-col gap-1.5 overflow-y-auto pr-1 pb-2 flex-1 min-h-[180px]">
-                  {filteredRows.slice(summaryPage * 5, (summaryPage + 1) * 5).map((row, i) => (
-                    <div key={i} className="flex items-center gap-2.5 p-2 rounded-[var(--ui-radius-small)] hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200/70 transition-all group cursor-default bg-white">
-                      {/* Icon Box */}
-                      <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
-                        <row.icon size={14} strokeWidth={2.2} />
-                      </div>
-                      
-                      {/* Title & Detail */}
-                      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-800 text-[11px] truncate">{row.label}</span>
-                          <span className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{row.note}</span>
-                        </div>
-
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xs font-black text-slate-900 leading-none">{row.count.split(" ")[0]}</span>
-                          <span className="text-[9px] font-bold text-slate-500">{row.count.split(" ")[1] ||""}</span>
-                        </div>
-
-                        <div className="hidden sm:flex flex-col gap-1 w-full max-w-[120px]">
-                           <div className="flex justify-between items-center">
-                              <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
-                              <span className="text-[9px] font-black text-slate-700">{row.progress}%</span>
-                           </div>
-                           <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{ width: `${row.progress}%`, background: row.progress === 100 ? "#10b981" : row.progress > 0 ? "var(--ui-primary)" : "#cbd5e1" }}
-                              />
-                           </div>
-                        </div>
-                      </div>
-
-                      {/* Status Badge */}
-                      <div className="shrink-0 w-[70px] text-right flex flex-col items-end gap-1">
-                        <span className={`inline-flex items-center justify-center min-w-[66px] gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9px] font-black uppercase tracking-wider border ${
+          {/* TAB CONTENT: Ringkasan Sistem Sekolah */}
+          {activeMiddleTab === 'ringkasan' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in duration-200">
+              {summaryRows.map((row, i) => (
+                <div 
+                  key={i} 
+                  className="p-2 sm:p-2.5 rounded-[var(--ui-radius-small)] bg-slate-50/60 hover:bg-slate-50 border border-slate-100/90 hover:border-slate-200/80 transition-all flex flex-col gap-1.5"
+                >
+                  <div className="flex items-center gap-2.5">
+                    {/* Icon Box */}
+                    <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
+                      <row.icon size={13} strokeWidth={2.2} />
+                    </div>
+                    
+                    {/* Title & Count */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-extrabold text-slate-800 text-[11px] truncate">{row.label}</span>
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[8.5px] font-black uppercase tracking-wider border shrink-0 ${
                           row.statusLabel === 'Selesai' 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70' 
                             : row.statusLabel === 'In Progress' 
-                            ? 'bg-amber-50 text-amber-700 border-amber-200/80'
-                            : 'bg-slate-50 text-slate-500 border-slate-200/80'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200/70' 
+                            : 'bg-slate-100 text-slate-600 border-slate-200/70'
                         }`}>
                           {row.statusLabel}
                         </span>
-                        <span className="text-[9px] font-medium text-slate-400 block md:hidden lg:hidden">{row.count}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-medium mt-0.5">
+                        <span className="truncate">{row.note}</span>
+                        <span className="font-bold text-slate-600 shrink-0 ml-1">{row.count}</span>
                       </div>
                     </div>
-                  ))}
-                  {filteredRows.length === 0 && (
-                    <div className="py-10 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
-                      <img src="/icons/046-report.svg" alt="Empty" className="w-9 h-9 opacity-30 mb-2" />
-                      <p className="text-xs font-bold text-slate-500">Tidak ada data untuk kategori ini</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Pagination Controls */}
-                {filteredRows.length > 5 && (
-                  <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400">Menampilkan {summaryPage * 5 + 1}-{Math.min((summaryPage + 1) * 5, filteredRows.length)} dari {filteredRows.length}</span>
-                    <div className="flex items-center gap-1.5">
-                      <Button variant="outline" 
-                        disabled={summaryPage === 0} 
-                        onClick={() => setSummaryPage(p => p - 1)}
-                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-xs"
-                      >Sebelumnya</Button>
-                      <Button variant="outline" 
-                        disabled={summaryPage >= Math.ceil(filteredRows.length / 5) - 1} 
-                        onClick={() => setSummaryPage(p => p + 1)}
-                        className="px-2 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-600 text-[10px] font-bold hover:bg-slate-100 disabled:opacity-40 transition-all cursor-pointer shadow-xs"
-                      >Berikutnya</Button>
-                    </div>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* TAB CONTENT: Grafik Statistik Pembelajaran & Fasilitas */}
-            {activeMiddleTab === 'statistik' && (
-              <div className="flex-1 flex flex-col animate-in fade-in duration-200">
-                <p className="text-xs text-slate-500 font-medium mb-3">Analisis beban kerja guru dan pemanfaatan ruang kelas</p>
-                <div className="flex-1">
-                  <Suspense fallback={<DashboardChartsFallback />}>
-                    <DashboardCharts
-                      subjectComposition={subjectComposition || []}
-                      subjectCount={subjects.length}
-                      roomCapacityData={roomCapacityData || []}
-                      roomUsagePercent={roomUsagePercent}
-                      usedRoomCount={usedRooms.size}
-                      roomCount={rooms.length}
-                      teachers={teachers}
-                      classes={classes}
-                      schedule={schedule}
-                      teachingLoads={teachingLoads}
+                  {/* Micro Progress Bar */}
+                  <div className="w-full h-1 bg-slate-200/60 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${row.progress}%`, 
+                        background: row.progress === 100 ? "#10b981" : row.progress > 0 ? "var(--ui-primary)" : "#cbd5e1" 
+                      }}
                     />
-                  </Suspense>
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+          )}
 
-          </div>
-
-          {/* Rekomendasi Aksi System */}
-          {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
-            <div className="bg-amber-50/80 border border-amber-200/80 shadow-xs rounded-[var(--ui-radius-card)] px-3 py-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <div className="shrink-0 w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
-                <AlertTriangle size={14} strokeWidth={2.2} />
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <h3 className="text-[10px] font-black text-amber-950 tracking-tight uppercase shrink-0">Rekomendasi Aksi:</h3>
-                <ul className="text-[10px] text-amber-900 font-medium flex flex-wrap gap-x-4 gap-y-1">
-                  {summaryRows.filter(r => r.statusLabel === "Belum Ada").slice(0, 1).map((r, i) => (
-                     <li key={i} className="flex items-center gap-1.5">
-                       <span className="w-1 h-1 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Lengkapi <strong className="font-extrabold text-amber-950">{r.label}</strong></span>
-                     </li>
-                  ))}
-                  {summaryRows.filter(r => r.statusLabel === "In Progress").slice(0, 1).map((r, i) => (
-                     <li key={`p-${i}`} className="flex items-center gap-1.5">
-                       <span className="w-1 h-1 rounded-full bg-amber-600 shrink-0"></span>
-                       <span>Lanjutkan <strong className="font-extrabold text-amber-950">{r.label}</strong> (<span className="px-1 py-0.5 rounded bg-amber-200/80 font-black text-amber-950">{r.progress}%</span>)</span>
-                     </li>
-                  ))}
-                </ul>
+          {/* TAB CONTENT: Grafik Statistik Pembelajaran & Fasilitas */}
+          {activeMiddleTab === 'statistik' && (
+            <div className="flex-1 flex flex-col animate-in fade-in duration-200">
+              <p className="text-[11px] text-slate-500 font-medium mb-3">Analisis beban kerja guru dan pemanfaatan ruang kelas</p>
+              <div className="flex-1">
+                <Suspense fallback={<DashboardChartsFallback />}>
+                  <DashboardCharts
+                    subjectComposition={subjectComposition || []}
+                    subjectCount={subjects.length}
+                    roomCapacityData={roomCapacityData || []}
+                    roomUsagePercent={roomUsagePercent}
+                    usedRoomCount={usedRooms.size}
+                    roomCount={rooms.length}
+                    teachers={teachers}
+                    classes={classes}
+                    schedule={schedule}
+                    teachingLoads={teachingLoads}
+                  />
+                </Suspense>
               </div>
             </div>
           )}
+
         </div>
 
-
-
+        {/* Rekomendasi Aksi System */}
+        {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
+          <div className="bg-amber-50/80 border border-amber-200/70 shadow-xs rounded-[var(--ui-radius-card)] px-3 py-2 flex items-center gap-2.5">
+            <div className="shrink-0 w-6 h-6 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+              <AlertTriangle size={13} strokeWidth={2.2} />
+            </div>
+            <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-[10px] font-black text-amber-950 uppercase tracking-tight">Rekomendasi:</span>
+              {summaryRows.filter(r => r.statusLabel === "Belum Ada").slice(0, 1).map((r, i) => (
+                <span key={i} className="text-[10px] text-amber-900 font-medium flex items-center gap-1">
+                  Lengkapi <strong className="font-bold text-amber-950">{r.label}</strong>
+                </span>
+              ))}
+              {summaryRows.filter(r => r.statusLabel === "In Progress").slice(0, 1).map((r, i) => (
+                <span key={`p-${i}`} className="text-[10px] text-amber-900 font-medium flex items-center gap-1">
+                  Lanjutkan <strong className="font-bold text-amber-950">{r.label}</strong> ({r.progress}%)
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
 

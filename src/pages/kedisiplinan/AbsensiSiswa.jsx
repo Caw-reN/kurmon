@@ -22,7 +22,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     if (onExternalSearchChange) onExternalSearchChange(val);
   };
   const [filterKelas, setFilterKelas] = useState(() => {
-    if (user?.role === "guru" && user?.isWalas && user?.walasClass) {
+    if ((user?.role === "guru" || user?.role === "walas" || user?.role === "walikelas") && (user?.isWalas || user?.walasClass) && user?.walasClass) {
       return user.walasClass;
     }
     return "all";

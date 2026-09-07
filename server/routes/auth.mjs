@@ -121,18 +121,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         const dbTeacherMap = new Map();
         for (const r of dbTeachers.rows) {
           const pl = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
-          if (pl && pl.password) {
-            dbTeacherMap.set(String(pl.code).toLowerCase().trim(), pl.password);
+          if (pl) {
+            dbTeacherMap.set(String(pl.code).toLowerCase().trim(), pl);
           }
         }
 
         mergedPayload.teachers = nextTeachers.map((t) => {
           const codeKey = String(t.code || "").toLowerCase().trim();
-          const dbPassword = dbTeacherMap.get(codeKey);
+          const dbPl = dbTeacherMap.get(codeKey);
           const old = (existingPayload.teachers || []).find((ot) => ot.code === t.code);
           return {
             ...t,
-            password: t.password || dbPassword || old?.password
+            password: t.password || dbPl?.password || old?.password,
+            hasChangedPassword: t.hasChangedPassword ?? dbPl?.hasChangedPassword ?? old?.hasChangedPassword ?? false
           };
         });
       }
@@ -142,18 +143,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         const dbStaffMap = new Map();
         for (const r of dbStaffs.rows) {
           const pl = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
-          if (pl && pl.password) {
-            dbStaffMap.set(String(pl.id).toLowerCase().trim(), pl.password);
+          if (pl) {
+            dbStaffMap.set(String(pl.id || pl.code || pl.staff_code).toLowerCase().trim(), pl);
           }
         }
 
         mergedPayload.staffs = nextStaffs.map((s) => {
-          const idKey = String(s.id || "").toLowerCase().trim();
-          const dbPassword = dbStaffMap.get(idKey);
+          const idKey = String(s.id || s.code || s.staff_code || "").toLowerCase().trim();
+          const dbPl = dbStaffMap.get(idKey);
           const old = (existingPayload.staffs || []).find((os) => os.id === s.id);
           return {
             ...s,
-            password: s.password || dbPassword || old?.password
+            password: s.password || dbPl?.password || old?.password,
+            hasChangedPassword: s.hasChangedPassword ?? dbPl?.hasChangedPassword ?? old?.hasChangedPassword ?? false
           };
         });
       }
@@ -278,8 +280,23 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
             sendTelegramAlert('adminLogin', `Admin (${username}) login dari IP: ${req.socket?.remoteAddress || 'Unknown'}`, 'info').catch(()=>{});
           }).catch(()=>{});
-          const hasChangedPassword = payload.adminUser?.hasChangedPassword === true;
-          const isDefaultPassword = !hasChangedPassword;
+          let hasChangedPassword = payload.adminUser?.hasChangedPassword === true;
+          let isDefaultPassword = !hasChangedPassword;
+          if (!hasChangedPassword && payload.adminUser?.password) {
+            const isDefault = (
+              await verifyPassword("admin", payload.adminUser.password) ||
+              await verifyPassword("admin123", payload.adminUser.password) ||
+              await verifyPassword("123456", payload.adminUser.password)
+            );
+            if (!isDefault) {
+              hasChangedPassword = true;
+              isDefaultPassword = false;
+              try {
+                payload.adminUser.hasChangedPassword = true;
+                await dbPool.query(`INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data`, [JSON.stringify(payload)]);
+              } catch (e) {}
+            }
+          }
           send(req, res, 200, { ok: true, user: { role: "admin", name: payload.adminUser.name, isDefaultPassword, hasChangedPassword, authToken: createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name }) } });
           return true;
         }
@@ -338,8 +355,38 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [userCode, role, req.socket?.remoteAddress || '']); } catch {}
         await logAudit(dbPool, { id: userCode, name: teacher.name || "Pengguna", role }, req, "LOGIN", "session", `${isStaffAccount ? "Karyawan/Staff" : "Guru"} (${teacher.name}) berhasil masuk ke sistem`);
         
-        const hasChangedPassword = teacher.hasChangedPassword === true;
-        const isDefaultPassword = !hasChangedPassword;
+        let hasChangedPassword = teacher.hasChangedPassword === true;
+        let isDefaultPassword = !hasChangedPassword;
+        if (!hasChangedPassword && teacher.password) {
+          const isDefault = (
+            await verifyPassword(userCode, teacher.password) ||
+            await verifyPassword("123", teacher.password) ||
+            await verifyPassword("123456", teacher.password) ||
+            await verifyPassword("guru", teacher.password) ||
+            await verifyPassword("guru123", teacher.password)
+          );
+          if (!isDefault) {
+            hasChangedPassword = true;
+            isDefaultPassword = false;
+            try {
+              if (isStaffAccount) {
+                await dbPool.query(`
+                  UPDATE mst_staffs 
+                  SET payload = jsonb_set(payload::jsonb, '{hasChangedPassword}', 'true'::jsonb)
+                  WHERE payload->>'code' = $1 OR payload->>'staff_code' = $1 OR payload->>'nip' = $1 OR id = $1
+                `, [userCode]);
+              } else {
+                await dbPool.query(`
+                  UPDATE mst_teachers 
+                  SET payload = jsonb_set(payload::jsonb, '{hasChangedPassword}', 'true'::jsonb)
+                  WHERE payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
+                `, [userCode]);
+              }
+            } catch (e) {
+              console.warn("Failed to persist hasChangedPassword:", e.message);
+            }
+          }
+        }
         
         send(req, res, 200, {
           ok: true,
@@ -388,8 +435,22 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             const token = createSession(role, { id: dbUser.id, username: dbUser.username, name: dbUser.name });
             try { await dbPool.query("INSERT INTO login_logs (username, role, ip) VALUES ($1, $2, $3)", [dbUser.username, role, req.socket?.remoteAddress || '']); } catch {}
             await logAudit(dbPool, { id: dbUser.username, name: dbUser.name || "Siswa", role }, req, "LOGIN", "session", `Siswa/User (${dbUser.name}) berhasil masuk ke sistem`);
-            const hasChangedPassword = dbUser.has_changed_password === true || dbUser.hasChangedPassword === true;
-            const isDefaultPassword = !hasChangedPassword;
+            let hasChangedPassword = dbUser.has_changed_password === true || dbUser.hasChangedPassword === true;
+            let isDefaultPassword = !hasChangedPassword;
+            if (!hasChangedPassword && dbUser.password) {
+              const isDefault = (
+                await verifyPassword(dbUser.username, dbUser.password) ||
+                await verifyPassword("123", dbUser.password) ||
+                await verifyPassword("123456", dbUser.password)
+              );
+              if (!isDefault) {
+                hasChangedPassword = true;
+                isDefaultPassword = false;
+                try {
+                  await dbPool.query(`UPDATE users SET has_changed_password = true WHERE id = $1`, [dbUser.id]);
+                } catch (e) {}
+              }
+            }
             send(req, res, 200, { ok: true, user: { role, id: dbUser.id, name: dbUser.name, username: dbUser.username, isDefaultPassword, hasChangedPassword, authToken: token } });
             return true;
           }
@@ -431,11 +492,29 @@ export async function handleAuthRoutes(req, res, url, ctx) {
                        send(req, res, 403, { ok: false, error: "Akun Anda telah dinonaktifkan oleh Administrator." });
                        return true;
                      }
-                     const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
-                     const hasChangedPassword = student.hasChangedPassword === true;
-                     const isDefaultPassword = !hasChangedPassword;
-                     send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, jurusan: student.jurusan || student.major || "", isDefaultPassword, hasChangedPassword, authToken: token } });
-                     return true;
+                      const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
+                      let hasChangedPassword = student.hasChangedPassword === true;
+                      let isDefaultPassword = !hasChangedPassword;
+                      if (!hasChangedPassword && student.password) {
+                        const isDefault = (
+                          await verifyPassword(String(student.nis), student.password) ||
+                          await verifyPassword("123", student.password) ||
+                          await verifyPassword("123456", student.password)
+                        );
+                        if (!isDefault) {
+                          hasChangedPassword = true;
+                          isDefaultPassword = false;
+                          try {
+                            await dbPool.query(`
+                              UPDATE mst_students 
+                              SET payload = jsonb_set(payload::jsonb, '{hasChangedPassword}', 'true'::jsonb)
+                              WHERE payload->>'nis' = $1 OR id = $1
+                            `, [String(student.nis)]);
+                          } catch (e) {}
+                        }
+                      }
+                      send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, jurusan: student.jurusan || student.major || "", isDefaultPassword, hasChangedPassword, authToken: token } });
+                      return true;
                   }
               } else {
                  send(req, res, 401, { ok: false, error: `Akses ditolak. Login saat ini hanya untuk siswa kelas ${eligibleClass} (PKL).` });

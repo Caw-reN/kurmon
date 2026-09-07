@@ -31,14 +31,35 @@ export async function autoLinkHikvisionStudents(dbPool) {
         const className = matched.kelas || matched.class_name || h.class_name;
 
         if (h.nis !== fullNis || h.class_name !== className) {
-          await dbPool.query(
-            "UPDATE hikvision_students SET nis = $1, class_name = $2 WHERE id = $3",
-            [fullNis, className, h.id]
+          const existing = await dbPool.query(
+            "SELECT id FROM hikvision_students WHERE LOWER(nis) = LOWER($1) AND id != $2",
+            [fullNis, h.id]
           );
-          await dbPool.query(
-            "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
-            [fullNis, h.nis]
-          );
+          if (existing.rows.length > 0) {
+            // Transfer log reference to full canonical NIS and delete orphan duplicate record
+            await dbPool.query(
+              "DELETE FROM hikvision_logs l1 USING hikvision_logs l2 WHERE l1.employee_id = $2 AND l2.employee_id = $1 AND l1.device_id = l2.device_id AND l1.timestamp = l2.timestamp",
+              [fullNis, h.nis]
+            );
+            await dbPool.query(
+              "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
+              [fullNis, h.nis]
+            );
+            await dbPool.query("DELETE FROM hikvision_students WHERE id = $1", [h.id]);
+          } else {
+            await dbPool.query(
+              "UPDATE hikvision_students SET nis = $1, class_name = $2 WHERE id = $3",
+              [fullNis, className, h.id]
+            );
+            await dbPool.query(
+              "DELETE FROM hikvision_logs l1 USING hikvision_logs l2 WHERE l1.employee_id = $2 AND l2.employee_id = $1 AND l1.device_id = l2.device_id AND l1.timestamp = l2.timestamp",
+              [fullNis, h.nis]
+            );
+            await dbPool.query(
+              "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
+              [fullNis, h.nis]
+            );
+          }
         }
       }
     }
@@ -89,14 +110,26 @@ export async function autoLinkHikvisionTeachersAndStaffs(dbPool) {
         const className = matched.role === 'waka' || matched.role === 'kepsek' || matched.role === 'guru' ? 'guru' : 'karyawan';
 
         if (h.nis !== fullNis || h.class_name !== className) {
-          await dbPool.query(
-            "UPDATE hikvision_students SET nis = $1, class_name = $2 WHERE id = $3",
-            [fullNis, className, h.id]
+          const existing = await dbPool.query(
+            "SELECT id FROM hikvision_students WHERE LOWER(nis) = LOWER($1) AND id != $2",
+            [fullNis, h.id]
           );
-          await dbPool.query(
-            "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
-            [fullNis, h.nis]
-          );
+          if (existing.rows.length > 0) {
+            await dbPool.query(
+              "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
+              [fullNis, h.nis]
+            );
+            await dbPool.query("DELETE FROM hikvision_students WHERE id = $1", [h.id]);
+          } else {
+            await dbPool.query(
+              "UPDATE hikvision_students SET nis = $1, class_name = $2 WHERE id = $3",
+              [fullNis, className, h.id]
+            );
+            await dbPool.query(
+              "UPDATE hikvision_logs SET employee_id = $1 WHERE employee_id = $2",
+              [fullNis, h.nis]
+            );
+          }
         }
       }
     }
@@ -194,7 +227,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               CASE
                 WHEN msf.id IS NOT NULL THEN 'karyawan'
                 WHEN mst.id IS NOT NULL THEN 'guru'
-                WHEN l.employee_id ~* '^k' THEN 'karyawan'
+                WHEN l.employee_id ~* '^k[0-9]+' THEN 'karyawan'
                 WHEN (l.employee_id ~* '^[0-9]{1,3}$' AND ms.id IS NULL) THEN 'guru'
                 WHEN ms.id IS NOT NULL OR (hs.id IS NOT NULL AND hs.class_name NOT IN ('guru','karyawan','staff')) THEN 'siswa'
                 WHEN d.device_type IN ('karyawan','staff') THEN 'karyawan'

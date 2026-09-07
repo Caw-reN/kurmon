@@ -120,7 +120,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       if (!map[nisStr]) {
         map[nisStr] = 0;
       }
-      const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+      const j = r.jenis?.toLowerCase();
+      const isPrestasi = j === 'prestasi' || j === 'penghargaan';
       map[nisStr] += (r.poin || 0) * (isPrestasi ? -1 : 1);
     });
     return map;
@@ -209,7 +210,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           kasus_count: 0
         };
       }
-      const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+      const j = r.jenis?.toLowerCase();
+      const isPrestasi = j === 'prestasi' || j === 'penghargaan';
       map[nisStr].total_poin += (r.poin || 0) * (isPrestasi ? -1 : 1);
       map[nisStr].kasus_count += 1;
     });
@@ -243,7 +245,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       const student = students.find(s => String(s.nis) === String(r.siswa_nis));
       const className = student ? (student.class_name || student.kelas) : null;
       if (className && map[className]) {
-        const isPrestasi = r.jenis?.toLowerCase() === 'prestasi';
+        const j = r.jenis?.toLowerCase();
+        const isPrestasi = j === 'prestasi' || j === 'penghargaan';
         map[className].poin += (r.poin || 0) * (isPrestasi ? -1 : 1);
       }
     });

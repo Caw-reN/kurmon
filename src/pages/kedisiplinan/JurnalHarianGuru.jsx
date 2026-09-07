@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from'react';
-import { BookOpen } from'lucide-react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { BookOpen } from 'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
 import ExcelJS from 'exceljs';
@@ -926,6 +926,9 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  // BUG-03 FIX: Track mounted state agar setState tidak dipanggil saat modal sudah ditutup
+  const mountedRef = useRef(true);
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
 
   // Late Calculation for Form Modal
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -938,10 +941,12 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   }, [form.tanggal, todayStr, isFillingPastDate]);
   const existingStatusInfo = useMemo(() => getJurnalSubmissionStatus(form.tanggal, jurnal?.submitted_at), [form.tanggal, jurnal?.submitted_at]);
 
-  // Fetch Live Attendance from /api/kedisiplinan/absensi-kelas
+  // BUG-04 FIX: Stabilize dependency — gunakan jurnal?.id + jurnal?.rincian_absensi?.length
+  // (bukan seluruh array object) agar callback tidak berubah referensi setiap render
+  const jurnalHasRincian = !!jurnal?.id && (jurnal?.rincian_absensi?.length || 0) > 0;
   const fetchLiveAttendance = useCallback(async (forceRefresh = false) => {
     if (!className) return;
-    if (!forceRefresh && jurnal?.rincian_absensi && Array.isArray(jurnal.rincian_absensi) && jurnal.rincian_absensi.length > 0) {
+    if (!forceRefresh && jurnalHasRincian) {
       setIsLoadingAttendance(false);
       return;
     }
@@ -986,7 +991,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
       setForm(f => ({ ...f, jumlah_hadir: hCount, rincian_absensi: mapped }));
     }
     setIsLoadingAttendance(false);
-  }, [className, form.tanggal, authToken, localClassStudents, studentAttendance, jurnal?.rincian_absensi]);
+  }, [className, form.tanggal, authToken, localClassStudents, studentAttendance, jurnalHasRincian]);
 
   useEffect(() => {
     fetchLiveAttendance();
@@ -1004,12 +1009,17 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   // Total Hadir di kelas mencakup Siswa Hadir Tepat Waktu + Siswa Terlambat
   const totalCalculatedHadir = hadirCount + telatCount;
 
-  // Auto synchronize jumlah_hadir if 0 or when live attendance updates
+  // BUG-05 FIX: Hapus form.jumlah_hadir dari dependency array untuk cegah infinite render.
+  // Gunakan functional update dan cek nilai terbaru di dalam effect dengan ref.
+  const jumlahHadirRef = useRef(form.jumlah_hadir);
+  useEffect(() => { jumlahHadirRef.current = form.jumlah_hadir; }, [form.jumlah_hadir]);
+
   useEffect(() => {
-    if (totalCalculatedHadir > 0 && form.jumlah_hadir === 0) {
+    if (totalCalculatedHadir > 0 && jumlahHadirRef.current === 0) {
       setForm(f => ({ ...f, jumlah_hadir: totalCalculatedHadir }));
     }
-  }, [totalCalculatedHadir, form.jumlah_hadir]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalCalculatedHadir]);
 
   // Filtered Students for Roll Call
   const filteredRollCallStudents = useMemo(() => {
@@ -1149,13 +1159,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
     }
     setSaving(true);
     const result = await onSave(form);
+    // BUG-03 FIX: Cek mountedRef sebelum update state — modal mungkin sudah ditutup oleh parent
+    if (!mountedRef.current) return;
     if (result?.error) {
       setErrorMsg(result.error);
     } else {
       logJournalEntry(form.mapel, form.kelas, form.jam_ke, form.materi_pokok);
-      if (!jurnal?.id) {
-        localStorage.removeItem(`draft_jurnal_${user?.code || 'guest'}`);
-      }
+      // BUG-08 FIX: Hapus draft setelah save sukses (baik insert maupun edit)
+      localStorage.removeItem(`draft_jurnal_${user?.code || 'guest'}`);
     }
     setSaving(false);
   };
@@ -1618,6 +1629,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
   const getAbsentStudentsForClass = useCallback((className, date) => {
     return studentAttendance.filter(item => {
+      // BUG-07 FIX: Guard null/undefined tanggal sebelum memanggil .startsWith()
+      if (!item.tanggal) return false;
       const isSameDate = item.tanggal === date || item.tanggal.startsWith(date);
       if (!isSameDate) return false;
       const student = students.find(s => String(s.nis) === String(item.siswa_nis) || s.code === item.siswa_nis);
@@ -1651,7 +1664,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
   // Ambil jadwal guru hari ini dari schedule prop (data lokal) dan gabungkan Mapel Blok
   const todayScheduleSlots = useMemo(() => {
-    const today = new Date(filterDate);
+    // BUG-09 FIX: Append T00:00:00 agar parsing local time bukan UTC midnight
+    const today = new Date(filterDate + 'T00:00:00');
     const dayName = HARI_ID[today.getDay()];
     if (!schedule || !Array.isArray(schedule)) return [];
 
@@ -2087,7 +2101,11 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   };
 
   const handleDelete = async (id) => {
-    if (!await window.confirmAsync('Hapus jurnal ini?')) return;
+    // BUG-11 FIX: Tambah fallback ke window.confirm() jika confirmAsync tidak tersedia
+    const confirmFn = typeof window.confirmAsync === 'function'
+      ? window.confirmAsync
+      : (msg) => Promise.resolve(window.confirm(msg));
+    if (!await confirmFn('Hapus jurnal ini?')) return;
     try {
       await fetch('/api/jurnal/harian', {
         method:'POST',
@@ -2309,7 +2327,10 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                   <BookOpen size={14} className="text-[var(--ui-primary)]" />
                   Jadwal Mengajar Hari Ini
                 </h3>
-                <span className="text-[11px] font-semibold text-slate-500">{HARI_ID[new Date(filterDate).getDay()]}</span>
+                <span className="text-[11px] font-semibold text-slate-500">
+                {/* BUG-09 FIX: Append 'T00:00:00' untuk parsing local time, bukan UTC midnight */}
+                {HARI_ID[new Date(filterDate + 'T00:00:00').getDay()]}
+              </span>
               </div>
               <div className="divide-y divide-slate-100">
                 {paginatedEnrichedSlots.map((slot, idx) => {
@@ -2562,7 +2583,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
                 Tidak ada jadwal mengajar untuk hari{' '}
                 <span className="font-black text-slate-700">
-                  {new Date(filterDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+                  {/* BUG-09 FIX: Parsing local time agar nama hari tidak mundur 1 hari di WIB */}
+                  {new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
                 . Selamat beristirahat!
               </p>

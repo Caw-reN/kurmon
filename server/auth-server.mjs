@@ -1123,6 +1123,26 @@ const initDb = async () => {
       await dbPool.query("ALTER TABLE jurnal_harian_guru ADD COLUMN IF NOT EXISTS rincian_absensi JSONB DEFAULT '[]'::jsonb");
     } catch (_) {}
 
+    // Tabel Audit Log Aktivitas Pengguna
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(100),
+        user_name VARCHAR(150),
+        user_role VARCHAR(50),
+        action VARCHAR(50) NOT NULL,
+        detail TEXT,
+        target_type VARCHAR(50),
+        target_id VARCHAR(200),
+        ip_address VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    try {
+      await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_date ON audit_logs (user_id, created_at DESC)`);
+      await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs (action, created_at DESC)`);
+    } catch (_) {}
+
     // Catatan Wali Kelas
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS catatan_walikelas (
@@ -1446,11 +1466,17 @@ const getBearerToken = (req) => {
 
 const getSession = (req) => sessions.get(getBearerToken(req));
 const normalizeServerRole = (role, defaultRole = "guru") => {
-  if (role === "superadmin" || role === "admin") return "admin";
-  if (role === "kepsek" || role === "waka" || role === "kaprog" || role === "guru" || role === "tu" || role === "tata_usaha" || role === "karyawan" || role === "staff") return (role === "tata_usaha" ? "tu" : (role === "staff" ? "karyawan" : role));
-  if (role === "hubin" || role === "sarpras" || role === "kurikulum" || role === "bk") return role;
-  if (role === "siswa") return "siswa";
-  if (role === "walas") return "walas";
+  if (!role) return defaultRole;
+  const normalized = String(role).toLowerCase().trim();
+  if (normalized === "superadmin" || normalized === "super_admin" || normalized === "admin") return "admin";
+  if (normalized === "kepsek" || normalized === "waka" || normalized === "kaprog" || normalized === "guru" || normalized === "tu" || normalized === "tata_usaha" || normalized === "karyawan" || normalized === "staff") {
+    return (normalized === "tata_usaha" ? "tu" : (normalized === "staff" ? "karyawan" : normalized));
+  }
+  if (normalized === "hubin" || normalized === "sarpras" || normalized === "kurikulum" || normalized === "bk") return normalized;
+  if (normalized.startsWith("waka_")) return "waka";
+  if (normalized === "siswa") return "siswa";
+  if (normalized === "walas" || normalized === "walikelas") return "walas";
+  if (normalized === "sekretaris_tu" || normalized === "bendahara") return "tu";
   return defaultRole;
 };
 const isAdminRole = (role) => normalizeServerRole(role) === "admin";
@@ -2682,10 +2708,10 @@ const server = createServer(async (req, res) => {
               ) as student_name,
 
               COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
@@ -2698,10 +2724,10 @@ const server = createServer(async (req, res) => {
                 NULL
               ) as true_name,
               COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
+                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
+                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
@@ -2729,8 +2755,9 @@ const server = createServer(async (req, res) => {
 
               l.employee_id as username,
               CASE 
-                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id) OR l.employee_id ~* '^k' THEN 'karyawan'
-                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
+                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
+                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) THEN 'karyawan'
+                WHEN l.employee_id ~* '^k[0-9]+' THEN 'karyawan'
                 WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))) THEN 'siswa'
                 WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id) THEN 'siswa'
                 WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
@@ -3053,6 +3080,104 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/backup")) {
         const handled = await handleBackupRoutes(req, res, url, ctx);
         if (handled !== false) return;
+    }
+
+    // === API: AUDIT LOGS (UNIFIED) ===
+    if (url.pathname.startsWith("/api/audit-logs")) {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+
+      const normalizedRole = normalizeServerRole(session.role);
+      const isUserAdmin = ["admin", "superadmin"].includes(normalizedRole);
+      const isLeadership = ["kepsek", "waka", "tu", "bk"].includes(normalizedRole);
+      let isAllowedToRead = isUserAdmin || isLeadership;
+      if (!isAllowedToRead) {
+        try {
+          const payload = await readMainPayload();
+          const roleKey = session.role === "waka" ? `waka_${session.division || "kurikulum"}` : session.role;
+          const perms = payload?.rolePermissions?.[roleKey];
+          if (perms) {
+            if (Array.isArray(perms)) {
+              isAllowedToRead = perms.includes("audit_log");
+            } else {
+              const level = perms["audit_log"];
+              isAllowedToRead = level && level !== "none" && level !== "nonaktif";
+            }
+          }
+        } catch (e) { console.error("Error checking role permissions for audit_log:", e); }
+      }
+
+      if (req.method === "GET") {
+        if (!isAllowedToRead) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+        try {
+          const page = parseInt(url.searchParams?.get("page") || "1", 10);
+          const limit = Math.min(parseInt(url.searchParams?.get("limit") || "50", 10), 500);
+          const offset = (page - 1) * limit;
+          const filterUser = url.searchParams.get('user_id') || '';
+          const filterAction = url.searchParams.get('action') || '';
+
+          let query = "SELECT * FROM audit_logs WHERE user_role != 'system'";
+          let countQuery = "SELECT COUNT(*) FROM audit_logs WHERE user_role != 'system'";
+          const params = [];
+
+          if (!isUserAdmin) {
+            query += " AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
+            countQuery += " AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
+          }
+          if (filterUser) {
+            params.push(filterUser);
+            query += ` AND user_id = $${params.length}`;
+            countQuery += ` AND user_id = $${params.length}`;
+          }
+          if (filterAction) {
+            params.push(filterAction.toUpperCase());
+            query += ` AND action = $${params.length}`;
+            countQuery += ` AND action = $${params.length}`;
+          }
+
+          query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+          const [rowsRes, countRes] = await Promise.all([
+            dbPool.query(query, [...params, limit, offset]),
+            dbPool.query(countQuery, params)
+          ]);
+
+          const total = parseInt(countRes.rows[0]?.count || 0, 10);
+          send(req, res, 200, { ok: true, data: rowsRes.rows, total, page, limit });
+        } catch (err) {
+          sendDatabaseError(req, res, err);
+        }
+        return;
+      }
+
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req);
+          if (body.action === "clear") {
+            if (!isUserAdmin) return send(req, res, 403, { ok: false, error: "Hanya admin yang dapat mengosongkan log audit." });
+            await dbPool.query("DELETE FROM audit_logs");
+            send(req, res, 200, { ok: true, message: "Log audit berhasil dikosongkan." });
+            return;
+          }
+
+          const action = String(body.action || 'ACTIVITY').toUpperCase().slice(0, 50);
+          const detail = String(body.detail || '').slice(0, 1000);
+          if (!detail) { send(req, res, 200, { ok: true }); return; }
+          const targetType = String(body.targetType || 'APP').slice(0, 50);
+          const targetId = String(body.targetId || '').slice(0, 200);
+          const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || '';
+          await dbPool.query(
+            `INSERT INTO audit_logs (user_id, user_name, user_role, action, detail, target_type, target_id, ip_address)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [session?.id || session?.code || '', session?.name || '', session?.role || '', action, detail, targetType, targetId, ip]
+          );
+          send(req, res, 200, { ok: true });
+        } catch (err) {
+          console.error('Audit log error:', err.message);
+          send(req, res, 200, { ok: true }); // Non-blocking: jangan gagalkan client
+        }
+        return;
+      }
     }
 
     // === API: PROFIL SEKOLAH ===
@@ -3508,198 +3633,6 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // === API: RESTORE BACKUP ===
-    if (req.method === "POST" && url.pathname === "/api/restore-backup") {
-      const session = requireAuthenticated(req, res);
-      if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
-        send(req, res, 403, { ok: false, error: "Akses ditolak" });
-        return;
-      }
-      try {
-        let bodyStr = "";
-        for await (const chunk of req) bodyStr += chunk;
-        const backupData = JSON.parse(bodyStr);
-
-        const client = await dbPool.connect();
-        try {
-          await client.query("BEGIN");
-          await client.query("SET session_replication_role = 'replica';"); // Disable triggers (FK constraints)
-
-          const tables = Object.keys(backupData);
-          for (const table of tables) {
-            await client.query(`TRUNCATE TABLE ${table} CASCADE`);
-          }
-
-          for (const table of tables) {
-            const rows = backupData[table];
-            if (rows.length === 0) continue;
-            
-            const columns = Object.keys(rows[0]);
-            const colString = columns.join(', ');
-            
-            for (let i = 0; i < rows.length; i++) {
-               const row = rows[i];
-               const values = columns.map(c => row[c] === undefined ? null : row[c]);
-               const placeholders = columns.map((_, idx) => `${idx + 1}`).join(', ');
-               await client.query(`INSERT INTO ${table} (${colString}) VALUES (${placeholders})`, values);
-            }
-          }
-
-          await client.query("SET session_replication_role = 'origin';");
-          await client.query("COMMIT");
-          
-          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-            [session.id, session.name, session.role, 'RESTORE_BACKUP', 'database', `Database berhasil dipulihkan dari file JSON.`]);
-          
-          send(req, res, 200, { ok: true });
-        } catch (dbErr) {
-          await client.query("ROLLBACK");
-          await client.query("SET session_replication_role = 'origin';");
-          throw dbErr;
-        } finally {
-          client.release();
-        }
-      } catch (err) {
-        console.error("Restore Error:", err);
-        send(req, res, 500, { ok: false, error: err.message });
-      }
-      return;
-    }
-
-    // === API: ARCHIVE DATA ===
-    if (req.method === "POST" && url.pathname === "/api/archive-data") {
-      const session = requireAuthenticated(req, res);
-      if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
-        send(req, res, 403, { ok: false, error: "Akses ditolak" });
-        return;
-      }
-
-      try {
-        const body = await readJsonBody(req);
-        const { dateBefore } = body;
-        if (!dateBefore) {
-          send(req, res, 400, { ok: false, error: "Parameter dateBefore wajib ada." });
-          return;
-        }
-
-        const dateBeforeObj = new Date(dateBefore);
-        if (isNaN(dateBeforeObj.getTime())) {
-          send(req, res, 400, { ok: false, error: "Format tanggal tidak valid." });
-          return;
-        }
-
-        const dateBeforeStr = dateBeforeObj.toISOString();
-
-        // Check if Telegram or R2 is available
-        const { rows: keys } = await dbPool.query("SELECT * FROM api_keys WHERE service_name IN ('telegram_backup', 'cloudflare_r2') AND is_active = true");
-        if (keys.length === 0) {
-          send(req, res, 400, { ok: false, error: "Tidak ada integrasi Cloud (Telegram/R2) yang aktif. Arsip dibatalkan demi keamanan data." });
-          return;
-        }
-
-        // Fetch data to be archived
-        const archiveData = {};
-        const getArchiveData = async (table) => {
-           try {
-             const result = await dbPool.query(`SELECT * FROM ${table} WHERE created_at < $1`, [dateBeforeStr]);
-             archiveData[table] = result.rows;
-           } catch(e) { archiveData[table] = []; } // table might not exist or no created_at
-        };
-
-        await getArchiveData('audit_logs');
-        await getArchiveData('whatsapp_logs');
-        await getArchiveData('hikvision_attendance_logs');
-
-        // Check if there is data
-        const totalRows = archiveData.audit_logs.length + archiveData.whatsapp_logs.length + archiveData.hikvision_attendance_logs.length;
-        if (totalRows === 0) {
-           send(req, res, 200, { ok: true, message: "Tidak ada data lama yang perlu diarsipkan sebelum " + dateBeforeStr.split('T')[0] });
-           return;
-        }
-
-        const archiveJsonStr = JSON.stringify(archiveData, null, 2);
-        const fileName = `Archive_Kurmon_${dateBeforeStr.split('T')[0]}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-        let uploaded = false;
-        
-        // Try R2 first, if not try Telegram
-        const r2Key = keys.find(k => k.service_name === 'cloudflare_r2');
-        if (r2Key) {
-           try {
-             const credentials = JSON.parse(r2Key.api_key);
-             const s3 = new S3Client({
-                region: "auto",
-                endpoint: r2Key.extra_config.endpoint,
-                credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
-             });
-             await s3.send(new PutObjectCommand({
-                Bucket: r2Key.extra_config.bucket,
-                Key: "archives/" + fileName,
-                Body: archiveJsonStr,
-                ContentType: "application/json",
-             }));
-             uploaded = true;
-           } catch(e) {
-             console.error("Archive R2 error:", e);
-           }
-        }
-
-        if (!uploaded) {
-          const telegramKey = keys.find(k => k.service_name === 'telegram_backup');
-          if (telegramKey) {
-             const botToken = telegramKey.api_key;
-             const chatId = telegramKey.extra_config.chat_id;
-             const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
-             
-             const compressedBuffer = zlib.gzipSync(archiveJsonStr);
-             const captionText = `📦 *Arsip Pembersihan Database*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Pembersihan data berhasil diarsipkan._`;
-             
-             const multipartHeader = Buffer.from(
-               `--${boundary}\r\n` +
-               `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
-               `--${boundary}\r\n` +
-               `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
-               `--${boundary}\r\n` +
-               `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
-               `--${boundary}\r\n` +
-               `Content-Disposition: form-data; name="document"; filename="${fileName}.gz"\r\n` +
-               `Content-Type: application/gzip\r\n\r\n`,
-               'utf-8'
-             );
-             const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
-             const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
-
-             const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-               method: 'POST',
-               headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-               body: finalBody
-             });
-             const telegramData = await telegramRes.json();
-             if (telegramData.ok) uploaded = true;
-          }
-        }
-
-        if (!uploaded) {
-           send(req, res, 500, { ok: false, error: "Gagal mengunggah arsip ke Cloud (Telegram/R2). Pembersihan data dibatalkan." });
-           return;
-        }
-
-        // Delete the data
-        try { await dbPool.query("DELETE FROM audit_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
-        try { await dbPool.query("DELETE FROM whatsapp_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
-        try { await dbPool.query("DELETE FROM hikvision_attendance_logs WHERE created_at < $1", [dateBeforeStr]); } catch(e){}
-
-        await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-          [session.id, session.name, session.role, 'ARCHIVE_AND_PURGE', 'system', `Arsip ${totalRows} data lama sukses diunggah. Data telah dihapus dari database.`]);
-
-        send(req, res, 200, { ok: true, message: `Berhasil mengarsipkan dan membersihkan ${totalRows} baris data lama.` });
-      } catch (err) {
-        console.error("Archive Data Error:", err);
-        send(req, res, 500, { ok: false, error: err.message });
-      }
-      return;
-    }
 
     // === API: CLOUDFLARE R2 MANUAL BACKUP ===
     if (req.method === "POST" && url.pathname === "/api/backup-r2") {
@@ -3896,66 +3829,6 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // === API: AUDIT LOGS ===
-    if (url.pathname.startsWith("/api/audit-logs")) {
-      const session = requireAuthenticated(req, res);
-      if (!session) return;
-      
-      const normalizedRole = normalizeServerRole(session.role);
-      const isUserAdmin = ["admin", "superadmin"].includes(normalizedRole);
-      const isLeadership = ["kepsek", "waka", "tu", "bk"].includes(normalizedRole);
-      let isAllowedToRead = isUserAdmin || isLeadership;
-      if (!isAllowedToRead) {
-        try {
-          const payload = await readMainPayload();
-          const roleKey = session.role === "waka" ? `waka_${session.division || "kurikulum"}` : session.role;
-          const perms = payload?.rolePermissions?.[roleKey];
-          if (perms) {
-            if (Array.isArray(perms)) {
-              isAllowedToRead = perms.includes("audit_log");
-            } else {
-              const level = perms["audit_log"];
-              isAllowedToRead = level && level !== "none" && level !== "nonaktif";
-            }
-          }
-        } catch (e) { console.error("Error checking role permissions for audit_log:", e); }
-      }
-
-      if (req.method === "GET") {
-        if (!isAllowedToRead) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
-        try {
-          const page = parseInt(url.searchParams?.get("page") || "1");
-          const limit = parseInt(url.searchParams?.get("limit") || "50");
-          const offset = (page - 1) * limit;
-          
-          let query = "SELECT * FROM audit_logs WHERE user_role != 'system' ORDER BY created_at DESC LIMIT $1 OFFSET $2";
-          let countQuery = "SELECT COUNT(*) FROM audit_logs WHERE user_role != 'system'";
-          let params = [limit, offset];
-          let countParams = [];
-
-          if (!isUserAdmin) {
-            query = "SELECT * FROM audit_logs WHERE user_role != 'system' AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN') ORDER BY created_at DESC LIMIT $1 OFFSET $2";
-            countQuery = "SELECT COUNT(*) FROM audit_logs WHERE user_role != 'system' AND NOT (user_role IN ('admin', 'superadmin') AND action = 'LOGIN')";
-          }
-
-          const { rows } = await dbPool.query(query, params);
-          const countRes = await dbPool.query(countQuery, countParams);
-          send(req, res, 200, { ok: true, data: rows, total: parseInt(countRes.rows[0].count) });
-        } catch (err) { sendDatabaseError(req, res, err); }
-        return;
-      }
-      if (req.method === "POST") {
-        try {
-          const body = await readJsonBody(req);
-          if (body.action === "clear") {
-            await dbPool.query("DELETE FROM audit_logs");
-            send(req, res, 200, { ok: true });
-            return;
-          }
-        } catch (err) { sendDatabaseError(req, res, err); }
-        return;
-      }
-    }
 
     // === API: KARTU PELAJAR TEMPLATES ===
     if (url.pathname.startsWith("/api/student-cards")) {

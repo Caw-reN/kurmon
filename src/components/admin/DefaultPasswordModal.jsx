@@ -17,10 +17,16 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
     }
   });
 
-  // Whenever currentUser user identity changes (new login session), ensure modal pops up if password is default
+  const userKey = String(currentUser?.code || currentUser?.username || currentUser?.id || '').trim().toLowerCase();
+
+  // Whenever currentUser identity changes, ensure modal state aligns
   useEffect(() => {
     if (currentUser) {
-      const userKey = String(currentUser.code || currentUser.username || currentUser.id || '');
+      const isChanged = typeof localStorage !== 'undefined' && localStorage.getItem(`pwd_changed_${userKey}`) === 'true';
+      if (currentUser.hasChangedPassword === true || currentUser.isDefaultPassword === false || isChanged) {
+        setIsDismissed(true);
+        return;
+      }
       const lastPromptedUser = sessionStorage.getItem('last_prompted_pw_user');
       if (lastPromptedUser !== userKey) {
         sessionStorage.removeItem('skip_default_pw_modal');
@@ -28,10 +34,20 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
         setIsDismissed(false);
       }
     }
-  }, [currentUser?.code, currentUser?.username, currentUser?.id]);
+  }, [userKey, currentUser?.hasChangedPassword, currentUser?.isDefaultPassword]);
 
-  // Only show if user exists AND is using default password AND hasn't dismissed for current session
-  const isDefaultPassword = currentUser && (currentUser.isDefaultPassword === true || currentUser.hasChangedPassword === false);
+  // Check if password has been changed in localStorage for this user
+  const isChangedInStorage = typeof localStorage !== 'undefined' && (
+    localStorage.getItem(`pwd_changed_${userKey}`) === 'true'
+  );
+
+  // Strictly ONLY show if user has default password, has NOT changed password, and has NOT marked changed
+  const isDefaultPassword = Boolean(
+    currentUser &&
+    currentUser.isDefaultPassword === true &&
+    currentUser.hasChangedPassword !== true &&
+    !isChangedInStorage
+  );
 
   if (!isDefaultPassword || isDismissed) return null;
 
@@ -85,6 +101,16 @@ export default function DefaultPasswordModal({ currentUser, setCurrentUser, show
 
       const data = await response.json();
       if (data.ok) {
+        setIsDismissed(true);
+        try {
+          sessionStorage.setItem('skip_default_pw_modal', 'true');
+          if (userKey) {
+            localStorage.setItem(`pwd_changed_${userKey}`, 'true');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
         const updatedUser = {
           ...currentUser,
           isDefaultPassword: false,

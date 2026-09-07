@@ -150,7 +150,12 @@ export default function LandingPage() {
   const filteredRules = useMemo(() => {
     return masterRules.filter(r => {
       const matchSearch = !rulesSearch || r.nama_tindakan?.toLowerCase().includes(rulesSearch.toLowerCase());
-      const matchType = rulesFilterType ==='all' || r.jenis === rulesFilterType;
+      const isPrestasiItem = r.jenis === 'prestasi' || r.jenis === 'penghargaan';
+      const isPelanggaranItem = r.jenis === 'pelanggaran';
+      const matchType = rulesFilterType === 'all' 
+        || (rulesFilterType === 'prestasi' && isPrestasiItem)
+        || (rulesFilterType === 'pelanggaran' && isPelanggaranItem)
+        || r.jenis === rulesFilterType;
       return matchSearch && matchType;
     });
   }, [masterRules, rulesSearch, rulesFilterType]);
@@ -353,7 +358,7 @@ export default function LandingPage() {
                       {/* Mobile Cards List */}
                       <div className="block sm:hidden divide-y divide-slate-100">
                         {filteredRules.map((r) => {
-                          const isPrestasi = r.jenis === 'prestasi';
+                          const isPrestasi = r.jenis === 'prestasi' || r.jenis === 'penghargaan';
                           return (
                             <div key={r.id} className="p-3.5 flex items-start justify-between gap-3 bg-white">
                               <div className="flex-1 min-w-0">
@@ -393,7 +398,7 @@ export default function LandingPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
                           {filteredRules.map((r) => {
-                            const isPrestasi = r.jenis === 'prestasi';
+                            const isPrestasi = r.jenis === 'prestasi' || r.jenis === 'penghargaan';
                             return (
                               <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-5 py-3.5 align-middle break-words text-slate-700 text-[12px]">{r.nama_tindakan}</td>

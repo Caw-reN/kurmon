@@ -100,6 +100,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   // ─── WAKA ───────────────────────────────────────────────────────────────────
   waka_kurikulum: {
+    ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", generate: "otomatis", ketersediaan: "otomatis",
     beban: "otomatis", silabus: "otomatis", akademik: "otomatis", kelas: "otomatis",
     siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
@@ -108,6 +109,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     hikvision_report_guru: "view"
   },
   waka_kesiswaan: {
+    ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensi: "nonaktif", akademik: "view", pesan: "otomatis",
     absensiguru: "otomatis",
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
@@ -116,11 +118,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view"
   },
   waka_sarpras: {
+    ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", kelas: "view",
     siswa: "view", generate: "view", akademik: "view", pesan: "view",
     walas_report: "view", catatan_walikelas: "view"
   },
   waka_hubin: {
+    ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis",
     pkl_data_perusahaan: "otomatis", pkl_penugasan: "otomatis",
     pkl_administrasi: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "otomatis",

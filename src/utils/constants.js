@@ -342,6 +342,9 @@ export const ROLE_KEY_LABELS = {
   walikelas: { label: "Wali Kelas", color: "bg-teal-100 text-teal-800", short: "Walikelas" },
   karyawan: { label: "Karyawan", color: "bg-slate-100 text-slate-700", short: "Karyawan" },
   tu: { label: "Tata Usaha", color: "bg-cyan-100 text-cyan-800", short: "TU" },
+  sekretaris_tu: { label: "Sekretaris TU", color: "bg-teal-100 text-teal-800", short: "Sekr. TU" },
+  bendahara: { label: "Bendahara Sekolah", color: "bg-emerald-100 text-emerald-800", short: "Bendahara" },
+  siswa: { label: "Siswa", color: "bg-blue-100 text-blue-800", short: "Siswa" },
   kepsek: { label: "Kepala Sekolah", color: "bg-indigo-100 text-indigo-800", short: "Kepsek" },
   waka_kurikulum: { label: "Waka Kurikulum", color: "bg-amber-100 text-amber-800", short: "Waka Kurikulum" },
   waka_kesiswaan: { label: "Waka Kesiswaan", color: "bg-orange-100 text-orange-800", short: "Waka Kesiswaan" },
@@ -371,7 +374,7 @@ export const getRoleKeyLabel = (key) => {
 export const normalizeUserRole = (role) => {
   if (!role) return "guru";
   const normalized = String(role).toLowerCase().trim();
-  if (normalized === "superadmin") return "admin";
+  if (normalized === "superadmin" || normalized === "super_admin") return "admin";
   if (normalized === "tata_usaha" || normalized === "tata usaha") return "tu";
   if (normalized === "kepala sekolah") return "kepsek";
   if (normalized === "wakil kepala sekolah") return "waka";

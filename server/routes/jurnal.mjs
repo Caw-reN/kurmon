@@ -66,9 +66,15 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         }
 
         if (filterMonth) {
-          // format: YYYY-MM
-          params.push(filterMonth + '%');
-          query += ` AND j.tanggal::text LIKE $${params.length}`;
+          // BUG-06 FIX: Hanya terapkan filterMonth jika TIDAK ada filterSemester yang aktif
+          // Keduanya tidak boleh diterapkan bersamaan karena akan menghasilkan kondisi tanggal bertentangan
+          const semesterActive = filterSemester === 'ganjil' || filterSemester === '1' ||
+                                  filterSemester === 'genap' || filterSemester === '2';
+          if (!semesterActive && !startDate && !endDate) {
+            // format: YYYY-MM
+            params.push(filterMonth + '%');
+            query += ` AND j.tanggal::text LIKE $${params.length}`;
+          }
         }
         if (filterKelas) {
           params.push(filterKelas);
