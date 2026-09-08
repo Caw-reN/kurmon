@@ -395,7 +395,7 @@ export default function TabAkademik(props) {
       </PageHeader>
 
       {/* ── 2. Unified Control Toolbar (Search, Filter, Actions) ── */}
-      <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+      <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col gap-3">
         
         {/* Top Row: Search Bar & Primary Actions */}
         <div className="flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between">
@@ -622,7 +622,7 @@ export default function TabAkademik(props) {
           lg:col-span-7 xl:col-span-8
           ${mobileTab === 'calendar' ? 'hidden lg:block' : 'block'}
         `}>
-          <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+          <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden flex flex-col">
             
             {/* Unified Box Header with Integrated Category Filter */}
             <div className="p-3 sm:px-4 sm:py-3 bg-slate-50/80 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5">
@@ -794,7 +794,7 @@ export default function TabAkademik(props) {
           ${mobileTab === 'list' ? 'hidden lg:block' : 'block'}
           flex flex-col gap-4 sticky top-4
         `}>
-          <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+          <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col gap-3">
             
             {/* Calendar Navigation Header */}
             <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">

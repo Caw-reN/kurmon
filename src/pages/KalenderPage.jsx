@@ -360,7 +360,7 @@ export default function KalenderPage() {
       </div>
 
       {/* ── 2. FILTER & TOOLBAR SECTION (MENGGUNAKAN CUSTOMSELECT & TOKEN WEB) ── */}
-      <div className="flex flex-col gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 border border-slate-200/80 shadow-xs">
+      <div className="ui-card flex flex-col gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
         
         {/* Row 1: Search Bar & Tombol Panduan */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -624,7 +624,7 @@ export default function KalenderPage() {
 
         {/* ── SIDEBAR CALENDAR WIDGET ── */}
         {(viewMode === 'split' || viewMode === 'calendar') && (
-          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card,20px)] p-5 shadow-sm sticky top-24 select-none">
+          <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card,20px)] p-5 sticky top-24 select-none">
             
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

@@ -854,8 +854,9 @@ export default function App() {
     "--ui-radius-control": appSettings.uiRadius === "lg" ? "16px" : appSettings.uiRadius === "sm" ? "8px" : appSettings.uiRadius === "full" ? "9999px" : "12px",
     "--ui-radius-small": appSettings.uiRadius === "lg" ? "16px" : appSettings.uiRadius === "sm" ? "8px" : appSettings.uiRadius === "full" ? "9999px" : "12px",
     "--ui-card-bg": appSettings.cardStyle === "flat" ? "#f1f5f9" : "var(--ui-surface, #ffffff)",
-    "--ui-card-border": appSettings.cardStyle === "border" ? "1px solid var(--ui-border-soft, #d4dde9)" : "1px solid transparent",
-    "--ui-card-shadow": appSettings.cardStyle === "shadow-sm" ? "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)" : appSettings.cardStyle === "flat" ? "none" : "var(--ui-shadow-card)"
+    "--ui-card-border": appSettings.cardStyle === "border" ? "1px solid var(--ui-border-soft, #e2e8f0)" : "1px solid transparent",
+    "--ui-card-border-color": appSettings.cardStyle === "border" ? "var(--ui-border-soft, #e2e8f0)" : "transparent",
+    "--ui-card-shadow": appSettings.cardStyle === "shadow-sm" ? "0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)" : appSettings.cardStyle === "flat" ? "none" : "var(--ui-shadow-card)"
   };
 
   useEffect(() => {

@@ -57,7 +57,7 @@
     /* Background: sedikit kebiruan agar card putih murni terasa "mengambang" */
     --ui-bg-page: #eef2f7;
     --ui-bg: #eef2f7;
-    --ui-border-soft: #d4dde9;
+    --ui-border-soft: #e2e8f0;
     --ui-border-muted: #e8edf5;
     --ui-surface-muted: #f5f8fb;
     --ui-surface-raised: rgba(255, 255, 255, 0.96);
@@ -282,10 +282,58 @@
 .ui-card,
 .card-panel {
   background-color: var(--ui-card-bg, var(--ui-surface, #ffffff));
-  border: var(--ui-card-border, 1px solid var(--ui-border-soft));
+  border: var(--ui-card-border, 1px solid var(--ui-border-soft, #e2e8f0));
+  border-color: var(--ui-card-border-color, transparent);
   box-shadow: var(--ui-card-shadow, var(--ui-shadow-card));
   border-radius: var(--ui-radius-card, 1.25rem);
   transition: all var(--ui-motion);
+}
+
+/* ==========================================================================
+   GLOBAL CARD STYLE CUSTOMIZATION ENGINE
+   Synchronizes all cards across the system with Admin Kustomisasi Tampilan:
+   - "shadow-sm" (Bayangan Mengambang / Elevated Shadow): NO outline borders, floating shadow
+   - "border" (Garis Batas Halus / Clean Border): Consistent subtle 1px border, regular shadow
+   - "flat" (Warna Datar Padat / Flat Filled): NO borders, NO shadows
+   ========================================================================== */
+
+/* --- 1. ELEVATED SHADOW MODE ("shadow-sm" / Bayangan Mengambang) --- */
+.card-elevated .ui-card,
+.card-elevated .card-panel,
+.card-elevated [data-card="true"],
+.card-elevated .app-shell .ui-card,
+.card-elevated div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+  border-color: transparent !important;
+  box-shadow: var(--ui-card-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)) !important;
+}
+
+/* Inner elements/buttons inside cards in elevated mode: subtle border so they don't look harsh */
+.card-elevated .ui-card .border-\[var\(--ui-border-soft\)\],
+.card-elevated div[class*="rounded-[var(--ui-radius-card)"] .border-\[var\(--ui-border-soft\)\] {
+  border-color: rgba(226, 232, 240, 0.7);
+}
+
+/* --- 2. CLEAN BORDER MODE ("border" / Garis Batas Halus) --- */
+.card-bordered .ui-card,
+.card-bordered .card-panel,
+.card-bordered [data-card="true"],
+.card-bordered .app-shell .ui-card,
+.card-bordered div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: var(--ui-border-soft, #e2e8f0) !important;
+  box-shadow: var(--ui-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.06)) !important;
+}
+
+/* --- 3. FLAT FILLED MODE ("flat" / Warna Datar Padat) --- */
+.card-flat .ui-card,
+.card-flat .card-panel,
+.card-flat [data-card="true"],
+.card-flat .app-shell .ui-card,
+.card-flat div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  background-color: var(--ui-card-bg, #f8fafc) !important;
 }
 
 

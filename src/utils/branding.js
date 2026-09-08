@@ -164,8 +164,8 @@ export const applyDocumentBranding = (settings = {}) => {
 
   // Card Style CSS variables mapping
   let cardBg = 'var(--ui-surface, #ffffff)';
-  let cardBorder = '1px solid var(--ui-border-soft, rgba(0, 0, 0, 0.08))';
-  let cardBorderColor = 'var(--ui-border-soft, rgba(0, 0, 0, 0.08))';
+  let cardBorder = '1px solid var(--ui-border-soft, #e2e8f0)';
+  let cardBorderColor = 'var(--ui-border-soft, #e2e8f0)';
   let cardShadow = 'var(--ui-shadow-card)';
 
   if (settings.cardStyle === 'shadow-sm') {
