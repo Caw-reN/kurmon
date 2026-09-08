@@ -8,7 +8,7 @@ import { clearLegacyLocalStorage } from './utils/dataSource.js';
 import { hashPassword, normalizeAdminUser, normalizeTeachers } from './utils/auth.js';
 import { assessGenerateReadiness } from './utils/scheduleGeneration.js';
 import { DAYS as DATA_DAYS, INITIAL_CLASSES as DATA_INITIAL_CLASSES, INITIAL_ROOMS as DATA_INITIAL_ROOMS, INITIAL_SUBJECTS as DATA_INITIAL_SUBJECTS, INITIAL_TEACHERS as DATA_INITIAL_TEACHERS, INITIAL_TEACHER_AVAILABILITY as DATA_INITIAL_TEACHER_AVAILABILITY, INITIAL_TEACHING_LOADS as DATA_INITIAL_TEACHING_LOADS, MAJORS as DATA_MAJORS, TIME_SLOTS as DATA_TIME_SLOTS } from './data.js';
-import { DEFAULT_SIDEBAR_GROUPS, SIDEBAR_GROUP_BY_TAB, DEFAULT_TABLE_SORTS, ATTENDANCE_MODE_OPTIONS, DASHBOARD_MESSAGE_PRIORITIES, DASHBOARD_MESSAGE_TARGETS, WAKA_DIVISION_OPTIONS, WORKSPACE_GUIDES, normalizeUserRole, isSuperAdminRole, isLeadershipRole, getWakaDivisionOption } from './utils/constants.js';
+import { DEFAULT_SIDEBAR_GROUPS, SIDEBAR_GROUP_BY_TAB, DEFAULT_TABLE_SORTS, ATTENDANCE_MODE_OPTIONS, DASHBOARD_MESSAGE_PRIORITIES, DASHBOARD_MESSAGE_TARGETS, WAKA_DIVISION_OPTIONS, WORKSPACE_GUIDES, normalizeUserRole, isSuperAdminRole, isLeadershipRole, getWakaDivisionOption, ROLE_KEY_LABELS } from './utils/constants.js';
 import { PageHeader } from './components/monitoring/ui/index.js';
 import { buildAttendanceQrPayload, getJakartaDateParts, getAttendanceSessions, getActiveAttendanceSession, getAttendanceStatusFromSession, getTableRowKey, getTableSearchText, compareTableValues, normalizeText, sameText, getClassKey, getRoomKey, getTeacherKey, getSubjectKey, getLoadKey, parseTeacherCodes, parseCsvList, serializeCsvList, isAllLike, csvIncludesText, csvValueMatches, csvValuesIntersect, csvTextHasAny, removeCsvTextValues, parsePositiveInt, reconcileSubjectCatalog, createClientId, formatExcelSerialDate, getCappedClassCount, writeSessionUser } from './utils/adminHelpers.js';
 import { useAdminRenderers } from './components/admin/useAdminRenderers.jsx';
@@ -3911,7 +3911,7 @@ export default function App() {
   const activeUserDivision = activeUserRole === "waka" ? (currentUser?.division || WAKA_DIVISION_OPTIONS[0].value).toLowerCase() : "";
   const baseRoleLabel = isSuperAdminRole(activeUserRole) ? "Admin Utama" : activeUserRole === "kepsek" ? "Kepala Sekolah" : activeUserRole === "waka" ? getWakaDivisionOption(activeUserDivision, appSettings).label : activeUserRole === "karyawan" ? "Karyawan" : activeUserRole === "tu" ? "Tata Usaha" : "Guru";
   const walasSuffix = (currentUser?.isWalas || currentUser?.walasClass) ? ` • Walas ${currentUser?.walasClass || ''}`.trimEnd() : '';
-  const subroleSuffix = (currentUser?.subrole && !['walikelas', 'guru'].includes(currentUser?.subrole.toLowerCase())) ? ` • ${ROLE_KEY_LABELS[currentUser.subrole]?.short || currentUser.subrole}` : '';
+  const subroleSuffix = (currentUser?.subrole && !['walikelas', 'guru'].includes(currentUser?.subrole.toLowerCase())) ? ` • ${ROLE_KEY_LABELS?.[currentUser.subrole]?.short || currentUser.subrole}` : '';
   const activeRoleLabel = `${baseRoleLabel}${subroleSuffix}${walasSuffix}`;
   const workspaceGuide = isLeadershipRole(currentUser?.role) ? WORKSPACE_GUIDES[activeTab] : null;
 
