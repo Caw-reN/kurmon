@@ -237,6 +237,7 @@ function TeachingScheduleCard({
 
 export default function DashboardPage({
   currentUser,
+  isGenerated: _isGenerated,
   classes: _classes,
   teachers: _teachers,
   subjects: _subjects,
@@ -256,6 +257,7 @@ export default function DashboardPage({
   const subjects = _subjects || [];
   const rooms = _rooms || [];
   const schedule = _schedule || [];
+  const isGenerated = Boolean(_isGenerated || (schedule && schedule.length > 0));
   const teachingLoads = _teachingLoads || [];
   const subjectComposition = _subjectComposition || [];
   const today = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }), []);
@@ -1394,6 +1396,9 @@ export default function DashboardPage({
   // ===================== ADMIN / KEPSEK / WAKA VIEW =====================
   // Summary data for table
   const summaryRows = (() => {
+    const hasSchedule = Boolean(isGenerated || scheduleSlots > 0);
+    const scheduleProgress = hasSchedule ? 100 : 0;
+
     const defaultRows = [
     {
       icon: School, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-indigo-500",
@@ -1419,12 +1424,12 @@ export default function DashboardPage({
     {
       icon: Calendar, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-[var(--ui-primary)]",
       label:"Jadwal Pelajaran", date: todayShort, count: `${scheduleSlots} Slot`,
-      note:"Total slot jadwal aktif",
-      progress: scheduleSlots > 0 ? Math.min(Math.round((scheduleSlots / Math.max(teachingLoads.length * classes.length, 1)) * 100), 100) : 5,
+      note: hasSchedule ? "Total slot jadwal aktif terisi" : "Jadwal belum disusun",
+      progress: scheduleProgress,
       type:"jadwal",
-      statusLabel: scheduleSlots > 0 ?"In Progress" :"Belum Ada",
-      statusCls: scheduleSlots > 0 ?"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: scheduleSlots > 0 ?"bg-indigo-500" :"bg-slate-300" },
+      statusLabel: hasSchedule ? "Selesai" : "Belum Ada",
+      statusCls: hasSchedule ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+      statusDot: hasSchedule ? "bg-emerald-500" : "bg-slate-300" },
     {
       icon: DoorOpen, iconBg:"bg-amber-50", iconColor:"text-amber-500",
       label:"Data Ruangan", date: todayShort, count: `${rooms.length} Ruang`,
@@ -1436,9 +1441,9 @@ export default function DashboardPage({
       icon: CheckCircle2, iconBg:"bg-teal-50", iconColor:"text-teal-500",
       label:"Rekap Kehadiran", date: todayShort, count:"Pemantauan Aktif",
       note:"Absensi harian (Kesiswaan)", progress: 100, type:"absensi",
-      statusLabel:"In Progress",
-      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100",
-      statusDot:"bg-indigo-500" },
+      statusLabel:"Selesai",
+      statusCls:"bg-emerald-50 text-emerald-600 border-emerald-100",
+      statusDot:"bg-emerald-500" },
     {
       icon: Users, iconBg:"bg-sky-50", iconColor:"text-sky-500",
       label:"Data Siswa PKL", date: todayShort, count: `0 Siswa`,
@@ -1448,11 +1453,11 @@ export default function DashboardPage({
       statusDot:"bg-emerald-500" },
     {
       icon: BookOpen, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-indigo-500",
-      label:"Jurnal Harian", date: todayShort, count: `0 Catatan`,
-      note:"Laporan kegiatan PKL siswa", progress: 65, type:"pkl_jurnal",
-      statusLabel:"In Progress",
-      statusCls:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border-indigo-100",
-      statusDot:"bg-indigo-500" },
+      label:"Jurnal Harian PKL", date: todayShort, count: `Tersedia`,
+      note:"Laporan kegiatan PKL siswa", progress: 100, type:"pkl_jurnal",
+      statusLabel:"Selesai",
+      statusCls:"bg-emerald-50 text-emerald-600 border-emerald-100",
+      statusDot:"bg-emerald-500" },
   ];
     if (isTU) return defaultRows.filter(r => ['absensi','kelas','guru','pkl_siswa'].includes(r.type));
     if (isKepsek) return defaultRows;
