@@ -367,6 +367,18 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         console.warn("Hikvision students mapping warning:", e.message);
       }
 
+      // Suffix matching lookup for machine IDs that might be 8 digits instead of 9 digits (e.g. missing leading '2')
+      const resolveEmpToNis = (rawEmp) => {
+        if (employeeToNisMap[rawEmp]) return employeeToNisMap[rawEmp];
+        for (const [sNis, canonNis] of siswaByNis.entries()) {
+          if (sNis.length >= 5 && rawEmp.length >= 5 && (sNis.endsWith(rawEmp) || rawEmp.endsWith(sNis))) {
+            employeeToNisMap[rawEmp] = canonNis; // Cache for next logs
+            return canonNis;
+          }
+        }
+        return null;
+      };
+
       // 3. Ambil data absensi manual (sakit/izin/alpa/terlambat/dispen)
       const { rows: absensiManual } = await dbPool.query(
         `SELECT siswa_nis, status, keterangan FROM kedisiplinan_absensi 
@@ -390,7 +402,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       const studentLogs = {};
       logsOnDate.forEach(l => {
         const rawEmp = String(l.employee_id || '').trim().toLowerCase();
-        const nis = employeeToNisMap[rawEmp];
+        const nis = resolveEmpToNis(rawEmp);
         if (nis) {
           const timePart = l.time_str.substring(11, 19); // "HH:MM:SS"
           if (!studentLogs[nis]) studentLogs[nis] = [];

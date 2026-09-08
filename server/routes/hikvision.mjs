@@ -278,16 +278,22 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         const devicesRows = devicesResult.rows;
 
-        // Check device online status IN PARALLEL (don't block main response)
-        Promise.all(devicesRows.map(async (dev) => {
+        // Check device online status IN PARALLEL with reasonable timeout
+        await Promise.all(devicesRows.map(async (dev) => {
+          dev.is_online = false;
+          if (global._deviceOnlineStatus && global._deviceOnlineStatus[dev.ip_address] !== undefined) {
+            dev.is_online = global._deviceOnlineStatus[dev.ip_address];
+          }
           try {
-            const r = await fetch(`http://${dev.ip_address}`, { signal: AbortSignal.timeout(2000) });
+            const r = await fetch(`http://${dev.ip_address}`, { signal: AbortSignal.timeout(1000) });
             dev.is_online = r.status < 500 || r.status === 401 || r.status === 403;
           } catch (e) {
-            const errCode = e.cause?.code || e.code || '';
-            dev.is_online = errCode.includes('CERT') || errCode === 'ECONNRESET' || errCode === 'DEPTH_ZERO_SELF_SIGNED_CERT';
+            const errCode = String(e?.cause?.code || e?.code || '');
+            dev.is_online = errCode.includes('CERT') || errCode === 'DEPTH_ZERO_SELF_SIGNED_CERT';
           }
-        })).then(() => { global._hikvDashCache.data.devices = devicesRows; }).catch(() => {});
+          global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+          global._deviceOnlineStatus[dev.ip_address] = Boolean(dev.is_online);
+        }));
 
         const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
         const siswaMasukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
@@ -609,10 +615,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const logs = await api.searchEvents(startTime, endTime);
             
             if (logs && logs.length > 0) {
-              const validLogs = logs.filter(l => l.employeeNoString && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
+              const validLogs = logs.filter(l => (l.employeeNoString || l.employeeNo) && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
               const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
-                const empStr = String(l.employeeNoString || '').trim().toLowerCase();
+                const empRaw = String(l.employeeNoString || l.employeeNo || '').trim();
+                const empStr = empRaw.toLowerCase();
                 let personType = 'siswa';
                 if (nipToCode[empStr]) {
                   personType = 'guru';
@@ -624,7 +631,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   personType = 'karyawan';
                 }
                 const tsStr = (l.time || '').replace('T', ' ').substring(0, 19);
-                await dbPool.query(query, [device.id, l.employeeNoString, tsStr, `${l.major}-${l.minor}`, personType]);
+                await dbPool.query(query, [device.id, empRaw, tsStr, `${l.major}-${l.minor}`, personType]);
                 logsSynced++;
               }
             }
@@ -760,6 +767,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             ON CONFLICT (siswa_nis, tanggal) DO NOTHING
           `;
           await dbPool.query(insertQuery, params);
+        }
+
+        // Invalidate dashboard cache and update device online status cache
+        global._hikvDashCache = null;
+        global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+        for (const r of syncResults) {
+          const isFail = String(r.status).toLowerCase().includes('error') || String(r.status).toLowerCase().includes('gagal');
+          global._deviceOnlineStatus[r.ip] = !isFail;
+        }
+
+        // Send Telegram alert if any machine failed to connect
+        const failedDevs = syncResults.filter(r => String(r.status).toLowerCase().includes('error') || String(r.status).toLowerCase().includes('gagal'));
+        if (failedDevs.length > 0) {
+          import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+            const listStr = failedDevs.map(d => `• *${d.ip}* (${d.type}): ${String(d.status).replace(/^Error:\s*/i, '')}`).join('\n');
+            const alertText = `Sinkronisasi mendeteksi *${failedDevs.length} dari ${devices.length}* mesin absensi tidak dapat dihubungi:\n\n` +
+              `${listStr}\n\n` +
+              `_Kemungkinan penyebab:_ Server beda segmen LAN, kabel LAN terlepas, IP mesin berubah, atau mesin mati.`;
+            sendTelegramAlert('deviceOffline', alertText, failedDevs.length === devices.length ? 'critical' : 'warning').catch(e => console.error("Telegram alert error:", e));
+          }).catch(() => {});
         }
 
         send(req, res, 200, {
@@ -1988,7 +2015,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             SELECT id, siswa_nis, tanggal, status, keterangan, gdrive_url, approval_status
             FROM kedisiplinan_absensi 
             WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
-            AND (approval_status = 'approved' OR approval_status IS NULL OR approval_status = 'pending')
+            AND (approval_status = 'approved' OR approval_status = 'otomatis' OR approval_status IS NULL OR approval_status = 'pending')
           `, [month, year]);
 
           sAbsRes.rows.forEach(rec => {

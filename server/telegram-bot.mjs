@@ -28,6 +28,7 @@ let _alertConfig = {
   restoreDatabase: true,
   apiKeyAdded: true,
   attendance: true,
+  deviceOffline: true,
 };
 let _dbPool = null;
 let _isRunning = false;
@@ -319,7 +320,8 @@ export async function sendTelegramAlert(type, message, level = 'warning', extraC
   const bypassRateLimit = ['backupStatus', 'attendance'].includes(type);
   const now = Date.now();
   const lastSent = _recentAlerts.get(type) || 0;
-  if (!bypassRateLimit && (now - lastSent < RATE_LIMIT_MS)) return;
+  const cooldownMs = type === 'deviceOffline' ? 3 * 60_000 : RATE_LIMIT_MS;
+  if (!bypassRateLimit && (now - lastSent < cooldownMs)) return;
   _recentAlerts.set(type, now);
 
   const emoji = { info: 'ℹ️', warning: '⚠️', critical: '🚨' }[level] || '⚠️';
@@ -331,6 +333,7 @@ export async function sendTelegramAlert(type, message, level = 'warning', extraC
     restoreDatabase: '🔴 RESTORE DATABASE',
     apiKeyAdded:     '🔑 API KEY BARU',
     attendance:      '📋 LAPORAN KEHADIRAN',
+    deviceOffline:   '⚠️ MESIN ABSENSI OFFLINE / GAGAL SYNC',
   }[type] || '📢 NOTIFIKASI';
 
   const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });

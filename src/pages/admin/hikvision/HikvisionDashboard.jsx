@@ -276,19 +276,31 @@ export default function HikvisionDashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-slate-800 text-sm truncate">{device.location}</div>
                           <div className="text-xs font-mono flex items-center gap-1.5 mt-0.5">
-                            {device.is_online === false ? (
-                              <div className="flex items-center gap-1 text-slate-400">
-                                <MonitorSmartphone size={11} className="text-rose-400 opacity-80" />
-                                <span className="line-through decoration-rose-300">{device.ip_address}</span>
-                                <span className="text-[9px] text-rose-600 bg-rose-50 border border-rose-200 px-1 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5">Offline</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1 text-slate-500">
-                                <Activity size={11} className="text-emerald-500 animate-pulse" />
-                                <span>{device.ip_address}</span>
-                                <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-1 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5">Online</span>
-                              </div>
-                            )}
+                            {(() => {
+                              const devSyncRes = syncMessage?.results?.find(r => r.ip === device.ip_address);
+                              const isSyncFailed = devSyncRes && (String(devSyncRes.status).toLowerCase().includes('error') || String(devSyncRes.status).toLowerCase().includes('gagal') || String(devSyncRes.status).toLowerCase().includes('fetch failed'));
+                              const isOnline = !isSyncFailed && device.is_online === true;
+
+                              if (isOnline) {
+                                return (
+                                  <div className="flex items-center gap-1 text-slate-600 font-bold">
+                                    <Activity size={12} className="text-emerald-500 animate-pulse" />
+                                    <span>{device.ip_address}</span>
+                                    <span className="text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">Online</span>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className="flex items-center gap-1 text-slate-400">
+                                  <MonitorSmartphone size={12} className="text-rose-500 shrink-0" />
+                                  <span className="line-through decoration-rose-400 text-slate-400">{device.ip_address}</span>
+                                  <span className="text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">
+                                    {isSyncFailed ? "Gagal Terhubung" : "Offline"}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                           <div className="mt-1">
                             <DeviceTypeBadge type={device.device_type ||'siswa'} />

@@ -208,6 +208,7 @@ async function pullHikvisionLogs(force = false) {
     } catch { /* ignore parse error */ }
 
     const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
+    const failedDevices = [];
     for (const device of devices) {
       const dtype = device.device_type || 'siswa';
       try {
@@ -235,7 +236,7 @@ async function pullHikvisionLogs(force = false) {
 
         if (logs && logs.length > 0) {
           for (const log of logs) {
-            const employeeNo = log.employeeNoString;
+            const employeeNo = log.employeeNoString || log.employeeNo;
             if (!employeeNo) continue;
             
             // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
@@ -300,7 +301,19 @@ async function pullHikvisionLogs(force = false) {
         }
       } catch (e) {
         console.error(`Gagal pull log device ${device.ip_address}:`, e.message);
+        failedDevices.push({ ip: device.ip_address, loc: device.location || 'Mesin Absensi', error: e.message });
       }
+    }
+
+    if (failedDevices.length > 0) {
+      import('./telegram-bot.mjs').then(({ sendTelegramAlert }) => {
+        const listStr = failedDevices.map(d => `• *${d.ip}* (${d.loc}): ${d.error}`).join('\n');
+        sendTelegramAlert(
+          'deviceOffline',
+          `Background Sync mendeteksi *${failedDevices.length} dari ${devices.length}* mesin absensi gagal dihubungi:\n\n${listStr}\n\n_Silakan periksa koneksi jaringan / router sekolah._`,
+          failedDevices.length === devices.length ? 'critical' : 'warning'
+        ).catch(() => {});
+      }).catch(() => {});
     }
 
     // Auto-link newly pulled logs to students, classes, and teachers
