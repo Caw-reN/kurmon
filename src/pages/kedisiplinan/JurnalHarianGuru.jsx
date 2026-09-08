@@ -2482,8 +2482,73 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       {/* === HARIAN VIEW === */}
       {activeView === 'harian' && (
         <>
-          {/* Sub-View Navigation Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          {/* Sub-View Navigation on Mobile */}
+          <div className="sm:hidden grid grid-cols-3 gap-1.5 p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setHarianSubView('hari_ini')}
+              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                harianSubView === 'hari_ini'
+                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-1">
+                <Calendar size={13} strokeWidth={2.5} />
+                <span>Hari Ini</span>
+              </div>
+              <span className={`text-[10px] font-extrabold ${harianSubView === 'hari_ini' ? 'text-[var(--ui-primary)]' : 'text-slate-400'}`}>
+                {totalSlots} Slot
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setHarianSubView('terlewat')}
+              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer relative ${
+                harianSubView === 'terlewat'
+                  ? 'bg-amber-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-1">
+                <AlertCircle size={13} strokeWidth={2.5} className={harianSubView === 'terlewat' ? 'text-white' : missedPastSlots.length > 0 ? 'text-amber-600' : 'text-slate-400'} />
+                <span>Terlewat</span>
+              </div>
+              {missedPastSlots.length > 0 ? (
+                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black leading-none ${
+                  harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
+                }`}>
+                  {missedPastSlots.length} slot
+                </span>
+              ) : (
+                <span className={`text-[10px] font-extrabold ${harianSubView === 'terlewat' ? 'text-amber-100' : 'text-slate-400'}`}>
+                  0 slot
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setHarianSubView('riwayat')}
+              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                harianSubView === 'riwayat'
+                  ? 'bg-slate-800 text-white shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-1">
+                <ClipboardList size={13} strokeWidth={2.5} />
+                <span>Riwayat</span>
+              </div>
+              <span className={`text-[10px] font-extrabold ${harianSubView === 'riwayat' ? 'text-slate-300' : 'text-slate-400'}`}>
+                {jurnalList.length} total
+              </span>
+            </button>
+          </div>
+
+          {/* Sub-View Navigation Pills on Desktop */}
+          <div className="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               type="button"
               onClick={() => setHarianSubView('hari_ini')}
@@ -2534,9 +2599,41 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           {/* ==================== SUB-VIEW 1: JADWAL HARI INI ==================== */}
           {harianSubView === 'hari_ini' && (
             <>
-              {/* Alert Banner for Missed Past Journals */}
+              {/* Alert Banner for Missed Past Journals - Mobile Slim Banner */}
               {missedPastSlots.length > 0 && (
-                <div className="p-3.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                <div className="sm:hidden px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/70 border border-amber-300/80 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <AlertCircle size={15} strokeWidth={2.5} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-black text-amber-950 truncate">
+                          {missedPastSlots.length} KBM Belum Diisi
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded bg-amber-200/90 text-amber-900 text-[9px] font-black uppercase shrink-0">
+                          Perlu Diisi
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-medium text-amber-800 truncate">
+                        Klik lengkapi untuk mengisi jurnal lampau
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHarianSubView('terlewat')}
+                    className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] shrink-0 transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1"
+                  >
+                    <span>Lengkapi</span>
+                    <ArrowRight size={12} strokeWidth={2.5} />
+                  </button>
+                </div>
+              )}
+
+              {/* Alert Banner for Missed Past Journals - Desktop Detailed Banner */}
+              {missedPastSlots.length > 0 && (
+                <div className="hidden sm:flex p-3.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 items-center justify-between gap-3 shadow-xs animate-in fade-in">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                       <AlertCircle size={18} strokeWidth={2.5} />
@@ -2554,7 +2651,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                   <button
                     type="button"
                     onClick={() => setHarianSubView('terlewat')}
-                    className="px-3.5 py-2 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 w-full sm:w-auto justify-center"
+                    className="px-3.5 py-2 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 w-auto justify-center"
                   >
                     <span>Buka Jurnal Terlewat ({missedPastSlots.length})</span>
                     <ArrowRight size={14} />
@@ -2563,7 +2660,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               )}
 
               {/* Mobile Filter & Export Card */}
-              <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
+              <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3 shadow-sm border border-slate-100/90 flex flex-col gap-2.5">
                 <div className="flex items-center gap-2">
                   {/* Date selector button */}
                   <div 
@@ -2573,14 +2670,14 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                         try { inputEl.showPicker(); } catch (err) { inputEl.click(); }
                       }
                     }}
-                    className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
+                    className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] py-2 px-3 transition-all relative cursor-pointer active:scale-98"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0 pointer-events-none">
+                    <div className="flex items-center gap-2 min-w-0 pointer-events-none">
                       <div 
-                        className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0"
+                        className="w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0"
                         style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
                       >
-                        <Calendar size={16} strokeWidth={2.2} />
+                        <Calendar size={14} strokeWidth={2.2} />
                       </div>
                       <span className="text-xs font-extrabold text-slate-800 truncate">
                         {filterDate ? new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Pilih Tanggal'}
@@ -2596,7 +2693,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                     />
-                    <ChevronDown size={16} className="text-slate-400 shrink-0 pointer-events-none" />
+                    <ChevronDown size={14} className="text-slate-400 shrink-0 pointer-events-none" />
                   </div>
 
                   {/* Refresh button */}
@@ -2604,9 +2701,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     type="button"
                     onClick={() => { fetchJurnal(); fetchRecentJurnals(); }}
                     title="Refresh"
-                    className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
+                    className="w-9 h-9 rounded-[var(--ui-radius-card)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
                   >
-                    <RefreshCw size={18} strokeWidth={2} />
+                    <RefreshCw size={15} strokeWidth={2} className={isLoading ? 'animate-spin' : ''} />
                   </button>
                 </div>
 
@@ -2625,15 +2722,15 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                   <Button
                     variant="primary"
                     onClick={openAddManual}
-                    className="flex-1 py-2.5 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="flex-1 py-2 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Plus size={14} strokeWidth={2.5} />
-                    <span>+ Jurnal Bebas</span>
+                    <span>Jurnal Bebas</span>
                   </Button>
                   <button
                     type="button"
                     onClick={() => setIsExportSemesterOpen(true)}
-                    className="flex-1 py-2.5 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"
+                    className="flex-1 py-2 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"
                     style={{
                       background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
                       color: "var(--ui-primary)",
@@ -2683,7 +2780,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     className="w-full md:w-auto flex justify-center items-center gap-1.5 shrink-0 cursor-pointer font-black text-xs shadow-xs"
                   >
                     <Plus size={14} strokeWidth={2.5} />
-                    <span>+ Isi Jurnal Bebas</span>
+                    <span>Isi Jurnal Bebas</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -2696,9 +2793,55 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                 </div>
               </div>
 
-              {/* Summary Stats Boxes */}
+              {/* Summary Stats Boxes - Mobile (Compact 2-col Grid) */}
               {totalSlots > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:hidden grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-[var(--ui-radius-card)] bg-emerald-50/80 border border-emerald-200/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">Sudah Diisi</span>
+                      <CheckCircle2 size={15} className="text-emerald-600" />
+                    </div>
+                    <div className="mt-1">
+                      <h4 className="text-xl font-black text-emerald-700 leading-tight">
+                        {filledSlots} <span className="text-xs font-bold text-emerald-600">/ {totalSlots}</span>
+                      </h4>
+                      <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">slot terjadwal</p>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => {
+                      if (missedPastSlots.length > 0) {
+                        setHarianSubView('terlewat');
+                      }
+                    }}
+                    className={`p-3 rounded-[var(--ui-radius-card)] bg-rose-50/80 border border-rose-200/70 flex flex-col justify-between shadow-2xs transition-all ${
+                      missedPastSlots.length > 0 ? 'cursor-pointer active:scale-98 hover:border-rose-300' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-rose-800 uppercase tracking-wider">Belum Diisi</span>
+                      <AlertCircle size={15} className="text-rose-600" />
+                    </div>
+                    <div className="mt-1">
+                      <h4 className="text-xl font-black text-rose-700 leading-tight">
+                        {totalSlots - filledSlots} <span className="text-xs font-bold text-rose-600">/ {totalSlots}</span>
+                      </h4>
+                      {missedPastSlots.length > 0 ? (
+                        <p className="text-[10px] font-black text-amber-700 mt-0.5 flex items-center gap-0.5">
+                          <span>{missedPastSlots.length} terlewat &rarr;</span>
+                        </p>
+                      ) : (
+                        <p className="text-[10px] font-semibold text-rose-600 mt-0.5">slot hari ini</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Summary Stats Boxes - Desktop */}
+              {totalSlots > 0 && (
+                <div className="hidden sm:grid sm:grid-cols-2 gap-4">
                   <div className="p-4 rounded-[var(--ui-radius-card)] bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
                     <div>
                       <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Sudah Mengisi Jurnal</p>
@@ -2859,7 +3002,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                                 className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 font-bold cursor-pointer shadow-xs"
                               >
                                 <Plus size={12} strokeWidth={2.5} />
-                                <span>+ Isi Jurnal</span>
+                                <span>Isi Jurnal</span>
                               </Button>
                             )}
                           </div>
@@ -2911,7 +3054,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                       className="mt-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus size={13} />
-                      <span>+ Catat Jurnal Manual / Bebas</span>
+                      <span>Catat Jurnal Bebas</span>
                     </Button>
                   )}
                 </div>
@@ -3068,7 +3211,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                           className="cursor-pointer shrink-0 font-black text-xs flex items-center justify-center gap-1.5 px-4 py-2 w-full sm:w-auto shadow-xs"
                         >
                           <Plus size={14} strokeWidth={2.5} />
-                          <span>+ Isi Jurnal Ini</span>
+                          <span>Isi Jurnal Ini</span>
                         </Button>
                       </div>
                     );
@@ -3138,7 +3281,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                 </div>
               </div>
               
-              <div className="overflow-x-auto">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase border-b border-slate-200">
                     <tr>
@@ -3192,6 +3336,58 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card List for Riwayat */}
+              <div className="md:hidden divide-y divide-slate-100">
+                {paginatedJurnalList.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400 font-medium text-xs">
+                    Data jurnal tidak ditemukan untuk filter/pencarian ini.
+                  </div>
+                ) : (
+                  paginatedJurnalList.map(j => (
+                    <div key={j.id} className="p-3.5 flex flex-col gap-2.5 hover:bg-slate-50/50 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-800 font-black text-xs">
+                              {j.kelas}
+                            </span>
+                            <span className="font-bold text-xs text-[var(--ui-primary)]">
+                              {j.mapel}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400">
+                              Jam {j.jam_ke}
+                            </span>
+                          </div>
+                          {isKurikulum && (
+                            <p className="text-[11px] text-slate-600 font-semibold mt-1">
+                              Guru: <span className="text-slate-800 font-bold">{j.teacher_name || j.teacher_code}</span>
+                            </p>
+                          )}
+                        </div>
+                        <StatusBadge submitted={!!j.submitted_at} submittedAt={j.submitted_at} tanggal={j.tanggal} showTime={true} />
+                      </div>
+
+                      <div className="text-xs text-slate-600 space-y-1 bg-slate-50/80 p-2.5 rounded-[var(--ui-radius-small)] border border-slate-100">
+                        <p><span className="font-bold text-slate-500">Materi:</span> {j.materi_pokok}</p>
+                        <p><span className="font-bold text-slate-500">Hadir:</span> {j.jumlah_hadir} siswa</p>
+                        {j.catatan && <p className="text-[11px] text-slate-400 italic">Catatan: {j.catatan}</p>}
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-0.5">
+                        <Button variant="outline" onClick={() => openEdit(j)} className="flex-1 py-1.5 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer" title="Edit">
+                          <Edit2 size={12} />
+                          <span>Edit</span>
+                        </Button>
+                        <Button variant="outline" onClick={() => handleDelete(j.id)} className="flex-1 py-1.5 text-xs font-bold text-rose-600 border-rose-200 hover:bg-rose-50 flex items-center justify-center gap-1.5 cursor-pointer" title="Hapus">
+                          <Trash2 size={12} />
+                          <span>Hapus</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Table Pagination Footer */}
