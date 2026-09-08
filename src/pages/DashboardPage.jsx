@@ -934,14 +934,10 @@ export default function DashboardPage({
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (< sm) ======= */}
         <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
 
-          {/* 1. PEMBERITAHUAN & INFORMASI (DIATAS JADWAL MENGAJAR) */}
+          {/* 1. KARTU INFORMASI (DIATAS JADWAL MENGAJAR - TANPA HEADER TEKS) */}
           <div className="flex flex-col gap-2 text-left">
-            <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center gap-1.5">
-                <Bell size={15} className="text-amber-500 shrink-0" strokeWidth={2.4} />
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">Pemberitahuan & Informasi</h3>
-              </div>
-              {dashboardMessages && dashboardMessages.length > 0 && (
+            {dashboardMessages && dashboardMessages.length > 2 && (
+              <div className="flex items-center justify-end px-0.5">
                 <button 
                   type="button"
                   onClick={handleLihatSemuaPengumuman}
@@ -949,8 +945,8 @@ export default function DashboardPage({
                 >
                   Lihat Semua
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
               <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3">
