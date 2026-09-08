@@ -934,7 +934,63 @@ export default function DashboardPage({
         {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (< sm) ======= */}
         <div className="sm:hidden flex flex-col gap-4 text-left mb-2">
 
-          {/* 1. JADWAL ANDA SEKARANG / STATUS KBM */}
+          {/* 1. PEMBERITAHUAN & INFORMASI (DIATAS JADWAL MENGAJAR) */}
+          <div className="flex flex-col gap-2 text-left">
+            <div className="flex items-center justify-between px-0.5">
+              <div className="flex items-center gap-1.5">
+                <Bell size={15} className="text-amber-500 shrink-0" strokeWidth={2.4} />
+                <h3 className="text-sm font-black text-slate-800 tracking-tight">Pemberitahuan & Informasi</h3>
+              </div>
+              {dashboardMessages && dashboardMessages.length > 0 && (
+                <button 
+                  type="button"
+                  onClick={handleLihatSemuaPengumuman}
+                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
+                >
+                  Lihat Semua
+                </button>
+              )}
+            </div>
+
+            {(!dashboardMessages || dashboardMessages.length === 0) ? (
+              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-[var(--ui-border-soft)] flex items-center justify-center text-slate-400 shrink-0">
+                  <Megaphone size={18} strokeWidth={2.2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-black text-slate-700">Belum ada informasi hari ini</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Pemberitahuan dan agenda penting akan tampil di sini.</p>
+                </div>
+              </div>
+            ) : (
+              dashboardMessages.slice(0, 2).map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  role="button"
+                  tabIndex="0"
+                  onClick={() => setActiveAnnouncementDetail(msg)}
+                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
+                >
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                    <Megaphone size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800 truncate">{msg.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* 2. JADWAL ANDA SEKARANG / STATUS KBM */}
           <TeachingScheduleCard
             todayClasses={todayClasses}
             selectedClass={selectedClass}
@@ -943,7 +999,7 @@ export default function DashboardPage({
             setActiveTab={setActiveTab}
           />
 
-          {/* 2. PINTASAN CEPAT (DYNAMIC SHORTCUTS) */}
+          {/* 3. PINTASAN CEPAT (DYNAMIC SHORTCUTS) */}
           <div className="flex flex-col gap-2 text-left">
             <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Pintasan Cepat</h3>
             <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
@@ -977,7 +1033,7 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* 3. RINGKASAN STATISTIK (DYNAMIC STAT CARDS) */}
+          {/* 4. RINGKASAN STATISTIK (DYNAMIC STAT CARDS) */}
           <div className="flex flex-col gap-2 text-left">
             <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Ringkasan Statistik</h3>
             <div className="grid grid-cols-2 gap-2.5">
@@ -1002,59 +1058,6 @@ export default function DashboardPage({
                 );
               })}
             </div>
-          </div>
-
-          {/* 4. PENGUMUMAN SEKOLAH (REAL MESSAGES) */}
-          <div className="flex flex-col gap-2 text-left">
-            <div className="flex items-center justify-between px-0.5">
-              <h3 className="text-sm font-black text-slate-800 tracking-tight">Pengumuman Sekolah</h3>
-              {dashboardMessages && dashboardMessages.length > 0 && (
-                <button 
-                  type="button"
-                  onClick={handleLihatSemuaPengumuman}
-                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
-                >
-                  Lihat Semua
-                </button>
-              )}
-            </div>
-
-            {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-[var(--ui-border-soft)] flex items-center justify-center text-slate-400 shrink-0">
-                  <Megaphone size={18} strokeWidth={2.2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-black text-slate-700">Belum ada pengumuman hari ini</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Pengumuman dan informasi resmi sekolah akan tampil di sini.</p>
-                </div>
-              </div>
-            ) : (
-              dashboardMessages.slice(0, 2).map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  role="button"
-                  tabIndex="0"
-                  onClick={() => setActiveAnnouncementDetail(msg)}
-                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
-                >
-                  <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                    <Megaphone size={18} strokeWidth={2.2} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
-                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
-                    </div>
-                    <h4 className="text-xs font-black text-slate-800 truncate">{msg.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
 
         </div>
@@ -1388,7 +1391,7 @@ export default function DashboardPage({
                 <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                   <Megaphone size={16} strokeWidth={2.5} />
                 </div>
-                <h3 className="text-sm font-black text-slate-800">Semua Pengumuman Sekolah</h3>
+                <h3 className="text-sm font-black text-slate-800">Semua Pemberitahuan</h3>
               </div>
               <button 
                 type="button"
@@ -1402,7 +1405,7 @@ export default function DashboardPage({
             <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
               {(!dashboardMessages || dashboardMessages.length === 0) ? (
                 <div className="text-center py-8 text-xs font-bold text-slate-400">
-                  Belum ada pengumuman resmi sekolah.
+                  Belum ada informasi terbaru saat ini.
                 </div>
               ) : (
                 dashboardMessages.map((msg, idx) => (
@@ -1680,7 +1683,7 @@ export default function DashboardPage({
               <div className="flex items-center justify-between px-0.5">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-1.5">
                   <Megaphone size={14} className="text-rose-500 shrink-0" strokeWidth={2.4} />
-                  <span>Pengumuman Sekolah</span>
+                  <span>Pemberitahuan & Informasi</span>
                 </h3>
                 <button 
                   type="button"
@@ -2532,7 +2535,7 @@ export default function DashboardPage({
                 <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                   <Megaphone size={16} strokeWidth={2.5} />
                 </div>
-                <h3 className="text-sm font-black text-slate-800">Semua Pengumuman Sekolah</h3>
+                <h3 className="text-sm font-black text-slate-800">Semua Pemberitahuan</h3>
               </div>
               <button 
                 type="button"
@@ -2546,7 +2549,7 @@ export default function DashboardPage({
             <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
               {(!dashboardMessages || dashboardMessages.length === 0) ? (
                 <div className="text-center py-8 text-xs font-bold text-slate-400">
-                  Belum ada pengumuman resmi sekolah.
+                  Belum ada informasi terbaru saat ini.
                 </div>
               ) : (
                 dashboardMessages.map((msg, idx) => (
