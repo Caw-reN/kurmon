@@ -3636,7 +3636,7 @@ const server = createServer(async (req, res) => {
         
         const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
         const compressedBuffer = zlib.gzipSync(backupJsonStr);
-        const captionText = `📦 *Backup Manual Kurmon*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Backup berhasil dikirim._`;
+        const captionText = `📦 <b>Backup Manual Kurmon</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n💾 <b>Ukuran:</b> <b>${(compressedBuffer.length/1024/1024).toFixed(2)} MB</b>\n\n<i>Berkas cadangan database berhasil dibuat dan dikirim.</i>`;
         
         const multipartHeader = Buffer.from(
           `--${boundary}\r\n` +
@@ -3644,7 +3644,7 @@ const server = createServer(async (req, res) => {
           `--${boundary}\r\n` +
           `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
           `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
+          `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
           `--${boundary}\r\n` +
           `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
           `Content-Type: application/gzip\r\n\r\n`,
@@ -3823,9 +3823,9 @@ const server = createServer(async (req, res) => {
                 let multipartBody = "--" + boundary + "\r\n";
                 multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${tgRows[0].extra_config?.chat_id || ''}\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
-                multipartBody += `Content-Disposition: form-data; name="caption"\r\n\r\n📦 *Arsip Kurmon (Fallback Telegram)*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n\n_Diunggah ke Telegram karena R2 gagal._\r\n`;
+                multipartBody += `Content-Disposition: form-data; name="caption"\r\n\r\n📦 <b>Arsip Kurmon (Cadangan Telegram)</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n\n<i>Diunggah ke Telegram sebagai cadangan arsip.</i>\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
-                multipartBody += `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n`;
+                multipartBody += `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
                 multipartBody += `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n`;
                 multipartBody += "Content-Type: application/json\r\n\r\n";
@@ -5020,9 +5020,9 @@ cron.schedule('0 16 * * *', async () => {
     const studentAbsensi = await dbPool.query(`SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi WHERE date = $1 GROUP BY status`, [today]);
     const lateHikvision = await dbPool.query(`SELECT COUNT(*) as cnt FROM hikvision_attendance_logs WHERE date = $1 AND is_late = true`, [today]);
     
-    let reportText = `📊 *LAPORAN HARIAN APLIKASI*\n\n`;
-    reportText += `Tanggal: ${new Date().toLocaleDateString('id-ID', {timeZone: 'Asia/Jakarta'})}\n\n`;
-    reportText += `🔹 Total Login Hari Ini: ${loginStats.rows[0].cnt}\n\n`;
+    let reportText = `📊 <b>LAPORAN HARIAN SISTEM</b>\n\n`;
+    reportText += `📅 <b>Tanggal:</b> ${new Date().toLocaleDateString('id-ID', {timeZone: 'Asia/Jakarta'})}\n\n`;
+    reportText += `🔹 <b>Total Login Hari Ini:</b> ${loginStats.rows[0].cnt} pengguna\n\n`;
     
     let hadirs = 0, telats = 0, izins = 0, sakits = 0, alpas = 0;
     for(const r of studentAbsensi.rows) {
@@ -5035,13 +5035,14 @@ cron.schedule('0 16 * * *', async () => {
     
     telats += parseInt(lateHikvision.rows[0]?.cnt || 0);
     
-    reportText += `🔹 *Rekap Kehadiran & Surat (Siswa)*:\n`;
-    reportText += ` - Terlambat: ${telats} siswa\n`;
-    reportText += ` - Izin: ${izins} surat\n`;
-    reportText += ` - Sakit: ${sakits} surat\n`;
-    reportText += ` - Alpa/Tanpa Keterangan: ${alpas} rekaman\n\n`;
+    reportText += `🔹 <b>Rekap Kehadiran Siswa:</b>\n`;
+    reportText += `• Hadir: <b>${hadirs}</b> siswa\n`;
+    reportText += `• Terlambat: <b>${telats}</b> siswa\n`;
+    reportText += `• Izin: <b>${izins}</b> surat\n`;
+    reportText += `• Sakit: <b>${sakits}</b> surat\n`;
+    reportText += `• Alpa / Tanpa Keterangan: <b>${alpas}</b> siswa\n\n`;
     
-    reportText += `_Sistem beroperasi dengan normal._`;
+    reportText += `<i>Sistem beroperasi dengan normal dan aman.</i>`;
     
     await sendTelegramAlert('dailyReport', reportText, 'info');
   } catch(e) {
@@ -5138,14 +5139,14 @@ cron.schedule('15 2 * * *', async () => {
     
     const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
     const compressedBuffer = zlib.gzipSync(backupJsonStr);
-    const captionText = `📦 *Backup Otomatis Harian*\n\n📅 Waktu: ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})}\n🗂 Nama: \`${fileName}\`\n💾 Ukuran: ${(compressedBuffer.length/1024/1024).toFixed(2)} MB\n\n_Sistem bekerja dengan normal._`;
+    const captionText = `📦 <b>Backup Otomatis Harian</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n💾 <b>Ukuran:</b> <b>${(compressedBuffer.length/1024/1024).toFixed(2)} MB</b>\n\n<i>Cadangan database harian berhasil disimpan.</i>`;
     const multipartHeader = Buffer.from(
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
       `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="parse_mode"\r\n\r\nMarkdown\r\n` +
+      `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
       `Content-Type: application/gzip\r\n\r\n`,

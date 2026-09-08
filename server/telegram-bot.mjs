@@ -150,21 +150,22 @@ async function _handleUpdate(update) {
   // Perintah /start selalu diizinkan agar admin/pengguna baru bisa langsung melihat Chat ID mereka
   if (cmd === '/start') {
     const isRegistered = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
-    const safeFrom = from.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+    const safeFrom = escapeHtml(from);
     await _sendMessage(chatId,
-      `👋 *Halo ${safeFrom}\\!*\n\n` +
-      `ID Chat Telegram Anda adalah: \`${chatId}\`\n\n` +
+      `👋 <b>Halo ${safeFrom}!</b>\n\n` +
+      `ID Chat Telegram Anda: <code>${chatId}</code>\n\n` +
       (isRegistered
-        ? `✅ Chat ID Anda sudah terdaftar dan terhubung ke sistem Kurmon\\.\nKetik /help untuk melihat menu perintah\\.`
-        : `⚠️ Chat ID ini belum didaftarkan di sistem Kurmon\\.\nSalin Chat ID: \`${chatId}\` lalu masukkan ke menu *Pengaturan > Backup & Bot Telegram > API Key* di aplikasi Kurmon\\.`
-      )
+        ? `✅ Chat ID Anda sudah terdaftar dan terhubung ke sistem Kurmon.\nKetik <b>/help</b> untuk melihat menu perintah.`
+        : `⚠️ Chat ID ini belum didaftarkan di sistem Kurmon.\nSalin ID ini: <code>${chatId}</code> lalu masukkan ke menu <b>Pengaturan > Backup & Bot Telegram > API Key</b> di aplikasi Kurmon.`
+      ),
+      { isHtml: true }
     );
     return;
   }
 
   // Whitelist check
   if (_allowedChatIds.size > 0 && !_allowedChatIds.has(chatId)) {
-    await _sendMessage(chatId, `⛔ Akses tidak diizinkan.\nChat ID Anda: \`${chatId}\`\nHubungi administrator untuk mendaftarkan ID ini.`);
+    await _sendMessage(chatId, `⛔ <b>Akses Tidak Diizinkan</b>\n\nChat ID Anda: <code>${chatId}</code>\nHubungi administrator untuk mendaftarkan ID ini.`, { isHtml: true });
     return;
   }
   if (_allowedChatIds.size === 0 && _chatId && chatId !== String(_chatId)) return;
@@ -178,7 +179,7 @@ async function _handleUpdate(update) {
     case '/stats':  await _cmdStats(chatId); break;
     case '/absen':
     case '/rekap':  await sendDailyMorningAttendanceReport(chatId); break;
-    default: await _sendMessage(chatId, `❓ Perintah tidak dikenal. Ketik /help untuk daftar perintah.`);
+    default: await _sendMessage(chatId, `❓ Perintah tidak dikenal. Ketik <b>/help</b> untuk daftar perintah.`, { isHtml: true });
   }
 }
 
@@ -186,15 +187,16 @@ async function _handleUpdate(update) {
 
 async function _cmdHelp(chatId) {
   await _sendMessage(chatId,
-    `🤖 *Kurmon Bot Monitoring*\n\n` +
-    `Perintah yang tersedia:\n` +
-    `/status — Status server & database\n` +
-    `/absen — Rekap absensi guru & siswa hari ini\n` +
-    `/logs [n] — n log audit terakhir (max 20)\n` +
-    `/backup — Trigger backup manual langsung\n` +
-    `/alerts — Alert keamanan terkini\n` +
-    `/stats — Statistik jumlah data sistem\n` +
-    `/help — Tampilkan petunjuk ini`
+    `🤖 <b>Kurmon Bot Monitoring</b>\n\n` +
+    `Daftar perintah yang tersedia:\n` +
+    `• <b>/status</b> — Status server & database\n` +
+    `• <b>/absen</b> — Rekap kehadiran guru & siswa hari ini\n` +
+    `• <b>/logs [n]</b> — Log audit terakhir (contoh: /logs 10)\n` +
+    `• <b>/backup</b> — Trigger backup database manual\n` +
+    `• <b>/alerts</b> — Alert keamanan sistem terkini\n` +
+    `• <b>/stats</b> — Statistik jumlah data sistem\n` +
+    `• <b>/help</b> — Menampilkan petunjuk ini`,
+    { isHtml: true }
   );
 }
 
@@ -208,18 +210,19 @@ async function _cmdStatus(chatId) {
 
   let dbStatus = '❓ Tidak diketahui';
   if (_dbPool) {
-    try { await _dbPool.query('SELECT 1'); dbStatus = '✅ Terhubung'; }
+    try { await _dbPool.query('SELECT 1'); dbStatus = '✅ Terhubung Normal'; }
     catch { dbStatus = '❌ Terputus'; }
   }
 
   await _sendMessage(chatId,
-    `📊 *Status Server Kurmon*\n\n` +
-    `🕐 Uptime: ${uptime}\n` +
-    `💾 RAM: ${usedMemGB}GB / ${totalMemGB}GB\n` +
-    `🧠 Heap: ${(mem.heapUsed / 1024 / 1024).toFixed(1)}MB\n` +
-    `🗄️ Database: ${dbStatus}\n` +
-    `📡 Platform: ${os.platform()} ${os.arch()}\n` +
-    `🕰 Waktu: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
+    `📊 <b>Status Server Kurmon</b>\n\n` +
+    `• <b>Uptime:</b> ${uptime}\n` +
+    `• <b>RAM Terpakai:</b> ${usedMemGB} GB / ${totalMemGB} GB\n` +
+    `• <b>Heap Memory:</b> ${(mem.heapUsed / 1024 / 1024).toFixed(1)} MB\n` +
+    `• <b>Koneksi Database:</b> ${dbStatus}\n` +
+    `• <b>Platform:</b> ${os.platform()} (${os.arch()})\n` +
+    `• <b>Waktu Server:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
+    { isHtml: true }
   );
 }
 
@@ -233,29 +236,31 @@ async function _cmdLogs(chatId, n) {
     if (rows.length === 0) { await _sendMessage(chatId, '📋 Tidak ada log tersedia.'); return; }
     const lines = rows.map(r => {
       const t = new Date(r.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-      return `• [${t}] *${r.action}* — ${r.user_name || 'System'}\n  ${(r.detail || '').slice(0, 80)}`;
+      return `• [${t}] <b>${escapeHtml(r.action)}</b> (${escapeHtml(r.user_name || 'System')})\n  ${escapeHtml((r.detail || '').slice(0, 100))}`;
     }).join('\n\n');
-    await _sendMessage(chatId, `📋 *${limit} Log Terakhir:*\n\n${lines}`);
+    await _sendMessage(chatId, `📋 <b>${limit} Log Terakhir:</b>\n\n${lines}`, { isHtml: true });
   } catch (err) {
-    await _sendMessage(chatId, `❌ Gagal ambil log: ${err.message}`);
+    await _sendMessage(chatId, `❌ Gagal mengambil log: ${escapeHtml(err.message)}`, { isHtml: true });
   }
 }
 
 async function _cmdBackup(chatId, from) {
   if (!_dbPool) { await _sendMessage(chatId, '❌ Database tidak tersedia.'); return; }
-  await _sendMessage(chatId, `⏳ Sedang membuat backup database...`);
+  await _sendMessage(chatId, `⏳ Sedang membuat berkas cadangan database...`);
   try {
     const { runBackupJson } = await import('./auto-backup.mjs');
     const result = await runBackupJson();
     await _sendMessage(chatId,
-      `✅ *Backup Berhasil!*\n\n` +
-      `📁 File: \`${result.fileName}\`\n` +
-      `📦 Ukuran: ${result.size}\n` +
-      `🔑 SHA-256: \`${result.checksum.slice(0, 20)}...\`\n` +
-      `👤 Diminta: ${from}`
+      `✅ <b>Pencadangan Database Berhasil!</b>\n\n` +
+      `• <b>Nama Berkas:</b> <code>${escapeHtml(result.fileName)}</code>\n` +
+      `• <b>Ukuran:</b> <b>${result.size}</b>\n` +
+      `• <b>SHA-256:</b> <code>${result.checksum ? result.checksum.slice(0, 20) + '...' : '-'}</code>\n` +
+      `• <b>Diminta Oleh:</b> ${escapeHtml(from)}\n` +
+      `• <b>Waktu:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
+      { isHtml: true }
     );
   } catch (err) {
-    await _sendMessage(chatId, `❌ *Backup Gagal!*\n\nError: ${err.message}`);
+    await _sendMessage(chatId, `❌ <b>Pencadangan Gagal!</b>\n\nKendala: ${escapeHtml(err.message)}`, { isHtml: true });
   }
 }
 
@@ -270,11 +275,11 @@ async function _cmdAlerts(chatId) {
     if (rows.length === 0) { await _sendMessage(chatId, '✅ Tidak ada alert keamanan terkini.'); return; }
     const lines = rows.map(r => {
       const t = new Date(r.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-      return `🚨 [${t}]\n   *${r.action}* — ${r.user_name || 'Unknown'}\n   ${(r.detail || '').slice(0, 80)}`;
+      return `🚨 [${t}]\n   <b>${escapeHtml(r.action)}</b> (${escapeHtml(r.user_name || 'Unknown')})\n   ${escapeHtml((r.detail || '').slice(0, 100))}`;
     }).join('\n\n');
-    await _sendMessage(chatId, `🛡️ *Alert Keamanan Terkini:*\n\n${lines}`);
+    await _sendMessage(chatId, `🛡️ <b>Alert Keamanan Terkini:</b>\n\n${lines}`, { isHtml: true });
   } catch (err) {
-    await _sendMessage(chatId, `❌ Gagal ambil alerts: ${err.message}`);
+    await _sendMessage(chatId, `❌ Gagal mengambil alert: ${escapeHtml(err.message)}`, { isHtml: true });
   }
 }
 
@@ -289,16 +294,17 @@ async function _cmdStats(chatId) {
       _dbPool.query("SELECT COUNT(*) FROM audit_logs WHERE action LIKE '%BACKUP%' AND created_at >= NOW() - INTERVAL '7 days'").catch(() => ({ rows: [{ count: 0 }] })),
     ]);
     await _sendMessage(chatId,
-      `📈 *Statistik Sistem Kurmon*\n\n` +
-      `👨‍🏫 Guru: ${tRes.rows[0].count}\n` +
-      `👤 Karyawan: ${sRes.rows[0].count}\n` +
-      `🎓 Siswa: ${stRes.rows[0].count}\n` +
-      `🔐 Login 24j: ${lRes.rows[0].count}\n` +
-      `💾 Backup 7h: ${bRes.rows[0].count}\n` +
-      `🕰 ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
+      `📈 <b>Statistik Sistem Kurmon</b>\n\n` +
+      `• 👨‍🏫 <b>Guru Terdaftar:</b> ${tRes.rows[0].count} orang\n` +
+      `• 👤 <b>Karyawan:</b> ${sRes.rows[0].count} orang\n` +
+      `• 🎓 <b>Siswa:</b> ${stRes.rows[0].count} orang\n` +
+      `• 🔐 <b>Aktivitas Login (24 Jam):</b> ${lRes.rows[0].count} kali\n` +
+      `• 💾 <b>Pencadangan (7 Hari):</b> ${bRes.rows[0].count} kali\n` +
+      `• 🕰 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
+      { isHtml: true }
     );
   } catch (err) {
-    await _sendMessage(chatId, `❌ Gagal ambil statistik: ${err.message}`);
+    await _sendMessage(chatId, `❌ Gagal mengambil statistik: ${escapeHtml(err.message)}`, { isHtml: true });
   }
 }
 
@@ -326,34 +332,46 @@ export async function sendTelegramAlert(type, message, level = 'warning', extraC
 
   const emoji = { info: 'ℹ️', warning: '⚠️', critical: '🚨' }[level] || '⚠️';
   const header = {
-    bruteForce:      '🔴 BRUTE FORCE TERDETEKSI',
-    serverError:     '🟠 SERVER ERROR',
-    backupStatus:    '💾 STATUS BACKUP',
-    adminLogin:      '🔵 ADMIN LOGIN',
-    restoreDatabase: '🔴 RESTORE DATABASE',
-    apiKeyAdded:     '🔑 API KEY BARU',
-    attendance:      '📋 LAPORAN KEHADIRAN',
-    deviceOffline:   '⚠️ MESIN ABSENSI OFFLINE / GAGAL SYNC',
-  }[type] || '📢 NOTIFIKASI';
+    bruteForce:      'PERINGATAN BRUTE FORCE',
+    serverError:     'PERINGATAN SISTEM SERVER',
+    backupStatus:    'STATUS PENCADANGAN DATABASE',
+    adminLogin:      'NOTIFIKASI LOGIN ADMIN',
+    restoreDatabase: 'PEMULIHAN DATABASE',
+    apiKeyAdded:     'API KEY BARU DITAMBAHKAN',
+    attendance:      'LAPORAN KEHADIRAN',
+    deviceOffline:   'MESIN ABSENSI OFFLINE / GAGAL SYNC',
+    dailyReport:     'RINGKASAN HARIAN APLIKASI',
+  }[type] || 'NOTIFIKASI SISTEM';
 
   const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-  let safeMsg = message.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
-  
+  let formattedContent = formatMessageToHtml(message);
+
   if (extraContext) {
     let contextStr = '';
-    if (extraContext.method && extraContext.path) contextStr += `\n*Endpoint:* \`${extraContext.method} ${extraContext.path}\``;
-    if (extraContext.ip) contextStr += `\n*IP:* \`${extraContext.ip}\``;
-    if (extraContext.user) contextStr += `\n*User:* ${String(extraContext.user).replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}`;
-    if (extraContext.stack) {
-       const stackHead = extraContext.stack.split('\\n').slice(0, 3).join('\\n').replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
-       contextStr += `\n\n*Stack Trace:*\n\`\`\`\n${stackHead}\n\`\`\``;
+    if (extraContext.method && extraContext.path) {
+      contextStr += `\n• <b>Endpoint:</b> <code>${escapeHtml(extraContext.method)} ${escapeHtml(extraContext.path)}</code>`;
     }
-    safeMsg += contextStr;
+    if (extraContext.ip) {
+      contextStr += `\n• <b>Alamat IP:</b> <code>${escapeHtml(extraContext.ip)}</code>`;
+    }
+    if (extraContext.user) {
+      contextStr += `\n• <b>Pengguna:</b> <b>${escapeHtml(extraContext.user)}</b>`;
+    }
+    if (extraContext.stack) {
+      const stackHead = String(extraContext.stack).split('\n').slice(0, 3).join('\n');
+      contextStr += `\n\n<b>Detail Masalah:</b>\n<pre><code>${escapeHtml(stackHead)}</code></pre>`;
+    }
+    formattedContent += contextStr;
   }
 
-  const fullMsg = `${emoji} *${header}*\n\n${safeMsg}\n\n🕐 ${time}`;
+  const fullMsg = 
+`${emoji} <b>${header}</b>
 
-  await _sendMessage(_chatId, fullMsg);
+${formattedContent}
+
+🕒 <i>Waktu: ${time} WIB</i>`;
+
+  await _sendMessage(_chatId, fullMsg, { isHtml: true });
 }
 
 /**
@@ -438,25 +456,25 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
     });
 
     const msg = 
-`📋 *LAPORAN KEHADIRAN PAGI (Pukul ${nowTime} WIB)*
-📅 ${todayFormatted}
+`📋 <b>LAPORAN KEHADIRAN PAGI</b>
+📅 <i>${todayFormatted} (Pukul ${nowTime} WIB)</i>
 
-👨‍🏫 *GURU & KARYAWAN*
-• Hadir Tepat Waktu: *${guruTepat}* guru
-• Terlambat: *${guruTelat}* guru
-• Sudah Scan: *${teacherTaps.size}* / ${totalGuruMaster} guru
-• Belum Terdata Scan: *${guruBelum}* guru
+👨‍🏫 <b>GURU & KARYAWAN</b>
+• Hadir Tepat Waktu: <b>${guruTepat}</b> orang
+• Terlambat: <b>${guruTelat}</b> orang
+• Sudah Presensi Scan: <b>${teacherTaps.size}</b> dari ${totalGuruMaster} orang
+• Belum Terdata Scan: <b>${guruBelum}</b> orang
 
-🎓 *PRESENSI SISWA*
-• Hadir Tepat Waktu: *${siswaTepat}* siswa
-• Terlambat: *${siswaTelat}* siswa
-• Izin / Sakit: *${siswaIzin + siswaSakit}* siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
-• Total Tap Mesin: *${studentTaps.size}* / ${totalStudentMaster} siswa
-• Belum Absen: *${siswaBelum}* siswa
+🎓 <b>PRESENSI SISWA</b>
+• Hadir Tepat Waktu: <b>${siswaTepat}</b> siswa
+• Terlambat: <b>${siswaTelat}</b> siswa
+• Izin / Sakit: <b>${siswaIzin + siswaSakit}</b> siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
+• Total Tap Mesin: <b>${studentTaps.size}</b> dari ${totalStudentMaster} siswa
+• Belum Absen: <b>${siswaBelum}</b> siswa
 
-_Laporan otomatis dikirim dari Mesin Absensi Hikvision & Sistem Kurmon._`;
+<i>Laporan otomatis dikirim dari Mesin Presensi & Sistem Kurmon.</i>`;
 
-    await _sendMessage(destChatId, msg);
+    await _sendMessage(destChatId, msg, { isHtml: true });
     console.log('[TelegramBot] ✅ Laporan kehadiran pagi 07:05 berhasil dikirim ke Telegram.');
   } catch (err) {
     console.error('[TelegramBot] Gagal kirim laporan kehadiran pagi:', err.message);
@@ -538,11 +556,15 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     }
     try {
       const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-      const safeTime = time.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
-      const safeName = String(session.name || session.id).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+      const safeName = escapeHtml(session.name || session.id);
       
       await _sendMessage(_chatId,
-        `🚀 *Test Koneksi Berhasil\\!*\n\nSistem Notifikasi Telegram dari *Website Sistem Kurmon* telah terhubung dengan baik\\.\n\n🕒 Waktu: ${safeTime}\n👤 Admin: ${safeName}\n🌐 Pengirim: Aplikasi Web Kurmon`
+        `🚀 <b>Uji Coba Notifikasi Berhasil!</b>\n\n` +
+        `Sistem Bot Telegram dari <b>Website Kurmon</b> telah berhasil terhubung dengan ruang obrolan ini.\n\n` +
+        `• <b>Waktu:</b> ${time} WIB\n` +
+        `• <b>Admin:</b> ${safeName}\n` +
+        `• <b>Status:</b> Siap Menerima Notifikasi & Laporan Sistem`,
+        { isHtml: true }
       );
       send(req, res, 200, { ok: true });
     } catch (err) {
@@ -574,37 +596,83 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
 
 // ── Helpers ──────────────────────────────────────────────
 
-async function _sendMessage(chatId, text) {
+/**
+ * Escape karakter spesial HTML untuk Telegram
+ */
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Konversi pesan markdown (*bold*, _italic_, `code`, ```pre```) ke HTML Telegram
+ * dan bersihkan karakter asterisk / underscore yang merusak tampilan
+ */
+export function formatMessageToHtml(rawText) {
+  if (!rawText) return '';
+  let text = String(rawText);
+
+  // 1. Escape karakter HTML dasar terlebih dahulu
+  text = escapeHtml(text);
+
+  // 2. Ubah blok kode ```code``` -> <pre><code>code</code></pre>
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+  // 3. Ubah inline code `code` -> <code>code</code>
+  text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+  // 4. Ubah **bold** atau *bold* -> <b>bold</b>
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
+  text = text.replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+
+  // 5. Ubah _italic_ -> <i>italic</i>
+  text = text.replace(/_([^_\n]+)_/g, '<i>$1</i>');
+
+  // 6. Bersihkan sisa karakter * atau _ yang tidak berpasangan agar tidak tampil berantakan
+  text = text.replace(/(\s|^)\*+(\s|$)/g, '$1•$2');
+  text = text.replace(/(\s|^)_+(\s|$)/g, '$1$2');
+
+  return text;
+}
+
+async function _sendMessage(chatId, text, options = {}) {
   if (!_botToken || !chatId) return;
+  
+  const htmlText = options.isHtml ? text : formatMessageToHtml(text);
+
   try {
     const r = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text,
-        parse_mode: 'MarkdownV2',
+        text: htmlText,
+        parse_mode: 'HTML',
         disable_web_page_preview: true,
       }),
     });
     const d = await r.json();
     if (!d.ok) {
-      // Fallback jika formatting MarkdownV2 ditolak oleh Telegram
-      if (d.description && (d.description.includes("can't parse entities") || d.description.includes("character"))) {
-        const plainText = text.replace(/\\([_*[\]()~`>#+\-=|{}.!])/g, '$1');
-        const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: plainText,
-            disable_web_page_preview: true,
-          }),
-        });
-        const retryData = await retryRes.json();
-        if (retryData.ok) return retryData;
-      }
-      console.warn('[TelegramBot] sendMessage failed:', d.description);
+      console.warn('[TelegramBot] sendMessage HTML gagal:', d.description, 'Mencoba fallback plain text bersih...');
+      // Fallback: hapus semua tag HTML dan karakter markdown yang merusak
+      const cleanPlainText = text
+        .replace(/<[^>]*>/g, '')
+        .replace(/[*_`]/g, '');
+      const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: cleanPlainText,
+          disable_web_page_preview: true,
+        }),
+      });
+      const retryData = await retryRes.json();
+      if (retryData.ok) return retryData;
+      console.warn('[TelegramBot] sendMessage fallback gagal:', retryData.description);
       throw new Error(d.description);
     }
     return d;
@@ -619,9 +687,9 @@ function _formatUptime(seconds) {
   const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const parts = [];
-  if (d > 0) parts.push(`${d}h`);
-  if (h > 0) parts.push(`${h}j`);
-  parts.push(`${m}m`);
+  if (d > 0) parts.push(`${d} hari`);
+  if (h > 0) parts.push(`${h} jam`);
+  parts.push(`${m} menit`);
   return parts.join(' ');
 }
 
