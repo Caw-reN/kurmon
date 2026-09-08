@@ -304,9 +304,24 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
       // Teacher / Staff login
       let isStaffAccount = false;
-      let teacher = (payload.teachers || []).find((item) => String(item.code || item.nip || item.id || "").trim().toLowerCase() === username);
+      const matchAccount = (item, isStaff) => {
+        const u = username.toLowerCase().trim();
+        const code = String(item.code || (isStaff ? item.staff_code : "") || "").trim().toLowerCase();
+        const nip = String(item.nip || "").trim().toLowerCase();
+        const id = String(item.id || "").trim().toLowerCase();
+        const usr = String(item.username || "").trim().toLowerCase();
+        const name = String(item.name || "").trim().toLowerCase();
+        const firstName = name.split(/[\s,.]+/)[0];
+        return (code && code === u) ||
+               (nip && nip === u) ||
+               (id && id === u) ||
+               (usr && usr === u) ||
+               (name && name === u) ||
+               (firstName && firstName.length >= 3 && firstName === u);
+      };
+      let teacher = (payload.teachers || []).find(item => matchAccount(item, false));
       if (!teacher) {
-        teacher = (payload.staffs || []).find((item) => String(item.code || item.staff_code || item.id || "").trim().toLowerCase() === username);
+        teacher = (payload.staffs || []).find(item => matchAccount(item, true));
         if (teacher) isStaffAccount = true;
       }
       

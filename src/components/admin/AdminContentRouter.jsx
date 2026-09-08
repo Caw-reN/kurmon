@@ -248,14 +248,17 @@ export default function AdminContentRouter({ context }) {
         return level && level !=="none" && level !=="nonaktif";
       };
       if (role === "guru") {
-        const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
+        const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+        if (subrole && subrole !== 'walikelas') {
+          const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass);
+          if (isWalas && ["catatan_walikelas", "walas_report", "laporan_rekap_walas"].includes(activeTab)) {
+            return true;
+          }
+          return checkAllowed(subrole);
+        }
+        const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
         if (isWalas) {
           return checkAllowed("walikelas");
-        }
-        // Guru dengan subrole menggunakan permission subrole mereka
-        const subrole = currentUser?.subrole;
-        if (subrole) {
-          return checkAllowed(subrole);
         }
         return checkAllowed("guru");
       }

@@ -1534,6 +1534,8 @@ export default function App() {
       if (role === "waka" || role.startsWith("waka_")) {
         const div = (currentUser?.division || role.replace("waka_", "") || "kurikulum").toLowerCase().trim();
         effectiveKey = `waka_${div}`;
+      } else if (subrole && KNOWN_SUBROLES.includes(subrole) && subrole !== 'walikelas') {
+        effectiveKey = subrole;
       } else if (isWalasUser && role !== 'waka' && role !== 'kepsek' && role !== 'admin' && role !== 'superadmin') {
         effectiveKey = 'walikelas';
       } else if (subrole && KNOWN_SUBROLES.includes(subrole)) {
@@ -2620,10 +2622,9 @@ export default function App() {
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara',
     ];
-    let effectiveRoleKey = (subrole && SUBROLE_KEYS_ALL.includes(subrole)) ? subrole : roleKey;
-    if (isWalasUser && role !== 'waka' && role !== 'kepsek' && role !== 'admin' && role !== 'superadmin') {
-      effectiveRoleKey = 'walikelas';
-    }
+    let effectiveRoleKey = (subrole && SUBROLE_KEYS_ALL.includes(subrole) && subrole !== 'walikelas')
+      ? subrole
+      : ((isWalasUser && role !== 'waka' && role !== 'kepsek' && role !== 'admin' && role !== 'superadmin') ? 'walikelas' : roleKey);
 
     const perms = rolePermissions?.[effectiveRoleKey] || rolePermissions?.[roleKey];
     if (!perms) return "none";
@@ -2703,6 +2704,8 @@ export default function App() {
       const divRaw = (currentUser?.division || activeRole.replace("waka_", "")).toLowerCase().trim();
       const div = (divRaw === "waka" || divRaw === "") ? "kurikulum" : divRaw;
       effectiveKey = `waka_${div}`;
+    } else if (subrole && KNOWN_SUBROLES.includes(subrole) && subrole !== 'walikelas') {
+      effectiveKey = subrole;
     } else if (isWalasUser && activeRole !== 'waka' && activeRole !== 'kepsek' && activeRole !== 'admin' && activeRole !== 'superadmin') {
       effectiveKey = 'walikelas';
     } else if (subrole && KNOWN_SUBROLES.includes(subrole)) {
