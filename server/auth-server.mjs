@@ -1,4 +1,5 @@
 import "./auto-backup.mjs";
+import { safeLog, safeWarn, safeError, maskSensitiveData } from "./utils/logger.mjs";
 import { handlePklRoutes } from "./routes/pkl.mjs";
 import { handleBkRoutes, initBkTables } from "./routes/bk.mjs";
 import { handleHikvisionRoutes, autoLinkHikvisionStudents, autoLinkHikvisionTeachersAndStaffs } from "./routes/hikvision.mjs";
@@ -1522,13 +1523,15 @@ const getHeaders = (req) => {
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Credentials": "true",
     "Vary": "Origin",
-    // HTTP Security Headers
+    // HTTP Security Headers Hardening
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-XSS-Protection": "1; mode=block",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Permissions-Policy": "camera=(self), geolocation=(self), microphone=(), payment=()",
+    "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
     "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; sandbox",
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "Pragma": "no-cache",
@@ -1834,7 +1837,7 @@ const server = createServer(async (req, res) => {
 
   // FIX: Global Rate Limiter Protection
   if (isRateLimited(req)) {
-    res.writeHead(429, { "Content-Type": "application/json; charset=utf-8" });
+    res.writeHead(429, getHeaders(req));
     res.end(JSON.stringify({ ok: false, error: "Terlalu banyak permintaan. Silakan coba lagi nanti." }));
     return;
   }
@@ -3125,7 +3128,7 @@ const server = createServer(async (req, res) => {
 
 
 
-    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit, deleteSessionFromDb };
+    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit, deleteSessionFromDb, safeLog, safeWarn, safeError, maskSensitiveData };
     
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);

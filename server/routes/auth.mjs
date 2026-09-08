@@ -1019,5 +1019,70 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     return true;
   }
 
+  // ── TWO-FACTOR AUTHENTICATION (2FA / OTP) [OPTIONAL & MODULAR] ──
+  if (req.method === "GET" && url.pathname === "/api/auth/2fa/status") {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+    try {
+      if (!dbPool) throw createDatabaseUnavailableError();
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS user_two_factor_auth (
+          user_id VARCHAR(100) PRIMARY KEY,
+          is_enabled BOOLEAN DEFAULT FALSE,
+          method VARCHAR(20) DEFAULT 'whatsapp',
+          phone_number VARCHAR(30),
+          secret_key TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      const { rows } = await dbPool.query(
+        "SELECT is_enabled, method, phone_number FROM user_two_factor_auth WHERE user_id = $1",
+        [session.username || session.id]
+      );
+      const statusData = rows.length > 0 ? rows[0] : { is_enabled: false, method: 'whatsapp', phone_number: null };
+      send(req, res, 200, { ok: true, data: statusData });
+    } catch (err) {
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/auth/2fa/toggle") {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+    const sessionRole = normalizeServerRole(session.role);
+    if (!["admin", "superadmin"].includes(sessionRole)) {
+      send(req, res, 403, { ok: false, error: "Fitur 2FA saat ini hanya tersedia untuk peran Administrator." });
+      return true;
+    }
+    try {
+      if (!dbPool) throw createDatabaseUnavailableError();
+      const body = await readJsonBody(req);
+      const isEnabled = Boolean(body.enabled);
+      const phoneNumber = body.phoneNumber ? String(body.phoneNumber).trim() : null;
+      const method = body.method === 'totp' ? 'totp' : 'whatsapp';
+
+      await dbPool.query(`
+        INSERT INTO user_two_factor_auth (user_id, is_enabled, method, phone_number, updated_at)
+        VALUES ($1, $2, $3, $4, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET
+          is_enabled = EXCLUDED.is_enabled,
+          method = EXCLUDED.method,
+          phone_number = COALESCE(EXCLUDED.phone_number, user_two_factor_auth.phone_number),
+          updated_at = NOW()
+      `, [session.username || session.id, isEnabled, method, phoneNumber]);
+
+      send(req, res, 200, {
+        ok: true,
+        message: isEnabled ? "Autentikasi dua langkah (2FA) berhasil diaktifkan." : "Autentikasi dua langkah (2FA) berhasil dinonaktifkan.",
+        enabled: isEnabled
+      });
+    } catch (err) {
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
   return false;
 }
