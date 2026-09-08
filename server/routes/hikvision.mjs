@@ -2015,8 +2015,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 if (!matrix[matchedNis].days[day] || typeof matrix[matchedNis].days[day] !== 'object') {
                   matrix[matchedNis].days[day] = { in: null, out: null, isLate: false };
                 }
-                const recTime = rec.time || "07:00";
-                const isPulang = (rec.sessionName && rec.sessionName.toLowerCase().includes('pulang')) || recTime >= "12:00";
+                const rawTime = String(rec.time || '').trim();
+                const isValidTime = /^\d{1,2}:\d{2}/.test(rawTime);
+                const recTime = isValidTime ? rawTime.substring(0, 5) : "07:00";
+                const isPulang = (rec.sessionName && rec.sessionName.toLowerCase().includes('pulang')) || (isValidTime && rawTime >= "12:00");
                 
                 if (isPulang) {
                   matrix[matchedNis].days[day].out = recTime;
@@ -2024,7 +2026,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   matrix[matchedNis].days[day].in = recTime;
                   if (status === "Terlambat") matrix[matchedNis].days[day].isLate = true;
                 }
-                if (rec.note) matrix[matchedNis].days[day].note = rec.note;
+                if (rec.note && !rec.note.startsWith("Dari mesin") && !rec.note.startsWith("Mesin")) {
+                  matrix[matchedNis].days[day].note = rec.note;
+                }
               }
             }
           }
@@ -2070,8 +2074,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
-                 const actualIn = prevDayData.in || parsedTime || (isLate ? "Terlambat" : status);
-                 const actualOut = prevDayData.out || (isLate ? null : status);
+                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar"].includes(status);
+                 const actualIn = prevDayData.in || parsedTime || (isPermit ? status : null);
+                 const actualOut = prevDayData.out || (isPermit ? status : null);
 
                  matrix[targetKey].days[day] = {
                    ...prevDayData,
@@ -2080,7 +2085,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    isLate: isLate,
                    isManual: true,
                    status: status,
-                   note: rec.keterangan,
+                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin:")) ? rec.keterangan : null,
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
                    approval_status: rec.approval_status

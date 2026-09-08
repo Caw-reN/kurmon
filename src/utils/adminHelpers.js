@@ -36,6 +36,11 @@ export const timeToMinutes = value => {
   const total = Number.parseInt(hour, 10) * 60 + Number.parseInt(minute, 10);
   return Number.isFinite(total) ? total : 0;
 };
+export const formatAttendanceTime = (val) => {
+  if (!val) return null;
+  const s = String(val).trim();
+  return /^\d{1,2}:\d{2}/.test(s) ? s.substring(0, 5) : null;
+};
 export const getAttendanceSessions = attendanceSettings => Array.isArray(attendanceSettings?.sessions) && attendanceSettings.sessions.length > 0 ? attendanceSettings.sessions : [];
 export const getActiveAttendanceSession = (attendanceSettings, now = new Date(), role = null, academicCalendar = [], calendarCategories = []) => {
   const parts = getJakartaDateParts(now);

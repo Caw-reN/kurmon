@@ -13,7 +13,7 @@ import { UISelect } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { useDataStore } from '../../../store/useDataStore.js';
-import { compareTableValues } from '../../../utils/adminHelpers.js';
+import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHelpers.js';
 import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
 import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
 import { Shield } from 'lucide-react';
@@ -325,9 +325,11 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             let fontColor = "FF334155"; // slate-700
 
             if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+              const t0 = formatAttendanceTime(dayData.taps[0]);
+              const tLast = formatAttendanceTime(dayData.taps[dayData.taps.length - 1]);
               content = dayData.taps.length === 1 
-                ? (dayData.taps[0] || "").substring(0,5) 
-                : (dayData.taps[0] || "").substring(0,5) + '\n' + (dayData.taps[dayData.taps.length - 1] || "").substring(0,5);
+                ? (t0 || "--:--")
+                : (t0 || "--:--") + '\n' + (tLast || "--:--");
             } else {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
@@ -335,8 +337,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               else if (status === "Izin") content = "I";
               else if (status === "Terlambat" || status === "Hadir") {
                 if (dayData.in || dayData.out) {
-                  const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
-                  const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
+                  const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                  const tOut = formatAttendanceTime(dayData.out) || '--:--';
                   content = `${tIn}\n${tOut}`;
                 } else {
                   content = status === "Terlambat" ? "T" : "H";
@@ -451,9 +453,11 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           } else {
             let content = "-";
             if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+              const t0 = formatAttendanceTime(dayData.taps[0]);
+              const tLast = formatAttendanceTime(dayData.taps[dayData.taps.length - 1]);
               content = dayData.taps.length === 1 
-                ? (dayData.taps[0] || "").substring(0,5) 
-                : (dayData.taps[0] || "").substring(0,5) + '\n' + (dayData.taps[dayData.taps.length - 1] || "").substring(0,5);
+                ? (t0 || "--:--")
+                : (t0 || "--:--") + '\n' + (tLast || "--:--");
             } else {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
@@ -461,8 +465,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               else if (status === "Izin") content = "I";
               else if (status === "Terlambat" || status === "Hadir") {
                 if (dayData.in || dayData.out) {
-                  const tIn = dayData.in ? dayData.in.substring(0,5) : '--:--';
-                  const tOut = dayData.out ? dayData.out.substring(0,5) : '--:--';
+                  const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                  const tOut = formatAttendanceTime(dayData.out) || '--:--';
                   content = `${tIn}\n${tOut}`;
                 } else {
                   content = status === "Terlambat" ? "T" : "H";
@@ -1245,15 +1249,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       );
     }
     const renderTaps = (dayData) => {
-      const formatTime = (val) => {
-        if (!val) return null;
-        const s = String(val).trim();
-        if (/^\d{1,2}:\d{2}/.test(s)) return s.substring(0, 5);
-        return null;
-      };
-      const inTime = formatTime(dayData.in);
-      const outTime = formatTime(dayData.out);
-      const noteText = dayData.note || '';
+      const inTime = formatAttendanceTime(dayData.in);
+      const outTime = formatAttendanceTime(dayData.out);
+      const rawNote = dayData.note || '';
+      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
 
       return (
         <div className="flex flex-col gap-0.5" title={noteText ? `Catatan: ${noteText}` : undefined}>
@@ -1930,13 +1929,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                           <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
                             isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           }`}>
-                            {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
+                            {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
                           </span>
                         )}
 
                         {dailyDetailModal === 'late' && (
                           <span className="px-2 py-0.5 bg-rose-50 text-rose-700 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border border-rose-200 shadow-xs">
-                            {dayData.in?.substring(0, 5) || "Terlambat"}
+                            {formatAttendanceTime(dayData.in) || "Terlambat"}
                           </span>
                         )}
 

@@ -44,7 +44,7 @@ function isFutureDay(day, filter, today) {
   return new Date(filter.year, filter.month - 1, day) > new Date(today.getFullYear(), today.getMonth(), today.getDate());
 }
 
-function fmt5(t) { return t ? String(t).substring(0, 5) : '-'; }
+function fmt5(t) { return (t && /^\d{1,2}:\d{2}/.test(String(t).trim())) ? String(t).trim().substring(0, 5) : '-'; }
 
 export default function MyAttendancePage({ setActiveTab }) {
   const user        = useAuthStore(state => state.user);
@@ -705,8 +705,8 @@ export default function MyAttendancePage({ setActiveTab }) {
             const isSelected = selectedDay === day;
 
             // Extract times for display inside cell
-            const showIn  = dayData && !dayData.isManual && dayData.in;
-            const showOut = dayData && !dayData.isManual && dayData.out;
+            const showIn  = dayData && !dayData.isManual && Boolean(dayData.in) && /^\d{1,2}:\d{2}/.test(String(dayData.in).trim());
+            const showOut = dayData && !dayData.isManual && Boolean(dayData.out) && /^\d{1,2}:\d{2}/.test(String(dayData.out).trim());
 
             const currentDateStr = `${filter.year}-${String(filter.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             const dayEvent = academicCalendar.find(evt => evt.dateStart <= currentDateStr && evt.dateEnd >= currentDateStr);

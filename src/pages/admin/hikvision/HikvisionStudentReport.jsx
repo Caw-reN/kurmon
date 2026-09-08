@@ -10,7 +10,7 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { UISelect, Button, TablePagination, Modal } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
-import { compareTableValues } from '../../../utils/adminHelpers.js';
+import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHelpers.js';
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
 import { logWalasAttendanceCheck } from '../../../utils/auditLogger.js';
 
@@ -520,14 +520,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
             } else if (status === "Terlambat" || dayData.isLate) {
               if (isDetailed && (dayData.in || dayData.out)) {
-                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+                const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                content = `${tIn}\n${tOut}`;
               } else {
                 content = "T";
               }
               fgColor = "FFFEE2E2"; fontColor = "FF991B1B";
             } else if (dayData.in || dayData.out || status === "Hadir") {
               if (isDetailed && (dayData.in || dayData.out)) {
-                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+                const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                content = `${tIn}\n${tOut}`;
               } else {
                 content = "H";
               }
@@ -641,14 +645,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               fillColor = [219, 234, 254]; textColor = [30, 58, 138];
             } else if (status === "Terlambat" || dayData.isLate) {
               if (isDetailed && (dayData.in || dayData.out)) {
-                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+                const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                content = `${tIn}\n${tOut}`;
               } else {
                 content = "T";
               }
               fillColor = [254, 226, 226]; textColor = [153, 27, 27];
             } else if (dayData.in || dayData.out || status === "Hadir") {
               if (isDetailed && (dayData.in || dayData.out)) {
-                content = `${dayData.in ? dayData.in.substring(0,5) : '--:--'}\n${dayData.out ? dayData.out.substring(0,5) : '--:--'}`;
+                const tIn = formatAttendanceTime(dayData.in) || '--:--';
+                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                content = `${tIn}\n${tOut}`;
               } else {
                 content = "H";
               }
@@ -1659,14 +1667,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
                                 isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                               }`}>
-                                {dayData.in?.substring(0, 5) || "Hadir"} {isLate && "(T)"}
+                                {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
                               </span>
                             )}
 
                             {dailyDetailModal === 'late' && (
                               <>
                                 <span className="px-2 py-0.5 bg-amber-50 text-amber-700 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border border-amber-200 shadow-xs">
-                                  {dayData.in?.substring(0, 5) || "Terlambat"}
+                                  {formatAttendanceTime(dayData.in) || "Terlambat"}
                                 </span>
                                 <button 
                                   type="button"
@@ -2148,24 +2156,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                       <span className="font-extrabold">{dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
                                     </div>
                                   ) : (() => {
-                                    const formatTime = (val) => {
-                                      if (!val) return null;
-                                      const s = String(val).trim();
-                                      if (/^\d{1,2}:\d{2}/.test(s)) return s.substring(0, 5);
-                                      return null;
-                                    };
-                                    const inTime = formatTime(dayData.in);
-                                    const outTime = formatTime(dayData.out);
-                                    const noteText = dayData.note || '';
+                                     const inTime = formatAttendanceTime(dayData.in);
+                                     const outTime = formatAttendanceTime(dayData.out);
+                                     const rawNote = dayData.note || '';
+                                     const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
 
-                                    return (
-                                      <div title={noteText ? `Catatan: ${noteText}` : undefined}>
-                                        <div>{inTime || '--:--'}</div>
-                                        <div className="border-t border-black/10 my-0.5"></div>
-                                        <div>{outTime || '--:--'}</div>
-                                      </div>
-                                    );
-                                  })()}
+                                     return (
+                                       <div title={noteText ? `Catatan: ${noteText}` : undefined}>
+                                         <div>{inTime || '--:--'}</div>
+                                         <div className="border-t border-black/10 my-0.5"></div>
+                                         <div>{outTime || '--:--'}</div>
+                                       </div>
+                                     );
+                                   })()}
                                </div>
                             </td>
                          );
