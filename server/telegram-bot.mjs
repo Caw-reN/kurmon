@@ -1078,26 +1078,52 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
   if (!_botToken || !destChatId) return;
 
   try {
-    const today = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta' }).split(',')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
     const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
     const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 
-    // 1. Data Guru & Karyawan dari hikvision_logs hari ini
+    // 1. Data log presensi dari hikvision_logs hari ini
     const { rows: todayLogs } = await _dbPool.query(`
-      SELECT employee_id, true_name, true_person_type, timestamp, status
+      SELECT employee_id, person_type, timestamp
       FROM hikvision_logs
-      WHERE "timestamp"::date = $1::date
-      ORDER BY "timestamp" ASC
+      WHERE timestamp::date = $1::date
+      ORDER BY timestamp ASC
     `, [today]).catch((e) => { console.error('[TelegramBot] Query Absensi Error:', e.message); return { rows: [] }; });
 
-    // Ambil total guru & karyawan terdaftar
-    const { rows: tRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_teachers`).catch(() => ({ rows: [{ count: 0 }] }));
-    const { rows: sRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_staffs`).catch(() => ({ rows: [{ count: 0 }] }));
+    // Ambil data master guru, staff, dan siswa
+    const { rows: tRows } = await _dbPool.query(`SELECT payload FROM mst_teachers`).catch(() => ({ rows: [] }));
+    const { rows: sRows } = await _dbPool.query(`SELECT payload FROM mst_staffs`).catch(() => ({ rows: [] }));
     const { rows: stdRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_students`).catch(() => ({ rows: [{ count: 0 }] }));
-    
-    const totalGuruMaster = parseInt(tRows[0]?.count || 0, 10);
-    const totalStaffMaster = parseInt(sRows[0]?.count || 0, 10);
+
+    const teacherCodes = new Set();
+    tRows.forEach(r => {
+      const p = r.payload || {};
+      if (p.id) teacherCodes.add(String(p.id).trim());
+      if (p.code) teacherCodes.add(String(p.code).trim());
+    });
+
+    const staffCodes = new Set();
+    sRows.forEach(r => {
+      const p = r.payload || {};
+      if (p.id) staffCodes.add(String(p.id).trim());
+      if (p.code) staffCodes.add(String(p.code).trim());
+    });
+
+    const totalGuruMaster = tRows.length;
+    const totalStaffMaster = sRows.length;
     const totalStudentMaster = parseInt(stdRows[0]?.count || 0, 10);
+
+    // Ambil batas waktu keterlambatan dari config sistem
+    let masukLateGuru = '07:15';
+    let masukLateSiswa = '07:00';
+    try {
+      const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+      if (confRes.rowCount > 0 && confRes.rows[0].data) {
+        const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+        masukLateGuru = conf?.guru?.masuk_late || conf?.masuk_late || '07:15';
+        masukLateSiswa = conf?.siswa?.masuk_late || conf?.masuk_late || '07:00';
+      }
+    } catch (e) {}
 
     // Filter unique tap per user
     const teacherTaps = new Map();
@@ -1105,47 +1131,47 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
     const studentTaps = new Map();
 
     todayLogs.forEach(r => {
-      const type = String(r.true_person_type || '').toLowerCase();
+      const type = String(r.person_type || '').toLowerCase();
       const id = String(r.employee_id || '').trim();
-      if (type === 'guru') {
+      if (type === 'guru' || teacherCodes.has(id)) {
         if (!teacherTaps.has(id)) teacherTaps.set(id, r);
-      } else if (type === 'karyawan') {
+      } else if (type === 'karyawan' || type === 'staff' || staffCodes.has(id)) {
         if (!staffTaps.has(id)) staffTaps.set(id, r);
       } else {
         if (!studentTaps.has(id)) studentTaps.set(id, r);
       }
     });
 
-    // Hitung guru tepat waktu vs terlambat (batas masuk 07:15)
+    // Hitung guru tepat waktu vs terlambat
     let guruTepat = 0, guruTelat = 0;
     teacherTaps.forEach(r => {
-      const tsStr = String(r.timestamp || '');
-      const timeOnly = tsStr.includes('T') ? tsStr.split('T')[1].substring(0, 5) : tsStr.substring(11, 16);
-      if (timeOnly > "07:15") guruTelat++;
+      const timeOnly = new Date(r.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+      if (timeOnly > masukLateGuru) guruTelat++;
       else guruTepat++;
     });
     const guruBelum = Math.max(0, totalGuruMaster - teacherTaps.size);
 
-    // Hitung siswa
+    // Hitung siswa tepat waktu vs terlambat
     let siswaTepat = 0, siswaTelat = 0;
     studentTaps.forEach(r => {
-      const tsStr = String(r.timestamp || '');
-      const timeOnly = tsStr.includes('T') ? tsStr.split('T')[1].substring(0, 5) : tsStr.substring(11, 16);
-      if (timeOnly > "07:00") siswaTelat++;
+      const timeOnly = new Date(r.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+      if (timeOnly > masukLateSiswa) siswaTelat++;
       else siswaTepat++;
     });
     const siswaBelum = Math.max(0, totalStudentMaster - studentTaps.size);
 
-    // Ambil rekap surat izin / sakit siswa
+    // Ambil rekap surat izin / sakit / dispensasi siswa
     const { rows: suratRows } = await _dbPool.query(`
       SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi 
-      WHERE date = $1 GROUP BY status
+      WHERE tanggal::date = $1::date GROUP BY status
     `, [today]).catch(() => ({ rows: [] }));
 
-    let siswaIzin = 0, siswaSakit = 0;
+    let siswaIzin = 0, siswaSakit = 0, siswaDispen = 0;
     suratRows.forEach(sr => {
-      if (sr.status === 'Izin') siswaIzin += parseInt(sr.cnt, 10);
-      if (sr.status === 'Sakit') siswaSakit += parseInt(sr.cnt, 10);
+      const st = String(sr.status || '').toLowerCase();
+      if (st.includes('izin')) siswaIzin += parseInt(sr.cnt, 10);
+      else if (st.includes('sakit')) siswaSakit += parseInt(sr.cnt, 10);
+      else if (st.includes('dispen')) siswaDispen += parseInt(sr.cnt, 10);
     });
 
     const msg = 
@@ -1161,7 +1187,7 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
 🎓 <b>PRESENSI SISWA</b>
 • Hadir Tepat Waktu: <b>${siswaTepat}</b> siswa
 • Terlambat: <b>${siswaTelat}</b> siswa
-• Izin / Sakit: <b>${siswaIzin + siswaSakit}</b> siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
+• Izin / Sakit: <b>${siswaIzin + siswaSakit + siswaDispen}</b> siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
 • Total Tap Mesin: <b>${studentTaps.size}</b> dari ${totalStudentMaster} siswa
 • Belum Absen: <b>${siswaBelum}</b> siswa
 
