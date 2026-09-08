@@ -163,7 +163,11 @@ export default function AdminContentRouter({ context }) {
     const isTabAllowed = () => {
       if (role ==="admin" || role ==="superadmin") return true;
       if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
-      if (activeTab ==="kedisiplinan_piket" && role ==="guru" && hasPiket) return true;
+      if (activeTab === "kedisiplinan_piket") {
+        const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel("kedisiplinan_piket") : null;
+        if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
+        if (role === "guru" && hasPiket) return true;
+      }
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;
 
       // Allow all attendance report tabs for tu, tata_usaha, karyawan, kepsek, waka roles unconditionally
@@ -241,13 +245,14 @@ export default function AdminContentRouter({ context }) {
         return level && level !=="none" && level !=="nonaktif";
       };
       if (role === "guru") {
+        const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
+        if (isWalas) {
+          return checkAllowed("walikelas");
+        }
         // Guru dengan subrole menggunakan permission subrole mereka
         const subrole = currentUser?.subrole;
         if (subrole) {
-          const subroleAllowed = checkAllowed(subrole);
-          // Juga cek permission guru default sebagai fallback
-          const guruAllowed = checkAllowed("guru");
-          return subroleAllowed || guruAllowed;
+          return checkAllowed(subrole);
         }
         return checkAllowed("guru");
       }
@@ -269,7 +274,7 @@ export default function AdminContentRouter({ context }) {
         return checkAllowed("tu");
       }
 
-      const commonRoleTabs = ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket"];
+      const commonRoleTabs = ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan"];
       if (commonRoleTabs.includes(activeTab)) return true;
       if (role === "kepsek") {
         const kepsekAllowedTabs = [

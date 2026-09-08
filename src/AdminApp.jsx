@@ -1522,6 +1522,7 @@ export default function App() {
       // Determine effective key
       let effectiveKey = role;
       const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+      const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
       const KNOWN_SUBROLES = [
         'bpbk', 'pembina_osis', 'sekretaris_osis', 'walikelas',
         'sekretaris_kesiswaan', 'anggota_kesiswaan',
@@ -1533,6 +1534,8 @@ export default function App() {
       if (role === "waka" || role.startsWith("waka_")) {
         const div = (currentUser?.division || role.replace("waka_", "") || "kurikulum").toLowerCase().trim();
         effectiveKey = `waka_${div}`;
+      } else if (isWalasUser && role !== 'waka' && role !== 'kepsek' && role !== 'admin' && role !== 'superadmin') {
+        effectiveKey = 'walikelas';
       } else if (subrole && KNOWN_SUBROLES.includes(subrole)) {
         effectiveKey = subrole;
       } else if (role === "tata_usaha") {
@@ -1552,24 +1555,31 @@ export default function App() {
           return perms.includes(tabId);
         }
         const level = perms[tabId];
-        if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
-        if (level === "nonaktif" || level === "none" || level === "off") return false;
+        // Khusus kedisiplinan_piket: jika diatur nonaktif / none / off, WAJIB DITOLAK
+        if (tabId === 'kedisiplinan_piket') {
+          if (level === "nonaktif" || level === "none" || level === "off") return false;
+        } else {
+          if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
+          if (level === "nonaktif" || level === "none" || level === "off") return false;
+        }
       }
 
-      // Khusus kedisiplinan_piket: hanya diizinkan jika admin, kepsek, kesiswaan/bpbk, bertugas piket, atau diset edit
+      // Khusus kedisiplinan_piket: hanya diizinkan jika admin, kepsek, kesiswaan/bpbk, bertugas piket, atau diset edit/view
       if (tabId === 'kedisiplinan_piket') {
         if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') return true;
+        const piketPerm = perms?.[tabId];
+        if (piketPerm === 'nonaktif' || piketPerm === 'none' || piketPerm === 'off') return false;
+        if (piketPerm === 'edit' || piketPerm === 'full') return true;
+
         const div = (currentUser?.division || "").toLowerCase().trim();
         if ((role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan') return true;
         if (['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) || role === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk') return true;
-        if (hasPiket) return true;
-        const piketPerm = perms?.[tabId];
-        if (piketPerm === 'edit') return true;
+        if (hasPiket && piketPerm !== 'nonaktif' && piketPerm !== 'none' && piketPerm !== 'off') return true;
+        if (piketPerm === 'view' || piketPerm === 'otomatis') return true;
         return false;
       }
 
       // Walas override jika belum di-set nonaktif
-      const isWalasUser = currentUser?.isWalas || !!currentUser?.walasClass;
       if (isWalasUser && ["catatan_walikelas", "walas_report"].includes(tabId)) {
         return true;
       }
@@ -1577,6 +1587,7 @@ export default function App() {
       // Fallback DEFAULTS
       const DEFAULTS = {
         guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
+        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
         bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","siswa","hikvision_report_siswa"],
         pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","riwayat_prestasi","siswa","modul_ajar"],
         sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi"],
@@ -2597,6 +2608,7 @@ export default function App() {
 
     // Cek subrole untuk guru dan karyawan
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
     const SUBROLE_KEYS_ALL = [
       'bpbk', 'pembina_osis', 'sekretaris_osis', 'walikelas',
       'sekretaris_kesiswaan', 'anggota_kesiswaan',
@@ -2605,7 +2617,10 @@ export default function App() {
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara',
     ];
-    const effectiveRoleKey = (subrole && SUBROLE_KEYS_ALL.includes(subrole)) ? subrole : roleKey;
+    let effectiveRoleKey = (subrole && SUBROLE_KEYS_ALL.includes(subrole)) ? subrole : roleKey;
+    if (isWalasUser && role !== 'waka' && role !== 'kepsek' && role !== 'admin' && role !== 'superadmin') {
+      effectiveRoleKey = 'walikelas';
+    }
 
     const perms = rolePermissions?.[effectiveRoleKey] || rolePermissions?.[roleKey];
     if (!perms) return "none";
@@ -2672,6 +2687,7 @@ export default function App() {
 
     let effectiveKey = activeRole;
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
     const KNOWN_SUBROLES = [
       'bpbk', 'pembina_osis', 'sekretaris_osis', 'walikelas',
       'sekretaris_kesiswaan', 'anggota_kesiswaan',
@@ -2684,6 +2700,8 @@ export default function App() {
       const divRaw = (currentUser?.division || activeRole.replace("waka_", "")).toLowerCase().trim();
       const div = (divRaw === "waka" || divRaw === "") ? "kurikulum" : divRaw;
       effectiveKey = `waka_${div}`;
+    } else if (isWalasUser && activeRole !== 'waka' && activeRole !== 'kepsek' && activeRole !== 'admin' && activeRole !== 'superadmin') {
+      effectiveKey = 'walikelas';
     } else if (subrole && KNOWN_SUBROLES.includes(subrole)) {
       effectiveKey = subrole;
     } else if (activeRole === "tata_usaha") {
@@ -2706,20 +2724,25 @@ export default function App() {
     }
 
     let isAllowed = false;
-    const isWalasUser = currentUser?.isWalas || currentUser?.walasClass;
 
-    // Khusus kedisiplinan_piket: hanya boleh jika superadmin, kepsek, kesiswaan/bpbk, terjadwal piket, atau diset edit
+    // Khusus kedisiplinan_piket: hanya boleh jika superadmin, kepsek, kesiswaan/bpbk, terjadwal piket (tanpa penolakan nonaktif), atau diset edit/view
     if (id === 'kedisiplinan_piket') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
+      // Hormati penonaktifan eksplisit dari Hak Akses
+      if (level === "nonaktif" || level === "none" || level === "off") {
+        return false;
+      }
+      if (level === "edit" || level === "full") return true;
+
       const div = (currentUser?.division || "").toLowerCase().trim();
       if ((activeRole === 'waka' && div === 'kesiswaan') || activeRole === 'kesiswaan') return true;
       if (['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) || activeRole === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk') {
         return true;
       }
-      if (hasPiket) return true;
-      if (level === "edit") return true;
+      if (hasPiket && level !== "nonaktif" && level !== "none" && level !== "off") return true;
+      if (level === "view" || level === "otomatis") return true;
       return false;
     }
 
@@ -2732,6 +2755,7 @@ export default function App() {
     } else {
       const DEFAULTS = {
         guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
+        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
         bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","siswa","hikvision_report_siswa"],
         pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","riwayat_prestasi","siswa","modul_ajar"],
         sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi"],

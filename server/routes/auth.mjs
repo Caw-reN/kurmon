@@ -388,6 +388,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           }
         }
         
+        const effectiveSubrole = teacher.subrole || (isWalas ? "walikelas" : "");
         send(req, res, 200, {
           ok: true,
           user: {
@@ -395,7 +396,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             code: userCode,
             name: teacher.name,
             division: teacher.division || "",
-            subrole: teacher.subrole || "",
+            subrole: effectiveSubrole,
             isWalas,
             walasClass,
             isDefaultPassword,
@@ -405,7 +406,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
               username: userCode, 
               name: teacher.name,
               division: teacher.division || "",
-              subrole: teacher.subrole || "",
+              subrole: effectiveSubrole,
               isWalas,
               walasClass,
               isBK: teacher.isBK || false,
