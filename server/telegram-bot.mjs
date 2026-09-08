@@ -137,6 +137,27 @@ async function _pollLoop() {
 }
 
 async function _handleUpdate(update) {
+  // ── Dukung tombol inline keyboard (callback_query) ────────
+  if (update.callback_query) {
+    const cb = update.callback_query;
+    const cbChatId = String(cb.message?.chat?.id || cb.from?.id);
+    const cbData = cb.data;
+
+    if (_botToken && cb.id) {
+      fetch(`https://api.telegram.org/bot${_botToken}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: cb.id })
+      }).catch(() => {});
+    }
+
+    update.message = {
+      chat: { id: cbChatId },
+      from: cb.from,
+      text: cbData
+    };
+  }
+
   const msg = update.message;
   if (!msg || !msg.text) return;
 
@@ -144,30 +165,90 @@ async function _handleUpdate(update) {
   const text = msg.text.trim();
   const from = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || chatId);
 
+  // Keyboard menu utama yang menempel permanen di bawah chat HP/Desktop
+  const MAIN_MENU_KEYBOARD = {
+    keyboard: [
+      [{ text: '📊 Rekap Presensi' }, { text: '🏫 Daftar Kelas' }],
+      [{ text: '📈 Presensi Per Kelas' }, { text: '👨‍🏫 Presensi Guru' }],
+      [{ text: '💻 Status Server' }, { text: '❓ Bantuan' }]
+    ],
+    resize_keyboard: true,
+    is_persistent: true
+  };
+
+  const MAIN_INLINE_KEYBOARD = {
+    inline_keyboard: [
+      [
+        { text: '📊 Rekap Presensi', callback_data: '/absen' },
+        { text: '🏫 Daftar Kelas', callback_data: '/kelas' }
+      ],
+      [
+        { text: '📈 Presensi Per Kelas', callback_data: '/rekap_kelas' },
+        { text: '👨‍🏫 Presensi Guru', callback_data: '/absen_guru' }
+      ],
+      [
+        { text: '💻 Status Server', callback_data: '/status' },
+        { text: '❓ Panduan Bantuan', callback_data: '/help' }
+      ]
+    ]
+  };
+
   const parts = text.split(/\s+/);
   let cmd = parts[0].toLowerCase().split('@')[0];
-  // Dukung input kata kunci umum tanpa tanda garis miring (/)
-  if (!cmd.startsWith('/')) {
-    const knownWords = ['help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru'];
+
+  // Pemetaan teks tombol keyboard ke perintah bot
+  const lowerText = text.toLowerCase().trim();
+  if (lowerText.includes('rekap presensi') || lowerText === 'rekap') {
+    cmd = '/absen';
+  } else if (lowerText.includes('daftar kelas')) {
+    cmd = '/kelas';
+  } else if (lowerText.includes('presensi per kelas') || lowerText.includes('rekap kelas')) {
+    cmd = '/rekap_kelas';
+  } else if (lowerText.includes('presensi guru') || lowerText.includes('absen guru')) {
+    cmd = '/absen_guru';
+  } else if (lowerText.includes('status server')) {
+    cmd = '/status';
+  } else if (lowerText.includes('bantuan') || lowerText.includes('petunjuk')) {
+    cmd = '/help';
+  } else if (lowerText === 'menu' || lowerText === '/menu') {
+    cmd = '/menu';
+  } else if (!cmd.startsWith('/')) {
+    const knownWords = ['help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu'];
     if (knownWords.includes(cmd)) {
       cmd = '/' + cmd;
     }
   }
   const args = parts.slice(1);
 
-  // Perintah /start selalu diizinkan agar admin/pengguna baru bisa langsung melihat Chat ID mereka
-  if (cmd === '/start') {
+  // Perintah /start dan /menu menampilkan sambutan dan memunculkan menu tombol di chat
+  if (cmd === '/start' || cmd === '/menu') {
     const isRegistered = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
     const safeFrom = escapeHtml(from);
+
     await _sendMessage(chatId,
-      `👋 <b>Halo ${safeFrom}!</b>\n\n` +
+      `👋 <b>Halo ${safeFrom}! Selamat datang di Bot Kurmon!</b>\n\n` +
+      `Sistem Monitoring & Presensi Sekolah Terpadu.\n` +
       `ID Chat Telegram Anda: <code>${chatId}</code>\n\n` +
       (isRegistered
-        ? `✅ Chat ID Anda sudah terdaftar dan terhubung ke sistem Kurmon.\nKetik <b>/help</b> untuk melihat menu perintah.`
+        ? `✅ Chat ID Anda sudah terdaftar dan siap digunakan.\nSilakan gunakan tombol menu di bawah ini untuk memulai:`
         : `⚠️ Chat ID ini belum didaftarkan di sistem Kurmon.\nSalin ID ini: <code>${chatId}</code> lalu masukkan ke menu <b>Pengaturan > Backup & Bot Telegram > API Key</b> di aplikasi Kurmon.`
       ),
-      { isHtml: true }
+      {
+        isHtml: true,
+        reply_markup: isRegistered ? MAIN_MENU_KEYBOARD : undefined
+      }
     );
+
+    if (isRegistered) {
+      await _sendMessage(chatId,
+        `📋 <b>PILIHAN MENU CEPAT</b>\n\n` +
+        `Pilih opsi yang ingin Anda akses:`,
+        {
+          isHtml: true,
+          reply_markup: MAIN_INLINE_KEYBOARD
+        }
+      );
+    }
     return;
   }
 
@@ -225,9 +306,21 @@ async function _handleUpdate(update) {
 // ── Commands ─────────────────────────────────────────────
 
 async function _cmdHelp(chatId) {
+  const MAIN_MENU_KEYBOARD = {
+    keyboard: [
+      [{ text: '📊 Rekap Presensi' }, { text: '🏫 Daftar Kelas' }],
+      [{ text: '📈 Presensi Per Kelas' }, { text: '👨‍🏫 Presensi Guru' }],
+      [{ text: '💻 Status Server' }, { text: '❓ Bantuan' }]
+    ],
+    resize_keyboard: true,
+    is_persistent: true
+  };
+
   await _sendMessage(chatId,
     `🤖 <b>Kurmon Bot Presensi & Monitoring</b>\n\n` +
     `Daftar perintah yang dapat Anda gunakan:\n\n` +
+    `📱 <b>NAVIGASI & MENU:</b>\n` +
+    `• <b>/menu</b> — Munculkan kembali tombol menu utama di layar chat\n\n` +
     `📊 <b>PRESENSI & DATA:</b>\n` +
     `• <b>/absen</b> — Rekap presensi keseluruhan (Guru, Karyawan, Siswa)\n` +
     `• <b>/absen [kelas]</b> — Cek detail kehadiran kelas (contoh: <code>/absen XI TKJ 1</code>)\n` +
@@ -241,7 +334,7 @@ async function _cmdHelp(chatId) {
     `• <b>/logs [n]</b> — Log audit terakhir (contoh: <code>/logs 10</code>)\n` +
     `• <b>/backup</b> — Trigger backup database manual\n` +
     `• <b>/help</b> — Menampilkan panduan bantuan ini`,
-    { isHtml: true }
+    { isHtml: true, reply_markup: MAIN_MENU_KEYBOARD }
   );
 }
 
@@ -357,6 +450,7 @@ async function _registerBotCommands() {
   if (!_botToken) return;
   try {
     const commands = [
+      { command: 'menu', description: 'Tampilkan tombol menu utama' },
       { command: 'absen', description: 'Rekap presensi keseluruhan hari ini' },
       { command: 'rekap_kelas', description: 'Ringkasan presensi per kelas' },
       { command: 'kelas', description: 'Daftar seluruh kelas aktif' },
@@ -1249,15 +1343,20 @@ async function _sendMessage(chatId, text, options = {}) {
   const htmlText = options.isHtml ? text : formatMessageToHtml(text);
 
   try {
+    const payload = {
+      chat_id: chatId,
+      text: htmlText,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    };
+    if (options.reply_markup) {
+      payload.reply_markup = options.reply_markup;
+    }
+
     const r = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: htmlText,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(payload),
     });
     const d = await r.json();
     if (!d.ok) {
@@ -1266,14 +1365,18 @@ async function _sendMessage(chatId, text, options = {}) {
       const cleanPlainText = text
         .replace(/<[^>]*>/g, '')
         .replace(/[*_`]/g, '');
+      const retryPayload = {
+        chat_id: chatId,
+        text: cleanPlainText,
+        disable_web_page_preview: true,
+      };
+      if (options.reply_markup) {
+        retryPayload.reply_markup = options.reply_markup;
+      }
       const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: cleanPlainText,
-          disable_web_page_preview: true,
-        }),
+        body: JSON.stringify(retryPayload),
       });
       const retryData = await retryRes.json();
       if (retryData.ok) return retryData;
