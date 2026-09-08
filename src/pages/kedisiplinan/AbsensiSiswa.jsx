@@ -7,6 +7,8 @@ import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Ey
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import HikvisionStudentReport from '../admin/hikvision/HikvisionStudentReport.jsx';
+import { compressImageFromFile } from '../../utils/imageUtils.js';
+
 
 export default function AbsensiSiswa({ classes = [], students = [], hideTabs = false, externalSearch = undefined, onExternalSearchChange = null }) {
   const user = useAuthStore(state => state.user);
@@ -81,50 +83,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // Auto-resize image down to max 800x800px with 0.6 quality for compact file size (~30-80 KB)
-  // Auto-resize image down to max 600x600px with 0.5 quality for compact file size (~30-80 KB)
-  const compressImage = (file, callback) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        const MAX_WIDTH = 600;
-        const MAX_HEIGHT = 600;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = Math.round(width);
-        canvas.height = Math.round(height);
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
-        // FIX PERF-06: Formula standar base64 → bytes (dikurangi padding karakter '=')
-        const base64Part = dataUrl.split(',')[1] || '';
-        const paddingCount = (base64Part.match(/=+$/) || [''])[0].length;
-        const sizeInBytes = Math.floor(base64Part.length * 3 / 4) - paddingCount;
-        const sizeInKB = Math.round(sizeInBytes / 1024);
-
-        callback(dataUrl, sizeInKB);
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  };
 
   const fetchData = useCallback(async () => {
     if (!authToken) return;
@@ -889,12 +847,15 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                        <span className="text-xs font-bold text-slate-600">Pilih foto/dokumen surat...</span>
                      </div>
                    )}
-                   <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                   <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                      const file = e.target.files[0];
                      if (file) {
-                       compressImage(file, (dataUrl, sizeKB) => {
+                       try {
+                         const { dataUrl, sizeKB } = await compressImageFromFile(file);
                          setForm(prev => ({ ...prev, fileData: dataUrl, fileName: file.name, fileSizeKB: sizeKB }));
-                       });
+                       } catch (err) {
+                         console.error('Gagal kompresi gambar:', err);
+                       }
                      }
                    }} />
                  </label>
@@ -948,12 +909,15 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                         <span className="text-xs font-bold text-slate-600">Pilih foto/dokumen surat...</span>
                       </div>
                     )}
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                    <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                       const file = e.target.files[0];
                       if (file) {
-                        compressImage(file, (dataUrl, sizeKB) => {
+                        try {
+                          const { dataUrl, sizeKB } = await compressImageFromFile(file);
                           setEditForm(prev => ({ ...prev, surat_base64: dataUrl, fileName: file.name, fileSizeKB: sizeKB }));
-                        });
+                        } catch (err) {
+                          console.error('Gagal kompresi gambar:', err);
+                        }
                       }
                     }} />
                   </label>

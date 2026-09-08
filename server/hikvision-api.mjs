@@ -86,7 +86,8 @@ export class HikvisionAPI {
     const url = `${this.baseUrl}${path}`;
     const method = options.method || 'GET';
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    // Timeout pendek (5s) agar mesin offline tidak memblokir cron polling
+    const timeout = setTimeout(() => controller.abort(), 5000);
     
     let res;
     try {
@@ -124,7 +125,8 @@ export class HikvisionAPI {
         newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
         
         const controller2 = new AbortController();
-        const timeout2 = setTimeout(() => controller2.abort(), 30000);
+        // Sedikit lebih lama untuk Digest auth karena ada overhead kriptografi
+        const timeout2 = setTimeout(() => controller2.abort(), 7000);
         try {
           res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal });
         } finally {

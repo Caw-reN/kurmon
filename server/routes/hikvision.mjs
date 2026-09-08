@@ -932,8 +932,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         );
 
         // 2. WHATSAPP NOTIFIKASI
-        // Ambil data guru yang bersangkutan
-        const teacherRes = await dbPool.query("SELECT payload FROM mst_teachers WHERE id = $1", [teacherCode]);
+        // Ambil data guru atau karyawan yang bersangkutan
+        const targetTable = personType === 'karyawan' ? 'mst_staffs' : 'mst_teachers';
+        let teacherRes = await dbPool.query(`SELECT payload FROM ${targetTable} WHERE id = $1`, [teacherCode]);
+        if (teacherRes.rowCount === 0) {
+          const fallbackTable = personType === 'karyawan' ? 'mst_teachers' : 'mst_staffs';
+          teacherRes = await dbPool.query(`SELECT payload FROM ${fallbackTable} WHERE id = $1`, [teacherCode]);
+        }
         const teacher = teacherRes.rowCount > 0 ? teacherRes.rows[0].payload : null;
         
         if (teacher && (status === "Izin" || status === "Sakit")) {
@@ -1952,20 +1957,24 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         `, [month, year]);
         const attendanceRecords = attendanceRes.rows;
 
-        // Build teacher code/nip mapping
-        const teachersRes = await dbPool.query("SELECT id, payload FROM mst_teachers");
+        // Build teacher/staff code/nip mapping
+        const [teachersRes, staffsRes] = await Promise.all([
+          dbPool.query("SELECT id, payload FROM mst_teachers").catch(() => ({ rows: [] })),
+          dbPool.query("SELECT id, payload FROM mst_staffs").catch(() => ({ rows: [] })),
+        ]);
         const codeToNis = {};
-        teachersRes.rows.forEach(r => {
-          const t = r.payload;
-          const code = (t.code || r.id).toLowerCase();
+        [...teachersRes.rows, ...staffsRes.rows].forEach(r => {
+          const t = r.payload || {};
+          const code = String(t.code || t.staff_code || r.id).trim().toLowerCase();
           const matched = studentsQuery.rows.find(s => 
             s.nis.toLowerCase() === code ||
-            s.nis.toLowerCase() === String(t.nip || '').trim().toLowerCase() ||
-            s.nis.toLowerCase() === String(t.id || '').trim().toLowerCase()
+            (t.nip && s.nis.toLowerCase() === String(t.nip).trim().toLowerCase()) ||
+            s.nis.toLowerCase() === String(r.id).trim().toLowerCase()
           );
           if (matched) {
             codeToNis[code] = matched.nis;
             if (t.nip) codeToNis[String(t.nip).trim().toLowerCase()] = matched.nis;
+            codeToNis[String(r.id).trim().toLowerCase()] = matched.nis;
           }
         });
 
@@ -1977,7 +1986,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const recYear = recDate.getFullYear();
           if (recMonth !== month || recYear !== year) return;
 
-          const matchedNis = codeToNis[rec.teacherCode.toLowerCase()] || rec.teacherCode;
+          const recCode = String(rec.teacherCode || '').trim().toLowerCase();
+          const matchedNis = codeToNis[recCode] || employeeToNisMap[recCode] || rec.teacherCode;
           if (matrix[matchedNis]) {
             const day = recDate.getDate();
             const status = rec.status;

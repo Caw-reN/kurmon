@@ -2156,12 +2156,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                     };
                                     const inTime = formatTime(dayData.in);
                                     const outTime = formatTime(dayData.out);
-                                    const hasNote = Boolean(dayData.note || (typeof dayData.in === 'string' && !inTime));
-                                    const noteText = dayData.note || (typeof dayData.in === 'string' && !inTime ? dayData.in : '');
+                                    const noteText = dayData.note || '';
 
                                     return (
                                       <div title={noteText ? `Catatan: ${noteText}` : undefined}>
-                                        <div>{inTime || (hasNote ? (noteText.length > 5 ? noteText.substring(0, 5) : noteText) : '--:--')}</div>
+                                        <div>{inTime || '--:--'}</div>
                                         <div className="border-t border-black/10 my-0.5"></div>
                                         <div>{outTime || '--:--'}</div>
                                       </div>

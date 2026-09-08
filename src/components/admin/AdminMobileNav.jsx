@@ -81,7 +81,25 @@ export default function AdminMobileNav({
         : { id: 'generate', icon: Calendar, label: 'Jadwal' },
     ];
 
-    if (role === 'guru' || isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {
+    if (role === 'guru') {
+      return [
+        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+        canAccessPiket
+          ? { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' }
+          : { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+      ];
+    }
+
+    if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {
+      // Jika admin sedang berada di absensiguru, sertakan absensiguru agar tabbar aktif
+      if (activeTab === 'absensiguru') {
+        return [
+          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        ];
+      }
       return defaultGuruAdminTabs;
     }
 
@@ -99,6 +117,13 @@ export default function AdminMobileNav({
           { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
           { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
           { id: 'pkl_jurnal', icon: BookOpen, label: 'Jurnal' },
+        ];
+      }
+      if (activeTab === 'absensiguru') {
+        return [
+          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
         ];
       }
       return defaultGuruAdminTabs;

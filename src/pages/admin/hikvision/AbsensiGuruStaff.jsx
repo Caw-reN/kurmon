@@ -31,6 +31,7 @@ import { Button, TablePagination } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { compressImageFromFile } from '../../../utils/imageUtils.js';
 
 export default function AbsensiGuruStaff({ personType = 'guru' }) {
   const currentUser = useAuthStore(state => state.user) || {};
@@ -123,43 +124,6 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
       || '';
   };
 
-  // Image compressor untuk upload ringan (~30-80 KB)
-  const compressImage = (file, callback) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        const MAX_WIDTH = 700;
-        const MAX_HEIGHT = 700;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = Math.round(width);
-        canvas.height = Math.round(height);
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.55);
-        callback(dataUrl);
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -319,7 +283,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   };
 
   // Form File Handler dengan kompresi otomatis
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
@@ -328,9 +292,12 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
     }
     setFormFileName(file.name);
     if (file.type.startsWith('image/')) {
-      compressImage(file, (dataUrl) => {
+      try {
+        const { dataUrl } = await compressImageFromFile(file, { maxWidth: 700, maxHeight: 700, quality: 0.7 });
         setFormFileData(dataUrl);
-      });
+      } catch (err) {
+        console.error('Gagal kompresi gambar:', err);
+      }
     } else {
       const reader = new FileReader();
       reader.onload = () => setFormFileData(reader.result);
@@ -1700,7 +1667,9 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                       if (!file) return;
                       setEditFileName(file.name);
                       if (file.type.startsWith('image/')) {
-                        compressImage(file, (dataUrl) => setEditFileData(dataUrl));
+                        compressImageFromFile(file, { maxWidth: 700, maxHeight: 700, quality: 0.7 })
+                          .then(({ dataUrl }) => setEditFileData(dataUrl))
+                          .catch(err => console.error('Gagal kompresi gambar:', err));
                       } else {
                         const reader = new FileReader();
                         reader.onload = () => setEditFileData(reader.result);

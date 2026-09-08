@@ -9,20 +9,33 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
 import PermissionPromptModal from './components/PermissionPromptModal.jsx';
+import { saveOfflineSnapshot, loadOfflineSnapshot } from './utils/offlineStorage.js';
 
 // Pre-hydrate snapshot immediately from cache so branding (school name, primary color) is ready synchronously on frame 0
 if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
   try {
-    const raw = localStorage.getItem("kurmon_offline_payload");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const payload = parsed?.payload || (typeof parsed === "object" && !parsed._savedAt ? parsed : null);
-      if (payload?.appSettings) {
-        setDatabaseSnapshot(payload);
-        applyDocumentBranding(payload.appSettings);
+    const brandRaw = localStorage.getItem("kurmon_branding_cache");
+    if (brandRaw) {
+      const parsedBrand = JSON.parse(brandRaw);
+      if (parsedBrand?.appSettings) {
+        setDatabaseSnapshot({ appSettings: parsedBrand.appSettings });
+        applyDocumentBranding(parsedBrand.appSettings);
         try {
-          useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...payload.appSettings }));
+          useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...parsedBrand.appSettings }));
         } catch {}
+      }
+    } else {
+      const raw = localStorage.getItem("kurmon_offline_payload");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const payload = parsed?.payload || (typeof parsed === "object" && !parsed._savedAt ? parsed : null);
+        if (payload?.appSettings) {
+          setDatabaseSnapshot(payload);
+          applyDocumentBranding(payload.appSettings);
+          try {
+            useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...payload.appSettings }));
+          } catch {}
+        }
       }
     }
   } catch {}
@@ -128,7 +141,7 @@ const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
 
   // If user IS logged in but role is not permitted for this route:
   if (allowedRoles && !allowedRoles.includes(role)) {
-    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk' || role === 'kepsek') {
+    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk' || role === 'kepsek' || role === 'karyawan') {
       return <Navigate to="/dashboard" replace />;
     }
     if (role === 'guru') return <Navigate to="/dashboard" replace />;
@@ -282,11 +295,10 @@ export default function App() {
             link.href = nextPayload.appSettings.heroImage;
             document.head.appendChild(link);
           }
-          try {
-            localStorage.setItem(OFFLINE_CACHE_KEY, JSON.stringify({ _savedAt: Date.now(), payload: nextPayload }));
-          } catch (e) {
-            console.warn("Gagal menyimpan backup offline", e);
-          }
+          // Simpan backup offline ke IndexedDB (bebas dari batas kuota 5MB localStorage)
+          saveOfflineSnapshot(nextPayload).catch((e) => {
+            console.warn("Gagal menyimpan backup offline ke IndexedDB", e);
+          });
         } else {
           setDatabaseSnapshot({});
         }
@@ -298,39 +310,23 @@ export default function App() {
         
         let recovered = false;
         try {
-          const offlineRaw = localStorage.getItem(OFFLINE_CACHE_KEY);
-          if (offlineRaw) {
-            const offlineEntry = JSON.parse(offlineRaw);
-            // Support both legacy format (plain object) and new format (with _savedAt)
-            const savedAt = offlineEntry?._savedAt || 0;
-            const isFresh = (Date.now() - savedAt) < OFFLINE_CACHE_TTL_MS;
-            const parsed = offlineEntry?.payload || (typeof offlineEntry === "object" && !offlineEntry._savedAt ? offlineEntry : null);
-            if (parsed && typeof parsed === "object" && isFresh) {
-              setDatabaseSnapshot(parsed);
-              if (parsed?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
-                const link = document.createElement('link');
-                link.id = 'preload-hero';
-                link.rel = 'preload';
-                link.as = 'image';
-                link.href = parsed.appSettings.heroImage;
-                document.head.appendChild(link);
-              }
-              recovered = true;
-              console.info("Recovered database snapshot from offline backup (fresh).");
-            } else if (parsed && typeof parsed === "object" && !isFresh) {
-              // Cache expired — use anyway but warn, then clear
-              setDatabaseSnapshot(parsed);
-              if (parsed?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
-                const link = document.createElement('link');
-                link.id = 'preload-hero';
-                link.rel = 'preload';
-                link.as = 'image';
-                link.href = parsed.appSettings.heroImage;
-                document.head.appendChild(link);
-              }
-              recovered = true;
+          const offlineData = await loadOfflineSnapshot();
+          if (offlineData?.payload) {
+            const { payload: parsed, isFresh } = offlineData;
+            setDatabaseSnapshot(parsed);
+            if (parsed?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
+              const link = document.createElement('link');
+              link.id = 'preload-hero';
+              link.rel = 'preload';
+              link.as = 'image';
+              link.href = parsed.appSettings.heroImage;
+              document.head.appendChild(link);
+            }
+            recovered = true;
+            if (isFresh) {
+              console.info(`Recovered database snapshot from offline backup (${offlineData.source}, fresh).`);
+            } else {
               console.warn("Offline backup sudah kadaluarsa (>24 jam). Digunakan sementara.");
-              try { localStorage.removeItem(OFFLINE_CACHE_KEY); } catch { /* intentionally ignored */ }
             }
           }
         } catch (recoverErr) {
@@ -386,8 +382,8 @@ export default function App() {
             <Route path="/validasi-siswa" element={<ValidasiSiswa />} />
           </Route>
 
-          {/* ── Admin & Guru (Schedule App) ── */}
-          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "tu", "waka", "piket", "bk", "kepsek"]} isLoginPage={true} />}>
+          {/* ── Admin & Guru & Karyawan (Schedule App) ── */}
+          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "karyawan", "tu", "waka", "piket", "bk", "kepsek"]} isLoginPage={true} />}>
             <Route path="/dashboard/*" element={<AdminApp />} />
           </Route>
           <Route path="/teacher/*" element={<Navigate to="/dashboard" replace />} />

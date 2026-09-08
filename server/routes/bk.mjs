@@ -93,7 +93,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
 
   // 1. GET /api/kedisiplinan/bk/dashboard-stats
   if (req.method === "GET" && url.pathname === "/api/kedisiplinan/bk/dashboard-stats") {
-    if (!requireAuthenticated(req, res)) return true;
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
     try {
       const statsRes = await dbPool.query(`
         SELECT 
@@ -124,7 +125,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
 
   // 2. GET & POST /api/kedisiplinan/bk/sessions
   if (url.pathname === "/api/kedisiplinan/bk/sessions") {
-    if (!requireAuthenticated(req, res)) return true;
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
     if (req.method === "GET") {
       try {
         const { rows } = await dbPool.query(`
@@ -220,7 +222,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
 
   // 4. GET & POST /api/kedisiplinan/bk/home-visits
   if (url.pathname === "/api/kedisiplinan/bk/home-visits") {
-    if (!requireAuthenticated(req, res)) return true;
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
     if (req.method === "GET") {
       try {
         const { rows } = await dbPool.query(`
@@ -284,7 +287,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
 
   // 5. GET & POST /api/kedisiplinan/bk/letters
   if (url.pathname === "/api/kedisiplinan/bk/letters") {
-    if (!requireAuthenticated(req, res)) return true;
+    const session = requireBkAccess(req, res);
+    if (!session) return true;
     if (req.method === "GET") {
       try {
         const { rows } = await dbPool.query(`

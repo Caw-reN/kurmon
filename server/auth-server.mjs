@@ -174,13 +174,15 @@ async function pullHikvisionLogs(force = false) {
     }
 
     // ── Pre-load identity lookup tables ONCE before device loop ──
-    const [hikStudentsRes, teachersRes, staffsRes, featureStoreRes] = await Promise.all([
+    const [hikStudentsRes, teachersRes, staffsRes, featureStoreRes, studentsRes, waKeyRes] = await Promise.all([
       dbPool.query("SELECT nis, name, class_name FROM hikvision_students"),
       dbPool.query("SELECT id, payload FROM mst_teachers"),
       dbPool.query("SELECT id, payload FROM mst_staffs"),
       dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'"),
-      dbPool.query("SELECT id, payload FROM mst_students")
+      dbPool.query("SELECT id, payload FROM mst_students"),
+      dbPool.query("SELECT is_active, api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' LIMIT 1")
     ]);
+    const isWaServiceActive = waKeyRes.rows[0]?.is_active === true && Boolean(waKeyRes.rows[0]?.api_key);
 
     // Build O(1) lookup maps
     const studentNisMap = new Map();
@@ -294,32 +296,56 @@ async function pullHikvisionLogs(force = false) {
             );
             if (insRes.rowCount > 0) totalSaved++;
 
-            // ── Late notification (only for morning check-in taps) ──
-            let lateLimit  = null;
-            let roleTarget = null;
-            if (personType === 'siswa')     { lateLimit = config.siswa?.masuk_late;     roleTarget = 'parent';    }
-            else if (personType === 'guru')     { lateLimit = config.guru?.masuk_late;      roleTarget = 'kurikulum'; }
-            else if (personType === 'karyawan') { lateLimit = config.karyawan?.masuk_late;  roleTarget = 'tu';        }
+            // ── Late notification (only for morning check-in taps AND newly inserted tap AND WhatsApp service is active) ──
+            if (insRes.rowCount > 0 && isWaServiceActive && featureSettings.wa_auto_terlambat !== false) {
+              let lateLimit  = null;
+              let roleTarget = null;
+              let targetPhone = null;
 
-            if (lateLimit && (log.minor === 75 || log.minor === 38)) {
-              const closeLimit = toMinutes(
-                (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
-              );
-              if (logMin > toMinutes(lateLimit) && logMin <= closeLimit) {
-                if (featureSettings.wa_auto_terlambat !== false) {
-                  const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmm} (terlambat, batas: ${lateLimit}).`;
-                  await dbPool.query(
-                    "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-                    [roleTarget, message, `late_${personType}`]
-                  );
+              if (personType === 'siswa') { 
+                lateLimit = config.siswa?.masuk_late; 
+                roleTarget = 'parent';
+                const stu = studentsRes.rows.find(r => String(r.id).toLowerCase() === empKey || (r.payload && String(r.payload.nis).toLowerCase() === empKey));
+                const p = stu ? (typeof stu.payload === 'string' ? JSON.parse(stu.payload) : stu.payload) : null;
+                targetPhone = p?.wa_ortu || p?.phone_ortu || p?.telepon_ortu || p?.phone || null;
+              } else if (personType === 'guru') { 
+                lateLimit = config.guru?.masuk_late; 
+                roleTarget = 'kurikulum';
+                const tea = teachersRes.rows.find(r => String(r.id).toLowerCase() === empKey || (r.payload && (String(r.payload.code).toLowerCase() === empKey || String(r.payload.nip).toLowerCase() === empKey)));
+                const p = tea ? (typeof tea.payload === 'string' ? JSON.parse(tea.payload) : tea.payload) : null;
+                targetPhone = p?.phone || null;
+              } else if (personType === 'karyawan') { 
+                lateLimit = config.karyawan?.masuk_late; 
+                roleTarget = 'tu';
+                const sta = staffsRes.rows.find(r => String(r.id).toLowerCase() === empKey || (r.payload && (String(r.payload.code).toLowerCase() === empKey || String(r.payload.nip).toLowerCase() === empKey)));
+                const p = sta ? (typeof sta.payload === 'string' ? JSON.parse(sta.payload) : sta.payload) : null;
+                targetPhone = p?.phone || null;
+              }
+
+              if (lateLimit && (log.minor === 75 || log.minor === 38)) {
+                const closeLimit = toMinutes(
+                  (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
+                );
+                if (logMin > toMinutes(lateLimit) && logMin <= closeLimit) {
+                  const cleanPhone = targetPhone ? String(targetPhone).replace(/\D/g, '') : '';
+                  const finalPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+                  if (finalPhone && finalPhone.length >= 10) {
+                    const message = `Pemberitahuan: ${personType.toUpperCase()} ${userName} (ID ${employeeNo}) absen masuk pada ${logHhmm} (terlambat, batas: ${lateLimit}).`;
+                    await dbPool.query(
+                      "INSERT INTO whatsapp_logs (phone, recipient_name, message, trigger_type, status) VALUES ($1, $2, $3, $4, 'pending')",
+                      [finalPhone, userName, message, `late_${personType}`]
+                    );
+                  }
                 }
               }
             }
           }
         }
       } catch (e) {
-        console.error(`Gagal pull log device ${device.ip_address}:`, e.message);
-        failedDevices.push({ ip: device.ip_address, loc: device.location || 'Mesin Absensi', error: e.message });
+        const isTimeout = e.name === 'AbortError' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET';
+        const errLabel = isTimeout ? 'Timeout/Offline' : e.message;
+        console.warn(`[Hikvision] Device ${device.ip_address} (${device.location || 'Mesin Absensi'}): ${errLabel}`);
+        failedDevices.push({ ip: device.ip_address, loc: device.location || 'Mesin Absensi', error: errLabel, isTimeout });
       }
     }
 
@@ -470,11 +496,21 @@ async function sendDailyClassSummary() {
     const { rows: tRows } = await dbPool.query("SELECT payload FROM mst_teachers");
     const teachers = tRows.map(r => r.payload);
 
+    // Ambil token Fonnte jika dikonfigurasi
+    const keyRes = await dbPool.query(
+      "SELECT api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' AND is_active = true LIMIT 1"
+    ).catch(() => ({ rowCount: 0, rows: [] }));
+    const fonnteToken = keyRes.rowCount > 0 ? keyRes.rows[0].api_key : null;
+
     for (const cls of classes) {
       if (!cls.id || !cls.walas_id) continue;
 
       const walas = teachers.find(t => t.id === cls.walas_id || t.code === cls.walas_id);
       if (!walas || !walas.phone) continue;
+
+      const phoneRaw = String(walas.phone || "").replace(/\D/g, "");
+      const phone = phoneRaw.startsWith("0") ? "62" + phoneRaw.slice(1) : phoneRaw;
+      if (!phone) continue;
 
       // Get all students in this class
       const { rows: sRows } = await dbPool.query(
@@ -486,19 +522,20 @@ async function sendDailyClassSummary() {
       const nisList = sRows.map(s => s.nis);
 
       // ── FIX BUG-03: Batch-query BOTH tables for all students at once ──
+      // Gunakan nama kolom yang benar: siswa_nis (bukan user_id)
       const [hikRes, manualRes] = await Promise.all([
         dbPool.query(
           "SELECT DISTINCT employee_id FROM hikvision_logs WHERE employee_id = ANY($1) AND timestamp::date = $2::date",
           [nisList, today]
         ),
         dbPool.query(
-          "SELECT user_id, status FROM kedisiplinan_absensi WHERE siswa_nis = ANY($1) AND tanggal = $2 AND approval_status = 'approved'",
+          "SELECT siswa_nis, status FROM kedisiplinan_absensi WHERE siswa_nis = ANY($1) AND tanggal = $2 AND approval_status = 'approved'",
           [nisList, today]
         )
       ]);
 
       const hadirSet    = new Set(hikRes.rows.map(r => String(r.employee_id)));
-      const manualMap   = new Map(manualRes.rows.map(r => [String(r.user_id), r.status]));
+      const manualMap   = new Map(manualRes.rows.map(r => [String(r.siswa_nis), r.status]));
 
       let hadir = 0;
       const tidakHadirNames = [];
@@ -517,9 +554,27 @@ async function sendDailyClassSummary() {
       const tidakHadirCount = sRows.length - hadir;
       const message = `Halo Bapak/Ibu Wali Kelas ${cls.id},\nBerikut rekap absensi kelas hari ini (${today}):\n- Total Siswa: ${sRows.length}\n- Hadir: ${hadir}\n- Tidak Hadir: ${tidakHadirCount}\n\nDaftar Tidak Hadir:\n${tidakHadirNames.join('\n')}`;
 
+      let waStatus = "pending";
+      let responseData = null;
+      if (fonnteToken) {
+        try {
+          const fonnteRes = await fetch("https://api.fonnte.com/send", {
+            method: "POST",
+            headers: { "Authorization": fonnteToken, "Content-Type": "application/json" },
+            body: JSON.stringify({ target: phone, message, countryCode: "62" })
+          });
+          const resJson = await fonnteRes.json().catch(() => ({}));
+          waStatus = (fonnteRes.ok && resJson.status !== false) ? "sent" : "failed";
+          responseData = JSON.stringify(resJson);
+        } catch (err) {
+          waStatus = "failed";
+          responseData = JSON.stringify({ error: err.message });
+        }
+      }
+
       await dbPool.query(
-        "INSERT INTO whatsapp_logs (phone, message, trigger_type, status) VALUES ($1, $2, $3, 'pending')",
-        [walas.phone, message, 'daily_recap_walas']
+        "INSERT INTO whatsapp_logs (phone, recipient_name, message, status, trigger_type, response_data) VALUES ($1, $2, $3, $4, $5, $6)",
+        [phone, walas.name || `Walas ${cls.id}`, message, waStatus, 'daily_recap_walas', responseData]
       );
     }
   } catch (e) {
@@ -3990,9 +4045,10 @@ const server = createServer(async (req, res) => {
               return send(req, res, 400, { ok: false, error: "Data pengeluaran siswa tidak lengkap." });
             }
             
-            // Get student payload first
-            const studentRes = await dbPool.query("SELECT payload FROM mst_students WHERE id = $1", [nis]);
+            // Get student payload first (flexible lookup by id or payload->>'nis')
+            const studentRes = await dbPool.query("SELECT id, payload FROM mst_students WHERE id = $1 OR payload->>'nis' = $1 LIMIT 1", [nis]);
             const studentPayload = studentRes.rowCount > 0 ? studentRes.rows[0].payload : {};
+            const studentTargetId = studentRes.rowCount > 0 ? studentRes.rows[0].id : nis;
             
             const client = await dbPool.connect();
             try {
@@ -4004,8 +4060,8 @@ const server = createServer(async (req, res) => {
                 [nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan || "", JSON.stringify(studentPayload)]
               );
               
-              // 2. Delete from mst_students to deactivate
-              await client.query("DELETE FROM mst_students WHERE id = $1", [nis]);
+              // 2. Delete from mst_students to deactivate (by id or payload->>'nis')
+              await client.query("DELETE FROM mst_students WHERE id = $1 OR payload->>'nis' = $1", [nis]);
               
               await client.query("COMMIT");
               send(req, res, 200, { ok: true });
@@ -4024,16 +4080,17 @@ const server = createServer(async (req, res) => {
               return send(req, res, 400, { ok: false, error: "Data siswa keluar tidak ditemukan." });
             }
             const studentPayload = keluarRes.rows[0].student_payload || {};
+            const restoreId = studentPayload.id || studentPayload.nis || nis;
             
             const client = await dbPool.connect();
             try {
               await client.query("BEGIN");
               
               // 1. Restore to mst_students
-              if (studentPayload.nis) {
+              if (studentPayload.nis || studentPayload.name) {
                 await client.query(
                   "INSERT INTO mst_students (id, payload) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload",
-                  [nis, JSON.stringify(studentPayload)]
+                  [restoreId, JSON.stringify(studentPayload)]
                 );
               }
               
@@ -4340,6 +4397,43 @@ const server = createServer(async (req, res) => {
     }
 
     // === API: WHATSAPP (Fonnte Gateway) ===
+
+    if (url.pathname === "/api/whatsapp/status") {
+      if (!requireAuthenticated(req, res)) return;
+      try {
+        const keyRes = await dbPool.query("SELECT id, is_active, api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' LIMIT 1");
+        const hasRow = keyRes.rowCount > 0;
+        const isActive = hasRow ? Boolean(keyRes.rows[0].is_active) : false;
+        const hasApiKey = hasRow ? Boolean(keyRes.rows[0].api_key && keyRes.rows[0].api_key.trim().length > 0) : false;
+        send(req, res, 200, { ok: true, is_active: isActive, has_api_key: hasApiKey });
+      } catch (err) { sendDatabaseError(req, res, err); }
+      return;
+    }
+
+    if (url.pathname === "/api/whatsapp/toggle-status") {
+      if (!requireAdmin(req, res)) return;
+      if (req.method === "POST") {
+        try {
+          const body = await readJsonBody(req).catch(() => ({}));
+          const keyRes = await dbPool.query("SELECT id, is_active FROM api_keys WHERE service_name = 'whatsapp_fonnte' LIMIT 1");
+          let newStatus = false;
+          if (keyRes.rowCount > 0) {
+            newStatus = body.is_active !== undefined ? Boolean(body.is_active) : !keyRes.rows[0].is_active;
+            await dbPool.query("UPDATE api_keys SET is_active = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [newStatus, keyRes.rows[0].id]);
+          } else {
+            newStatus = body.is_active !== undefined ? Boolean(body.is_active) : true;
+            await dbPool.query("INSERT INTO api_keys (service_name, service_label, api_key, is_active) VALUES ('whatsapp_fonnte', 'WhatsApp (Fonnte)', '', $1)", [newStatus]);
+          }
+
+          const session = getSession(req);
+          await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
+            [session?.id || "admin", session?.name || "Admin", session?.role || "admin", "TOGGLE_WHATSAPP", "whatsapp", `Mengubah status layanan WhatsApp menjadi: ${newStatus ? 'AKTIF' : 'NONAKTIF'}`]);
+
+          send(req, res, 200, { ok: true, is_active: newStatus, message: `Layanan WhatsApp berhasil di${newStatus ? 'aktifkan' : 'nonaktifkan'}.` });
+        } catch (err) { sendDatabaseError(req, res, err); }
+        return;
+      }
+    }
 
     if (url.pathname === "/api/whatsapp/send") {
       if (!requireAuthenticated(req, res)) return;
@@ -5042,26 +5136,63 @@ cron.schedule('0 16 * * *', async () => {
   console.log("[CRON] Mengirim Laporan Harian Aplikasi ke Telegram...");
   try {
     const { sendTelegramAlert } = await import('./telegram-bot.mjs');
-    const today = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta' }).split(',')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
     
     const loginStats = await dbPool.query(`SELECT COUNT(*) as cnt FROM audit_logs WHERE action='LOGIN' AND created_at >= CURRENT_DATE`);
-    const studentAbsensi = await dbPool.query(`SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi WHERE date = $1 GROUP BY status`, [today]);
-    const lateHikvision = await dbPool.query(`SELECT COUNT(*) as cnt FROM hikvision_attendance_logs WHERE date = $1 AND is_late = true`, [today]);
+    const studentAbsensi = await dbPool.query(`SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi WHERE tanggal = $1 GROUP BY status`, [today]);
+    
+    let hadirs = 0, telats = 0, izins = 0, sakits = 0, alpas = 0;
+    for (const r of studentAbsensi.rows) {
+      const s = String(r.status || '').toLowerCase();
+      const cnt = parseInt(r.cnt, 10) || 0;
+      if (s === 'hadir') hadirs += cnt;
+      else if (s === 'terlambat') telats += cnt;
+      else if (s === 'izin') izins += cnt;
+      else if (s === 'sakit') sakits += cnt;
+      else if (s === 'alpa') alpas += cnt;
+    }
+
+    // Ambil log kehadiran dan keterlambatan dari mesin Hikvision hari ini
+    try {
+      const confRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+      let lateLimit = "07:00";
+      if (confRes.rows.length > 0 && confRes.rows[0].data) {
+        const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+        lateLimit = conf?.siswa?.masuk_late || "07:00";
+      }
+
+      const [hikHadirRes, hikLateRes] = await Promise.all([
+        dbPool.query(`
+          SELECT COUNT(DISTINCT employee_id) as cnt 
+          FROM hikvision_logs 
+          WHERE timestamp::date = $1::date
+        `, [today]),
+        dbPool.query(`
+          SELECT COUNT(*) as cnt FROM (
+            SELECT employee_id, MIN(timestamp) as first_tap
+            FROM hikvision_logs 
+            WHERE timestamp::date = $1::date 
+            GROUP BY employee_id
+            HAVING TO_CHAR(MIN(timestamp), 'HH24:MI') > $2
+          ) sub
+        `, [today, lateLimit])
+      ]);
+
+      const hikHadirCount = parseInt(hikHadirRes.rows[0]?.cnt || 0, 10);
+      const hikLateCount = parseInt(hikLateRes.rows[0]?.cnt || 0, 10);
+
+      // Jika rekap manual hadir masih kosong, ambil dari mesin
+      if (hadirs === 0 && hikHadirCount > 0) {
+        hadirs = hikHadirCount;
+      }
+      telats = Math.max(telats, hikLateCount);
+    } catch (hikErr) {
+      console.warn("[CRON] Gagal membaca log Hikvision untuk laporan Telegram:", hikErr.message);
+    }
     
     let reportText = `📊 <b>LAPORAN HARIAN SISTEM</b>\n\n`;
     reportText += `📅 <b>Tanggal:</b> ${new Date().toLocaleDateString('id-ID', {timeZone: 'Asia/Jakarta'})}\n\n`;
-    reportText += `🔹 <b>Total Login Hari Ini:</b> ${loginStats.rows[0].cnt} pengguna\n\n`;
-    
-    let hadirs = 0, telats = 0, izins = 0, sakits = 0, alpas = 0;
-    for(const r of studentAbsensi.rows) {
-      if(r.status === 'Hadir') hadirs += parseInt(r.cnt);
-      else if(r.status === 'Terlambat') telats += parseInt(r.cnt);
-      else if(r.status === 'Izin') izins += parseInt(r.cnt);
-      else if(r.status === 'Sakit') sakits += parseInt(r.cnt);
-      else if(r.status === 'Alpa') alpas += parseInt(r.cnt);
-    }
-    
-    telats += parseInt(lateHikvision.rows[0]?.cnt || 0);
+    reportText += `🔹 <b>Total Login Hari Ini:</b> ${loginStats.rows[0]?.cnt || 0} pengguna\n\n`;
     
     reportText += `🔹 <b>Rekap Kehadiran Siswa:</b>\n`;
     reportText += `• Hadir: <b>${hadirs}</b> siswa\n`;

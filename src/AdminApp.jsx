@@ -3960,7 +3960,7 @@ export default function App() {
 
           {databaseHydrated ? (
             <div className="flex-1 flex flex-col w-full min-w-0 animate-in fade-in duration-200">
-              <AdminContentRouter context={{...tabProps, checkIsAllowed}} />
+              <AdminContentRouter context={tabProps} checkIsAllowed={checkIsAllowed} />
             </div>
           ) : (
             <div className="flex-1 flex flex-col w-full min-w-0 gap-5 animate-pulse mt-1">

@@ -294,6 +294,17 @@ export async function handlePklRoutes(req, res, url, ctx) {
       if (!session) return;
       const id = parseInt(logbookIdMatch[1], 10);
       try {
+        if (session.role === "siswa") {
+          const nis = session.id || session.username;
+          const checkRes = await dbPool.query("SELECT student_nis, status FROM pkl_logbooks WHERE id = $1", [id]);
+          if (checkRes.rows.length === 0) return send(req, res, 404, { ok: false, error: "Logbook tidak ditemukan" });
+          if (String(checkRes.rows[0].student_nis) !== String(nis)) {
+            return send(req, res, 403, { ok: false, error: "Anda tidak berhak menghapus logbook siswa lain" });
+          }
+          if (checkRes.rows[0].status === 'approved') {
+            return send(req, res, 400, { ok: false, error: "Logbook yang telah disetujui guru tidak dapat dihapus" });
+          }
+        }
         await dbPool.query("DELETE FROM pkl_logbooks WHERE id = $1", [id]);
         return send(req, res, 200, { ok: true, message: "Logbook berhasil dihapus" });
       } catch (err) {

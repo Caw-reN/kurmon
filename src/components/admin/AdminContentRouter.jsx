@@ -71,10 +71,11 @@ const TabSilabusGuru = lazy(() => import("../../pages/admin/tabs/TabSilabusGuru.
 const TabKeamanan = lazy(() => import('../../pages/admin/tabs/TabKeamanan.jsx'));
 const ManajemenRole = lazy(() => import('../../pages/admin/tabs/ManajemenRole.jsx'));
 
-export default function AdminContentRouter({ context }) {
+export default function AdminContentRouter({ context, checkIsAllowed: checkIsAllowedProp }) {
   const tabProps = context;
   const {
-    activeTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket, checkIsAllowed,
+    activeTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket,
+    checkIsAllowed: checkIsAllowedFromContext,
     normalizeUserRole, rolePermissions, saveDatabaseNow, classes, teachers, subjects,
     rooms, schedule, teachingLoads, openModal, setActiveTab, renderTable, checkDependencies,
     handleDelete, updateSelectionForTab, appSettings, setAppSettings, showNotification,
@@ -94,6 +95,9 @@ export default function AdminContentRouter({ context }) {
     attendanceRecords, attendanceSettings, updateAttendanceSettings,
     addDashboardMessage, updateDashboardMessage, removeDashboardMessage,
   } = context;
+
+  // Support kedua pola: checkIsAllowed sebagai prop terpisah (baru) atau dari dalam context (lama)
+  const checkIsAllowed = checkIsAllowedProp ?? checkIsAllowedFromContext;
 
   const renderContent = () => {
     if (typeof window !== 'undefined' && setActiveTab) {

@@ -44,6 +44,12 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
       );
       if (!isPublicGet && !requireAuthenticated(req, res)) return;
       
+      const session = getSession(req);
+      const role = (session?.role || '').toLowerCase();
+      const isAdminStaff = ['admin', 'superadmin', 'kesiswaan', 'waka_kesiswaan', 'waka', 'kepsek'].includes(role);
+      const isSchoolStaff = ['admin', 'superadmin', 'kesiswaan', 'waka_kesiswaan', 'waka', 'guru', 'bk', 'bpbk', 'piket', 'tu', 'kepsek'].includes(role);
+      const isBkStaff = ['admin', 'superadmin', 'bk', 'bpbk', 'kesiswaan', 'waka_kesiswaan', 'waka', 'kepsek'].includes(role);
+
       try {
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/rules.pdf") {
           try {
@@ -68,6 +74,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/upload-rules") {
+          if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan." });
           const body = await readJsonBody(req);
           if (!body.fileData) {
             send(req, res, 400, { ok: false, error: "File data is required" });
@@ -101,6 +108,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/delete-rules") {
+          if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan." });
           await dbPool.query("DELETE FROM app_data WHERE store_key = 'school_rules_pdf'");
           send(req, res, 200, { ok: true });
           return;
@@ -114,6 +122,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/attendance-start-date") {
+          if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan." });
           const body = await readJsonBody(req);
           const startDate = body.startDate || '2026-08-01';
           await dbPool.query(`
@@ -135,6 +144,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/master") {
+          if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan." });
           const body = await readJsonBody(req);
           const VALID_JENIS = ['pelanggaran', 'penghargaan'];
 
@@ -184,7 +194,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/jadwal") {
-
+          if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat mengubah jadwal piket." });
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_jadwal_mingguan WHERE id = $1", [body.id]);
@@ -200,6 +210,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         // POST /input_pos — Submit bulk pelanggaran dari Panel Piket
         // Payload: { student_nises: string[], tindakan_ids: number[] }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/input_pos") {
+          if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Guru/Piket yang dapat mencatat pelanggaran." });
           const body = await readJsonBody(req);
           const session = getSession(req);
           const { student_nises, tindakan_ids } = body;
@@ -250,8 +261,10 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/riwayat") {
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
+             if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat menghapus riwayat poin." });
              await dbPool.query("DELETE FROM kedisiplinan_riwayat_poin WHERE id = $1", [body.id]);
           } else {
+             if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan mencatat poin/tindakan." });
              const session = getSession(req);
              await dbPool.query("INSERT INTO kedisiplinan_riwayat_poin (siswa_nis, tindakan_id, tindakan_nama, poin, jenis, pelapor_id, pelapor_nama, catatan) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [body.siswa_nis, body.tindakan_id, body.tindakan_nama, body.poin, body.jenis, session?.id, session?.name || 'Sistem', body.catatan]);
           }
@@ -261,6 +274,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/konseling") {
+          if (!isBkStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Data buku konseling bersifat rahasia." });
           const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
           const offset = parseInt(url.searchParams.get('offset') || '0', 10);
           const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_buku_konseling ORDER BY tanggal_konseling DESC LIMIT $1 OFFSET $2", [limit, offset]);
@@ -268,6 +282,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/konseling") {
+          if (!isBkStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Guru BK/Kesiswaan yang dapat mengelola buku konseling." });
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
              await dbPool.query("DELETE FROM kedisiplinan_buku_konseling WHERE id = $1", [body.id]);
@@ -367,6 +382,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
 
           if (body.action === 'delete') {
+             if (!hasApprovalPermission && !isAdminStaff) {
+               return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Bagian Kesiswaan/BK/Admin yang dapat menghapus data absensi." });
+             }
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = $1", [body.id]);
           } else if (body.action === 'approve') {
              if (!hasApprovalPermission) {
@@ -388,6 +406,13 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
              `, [session?.id, session?.name || 'BP/BK', body.id]);
           } else {
              // Handle insert & update with potential Google Drive file uploads
+             if (roleStr === 'siswa') {
+               const myNis = session?.id || session?.username;
+               if (body.siswa_nis && String(body.siswa_nis) !== String(myNis)) {
+                 return send(req, res, 403, { ok: false, error: "Siswa hanya dapat mengajukan perizinan untuk akun diri sendiri." });
+               }
+             }
+
              let gdriveUrl = body.gdrive_url || null;
              
              // Initial save with base64 fallback
@@ -397,6 +422,9 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
 
              let finalId = body.id;
              if (body.action === 'update') {
+                if (!hasApprovalPermission && !isAdminStaff) {
+                  return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Staf/Admin yang dapat mengubah data perizinan absensi." });
+                }
                 await dbPool.query("UPDATE kedisiplinan_absensi SET status = $1, keterangan = $2, gdrive_url = COALESCE($3, gdrive_url) WHERE id = $4", [body.status, body.keterangan, gdriveUrl, body.id]);
              } else {
                 const isDirectApproved = hasApprovalPermission;
@@ -516,8 +544,10 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/prestasi") {
+          if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Staf/Guru/Kesiswaan yang dapat mengelola data prestasi." });
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
+             if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat menghapus data prestasi." });
              await dbPool.query("DELETE FROM kesiswaan_prestasi WHERE id = $1", [body.id]);
           } else if (body.id) {
              await dbPool.query(`

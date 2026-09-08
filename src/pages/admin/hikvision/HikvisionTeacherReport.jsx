@@ -1253,12 +1253,11 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       };
       const inTime = formatTime(dayData.in);
       const outTime = formatTime(dayData.out);
-      const hasNote = Boolean(dayData.note || (typeof dayData.in === 'string' && !inTime));
-      const noteText = dayData.note || (typeof dayData.in === 'string' && !inTime ? dayData.in : '');
+      const noteText = dayData.note || '';
 
       return (
         <div className="flex flex-col gap-0.5" title={noteText ? `Catatan: ${noteText}` : undefined}>
-          <div>{inTime || (hasNote ? (noteText.length > 5 ? noteText.substring(0, 5) : noteText) : '--:--')}</div>
+          <div>{inTime || '--:--'}</div>
           <div className="border-t border-black/10 w-full my-0.5"></div>
           <div>{outTime || '--:--'}</div>
         </div>

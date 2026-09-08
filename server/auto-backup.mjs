@@ -93,12 +93,12 @@ export async function runBackup() {
   const fileName = `backup_${PG_DATABASE}_${dateStr}.sql`;
   const filePath = path.join(BACKUP_DIR, fileName);
 
-  const dumpCmd = `set PGPASSWORD=${PG_PASSWORD}&& pg_dump -U ${PG_USER} -h ${PG_HOST} -p ${PG_PORT} -d ${PG_DATABASE} -F c -f "${filePath}"`;
+  const dumpCmd = `pg_dump -U ${PG_USER} -h ${PG_HOST} -p ${PG_PORT} -d ${PG_DATABASE} -F c -f "${filePath}"`;
 
   console.log(`[AutoBackup] Starting SQL backup: ${fileName}...`);
 
   return new Promise((resolve, reject) => {
-    exec(dumpCmd, (error, stdout, stderr) => {
+    exec(dumpCmd, { env: { ...process.env, PGPASSWORD: PG_PASSWORD } }, (error, stdout, stderr) => {
       if (error) {
         console.error(`[AutoBackup] Error creating backup: ${error.message}`);
         return reject(error);

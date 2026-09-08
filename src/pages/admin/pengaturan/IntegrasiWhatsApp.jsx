@@ -48,11 +48,55 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
   // Rekap
   const [isSendingRekap, setIsSendingRekap] = useState(false);
 
+  // WhatsApp Master Service ON/OFF
+  const [isWaActive, setIsWaActive] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [isTogglingWa, setIsTogglingWa] = useState(false);
+
   const authToken = useAuthStore(state => state.user?.authToken);
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchWaStatus = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch('/api/whatsapp/status', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setIsWaActive(Boolean(data.is_active));
+        setHasApiKey(Boolean(data.has_api_key));
+      }
+    } catch (e) {}
+  }, [authToken]);
+
+  const handleToggleService = async () => {
+    setIsTogglingWa(true);
+    try {
+      const res = await fetch('/api/whatsapp/toggle-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({ is_active: !isWaActive })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setIsWaActive(data.is_active);
+        showToast(data.message || `Layanan WhatsApp ${data.is_active ? 'diaktifkan' : 'dinonaktifkan'}.`);
+      } else {
+        showToast(data.error || 'Gagal mengubah status layanan WhatsApp.', 'error');
+      }
+    } catch (e) {
+      showToast('Terjadi kesalahan saat mengubah status layanan.', 'error');
+    } finally {
+      setIsTogglingWa(false);
+    }
   };
 
   const fetchLogs = async () => {
@@ -86,7 +130,10 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
     setIsLoading(false);
   };
 
-  useEffect(() => { fetchLogs(); }, [authToken]);
+  useEffect(() => { 
+    fetchLogs(); 
+    fetchWaStatus();
+  }, [authToken, fetchWaStatus]);
 
   const applyTemplate = (key) => {
     const tmpl = TRIGGER_TEMPLATES.find(t => t.key === key);
@@ -209,6 +256,69 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
         activeTab={activeSystemTab}
         onTabChange={setSystemTab}
       />
+
+      {/* ── MASTER SERVICE SWITCH CARD ── */}
+      <div className={`p-5 md:p-6 rounded-[var(--ui-radius-card)] border shadow-xs transition-all ${
+        isWaActive 
+          ? 'bg-gradient-to-br from-emerald-50/70 via-white to-white border-emerald-200' 
+          : 'bg-gradient-to-br from-slate-50/80 via-white to-white border-slate-200/80'
+      }`}>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className={`w-13 h-13 md:w-14 md:h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
+              isWaActive 
+                ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm' 
+                : 'bg-slate-100 text-slate-400 border-slate-200'
+            }`}>
+              <MessageSquare size={26} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-extrabold text-base md:text-lg text-slate-800">
+                  Layanan Notifikasi WhatsApp (Fonnte Gateway)
+                </h3>
+                {isWaActive ? (
+                  <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-800 text-[10px] uppercase font-black tracking-wider border border-emerald-200 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    Aktif (Online)
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 text-[10px] uppercase font-black tracking-wider border border-slate-200 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                    Nonaktif (Off)
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
+                {isWaActive 
+                  ? 'Layanan WhatsApp aktif. Sistem akan memproses notifikasi keterlambatan absensi, reset password, dan rekap otomatis sesuai konfigurasi.' 
+                  : 'Layanan WhatsApp sedang dimatikan (OFF). Tidak ada pesan yang dikirimkan ke nomor penerima atau menumpuk di antrean database.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0 self-end md:self-center bg-white/60 p-2 rounded-[var(--ui-radius-small)] border border-slate-200/60 shadow-2xs">
+            <span className="text-xs font-black text-slate-700">
+              {isWaActive ? 'WhatsApp ON' : 'WhatsApp OFF'}
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleService}
+              disabled={isTogglingWa}
+              className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
+                isWaActive ? 'bg-emerald-600' : 'bg-slate-300'
+              } disabled:opacity-50`}
+              title={isWaActive ? 'Klik untuk mematikan layanan WhatsApp' : 'Klik untuk mengaktifkan layanan WhatsApp'}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${
+                  isWaActive ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

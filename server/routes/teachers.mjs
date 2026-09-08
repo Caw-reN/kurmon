@@ -105,17 +105,17 @@ export async function handleTeacherRoutes(req, res, url, ctx) {
       try {
         await client.query('BEGIN');
         
-        // Fetch existing passwords before deletion
-        const oldPasswordsResult = await client.query('SELECT payload->>\'code\' as code, payload->>\'password\' as password FROM mst_teachers WHERE payload->>\'password\' IS NOT NULL');
+        // Fetch existing passwords BEFORE any write (preserve hashed passwords)
+        const oldPasswordsResult = await client.query("SELECT payload->>'code' as code, payload->>'password' as password FROM mst_teachers WHERE payload->>'password' IS NOT NULL");
         const dbTeacherMap = new Map();
         for (const row of oldPasswordsResult.rows) {
           if (row.code) dbTeacherMap.set(row.code.toLowerCase().trim(), row.password);
         }
 
-        await client.query('DELETE FROM mst_teachers');
-        
+        // Deduplicate dan bangun daftar ID yang akan disimpan
         const uniqueItems = [];
         const seenIds = new Set();
+        const incomingIds = [];
 
         for (const item of teachers) {
           if (!item) continue;
@@ -123,15 +123,18 @@ export async function handleTeacherRoutes(req, res, url, ctx) {
           const normalizedId = code.toLowerCase();
           if (!normalizedId || seenIds.has(normalizedId)) continue;
           
+          // Restore password lama jika tidak dikirim dari client
           if (!item.password) {
-             const oldPw = dbTeacherMap.get(normalizedId);
-             if (oldPw) item.password = oldPw;
+            const oldPw = dbTeacherMap.get(normalizedId);
+            if (oldPw) item.password = oldPw;
           }
 
           seenIds.add(normalizedId);
+          incomingIds.push(normalizedId);
           uniqueItems.push({ rowId: normalizedId, val: item });
         }
 
+        // UPSERT: INSERT jika baru, UPDATE jika sudah ada (tabel tidak pernah kosong sesaat)
         const chunkSize = 500;
         for (let i = 0; i < uniqueItems.length; i += chunkSize) {
           const chunk = uniqueItems.slice(i, i + chunkSize);
@@ -144,9 +147,23 @@ export async function handleTeacherRoutes(req, res, url, ctx) {
             paramIdx += 2;
           });
           if (values.length > 0) {
-            await client.query(`INSERT INTO mst_teachers (id, payload) VALUES ${values.join(', ')}`, params);
+            await client.query(
+              `INSERT INTO mst_teachers (id, payload) VALUES ${values.join(', ')}
+               ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+              params
+            );
           }
         }
+
+        // Hapus secara selektif: hanya guru yang sudah tidak ada di daftar baru
+        if (incomingIds.length > 0) {
+          const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
+          await client.query(`DELETE FROM mst_teachers WHERE id NOT IN (${placeholders})`, incomingIds);
+        } else {
+          // Jika daftar kosong (misal: reset total), baru hapus semua
+          await client.query('DELETE FROM mst_teachers');
+        }
+
         await client.query('COMMIT');
         send(req, res, 200, { ok: true, message: 'Data guru berhasil disimpan' });
       } catch (e) {

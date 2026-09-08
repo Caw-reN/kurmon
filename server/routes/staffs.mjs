@@ -92,18 +92,18 @@ export async function handleStaffRoutes(req, res, url, ctx) {
       try {
         await client.query('BEGIN');
         
-        // Fetch existing passwords before deletion
-        const oldPasswordsResult = await client.query('SELECT payload->>\'code\' as code, payload->>\'staff_code\' as staff_code, payload->>\'password\' as password FROM mst_staffs WHERE payload->>\'password\' IS NOT NULL');
+        // Fetch existing passwords BEFORE any write (preserve hashed passwords)
+        const oldPasswordsResult = await client.query("SELECT payload->>'code' as code, payload->>'staff_code' as staff_code, payload->>'password' as password FROM mst_staffs WHERE payload->>'password' IS NOT NULL");
         const dbStaffMap = new Map();
         for (const row of oldPasswordsResult.rows) {
           const key = row.code || row.staff_code;
           if (key) dbStaffMap.set(key.toLowerCase().trim(), row.password);
         }
 
-        await client.query('DELETE FROM mst_staffs');
-        
+        // Deduplicate dan bangun daftar ID yang akan disimpan
         const uniqueItems = [];
         const seenIds = new Set();
+        const incomingIds = [];
 
         for (const item of staffs) {
           if (!item) continue;
@@ -111,15 +111,18 @@ export async function handleStaffRoutes(req, res, url, ctx) {
           const normalizedId = code.toLowerCase();
           if (!normalizedId || seenIds.has(normalizedId)) continue;
           
+          // Restore password lama jika tidak dikirim dari client
           if (!item.password) {
-             const oldPw = dbStaffMap.get(normalizedId);
-             if (oldPw) item.password = oldPw;
+            const oldPw = dbStaffMap.get(normalizedId);
+            if (oldPw) item.password = oldPw;
           }
 
           seenIds.add(normalizedId);
+          incomingIds.push(normalizedId);
           uniqueItems.push({ rowId: normalizedId, val: item });
         }
 
+        // UPSERT: INSERT jika baru, UPDATE jika sudah ada (tabel tidak pernah kosong sesaat)
         const chunkSize = 500;
         for (let i = 0; i < uniqueItems.length; i += chunkSize) {
           const chunk = uniqueItems.slice(i, i + chunkSize);
@@ -132,9 +135,23 @@ export async function handleStaffRoutes(req, res, url, ctx) {
             paramIdx += 2;
           });
           if (values.length > 0) {
-            await client.query(`INSERT INTO mst_staffs (id, payload) VALUES ${values.join(', ')}`, params);
+            await client.query(
+              `INSERT INTO mst_staffs (id, payload) VALUES ${values.join(', ')}
+               ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+              params
+            );
           }
         }
+
+        // Hapus secara selektif: hanya staf yang sudah tidak ada di daftar baru
+        if (incomingIds.length > 0) {
+          const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
+          await client.query(`DELETE FROM mst_staffs WHERE id NOT IN (${placeholders})`, incomingIds);
+        } else {
+          // Jika daftar kosong (misal: reset total), baru hapus semua
+          await client.query('DELETE FROM mst_staffs');
+        }
+
         await client.query('COMMIT');
         send(req, res, 200, { ok: true, message: 'Data staff berhasil disimpan' });
       } catch (e) {

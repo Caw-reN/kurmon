@@ -485,58 +485,79 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           const dbStudents = await dbPool.query('SELECT payload FROM mst_students');
           if (dbStudents.rows.length > 0) students = dbStudents.rows.map(r => r.payload);
         } catch(e) {}
-           const student = students.find(s => String(s.nis).trim().toLowerCase() === username);
-           if (student) {
-               const { rows: pklRows } = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'pkl_settings'");
-               const pklSettings = pklRows.length > 0 ? JSON.parse(pklRows[0].data) : { eligibleClass: "XII" };
-               const eligibleClass = pklSettings.eligibleClass || "XII";
+        const student = students.find(s => String(s.nis).trim().toLowerCase() === username);
+        if (student) {
+          const { rows: pklRows } = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'pkl_settings'");
+          let pklSettings = { eligibleClass: "XII" };
+          try {
+            if (pklRows.length > 0 && pklRows[0].data) {
+              pklSettings = typeof pklRows[0].data === 'string' ? JSON.parse(pklRows[0].data) : pklRows[0].data;
+            }
+          } catch (e) {}
+          const eligibleClass = pklSettings.eligibleClass || "XII";
+          const isPklEligible = Boolean(student.class_name && student.class_name.toUpperCase().startsWith(eligibleClass.toUpperCase()));
 
-              if (student.class_name && student.class_name.toUpperCase().startsWith(eligibleClass.toUpperCase())) {
-                  let isStudentValid = false;
-                  if (student.password) {
-                    isStudentValid = await verifyPassword(password, student.password);
-                  } else {
-                    // No custom password — accept NIS as initial password only
-                    isStudentValid = (password === String(student.nis).trim());
-                    if (isStudentValid) {
-                      console.warn(`[AUTH] Siswa '${student.nis}' masuk dengan NIS sebagai password default. Disarankan set password khusus.`);
-                    }
-                  }
+          let isStudentValid = false;
+          if (student.password) {
+            isStudentValid = await verifyPassword(password, student.password);
+          } else {
+            // No custom password — accept NIS as initial password only
+            isStudentValid = (password === String(student.nis).trim());
+            if (isStudentValid) {
+              console.warn(`[AUTH] Siswa '${student.nis}' masuk dengan NIS sebagai password default. Disarankan set password khusus.`);
+            }
+          }
 
-                  if (isStudentValid) {
-                     if (student.isActive === false || student.status === 'nonaktif') {
-                       send(req, res, 403, { ok: false, error: "Akun Anda telah dinonaktifkan oleh Administrator." });
-                       return true;
-                     }
-                      const token = createSession("siswa", { id: student.nis, username: student.nis, name: student.name });
-                      let hasChangedPassword = student.hasChangedPassword === true;
-                      let isDefaultPassword = !hasChangedPassword;
-                      if (!hasChangedPassword && student.password) {
-                        const isDefault = (
-                          await verifyPassword(String(student.nis), student.password) ||
-                          await verifyPassword("123", student.password) ||
-                          await verifyPassword("123456", student.password)
-                        );
-                        if (!isDefault) {
-                          hasChangedPassword = true;
-                          isDefaultPassword = false;
-                          try {
-                            await dbPool.query(`
-                              UPDATE mst_students 
-                              SET payload = jsonb_set(payload::jsonb, '{hasChangedPassword}', 'true'::jsonb)
-                              WHERE payload->>'nis' = $1 OR id = $1
-                            `, [String(student.nis)]);
-                          } catch (e) {}
-                        }
-                      }
-                      send(req, res, 200, { ok: true, user: { role: "siswa", id: student.nis, name: student.name, username: student.nis, class_name: student.class_name, jurusan: student.jurusan || student.major || "", isDefaultPassword, hasChangedPassword, authToken: token } });
-                      return true;
-                  }
-              } else {
-                 send(req, res, 401, { ok: false, error: `Akses ditolak. Login saat ini hanya untuk siswa kelas ${eligibleClass} (PKL).` });
-                 return true;
+          if (isStudentValid) {
+            if (student.isActive === false || student.status === 'nonaktif') {
+              send(req, res, 403, { ok: false, error: "Akun Anda telah dinonaktifkan oleh Administrator." });
+              return true;
+            }
+            const token = createSession("siswa", { 
+              id: student.nis, 
+              username: student.nis, 
+              name: student.name,
+              class_name: student.class_name,
+              isPklEligible
+            });
+            let hasChangedPassword = student.hasChangedPassword === true;
+            let isDefaultPassword = !hasChangedPassword;
+            if (!hasChangedPassword && student.password) {
+              const isDefault = (
+                await verifyPassword(String(student.nis), student.password) ||
+                await verifyPassword("123", student.password) ||
+                await verifyPassword("123456", student.password)
+              );
+              if (!isDefault) {
+                hasChangedPassword = true;
+                isDefaultPassword = false;
+                try {
+                  await dbPool.query(`
+                    UPDATE mst_students 
+                    SET payload = jsonb_set(payload::jsonb, '{hasChangedPassword}', 'true'::jsonb)
+                    WHERE payload->>'nis' = $1 OR id = $1
+                  `, [String(student.nis)]);
+                } catch (e) {}
               }
-           }
+            }
+            send(req, res, 200, { 
+              ok: true, 
+              user: { 
+                role: "siswa", 
+                id: student.nis, 
+                name: student.name, 
+                username: student.nis, 
+                class_name: student.class_name, 
+                jurusan: student.jurusan || student.major || "", 
+                isPklEligible,
+                isDefaultPassword, 
+                hasChangedPassword, 
+                authToken: token 
+              } 
+            });
+            return true;
+          }
+        }
       } catch (dbErr) {
         console.warn("Failed to check student login via app_data:", dbErr.message);
       }

@@ -44,3 +44,18 @@ export const compressImage = (file, { maxWidth = 1000, maxHeight = 1000, quality
     reader.readAsDataURL(file);
   });
 };
+
+/**
+ * Versi lanjutan dari compressImage yang mengembalikan { dataUrl, sizeKB }.
+ * Gunakan ini sebagai pengganti pola callback lokal di komponen absensi.
+ * @param {File} file
+ * @param {{ maxWidth?: number, maxHeight?: number, quality?: number }} options
+ * @returns {Promise<{ dataUrl: string, sizeKB: number }>}
+ */
+export const compressImageFromFile = async (file, { maxWidth = 600, maxHeight = 600, quality = 0.7 } = {}) => {
+  const dataUrl = await compressImage(file, { maxWidth, maxHeight, quality, type: 'image/jpeg' });
+  const base64Part = dataUrl.split(',')[1] || '';
+  const paddingCount = (base64Part.match(/=+$/) || [''])[0].length;
+  const sizeKB = Math.round((Math.floor(base64Part.length * 3 / 4) - paddingCount) / 1024);
+  return { dataUrl, sizeKB };
+};

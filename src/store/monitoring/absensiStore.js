@@ -9,7 +9,7 @@ import { create } from 'zustand';
  */
 
 
-const useAbsensiStore = create((set) => ({
+const useAbsensiStore = create((set, get) => ({
   // ==========================================
   // STATE: Metode absensi yang aktif
   // ==========================================

@@ -267,10 +267,10 @@ export async function handleDataRoutes(req, res, url, ctx) {
         const client = await dbPool.connect();
         try {
           await client.query('BEGIN');
-          await client.query(`DELETE FROM ${tableName}`);
           
           const uniqueItems = [];
           const seenIds = new Set();
+          const incomingIds = [];
           for (const item of items) {
             let rowId;
             let val;
@@ -284,10 +284,11 @@ export async function handleDataRoutes(req, res, url, ctx) {
             const normalizedId = rowId.toLowerCase().trim();
             if (!normalizedId || seenIds.has(normalizedId)) continue;
             seenIds.add(normalizedId);
+            incomingIds.push(rowId);
             uniqueItems.push({ rowId, val });
           }
 
-          // Batch insert in chunks of 500 rows for ultra-fast execution
+          // Batch UPSERT in chunks of 500 rows (tabel tidak pernah kosong sesaat)
           const chunkSize = 500;
           for (let i = 0; i < uniqueItems.length; i += chunkSize) {
             const chunk = uniqueItems.slice(i, i + chunkSize);
@@ -300,9 +301,22 @@ export async function handleDataRoutes(req, res, url, ctx) {
               paramIdx += 2;
             });
             if (values.length > 0) {
-              await client.query(`INSERT INTO ${tableName} (id, payload) VALUES ${values.join(', ')}`, params);
+              await client.query(
+                `INSERT INTO ${tableName} (id, payload) VALUES ${values.join(', ')}
+                 ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+                params
+              );
             }
           }
+
+          // Hapus selektif hanya record yang sudah tidak ada di payload baru
+          if (incomingIds.length > 0) {
+            const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
+            await client.query(`DELETE FROM ${tableName} WHERE id NOT IN (${placeholders})`, incomingIds);
+          } else {
+            await client.query(`DELETE FROM ${tableName}`);
+          }
+
           await client.query('COMMIT');
         } catch (e) {
           await client.query('ROLLBACK');
@@ -312,11 +326,112 @@ export async function handleDataRoutes(req, res, url, ctx) {
         }
       };
 
+      const saveTeachers = async (items) => {
+        if (!Array.isArray(items) || items.length === 0) return;
+        const client = await dbPool.connect();
+        try {
+          await client.query('BEGIN');
+          const existingRes = await client.query("SELECT id, payload FROM mst_teachers");
+          const dbMap = new Map(existingRes.rows.map(r => {
+            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            return [String(r.id).toLowerCase(), p?.password];
+          }));
+          for (const item of items) {
+            if (!item) continue;
+            const code = String(item.code || item.nip || item.id || '').trim();
+            const normalizedId = code.toLowerCase();
+            if (!normalizedId) continue;
+            if (!item.password && dbMap.has(normalizedId)) {
+              item.password = dbMap.get(normalizedId);
+            }
+            await client.query(
+              `INSERT INTO mst_teachers (id, payload) VALUES ($1, $2)
+               ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+              [normalizedId, JSON.stringify(item)]
+            );
+          }
+          await client.query('COMMIT');
+        } catch (e) {
+          await client.query('ROLLBACK');
+          console.error("Failed to save teachers from /api/data/save:", e);
+        } finally {
+          client.release();
+        }
+      };
+
+      const saveStaffs = async (items) => {
+        if (!Array.isArray(items) || items.length === 0) return;
+        const client = await dbPool.connect();
+        try {
+          await client.query('BEGIN');
+          const existingRes = await client.query("SELECT id, payload FROM mst_staffs");
+          const dbMap = new Map(existingRes.rows.map(r => {
+            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            return [String(r.id).toLowerCase(), p?.password];
+          }));
+          for (const item of items) {
+            if (!item) continue;
+            const code = String(item.code || item.staff_code || item.nip || item.id || '').trim();
+            const normalizedId = code.toLowerCase();
+            if (!normalizedId) continue;
+            if (!item.password && dbMap.has(normalizedId)) {
+              item.password = dbMap.get(normalizedId);
+            }
+            await client.query(
+              `INSERT INTO mst_staffs (id, payload) VALUES ($1, $2)
+               ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+              [normalizedId, JSON.stringify(item)]
+            );
+          }
+          await client.query('COMMIT');
+        } catch (e) {
+          await client.query('ROLLBACK');
+          console.error("Failed to save staffs from /api/data/save:", e);
+        } finally {
+          client.release();
+        }
+      };
+
+      const saveStudents = async (items) => {
+        if (!Array.isArray(items) || items.length === 0) return;
+        const client = await dbPool.connect();
+        try {
+          await client.query('BEGIN');
+          const existingRes = await client.query("SELECT id, payload FROM mst_students");
+          const dbMap = new Map(existingRes.rows.map(r => {
+            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            return [String(r.id).toLowerCase(), p?.password];
+          }));
+          for (const item of items) {
+            if (!item) continue;
+            const nis = String(item.nis || item.code || item.id || '').trim();
+            const normalizedId = nis.toLowerCase();
+            if (!normalizedId) continue;
+            if (!item.password && dbMap.has(normalizedId)) {
+              item.password = dbMap.get(normalizedId);
+            }
+            await client.query(
+              `INSERT INTO mst_students (id, payload) VALUES ($1, $2)
+               ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+              [normalizedId, JSON.stringify(item)]
+            );
+          }
+          await client.query('COMMIT');
+        } catch (e) {
+          await client.query('ROLLBACK');
+          console.error("Failed to save students from /api/data/save:", e);
+        } finally {
+          client.release();
+        }
+      };
+
       if (majors !== undefined) await saveToTable('mst_majors', majors, 'name');
       if (classes !== undefined) await saveToTable('mst_classes', classes, 'name');
       if (rooms !== undefined) await saveToTable('mst_rooms', rooms, 'id');
       if (subjects !== undefined) await saveToTable('mst_subjects', subjects, 'id');
-      // teachers, students, and staffs are updated via separate paginated endpoints
+      if (teachers !== undefined) await saveTeachers(teachers);
+      if (staffs !== undefined) await saveStaffs(staffs);
+      if (students !== undefined) await saveStudents(students);
 
       // Save the rest of the config back to app_data
       const dataString = JSON.stringify(restPayload);
