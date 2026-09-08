@@ -49,6 +49,90 @@ const messageTone = (priority) => {
   return 'bg-indigo-50 text-indigo-600';
 };
 
+export const ALL_SHORTCUT_CANDIDATES = [
+  { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600 border-teal-100", tab: "jurnal_harian" },
+  { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "walas_report" },
+  { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "generate" },
+  { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600 border-purple-100", tab: "silabusguru" },
+  { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600 border-sky-100", tab: "absensiguru" },
+  { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "ketersediaan" },
+  { label: "Beban Mengajar", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "beban" },
+  { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "catatan_walikelas" },
+  { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100", tab: "kedisiplinan_absensi" },
+  { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "akademik" },
+  { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "pesan" },
+  { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-violet-50 text-violet-600 border-violet-100", tab: "riwayat_prestasi" },
+  { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600 border-rose-100", tab: "kedisiplinan_bpbk" },
+  { label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600 border-rose-100", tab: "kedisiplinan_piket" },
+  { label: "Aturan Tatib", icon: "/icons/013-shield.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "tatib_skor" },
+  { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "siswa" },
+  { label: "Data Kelas", icon: "/icons/008-warehouse.svg", color: "bg-purple-50 text-purple-600 border-purple-100", tab: "kelas" },
+  { label: "Data Pegawai", icon: "/icons/045-account.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "data_pegawai" },
+  { label: "Data Ruangan", icon: "/icons/016-map pin.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "ruangan" },
+  { label: "E-Surat", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600 border-teal-100", tab: "esurat" },
+  { label: "Kartu Pelajar", icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-600 border-sky-100", tab: "kartu_pelajar" },
+  { label: "Rekap Presensi", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600 border-sky-100", tab: "absensi" },
+  { label: "Laporan Absensi", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-600 border-teal-100", tab: "laporan_absensi" },
+  { label: "Siswa PKL", icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-600 border-sky-100", tab: "pkl_data_siswa" },
+  { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "pkl_data_perusahaan" },
+  { label: "Jurnal PKL", icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "pkl_jurnal" },
+  { label: "Administrasi PKL", icon: "/icons/092-file.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "pkl_administrasi" },
+  { label: "Dashboard PKL", icon: "/icons/035-graph bar.svg", color: "bg-purple-50 text-purple-600 border-purple-100", tab: "pkl_dashboard" },
+  { label: "Denah Bangunan", icon: "/icons/008-warehouse.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "denah" },
+  { label: "Tampilan Web", icon: "/icons/058-website.svg", color: "bg-teal-50 text-teal-600 border-teal-100", tab: "tampilan" },
+  { label: "Pengaturan", icon: "/icons/098-setting.svg", color: "bg-slate-50 text-slate-600 border-slate-100", tab: "pengaturan" },
+  { label: "Hak Akses", icon: "/icons/033-padlock.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "hak_akses" },
+  { label: "Kontrol Fitur", icon: "/icons/098-setting.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "fitur" },
+];
+
+export function ensureFourOrEightShortcuts(baseList, checkFn, priorityPool = []) {
+  const isAllowed = (tab) => {
+    if (!tab) return false;
+    if (typeof checkFn === 'function') {
+      try {
+        return Boolean(checkFn(tab, null));
+      } catch (e) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // 1. Ambil shortcut awal yang diizinkan
+  const allowed = (baseList || []).filter(item => item && item.tab && isAllowed(item.tab));
+  const existingTabs = new Set(allowed.map(s => s.tab));
+  const fullCandidates = [...priorityPool, ...ALL_SHORTCUT_CANDIDATES];
+
+  // 2. Jika jumlahnya 5, 6, atau 7, otomatis lengkapi ke 8 dengan shortcut yang sesuai & diizinkan
+  if (allowed.length > 4 && allowed.length < 8) {
+    for (const cand of fullCandidates) {
+      if (cand && cand.tab && !existingTabs.has(cand.tab) && isAllowed(cand.tab)) {
+        allowed.push(cand);
+        existingTabs.add(cand.tab);
+        if (allowed.length === 8) break;
+      }
+    }
+  } else if (allowed.length < 4) {
+    // Jika jumlahnya kurang dari 4, otomatis lengkapi ke 4
+    for (const cand of fullCandidates) {
+      if (cand && cand.tab && !existingTabs.has(cand.tab) && isAllowed(cand.tab)) {
+        allowed.push(cand);
+        existingTabs.add(cand.tab);
+        if (allowed.length === 4) break;
+      }
+    }
+  }
+
+  // 3. Pastikan strictly 4 atau 8 item agar layout grid 4-kolom rapi sempurna tanpa slot bolong
+  if (allowed.length >= 8) {
+    return allowed.slice(0, 8);
+  }
+  if (allowed.length >= 4) {
+    return allowed.slice(0, 4);
+  }
+  return allowed;
+}
+
 function TeachingScheduleCard({
   todayClasses = [],
   selectedClass,
@@ -685,10 +769,13 @@ export default function DashboardPage({
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
     }
-    if (typeof checkIsAllowed === 'function') {
-      return shortcuts.filter(s => checkIsAllowed(s.tab, null));
-    }
-    return shortcuts;
+    return ensureFourOrEightShortcuts(shortcuts, checkIsAllowed, [
+      { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "ketersediaan" },
+      { label: "Beban KBM", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600", tab: "beban" },
+      { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
+      { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-cyan-50 text-cyan-600", tab: "kedisiplinan_absensi" },
+      { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-violet-50 text-violet-600", tab: "riwayat_prestasi" },
+    ]);
   }, [isTeacher, currentUser?.subrole, currentUser?.isWalas, currentUser?.walasClass, checkIsAllowed]);
 
   const myStudentsCount = useMemo(() => {
@@ -1761,9 +1848,7 @@ export default function DashboardPage({
                   ];
                 }
 
-                const allowedShortcuts = typeof checkIsAllowed === 'function'
-                  ? dynamicShortcuts.filter(s => checkIsAllowed(s.tab, null))
-                  : dynamicShortcuts;
+                const allowedShortcuts = ensureFourOrEightShortcuts(dynamicShortcuts, checkIsAllowed);
 
                 return allowedShortcuts.map((shortcut, idx) => {
                   const pastelBgs = [
@@ -1965,7 +2050,7 @@ export default function DashboardPage({
           </div>
           <div className="grid grid-cols-2 min-[380px]:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
             {/* Quick Shortcuts */}
-            {(() => {
+            {ensureFourOrEightShortcuts((() => {
               const activeSubrole = (currentUser?.subrole || '').toLowerCase().trim();
               if (isTU) {
                 if (activeSubrole === 'sekretaris_tu') return [
@@ -2075,12 +2160,7 @@ export default function DashboardPage({
                 { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-teal-50 text-teal-600", tab:"tampilan" },
                 { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-rose-50 text-rose-600", tab:"absensi" },
               ];
-            })().filter(shortcut => {
-              if (typeof checkIsAllowed === 'function') {
-                return checkIsAllowed(shortcut.tab, null);
-              }
-              return true;
-            }).map((shortcut, i) => (
+            })(), checkIsAllowed).map((shortcut, i) => (
               <button
                 key={i}
                 type="button"
