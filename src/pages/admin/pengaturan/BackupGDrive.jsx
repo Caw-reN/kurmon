@@ -92,7 +92,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         method: 'POST',
         headers: { Authorization: `Bearer ${authToken}` }
       });
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+      }
       
       if (data.ok) {
         const filename = data.data?.filename || data.data?.fileName || 'backup.json';
@@ -127,8 +132,14 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
     try {
       const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
       if (!res.ok) {
-        const errJson = await res.json().catch(() => null);
-        showToast(errJson?.error || `Gagal mengunduh berkas cadangan.`, 'error');
+        let errMessage = `Gagal mengunduh berkas cadangan (Status ${res.status}).`;
+        try {
+          const errJson = await res.json();
+          if (errJson?.error) errMessage = errJson.error;
+        } catch {
+          // ignore non-JSON error
+        }
+        showToast(errMessage, 'error');
         return;
       }
       const blob = await res.blob();
@@ -167,8 +178,13 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         showToast(`Berkas ${filename} berhasil dihapus dari server.`);
         loadData();
       } else {
-        const data = await res.json();
-        showToast(data.error || 'Gagal menghapus berkas.', 'error');
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = { error: `Gagal menghapus berkas (Status: ${res.status}).` };
+        }
+        showToast(data?.error || 'Gagal menghapus berkas.', 'error');
       }
     } catch (e) {
       showToast('Terjadi kesalahan koneksi saat menghapus.', 'error');
@@ -186,8 +202,13 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       if (res.ok) {
         showToast('Konfigurasi jadwal auto-backup berhasil diperbarui!');
       } else {
-        const data = await res.json();
-        showToast(data.error || 'Gagal menyimpan jadwal.', 'error');
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = { error: `Gagal menyimpan jadwal (Status: ${res.status}).` };
+        }
+        showToast(data?.error || 'Gagal menyimpan jadwal.', 'error');
       }
     } catch (e) {
       showToast('Gagal memanggil API jadwal.', 'error');
@@ -202,7 +223,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         method: 'POST',
         headers: { Authorization: `Bearer ${authToken}` }
       });
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+      }
       if (data.ok) showToast('Pesan uji coba berhasil terkirim ke Telegram!');
       else showToast(data.error || 'Gagal mengirim pesan uji coba.', 'error');
     } catch (e) { 
@@ -216,7 +242,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         method: 'POST',
         headers: { Authorization: `Bearer ${authToken}` }
       });
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+      }
       if (data.ok) {
         showToast('Bot Telegram berhasil dimuat ulang!');
         loadData();
@@ -272,7 +303,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
           headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
           body: jsonContent
         });
-        const data = await res.json();
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+        }
         
         if (data.ok) {
           showToast('Database berhasil dipulihkan! Halaman akan dimuat ulang...');
@@ -305,7 +341,12 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
         headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ dateBefore: archiveDate + 'T00:00:00Z' })
       });
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+      }
       if (data.ok) showToast(data.message || 'Pembersihan database berhasil diselesaikan!');
       else showToast(data.error || 'Gagal melakukan pembersihan.', 'error');
     } catch (e) {

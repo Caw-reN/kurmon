@@ -3479,26 +3479,40 @@ const server = createServer(async (req, res) => {
       try {
         const wb = new ExcelJS.Workbook();
 
+        const safeParsePayload = (val) => {
+          if (!val) return null;
+          if (typeof val === 'object') return val;
+          if (typeof val !== 'string') return null;
+          try {
+            return JSON.parse(val);
+          } catch {
+            return val;
+          }
+        };
+
         const addMasterSheet = async (tableName, sheetName, defaultColumns, payloadToRow) => {
           const { rows } = await dbPool.query(`SELECT payload FROM ${tableName}`);
           const sheetData = [defaultColumns];
           rows.forEach(r => {
-            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
-            if (p) sheetData.push(payloadToRow(p));
+            const p = safeParsePayload(r.payload);
+            if (p) {
+              const row = payloadToRow(p);
+              if (row) sheetData.push(row);
+            }
           });
           const ws = wb.addWorksheet(sheetName);
-            ws.addRows(sheetData);
+          ws.addRows(sheetData);
         };
 
         // 1_Jurusan
         const { rows: majorRows } = await dbPool.query(`SELECT payload FROM mst_majors`);
         const jurusanData = [["Nama Jurusan (wajib)"]];
         majorRows.forEach(r => {
-          const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
-          if (p && p.name) {
+          const p = safeParsePayload(r.payload);
+          if (p && typeof p === 'object' && p.name) {
             jurusanData.push([p.name]);
-          } else if (typeof p === 'string') {
-            jurusanData.push([p]);
+          } else if (typeof p === 'string' && p.trim()) {
+            jurusanData.push([p.trim()]);
           }
         });
         const wsJurusan = wb.addWorksheet("1_Jurusan");
@@ -3519,7 +3533,7 @@ const server = createServer(async (req, res) => {
         // 4_Mapel
         await addMasterSheet('mst_subjects', '4_Mapel', 
           ["Nama Mapel (wajib)", "Grade (X/XI/XII/Semua)", "Jurusan (Umum/TKR/TKJ/RPL/Akuntansi)", "Praktik? (Ya/Tidak)", "Ruangan Praktik (ID dipisah koma)", "Durasi"],
-          p => [p.name || "", p.grade || "", p.major || "", p.isPractical ? "Ya" : "Tidak", p.practicalRooms ? p.practicalRooms.join(",") : "", p.duration || 2]
+          p => [p.name || "", p.grade || "", p.major || "", p.isPractical ? "Ya" : "Tidak", p.practicalRooms ? (Array.isArray(p.practicalRooms) ? p.practicalRooms.join(",") : p.practicalRooms) : "", p.duration || 2]
         );
 
         // 5_Ruangan
@@ -3528,53 +3542,100 @@ const server = createServer(async (req, res) => {
           p => [p.id || "", p.name || "", p.type || "Teori", p.major || "All", p.grade || "Semua", p.isPriority ? "Ya" : "Tidak"]
         );
 
+        // Ambil data konfigurasi pengajaran dari app_data store_key = 'main_store'
+        let mainStore = {};
+        try {
+          const { rows: storeRows } = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+          if (storeRows.length > 0 && storeRows[0].data) {
+            mainStore = typeof storeRows[0].data === 'string' ? JSON.parse(storeRows[0].data) : (storeRows[0].data || {});
+          }
+        } catch (e) {
+          console.warn("[ExcelDump] Gagal membaca data dari store_key 'main_store':", e.message);
+        }
+
         // 6_Beban
-        const { rows: loadRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teaching_loads' LIMIT 1`);
-        const loadPayload = loadRows.length > 0 ? (typeof loadRows[0].payload === 'string' ? JSON.parse(loadRows[0].payload) : loadRows[0].payload) : [];
-        const loads = Array.isArray(loadPayload) ? loadPayload : (loadPayload?.loads || []);
+        const loads = Array.isArray(mainStore.teachingLoads) ? mainStore.teachingLoads : (mainStore.loads || []);
         const bebanData = [
           ["Kode Guru", "Nama Mapel", "Target Grade (All/X/XI/XII atau X,XI)", "Target Jurusan (All/TKR/TKJ/RPL/Akuntansi)", "Durasi", "Maks Kelas (opsional)"]
         ];
         loads.forEach(l => {
-          bebanData.push([l.teacherCode || "", l.subjectName || "", l.targetGrade || "All", l.targetMajor || "All", l.duration || 2, l.maxClasses || ""]);
+          bebanData.push([
+            l.teacherCode || "",
+            l.subject || l.subjectName || "",
+            l.targetGrade || "All",
+            l.targetMajor || "All",
+            l.duration || 2,
+            l.maxClasses || ""
+          ]);
         });
         const wsBeban = wb.addWorksheet("6_Beban");
         wsBeban.addRows(bebanData);
 
         // 7_Silabus
-        const { rows: syllabusRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teacher_syllabus' LIMIT 1`);
-        const syllabusPayload = syllabusRows.length > 0 ? (typeof syllabusRows[0].payload === 'string' ? JSON.parse(syllabusRows[0].payload) : syllabusRows[0].payload) : [];
-        const syllabi = Array.isArray(syllabusPayload) ? syllabusPayload : (syllabusPayload?.entries || []);
+        const syllabi = Array.isArray(mainStore.syllabuses) ? mainStore.syllabuses : (mainStore.teacher_syllabus || []);
         const silabusData = [
           ["Mata Pelajaran (wajib)", "Guru Pengajar (wajib)", "Judul Pertemuan / BAB (wajib)", "Kelas / Semester", "Tujuan Pembelajaran", "Materi Pembelajaran (pisah enter)", "Catatan (opsional)"]
         ];
         syllabi.forEach(s => {
-          silabusData.push([s.subjectName || "", s.teacherCode || "", s.title || "", s.classSemester || "", s.objective || "", Array.isArray(s.materials) ? s.materials.join("\n") : (s.materials || ""), s.notes || ""]);
+          silabusData.push([
+            s.subjectName || s.subject || "",
+            s.teacherCode || "",
+            s.title || "",
+            s.classSemester || "",
+            s.objective || "",
+            Array.isArray(s.materials) ? s.materials.join("\n") : (s.materials || ""),
+            s.notes || ""
+          ]);
         });
         const wsSilabus = wb.addWorksheet("7_Silabus");
         wsSilabus.addRows(silabusData);
 
         // 8_Waktu
-        const { rows: settingsRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'time_slots' LIMIT 1`);
-        const settingsPayload = settingsRows.length > 0 ? (typeof settingsRows[0].payload === 'string' ? JSON.parse(settingsRows[0].payload) : settingsRows[0].payload) : [];
-        const timeSlots = Array.isArray(settingsPayload) ? settingsPayload : (settingsPayload?.slots || []);
+        const timeSlotsObj = mainStore.timeSlots || {};
         const waktuData = [
           ["Hari", "Jam", "Apakah Istirahat?", "Nama Istirahat", "Dihitung Berapa JP?"]
         ];
-        timeSlots.forEach(slot => {
-          waktuData.push([slot.day || "", slot.timeStr || "", slot.isBreak ? "Ya" : "Tidak", slot.breakName || "", slot.jpCount !== undefined ? slot.jpCount : 1]);
-        });
+        if (Array.isArray(timeSlotsObj)) {
+          timeSlotsObj.forEach(slot => {
+            waktuData.push([
+              slot.day || "",
+              slot.label || slot.timeStr || "",
+              slot.isBreak ? "Ya" : "Tidak",
+              slot.labelBreak || slot.breakName || "",
+              slot.jpCount !== undefined ? slot.jpCount : 1
+            ]);
+          });
+        } else if (typeof timeSlotsObj === 'object') {
+          Object.entries(timeSlotsObj).forEach(([day, slots]) => {
+            if (Array.isArray(slots)) {
+              slots.forEach(slot => {
+                waktuData.push([
+                  day,
+                  slot.label || slot.timeStr || "",
+                  slot.isBreak ? "Ya" : "Tidak",
+                  slot.labelBreak || slot.breakName || "",
+                  slot.jpCount !== undefined ? slot.jpCount : 1
+                ]);
+              });
+            }
+          });
+        }
         const wsWaktu = wb.addWorksheet("8_Waktu");
         wsWaktu.addRows(waktuData);
 
         // 9_Ketersediaan
-        const { rows: availRows } = await dbPool.query(`SELECT payload FROM app_data WHERE key = 'teacher_availability' LIMIT 1`);
-        const availPayload = availRows.length > 0 ? (typeof availRows[0].payload === 'string' ? JSON.parse(availRows[0].payload) : availRows[0].payload) : {};
+        const availPayload = mainStore.teacherAvailability || {};
         const ketersediaanData = [
           ["Kode Guru", "Mapel Kompetensi", "Hari Tersedia"]
         ];
         Object.entries(availPayload).forEach(([tCode, data]) => {
-          ketersediaanData.push([tCode, Array.isArray(data.subjects) ? data.subjects.join(", ") : "", Array.isArray(data.days) ? data.days.join(", ") : ""]);
+          if (data && typeof data === 'object') {
+            ketersediaanData.push([
+              tCode,
+              Array.isArray(data.subjects) ? data.subjects.join(", ") : (data.subjects || ""),
+              Array.isArray(data.days) ? data.days.join(", ") : (data.days || "")
+            ]);
+          }
         });
         const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
         wsKetersediaan.addRows(ketersediaanData);
