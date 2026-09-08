@@ -2899,9 +2899,50 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     
     allLogs = [...allLogs, ...manualAbsenceLogs];
 
+    // Build student lookup map for robust deduplication to canonical student NIS
+    const studentNisMap = new Map();
+    const studentNameMap = new Map();
+    (storeStudents || []).forEach(s => {
+      const cNis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
+      const sName = String(s.name || s.nama || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (cNis) {
+        studentNisMap.set(cNis, cNis);
+        if (cNis.length >= 6) {
+          studentNisMap.set(cNis.slice(-8), cNis);
+        }
+      }
+      if (sName) {
+        studentNameMap.set(sName, cNis || sName);
+      }
+    });
+
     const uniqueSiswa = {};
     allLogs.forEach(r => {
-      const key = String(r.siswa_nis || r.employee_id || r.nis || r.true_person_name || r.name || r.id || '').toLowerCase();
+      const idCandidates = [
+        String(r.canonical_nis || '').trim().toLowerCase(),
+        String(r.siswa_nis || '').trim().toLowerCase(),
+        String(r.employee_id || '').trim().toLowerCase(),
+        String(r.nis || '').trim().toLowerCase(),
+        String(r.username || '').trim().toLowerCase()
+      ].filter(Boolean);
+
+      let key = '';
+      for (const cand of idCandidates) {
+        if (studentNisMap.has(cand)) {
+          key = studentNisMap.get(cand);
+          break;
+        }
+      }
+      if (!key) {
+        const normName = String(r.student_name || r.true_name || r.true_person_name || r.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (normName && studentNameMap.has(normName)) {
+          key = studentNameMap.get(normName);
+        }
+      }
+      if (!key) {
+        key = idCandidates[0] || String(r.name || r.id || '').trim().toLowerCase();
+      }
+
       if (key) {
         if (!uniqueSiswa[key]) {
           uniqueSiswa[key] = r;
@@ -2943,15 +2984,15 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     }
 
     return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
-  }, [dashLogs]);
+  }, [dashLogs, storeStudents]);
 
   const guruPercent = guruStats.totalGuru > 0 
-    ? Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100)
+    ? Math.min(100, Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100))
     : 0;
 
   const siswaPercent = (siswaStats.totalSiswaInSchool > 0)
-    ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / siswaStats.totalSiswaInSchool) * 100)
-    : (siswaStats.total > 0 ? Math.round((siswaStats.Hadir / siswaStats.total) * 100) : 0);
+    ? Math.min(100, Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / siswaStats.totalSiswaInSchool) * 100))
+    : (siswaStats.total > 0 ? Math.min(100, Math.round((siswaStats.Hadir / siswaStats.total) * 100)) : 0);
 
   if (!canSeeTeacherAttendance && !canSeeStudentAttendance) return null;
 

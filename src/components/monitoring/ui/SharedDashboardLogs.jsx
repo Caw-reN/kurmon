@@ -152,14 +152,27 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   const dedupeFront = (arr) => {
     const seenId = new Set();
-    // Dedup berdasarkan ID unik (employee_id/nis/username) atau nama yang dinormalisasi
+    // Dedup berdasarkan ID unik (employee_id/nis/username) atau nama yang dinormalisasi dengan resolusi canonical student
     const result = [];
     const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at || a.date || 0) - new Date(b.timestamp || b.created_at || b.date || 0));
 
     for (const item of sorted) {
+      const canonicalNis = String(item.canonical_nis || item.siswa_nis || '').trim().toLowerCase();
       const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
       const normName = String(item.name || item.student_name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      const idKey = rawId ? rawId : normName;
+      
+      let idKey = canonicalNis;
+      if (!idKey && rawId && studentLookupMap?.nisMap) {
+        const stu = studentLookupMap.nisMap.get(rawId);
+        if (stu?.nis) idKey = String(stu.nis).trim().toLowerCase();
+      }
+      if (!idKey && normName && studentLookupMap?.nameMap) {
+        const stu = studentLookupMap.nameMap.get(normName);
+        if (stu?.nis) idKey = String(stu.nis).trim().toLowerCase();
+      }
+      if (!idKey) {
+        idKey = rawId || normName;
+      }
 
       if (idKey) {
         if (seenId.has(idKey)) continue;
@@ -314,10 +327,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       dashLogs.studentAbsenceLogs.forEach(a => {
         const k = String(a.siswa_nis || '').trim().toLowerCase();
         if (k) {
-          const existing = logs.find(l => String(l.employee_id || l.nis || '').trim().toLowerCase() === k);
+          const existing = logs.find(l => {
+            const lId = String(l.canonical_nis || l.employee_id || l.nis || '').trim().toLowerCase();
+            return lId === k || (lId.length >= 6 && (k.endsWith(lId) || lId.endsWith(k)));
+          });
           if (!existing) {
             logs.push({
               employee_id: k,
+              canonical_nis: k,
               status: a.status,
               timestamp: a.tanggal,
               true_person_type: 'siswa',
@@ -326,6 +343,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           }
         }
       });
+      logs = dedupeFront(logs);
     }
 
     // Diurutkan dari jam absen tercepat (ASC)

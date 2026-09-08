@@ -323,11 +323,68 @@ export default function KepsekExecutiveDashboard({
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
     });
-    const allLogs = [...hikLogs, ...recentLogs];
+    let allLogs = [...hikLogs];
+    if (allLogs.length === 0 && recentLogs.length > 0) {
+      allLogs = recentLogs;
+    }
+
+    const nisMap = {};
+    const nameMap = {};
+    const gradeStats = {
+      'X': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XI': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XII': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'Unknown': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 }
+    };
+
+    (students || []).forEach(s => {
+      const nis = String(s.nis || s.code || s.employee_id || '').trim().toLowerCase();
+      const name = String(s.name || s.nama || '').trim().toLowerCase();
+      if (nis) {
+        nisMap[nis] = s;
+        if (nis.length >= 6) {
+          nisMap[nis.slice(-8)] = s;
+        }
+      }
+      if (name) nameMap[name] = s;
+      
+      // Hitung total base per kelas
+      const cls = String(s.class_name || s.kelas || '').toUpperCase();
+      let grade = 'Unknown';
+      if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
+      else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
+      else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
+      
+      if (gradeStats[grade]) gradeStats[grade].total++;
+    });
     
     const uniq = {};
     allLogs.forEach(r => {
-      const k = String(r?.employee_id || r?.nis || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
+      const idCandidates = [
+        String(r?.canonical_nis || '').trim().toLowerCase(),
+        String(r?.siswa_nis || '').trim().toLowerCase(),
+        String(r?.employee_id || '').trim().toLowerCase(),
+        String(r?.nis || '').trim().toLowerCase(),
+        String(r?.username || '').trim().toLowerCase()
+      ].filter(Boolean);
+
+      let k = '';
+      for (const cand of idCandidates) {
+        if (nisMap[cand]) {
+          k = String(nisMap[cand].nis || nisMap[cand].id || cand).toLowerCase();
+          break;
+        }
+      }
+      if (!k) {
+        const nameRaw = String(r?.true_person_name || r?.name || '').trim().toLowerCase();
+        if (nameRaw && nameMap[nameRaw]) {
+          k = String(nameMap[nameRaw].nis || nameMap[nameRaw].id || nameRaw).toLowerCase();
+        }
+      }
+      if (!k) {
+        k = idCandidates[0] || String(r?.name || r?.id || '').trim().toLowerCase();
+      }
+
       if (k) {
         if (!uniq[k]) {
           uniq[k] = r;
@@ -345,11 +402,12 @@ export default function KepsekExecutiveDashboard({
     // Merge manual absences from studentAbsenceLogs
     if (dashLogs?.studentAbsenceLogs) {
       dashLogs.studentAbsenceLogs.forEach(a => {
-        const k = String(a.siswa_nis || '').trim().toLowerCase();
+        const rawK = String(a.siswa_nis || '').trim().toLowerCase();
+        const k = (nisMap[rawK] ? String(nisMap[rawK].nis || rawK).toLowerCase() : rawK);
         if (k) {
           // If already present in uniq (e.g. they scanned but also got an absence log for some reason), we overlay the manual status
           if (!uniq[k]) {
-            uniq[k] = { employee_id: k, status: a.status, timestamp: a.tanggal };
+            uniq[k] = { employee_id: k, canonical_nis: k, status: a.status, timestamp: a.tanggal };
           } else if (a.status && String(a.status).toLowerCase() !== 'hadir') {
             // Manual overrides scan
             uniq[k].status = a.status;
@@ -357,32 +415,6 @@ export default function KepsekExecutiveDashboard({
         }
       });
     }
-
-    const gradeStats = {
-      'X': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
-      'XI': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
-      'XII': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
-      'Unknown': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 }
-    };
-
-    const nisMap = {};
-    const nameMap = {};
-    
-    (students || []).forEach(s => {
-      const nis = String(s.nis || s.code || s.employee_id || '').trim().toLowerCase();
-      const name = String(s.name || s.nama || '').trim().toLowerCase();
-      if (nis) nisMap[nis] = s;
-      if (name) nameMap[name] = s;
-      
-      // Hitung total base per kelas
-      const cls = String(s.class_name || s.kelas || '').toUpperCase();
-      let grade = 'Unknown';
-      if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
-      else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
-      else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
-      
-      if (gradeStats[grade]) gradeStats[grade].total++;
-    });
 
     const s = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
     Object.values(uniq).forEach(r => {

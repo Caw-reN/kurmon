@@ -207,8 +207,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           getHikvisionConfig(),
           // Siswa logs: use precomputed first-scan via subquery in SQL (avoid full table scan in JS)
           dbPool.query(`
-            SELECT DISTINCT ON (l.employee_id)
+            SELECT DISTINCT ON (COALESCE(ms.payload->>'nis', hs.nis, l.employee_id))
               l.*, d.ip_address, d.device_type,
+              COALESCE(ms.payload->>'nis', hs.nis, l.employee_id) as canonical_nis,
               COALESCE(
                 COALESCE(mst.payload->>'name', mst.payload->>'nama'),
                 COALESCE(msf.payload->>'name', msf.payload->>'nama'),
@@ -244,7 +245,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
             WHERE CAST(l.timestamp AS DATE) = $1
               AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
-            ORDER BY l.employee_id, l.timestamp ASC
+            ORDER BY COALESCE(ms.payload->>'nis', hs.nis, l.employee_id), l.timestamp ASC
           `, [todayJkt]),
           // Staff logs: dedicated query
           dbPool.query(`
@@ -618,17 +619,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const validLogs = logs.filter(l => (l.employeeNoString || l.employeeNo) && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
               const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
-                const empRaw = String(l.employeeNoString || l.employeeNo || '').trim();
+                let empRaw = String(l.employeeNoString || l.employeeNo || '').trim();
                 const empStr = empRaw.toLowerCase();
                 let personType = 'siswa';
                 if (nipToCode[empStr]) {
                   personType = 'guru';
+                  empRaw = nipToCode[empStr] || empRaw;
                 } else if (staffToCode[empStr]) {
                   personType = 'karyawan';
+                  empRaw = staffToCode[empStr] || empRaw;
                 } else if (dtype === 'guru') {
                   personType = 'guru';
                 } else if (dtype === 'karyawan' || dtype === 'staff') {
                   personType = 'karyawan';
+                } else {
+                  // Resolve canonical student NIS if available in mst_students
+                  const resolvedNis = resolveNis(empRaw);
+                  if (resolvedNis) {
+                    empRaw = resolvedNis;
+                    personType = 'siswa';
+                  }
                 }
                 const tsStr = (l.time || '').replace('T', ' ').substring(0, 19);
                 await dbPool.query(query, [device.id, empRaw, tsStr, `${l.major}-${l.minor}`, personType]);

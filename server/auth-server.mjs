@@ -178,10 +178,22 @@ async function pullHikvisionLogs(force = false) {
       dbPool.query("SELECT nis, name, class_name FROM hikvision_students"),
       dbPool.query("SELECT id, payload FROM mst_teachers"),
       dbPool.query("SELECT id, payload FROM mst_staffs"),
-      dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'")
+      dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'"),
+      dbPool.query("SELECT id, payload FROM mst_students")
     ]);
 
     // Build O(1) lookup maps
+    const studentNisMap = new Map();
+    for (const r of studentsRes.rows) {
+      const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
+      const cNis = String(p.nis || p.code || r.id || '').trim();
+      if (cNis) {
+        studentNisMap.set(cNis.toLowerCase(), cNis);
+        if (cNis.length >= 6) {
+          studentNisMap.set(cNis.slice(-8).toLowerCase(), cNis);
+        }
+      }
+    }
     const hikStudentMap = new Map(hikStudentsRes.rows.map(r => [String(r.nis || '').toLowerCase(), r]));
     const teacherMap    = new Map();
     for (const r of teachersRes.rows) {
@@ -236,7 +248,7 @@ async function pullHikvisionLogs(force = false) {
 
         if (logs && logs.length > 0) {
           for (const log of logs) {
-            const employeeNo = log.employeeNoString || log.employeeNo;
+            let employeeNo = String(log.employeeNoString || log.employeeNo || '').trim();
             if (!employeeNo) continue;
             
             // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
@@ -253,6 +265,12 @@ async function pullHikvisionLogs(force = false) {
             const empKey = String(employeeNo).toLowerCase();
             let personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
             let userName   = log.name || 'Unknown';
+
+            // Resolve canonical student NIS if matching mst_students (e.g. 8-digit to 9-digit)
+            if (studentNisMap.has(empKey)) {
+              employeeNo = studentNisMap.get(empKey);
+              personType = 'siswa';
+            }
 
             const hikStu = hikStudentMap.get(empKey);
             if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
@@ -2703,6 +2721,20 @@ const server = createServer(async (req, res) => {
           const todayLogsRes = await dbPool.query(`
             SELECT l.*, d.ip_address, d.device_type,
               COALESCE(
+                (SELECT payload->>'nis' FROM mst_students 
+                 WHERE payload->>'nis' = l.employee_id 
+                    OR payload->>'code' = l.employee_id 
+                    OR id = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
+                 LIMIT 1),
+                (SELECT nis FROM hikvision_students 
+                 WHERE nis = l.employee_id 
+                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
+                 LIMIT 1),
+                l.employee_id
+              ) as canonical_nis,
+
+              COALESCE(
                 (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
                  WHERE payload->>'nis' = l.employee_id 
                     OR payload->>'code' = l.employee_id 
@@ -2770,9 +2802,11 @@ const server = createServer(async (req, res) => {
               CASE 
                 WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
                 WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) THEN 'karyawan'
-                WHEN l.employee_id ~* '^k[0-9]+' THEN 'karyawan'
+                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name = 'guru') THEN 'guru'
+                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name IN ('karyawan', 'staff')) THEN 'karyawan'
+                WHEN l.employee_id ~* '^k[0-9a-z]+' THEN 'karyawan'
                 WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))) THEN 'siswa'
-                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id) THEN 'siswa'
+                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name NOT IN ('guru', 'karyawan', 'staff')) THEN 'siswa'
                 WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
                 WHEN d.device_type = 'guru' THEN 'guru'
                 ELSE 'siswa'
@@ -2786,7 +2820,7 @@ const server = createServer(async (req, res) => {
           // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
           const firstScanMap = new Map();
           todayLogsRes.rows.forEach(r => {
-            const empId = String(r.employee_id || '').trim().toLowerCase();
+            const empId = String(r.canonical_nis || r.employee_id || '').trim().toLowerCase();
             if (!empId) return;
             const tsStr = String(r.timestamp || '').replace('T', ' ');
             const curTimeStr = tsStr.substring(11, 19);
@@ -2799,7 +2833,7 @@ const server = createServer(async (req, res) => {
           const validTodayLogs = todayLogsRes.rows.filter(r => r.true_name != null);
 
           const allTodayRows = validTodayLogs.map(r => {
-            const empId = String(r.employee_id || '').trim().toLowerCase();
+            const empId = String(r.canonical_nis || r.employee_id || '').trim().toLowerCase();
             const tsStr = String(r.timestamp || '').replace('T', ' ');
             const firstScanTime = firstScanMap.get(empId) || tsStr.substring(11, 19);
             const personType = String(r.true_person_type).toLowerCase();
@@ -2831,7 +2865,7 @@ const server = createServer(async (req, res) => {
             const sorted = [...arr].sort((a, b) => new Date(a.timestamp || a.created_at) - new Date(b.timestamp || b.created_at));
             const unique = [];
             for (const item of sorted) {
-              const key = String(item.employee_id || item.username || item.nis || item.name || '').trim().toLowerCase();
+              const key = String(item.canonical_nis || (item.true_person_type === 'siswa' ? (item.nis || item.employee_id) : (item.employee_id || item.username || item.nis || item.name)) || '').trim().toLowerCase();
               if (!key || seen.has(key)) continue;
               seen.add(key);
               unique.push(item);
