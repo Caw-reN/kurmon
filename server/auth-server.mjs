@@ -4171,7 +4171,21 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/materi-ajar")) {
       if (req.method === "GET") {
         try {
-          // Ensure table exists
+          // 1. Cek apakah meminta berkas file spesifik: /api/materi-ajar/:id/file atau ?file_id=X
+          const fileMatch = url.pathname.match(/^\/api\/materi-ajar\/(\d+)\/file$/);
+          const singleFileId = fileMatch ? fileMatch[1] : url.searchParams.get("file_id");
+          if (singleFileId) {
+            const { rows: fileRows } = await dbPool.query(
+              "SELECT id, judul, nama_dokumen, file_url FROM materi_ajar WHERE id = $1 LIMIT 1",
+              [singleFileId]
+            );
+            if (fileRows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Berkas materi ajar tidak ditemukan." });
+            }
+            return send(req, res, 200, { ok: true, data: fileRows[0] });
+          }
+
+          // Pastikan tabel ada
           await dbPool.query(`
             CREATE TABLE IF NOT EXISTS materi_ajar (
               id SERIAL PRIMARY KEY,
@@ -4190,7 +4204,21 @@ const server = createServer(async (req, res) => {
               uploaded_at TIMESTAMPTZ DEFAULT NOW()
             )
           `);
-          const { rows } = await dbPool.query("SELECT id, teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran, uploaded_at FROM materi_ajar ORDER BY uploaded_at DESC");
+
+          // Optimasi query: Jangan unduh base64 file_url yang sangat besar saat mengambil daftar materi!
+          // Hal ini membuat pemuatan awal instan (sub-50ms) daripada puluhan detik.
+          const includeFiles = url.searchParams.get("include_files") === "true";
+          const queryStr = includeFiles
+            ? "SELECT id, teacher_code, teacher_name, judul, deskripsi, file_url, nama_dokumen, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran, uploaded_at FROM materi_ajar ORDER BY uploaded_at DESC"
+            : `SELECT 
+                id, teacher_code, teacher_name, judul, deskripsi, 
+                CASE WHEN file_url IS NOT NULL AND file_url != '' THEN true ELSE false END as has_file,
+                ROUND((LENGTH(COALESCE(file_url, '')) * 3.0 / 4.0)) as file_size_bytes,
+                nama_dokumen, link_url, tipe, mapel, kelas_target, semester, tahun_ajaran, uploaded_at 
+               FROM materi_ajar 
+               ORDER BY uploaded_at DESC`;
+
+          const { rows } = await dbPool.query(queryStr);
           send(req, res, 200, { ok: true, data: rows });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;
