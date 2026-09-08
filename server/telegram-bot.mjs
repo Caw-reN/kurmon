@@ -107,6 +107,7 @@ async function _loadConfig() {
 function _startPolling() {
   if (_isRunning) return;
   _isRunning = true;
+  _registerBotCommands().catch(err => console.warn('[TelegramBot] register commands error:', err.message));
   _pollLoop();
 }
 
@@ -144,7 +145,14 @@ async function _handleUpdate(update) {
   const from = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || chatId);
 
   const parts = text.split(/\s+/);
-  const cmd = parts[0].toLowerCase().split('@')[0];
+  let cmd = parts[0].toLowerCase().split('@')[0];
+  // Dukung input kata kunci umum tanpa tanda garis miring (/)
+  if (!cmd.startsWith('/')) {
+    const knownWords = ['help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru'];
+    if (knownWords.includes(cmd)) {
+      cmd = '/' + cmd;
+    }
+  }
   const args = parts.slice(1);
 
   // Perintah /start selalu diizinkan agar admin/pengguna baru bisa langsung melihat Chat ID mereka
@@ -170,6 +178,13 @@ async function _handleUpdate(update) {
   }
   if (_allowedChatIds.size === 0 && _chatId && chatId !== String(_chatId)) return;
 
+  // Pintasan langsung dari link perintah, contoh: /absen_X_TKJ_1
+  if (cmd.startsWith('/absen_') && !['/absen_guru', '/absen_semua', '/absen_rekap'].includes(cmd)) {
+    const targetClass = cmd.slice(7).replace(/_/g, ' ').trim();
+    await _cmdAbsenPerKelas(chatId, targetClass);
+    return;
+  }
+
   switch (cmd) {
     case '/help':   await _cmdHelp(chatId); break;
     case '/status': await _cmdStatus(chatId); break;
@@ -178,8 +193,32 @@ async function _handleUpdate(update) {
     case '/alerts': await _cmdAlerts(chatId); break;
     case '/stats':  await _cmdStats(chatId); break;
     case '/absen':
-    case '/rekap':  await sendDailyMorningAttendanceReport(chatId); break;
-    default: await _sendMessage(chatId, `❓ Perintah tidak dikenal. Ketik <b>/help</b> untuk daftar perintah.`, { isHtml: true });
+    case '/rekap':
+      if (args.length > 0) {
+        await _cmdAbsenPerKelas(chatId, args.join(' '));
+      } else {
+        await sendDailyMorningAttendanceReport(chatId);
+      }
+      break;
+    case '/absen_semua':
+    case '/rekap_semua':
+      await sendDailyMorningAttendanceReport(chatId);
+      break;
+    case '/kelas':
+    case '/daftarkelas':
+      await _cmdDaftarKelas(chatId);
+      break;
+    case '/rekap_kelas':
+    case '/rekapkelas':
+      await _cmdRekapSemuaKelas(chatId);
+      break;
+    case '/guru':
+    case '/absen_guru':
+    case '/presensi_guru':
+      await _cmdAbsenGuru(chatId);
+      break;
+    default:
+      await _sendMessage(chatId, `❓ Perintah tidak dikenal. Ketik <b>/help</b> untuk daftar perintah.`, { isHtml: true });
   }
 }
 
@@ -187,15 +226,21 @@ async function _handleUpdate(update) {
 
 async function _cmdHelp(chatId) {
   await _sendMessage(chatId,
-    `🤖 <b>Kurmon Bot Monitoring</b>\n\n` +
-    `Daftar perintah yang tersedia:\n` +
-    `• <b>/status</b> — Status server & database\n` +
-    `• <b>/absen</b> — Rekap kehadiran guru & siswa hari ini\n` +
-    `• <b>/logs [n]</b> — Log audit terakhir (contoh: /logs 10)\n` +
-    `• <b>/backup</b> — Trigger backup database manual\n` +
-    `• <b>/alerts</b> — Alert keamanan sistem terkini\n` +
+    `🤖 <b>Kurmon Bot Presensi & Monitoring</b>\n\n` +
+    `Daftar perintah yang dapat Anda gunakan:\n\n` +
+    `📊 <b>PRESENSI & DATA:</b>\n` +
+    `• <b>/absen</b> — Rekap presensi keseluruhan (Guru, Karyawan, Siswa)\n` +
+    `• <b>/absen [kelas]</b> — Cek detail kehadiran kelas (contoh: <code>/absen XI TKJ 1</code>)\n` +
+    `• <b>/kelas</b> — Daftar seluruh kelas yang ada untuk cek cepat\n` +
+    `• <b>/rekap_kelas</b> — Ringkasan persentase kehadiran per kelas\n` +
+    `• <b>/absen_guru</b> — Detail presensi guru & karyawan hari ini\n\n` +
+    `⚙️ <b>SISTEM & SERVER:</b>\n` +
+    `• <b>/status</b> — Status kesehatan server & database\n` +
     `• <b>/stats</b> — Statistik jumlah data sistem\n` +
-    `• <b>/help</b> — Menampilkan petunjuk ini`,
+    `• <b>/alerts</b> — Alert keamanan sistem terkini\n` +
+    `• <b>/logs [n]</b> — Log audit terakhir (contoh: <code>/logs 10</code>)\n` +
+    `• <b>/backup</b> — Trigger backup database manual\n` +
+    `• <b>/help</b> — Menampilkan panduan bantuan ini`,
     { isHtml: true }
   );
 }
@@ -306,6 +351,560 @@ async function _cmdStats(chatId) {
   } catch (err) {
     await _sendMessage(chatId, `❌ Gagal mengambil statistik: ${escapeHtml(err.message)}`, { isHtml: true });
   }
+}
+
+async function _registerBotCommands() {
+  if (!_botToken) return;
+  try {
+    const commands = [
+      { command: 'absen', description: 'Rekap presensi keseluruhan hari ini' },
+      { command: 'rekap_kelas', description: 'Ringkasan presensi per kelas' },
+      { command: 'kelas', description: 'Daftar seluruh kelas aktif' },
+      { command: 'absen_guru', description: 'Presensi guru & karyawan hari ini' },
+      { command: 'status', description: 'Status kesehatan server & database' },
+      { command: 'stats', description: 'Statistik data sistem Kurmon' },
+      { command: 'alerts', description: 'Alert keamanan sistem terkini' },
+      { command: 'backup', description: 'Trigger pencadangan database manual' },
+      { command: 'help', description: 'Panduan lengkap perintah bot' },
+    ];
+    await fetch(`https://api.telegram.org/bot${_botToken}/setMyCommands`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commands }),
+    });
+  } catch (err) {
+    console.warn('[TelegramBot] Gagal mendaftarkan menu perintah ke Telegram:', err.message);
+  }
+}
+
+function _normalizeClassInput(str) {
+  let s = String(str || '').trim().toUpperCase();
+  s = s.replace(/^10(\s+|$)/, 'X $1')
+       .replace(/^11(\s+|$)/, 'XI $1')
+       .replace(/^12(\s+|$)/, 'XII $1')
+       .replace(/\s+/g, ' ');
+  return s.trim();
+}
+
+async function _findMatchingClasses(queryStr) {
+  if (!_dbPool) return [];
+  const { rows } = await _dbPool.query("SELECT payload FROM mst_classes");
+  const allClasses = rows.map(r => r.payload).filter(Boolean);
+
+  const cleanQuery = _normalizeClassInput(queryStr);
+  const cleanQueryNoSpace = cleanQuery.replace(/\s+/g, '');
+
+  if (!cleanQuery) return [];
+
+  // 1. Cocok persis (Exact match)
+  const exact = allClasses.filter(c => (c.name || '').toUpperCase().trim() === cleanQuery);
+  if (exact.length === 1) return exact;
+
+  // 2. Cocok persis tanpa spasi (misal 'XTKJ1' -> 'X TKJ 1')
+  const exactNoSpace = allClasses.filter(c => (c.name || '').toUpperCase().replace(/\s+/g, '') === cleanQueryNoSpace);
+  if (exactNoSpace.length === 1) return exactNoSpace;
+
+  // 3. Cocok sebagian / mengandung kata
+  const partial = allClasses.filter(c => {
+    const nameUpper = (c.name || '').toUpperCase().trim();
+    const nameNoSpace = nameUpper.replace(/\s+/g, '');
+    return nameUpper.includes(cleanQuery) || nameNoSpace.includes(cleanQueryNoSpace);
+  });
+
+  return partial;
+}
+
+async function _cmdAbsenPerKelas(chatId, classQuery) {
+  if (!_dbPool) {
+    await _sendMessage(chatId, '❌ Database tidak tersedia.');
+    return;
+  }
+
+  const queryTrimmed = String(classQuery || '').trim();
+  if (!queryTrimmed) {
+    await _sendMessage(chatId,
+      `⚠️ <b>Nama kelas belum dimasukkan.</b>\n\n` +
+      `Contoh penggunaan:\n` +
+      `• <code>/absen X TKJ 1</code>\n` +
+      `• <code>/absen XI RPL 2</code>\n\n` +
+      `Ketik <b>/kelas</b> untuk melihat seluruh daftar kelas yang ada.`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  const matches = await _findMatchingClasses(queryTrimmed);
+
+  if (matches.length === 0) {
+    await _sendMessage(chatId,
+      `❌ Kelas <b>"${escapeHtml(queryTrimmed)}"</b> tidak ditemukan di database Kurmon.\n\n` +
+      `💡 Ketik <b>/kelas</b> untuk melihat daftar nama kelas yang tersedia.`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  if (matches.length > 1) {
+    const exact = matches.find(c => (c.name || '').toUpperCase().trim() === _normalizeClassInput(queryTrimmed));
+    if (!exact) {
+      const list = matches.slice(0, 15).map(c => `• <code>/absen ${escapeHtml(c.name)}</code>`).join('\n');
+      const more = matches.length > 15 ? `\n<i>...dan ${matches.length - 15} kelas lainnya.</i>` : '';
+      await _sendMessage(chatId,
+        `🔍 Ditemukan <b>${matches.length}</b> kelas yang mirip dengan "<b>${escapeHtml(queryTrimmed)}</b>":\n\n` +
+        list + more + `\n\n` +
+        `<i>Ketuk salah satu perintah di atas untuk melihat detail absensi.</i>`,
+        { isHtml: true }
+      );
+      return;
+    }
+  }
+
+  const cls = (matches.length === 1)
+    ? matches[0]
+    : (matches.find(c => (c.name || '').toUpperCase().trim() === _normalizeClassInput(queryTrimmed)) || matches[0]);
+  const className = cls.name;
+
+  // Ambil nama wali kelas jika terdata
+  let walasName = '-';
+  if (cls.homeroom) {
+    const { rows: tRows } = await _dbPool.query(
+      "SELECT payload FROM mst_teachers WHERE payload->>'id' = $1 OR payload->>'code' = $1 LIMIT 1",
+      [String(cls.homeroom)]
+    ).catch(() => ({ rows: [] }));
+    if (tRows.length > 0 && tRows[0].payload?.name) {
+      walasName = tRows[0].payload.name;
+    }
+  }
+
+  // Ambil data siswa dari mst_students & hikvision_students
+  const studentMap = new Map();
+
+  const { rows: mstStudents } = await _dbPool.query(
+    `SELECT payload FROM mst_students 
+     WHERE LOWER(COALESCE(payload->>'class_name', payload->>'kelas', '')) = LOWER($1)`,
+    [className]
+  ).catch(() => ({ rows: [] }));
+  mstStudents.forEach(r => {
+    const p = r.payload || {};
+    const nis = String(p.nis || p.code || '').trim();
+    const name = String(p.name || p.nama || '').trim();
+    if (nis) studentMap.set(nis, { nis, name: name || `Siswa ${nis}` });
+  });
+
+  const { rows: hikStudents } = await _dbPool.query(
+    `SELECT nis, name FROM hikvision_students WHERE LOWER(class_name) = LOWER($1)`,
+    [className]
+  ).catch(() => ({ rows: [] }));
+  hikStudents.forEach(r => {
+    const nis = String(r.nis || '').trim();
+    const name = String(r.name || '').trim();
+    if (nis) {
+      if (!studentMap.has(nis)) {
+        studentMap.set(nis, { nis, name: name || `Siswa ${nis}` });
+      } else if (!studentMap.get(nis).name && name) {
+        studentMap.get(nis).name = name;
+      }
+    }
+  });
+
+  const totalStudents = studentMap.size;
+  if (totalStudents === 0) {
+    await _sendMessage(chatId,
+      `ℹ️ Belum ada data siswa yang terdaftar di kelas <b>${escapeHtml(className)}</b>.\n\n` +
+      `👨‍🏫 <b>Wali Kelas:</b> ${escapeHtml(walasName)}`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  const nisList = Array.from(studentMap.keys());
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+
+  // Ambil batas jam masuk (default 07:00)
+  let masukLate = '07:00';
+  try {
+    const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+    if (confRes.rowCount > 0 && confRes.rows[0].data) {
+      const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+      masukLate = conf?.siswa?.masuk_late || conf?.masuk_late || '07:00';
+    }
+  } catch (e) {}
+
+  // Batch query log mesin dan surat izin hari ini
+  const [logsRes, permitsRes] = await Promise.all([
+    _dbPool.query(
+      `SELECT employee_id, MIN(timestamp) as first_tap
+       FROM hikvision_logs
+       WHERE employee_id = ANY($1) AND timestamp::date = $2::date
+       GROUP BY employee_id`,
+      [nisList, today]
+    ).catch(() => ({ rows: [] })),
+    _dbPool.query(
+      `SELECT siswa_nis, status, keterangan 
+       FROM kedisiplinan_absensi 
+       WHERE siswa_nis = ANY($1) AND tanggal::date = $2::date`,
+      [nisList, today]
+    ).catch(() => ({ rows: [] }))
+  ]);
+
+  const tapMap = new Map();
+  logsRes.rows.forEach(r => {
+    const t = new Date(r.first_tap).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+    tapMap.set(String(r.employee_id).trim(), t);
+  });
+
+  const permitMap = new Map();
+  permitsRes.rows.forEach(r => {
+    permitMap.set(String(r.siswa_nis).trim(), { status: r.status, ket: r.keterangan });
+  });
+
+  // Klasifikasi kehadiran
+  const tepatList = [];
+  const telatList = [];
+  const permitList = [];
+  const belumList = [];
+
+  const sortedStudents = Array.from(studentMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'));
+
+  for (const s of sortedStudents) {
+    const timeIn = tapMap.get(s.nis);
+    const permit = permitMap.get(s.nis);
+
+    if (timeIn) {
+      if (timeIn > masukLate) {
+        telatList.push({ ...s, time: timeIn });
+      } else {
+        tepatList.push({ ...s, time: timeIn });
+      }
+    } else if (permit && ['Izin', 'Sakit', 'Dispensasi'].includes(permit.status)) {
+      permitList.push({ ...s, status: permit.status, ket: permit.ket });
+    } else {
+      belumList.push(s);
+    }
+  }
+
+  const totalHadir = tepatList.length + telatList.length;
+  const hadirPct = Math.round((totalHadir / totalStudents) * 100);
+
+  let msg = `📊 <b>PRESENSI KELAS: ${escapeHtml(className)}</b>\n`;
+  msg += `📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n`;
+  msg += `👨‍🏫 <b>Wali Kelas:</b> ${escapeHtml(walasName)}\n\n`;
+
+  msg += `👥 <b>Total Siswa:</b> ${totalStudents} orang\n`;
+  msg += `✅ <b>Hadir:</b> <b>${totalHadir}</b> (${hadirPct}%)\n`;
+  msg += `  • Tepat Waktu: ${tepatList.length} orang\n`;
+  msg += `  • Terlambat: ${telatList.length} orang\n`;
+  if (permitList.length > 0) {
+    msg += `📝 <b>Izin/Sakit:</b> ${permitList.length} orang\n`;
+  }
+  msg += `❌ <b>Belum Hadir:</b> <b>${belumList.length}</b> orang\n\n`;
+
+  if (telatList.length > 0) {
+    msg += `⏰ <b>Siswa Terlambat (&gt; ${masukLate}):</b>\n`;
+    telatList.forEach(s => {
+      msg += `• ${escapeHtml(s.name)} (<code>${s.time}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (permitList.length > 0) {
+    msg += `📝 <b>Siswa Izin / Sakit:</b>\n`;
+    permitList.forEach(s => {
+      const detail = s.ket ? ` — <i>${escapeHtml(s.ket)}</i>` : '';
+      msg += `• ${escapeHtml(s.name)} (<b>${escapeHtml(s.status)}</b>${detail})\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (belumList.length > 0) {
+    msg += `❌ <b>Belum Terdata Presensi Scan / Alpha (${belumList.length}):</b>\n`;
+    const maxShow = 30;
+    belumList.slice(0, maxShow).forEach((s, idx) => {
+      msg += `${idx + 1}. ${escapeHtml(s.name)}\n`;
+    });
+    if (belumList.length > maxShow) {
+      msg += `<i>...dan ${belumList.length - maxShow} siswa lainnya.</i>\n`;
+    }
+    msg += `\n`;
+  } else if (totalHadir === totalStudents) {
+    msg += `🎉 <i>Luar biasa! 100% siswa kelas ini telah hadir lengkap!</i>\n\n`;
+  }
+
+  msg += `<i>Ketik <b>/kelas</b> untuk kembali ke daftar kelas atau <b>/absen</b> untuk rekap global.</i>`;
+
+  await _sendMessage(chatId, msg, { isHtml: true });
+}
+
+async function _cmdDaftarKelas(chatId) {
+  if (!_dbPool) {
+    await _sendMessage(chatId, '❌ Database tidak tersedia.');
+    return;
+  }
+
+  const { rows: cRows } = await _dbPool.query("SELECT payload FROM mst_classes ORDER BY id ASC");
+  const classes = cRows.map(r => r.payload).filter(Boolean);
+
+  if (classes.length === 0) {
+    await _sendMessage(chatId, '📋 Belum ada data kelas yang terdaftar.');
+    return;
+  }
+
+  const groupX = [];
+  const groupXI = [];
+  const groupXII = [];
+  const groupOther = [];
+
+  classes.forEach(c => {
+    const name = (c.name || '').trim();
+    if (!name) return;
+    if (/^X\s+/i.test(name)) groupX.push(name);
+    else if (/^XI\s+/i.test(name)) groupXI.push(name);
+    else if (/^XII\s+/i.test(name)) groupXII.push(name);
+    else groupOther.push(name);
+  });
+
+  const sortAlpha = (a, b) => a.localeCompare(b, 'id', { numeric: true });
+  groupX.sort(sortAlpha);
+  groupXI.sort(sortAlpha);
+  groupXII.sort(sortAlpha);
+  groupOther.sort(sortAlpha);
+
+  let msg = `🏫 <b>DAFTAR KELAS KURMON (${classes.length} KELAS)</b>\n\n`;
+  msg += `<i>Ketuk salah satu perintah di bawah ini untuk melihat detail absensi kelas:</i>\n\n`;
+
+  if (groupX.length > 0) {
+    msg += `<b>📌 KELAS X:</b>\n`;
+    groupX.forEach(name => {
+      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (groupXI.length > 0) {
+    msg += `<b>📌 KELAS XI:</b>\n`;
+    groupXI.forEach(name => {
+      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (groupXII.length > 0) {
+    msg += `<b>📌 KELAS XII:</b>\n`;
+    groupXII.forEach(name => {
+      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (groupOther.length > 0) {
+    msg += `<b>📌 LAINNYA:</b>\n`;
+    groupOther.forEach(name => {
+      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  msg += `💡 <i>Tip: Anda juga bisa mengetik langsung <b>/absen [nama_kelas]</b>, contoh: <code>/absen X TKJ 1</code></i>`;
+
+  await _sendMessage(chatId, msg, { isHtml: true });
+}
+
+async function _cmdRekapSemuaKelas(chatId) {
+  if (!_dbPool) {
+    await _sendMessage(chatId, '❌ Database tidak tersedia.');
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+
+  const { rows: cRows } = await _dbPool.query("SELECT payload FROM mst_classes ORDER BY id ASC");
+  const classes = cRows.map(r => r.payload).filter(Boolean);
+
+  if (classes.length === 0) {
+    await _sendMessage(chatId, '📋 Belum ada data kelas yang terdaftar.');
+    return;
+  }
+
+  const [mstRes, hikRes, todayLogsRes] = await Promise.all([
+    _dbPool.query("SELECT payload FROM mst_students").catch(() => ({ rows: [] })),
+    _dbPool.query("SELECT nis, class_name FROM hikvision_students").catch(() => ({ rows: [] })),
+    _dbPool.query(
+      `SELECT DISTINCT employee_id FROM hikvision_logs WHERE timestamp::date = $1::date`,
+      [today]
+    ).catch(() => ({ rows: [] }))
+  ]);
+
+  const tappedNisSet = new Set(todayLogsRes.rows.map(r => String(r.employee_id).trim()));
+
+  const classStudentsMap = new Map();
+
+  mstRes.rows.forEach(r => {
+    const p = r.payload || {};
+    const cls = String(p.class_name || p.kelas || '').trim();
+    const nis = String(p.nis || p.code || '').trim();
+    if (cls && nis) {
+      const k = cls.toLowerCase();
+      if (!classStudentsMap.has(k)) classStudentsMap.set(k, new Set());
+      classStudentsMap.get(k).add(nis);
+    }
+  });
+
+  hikRes.rows.forEach(r => {
+    const cls = String(r.class_name || '').trim();
+    const nis = String(r.nis || '').trim();
+    if (cls && nis) {
+      const k = cls.toLowerCase();
+      if (!classStudentsMap.has(k)) classStudentsMap.set(k, new Set());
+      classStudentsMap.get(k).add(nis);
+    }
+  });
+
+  const results = classes.map(c => {
+    const name = c.name || '';
+    const stuSet = classStudentsMap.get(name.toLowerCase()) || new Set();
+    const total = stuSet.size;
+    let hadir = 0;
+    stuSet.forEach(nis => {
+      if (tappedNisSet.has(nis)) hadir++;
+    });
+    const pct = total > 0 ? Math.round((hadir / total) * 100) : 0;
+    return { name, total, hadir, pct };
+  });
+
+  // Urutkan kelas secara alfabetis natural
+  results.sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true }));
+
+  // Kelompokkan per tingkat
+  const groupX = results.filter(r => /^X\s+/i.test(r.name));
+  const groupXI = results.filter(r => /^XI\s+/i.test(r.name));
+  const groupXII = results.filter(r => /^XII\s+/i.test(r.name));
+  const groupOther = results.filter(r => !/^X\s+/i.test(r.name) && !/^XI\s+/i.test(r.name) && !/^XII\s+/i.test(r.name));
+
+  let msg = `📊 <b>RINGKASAN PRESENSI PER KELAS</b>\n`;
+  msg += `📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n\n`;
+
+  const renderGroup = (title, arr) => {
+    if (arr.length === 0) return '';
+    let out = `<b>📌 ${title}:</b>\n`;
+    arr.forEach(r => {
+      const icon = r.pct >= 90 ? '🟢' : (r.pct >= 70 ? '🟡' : '🔴');
+      out += `${icon} <b>${escapeHtml(r.name)}:</b> ${r.hadir}/${r.total} hadir (<b>${r.pct}%</b>)\n`;
+    });
+    return out + '\n';
+  };
+
+  msg += renderGroup('TINGKAT X', groupX);
+  msg += renderGroup('TINGKAT XI', groupXI);
+  msg += renderGroup('TINGKAT XII', groupXII);
+  if (groupOther.length > 0) msg += renderGroup('LAINNYA', groupOther);
+
+  msg += `💡 <i>Ketik <b>/absen [nama_kelas]</b> untuk melihat detail siswa yang belum hadir per kelas.</i>`;
+
+  await _sendMessage(chatId, msg, { isHtml: true });
+}
+
+async function _cmdAbsenGuru(chatId) {
+  if (!_dbPool) {
+    await _sendMessage(chatId, '❌ Database tidak tersedia.');
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+
+  // 1. Ambil data guru
+  const { rows: tRows } = await _dbPool.query("SELECT payload FROM mst_teachers ORDER BY id ASC").catch(() => ({ rows: [] }));
+  const teachers = tRows.map(r => r.payload).filter(Boolean);
+
+  if (teachers.length === 0) {
+    await _sendMessage(chatId, '📋 Belum ada master data guru.');
+    return;
+  }
+
+  // 2. Ambil logs presensi hari ini
+  const { rows: logs } = await _dbPool.query(
+    `SELECT employee_id, MIN(timestamp) as first_tap
+     FROM hikvision_logs
+     WHERE timestamp::date = $1::date
+     GROUP BY employee_id`,
+    [today]
+  ).catch(() => ({ rows: [] }));
+
+  const tapMap = new Map();
+  logs.forEach(r => {
+    const t = new Date(r.first_tap).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+    tapMap.set(String(r.employee_id).trim(), t);
+  });
+
+  let masukLate = '07:15';
+  try {
+    const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
+    if (confRes.rowCount > 0 && confRes.rows[0].data) {
+      const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
+      masukLate = conf?.guru?.masuk_late || conf?.masuk_late || '07:15';
+    }
+  } catch (e) {}
+
+  const tepatList = [];
+  const telatList = [];
+  const belumList = [];
+
+  const sortedTeachers = [...teachers].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id'));
+
+  sortedTeachers.forEach(t => {
+    const name = t.name || t.nama || 'Guru';
+    const id = String(t.id || t.code || '').trim();
+    const code = String(t.code || t.id || '').trim();
+
+    const timeIn = tapMap.get(id) || tapMap.get(code);
+
+    if (timeIn) {
+      if (timeIn > masukLate) telatList.push({ name, time: timeIn });
+      else tepatList.push({ name, time: timeIn });
+    } else {
+      belumList.push({ name });
+    }
+  });
+
+  const totalHadir = tepatList.length + telatList.length;
+  const pct = Math.round((totalHadir / teachers.length) * 100);
+
+  let msg = `👨‍🏫 <b>PRESENSI GURU HARI INI</b>\n`;
+  msg += `📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n\n`;
+
+  msg += `• Total Guru Terdaftar: <b>${teachers.length}</b> orang\n`;
+  msg += `• Hadir Scan: <b>${totalHadir}</b> (${pct}%)\n`;
+  msg += `  - Tepat Waktu (&lt;= ${masukLate}): <b>${tepatList.length}</b> orang\n`;
+  msg += `  - Terlambat (&gt; ${masukLate}): <b>${telatList.length}</b> orang\n`;
+  msg += `• Belum Presensi Scan: <b>${belumList.length}</b> orang\n\n`;
+
+  if (telatList.length > 0) {
+    msg += `⏰ <b>Guru Terlambat:</b>\n`;
+    telatList.forEach(t => {
+      msg += `• ${escapeHtml(t.name)} (<code>${t.time}</code>)\n`;
+    });
+    msg += `\n`;
+  }
+
+  if (belumList.length > 0) {
+    msg += `❌ <b>Belum Presensi Scan (${belumList.length} guru):</b>\n`;
+    const maxShow = 30;
+    belumList.slice(0, maxShow).forEach((t, idx) => {
+      msg += `${idx + 1}. ${escapeHtml(t.name)}\n`;
+    });
+    if (belumList.length > maxShow) {
+      msg += `<i>...dan ${belumList.length - maxShow} guru lainnya.</i>\n`;
+    }
+  } else {
+    msg += `🎉 <i>Seluruh guru telah melakukan presensi scan hari ini!</i>\n`;
+  }
+
+  await _sendMessage(chatId, msg, { isHtml: true });
 }
 
 // ── Alert System (dipanggil dari server lain) ─────────────
@@ -472,7 +1071,13 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
 • Total Tap Mesin: <b>${studentTaps.size}</b> dari ${totalStudentMaster} siswa
 • Belum Absen: <b>${siswaBelum}</b> siswa
 
-<i>Laporan otomatis dikirim dari Mesin Presensi & Sistem Kurmon.</i>`;
+<i>Laporan otomatis dikirim dari Mesin Presensi & Sistem Kurmon.</i>
+
+💡 <b>Perintah Tambahan:</b>
+• <code>/absen [nama_kelas]</code> — Detail presensi per kelas
+• <code>/rekap_kelas</code> — Ringkasan kehadiran per kelas
+• <code>/absen_guru</code> — Detail presensi guru & karyawan
+• <code>/kelas</code> — Daftar seluruh kelas`;
 
     await _sendMessage(destChatId, msg, { isHtml: true });
     console.log('[TelegramBot] ✅ Laporan kehadiran pagi 07:05 berhasil dikirim ke Telegram.');
