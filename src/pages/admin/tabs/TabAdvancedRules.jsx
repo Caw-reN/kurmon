@@ -16,7 +16,7 @@ return (
       description={tabSubtitles["advanced_rules"]}
       icon={SlidersHorizontal}
     />
-    <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-6 md:p-6 flex flex-col">
+    <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 md:p-6 flex flex-col">
       <form
         onSubmit={(e) => {
           e.preventDefault();

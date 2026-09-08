@@ -10,7 +10,7 @@ export default function TabKategoriSilabus(props) {
 
 return (
   <div className="flex flex-col gap-6 h-full  w-full animate-in fade-in duration-300 relative z-10">
-    <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-6 flex flex-col flex-1 overflow-hidden min-h-0">
+    <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 flex flex-col flex-1 overflow-hidden min-h-0">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-800 tracking-tight">

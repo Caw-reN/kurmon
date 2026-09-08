@@ -172,12 +172,23 @@ export const applyDocumentBranding = (settings = {}) => {
     cardBg = 'var(--ui-surface, #ffffff)';
     cardBorder = '1px solid transparent';
     cardBorderColor = 'transparent';
-    cardShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)';
+    cardShadow = settings.shadowIntensity === 'strong'
+      ? '0 14px 35px -5px rgba(0, 0, 0, 0.12), 0 10px 15px -5px rgba(0, 0, 0, 0.08)'
+      : settings.shadowIntensity === 'flat'
+        ? '0 1px 3px rgba(0, 0, 0, 0.04)'
+        : '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)';
   } else if (settings.cardStyle === 'flat') {
     cardBg = 'var(--ui-surface-muted, #f8fafc)';
     cardBorder = '1px solid transparent';
     cardBorderColor = 'transparent';
     cardShadow = 'none';
+  } else {
+    // 'border' mode
+    cardShadow = settings.shadowIntensity === 'strong'
+      ? '0 4px 12px rgba(15, 23, 42, 0.08)'
+      : settings.shadowIntensity === 'flat'
+        ? 'none'
+        : 'var(--ui-shadow-card)';
   }
   root.style.setProperty('--ui-card-bg', cardBg);
   root.style.setProperty('--ui-card-border', cardBorder);

@@ -235,7 +235,7 @@ export default function TabTampilan(props) {
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />
-            <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-6 flex flex-col">
+            <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-6 flex flex-col">
               <div className="space-y-6">
                 {/* Horizontal Tabs & Action Button - Modernized */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-2 border-b border-slate-100">
@@ -1068,7 +1068,7 @@ export default function TabTampilan(props) {
                   {/* AREA BAWAH (PREVIEW + ADVANCED ACTIONS) */}
                   <div className="lg:col-span-4 space-y-6">
                   {/* Preview */}
-                  <div className="border-none rounded-[var(--ui-radius-card)] p-5 bg-white shadow-sm flex flex-col sm:flex-row gap-5 items-center">
+                  <div className="ui-card rounded-[var(--ui-radius-card)] p-5 bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col sm:flex-row gap-5 items-center">
                     <div className="flex-1 w-full">
                       <p className="text-[10px] font-black text-slate-500 uppercase mb-2">Preview Tema</p>
                       <div className="rounded-[var(--ui-radius-small)] p-5 text-white shadow-inner flex flex-col gap-4 relative overflow-hidden group" style={{ background: appSettings.primaryColor ||"var(--ui-primary)", fontFamily: appSettings.fontFamily }}>

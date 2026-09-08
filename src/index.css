@@ -302,9 +302,22 @@
 .card-elevated .card-panel,
 .card-elevated [data-card="true"],
 .card-elevated .app-shell .ui-card,
-.card-elevated div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+.card-elevated div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-elevated section[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not(input):not(button):not(select):not(textarea),
+.card-elevated article[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-elevated aside[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-elevated aside[class*="rounded-[var(--ui-radius-control)"]:not(.border-dashed),
+.card-elevated div[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-elevated div[class*="rounded-3xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-elevated section[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-elevated aside[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-elevated article[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-elevated section[class*="bg-card"],
+.card-elevated div[class*="bg-card"] {
   border-color: transparent !important;
   box-shadow: var(--ui-card-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)) !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
 }
 
 /* Inner elements/buttons inside cards in elevated mode: subtle border so they don't look harsh */
@@ -318,11 +331,24 @@
 .card-bordered .card-panel,
 .card-bordered [data-card="true"],
 .card-bordered .app-shell .ui-card,
-.card-bordered div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+.card-bordered div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-bordered section[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not(input):not(button):not(select):not(textarea),
+.card-bordered article[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-bordered aside[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-bordered aside[class*="rounded-[var(--ui-radius-control)"]:not(.border-dashed),
+.card-bordered div[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-bordered div[class*="rounded-3xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-bordered section[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-bordered aside[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-bordered article[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-bordered section[class*="bg-card"],
+.card-bordered div[class*="bg-card"] {
   border-width: 1px !important;
   border-style: solid !important;
   border-color: var(--ui-border-soft, #e2e8f0) !important;
   box-shadow: var(--ui-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.06)) !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
 }
 
 /* --- 3. FLAT FILLED MODE ("flat" / Warna Datar Padat) --- */
@@ -330,10 +356,23 @@
 .card-flat .card-panel,
 .card-flat [data-card="true"],
 .card-flat .app-shell .ui-card,
-.card-flat div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]) {
+.card-flat div[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not([class*="bg-slate-50"]):not([class*="bg-emerald-50"]):not([class*="bg-amber-50"]):not([class*="bg-rose-50"]):not([class*="bg-indigo-50"]):not([class*="bg-sky-50"]):not([class*="bg-blue-50"]):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-flat section[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed):not(input):not(button):not(select):not(textarea),
+.card-flat article[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-flat aside[class*="rounded-[var(--ui-radius-card)"]:not(.border-dashed),
+.card-flat aside[class*="rounded-[var(--ui-radius-control)"]:not(.border-dashed),
+.card-flat div[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-flat div[class*="rounded-3xl"][class*="bg-white"]:not(.border-dashed):not(input):not(button):not(select):not(textarea):not([role="button"]):not([role="dialog"]),
+.card-flat section[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-flat aside[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-flat article[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
+.card-flat section[class*="bg-card"],
+.card-flat div[class*="bg-card"] {
   border-color: transparent !important;
   box-shadow: none !important;
   background-color: var(--ui-card-bg, #f8fafc) !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
 }
 
 

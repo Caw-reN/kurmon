@@ -215,7 +215,7 @@ export default function TabHakAkses(props) {
 
   if (!isSuperAdminRole(currentUser?.role)) {
     return (
-      <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
+      <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-10 text-center max-w-md mx-auto mt-10">
         <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
         <h3 className="text-base font-black text-slate-700">Akses SuperAdmin Diperlukan</h3>
         <p className="text-sm text-slate-400 mt-1">Hak akses hanya dapat diubah oleh operator SuperAdmin.</p>
@@ -450,7 +450,7 @@ export default function TabHakAkses(props) {
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         
         {/* LEFT COLUMN: ROLE SELECTOR */}
-        <div className="w-full lg:w-72 shrink-0 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs space-y-4">
+        <div className="w-full lg:w-72 shrink-0 ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Daftar Role / Jabatan</span>
             <button
@@ -545,7 +545,7 @@ export default function TabHakAkses(props) {
         <div className="flex-1 w-full space-y-4">
           
           {/* Active Role Bar & Search Toolbar */}
-          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-black text-slate-800">
@@ -603,7 +603,7 @@ export default function TabHakAkses(props) {
             {filteredGroups.map(group => (
               <div 
                 key={group.key}
-                className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden flex flex-col"
+                className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] overflow-hidden flex flex-col"
               >
                 {/* Category Header */}
                 <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">

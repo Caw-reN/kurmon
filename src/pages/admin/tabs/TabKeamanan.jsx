@@ -95,7 +95,7 @@ export default function TabKeamanan(props) {
         icon={Lock}
       />
 
-      <div className="bg-white rounded-[var(--ui-radius-card)] p-6 shadow-sm border-none">
+      <div className="ui-card bg-white rounded-[var(--ui-radius-card)] p-6 border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
         <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
             <Lock size={20} />

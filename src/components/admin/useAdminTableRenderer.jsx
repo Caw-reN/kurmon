@@ -237,7 +237,7 @@ export function useAdminTableRenderer(context) {
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
         {actualPageHeader}
-        <section className="rounded-[var(--ui-radius-small)] bg-card ring-1 ring-foreground/10 flex flex-col flex-1 overflow-hidden">
+        <section className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col flex-1 overflow-hidden">
           {options.customTabs && (
             <div className="px-4 pt-4 pb-2 border-b border-border bg-muted/30">
               {options.customTabs}

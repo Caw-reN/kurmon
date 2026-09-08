@@ -336,7 +336,7 @@ export default function MyAttendancePage({ setActiveTab }) {
       </div>
 
       {/* CALENDAR */}
-      <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm border border-slate-100 overflow-hidden w-full">
+      <div className="ui-card bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden w-full">
         {/* Nav */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
           <button onClick={prevMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-[var(--ui-radius-small)] hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">

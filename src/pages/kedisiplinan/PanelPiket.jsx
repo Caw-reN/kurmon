@@ -190,7 +190,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
   if (!canEdit) {
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
-        <div className="ui-card p-6 sm:p-8 border border-slate-200/80 shadow-xs bg-white text-center">
+        <div className="ui-card p-6 sm:p-8 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white text-center">
           <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4">
             <ShieldAlert size={32} className="text-rose-500" />
           </div>
@@ -291,7 +291,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
       <div className="flex flex-col lg:flex-row gap-5">
         
         {/* LEFT PANEL: Student Selector */}
-        <div className={`w-full lg:w-1/3 ui-card flex-col overflow-hidden border border-slate-200/80 shadow-xs bg-white ${mobileTab === 'siswa' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-1/3 ui-card flex-col overflow-hidden rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white ${mobileTab === 'siswa' ? 'flex' : 'hidden lg:flex'}`}>
            <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
               <div className="flex items-center justify-between mb-3">
                  <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
@@ -375,7 +375,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
         {/* RIGHT PANEL: Quick Action POS & Selected Tray */}
         <div className={`w-full lg:w-2/3 flex-col gap-5 ${mobileTab === 'pelanggaran' ? 'flex' : 'hidden lg:flex'}`}>
            {/* Selected Tray */}
-           <div className="ui-card p-4 border border-slate-200/80 shadow-xs bg-white">
+           <div className="ui-card p-4 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
               <div className="flex items-center justify-between mb-3">
                  <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
                     <CheckCircle2 size={16} className="text-emerald-600"/> Siswa Terpilih ({selectedStudents.length})
@@ -421,7 +421,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
            </div>
   
            {/* POS Action Grid */}
-           <div className="ui-card p-4 sm:p-5 border border-slate-200/80 shadow-xs bg-white">
+           <div className="ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                   <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
@@ -537,7 +537,7 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
 
         {/* RIWAYAT PANEL (Mobile Only Tab or Desktop Bottom) */}
         <div className={`w-full lg:w-2/3 flex flex-col gap-6 ${mobileTab === 'riwayat' ? 'block' : 'hidden lg:hidden'}`}>
-           <div className="ui-card p-4 sm:p-6 border border-slate-100">
+           <div className="ui-card p-4 sm:p-6 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
               <h2 className="font-bold text-slate-800 mb-4 text-sm sm:text-base flex items-center gap-2">
                  <History size={18} className="text-[var(--ui-primary)]"/> Riwayat Input Hari Ini
               </h2>

@@ -856,7 +856,19 @@ export default function App() {
     "--ui-card-bg": appSettings.cardStyle === "flat" ? "#f1f5f9" : "var(--ui-surface, #ffffff)",
     "--ui-card-border": appSettings.cardStyle === "border" ? "1px solid var(--ui-border-soft, #e2e8f0)" : "1px solid transparent",
     "--ui-card-border-color": appSettings.cardStyle === "border" ? "var(--ui-border-soft, #e2e8f0)" : "transparent",
-    "--ui-card-shadow": appSettings.cardStyle === "shadow-sm" ? "0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)" : appSettings.cardStyle === "flat" ? "none" : "var(--ui-shadow-card)"
+    "--ui-card-shadow": appSettings.cardStyle === "shadow-sm" 
+      ? (appSettings.shadowIntensity === "strong" 
+          ? "0 14px 35px -5px rgba(0, 0, 0, 0.12), 0 10px 15px -5px rgba(0, 0, 0, 0.08)" 
+          : appSettings.shadowIntensity === "flat"
+            ? "0 1px 3px rgba(0, 0, 0, 0.04)"
+            : "0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)")
+      : appSettings.cardStyle === "flat" 
+        ? "none" 
+        : (appSettings.shadowIntensity === "strong"
+            ? "0 4px 12px rgba(15, 23, 42, 0.08)"
+            : appSettings.shadowIntensity === "flat"
+              ? "none"
+              : "var(--ui-shadow-card)")
   };
 
   useEffect(() => {

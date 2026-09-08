@@ -89,7 +89,7 @@ export default function TabKetersediaan({
           <BookOpen className="w-4 h-4 mr-2" />
           Import Excel</Button>
       </PageHeader>
-      <section className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-4 md:p-5">
+      <section className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 md:p-5">
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             {
@@ -127,7 +127,7 @@ export default function TabKetersediaan({
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-4">
-        <aside className="bg-white border-none rounded-[var(--ui-radius-control)] shadow-sm p-4 h-fit xl:sticky xl:top-4">
+        <aside className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 h-fit xl:sticky xl:top-4">
           <h4 className="font-black text-slate-800 text-sm">
             Cara Penggunaan
           </h4>
@@ -195,7 +195,7 @@ export default function TabKetersediaan({
               return (
                 <article
                   key={t.code}
-                  className="bg-white border-none rounded-[var(--ui-radius-control)] shadow-sm p-4"
+                  className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="min-w-0">

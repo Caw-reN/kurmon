@@ -18,7 +18,7 @@ return (
       icon={Clock}
     />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-      <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-6 md:p-6 flex flex-col h-[80vh] min-h-0">
+      <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 md:p-6 flex flex-col h-[80vh] min-h-0">
         <div className="flex justify-between items-center mb-6 shrink-0">
           <h3 className="text-xl font-black text-slate-800">
             Hari Aktif Sekolah
@@ -100,7 +100,7 @@ return (
         </div>
       </div>
 
-      <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-6 md:p-6 flex flex-col h-[80vh] min-h-0">
+      <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 md:p-6 flex flex-col h-[80vh] min-h-0">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 shrink-0">
           <div>
             <h3 className="text-xl font-black text-slate-800">

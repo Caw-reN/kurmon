@@ -2660,7 +2660,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               )}
 
               {/* Mobile Filter & Export Card */}
-              <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3 shadow-sm border border-slate-100/90 flex flex-col gap-2.5">
+              <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3 bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col gap-2.5">
                 <div className="flex items-center gap-2">
                   {/* Date selector button */}
                   <div 
@@ -3024,7 +3024,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
               {/* Empty state when totalSlots === 0 */}
               {!isLoading && totalSlots === 0 && (
-                <div className="ui-card rounded-[var(--ui-radius-card)] p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
+                <div className="ui-card rounded-[var(--ui-radius-card)] p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
                   <div 
                     className="w-16 h-16 rounded-[var(--ui-radius-card)] flex items-center justify-center mb-1 shadow-inner"
                     style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
@@ -3408,7 +3408,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300">
           
           {/* TOP TOOLBAR: Bulan & Kontrol Export */}
-          <div className="ui-card p-4 rounded-[var(--ui-radius-card)] flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm border border-slate-100/90">
+          <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div 
                 className="w-9 h-9 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 shadow-inner"
@@ -3508,7 +3508,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           {/* 4 KPI SUMMARY CARDS */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* KPI 1: Total Jurnal */}
-            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[var(--ui-primary)]/30 transition-all">
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col justify-between relative overflow-hidden group hover:border-[var(--ui-primary)]/30 transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-500">Total Jurnal</span>
                 <div 
@@ -3528,7 +3528,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             </div>
 
             {/* KPI 2: Guru Aktif Mengisi */}
-            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all">
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-black uppercase tracking-wider text-emerald-800">Guru Aktif</span>
                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200/60 shadow-inner">
@@ -3545,7 +3545,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             </div>
 
             {/* KPI 3: Tepat Waktu */}
-            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-teal-200 transition-all">
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col justify-between relative overflow-hidden group hover:border-teal-200 transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-black uppercase tracking-wider text-teal-800">Tepat Waktu</span>
                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60 shadow-inner">
@@ -3562,7 +3562,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             </div>
 
             {/* KPI 4: Terlambat Diisi */}
-            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-100/90 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all">
+            <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-black uppercase tracking-wider text-amber-800">Terlambat</span>
                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-inner">
@@ -3580,7 +3580,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           </div>
 
           {/* TABLE CONTAINER & CONTROLS */}
-          <div className="ui-card rounded-[var(--ui-radius-card)] overflow-hidden shadow-sm border border-slate-100/90">
+          <div className="ui-card rounded-[var(--ui-radius-card)] bg-white overflow-hidden border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
             
             {/* SEARCH & FILTER TABS TOOLBAR */}
             <div className="p-3.5 sm:p-4 bg-slate-50/70 border-b border-slate-200/70 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">

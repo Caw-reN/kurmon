@@ -938,7 +938,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
       {/* === TOP KPI & PEMETAAN OVERVIEW CARDS === */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Card 1: Total Siswa Binaan */}
-        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+        <div className="ui-card p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
             <Users size={18} strokeWidth={2.2} />
           </div>
@@ -952,7 +952,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         </div>
 
         {/* Card 2: Siswa Terbina (Ada Catatan) */}
-        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+        <div className="ui-card p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
             <UserCheck size={18} strokeWidth={2.2} />
           </div>
@@ -966,7 +966,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         </div>
 
         {/* Card 3: Siswa Belum Ada Catatan */}
-        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+        <div className="ui-card p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
             <UserX size={18} strokeWidth={2.2} />
           </div>
@@ -980,7 +980,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         </div>
 
         {/* Card 4: Siswa Berpoin / Perlu Perhatian */}
-        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+        <div className="ui-card p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
             <ShieldAlert size={18} strokeWidth={2.2} />
           </div>
@@ -994,7 +994,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         </div>
 
         {/* Card 5: Total Catatan Terbit */}
-        <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
+        <div className="ui-card p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0">
             <MessageSquare size={18} strokeWidth={2.2} />
           </div>
@@ -1030,7 +1030,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
 
       <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">
         {/* ================= SISI KIRI: PANEL SISWA BINAAN & PEMETAAN KELAS ================= */}
-        <div className={`bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px] col-span-12 lg:col-span-4 ${
+        <div className={`ui-card bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px] col-span-12 lg:col-span-4 ${
           mobileTab === 'siswa' ? 'flex' : 'hidden lg:flex'
         }`}>
           {/* Header Panel Kiri */}
@@ -1287,7 +1287,7 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
         <div className={`col-span-12 lg:col-span-8 flex flex-col gap-4 ${
           mobileTab === 'catatan' ? 'flex' : 'hidden lg:flex'
         }`}>
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px]">
+          <div className="ui-card bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px]">
             {/* Header: Siswa Terpilih (Morphing Banner) atau Toolbar Normal */}
             {selectedSiswa ? (
               <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs">

@@ -797,7 +797,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)]">
+        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -833,7 +833,7 @@ export default function DashboardPage({
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
               <div 
-                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-popover)] rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-popover)] rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
@@ -847,7 +847,7 @@ export default function DashboardPage({
                   </button>
                 </div>
 
-                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-[var(--ui-border-soft)] flex items-center gap-3">
+                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex items-center gap-3">
                   <div 
                     className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
@@ -857,14 +857,14 @@ export default function DashboardPage({
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>
                     <p className="text-[10.5px] font-semibold text-slate-400 truncate">@{currentUser?.username || 'user'}</p>
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white text-slate-600 mt-0.5 border border-[var(--ui-border-soft)] truncate max-w-full">
+                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-white text-slate-600 mt-0.5 border border-slate-200/70 truncate max-w-full">
                       {userRolesDisplay}
                     </span>
                   </div>
                 </div>
 
                 {/* TABBAR STYLE SELECTOR TOGGLE */}
-                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-2.5 border border-[var(--ui-border-soft)] flex flex-col gap-1.5">
+                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-2.5 border border-slate-200/70 flex flex-col gap-1.5">
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                     Gaya TabBar Navigasi Mobile
                   </span>
@@ -949,8 +949,8 @@ export default function DashboardPage({
             )}
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-[var(--ui-border-soft)] flex items-center justify-center text-slate-400 shrink-0">
+              <div className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-400 shrink-0">
                   <Megaphone size={18} strokeWidth={2.2} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -966,7 +966,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
+                  className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
@@ -1042,7 +1042,7 @@ export default function DashboardPage({
                 ];
                 const bg = pastelBgs[idx % pastelBgs.length];
                 return (
-                  <div key={idx} className="bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] flex items-center gap-3 active:scale-[0.98] transition-transform">
+                  <div key={idx} className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 active:scale-[0.98] transition-transform">
                     <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
@@ -1632,7 +1632,7 @@ export default function DashboardPage({
 
           {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
           {!isWaka && (
-            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 shadow-xs border border-slate-200/80 bg-white rounded-[var(--ui-radius-card)]">
+            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
               <div className="flex items-center justify-between gap-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1697,7 +1697,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-border-soft)] shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
+                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
                 >
                   <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={16} strokeWidth={2.2} />
@@ -2006,7 +2006,7 @@ export default function DashboardPage({
       )}
 
       {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
-      <div className="hidden sm:flex bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-[var(--ui-shadow-card)] rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+      <div className="hidden sm:flex ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
         {/* Dashboard Messages Carousel */}
         {dashboardMessages?.length > 0 && (
           <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
