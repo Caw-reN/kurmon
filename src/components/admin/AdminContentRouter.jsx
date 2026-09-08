@@ -74,7 +74,7 @@ const ManajemenRole = lazy(() => import('../../pages/admin/tabs/ManajemenRole.js
 export default function AdminContentRouter({ context }) {
   const tabProps = context;
   const {
-    activeTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket,
+    activeTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket, checkIsAllowed,
     normalizeUserRole, rolePermissions, saveDatabaseNow, classes, teachers, subjects,
     rooms, schedule, teachingLoads, openModal, setActiveTab, renderTable, checkDependencies,
     handleDelete, updateSelectionForTab, appSettings, setAppSettings, showNotification,
@@ -161,6 +161,9 @@ export default function AdminContentRouter({ context }) {
       return activeUserRole === "kepsek";
     };
     const isTabAllowed = () => {
+      if (typeof checkIsAllowed === "function") {
+        return checkIsAllowed(activeTab);
+      }
       if (role ==="admin" || role ==="superadmin") return true;
       if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
       if (activeTab === "kedisiplinan_piket") {
@@ -307,12 +310,14 @@ export default function AdminContentRouter({ context }) {
       return checkAllowed(role);
     };
     if (!isTabAllowed()) {
+      if (typeof setActiveTab === "function" && activeTab !== "dashboard") {
+        setTimeout(() => setActiveTab("dashboard"), 100);
+      }
       return <div className="bg-white border-none rounded-[var(--ui-radius-card)] shadow-sm p-8 text-center max-w-xl mx-auto">
         <Shield size={42} className="mx-auto text-slate-300 mb-3" />
         <h3 className="text-lg font-black text-slate-700">Akses Dibatasi</h3>
         <p className="text-sm font-medium text-slate-400 mt-1">
-          Anda tidak memiliki izin untuk mengakses halaman ini. Hubungi
-          Administrator jika ini merupakan kesalahan.
+          Anda tidak memiliki izin untuk mengakses halaman ini. Mengalihkan ke Dashboard...
         </p>
       </div>;
     }

@@ -1564,18 +1564,21 @@ export default function App() {
         }
       }
 
-      // Khusus kedisiplinan_piket: hanya diizinkan jika admin, kepsek, kesiswaan/bpbk, bertugas piket, atau diset edit/view
+      // Khusus kedisiplinan_piket: hanya diizinkan jika admin, kepsek, tim kesiswaan/bpbk, atau bertugas piket (hasPiket), atau diset edit/view secara eksplisit
       if (tabId === 'kedisiplinan_piket') {
         if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') return true;
         const piketPerm = perms?.[tabId];
         if (piketPerm === 'nonaktif' || piketPerm === 'none' || piketPerm === 'off') return false;
-        if (piketPerm === 'edit' || piketPerm === 'full') return true;
 
         const div = (currentUser?.division || "").toLowerCase().trim();
-        if ((role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan') return true;
-        if (['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) || role === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk') return true;
+        const isKesiswaanTeam = (role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan' ||
+          ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
+          role === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk';
+
+        if (isKesiswaanTeam) return true;
+
+        if (piketPerm === 'edit' || piketPerm === 'full' || piketPerm === 'view') return true;
         if (hasPiket && piketPerm !== 'nonaktif' && piketPerm !== 'none' && piketPerm !== 'off') return true;
-        if (piketPerm === 'view' || piketPerm === 'otomatis') return true;
         return false;
       }
 
@@ -2725,7 +2728,7 @@ export default function App() {
 
     let isAllowed = false;
 
-    // Khusus kedisiplinan_piket: hanya boleh jika superadmin, kepsek, kesiswaan/bpbk, terjadwal piket (tanpa penolakan nonaktif), atau diset edit/view
+    // Khusus kedisiplinan_piket: hanya boleh jika superadmin, kepsek, tim kesiswaan/bpbk, bertugas piket (hasPiket), atau diset edit/view secara eksplisit
     if (id === 'kedisiplinan_piket') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
@@ -2734,15 +2737,16 @@ export default function App() {
       if (level === "nonaktif" || level === "none" || level === "off") {
         return false;
       }
-      if (level === "edit" || level === "full") return true;
 
       const div = (currentUser?.division || "").toLowerCase().trim();
-      if ((activeRole === 'waka' && div === 'kesiswaan') || activeRole === 'kesiswaan') return true;
-      if (['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) || activeRole === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk') {
-        return true;
-      }
+      const isKesiswaanTeam = (activeRole === 'waka' && div === 'kesiswaan') || activeRole === 'kesiswaan' ||
+        ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
+        activeRole === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk';
+
+      if (isKesiswaanTeam) return true;
+
+      if (level === "edit" || level === "full" || level === "view") return true;
       if (hasPiket && level !== "nonaktif" && level !== "none" && level !== "off") return true;
-      if (level === "view" || level === "otomatis") return true;
       return false;
     }
 
