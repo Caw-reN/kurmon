@@ -1,6 +1,7 @@
 import { lazy, useState, useEffect } from 'react';
 import { applyDocumentBranding, resetDocumentBranding } from './utils/branding.js';
 import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subscribeDatabaseSnapshot } from './utils/dataSource.js';
+import { useDataStore } from './store/useDataStore.js';
 import { Suspense } from 'react';
 import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
 import { BarChart2 } from 'lucide-react';
@@ -18,6 +19,9 @@ if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       if (payload?.appSettings) {
         setDatabaseSnapshot(payload);
         applyDocumentBranding(payload.appSettings);
+        try {
+          useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...payload.appSettings }));
+        } catch {}
       }
     }
   } catch {}
@@ -233,9 +237,20 @@ export default function App() {
   const [isFatalOffline, setIsFatalOffline] = useState(false);
 
   useEffect(() => {
-    applyDocumentBranding(getDatabaseSnapshot().appSettings || {});
+    const snapSettings = getDatabaseSnapshot().appSettings;
+    if (snapSettings) {
+      applyDocumentBranding(snapSettings);
+      try {
+        useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...snapSettings }));
+      } catch {}
+    }
     return subscribeDatabaseSnapshot((snapshot) => {
-      applyDocumentBranding(snapshot?.appSettings || {});
+      if (snapshot?.appSettings) {
+        applyDocumentBranding(snapshot.appSettings);
+        try {
+          useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...snapshot.appSettings }));
+        } catch {}
+      }
     });
   }, []);
 
@@ -252,6 +267,11 @@ export default function App() {
             nextPayload.teachers = nextPayload.teachers.map((t) => { const s = { ...t }; delete s.password; return s; });
           }
           setDatabaseSnapshot(nextPayload);
+          if (nextPayload?.appSettings) {
+            try {
+              useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...nextPayload.appSettings }));
+            } catch {}
+          }
           // PRELOAD HERO IMAGE FOR LANDING PAGE (LCP OPTIMIZATION)
           if (nextPayload?.appSettings?.heroImage && !document.getElementById('preload-hero')) {
             const link = document.createElement('link');

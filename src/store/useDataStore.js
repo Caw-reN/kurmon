@@ -1,5 +1,23 @@
 import { create } from 'zustand';
 import { loadInitialState } from '../utils/state.js';
+import { getDatabaseSnapshot } from '../utils/dataSource.js';
+
+const defaultAppSettings = {
+  appName: "KG2 School",
+  siteTitle: "KG2 School — Sistem Informasi Akademik",
+  schoolName: "SMK Karya Guna 2 Bekasi",
+  logoWebUrl: "/logo-kg2.png",
+  logoUrl: "/logo-kg2.png",
+  theme: "blue",
+  faviconImage: "/favicon.svg",
+  headerImage: "",
+  customRoles: [],
+  wakaDivisions: [],
+  syncServerUrl: "",
+  syncInterval: 300000,
+  academicYear: "2023/2024",
+  semester: "Ganjil"
+};
 
 export const useDataStore = create((set) => ({
   // Users and Settings
@@ -17,20 +35,19 @@ export const useDataStore = create((set) => ({
     }
   })(),
   setCurrentUser: (user) => set({ currentUser: user }),
-  appSettings: loadInitialState("appSettings", {
-    appName: "KG2 School",
-    siteTitle: "KG2 School — Sistem Informasi Akademik",
-    schoolName: "SMK Negeri 1",
-    theme: "blue",
-    faviconImage: "/favicon.svg",
-    headerImage: "",
-    customRoles: [],
-    wakaDivisions: [],
-    syncServerUrl: "",
-    syncInterval: 300000,
-    academicYear: "2023/2024",
-    semester: "Ganjil"
-  }),
+  appSettings: (() => {
+    try {
+      const snapshotSettings = getDatabaseSnapshot()?.appSettings;
+      const initial = loadInitialState("appSettings", defaultAppSettings);
+      return {
+        ...defaultAppSettings,
+        ...(snapshotSettings || {}),
+        ...(initial || {})
+      };
+    } catch {
+      return defaultAppSettings;
+    }
+  })(),
   setAppSettings: (val) => set((state) => {
     let nextSettings = typeof val === 'function' ? val(state.appSettings) : val;
     if (nextSettings && typeof nextSettings === 'object') {

@@ -280,11 +280,20 @@ export default function PublicLayout() {
               {/* Left: Logo & Basic Info */}
               <div className="flex flex-col items-center md:items-start text-center md:text-left gap-2">
                 <div className="flex items-center gap-3">
-                  {schoolProfile?.logo_url ? (
-                    <img src={schoolProfile.logo_url} alt="Logo" className="w-10 h-10 object-contain" />
+                  {schoolProfile?.logo_url || appSettings?.logoWebUrl || appSettings?.logoUrl ? (
+                    <img 
+                      src={schoolProfile?.logo_url || appSettings?.logoWebUrl || appSettings?.logoUrl || "/logo-kg2.png"} 
+                      alt="Logo" 
+                      className="w-10 h-10 object-contain" 
+                      onError={(e) => {
+                        if (!e.currentTarget.src.endsWith("/logo-kg2.png")) {
+                          e.currentTarget.src = "/logo-kg2.png";
+                        }
+                      }}
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white font-black text-[14px] shadow-sm" style={{ backgroundColor: primaryColor }}>
-                      {logoText ||"TS"}
+                      {logoText || "TS"}
                     </div>
                   )}
                   <div className="flex flex-col">

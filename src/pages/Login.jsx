@@ -3,12 +3,25 @@ import { Link } from 'react-router-dom';
 import { AlertCircle, EyeOff, Eye, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui.jsx';
 import { CustomSelect } from '../components/CustomSelect.jsx';
-
+import { useDataStore } from '../store/useDataStore.js';
+import { getDatabaseSnapshot } from '../utils/dataSource.js';
 
 export default function Login({ 
   appSettings, username, setUsername, password, setPassword, showPassword, setShowPassword, rememberMe, setRememberMe,
   handleLogin, isLoggingIn, loginError, uiTheme, loginBrandTitle
 }) {
+  const storeAppSettings = useDataStore((state) => state.appSettings);
+  const effectiveAppSettings = {
+    ...(getDatabaseSnapshot()?.appSettings || {}),
+    ...(storeAppSettings || {}),
+    ...(appSettings || {})
+  };
+  const resolvedLogoUrl = 
+    effectiveAppSettings?.logoWebUrl || 
+    effectiveAppSettings?.logoUrl || 
+    getDatabaseSnapshot()?.appSettings?.logoWebUrl || 
+    getDatabaseSnapshot()?.appSettings?.logoUrl || 
+    "/logo-kg2.png";
   const [viewMode, setViewMode] = React.useState("login"); // "login" | "forgot"
   const [forgotRole, setForgotRole] = React.useState("guru");
   const [forgotUsername, setForgotUsername] = React.useState("");
@@ -88,9 +101,14 @@ export default function Login({
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <img 
-            src={appSettings?.logoWebUrl || "/logo-kg2.png"} 
-            alt="Logo" 
-            className="w-[72px] h-[72px] object-contain drop-shadow-sm"
+            src={resolvedLogoUrl} 
+            alt={effectiveAppSettings?.appName || "Logo Sekolah"} 
+            onError={(e) => {
+              if (!e.currentTarget.src.endsWith("/logo-kg2.png")) {
+                e.currentTarget.src = "/logo-kg2.png";
+              }
+            }}
+            className="w-[76px] h-[76px] object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105"
           />
         </div>
 
@@ -102,7 +120,7 @@ export default function Login({
             <p className="text-[13px] text-slate-500 font-medium">
               {viewMode === "forgot"
                 ? "Minta reset kata sandi ke Administrator"
-                : <span>Portal akademik <span className="text-[var(--ui-primary)] font-bold">{appSettings.appName || "TimeSchedule"}</span></span>
+                : <span>Portal akademik <span className="text-[var(--ui-primary)] font-bold">{effectiveAppSettings.appName || "KG2 School"}</span></span>
               }
             </p>
           </div>
