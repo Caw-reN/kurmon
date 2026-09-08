@@ -8,6 +8,7 @@ import { BarChart2 } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
+import PermissionPromptModal from './components/PermissionPromptModal.jsx';
 
 // Pre-hydrate snapshot immediately from cache so branding (school name, primary color) is ready synchronously on frame 0
 if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
@@ -423,6 +424,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <PwaInstallPrompt />
+        <PermissionPromptModal />
       </Suspense>
         </BrowserRouter>
       </GlobalDialogProvider>
