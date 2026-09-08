@@ -820,10 +820,48 @@ function ExportSemesterModal({
 }
 
 // Modal Form Isi Jurnal - Modern, Super Padat, Cepat, Intuitif & Auto-Synced
-function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance = [] }) {
-  const className = jurnal?.kelas || '';
+function JurnalModal({
+  jurnal,
+  onSave,
+  onClose,
+  students = [],
+  studentAttendance = [],
+  classes = [],
+  previousJurnals = []
+}) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
+
+  const [form, setForm] = useState({
+    id: jurnal?.id || null,
+    kelas: jurnal?.kelas || (classes[0]?.name || classes[0]?.id || ''),
+    mapel: jurnal?.mapel || '',
+    jam_ke: jurnal?.jam_ke || 1,
+    slot_label: jurnal?.slot_label || 'Jam ke-1',
+    materi_pokok: jurnal?.materi_pokok || '',
+    kegiatan_pembelajaran: jurnal?.kegiatan_pembelajaran || '',
+    metode_pembelajaran: jurnal?.metode_pembelajaran || 'Ceramah & Diskusi',
+    catatan: jurnal?.catatan || '',
+    jumlah_hadir: jurnal?.jumlah_hadir || 0,
+    rincian_absensi: jurnal?.rincian_absensi || [],
+    laporan_bk: [], // Siswa yang dilapor ke BK {nis, name, kasus}
+    teacher_name: jurnal?.teacher_name || user?.name || '',
+    teacher_code: jurnal?.teacher_code || '',
+    tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
+    status: 'submitted',
+  });
+
+  const className = form.kelas || jurnal?.kelas || '';
+
+  const lastMatchingJurnal = useMemo(() => {
+    if (!form.kelas || !form.mapel || !previousJurnals || previousJurnals.length === 0) return null;
+    return previousJurnals.find(pj => 
+      pj.kelas === form.kelas && 
+      pj.mapel === form.mapel && 
+      pj.id !== form.id && 
+      (pj.materi_pokok || pj.kegiatan_pembelajaran)
+    );
+  }, [form.kelas, form.mapel, previousJurnals, form.id]);
 
   // Normalized Class Name Matcher
   const normalizeText = (txt) => (txt || '').replace(/[\s\-_.]/g, '').toLowerCase();
@@ -869,25 +907,6 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
   const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
   const [searchRollCall, setSearchRollCall] = useState('');
   const [filterRollCall, setFilterRollCall] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'sakit' | 'izin' | 'alpa'
-
-  const [form, setForm] = useState({
-    id: jurnal?.id || null,
-    kelas: jurnal?.kelas || '',
-    mapel: jurnal?.mapel || '',
-    jam_ke: jurnal?.jam_ke || 1,
-    slot_label: jurnal?.slot_label || '',
-    materi_pokok: jurnal?.materi_pokok || '',
-    kegiatan_pembelajaran: jurnal?.kegiatan_pembelajaran || '',
-    metode_pembelajaran: jurnal?.metode_pembelajaran || 'Ceramah & Diskusi',
-    catatan: jurnal?.catatan || '',
-    jumlah_hadir: jurnal?.jumlah_hadir || 0,
-    rincian_absensi: jurnal?.rincian_absensi || [],
-    laporan_bk: [], // Siswa yang dilapor ke BK {nis, name, kasus}
-    teacher_name: jurnal?.teacher_name || user?.name || '',
-    teacher_code: jurnal?.teacher_code || '',
-    tanggal: jurnal?.tanggal || new Date().toISOString().split('T')[0],
-    status: 'submitted',
-  });
   
   const [mobileTab, setMobileTab] = useState('materi');
   const [laporSiswaNis, setLaporSiswaNis] = useState('');
@@ -1195,25 +1214,76 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 relative">
         
         {/* TOP COMPACT UNIFIED HERO CARD */}
-        <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-1.5">
+        <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-xs">
-                {form.kelas}
-              </span>
-              <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
-                {form.mapel}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              {jurnal?.isManual ? (
+                <>
+                  <select
+                    value={form.kelas}
+                    onChange={e => setForm(f => ({ ...f, kelas: e.target.value }))}
+                    className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-xs border-none focus:outline-none cursor-pointer"
+                  >
+                    {classes.map(c => {
+                      const name = c.name || c.id;
+                      return <option key={name} value={name} className="text-slate-900 bg-white">{name}</option>;
+                    })}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Mata Pelajaran (contoh: PKK / Informatika)"
+                    value={form.mapel}
+                    onChange={e => setForm(f => ({ ...f, mapel: e.target.value }))}
+                    className="text-xs font-black text-slate-800 bg-white border border-emerald-300 rounded px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-xs"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-700 text-white text-xs font-black tracking-wide shrink-0 shadow-xs">
+                    {form.kelas}
+                  </span>
+                  <span className="text-xs font-black text-slate-800 truncate" title={form.mapel}>
+                    {form.mapel}
+                  </span>
+                </>
+              )}
             </div>
-            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-xs">
-              {form.slot_label || `Jam ke-${form.jam_ke}`}
-            </span>
+
+            {jurnal?.isManual ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-slate-600">Jam Ke:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="14"
+                  value={form.jam_ke}
+                  onChange={e => {
+                    const val = parseInt(e.target.value, 10) || 1;
+                    setForm(f => ({ ...f, jam_ke: val, slot_label: `Jam ke-${val}` }));
+                  }}
+                  className="w-16 text-[11px] font-extrabold px-2 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-xs text-center"
+                />
+              </div>
+            ) : (
+              <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-white border border-emerald-200 text-emerald-800 shrink-0 shadow-xs">
+                {form.slot_label || `Jam ke-${form.jam_ke}`}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-600 pt-1 border-t border-emerald-100 flex-wrap">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <Calendar size={13} className="text-emerald-600 shrink-0" />
-              <span>{new Date(form.tanggal).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'short', year:'numeric' })}</span>
+              <input
+                type="date"
+                value={form.tanggal}
+                onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))}
+                className="bg-white/90 border border-emerald-300/80 rounded px-2 py-0.5 text-xs font-black text-slate-800 focus:outline-none cursor-pointer shadow-2xs"
+              />
+              <span className="text-[10px] text-slate-500 font-semibold">
+                ({new Date(form.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long' })})
+              </span>
             </div>
             
             {/* Status Pengisian */}
@@ -1232,7 +1302,7 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
             ) : isFillingPastDate ? (
               <span className="text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
                 <Clock size={11} className="text-amber-700 shrink-0" />
-                <span>Terlambat H+{diffDaysFromToday}</span>
+                <span>Terlewat H-{diffDaysFromToday}</span>
               </span>
             ) : (
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-[var(--ui-radius-control)] bg-slate-100 text-slate-600 border border-slate-200">
@@ -1240,6 +1310,14 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
               </span>
             )}
           </div>
+
+          {/* Past Date Alert Banner inside Modal */}
+          {isFillingPastDate && !jurnal?.submitted_at && (
+            <div className="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] flex items-center gap-1.5">
+              <AlertCircle size={12} className="shrink-0 text-amber-600" />
+              <span>Mengisi jurnal untuk tanggal lampau ({new Date(form.tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}). Kehadiran siswa otomatis disesuaikan.</span>
+            </div>
+          )}
         </div>
 
         {/* MOBILE TABS (Hidden on Desktop) */}
@@ -1313,6 +1391,25 @@ function JurnalModal({ jurnal, onSave, onClose, students = [], studentAttendance
                   <button type="button" onClick={() => handleApplyKegiatanTemplate('lengkap')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all shadow-xs cursor-pointer">+ Lengkap</button>
                   <button type="button" onClick={() => handleApplyKegiatanTemplate('praktik')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-xs cursor-pointer">+ Praktik</button>
                   <button type="button" onClick={() => handleApplyKegiatanTemplate('diskusi')} className="text-[9px] font-extrabold px-2 py-1 rounded bg-white hover:bg-indigo-50 text-indigo-800 border border-indigo-200 transition-all shadow-xs cursor-pointer">+ Diskusi</button>
+                  {lastMatchingJurnal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm(prev => ({
+                          ...prev,
+                          materi_pokok: lastMatchingJurnal.materi_pokok || prev.materi_pokok,
+                          kegiatan_pembelajaran: lastMatchingJurnal.kegiatan_pembelajaran || prev.kegiatan_pembelajaran,
+                          metode_pembelajaran: lastMatchingJurnal.metode_pembelajaran || prev.metode_pembelajaran,
+                          catatan: lastMatchingJurnal.catatan || prev.catatan,
+                        }));
+                      }}
+                      className="text-[9px] font-black px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition-all shadow-xs cursor-pointer flex items-center gap-1"
+                      title={`Salin materi KBM terakhir (${lastMatchingJurnal.tanggal})`}
+                    >
+                      <Sparkles size={11} className="text-amber-700" />
+                      <span>Salin KBM Terakhir ({lastMatchingJurnal.tanggal})</span>
+                    </button>
+                  )}
                 </div>
                 <textarea
                   rows={4}
@@ -1582,6 +1679,14 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [filterTeacher, setFilterTeacher] = useState('');
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [activeView, setActiveView] = useState('harian'); // harian | rekap
+  const [harianSubView, setHarianSubView] = useState('hari_ini'); // hari_ini | terlewat | riwayat
+  const [missedRangeDays, setMissedRangeDays] = useState(14); // 7 | 14 | 30
+  const [missedSearch, setMissedSearch] = useState('');
+  const [missedClassFilter, setMissedClassFilter] = useState('all');
+  const [missedCurrentPage, setMissedCurrentPage] = useState(1);
+  const [missedPerPage, setMissedPerPage] = useState(10);
+  const [recentJurnals, setRecentJurnals] = useState([]);
+  const [isCheckingMissed, setIsCheckingMissed] = useState(false);
   const [toast, setToast] = useState(null);
 
   // States for Rekap Per Guru overhaul
@@ -1830,6 +1935,40 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
     } catch (e) { console.error(e); }
     setIsLoading(false);
   }, [authToken, filterDate, isKurikulum, filterTeacher]);
+
+  const fetchRecentJurnals = useCallback(async () => {
+    if (!authToken) return;
+    setIsCheckingMissed(true);
+    try {
+      const now = new Date();
+      const past = new Date(now);
+      past.setDate(now.getDate() - 30);
+      const startStr = past.toISOString().split('T')[0];
+      const endStr = now.toISOString().split('T')[0];
+
+      const params = new URLSearchParams();
+      params.set('start_date', startStr);
+      params.set('end_date', endStr);
+      params.set('limit', 'all');
+      if (isKurikulum && filterTeacher) params.set('teacher_code', filterTeacher);
+
+      const res = await fetch(`/api/jurnal/harian?${params}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRecentJurnals(data.data || []);
+      }
+    } catch (e) {
+      console.error("Gagal memuat riwayat jurnal terkini:", e);
+    } finally {
+      setIsCheckingMissed(false);
+    }
+  }, [authToken, isKurikulum, filterTeacher]);
+
+  useEffect(() => {
+    fetchRecentJurnals();
+  }, [fetchRecentJurnals]);
 
   const fetchRekap = useCallback(async () => {
     if (!authToken || !isKurikulum) return;
@@ -2100,6 +2239,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
         setActiveModal(null);
         fetchJurnal();
+        fetchRecentJurnals();
         return { success: true };
       } else {
         return { error: data.error || 'Gagal menyimpan jurnal' };
@@ -2123,16 +2263,161 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       });
       showToast('Jurnal dihapus');
       fetchJurnal();
+      fetchRecentJurnals();
     } catch (e) { showToast('Gagal menghapus','error'); }
   };
 
+  // Daftar jadwal KBM terlewat / belum diisi dalam rentang N hari terakhir
+  const missedPastSlots = useMemo(() => {
+    if (!schedule || !Array.isArray(schedule)) return [];
+    const myCode = isKurikulum ? (filterTeacher || null) : teacherCode;
+    if (!myCode && !isKurikulum) return [];
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    const past = new Date(now);
+    past.setDate(now.getDate() - (missedRangeDays || 14));
+
+    const missed = [];
+    let cur = new Date(past);
+
+    while (cur <= now) {
+      const dayOfWeek = cur.getDay();
+      if (dayOfWeek !== 0) { // Lewati hari Minggu
+        const dayName = HARI_ID[dayOfWeek];
+        const dStr = cur.toISOString().split('T')[0];
+
+        const rawSlots = schedule
+          .filter(s => {
+            if (s.day !== dayName) return false;
+            if (myCode) {
+              const codes = (s.teacherCode || '').split(',').map(c => c.trim());
+              return codes.includes(myCode);
+            }
+            return true;
+          })
+          .map((s, idx) => {
+            const info = getSlotPeriodIndexAndLabel(dayName, s.slotId);
+            return {
+              ...s,
+              jam_ke: info.index || (idx + 1),
+              time_label: info.label || '',
+            };
+          });
+
+        // Grouping Mapel Blok
+        const groupedMap = new Map();
+        rawSlots.forEach(s => {
+          const groupKey = `${s.className}-${s.subject}`;
+          if (!groupedMap.has(groupKey)) {
+            groupedMap.set(groupKey, []);
+          }
+          groupedMap.get(groupKey).push(s);
+        });
+
+        groupedMap.forEach((slots) => {
+          slots.sort((a, b) => a.jam_ke - b.jam_ke);
+          const first = slots[0];
+          const last = slots[slots.length - 1];
+          const minJam = first.jam_ke;
+          const maxJam = last.jam_ke;
+          const jamList = slots.map(s => s.jam_ke);
+
+          let slotLabel = `Jam ${minJam}`;
+          if (minJam !== maxJam) slotLabel = `Jam ${minJam} - ${maxJam}`;
+
+          let mergedTime = '';
+          if (slots.length === 1) {
+            mergedTime = first.time_label || '';
+          } else {
+            const firstStart = first.time_label?.split('-')[0]?.trim() || '';
+            const lastEnd = last.time_label?.split('-')[1]?.trim() || '';
+            mergedTime = firstStart && lastEnd ? `${firstStart} - ${lastEnd}` : (first.time_label || last.time_label || '');
+          }
+
+          // Periksa apakah slot ini sudah memiliki catatan jurnal
+          const allFilled = [...(recentJurnals || []), ...(dStr === filterDate ? (jurnalList || []) : [])];
+          const filled = allFilled.find(j => {
+            const isSameDate = (j.tanggal || '').split('T')[0] === dStr;
+            const isSameClass = j.kelas === first.className;
+            const isSameMapel = j.mapel === first.subject;
+            const isSameJam = jamList.includes(j.jam_ke);
+            return isSameDate && isSameClass && isSameMapel && isSameJam;
+          });
+
+          if (!filled) {
+            const diffMs = new Date(todayStr) - new Date(dStr);
+            const diffDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+            missed.push({
+              ...first,
+              date: dStr,
+              formattedDate: cur.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }),
+              shortDate: cur.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }),
+              diffDays,
+              jam_ke: minJam,
+              jam_end: maxJam,
+              jam_list: jamList,
+              slot_label: slotLabel,
+              time_range: mergedTime,
+              isToday: dStr === todayStr,
+              isPast: dStr < todayStr,
+              _key: `${dStr}-${minJam}-${first.className}-${first.subject}`
+            });
+          }
+        });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    return missed.sort((a, b) => {
+      if (a.date !== b.date) return b.date.localeCompare(a.date);
+      return a.jam_ke - b.jam_ke;
+    });
+  }, [schedule, isKurikulum, filterTeacher, teacherCode, missedRangeDays, getSlotPeriodIndexAndLabel, recentJurnals, filterDate, jurnalList]);
+
+  const filteredMissedSlots = useMemo(() => {
+    return missedPastSlots.filter(slot => {
+      if (missedClassFilter !== 'all' && slot.className !== missedClassFilter) return false;
+      if (missedSearch) {
+        const q = missedSearch.toLowerCase();
+        return (
+          slot.className.toLowerCase().includes(q) ||
+          slot.subject.toLowerCase().includes(q) ||
+          slot.formattedDate.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [missedPastSlots, missedClassFilter, missedSearch]);
+
+  const missedTotalItems = filteredMissedSlots.length;
+  const missedTotalPages = Math.max(1, Math.ceil(missedTotalItems / missedPerPage));
+  const paginatedMissedSlots = useMemo(() => {
+    const start = (missedCurrentPage - 1) * missedPerPage;
+    return filteredMissedSlots.slice(start, start + missedPerPage);
+  }, [filteredMissedSlots, missedCurrentPage, missedPerPage]);
+
   const openAdd = (slot) => {
     setActiveModal({
-      kelas: slot?.className ||'',
-      mapel: slot?.subject ||'',
+      kelas: slot?.className || '',
+      mapel: slot?.subject || '',
       jam_ke: slot?.jam_ke || 1,
-      slot_label: slot?.slot_label ||'',
-      tanggal: filterDate,
+      slot_label: slot?.slot_label || '',
+      tanggal: slot?.date || slot?.tanggal || filterDate,
+      teacher_code: slot?.teacherCode || (isKurikulum ? filterTeacher : teacherCode) || '',
+    });
+  };
+
+  const openAddManual = () => {
+    setActiveModal({
+      isManual: true,
+      kelas: classes[0]?.name || classes[0]?.id || '',
+      mapel: '',
+      jam_ke: 1,
+      slot_label: 'Jam ke-1',
+      tanggal: filterDate || new Date().toISOString().split('T')[0],
+      teacher_code: (isKurikulum ? filterTeacher : teacherCode) || '',
     });
   };
 
@@ -2197,280 +2482,617 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       {/* === HARIAN VIEW === */}
       {activeView === 'harian' && (
         <>
-          {/* Mobile Filter & Export Card (Reference Layout matching media__1785567800000.png) */}
-          <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              {/* Date selector button */}
-              <div 
-                onClick={(e) => {
-                  const inputEl = e.currentTarget.querySelector('input[type="date"]');
-                  if (inputEl) {
-                    try { inputEl.showPicker(); } catch (err) { inputEl.click(); }
-                  }
-                }}
-                className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 pointer-events-none">
-                  <div 
-                    className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0"
-                    style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
-                  >
-                    <Calendar size={16} strokeWidth={2.2} />
-                  </div>
-                  <span className="text-xs font-extrabold text-slate-800 truncate">
-                    {filterDate ? new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Pilih Tanggal'}
-                  </span>
-                </div>
-                <input
-                  type="date"
-                  value={filterDate}
-                  onChange={e => setFilterDate(e.target.value)}
-                  onClick={e => {
-                    e.stopPropagation();
-                    try { e.currentTarget.showPicker(); } catch (err) {}
-                  }}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                />
-                <ChevronDown size={16} className="text-slate-400 shrink-0 pointer-events-none" />
-              </div>
-
-              {/* Refresh button */}
-              <button
-                type="button"
-                onClick={fetchJurnal}
-                title="Refresh"
-                className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
-              >
-                <RefreshCw size={18} strokeWidth={2} />
-              </button>
-            </div>
-
-            {isKurikulum && (
-              <div className="w-full">
-                <CustomSelect
-                  options={teacherOptions}
-                  value={filterTeacher}
-                  onChange={v => setFilterTeacher(v)}
-                  placeholder="Filter Guru"
-                />
-              </div>
-            )}
-
-            {/* Export Jurnal PDF Rekap Semester button */}
+          {/* Sub-View Navigation Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               type="button"
-              onClick={() => setIsExportSemesterOpen(true)}
-              className="w-full py-3 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
-              style={{
-                background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
-                color: "var(--ui-primary)",
-                border: "1px solid color-mix(in srgb, var(--ui-primary) 25%, transparent)"
-              }}
+              onClick={() => setHarianSubView('hari_ini')}
+              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
+                harianSubView === 'hari_ini'
+                  ? 'bg-[var(--ui-primary)] text-white shadow-sm'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
+              }`}
             >
-              <FileText size={16} strokeWidth={2.2} />
-              <span>Export PDF Rekap Semester</span>
+              <Calendar size={14} />
+              <span>Jadwal Harian ({totalSlots} Slot)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setHarianSubView('terlewat')}
+              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 relative ${
+                harianSubView === 'terlewat'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
+              }`}
+            >
+              <AlertCircle size={14} className={harianSubView === 'terlewat' ? 'text-white' : 'text-amber-600'} />
+              <span>Jurnal Terlewat / Belum Diisi</span>
+              {missedPastSlots.length > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight ${
+                  harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
+                }`}>
+                  {missedPastSlots.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setHarianSubView('riwayat')}
+              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
+                harianSubView === 'riwayat'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
+              }`}
+            >
+              <ClipboardList size={14} />
+              <span>Semua Riwayat Jurnal ({jurnalList.length})</span>
             </button>
           </div>
 
-          {/* Desktop Filter Bar */}
-          <div className="hidden sm:flex ui-card p-4 flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <div className="flex gap-2 w-full sm:w-auto">
-                <div className="flex-1 sm:flex-none flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 rounded-[var(--ui-radius-small)]">
-                  <Calendar size={16} className="text-slate-400 shrink-0" />
-                  <input
-                    type="date"
-                    value={filterDate}
-                    onChange={e => setFilterDate(e.target.value)}
-                    className="w-full py-2 bg-transparent border-none text-sm font-semibold text-slate-700 focus:outline-none"
+          {/* ==================== SUB-VIEW 1: JADWAL HARI INI ==================== */}
+          {harianSubView === 'hari_ini' && (
+            <>
+              {/* Alert Banner for Missed Past Journals */}
+              {missedPastSlots.length > 0 && (
+                <div className="p-3.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <AlertCircle size={18} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-amber-950 flex items-center gap-1.5 flex-wrap">
+                        Terdapat {missedPastSlots.length} jadwal KBM sebelumnya yang belum diisi jurnalnya
+                        <span className="px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 text-[10px] font-black">Perlu Dilengkapi</span>
+                      </p>
+                      <p className="text-[11px] font-medium text-amber-800 mt-0.5">
+                        Akses cepat untuk melengkapi pengisian jurnal yang terlewat tanpa perlu mencari tanggal satu per satu.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHarianSubView('terlewat')}
+                    className="px-3.5 py-2 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 w-full sm:w-auto justify-center"
+                  >
+                    <span>Buka Jurnal Terlewat ({missedPastSlots.length})</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Mobile Filter & Export Card */}
+              <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-3.5 shadow-sm border border-slate-100/90 flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  {/* Date selector button */}
+                  <div 
+                    onClick={(e) => {
+                      const inputEl = e.currentTarget.querySelector('input[type="date"]');
+                      if (inputEl) {
+                        try { inputEl.showPicker(); } catch (err) { inputEl.click(); }
+                      }
+                    }}
+                    className="flex-1 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] py-2.5 px-3.5 transition-all relative cursor-pointer active:scale-98"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pointer-events-none">
+                      <div 
+                        className="w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0"
+                        style={{ background: "color-mix(in srgb, var(--ui-primary) 14%, transparent)", color: "var(--ui-primary)" }}
+                      >
+                        <Calendar size={16} strokeWidth={2.2} />
+                      </div>
+                      <span className="text-xs font-extrabold text-slate-800 truncate">
+                        {filterDate ? new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Pilih Tanggal'}
+                      </span>
+                    </div>
+                    <input
+                      type="date"
+                      value={filterDate}
+                      onChange={e => setFilterDate(e.target.value)}
+                      onClick={e => {
+                        e.stopPropagation();
+                        try { e.currentTarget.showPicker(); } catch (err) {}
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                    />
+                    <ChevronDown size={16} className="text-slate-400 shrink-0 pointer-events-none" />
+                  </div>
+
+                  {/* Refresh button */}
+                  <button
+                    type="button"
+                    onClick={() => { fetchJurnal(); fetchRecentJurnals(); }}
+                    title="Refresh"
+                    className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-600 transition-all cursor-pointer shrink-0 active:scale-95"
+                  >
+                    <RefreshCw size={18} strokeWidth={2} />
+                  </button>
+                </div>
+
+                {isKurikulum && (
+                  <div className="w-full">
+                    <CustomSelect
+                      options={teacherOptions}
+                      value={filterTeacher}
+                      onChange={v => setFilterTeacher(v)}
+                      placeholder="Filter Guru"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="primary"
+                    onClick={openAddManual}
+                    className="flex-1 py-2.5 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus size={14} strokeWidth={2.5} />
+                    <span>+ Jurnal Bebas</span>
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setIsExportSemesterOpen(true)}
+                    className="flex-1 py-2.5 rounded-[var(--ui-radius-card)] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"
+                    style={{
+                      background: "color-mix(in srgb, var(--ui-primary) 10%, #ffffff)",
+                      color: "var(--ui-primary)",
+                      border: "1px solid color-mix(in srgb, var(--ui-primary) 25%, transparent)"
+                    }}
+                  >
+                    <FileText size={14} strokeWidth={2.2} />
+                    <span>Export PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop Filter Bar */}
+              <div className="hidden sm:flex ui-card p-4 flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="flex-1 sm:flex-none flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 rounded-[var(--ui-radius-small)]">
+                      <Calendar size={16} className="text-slate-400 shrink-0" />
+                      <input
+                        type="date"
+                        value={filterDate}
+                        onChange={e => setFilterDate(e.target.value)}
+                        className="w-full py-2 bg-transparent border-none text-sm font-semibold text-slate-700 focus:outline-none cursor-pointer"
+                      />
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => { fetchJurnal(); fetchRecentJurnals(); }} title="Refresh">
+                      <RefreshCw size={16} />
+                    </Button>
+                  </div>
+                  
+                  {isKurikulum && (
+                    <div className="w-full sm:w-[220px]">
+                      <CustomSelect
+                        options={teacherOptions}
+                        value={filterTeacher}
+                        onChange={v => setFilterTeacher(v)}
+                        placeholder="Filter Guru"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+                  <Button
+                    variant="primary"
+                    onClick={openAddManual}
+                    className="w-full md:w-auto flex justify-center items-center gap-1.5 shrink-0 cursor-pointer font-black text-xs shadow-xs"
+                  >
+                    <Plus size={14} strokeWidth={2.5} />
+                    <span>+ Isi Jurnal Bebas</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsExportSemesterOpen(true)}
+                    className="w-full md:w-auto flex justify-center items-center gap-2 shrink-0 cursor-pointer font-bold text-xs"
+                  >
+                    <FileText size={14} className="text-[var(--ui-primary)]" />
+                    <span>Export PDF Semester</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Summary Stats Boxes */}
+              {totalSlots > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-[var(--ui-radius-card)] bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Sudah Mengisi Jurnal</p>
+                      <h4 className="text-2xl font-black text-emerald-700 mt-1">{filledSlots} <span className="text-xs font-semibold text-emerald-600">dari {totalSlots} slot hari ini</span></h4>
+                    </div>
+                    <CheckCircle2 size={24} className="text-emerald-500 opacity-80" />
+                  </div>
+                  <div 
+                    onClick={() => {
+                      if (missedPastSlots.length > 0) {
+                        setHarianSubView('terlewat');
+                      }
+                    }}
+                    className={`p-4 rounded-[var(--ui-radius-card)] bg-rose-50/70 border border-rose-100 flex items-center justify-between transition-all ${
+                      missedPastSlots.length > 0 ? 'cursor-pointer hover:border-rose-300 hover:shadow-xs active:scale-98' : ''
+                    }`}
+                  >
+                    <div>
+                      <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>Belum Mengisi Jurnal</span>
+                        {missedPastSlots.length > 0 && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-200 text-rose-800 font-extrabold tracking-normal">
+                            Akses Cepat &rarr;
+                          </span>
+                        )}
+                      </p>
+                      <h4 className="text-2xl font-black text-rose-700 mt-1">
+                        {totalSlots - filledSlots} <span className="text-xs font-semibold text-rose-600">dari {totalSlots} slot hari ini</span>
+                      </h4>
+                      {missedPastSlots.length > 0 && (
+                        <p className="text-[11px] font-extrabold text-amber-700 mt-1 flex items-center gap-1">
+                          <AlertCircle size={12} className="shrink-0 text-amber-600" />
+                          <span>{missedPastSlots.length} slot terlewat hari sebelumnya &bull; Klik untuk lihat</span>
+                        </p>
+                      )}
+                    </div>
+                    <AlertCircle size={24} className="text-rose-500 opacity-80" />
+                  </div>
+                </div>
+              )}
+
+              {/* Slot Jadwal Hari Ini */}
+              {totalSlots > 0 && (
+                <div className="ui-card overflow-hidden">
+                  <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                      <BookOpen size={14} className="text-[var(--ui-primary)]" />
+                      Jadwal Mengajar Hari Ini
+                    </h3>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      {HARI_ID[new Date(filterDate + 'T00:00:00').getDay()]}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {paginatedEnrichedSlots.map((slot, idx) => {
+                      const j = slot.filled;
+                      const statusInfo = getJurnalSubmissionStatus(filterDate, j?.submitted_at);
+                      const teacher = teachers.find(t => t.code === slot.teacherCode);
+                      const teacherNameDisplay = teacher ? teacher.name : slot.teacherCode;
+                      const classAbsentStudents = getAbsentStudentsForClass(slot.className, filterDate);
+                      return (
+                        <div key={idx} className={`p-4 flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 hover:bg-slate-50/50 transition-colors ${j ? '' : 'bg-rose-50/20'}`}>
+                          {/* Jam Info */}
+                          <div className="w-full sm:w-20 shrink-0 flex flex-row sm:flex-col items-center justify-between sm:justify-center sm:text-center pb-2 sm:pb-0 border-b border-slate-100/80 sm:border-none">
+                            <div className="flex sm:flex-col items-center gap-2 sm:gap-0">
+                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam</div>
+                              <div className="text-sm font-black text-slate-700 leading-tight">{slot.slot_label.replace('Jam','')}</div>
+                              {slot.time_range && (
+                                <div className="text-[9px] font-bold text-slate-500 sm:mt-1 leading-normal bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border border-slate-200/50">{slot.time_range}</div>
+                              )}
+                            </div>
+                            <div className="sm:hidden">
+                              <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
+                            </div>
+                          </div>
+
+                          {/* Detail Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="font-bold text-slate-800 text-sm">{slot.className}</span>
+                              <span className="text-slate-400 text-xs">·</span>
+                              <span className="font-bold text-xs text-[var(--ui-primary)]">{slot.subject}</span>
+                              {isKurikulum && (
+                                <>
+                                  <span className="text-slate-400 text-xs">·</span>
+                                  <span className="text-xs text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)]">Guru: {teacherNameDisplay}</span>
+                                </>
+                              )}
+                              <div className="hidden sm:block">
+                                <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
+                              </div>
+                            </div>
+                            
+                            {/* Absent Students Info */}
+                            {classAbsentStudents.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 items-center mt-1 mb-2">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1.5 flex items-center gap-0.5">
+                                  <Users size={10} /> Tidak Hadir:
+                                </span>
+                                {classAbsentStudents.map((abs, sIdx) => {
+                                  let stColor = 'bg-amber-50 text-amber-700 border-amber-200/50';
+                                  if (abs.status.toLowerCase() === 'izin') stColor = 'bg-indigo-50 text-indigo-700 border-indigo-200/50';
+                                  if (abs.status.toLowerCase() === 'alpa' || abs.status.toLowerCase() === 'alpha') stColor = 'bg-rose-50 text-rose-700 border-rose-200/50';
+                                  return (
+                                    <span key={sIdx} className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border ${stColor}`}>
+                                      {abs.name} ({abs.status.toUpperCase()})
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-[9px] font-bold text-emerald-600 flex items-center gap-1 mt-1 mb-2">
+                                <CheckCircle2 size={10} /> Semua siswa hadir hari ini
+                              </div>
+                            )}
+
+                            {j ? (
+                              <div className="text-xs text-slate-600 space-y-1 mt-1">
+                                <p><span className="font-semibold text-slate-500">Materi:</span> {j.materi_pokok}</p>
+                                <p><span className="font-semibold text-slate-500">Metode:</span> {j.metode_pembelajaran} &bull; <span className="font-semibold text-slate-500">Hadir:</span> {j.jumlah_hadir} siswa</p>
+                                {j.catatan && <p className="text-[11px] text-slate-400 italic bg-slate-50 px-2 py-1 rounded-[var(--ui-radius-small)]">Catatan: {j.catatan}</p>}
+                                
+                                {j.submitted_at && (
+                                  <div className="pt-1 flex items-center gap-2 flex-wrap text-[11px]">
+                                    <span className="text-slate-500 font-medium flex items-center gap-1">
+                                      <Clock size={11} className="text-slate-400 shrink-0" />
+                                      Diisi: <strong className="text-slate-700">{statusInfo.fullSubmitStr}</strong>
+                                    </span>
+                                    {statusInfo.isLate && (
+                                      <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-control)] border border-rose-200 flex items-center gap-1">
+                                        <Clock size={11} className="text-rose-600 shrink-0" />
+                                        <span>Terlambat (Diisi H+{statusInfo.diffDays})</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-[11px] text-rose-500 font-bold mt-0.5">Jurnal belum diisi untuk slot mengajar ini</p>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 sm:gap-1 shrink-0 sm:self-center justify-end w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100/80 sm:border-none mt-1 sm:mt-0">
+                            {j ? (
+                              <>
+                                <Button variant="outline" onClick={() => openEdit(j)} className="flex-1 sm:flex-none flex justify-center cursor-pointer" title="Edit">
+                                  <Edit2 size={13} />
+                                </Button>
+                                <Button variant="outline" onClick={() => handleDelete(j.id)} className="flex-1 sm:flex-none flex justify-center cursor-pointer" title="Hapus">
+                                  <Trash2 size={13} />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                variant="primary"
+                                onClick={() => openAdd(slot)}
+                                className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 font-bold cursor-pointer shadow-xs"
+                              >
+                                <Plus size={12} strokeWidth={2.5} />
+                                <span>+ Isi Jurnal</span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Slot Schedule Pagination Footer */}
+                  <PaginationControls
+                    currentPage={slotsCurrentPage}
+                    totalItems={slotsTotalItems}
+                    itemsPerPage={slotsPerPage}
+                    onPageChange={setSlotsCurrentPage}
+                    onItemsPerPageChange={(v) => { setSlotsPerPage(v); setSlotsCurrentPage(1); }}
                   />
                 </div>
-                <Button variant="ghost" size="icon" onClick={fetchJurnal} title="Refresh">
-                  <RefreshCw size={16} />
-                </Button>
+              )}
+
+              {/* Empty state when totalSlots === 0 */}
+              {!isLoading && totalSlots === 0 && (
+                <div className="ui-card rounded-[var(--ui-radius-card)] p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
+                  <div 
+                    className="w-16 h-16 rounded-[var(--ui-radius-card)] flex items-center justify-center mb-1 shadow-inner"
+                    style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
+                  >
+                    <Coffee size={32} strokeWidth={2.2} />
+                  </div>
+                  <h3 className="text-base font-black text-slate-800 tracking-tight">Tidak Ada Jadwal Mengajar Hari Ini</h3>
+                  <p className="text-xs text-slate-500 font-medium max-w-sm leading-relaxed">
+                    Tidak ada jadwal mengajar terjadwal pada{' '}
+                    <span className="font-black text-slate-700">
+                      {new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>.
+                  </p>
+                  {missedPastSlots.length > 0 ? (
+                    <Button
+                      variant="primary"
+                      onClick={() => setHarianSubView('terlewat')}
+                      className="mt-2 text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <AlertCircle size={14} />
+                      <span>Buka Jurnal Terlewat ({missedPastSlots.length} Slot)</span>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={openAddManual}
+                      className="mt-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus size={13} />
+                      <span>+ Catat Jurnal Manual / Bebas</span>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ==================== SUB-VIEW 2: JURNAL TERLEWAT ==================== */}
+          {harianSubView === 'terlewat' && (
+            <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+              {/* Header card for missed journals */}
+              <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white border border-amber-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <AlertCircle size={20} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm font-black text-slate-800">
+                        Jurnal Terlewat / Belum Diisi
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                        {missedPastSlots.length} Jadwal Perlu Dilengkapi
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600 mt-0.5">
+                      Daftar seluruh jadwal mengajar lampau yang belum memiliki catatan jurnal. Klik langsung "+ Isi Jurnal Ini" untuk melengkapi.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Filter controls */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-500">Rentang:</span>
+                  {[7, 14, 30].map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => { setMissedRangeDays(d); setMissedCurrentPage(1); }}
+                      className={`px-3 py-1 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
+                        missedRangeDays === d
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      {d} Hari
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={fetchRecentJurnals}
+                    disabled={isCheckingMissed}
+                    className="p-1.5 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 cursor-pointer shadow-xs ml-1"
+                    title="Cek Ulang Jurnal Terlewat"
+                  >
+                    <RefreshCw size={14} className={isCheckingMissed ? 'animate-spin' : ''} />
+                  </button>
+                </div>
               </div>
-              
-              {isKurikulum && (
-                <div className="w-full sm:w-[220px]">
+
+              {/* Filter bar for missed list */}
+              <div className="ui-card p-3 rounded-[var(--ui-radius-card)] flex flex-col sm:flex-row gap-2 items-center justify-between">
+                <div className="relative w-full sm:w-72">
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari kelas, mapel, atau tanggal..."
+                    value={missedSearch}
+                    onChange={e => { setMissedSearch(e.target.value); setMissedCurrentPage(1); }}
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <CustomSelect
-                    options={teacherOptions}
-                    value={filterTeacher}
-                    onChange={v => setFilterTeacher(v)}
-                    placeholder="Filter Guru"
+                    options={[
+                      { value: 'all', label: 'Semua Kelas' },
+                      ...classes.map(c => ({ value: c.name || c.id, label: c.name || c.id }))
+                    ]}
+                    value={missedClassFilter}
+                    onChange={v => { setMissedClassFilter(v); setMissedCurrentPage(1); }}
+                    className="w-full sm:w-44 text-xs"
+                    placeholder="Pilih Kelas"
+                  />
+                </div>
+              </div>
+
+              {/* Missed Cards List */}
+              {filteredMissedSlots.length === 0 ? (
+                <div className="ui-card p-10 rounded-[var(--ui-radius-card)] text-center flex flex-col items-center justify-center gap-3 border border-emerald-100">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-800">Hebat! Semua Jurnal Lengkap</h4>
+                    <p className="text-xs font-medium text-slate-500 mt-0.5">
+                      Semua jadwal mengajar Anda dalam {missedRangeDays} hari terakhir telah tercatat lengkap.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setHarianSubView('hari_ini')}
+                    className="mt-2 text-xs font-bold cursor-pointer"
+                  >
+                    Kembali ke Jadwal Hari Ini
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {paginatedMissedSlots.map((slot) => {
+                    const teacher = teachers.find(t => t.code === slot.teacherCode);
+                    const teacherNameDisplay = teacher ? teacher.name : slot.teacherCode;
+                    return (
+                      <div
+                        key={slot._key}
+                        className="p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-amber-200/90 hover:border-amber-400 hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-amber-50 border border-amber-200 text-amber-800 flex flex-col items-center justify-center shrink-0">
+                            <span className="text-[10px] font-black uppercase tracking-tight">{slot.day}</span>
+                            <span className="text-xs font-black">{slot.date.split('-')[2]}</span>
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="font-extrabold text-slate-800 text-sm">{slot.className}</span>
+                              <span className="text-slate-300">&bull;</span>
+                              <span className="font-bold text-xs text-[var(--ui-primary)] truncate">{slot.subject}</span>
+                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-control)] text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-200">
+                                {slot.isToday ? 'Hari Ini (Belum Diisi)' : `Terlewat H-${slot.diffDays}`}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
+                              <span className="flex items-center gap-1 font-semibold">
+                                <Calendar size={12} className="text-slate-400" />
+                                {slot.formattedDate}
+                              </span>
+                              <span className="text-slate-300">&bull;</span>
+                              <span className="flex items-center gap-1 font-semibold">
+                                <Clock size={12} className="text-slate-400" />
+                                {slot.slot_label} {slot.time_range ? `(${slot.time_range})` : ''}
+                              </span>
+                              {isKurikulum && (
+                                <>
+                                  <span className="text-slate-300">&bull;</span>
+                                  <span className="text-slate-600 font-medium">Guru: {teacherNameDisplay}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="primary"
+                          onClick={() => openAdd(slot)}
+                          className="cursor-pointer shrink-0 font-black text-xs flex items-center justify-center gap-1.5 px-4 py-2 w-full sm:w-auto shadow-xs"
+                        >
+                          <Plus size={14} strokeWidth={2.5} />
+                          <span>+ Isi Jurnal Ini</span>
+                        </Button>
+                      </div>
+                    );
+                  })}
+
+                  {/* Pagination for missed items */}
+                  <PaginationControls
+                    currentPage={missedCurrentPage}
+                    totalItems={missedTotalItems}
+                    itemsPerPage={missedPerPage}
+                    onPageChange={setMissedCurrentPage}
+                    onItemsPerPageChange={v => { setMissedPerPage(v); setMissedCurrentPage(1); }}
                   />
                 </div>
               )}
             </div>
-            
-            <Button variant="outline" onClick={() => setIsExportSemesterOpen(true)} className="w-full md:w-auto flex justify-center items-center gap-2 shrink-0 cursor-pointer font-bold">
-              <FileText size={14} className="text-[var(--ui-primary)]" />
-              <span>Export PDF Semester</span>
-            </Button>
-          </div>
-
-          {/* Summary Stats Boxes */}
-          {totalSlots > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-[var(--ui-radius-card)] bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Sudah Mengisi Jurnal</p>
-                  <h4 className="text-2xl font-black text-emerald-700 mt-1">{filledSlots} <span className="text-xs font-semibold text-emerald-600">dari {totalSlots} slot</span></h4>
-                </div>
-                <CheckCircle2 size={24} className="text-emerald-500 opacity-80" />
-              </div>
-              <div className="p-4 rounded-[var(--ui-radius-card)] bg-rose-50/70 border border-rose-100 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wider">Belum Mengisi Jurnal</p>
-                  <h4 className="text-2xl font-black text-rose-700 mt-1">{totalSlots - filledSlots} <span className="text-xs font-semibold text-rose-600">dari {totalSlots} slot</span></h4>
-                </div>
-                <AlertCircle size={24} className="text-rose-500 opacity-80" />
-              </div>
-            </div>
           )}
 
-          {/* Slot Jadwal Hari Ini */}
-          {totalSlots > 0 && (
-            <div className="ui-card overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <h3 className="font-bold text-slate-800 text-xs flex items-center gap-2">
-                  <BookOpen size={14} className="text-[var(--ui-primary)]" />
-                  Jadwal Mengajar Hari Ini
-                </h3>
-                <span className="text-[11px] font-semibold text-slate-500">
-                {/* BUG-09 FIX: Append 'T00:00:00' untuk parsing local time, bukan UTC midnight */}
-                {HARI_ID[new Date(filterDate + 'T00:00:00').getDay()]}
-              </span>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {paginatedEnrichedSlots.map((slot, idx) => {
-                  const j = slot.filled;
-                  const statusInfo = getJurnalSubmissionStatus(filterDate, j?.submitted_at);
-                  const teacher = teachers.find(t => t.code === slot.teacherCode);
-                  const teacherNameDisplay = teacher ? teacher.name : slot.teacherCode;
-                  const classAbsentStudents = getAbsentStudentsForClass(slot.className, filterDate);
-                  return (
-                    <div key={idx} className={`p-4 flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 hover:bg-slate-50/50 transition-colors ${j ?'' :'bg-rose-50/20'}`}>
-                      {/* Jam Info */}
-                      <div className="w-full sm:w-20 shrink-0 flex flex-row sm:flex-col items-center justify-between sm:justify-center sm:text-center pb-2 sm:pb-0 border-b border-slate-100/80 sm:border-none">
-                        <div className="flex sm:flex-col items-center gap-2 sm:gap-0">
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam</div>
-                          <div className="text-sm font-black text-slate-700 leading-tight">{slot.slot_label.replace('Jam','')}</div>
-                          {slot.time_range && (
-                            <div className="text-[9px] font-bold text-slate-500 sm:mt-1 leading-normal bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border border-slate-200/50">{slot.time_range}</div>
-                          )}
-                        </div>
-                        {/* On mobile, we can show a small badge or status next to the time */}
-                        <div className="sm:hidden">
-                           <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
-                        </div>
-                      </div>
-
-                      {/* Detail Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-bold text-slate-800 text-sm">{slot.className}</span>
-                          <span className="text-slate-400 text-xs">·</span>
-                          <span className="font-bold text-xs text-[var(--ui-primary)]">{slot.subject}</span>
-                          {isKurikulum && (
-                            <>
-                              <span className="text-slate-400 text-xs">·</span>
-                              <span className="text-xs text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)]">Guru: {teacherNameDisplay}</span>
-                            </>
-                          )}
-                          <div className="hidden sm:block">
-                            <StatusBadge submitted={!!j} submittedAt={j?.submitted_at} tanggal={filterDate} showTime={true} />
-                          </div>
-                        </div>
-                        
-                        {/* Absent Students Info */}
-                        {classAbsentStudents.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 items-center mt-1 mb-2">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1.5 flex items-center gap-0.5">
-                              <Users size={10} /> Tidak Hadir:
-                            </span>
-                            {classAbsentStudents.map((abs, sIdx) => {
-                              let stColor ='bg-amber-50 text-amber-700 border-amber-200/50';
-                              if (abs.status.toLowerCase() ==='izin') stColor ='bg-indigo-50 text-indigo-700 border-indigo-200/50';
-                              if (abs.status.toLowerCase() ==='alpa' || abs.status.toLowerCase() ==='alpha') stColor ='bg-rose-50 text-rose-700 border-rose-200/50';
-                              return (
-                                <span key={sIdx} className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border ${stColor}`}>
-                                  {abs.name} ({abs.status.toUpperCase()})
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="text-[9px] font-bold text-emerald-600 flex items-center gap-1 mt-1 mb-2">
-                            <CheckCircle2 size={10} /> Semua siswa hadir hari ini
-                          </div>
-                        )}
-
-                        {j ? (
-                          <div className="text-xs text-slate-600 space-y-1 mt-1">
-                            <p><span className="font-semibold text-slate-500">Materi:</span> {j.materi_pokok}</p>
-                            <p><span className="font-semibold text-slate-500">Metode:</span> {j.metode_pembelajaran} &bull; <span className="font-semibold text-slate-500">Hadir:</span> {j.jumlah_hadir} siswa</p>
-                            {j.catatan && <p className="text-[11px] text-slate-400 italic bg-slate-50 px-2 py-1 rounded-[var(--ui-radius-small)]">Catatan: {j.catatan}</p>}
-                            
-                            {/* Timestamp & Late Note */}
-                            {j.submitted_at && (
-                              <div className="pt-1 flex items-center gap-2 flex-wrap text-[11px]">
-                                <span className="text-slate-500 font-medium flex items-center gap-1">
-                                  <Clock size={11} className="text-slate-400 shrink-0" />
-                                  Diisi: <strong className="text-slate-700">{statusInfo.fullSubmitStr}</strong>
-                                </span>
-                                {statusInfo.isLate && (
-                                  <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-[var(--ui-radius-control)] border border-rose-200 flex items-center gap-1">
-                                    <Clock size={11} className="text-rose-600 shrink-0" />
-                                    <span>Terlambat (Diisi H+{statusInfo.diffDays})</span>
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-[11px] text-rose-500 font-bold mt-0.5">Jurnal belum diisi untuk slot mengajar ini</p>
-                        )}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 sm:gap-1 shrink-0 sm:self-center justify-end w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100/80 sm:border-none mt-1 sm:mt-0">
-                        {j ? (
-                          <>
-                            <Button variant="outline" onClick={() =>openEdit(j)} className="flex-1 sm:flex-none flex justify-center cursor-pointer" title="Edit">
-                              <Edit2 size={13} /></Button>
-                            <Button variant="outline" onClick={() =>handleDelete(j.id)} className="flex-1 sm:flex-none flex justify-center cursor-pointer" title="Hapus">
-                              <Trash2 size={13} /></Button>
-                          </>
-                        ) : (
-                          <Button variant="outline"
-                            onClick={() =>openAdd(slot)}
-                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 sm: sm: cursor-pointer"
-                          >
-                            <Plus size={11} /> Isi Jurnal</Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Slot Schedule Pagination Footer */}
-              <PaginationControls
-                currentPage={slotsCurrentPage}
-                totalItems={slotsTotalItems}
-                itemsPerPage={slotsPerPage}
-                onPageChange={setSlotsCurrentPage}
-                onItemsPerPageChange={(v) => { setSlotsPerPage(v); setSlotsCurrentPage(1); }}
-              />
-            </div>
-          )}
-
-          {/* Jurnal dari tanggal tersebut (semua, kurikulum) */}
-          {(isKurikulum || totalSlots === 0) && jurnalList.length > 0 && (
-            <div className="ui-card overflow-hidden">
+          {/* ==================== SUB-VIEW 3: SEMUA RIWAYAT JURNAL ==================== */}
+          {harianSubView === 'riwayat' && (
+            <div className="ui-card overflow-hidden animate-in fade-in duration-200">
               <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-center justify-between">
                 <h3 className="font-bold text-slate-800 text-xs shrink-0 self-center">
-                  {isKurikulum ?'Semua Jurnal Tanggal Ini' :'Jurnal yang Sudah Tersimpan'}
+                  {isKurikulum ? 'Semua Jurnal Tanggal Ini' : 'Jurnal yang Sudah Tersimpan'}
                 </h3>
                 
                 {/* Table Filters & Sorting */}
@@ -2507,11 +3129,12 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                     className="w-full sm:w-32 text-xs z-30 relative"
                   />
                   <Button variant="outline"
-                    onClick={() =>setSortOrder(sortOrder ==='asc' ?'desc' :'asc')}
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                     className="cursor-pointer"
-                    title={sortOrder ==='asc' ?'Urut Naik' :'Urut Turun'}
+                    title={sortOrder === 'asc' ? 'Urut Naik' : 'Urut Turun'}
                   >
-                    <ArrowUpDown size={12} /></Button>
+                    <ArrowUpDown size={12} />
+                  </Button>
                 </div>
               </div>
               
@@ -2555,10 +3178,12 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                             </td>
                             <td className="px-5 py-2.5 text-right">
                               <div className="flex justify-end gap-1">
-                                <Button variant="outline" onClick={() =>openEdit(j)} className="cursor-pointer">
-                                  <Edit2 size={12} /></Button>
-                                <Button variant="outline" onClick={() =>handleDelete(j.id)} className="cursor-pointer">
-                                  <Trash2 size={12} /></Button>
+                                <Button variant="outline" onClick={() => openEdit(j)} className="cursor-pointer" title="Edit">
+                                  <Edit2 size={12} />
+                                </Button>
+                                <Button variant="outline" onClick={() => handleDelete(j.id)} className="cursor-pointer" title="Hapus">
+                                  <Trash2 size={12} />
+                                </Button>
                               </div>
                             </td>
                           </tr>
@@ -2577,26 +3202,6 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                 onPageChange={setCurrentPage}
                 onItemsPerPageChange={(v) => { setItemsPerPage(v); setCurrentPage(1); }}
               />
-            </div>
-          )}
-
-          {!isLoading && totalSlots === 0 && jurnalList.length === 0 && (
-            <div className="ui-card rounded-[var(--ui-radius-card)] p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-100/90 shadow-sm">
-              <div 
-                className="w-20 h-20 rounded-[var(--ui-radius-card)] flex items-center justify-center mb-1 shadow-inner"
-                style={{ background: "color-mix(in srgb, var(--ui-primary) 12%, transparent)", color: "var(--ui-primary)" }}
-              >
-                <Coffee size={38} strokeWidth={2.2} />
-              </div>
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">Waktu Luang!</h3>
-              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
-                Tidak ada jadwal mengajar untuk hari{' '}
-                <span className="font-black text-slate-700">
-                  {/* BUG-09 FIX: Parsing local time agar nama hari tidak mundur 1 hari di WIB */}
-                  {new Date(filterDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
-                . Selamat beristirahat!
-              </p>
             </div>
           )}
         </>
@@ -3325,6 +3930,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           onClose={() => setActiveModal(null)}
           students={students}
           studentAttendance={studentAttendance}
+          classes={classes}
+          previousJurnals={recentJurnals}
         />
       )}
 
