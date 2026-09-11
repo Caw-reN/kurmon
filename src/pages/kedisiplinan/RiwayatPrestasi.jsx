@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import { 
   Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin, 
   Building, Calendar, Edit2, Trash2, AlertCircle, CheckCircle2, 
-  ChevronRight, Filter, User, AlertTriangle
+  ChevronRight, Filter, User, AlertTriangle, Clock
 } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { Modal, Button, TablePagination } from '../../components/ui.jsx';
@@ -172,7 +172,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
       const sInfo = getStudentInfo(item);
       const matchSearch = item.nama_prestasi.toLowerCase().includes(search.toLowerCase()) || 
                           sInfo.name.toLowerCase().includes(search.toLowerCase()) ||
-                          String(item.siswa_nis).includes(search);
+                          String(item.siswa_nis).includes(search) ||
+                          (item.created_by_name && item.created_by_name.toLowerCase().includes(search.toLowerCase()));
       const matchTingkat = filterTingkat === "all" || item.tingkat === filterTingkat;
       const matchKelas = filterKelas === "all" || sInfo.class_name === filterKelas;
       return matchSearch && matchTingkat && matchKelas;
@@ -206,7 +207,10 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
         "Tingkat": item.tingkat,
         "Penyelenggara": item.penyelenggara,
         "Tanggal": item.tanggal_prestasi ? item.tanggal_prestasi.slice(0, 10) : "",
-        "Keterangan": item.keterangan
+        "Keterangan": item.keterangan,
+        "Diinput Oleh": item.created_by_name || 'Admin / Kesiswaan',
+        "Waktu Input": item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '',
+        "Diedit Oleh": item.updated_by_name || '-'
       };
     });
     const wb = new ExcelJS.Workbook();
@@ -418,6 +422,20 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       </button>
                     </div>
                   </div>
+
+                  {/* Log Penginput (Mobile View) */}
+                  <div className="flex flex-wrap items-center justify-between gap-1 pt-2 border-t border-slate-100 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-1.5 font-semibold text-slate-600">
+                      <User size={11} className="text-slate-400 shrink-0" />
+                      <span>Diinput: <strong className="text-slate-700 font-bold">{item.created_by_name || 'Admin / Kesiswaan'}</strong></span>
+                    </div>
+                    {item.created_at && (
+                      <div className="flex items-center gap-1 text-slate-400 font-medium text-[9.5px]">
+                        <Clock size={10} className="shrink-0" />
+                        <span>{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })
@@ -434,17 +452,18 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                 <th className="px-5 py-3.5 text-center">PERINGKAT &amp; TINGKAT</th>
                 <th className="px-5 py-3.5">PENYELENGGARA &amp; TANGGAL</th>
                 <th className="px-5 py-3.5">KETERANGAN</th>
+                <th className="px-5 py-3.5">DIINPUT OLEH</th>
                 <th className="px-5 py-3.5 text-right">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {isLoading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-semibold">Memuat data prestasi...</td>
+                  <td colSpan="7" className="px-6 py-12 text-center text-slate-400 font-semibold">Memuat data prestasi...</td>
                 </tr>
               ) : filteredPrestasi.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-16 text-center text-slate-400 space-y-2">
+                  <td colSpan="7" className="px-6 py-16 text-center text-slate-400 space-y-2">
                     <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-xs">
                       <Trophy size={28} />
                     </div>
@@ -500,9 +519,30 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="text-xs text-slate-500 max-w-[220px] truncate font-medium" title={item.keterangan || '-'}>
+                        <p className="text-xs text-slate-500 max-w-[200px] truncate font-medium" title={item.keterangan || '-'}>
                           {item.keterangan || '-'}
                         </p>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-bold">
+                          <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-500 shrink-0">
+                            <User size={11} />
+                          </div>
+                          <span className="truncate max-w-[130px]" title={item.created_by_name || 'Admin / Kesiswaan'}>
+                            {item.created_by_name || 'Admin / Kesiswaan'}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1">
+                          <Clock size={11} className="text-slate-400 shrink-0"/>
+                          <span>
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                          </span>
+                        </div>
+                        {item.updated_by_name && (
+                          <div className="text-[9.5px] text-amber-600 font-medium mt-0.5 truncate max-w-[130px]" title={`Diedit oleh ${item.updated_by_name}`}>
+                            • Diedit: {item.updated_by_name}
+                          </div>
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex justify-end gap-1">
@@ -638,6 +678,24 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               placeholder="Tulis rincian prestasi, skor, anggota tim jika beregu..."
             />
           </div>
+
+          {/* Log Petugas Input saat Edit */}
+          {isEditing && (
+            <div className="p-3 bg-slate-50/90 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-[11px] text-slate-500 space-y-1">
+              <div className="flex items-center gap-1.5 font-medium">
+                <User size={12} className="text-slate-400 shrink-0" />
+                <span>Diinput oleh: <strong className="text-slate-700 font-bold">{isEditing.created_by_name || 'Admin / Kesiswaan'}</strong></span>
+                {isEditing.created_at && (
+                  <span className="text-slate-400">({new Date(isEditing.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })})</span>
+                )}
+              </div>
+              {isEditing.updated_by_name && (
+                <div className="text-[10px] text-amber-700 font-medium pl-4">
+                  Terakhir diperbarui oleh <span className="font-bold">{isEditing.updated_by_name}</span> {isEditing.updated_at ? `pada ${new Date(isEditing.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : ''}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button 

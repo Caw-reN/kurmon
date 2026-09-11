@@ -1021,9 +1021,24 @@ const initDb = async () => {
         penyelenggara VARCHAR(255),
         tanggal_prestasi DATE DEFAULT CURRENT_DATE,
         keterangan TEXT,
+        created_by VARCHAR(50),
+        created_by_name VARCHAR(100),
+        updated_by VARCHAR(50),
+        updated_by_name VARCHAR(100),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await dbPool.query(`
+      ALTER TABLE kesiswaan_prestasi 
+      ADD COLUMN IF NOT EXISTS created_by VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS created_by_name VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS updated_by_name VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `);
+    await dbPool.query(`UPDATE kesiswaan_prestasi SET created_by_name = 'Admin Kesiswaan' WHERE created_by_name IS NULL`);
 
     // Profil Sekolah
     await dbPool.query(`
@@ -4193,7 +4208,7 @@ const server = createServer(async (req, res) => {
           const session = getSession(req);
           
           if (body.action === "upload") {
-            const { teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi } = body;
+            const { teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi, kategori } = body;
             if (!teacher_code || !teacher_name || !nama_dokumen || !file_url || !tahun_ajaran) {
               return send(req, res, 400, { ok: false, error: "Data modul ajar tidak lengkap." });
             }
@@ -4228,8 +4243,8 @@ const server = createServer(async (req, res) => {
             }
 
             await dbPool.query(
-              "INSERT INTO modul_ajar_guru (teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-              [teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel || null, kelas || null, semester || null, deskripsi || null]
+              "INSERT INTO modul_ajar_guru (teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel, kelas, semester, deskripsi, kategori) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+              [teacher_code, teacher_name, nama_dokumen, file_url, tahun_ajaran, mapel || null, kelas || null, semester || null, deskripsi || null, kategori || 'Modul Ajar']
             );
             send(req, res, 200, { ok: true });
           } else if (body.action === "delete") {

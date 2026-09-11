@@ -546,20 +546,24 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/prestasi") {
           if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Staf/Guru/Kesiswaan yang dapat mengelola data prestasi." });
           const body = await readJsonBody(req);
+          const currentUserId = session?.id || session?.username || null;
+          const currentUserName = session?.name || session?.username || 'Petugas Kesiswaan';
+
           if (body.action === 'delete') {
              if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat menghapus data prestasi." });
              await dbPool.query("DELETE FROM kesiswaan_prestasi WHERE id = $1", [body.id]);
           } else if (body.id) {
              await dbPool.query(`
                UPDATE kesiswaan_prestasi 
-               SET siswa_nis = $1, nama_prestasi = $2, peringkat = $3, tingkat = $4, penyelenggara = $5, tanggal_prestasi = $6, keterangan = $7 
-               WHERE id = $8
-             `, [body.siswa_nis, body.nama_prestasi, body.peringkat, body.tingkat, body.penyelenggara, body.tanggal_prestasi, body.keterangan, body.id]);
+               SET siswa_nis = $1, nama_prestasi = $2, peringkat = $3, tingkat = $4, penyelenggara = $5, tanggal_prestasi = $6, keterangan = $7,
+                   updated_by = $8, updated_by_name = $9, updated_at = CURRENT_TIMESTAMP
+               WHERE id = $10
+             `, [body.siswa_nis, body.nama_prestasi, body.peringkat, body.tingkat, body.penyelenggara, body.tanggal_prestasi, body.keterangan, currentUserId, currentUserName, body.id]);
           } else {
              await dbPool.query(`
-               INSERT INTO kesiswaan_prestasi (siswa_nis, nama_prestasi, peringkat, tingkat, penyelenggara, tanggal_prestasi, keterangan) 
-               VALUES ($1, $2, $3, $4, $5, $6, $7)
-             `, [body.siswa_nis, body.nama_prestasi, body.peringkat, body.tingkat, body.penyelenggara, body.tanggal_prestasi, body.keterangan]);
+               INSERT INTO kesiswaan_prestasi (siswa_nis, nama_prestasi, peringkat, tingkat, penyelenggara, tanggal_prestasi, keterangan, created_by, created_by_name) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             `, [body.siswa_nis, body.nama_prestasi, body.peringkat, body.tingkat, body.penyelenggara, body.tanggal_prestasi, body.keterangan, currentUserId, currentUserName]);
           }
           send(req, res, 200, { ok: true });
           return;

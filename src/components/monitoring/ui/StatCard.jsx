@@ -26,16 +26,21 @@ const StatCard = ({
   iconColor ='text-[var(--ui-primary)]',
   trend,
   className ='',
+  onClick,
+  ...rest
 }) => {
   const trendIsPositive = trend > 0;
   const trendIsNeutral = trend === 0 || trend === undefined;
 
   return (
     <div
+      onClick={onClick}
       className={`bg-white border border-border/80 rounded-[var(--ui-radius-card)]
         p-4 sm:p-5 flex flex-col min-[450px]:flex-row items-start min-[450px]:items-center gap-3 sm:gap-4 shadow-xs
         transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5
+        ${onClick ? 'cursor-pointer hover:border-slate-300 active:scale-[0.99]' : ''}
         ${className}`}
+      {...rest}
     >
       {/* Icon */}
       {Icon && (

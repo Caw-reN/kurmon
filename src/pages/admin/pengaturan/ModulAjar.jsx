@@ -34,6 +34,39 @@ const TabSilabusGuru = lazy(() => import('../tabs/TabSilabusGuru.jsx'));
 const EMPTY_ARRAY = [];
 const EMPTY_OBJECT = {};
 
+// ── Smart Category & Teacher Matching Helpers ────────────────────
+export const isDocMatchCategory = (docKategori, katId) => {
+  if (!docKategori || !katId) return false;
+  const dk = String(docKategori).trim().toLowerCase();
+  const ki = String(katId).trim().toLowerCase();
+  if (dk === ki) return true;
+  if (ki === 'kalender pendidikan' && (dk.includes('kalender') || dk === 'kaldik')) return true;
+  if (ki === 'prota dan promes' && (dk.includes('prota') || dk === 'prota dan promes')) return true;
+  if (ki === 'promes' && (dk.includes('promes') || dk === 'prosem')) return true;
+  if (ki === 'cp, atp dan tp' && (dk.includes('cp') || dk.includes('atp') || dk.includes('tp'))) return true;
+  if (ki === 'modul ajar' && (dk.includes('modul ajar') || dk.includes('rpp') || dk === 'modul')) return true;
+  if (ki === 'lkpd' && (dk.includes('lkpd') || dk.includes('lembar kerja'))) return true;
+  if (ki.includes('p5') && (dk.includes('p5') || dk.includes('projek'))) return true;
+  if (ki === 'materi' && dk.includes('materi')) return true;
+  return false;
+};
+
+export const isTeacherMatch = (t, dCode, dName) => {
+  const teacherCode = String(t?.code || t?.nip || t?.id || '').trim().toLowerCase();
+  const docCode = String(dCode || '').trim().toLowerCase();
+  if (teacherCode && docCode && teacherCode === docCode) return true;
+
+  const teacherName = String(t?.name || '').trim().toLowerCase();
+  const docName = String(dName || '').trim().toLowerCase();
+  if (teacherName && docName) {
+    if (teacherName === docName) return true;
+    const cleanT = teacherName.replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanD = docName.replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (cleanT === cleanD) return true;
+  }
+  return false;
+};
+
 // ── Helpers ──────────────────────────────────────────────────────
 const getLinkIcon = (url) => {
   if (!url) return <Link2 size={14} className="shrink-0" />;
@@ -239,21 +272,13 @@ export default function ModulAjar(props) {
   // ── Filtered Records for User ────────────────────────────────
   const myDocs = useMemo(() => {
     if (isCurriculum) return documents;
-    return documents.filter(d => {
-      const dCode = String(d.teacher_code || '').trim().toLowerCase();
-      const dName = String(d.teacher_name || '').trim().toLowerCase();
-      return (userCode && dCode === userCode) || (userName && dName === userName);
-    });
-  }, [documents, isCurriculum, userCode, userName]);
+    return documents.filter(d => isTeacherMatch({ code: teacherCode, name: teacherName }, d.teacher_code, d.teacher_name));
+  }, [documents, isCurriculum, teacherCode, teacherName]);
 
   const myMateris = useMemo(() => {
     if (isCurriculum) return materiList;
-    return materiList.filter(m => {
-      const mCode = String(m.teacher_code || '').trim().toLowerCase();
-      const mName = String(m.teacher_name || '').trim().toLowerCase();
-      return (userCode && mCode === userCode) || (userName && mName === userName);
-    });
-  }, [materiList, isCurriculum, userCode, userName]);
+    return materiList.filter(m => isTeacherMatch({ code: teacherCode, name: teacherName }, m.teacher_code, m.teacher_name));
+  }, [materiList, isCurriculum, teacherCode, teacherName]);
 
   // ── Unified 1-Page Combined List ─────────────────────────────
   const unifiedList = useMemo(() => {
@@ -334,55 +359,58 @@ export default function ModulAjar(props) {
   const monitoringData = useMemo(() => {
     if (!allTeachers.length) return EMPTY_ARRAY;
     return allTeachers.map(t => {
-      const tCode = String(t.code || '').trim().toLowerCase();
-      const tName = String(t.name || '').trim().toLowerCase();
+      const tCode = String(t.code || t.nip || t.id || '').trim().toLowerCase();
 
-      const teacherDocs = documents.filter(doc => {
-        if (!doc) return false;
-        const dCode = String(doc.teacher_code || '').trim().toLowerCase();
-        const dName = String(doc.teacher_name || '').trim().toLowerCase();
-        return (tCode && dCode === tCode) || (tName && dName === tName);
-      });
+      const teacherDocs = documents.filter(doc => isTeacherMatch(t, doc.teacher_code, doc.teacher_name));
+      const teacherMateris = materiList.filter(mat => isTeacherMatch(t, mat.teacher_code, mat.teacher_name));
 
       const walasClasses = (allClasses || []).filter(c => 
         String(c.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(tCode)
       );
-      const walasStr = walasClasses.length > 0 ? `Walas: ${walasClasses.map(c => c.name).join(', ')}` : '';
+      const walasNames = walasClasses.map(c => c.name).join(', ');
       const loads = (allTeachingLoads || []).filter(l => 
         String(l.teacherCode || '').split(',').map(x => x.trim().toLowerCase()).includes(tCode)
       );
       const uniqueSubjects = [...new Set(loads.map(l => l.subject).filter(Boolean))];
-      const subjectStr = uniqueSubjects.length > 0 ? `Mapel: ${uniqueSubjects.join(', ')}` : '';
-      
-      const walasNames = walasClasses.map(c => c.name).join(', ');
       const mapelNames = uniqueSubjects.join(', ');
-  
+
+      const checkKat = (katId) => {
+        if (katId === 'Materi') {
+          return teacherMateris.length > 0 || teacherDocs.some(doc => isDocMatchCategory(doc.kategori, 'Materi'));
+        }
+        return teacherDocs.some(doc => isDocMatchCategory(doc.kategori, katId));
+      };
 
       const uploadedWajibCount = PERANGKAT_AJAR_LIST.filter(kat => 
-          kat.type === 'wajib' && teacherDocs.some(doc => doc.kategori === kat.id)
+          kat.type === 'wajib' && checkKat(kat.id)
       ).length;
+
+      const hasAnyUpload = teacherDocs.length > 0 || teacherMateris.length > 0;
 
       return {
         code: t.code,
         name: t.name,
         walas: walasNames, mapel: mapelNames,
         hasSubmitted: uploadedWajibCount >= WAJIB_COUNT,
+        hasUploaded: hasAnyUpload || uploadedWajibCount > 0,
         documents: teacherDocs,
+        materis: teacherMateris,
+        checkKat,
         uploadedWajibCount,
         progressPercent: Math.round((uploadedWajibCount / Math.max(WAJIB_COUNT, 1)) * 100)
       };
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }, [allTeachers, documents, allClasses, allTeachingLoads]);
+  }, [allTeachers, documents, materiList, allClasses, allTeachingLoads]);
 
   const stats = useMemo(() => {
     const total = monitoringData.length;
-    const submitted = monitoringData.filter(d => {
-      const uploadedWajib = PERANGKAT_AJAR_LIST.filter(kat => kat.type === 'wajib' && d.documents.some(doc => doc.kategori === kat.id)).length;
-      return uploadedWajib >= WAJIB_COUNT;
-    }).length;
-    const pending = total - submitted;
-    const percentage = total > 0 ? Math.round((submitted / total) * 100) : 0;
-    return { total, submitted, pending, percentage };
+    const submitted = monitoringData.filter(d => d.hasSubmitted).length;
+    const hasUploaded = monitoringData.filter(d => d.hasUploaded).length;
+    const inProgress = hasUploaded - submitted;
+    const notStarted = total - hasUploaded;
+    const totalProgress = monitoringData.reduce((acc, curr) => acc + (curr.progressPercent || 0), 0);
+    const percentage = total > 0 ? Math.round(totalProgress / total) : 0;
+    return { total, submitted, hasUploaded, inProgress, notStarted, percentage };
   }, [monitoringData]);
 
   // Filtered monitoring list
@@ -397,7 +425,6 @@ export default function ModulAjar(props) {
       const classStr = String(t.walas || '').toLowerCase();
       const subjectStr = String(t.mapel || '').toLowerCase();
   
-      
       const matchSearch = !monitoringSearch ||
         teacherName.includes(monitoringSearch.toLowerCase()) ||
         teacherCode.includes(monitoringSearch.toLowerCase()) ||
@@ -405,8 +432,10 @@ export default function ModulAjar(props) {
       
       const matchStatus = 
         monitoringStatusFilter === 'all' ||
+        (monitoringStatusFilter === 'has_uploaded' && t.hasUploaded) ||
         (monitoringStatusFilter === 'submitted' && t.hasSubmitted) ||
-        (monitoringStatusFilter === 'pending' && !t.hasSubmitted);
+        (monitoringStatusFilter === 'pending' && !t.hasSubmitted) ||
+        (monitoringStatusFilter === 'not_started' && !t.hasUploaded);
 
       return matchSearch && matchStatus;
     });
@@ -758,16 +787,16 @@ export default function ModulAjar(props) {
             <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
               <div className="text-emerald-500 shrink-0"><UserCheck size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl font-black text-emerald-700 leading-tight">{stats.submitted} Guru</p>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Sudah Lengkap</p>
+                <p className="text-xl font-black text-emerald-700 leading-tight">{stats.hasUploaded} Guru</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Sudah Mengisi {stats.submitted > 0 ? `(${stats.submitted} Lengkap)` : ''}</p>
               </div>
             </div>
 
             <div className="flex-1 px-4 py-3 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/60 shadow-sm flex items-center gap-3">
               <div className="text-rose-400 shrink-0"><UserX size={24} strokeWidth={2.5} /></div>
               <div className="min-w-0">
-                <p className="text-xl font-black text-rose-700 leading-tight">{stats.pending} Guru</p>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Belum Lengkap</p>
+                <p className="text-xl font-black text-rose-700 leading-tight">{stats.notStarted} Guru</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Belum Mengisi</p>
               </div>
             </div>
 
@@ -814,28 +843,41 @@ export default function ModulAjar(props) {
 
                   <button
                     type="button"
-                    onClick={() => setMonitoringStatusFilter('submitted')}
+                    onClick={() => setMonitoringStatusFilter('has_uploaded')}
                     className={`flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
-                      monitoringStatusFilter === 'submitted' 
+                      monitoringStatusFilter === 'has_uploaded' 
                         ? 'bg-white text-emerald-700 shadow-xs' 
                         : 'bg-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     <CheckCircle2 size={12} className="text-emerald-600" />
-                    <span>Sudah ({stats.submitted})</span>
+                    <span>Sudah Mengisi ({stats.hasUploaded})</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setMonitoringStatusFilter('pending')}
+                    onClick={() => setMonitoringStatusFilter('submitted')}
                     className={`flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
-                      monitoringStatusFilter === 'pending' 
+                      monitoringStatusFilter === 'submitted' 
+                        ? 'bg-white text-teal-700 shadow-xs' 
+                        : 'bg-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Sparkles size={12} className="text-teal-600" />
+                    <span>Lengkap 100% ({stats.submitted})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMonitoringStatusFilter('not_started')}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer whitespace-nowrap border-none ${
+                      monitoringStatusFilter === 'not_started' 
                         ? 'bg-white text-rose-700 shadow-xs' 
                         : 'bg-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     <AlertCircle size={12} className="text-rose-600" />
-                    <span>Belum ({stats.pending})</span>
+                    <span>Belum ({stats.notStarted})</span>
                   </button>
                 </div>
 
@@ -944,7 +986,7 @@ export default function ModulAjar(props) {
                           <td className="px-4 py-3.5">
                             <div className="flex flex-wrap items-center gap-2 w-full">
                               {(PERANGKAT_AJAR_LIST || []).map(kat => {
-                                const hasKat = (t.documents || []).some(d => d.kategori === kat.id);
+                                const hasKat = t.checkKat ? t.checkKat(kat.id) : (t.documents || []).some(d => isDocMatchCategory(d.kategori, kat.id));
                                 let pillClass = "";
                                 if (hasKat) {
                                   pillClass = "bg-emerald-50 text-emerald-600 border border-emerald-200";
@@ -1038,7 +1080,7 @@ export default function ModulAjar(props) {
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Kelengkapan Administrasi</p>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {(PERANGKAT_AJAR_LIST || []).map(kat => {
-                            const hasKat = (t.documents || []).some(d => d.kategori === kat.id);
+                            const hasKat = t.checkKat ? t.checkKat(kat.id) : (t.documents || []).some(d => isDocMatchCategory(d.kategori, kat.id));
                             let pillClass = "";
                             if (hasKat) {
                               pillClass = "bg-emerald-50 text-emerald-600 border border-emerald-200";

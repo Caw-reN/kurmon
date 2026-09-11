@@ -411,12 +411,14 @@ export const TablePagination = ({
   currentPage, 
   totalPages, 
   totalItems, 
-  itemsPerPage, 
+  itemsPerPage = 20, 
   onPageChange, 
   onItemsPerPageChange,
   isLoading 
 }) => {
   if (isLoading || totalItems === 0) return null;
+
+  const computedTotalPages = totalPages || Math.ceil(totalItems / itemsPerPage) || 1;
 
   return (
     <div className="px-5 py-4 border-t border-[var(--ui-border-muted)] flex flex-wrap items-center justify-between gap-4 bg-[var(--ui-surface-muted)] rounded-b-[var(--ui-radius-card)]">
@@ -424,23 +426,31 @@ export const TablePagination = ({
         <span className="text-xs text-slate-500 font-medium">
           Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems} data
         </span>
-        <UISelect 
-          value={itemsPerPage} 
-          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="text-xs border border-slate-200 rounded p-1 text-slate-600 bg-white cursor-pointer font-bold outline-none focus:ring-1 focus:ring-primary min-w-[100px]"
-        >
-          <option value={20}>20 baris</option>
-          <option value={50}>50 baris</option>
-          <option value={100}>100 baris</option>
-        </UISelect>
+        {onItemsPerPageChange ? (
+          <UISelect 
+            value={itemsPerPage} 
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="text-xs border border-slate-200 rounded p-1 text-slate-600 bg-white cursor-pointer font-bold outline-none focus:ring-1 focus:ring-primary min-w-[100px]"
+          >
+            <option value={10}>10 baris</option>
+            <option value={15}>15 baris</option>
+            <option value={20}>20 baris</option>
+            <option value={50}>50 baris</option>
+            <option value={100}>100 baris</option>
+          </UISelect>
+        ) : (
+          <span className="text-xs text-slate-600 font-bold bg-white px-2 py-1 rounded border border-slate-200">
+            {itemsPerPage} baris
+          </span>
+        )}
       </div>
-      {totalPages > 1 && (
+      {computedTotalPages > 1 && (
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}>
             Sebelumnya
           </Button>
-          <span className="text-xs font-bold text-slate-600 px-2">{currentPage} / {totalPages}</span>
-          <Button variant="outline" size="sm" onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}>
+          <span className="text-xs font-bold text-slate-600 px-2">{currentPage} / {computedTotalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => onPageChange(Math.min(computedTotalPages, currentPage + 1))} disabled={currentPage === computedTotalPages}>
             Selanjutnya
           </Button>
         </div>

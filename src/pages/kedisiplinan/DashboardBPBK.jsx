@@ -116,7 +116,11 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
   const [filterStatus, setFilterStatus] = useState("all");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterTingkat, filterJurusan, filterClass, filterCategory, filterStatus]);
 
   // Modal Class Filter (untuk mempermudah memilih siswa dalam modal)
   const [modalClassFilter, setModalClassFilter] = useState("all");
@@ -1281,11 +1285,13 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
             <StatCard
               label="Kasus / Sesi Aktif"
               value={bkSessions.filter(s => s.status === 'Berjalan' || s.status === 'Follow-up').length}
-              sub="Perlu penanganan"
+              sub="Lihat Sesi Konseling →"
               icon={Clock}
               iconBg="bg-amber-50"
               iconColor="text-amber-600"
-              className="p-3 sm:p-5"
+              className="p-3 sm:p-5 hover:border-amber-300"
+              onClick={() => onTabChange?.('konseling')}
+              title="Klik untuk membuka tab Sesi Konseling"
             />
             <StatCard
               label="Siswa Resiko Tinggi (EWS)"
@@ -1294,32 +1300,38 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
               icon={ShieldAlert}
               iconBg="bg-rose-50"
               iconColor="text-rose-600"
-              className="p-3 sm:p-5"
+              className="p-3 sm:p-5 hover:border-rose-300"
+              onClick={() => document.getElementById('ews-section')?.scrollIntoView({ behavior: 'smooth' })}
+              title="Klik untuk melihat daftar EWS di bawah"
             />
             <StatCard
               label="Kunjungan Rumah"
               value={homeVisits.length}
-              sub="Home visit terlaksana"
+              sub="Lihat Home Visit →"
               icon={Home}
               iconBg="bg-sky-50"
               iconColor="text-sky-600"
-              className="p-3 sm:p-5"
+              className="p-3 sm:p-5 hover:border-sky-300"
+              onClick={() => onTabChange?.('surat')}
+              title="Klik untuk membuka tab Surat & Visit (Home Visit)"
             />
             <StatCard
               label="Surat Ortu & SP"
               value={bkLetters.length}
-              sub="Surat Panggilan & SP"
+              sub="Lihat Surat & SP →"
               icon={FileText}
               iconBg="bg-emerald-50"
               iconColor="text-emerald-600"
-              className="p-3 sm:p-5"
+              className="p-3 sm:p-5 hover:border-emerald-300"
+              onClick={() => onTabChange?.('surat')}
+              title="Klik untuk membuka tab Surat & Visit (Surat Resmi)"
             />
           </div>
 
           {/* Early Warning System & Category Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Left Col: EWS List */}
-            <div className="lg:col-span-2 bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
+            <div id="ews-section" className="lg:col-span-2 bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4 scroll-mt-6">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5 pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
@@ -1646,6 +1658,7 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-100">
+                    <th className="px-3 py-3 font-black text-center w-12">#</th>
                     <th className="px-4 py-3 font-black">NAMA SISWA</th>
                     <th className="px-3 py-3 font-black">KATEGORI</th>
                     <th className="px-3 py-3 font-black">TANGGAL SESI</th>
@@ -1658,15 +1671,18 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                 <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold">Memuat data sesi konseling...</td>
+                      <td colSpan={8} className="py-12 text-center text-slate-400 font-bold">Memuat data sesi konseling...</td>
                     </tr>
                   ) : filteredSessions.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold">Belum ada catatan sesi konseling yang cocok.</td>
+                      <td colSpan={8} className="py-12 text-center text-slate-400 font-bold">Belum ada catatan sesi konseling yang cocok.</td>
                     </tr>
                   ) : (
-                    filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(ses => (
+                    filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((ses, idx) => (
                       <tr key={ses.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-3 py-3 text-center font-bold text-slate-400 text-xs">
+                          {(currentPage - 1) * itemsPerPage + idx + 1}
+                        </td>
                         <td className="px-4 py-3">
                           <div className="font-extrabold text-slate-800">{ses.student_name || 'Siswa'}</div>
                           <div className="text-[10px] text-slate-400 font-bold">
@@ -1759,17 +1775,22 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                 Belum ada catatan sesi konseling.
               </div>
             ) : (
-              filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(ses => (
+              filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((ses, idx) => (
                 <div 
                   key={ses.id}
                   className="bg-white rounded-[var(--ui-radius-card)] p-3.5 shadow-xs border border-slate-200/80 flex flex-col gap-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h4 className="font-extrabold text-slate-800 text-xs leading-snug">{ses.student_name || 'Siswa'}</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                        NIS: {ses.student_nis} • {ses.class_name || 'Tanpa Kelas'}
-                      </p>
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <h4 className="font-extrabold text-slate-800 text-xs leading-snug truncate">{ses.student_name || 'Siswa'}</h4>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                          NIS: {ses.student_nis} • {ses.class_name || 'Tanpa Kelas'}
+                        </p>
+                      </div>
                     </div>
                     <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black shrink-0 ${
                       ses.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/70' :
@@ -1850,10 +1871,13 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
           {/* Pagination Container */}
           <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
             <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredSessions.length / itemsPerPage) || 1}
               totalItems={filteredSessions.length}
               itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
               onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+              isLoading={isLoading}
             />
           </div>
         </div>
