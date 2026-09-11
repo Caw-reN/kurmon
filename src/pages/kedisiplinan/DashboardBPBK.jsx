@@ -1923,12 +1923,17 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                   <span>Belum ada jurnal kunjungan rumah yang dicatat.</span>
                 </div>
               ) : (
-                filteredHomeVisits.map(hv => (
+                filteredHomeVisits.map((hv, idx) => (
                   <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
                     <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <div className="font-black text-slate-900 text-xs sm:text-sm">{hv.student_name || 'Siswa'}</div>
-                        <div className="text-[10px] font-bold text-slate-500">Kelas: {hv.class_name || '-'} • NIS: {hv.student_nis}</div>
+                      <div className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 font-black text-[10px] flex items-center justify-center shrink-0 border border-sky-200 mt-0.5 shadow-2xs">
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <div className="font-black text-slate-900 text-xs sm:text-sm">{hv.student_name || 'Siswa'}</div>
+                          <div className="text-[10px] font-bold text-slate-500">Kelas: {hv.class_name || '-'} • NIS: {hv.student_nis}</div>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
@@ -1949,11 +1954,23 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                       {hv.result}
                     </div>
 
-                    <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between pt-1 border-t border-slate-200/50">
-                      <span className="flex items-center gap-1">
-                        <User size={11} className="text-slate-400" />
-                        <span>Petugas: <strong className="text-slate-600">{hv.counselor_name || 'Guru BK'}</strong></span>
-                      </span>
+                    <div className="text-[10px] font-bold text-slate-400 flex flex-wrap items-center justify-between pt-1.5 border-t border-slate-200/50 gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-slate-600">
+                        <span className="flex items-center gap-1">
+                          <User size={11} className="text-slate-400" />
+                          <span>Petugas: <strong className="text-slate-700">{hv.counselor_name || 'Guru BK'}</strong></span>
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="flex items-center gap-1">
+                          <UserCheck size={11} className="text-sky-600" />
+                          <span>Diinput oleh: <strong className="text-sky-800">{hv.created_by_name || hv.counselor_name || 'Guru BK'}</strong></span>
+                        </span>
+                      </div>
+                      {hv.created_at && (
+                        <span className="text-[9.5px] text-slate-400 font-normal">
+                          {new Date(hv.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))
@@ -2003,36 +2020,41 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                   <span>Belum ada surat panggilan atau SP yang diterbitkan.</span>
                 </div>
               ) : (
-                filteredLetters.map(lettr => (
+                filteredLetters.map((lettr, idx) => (
                   <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
                     <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-900 text-xs sm:text-sm">{lettr.student_name || 'Siswa'}</span>
-                          <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black ${
-                            lettr.letter_type?.includes('SP 3') ? 'bg-rose-100 text-rose-800 border border-rose-200' :
-                            lettr.letter_type?.includes('SP') ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                            'bg-purple-100 text-purple-800 border border-purple-200'
-                          }`}>
-                            {lettr.letter_type}
-                          </span>
+                      <div className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-black text-[10px] flex items-center justify-center shrink-0 border border-purple-200 mt-0.5 shadow-2xs">
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-black text-slate-900 text-xs sm:text-sm">{lettr.student_name || 'Siswa'}</span>
+                            <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black ${
+                              lettr.letter_type?.includes('SP 3') ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                              lettr.letter_type?.includes('SP') ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                              'bg-purple-100 text-purple-800 border border-purple-200'
+                            }`}>
+                              {lettr.letter_type}
+                            </span>
+                          </div>
+                          {(() => {
+                            const hr = getHomeroomInfo(lettr.class_name, lettr.student_nis);
+                            return (
+                              <div className="text-[10px] font-bold text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <span>Kelas: {lettr.class_name || '-'}</span>
+                                <span>•</span>
+                                <span>NIS: {lettr.student_nis}</span>
+                                {hr.walasName && hr.walasName !== '-' && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-emerald-700 font-semibold">Walas: {hr.walasName}</span>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
-                        {(() => {
-                          const hr = getHomeroomInfo(lettr.class_name, lettr.student_nis);
-                          return (
-                            <div className="text-[10px] font-bold text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
-                              <span>Kelas: {lettr.class_name || '-'}</span>
-                              <span>•</span>
-                              <span>NIS: {lettr.student_nis}</span>
-                              {hr.walasName && hr.walasName !== '-' && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-emerald-700 font-semibold">Walas: {hr.walasName}</span>
-                                </>
-                              )}
-                            </div>
-                          );
-                        })()}
                       </div>
 
                       <div className="flex items-center gap-1.5">
@@ -2114,6 +2136,23 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                         <div className="mt-1 pt-1 border-t border-slate-100 text-[10.5px] font-semibold text-purple-700">
                           Jadwal: {new Date(lettr.appointment_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • {lettr.appointment_time || '09.00 WIB'}
                         </div>
+                      )}
+                    </div>
+
+                    <div className="text-[10px] font-bold text-slate-400 flex flex-wrap items-center justify-between pt-1.5 border-t border-slate-200/50 gap-1.5">
+                      <span className="flex items-center gap-1 text-slate-600">
+                        <UserCheck size={11} className="text-purple-600" />
+                        <span>Diterbitkan / Diinput oleh: <strong className="text-purple-900">{lettr.created_by_name || 'Guru BK'}</strong></span>
+                        {lettr.updated_by_name && (
+                          <span className="text-[9.5px] text-amber-700 font-normal ml-1">
+                            (diedit: {lettr.updated_by_name})
+                          </span>
+                        )}
+                      </span>
+                      {lettr.created_at && (
+                        <span className="text-[9.5px] text-slate-400 font-normal">
+                          {new Date(lettr.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -3086,12 +3125,19 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                     </div>
                   ) : (
                     homeVisits.filter(s => String(s.student_nis) === String(dossierStudent.nis)).map((hv, idx) => (
-                      <div key={idx} className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-xs space-y-1">
-                        <div className="flex justify-between font-bold text-slate-700">
-                          <span>Kunjungan: {new Date(hv.visit_date).toLocaleDateString('id-ID')}</span>
-                          <span className="text-slate-400">Petugas: {hv.counselor_name || 'Guru BK'}</span>
+                      <div key={idx} className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex justify-between items-center font-bold text-slate-700">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-sky-100 text-sky-800 font-black text-[9.5px] flex items-center justify-center">#{idx + 1}</span>
+                            <span>Kunjungan: {new Date(hv.visit_date).toLocaleDateString('id-ID')}</span>
+                          </span>
+                          <span className="text-slate-500 font-semibold text-[11px]">Petugas: {hv.counselor_name || 'Guru BK'}</span>
                         </div>
                         <p className="text-slate-600 font-medium">{hv.result}</p>
+                        <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-200/60 flex justify-between items-center">
+                          <span>Diinput oleh: <strong className="text-slate-600">{hv.created_by_name || hv.counselor_name || 'Guru BK'}</strong></span>
+                          {hv.created_at && <span>{new Date(hv.created_at).toLocaleDateString('id-ID')}</span>}
+                        </div>
                       </div>
                     ))
                   )}
@@ -3106,10 +3152,17 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                     </div>
                   ) : (
                     bkLetters.filter(s => String(s.student_nis) === String(dossierStudent.nis)).map((lt, idx) => (
-                      <div key={idx} className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-xs flex justify-between items-center">
+                      <div key={idx} className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/80 text-xs flex justify-between items-center shadow-2xs">
                         <div>
-                          <div className="font-extrabold text-slate-800">{lt.letter_type} (No: {lt.letter_no || '-'})</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">Tanggal: {new Date(lt.issue_date).toLocaleDateString('id-ID')}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-purple-100 text-purple-800 font-black text-[9.5px] flex items-center justify-center">#{idx + 1}</span>
+                            <span className="font-extrabold text-slate-800">{lt.letter_type} (No: {lt.letter_no || '-'})</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+                            <span>Tanggal: {new Date(lt.issue_date).toLocaleDateString('id-ID')}</span>
+                            <span>•</span>
+                            <span>Diinput oleh: <strong className="text-slate-600">{lt.created_by_name || 'Guru BK'}</strong></span>
+                          </div>
                         </div>
                         <button
                           type="button"

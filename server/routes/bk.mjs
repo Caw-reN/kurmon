@@ -54,6 +54,18 @@ export async function initBkTables(dbPool) {
       ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointment_time VARCHAR(100);
       ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointment_place VARCHAR(255);
       ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS appointed_person VARCHAR(255);
+
+      ALTER TABLE bk_home_visits ADD COLUMN IF NOT EXISTS created_by VARCHAR(100);
+      ALTER TABLE bk_home_visits ADD COLUMN IF NOT EXISTS created_by_name VARCHAR(255);
+      ALTER TABLE bk_home_visits ADD COLUMN IF NOT EXISTS updated_by VARCHAR(100);
+      ALTER TABLE bk_home_visits ADD COLUMN IF NOT EXISTS updated_by_name VARCHAR(255);
+      ALTER TABLE bk_home_visits ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS created_by VARCHAR(100);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS created_by_name VARCHAR(255);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS updated_by VARCHAR(100);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS updated_by_name VARCHAR(255);
+      ALTER TABLE bk_letters ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
     `);
     _bkTablesInitialized = true;
     console.log('[BK] Tables initialized successfully.');
@@ -228,6 +240,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const { rows } = await dbPool.query(`
           SELECT h.*, 
+                 COALESCE(h.created_by_name, h.counselor_name, 'Guru BK') as created_by_name,
                  COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
                  COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') as class_name
           FROM bk_home_visits h
@@ -247,18 +260,25 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const body = await readJsonBody(req);
         const { student_nis, visit_date, result, photo_url } = body;
+        const currentUserName = session?.name || session?.username || 'Guru BK';
+        const currentUserId = session?.id || session?.nip || session?.username || '';
 
         const resQuery = await dbPool.query(`
-          INSERT INTO bk_home_visits (student_nis, visit_date, result, photo_url, counselor_nip, counselor_name)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          INSERT INTO bk_home_visits (
+            student_nis, visit_date, result, photo_url, counselor_nip, counselor_name,
+            created_by, created_by_name
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
           RETURNING *
         `, [
           student_nis,
           visit_date && String(visit_date).trim() ? String(visit_date).trim() : new Date().toISOString().slice(0, 10),
           result || '',
           photo_url || null,
-          session?.id || session?.nip || '',
-          session?.name || session?.username || 'Guru BK'
+          currentUserId,
+          currentUserName,
+          currentUserId,
+          currentUserName
         ]);
 
         send(req, res, 200, { ok: true, data: resQuery.rows[0] });
@@ -293,6 +313,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const { rows } = await dbPool.query(`
           SELECT l.*, 
+                 COALESCE(l.created_by_name, 'Guru BK') as created_by_name,
                  COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
                  COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') as class_name,
                  s.payload->>'nisn' as student_nisn
@@ -316,13 +337,16 @@ export async function handleBkRoutes(req, res, url, ctx) {
           student_nis, letter_type, letter_no, issue_date, reason, 
           appointment_date, appointment_time, appointment_place, appointed_person 
         } = body;
+        const currentUserName = session?.name || session?.username || 'Guru BK';
+        const currentUserId = session?.id || session?.nip || session?.username || '';
 
         const resQuery = await dbPool.query(`
           INSERT INTO bk_letters (
             student_nis, letter_type, letter_no, issue_date, reason, 
-            appointment_date, appointment_time, appointment_place, appointed_person
+            appointment_date, appointment_time, appointment_place, appointed_person,
+            created_by, created_by_name
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           RETURNING *
         `, [
           student_nis,
@@ -333,7 +357,9 @@ export async function handleBkRoutes(req, res, url, ctx) {
           appointment_date && String(appointment_date).trim() ? String(appointment_date).trim() : null,
           appointment_time || '09.00 WIB s/d Selesai',
           appointment_place || 'Ruang Bimbingan & Konseling (BK)',
-          appointed_person || 'Guru BK / Koordinator BK'
+          appointed_person || 'Guru BK / Koordinator BK',
+          currentUserId,
+          currentUserName
         ]);
 
         send(req, res, 200, { ok: true, data: resQuery.rows[0] });
@@ -357,6 +383,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
           student_nis, letter_type, letter_no, issue_date, reason, 
           appointment_date, appointment_time, appointment_place, appointed_person 
         } = body;
+        const currentUserName = session?.name || session?.username || 'Guru BK';
+        const currentUserId = session?.id || session?.nip || session?.username || '';
 
         const resQuery = await dbPool.query(`
           UPDATE bk_letters 
@@ -368,8 +396,11 @@ export async function handleBkRoutes(req, res, url, ctx) {
               appointment_date = $6,
               appointment_time = $7,
               appointment_place = $8,
-              appointed_person = $9
-          WHERE id = $10
+              appointed_person = $9,
+              updated_by = $10,
+              updated_by_name = $11,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $12
           RETURNING *
         `, [
           student_nis,
@@ -381,6 +412,8 @@ export async function handleBkRoutes(req, res, url, ctx) {
           appointment_time || '09.00 WIB s/d Selesai',
           appointment_place || 'Ruang Bimbingan & Konseling (BK)',
           appointed_person || 'Guru BK / Koordinator BK',
+          currentUserId,
+          currentUserName,
           id
         ]);
 
