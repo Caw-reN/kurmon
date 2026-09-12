@@ -37,17 +37,20 @@ export default function TabGenerate(props) {
     className: "",
     subject: "",
     teacherCode: "",
+    teamTeacher: "",
     roomId: ""
   });
 
   useEffect(() => {
     if (manualSlotModal?.isOpen) {
+      const rawCodes = String(manualSlotModal.teacherCode || "").split(",").map(c => c.trim()).filter(Boolean);
       setSlotFormData({
         day: manualSlotModal.day || (days[0] || "Senin"),
         slotId: manualSlotModal.slotId || (timeSlots[manualSlotModal.day || days[0] || "Senin"]?.[0]?.id || ""),
         className: manualSlotModal.className || (classes[0]?.name || ""),
         subject: manualSlotModal.subject || "",
-        teacherCode: manualSlotModal.teacherCode || "",
+        teacherCode: rawCodes[0] || "",
+        teamTeacher: rawCodes[1] || "",
         roomId: manualSlotModal.roomId || ""
       });
     }
@@ -341,9 +344,10 @@ export default function TabGenerate(props) {
                 </div>
                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                   {classTeachingLoads.map(load => {
-                    const teacher = teachers.find(t => t.code === load.teacherCode);
-                    const teacherName = teacher ? teacher.name : load.teacherCode;
-                    const isSelected = slotFormData.subject === load.subject && slotFormData.teacherCode === load.teacherCode;
+                    const rawCodes = String(load.teacherCode || "").split(",").map(c => c.trim()).filter(Boolean);
+                    const isSelected = slotFormData.subject === load.subject && 
+                      slotFormData.teacherCode === (rawCodes[0] || "") &&
+                      slotFormData.teamTeacher === (rawCodes[1] || "");
                     return (
                       <button
                         key={load.id || `${load.subject}-${load.teacherCode}`}
@@ -352,7 +356,8 @@ export default function TabGenerate(props) {
                           setSlotFormData(prev => ({
                             ...prev,
                             subject: load.subject || "",
-                            teacherCode: load.teacherCode || ""
+                            teacherCode: rawCodes[0] || "",
+                            teamTeacher: rawCodes[1] || ""
                           }));
                         }}
                         className={`text-[11px] px-2.5 py-1 rounded-[var(--ui-radius-small)] border font-medium transition-all text-left flex items-center gap-1 cursor-pointer ${
@@ -362,7 +367,7 @@ export default function TabGenerate(props) {
                         }`}
                       >
                         <span>{load.subject}</span>
-                        <span className="opacity-75">({load.teacherCode})</span>
+                        <span className="opacity-75 font-mono">({load.teacherCode})</span>
                       </button>
                     );
                   })}
@@ -377,10 +382,12 @@ export default function TabGenerate(props) {
                 onChange={(e) => {
                   const val = e.target.value;
                   const matchingLoad = classTeachingLoads.find(l => l.subject === val);
+                  const rawCodes = String(matchingLoad?.teacherCode || "").split(",").map(c => c.trim()).filter(Boolean);
                   setSlotFormData(prev => ({
                     ...prev,
                     subject: val,
-                    teacherCode: matchingLoad ? matchingLoad.teacherCode : prev.teacherCode
+                    teacherCode: rawCodes[0] || prev.teacherCode,
+                    teamTeacher: rawCodes[1] || ""
                   }));
                 }}
               >
@@ -391,9 +398,9 @@ export default function TabGenerate(props) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Guru Pengampu (Status Ketersediaan)</label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Guru Utama / Pengampu 1</label>
                 <UISelect value={slotFormData.teacherCode} onChange={(e) => setSlotFormData({ ...slotFormData, teacherCode: e.target.value })}>
-                  <option value="">-- Pilih Guru --</option>
+                  <option value="">-- Pilih Guru Utama --</option>
                   {teachers.map(t => {
                     const teachingClass = currentSlotOccupancy.get(t.code);
                     const isBusyInOtherClass = teachingClass && teachingClass !== slotFormData.className;
@@ -411,13 +418,36 @@ export default function TabGenerate(props) {
                   })}
                 </UISelect>
               </div>
+
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Ruangan</label>
-                <UISelect value={slotFormData.roomId} onChange={(e) => setSlotFormData({ ...slotFormData, roomId: e.target.value })}>
-                  <option value="">-- Ruangan Teori Default --</option>
-                  {rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({r.type})</option>)}
+                <label className="text-xs font-bold text-slate-700 block mb-1">Guru Pendamping / Praktek 2 (Team Teaching)</label>
+                <UISelect value={slotFormData.teamTeacher} onChange={(e) => setSlotFormData({ ...slotFormData, teamTeacher: e.target.value })}>
+                  <option value="">-- Tanpa Guru Pendamping --</option>
+                  {teachers.filter(t => t.code !== slotFormData.teacherCode).map(t => {
+                    const teachingClass = currentSlotOccupancy.get(t.code);
+                    const isBusyInOtherClass = teachingClass && teachingClass !== slotFormData.className;
+                    const isBusyInThisClass = teachingClass && teachingClass === slotFormData.className;
+                    
+                    let statusText = "✓ Tersedia";
+                    if (isBusyInOtherClass) statusText = `⚠️ Bentrok di ${teachingClass}`;
+                    else if (isBusyInThisClass) statusText = `✓ Mengajar di ${teachingClass}`;
+
+                    return (
+                      <option key={t.code} value={t.code}>
+                        {t.name} ({t.code}) — {statusText}
+                      </option>
+                    );
+                  })}
                 </UISelect>
               </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Ruangan / Bengkel Praktik</label>
+              <UISelect value={slotFormData.roomId} onChange={(e) => setSlotFormData({ ...slotFormData, roomId: e.target.value })}>
+                <option value="">-- Ruangan Teori Default --</option>
+                {rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({r.type})</option>)}
+              </UISelect>
             </div>
 
             <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200 mt-2">
@@ -428,7 +458,21 @@ export default function TabGenerate(props) {
                 <Button variant="outline" type="button" onClick={closeManualSlotModal}>
                   Batal
                 </Button>
-                <Button type="button" onClick={() => saveManualSlot && saveManualSlot(slotFormData)}>
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    if (saveManualSlot) {
+                      const combinedCode = [slotFormData.teacherCode, slotFormData.teamTeacher]
+                        .map(c => String(c || "").trim().toUpperCase())
+                        .filter(Boolean)
+                        .join(",");
+                      saveManualSlot({
+                        ...slotFormData,
+                        teacherCode: combinedCode
+                      });
+                    }
+                  }}
+                >
                   Simpan Slot
                 </Button>
               </div>
