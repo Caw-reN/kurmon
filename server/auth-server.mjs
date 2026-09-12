@@ -32,7 +32,7 @@ import { google } from "googleapis";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { buildAllowedOrigins, resolveCorsOrigin } from "./cors.mjs";
 import { normalizeAdminUser, normalizeTeachers, verifyPassword } from "../src/utils/auth.js";
-import { HikvisionAPI, decryptPassword, encryptPassword } from "./hikvision-api.mjs";
+import { HikvisionAPI, decryptPassword, encryptPassword, hikDispatcher } from "./hikvision-api.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -64,7 +64,30 @@ const loadEnvFile = () => {
 
 loadEnvFile();
 
-let dbPool;
+// FIX K-02: Startup guard — server harus gagal start jika secret key wajib tidak ada.
+// Ini mencegah produksi berjalan dengan key lemah/kosong tanpa disadari.
+(function validateRequiredEnvVars() {
+  const missing = [];
+  if (!process.env.APP_KEY)         missing.push('APP_KEY');
+  if (!process.env.CARD_SECRET_KEY && !process.env.JWT_SECRET) missing.push('CARD_SECRET_KEY (atau JWT_SECRET)');
+
+  if (missing.length > 0) {
+    console.error('');
+    console.error('╔══════════════════════════════════════════════════════════════╗');
+    console.error('║  ⛔  KEAMANAN: Variabel .env wajib belum diset!              ║');
+    console.error('╠══════════════════════════════════════════════════════════════╣');
+    for (const key of missing) {
+      console.error(`║  ✗  ${key.padEnd(57)}║`);
+    }
+    console.error('╠══════════════════════════════════════════════════════════════╣');
+    console.error('║  Tambahkan variabel-variabel di atas ke file .env lalu       ║');
+    console.error('║  restart server. Server tidak akan berjalan tanpanya.        ║');
+    console.error('╚══════════════════════════════════════════════════════════════╝');
+    console.error('');
+    process.exit(1);
+  }
+})();
+
 let dbStatus = {
   ok: false,
   code: "DB_NOT_INITIALIZED",
@@ -78,6 +101,10 @@ const DB_CONFIG = {
   database: process.env.PG_DATABASE || "school_system_db",
   options: "-c timezone=Asia/Jakarta",
 };
+
+// Deklarasi dbPool di scope file agar bisa diassign di dalam initDb()
+// dan diakses oleh semua fungsi lain di file ini.
+let dbPool = null;
 
 async function syncAllUsersToModules() {
   if (!dbPool) return;
@@ -777,10 +804,8 @@ const initDb = async () => {
       )
     `);
 
-    // Tambahkan indeks untuk optimasi performa dashboard & query log
+    // Tambahkan indeks untuk optimasi performa dashboard
     await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_dash ON hikvision_logs (device_id, employee_id, (timestamp::date))`);
-    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_timestamp_desc ON hikvision_logs ("timestamp" DESC)`);
-    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_date ON hikvision_logs ((("timestamp")::date))`);
 
     // Kolom person_type di log untuk membedakan siswa/guru/karyawan
     await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
@@ -1554,7 +1579,9 @@ const getHeaders = (req) => {
   const headers = {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    // FIX F-04: Tambah PUT dan DELETE agar route yang menggunakannya tidak
+    // di-block preflight browser. OPTIONS sudah ditangani sebelum handler ini.
+    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Credentials": "true",
     "Vary": "Origin",
     // HTTP Security Headers Hardening
@@ -3502,20 +3529,24 @@ const server = createServer(async (req, res) => {
     }
     // === API: POSTGRESQL BACKUP DUMP ===
     if (url.pathname === "/api/backup/postgresql" && req.method === "GET") {
-      const queryToken = url.searchParams.get("token");
-      const session = getSession(req) || sessions.get(queryToken);
+      // FIX B-04: Hapus autentikasi via ?token= query string — token di URL masuk ke
+      // server logs, browser history, dan proxy logs. Gunakan session cookie saja.
+      const session = getSession(req);
       if (!session || !isAdminRole(session?.role)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
       }
       try {
+        // FIX B-01: Daftar kolom sensitif yang wajib di-strip dari SQL dump.
+        const SENSITIVE_COLUMNS = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
+
         let dumpSql = `-- PostgreSQL Database Dump
 -- Generated on ${new Date().toLocaleString("id-ID")}
 -- Application: Kurmon school-system
+-- NOTE: Kolom sensitif (password, pin, secret, api_key) dikosongkan untuk keamanan.
 
 `;
         
-        // 1. Get all tables in public schema
         const tblResult = await dbPool.query(`
           SELECT tablename 
           FROM pg_catalog.pg_tables 
@@ -3534,6 +3565,8 @@ const server = createServer(async (req, res) => {
             
             for (const row of rows) {
               const values = keys.map(k => {
+                // FIX B-01: Strip kolom sensitif — tulis NULL sebagai gantinya
+                if (SENSITIVE_COLUMNS.has(k)) return 'NULL';
                 const val = row[k];
                 if (val === null) return 'NULL';
                 if (typeof val === 'object') {
@@ -3567,8 +3600,8 @@ const server = createServer(async (req, res) => {
 
     // === API: EXCEL BACKUP DUMP ===
     if (url.pathname === "/api/backup/excel" && req.method === "GET") {
-      const queryToken = url.searchParams.get("token");
-      const session = getSession(req) || sessions.get(queryToken);
+      // FIX B-04: Hapus autentikasi via ?token= query string
+      const session = getSession(req);
       if (!session || !isAdminRole(session?.role)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
@@ -3839,11 +3872,19 @@ const server = createServer(async (req, res) => {
         const backupData = {};
         const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
         const tables = tblResult.rows.map(r => r.tablename);
-        
+
+        // FIX B-01: Strip kolom sensitif dari semua backup Telegram
+        const SENSITIVE_COLS = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
+        const stripSensitive = (rows) => rows.map(row => {
+          const clean = { ...row };
+          for (const col of SENSITIVE_COLS) { if (col in clean) delete clean[col]; }
+          return clean;
+        });
+
         for (const table of tables) {
           try {
             const result = await dbPool.query(`SELECT * FROM ${table}`);
-            backupData[table] = result.rows;
+            backupData[table] = stripSensitive(result.rows);
           } catch (err) {}
         }
 
@@ -3926,11 +3967,19 @@ const server = createServer(async (req, res) => {
         const backupData = {};
         const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
         const tables = tblResult.rows.map(r => r.tablename);
-        
+
+        // FIX B-01: Strip kolom sensitif dari backup R2
+        const SENSITIVE_COLS_R2 = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
+        const stripSensitiveR2 = (rows) => rows.map(row => {
+          const clean = { ...row };
+          for (const col of SENSITIVE_COLS_R2) { if (col in clean) delete clean[col]; }
+          return clean;
+        });
+
         for (const table of tables) {
           try {
             const result = await dbPool.query(`SELECT * FROM ${table}`);
-            backupData[table] = result.rows;
+            backupData[table] = stripSensitiveR2(result.rows);
           } catch (err) {}
         }
 
@@ -5078,8 +5127,10 @@ const server = createServer(async (req, res) => {
     // === BACKUP & RESTORE DATA HANDLERS ===
     if (req.method === "GET" && url.pathname.startsWith("/api/backup/")) {
       const type = url.pathname.replace("/api/backup/", "").toLowerCase().trim();
-      const token = url.searchParams.get("token") || req.headers.authorization?.replace(/^Bearer\s+/i, '');
-      const session = getSession({ headers: { authorization: token ? `Bearer ${token}` : '' } });
+      // FIX S-01: Hapus penerimaan token via ?token= query string.
+      // Token di URL bocor ke server log, browser history, dan proxy cache.
+      // Gunakan session cookie atau Authorization header saja.
+      const session = getSession(req);
       if (!session || !isAdminRole(session.role)) {
         send(req, res, 403, { ok: false, error: "Akses khusus Admin / Pengurus." });
         return;
@@ -5090,6 +5141,31 @@ const server = createServer(async (req, res) => {
         return;
       }
 
+      // FIX S-02: Kolom sensitif di-strip sebelum masuk file backup.
+      // Kolom ini tidak perlu ada di backup JSON/SQL/Excel karena:
+      // - api_key: plaintext key yang sudah di-hash — tidak bisa dipakai langsung
+      // - password: bcrypt hash admin/guru — tidak boleh bocor via file download
+      // - session_data / token: sesi aktif tidak perlu di-backup
+      const BACKUP_SENSITIVE_COLUMNS = new Set([
+        'password', 'api_key', 'token', 'session_data',
+        'secret_key', 'refresh_token', 'access_token',
+      ]);
+
+      const stripSensitiveColumns = (rows) => {
+        if (!Array.isArray(rows) || rows.length === 0) return rows;
+        return rows.map(row => {
+          const safe = {};
+          for (const [k, v] of Object.entries(row)) {
+            if (BACKUP_SENSITIVE_COLUMNS.has(k.toLowerCase())) {
+              safe[k] = '[REDACTED]';
+            } else {
+              safe[k] = v;
+            }
+          }
+          return safe;
+        });
+      };
+
       try {
         const backupData = {};
         const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
@@ -5098,7 +5174,8 @@ const server = createServer(async (req, res) => {
         for (const table of tables) {
           try {
             const result = await dbPool.query(`SELECT * FROM "${table}"`);
-            backupData[table] = result.rows;
+            // Strip kolom sensitif di setiap tabel
+            backupData[table] = stripSensitiveColumns(result.rows);
           } catch (err) {}
         }
 
@@ -5109,6 +5186,7 @@ const server = createServer(async (req, res) => {
             version: "1.0",
             exported_at: new Date().toISOString(),
             system: "Kurmon School System",
+            note: "Kolom sensitif (password, api_key, token) telah dihapus dari backup ini.",
             tables: backupData
           }, null, 2);
 
@@ -5123,7 +5201,7 @@ const server = createServer(async (req, res) => {
         }
 
         if (type === 'sql' || type === 'postgresql') {
-          let sqlStr = `-- Kurmon Database SQL Dump Export\n-- Generated at: ${new Date().toISOString()}\n\n`;
+          let sqlStr = `-- Kurmon Database SQL Dump Export\n-- Generated at: ${new Date().toISOString()}\n-- CATATAN: Kolom sensitif (password, api_key, token) telah diredaksi.\n\n`;
           for (const [tableName, rows] of Object.entries(backupData)) {
             if (!Array.isArray(rows) || rows.length === 0) continue;
             sqlStr += `-- Table: ${tableName}\n`;
@@ -5197,10 +5275,20 @@ const server = createServer(async (req, res) => {
       try {
         const body = await readJsonBody(req);
         const tables = body.tables || body;
-        if (typeof tables !== 'object') {
+        if (typeof tables !== 'object' || Array.isArray(tables)) {
           send(req, res, 400, { ok: false, error: "Format file JSON backup tidak valid." });
           return;
         }
+
+        // FIX B-09: Ambil daftar tabel yang benar-benar ada di DB sebagai whitelist.
+        // Ini mencegah tableName dari file upload diinterpolasi ke query sebelum divalidasi.
+        const allowedTablesRes = await dbPool.query(
+          "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'"
+        );
+        const allowedTables = new Set(allowedTablesRes.rows.map(r => r.tablename));
+
+        // FIX B-09: Validasi nama kolom — hanya izinkan karakter alfanumerik dan underscore.
+        const isSafeIdentifier = (name) => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 
         const client = await dbPool.connect();
         try {
@@ -5208,8 +5296,11 @@ const server = createServer(async (req, res) => {
 
           for (const [tableName, rows] of Object.entries(tables)) {
             if (!Array.isArray(rows) || rows.length === 0) continue;
-            const checkTbl = await client.query("SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = $1", [tableName]);
-            if (checkTbl.rows.length === 0) continue;
+            // FIX B-09: Gunakan whitelist dari DB — skip tabel yang tidak dikenal
+            if (!allowedTables.has(tableName)) {
+              console.warn(`[Restore] Skip tabel tidak dikenal: ${tableName}`);
+              continue;
+            }
 
             try {
               await client.query(`TRUNCATE TABLE "${tableName}" CASCADE`);
@@ -5219,9 +5310,12 @@ const server = createServer(async (req, res) => {
 
             for (const row of rows) {
               const keys = Object.keys(row);
-              const cols = keys.map(k => `"${k}"`).join(', ');
-              const params = keys.map((_, i) => `$${i + 1}`).join(', ');
-              const values = keys.map(k => {
+              // FIX B-09: Validasi nama kolom sebelum diinterpolasi ke query
+              const safeKeys = keys.filter(k => isSafeIdentifier(k));
+              if (safeKeys.length === 0) continue;
+              const cols = safeKeys.map(k => `"${k}"`).join(', ');
+              const params = safeKeys.map((_, i) => `$${i + 1}`).join(', ');
+              const values = safeKeys.map(k => {
                 const val = row[k];
                 if (typeof val === 'object' && val !== null) return JSON.stringify(val);
                 return val;
@@ -5446,11 +5540,19 @@ cron.schedule('15 2 * * *', async () => {
     const backupData = {};
     const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
     const tables = tblResult.rows.map(r => r.tablename);
-    
+
+    // FIX B-01: Strip kolom sensitif dari CRON Telegram backup
+    const CRON_SENSITIVE = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
+    const cronStripSensitive = (rows) => rows.map(row => {
+      const clean = { ...row };
+      for (const col of CRON_SENSITIVE) { if (col in clean) delete clean[col]; }
+      return clean;
+    });
+
     for (const table of tables) {
       try {
         const result = await dbPool.query(`SELECT * FROM ${table}`);
-        backupData[table] = result.rows;
+        backupData[table] = cronStripSensitive(result.rows);
       } catch (err) {}
     }
 
@@ -5515,11 +5617,19 @@ cron.schedule('30 2 * * *', async () => {
     const backupData = {};
     const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
     const tables = tblResult.rows.map(r => r.tablename);
-    
+
+    // FIX B-01: Strip kolom sensitif dari CRON R2 backup
+    const R2_CRON_SENSITIVE = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
+    const r2CronStrip = (rows) => rows.map(row => {
+      const clean = { ...row };
+      for (const col of R2_CRON_SENSITIVE) { if (col in clean) delete clean[col]; }
+      return clean;
+    });
+
     for (const table of tables) {
       try {
         const result = await dbPool.query(`SELECT * FROM ${table}`);
-        backupData[table] = result.rows;
+        backupData[table] = r2CronStrip(result.rows);
       } catch (err) {}
     }
 
@@ -5593,8 +5703,13 @@ server.listen(PORT, AUTH_BIND_HOST, async () => {
 });
 
 // Penanganan Crash Otomatis
+// FIX M-05: Tambah setTimeout safety net — jika sendTelegramAlert hang (network timeout),
+// server tetap exit dalam 5 detik, tidak menunggu selamanya.
 process.on('uncaughtException', (err) => {
   console.error("FATAL UNCAUGHT EXCEPTION:", err);
+  // Safety net: paksa exit setelah 5 detik jika Telegram alert hang
+  const forceExit = setTimeout(() => process.exit(1), 5000);
+  forceExit.unref(); // jangan tahan event loop jika Telegram cepat selesai
   sendTelegramAlert('serverError', `🔥 SERVER CRASH (Uncaught Exception)\n\nError: ${err.message}\nStack: ${String(err.stack).slice(0,200)}`, 'critical')
     .catch(() => {})
     .finally(() => process.exit(1));
@@ -5602,6 +5717,9 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error("FATAL UNHANDLED REJECTION:", reason);
+  // Safety net: paksa exit setelah 5 detik jika Telegram alert hang
+  const forceExit = setTimeout(() => process.exit(1), 5000);
+  forceExit.unref();
   sendTelegramAlert('serverError', `🔥 SERVER CRASH (Unhandled Rejection)\n\nReason: ${String(reason).slice(0, 200)}`, 'critical')
     .catch(() => {})
     .finally(() => process.exit(1));

@@ -1,7 +1,10 @@
 import crypto from 'node:crypto';
+import { Agent as UndiciAgent } from 'undici';
 
-// Bypass SSL certificate expiration (Sering terjadi pada mesin absensi IoT)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+// FIX K-01 + B-02: native Node.js fetch() menggunakan undici di bawahnya dan TIDAK
+// mendukung opsi `agent` dari https.Agent. Gunakan undici.Agent sebagai `dispatcher`
+// agar rejectUnauthorized:false benar-benar efektif hanya untuk koneksi Hikvision IoT.
+export const hikDispatcher = new UndiciAgent({ connect: { rejectUnauthorized: false } });
 
 function md5(str) {
   return crypto.createHash('md5').update(str).digest('hex');
@@ -9,12 +12,19 @@ function md5(str) {
 
 export function decryptPassword(encryptedBase64, ivBase64) {
   if (!ivBase64) return encryptedBase64;
-  
+
+  // FIX K-02: Hapus hardcoded fallback keys dari source code.
+  // Hanya gunakan APP_KEY dari environment variable.
+  // Tambah fallback kosong agar tidak crash jika APP_KEY belum diset,
+  // tapi log peringatan yang jelas.
   const candidateKeys = [
     process.env.APP_KEY,
-    'def0000021ba0fc5fde8db4db19c4b7b2de135d0e2e9bb084fc0db917c0df6174a8963cd94c4897ed206f4773de291bc31abfc5d1ea8be0',
-    'default_key_should_be_replaced_immediately!'
   ].filter(Boolean);
+
+  if (candidateKeys.length === 0) {
+    console.error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa dekripsi password perangkat.');
+    return encryptedBase64;
+  }
 
   for (const appKey of candidateKeys) {
     try {
@@ -37,26 +47,24 @@ export function decryptPassword(encryptedBase64, ivBase64) {
 }
 
 export function encryptPassword(plainText) {
-  try {
-    const appKey = process.env.APP_KEY || 'default_key_should_be_replaced_immediately!';
-    const key = crypto.createHash('sha256').update(appKey).digest();
-    const iv = crypto.randomBytes(16);
-    
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    let encrypted = cipher.update(plainText, 'utf8');
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    
-    return {
-      encrypted: encrypted.toString('base64'),
-      iv: iv.toString('base64')
-    };
-  } catch (err) {
-    console.error("Gagal menginkripsi password perangkat:", err.message);
-    return {
-      encrypted: plainText,
-      iv: ''
-    };
+  // FIX B-03: Throw jika APP_KEY kosong — jangan enkripsi dengan key 'MISSING_KEY'
+  // yang diketahui publik. Startup guard di auth-server.mjs seharusnya sudah mencegah
+  // ini, tapi defence-in-depth: lebih baik fail-hard daripada enkripsi palsu.
+  const appKey = process.env.APP_KEY;
+  if (!appKey) {
+    throw new Error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa enkripsi password perangkat.');
   }
+  const key = crypto.createHash('sha256').update(appKey).digest();
+  const iv = crypto.randomBytes(16);
+
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(plainText, 'utf8');
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  return {
+    encrypted: encrypted.toString('base64'),
+    iv: iv.toString('base64')
+  };
 }
 
 export class HikvisionAPI {
@@ -88,10 +96,12 @@ export class HikvisionAPI {
     const controller = new AbortController();
     // Timeout pendek (5s) agar mesin offline tidak memblokir cron polling
     const timeout = setTimeout(() => controller.abort(), 5000);
-    
+
     let res;
     try {
-      res = await fetch(url, { ...options, signal: controller.signal });
+      // FIX K-01 + B-02: Gunakan undici dispatcher agar TLS bypass benar-benar efektif
+      // hanya untuk koneksi ke mesin Hikvision IoT dengan sertifikat self-signed/expired.
+      res = await fetch(url, { ...options, signal: controller.signal, dispatcher: hikDispatcher });
     } finally {
       clearTimeout(timeout);
     }
@@ -104,7 +114,7 @@ export class HikvisionAPI {
         const ncStr = this.nc.toString(16).padStart(8, '0');
         const cnonce = crypto.randomBytes(8).toString('hex');
         const uri = path;
-        
+
         const ha1 = md5(`${this.username}:${digestInfo.realm}:${this.password}`);
         const ha2 = md5(`${method}:${uri}`);
         const response = md5(`${ha1}:${digestInfo.nonce}:${ncStr}:${cnonce}:${digestInfo.qop}:${ha2}`);
@@ -123,12 +133,13 @@ export class HikvisionAPI {
 
         const newHeaders = new Headers(options.headers || {});
         newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
-        
+
         const controller2 = new AbortController();
         // Sedikit lebih lama untuk Digest auth karena ada overhead kriptografi
         const timeout2 = setTimeout(() => controller2.abort(), 7000);
         try {
-          res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal });
+          // FIX K-01 + B-02: Gunakan undici dispatcher pada retry Digest auth juga
+          res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal, dispatcher: hikDispatcher });
         } finally {
           clearTimeout(timeout2);
         }

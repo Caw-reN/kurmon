@@ -1,7 +1,7 @@
 const requestCounts = new Map();
 const BLOCKED_IPS = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 2000;   // max 2000 req/mnt per IP (general)
+const MAX_REQUESTS_PER_WINDOW = 300;    // FIX B-08: turun dari 2000 → 300 req/mnt per IP
 const BLOCK_DURATION_MS = 5 * 60 * 1000; // 5 menit blokir
 
 // Login-specific rate limit (brute force protection)

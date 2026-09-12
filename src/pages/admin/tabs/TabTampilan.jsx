@@ -401,17 +401,15 @@ export default function TabTampilan(props) {
                                       showNotification("Ukuran gambar maksimal 2MB!","error");
                                       return;
                                     }
-                                    if ((file.type === "image/svg+xml" || file.name.endsWith(".svg")) && file.size < 150 * 1024) {
+                                    if (file.type ==="image/svg+xml" || file.name.endsWith(".svg")) {
                                       const reader = new FileReader();
                                       reader.onload = (event) => {
                                         setAppSettings({ ...appSettings, heroImage: event.target.result });
                                       };
                                       reader.readAsDataURL(file);
                                     } else {
-                                      compressImage(file, { maxWidth: 1400, maxHeight: 1000, quality: 0.82, type: 'image/webp' }).then(compressedBase64 => {
+                                      compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.8 }).then(compressedBase64 => {
                                         setAppSettings({ ...appSettings, heroImage: compressedBase64 });
-                                      }).catch(() => {
-                                        showNotification("Gagal memproses gambar.", "error");
                                       });
                                     }
                                   }

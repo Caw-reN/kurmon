@@ -285,7 +285,7 @@ export default function App() {
     if (!nav) return;
     // Restore saved position before paint
     nav.scrollTop = sidebarScrollPos.current;
-  }, [activeTab]);
+  });
 
   // Scroll main content back to top when tab changes
   useEffect(() => {

@@ -62,11 +62,29 @@ export async function runBackupJson() {
   );
   const tables = tblResult.rows.map(r => r.tablename);
 
+  // FIX T-01: Daftar kolom sensitif yang wajib di-strip sebelum ditulis ke file backup.
+  // Password hash tetap tidak boleh tersimpan di file JSON yang bisa diakses via API/download.
+  const SENSITIVE_COLUMNS = ['password', 'password_hash', 'hashed_password', 'pin', 'secret'];
+
+  const stripSensitiveColumns = (rows) => {
+    if (!Array.isArray(rows) || rows.length === 0) return rows;
+    const hasSensitive = SENSITIVE_COLUMNS.some(col => col in rows[0]);
+    if (!hasSensitive) return rows;
+    return rows.map(row => {
+      const clean = { ...row };
+      for (const col of SENSITIVE_COLUMNS) {
+        if (col in clean) delete clean[col];
+      }
+      return clean;
+    });
+  };
+
   const backupData = { _meta: { generatedAt: new Date().toISOString(), database: PG_DATABASE, tables: tables.length } };
   for (const table of tables) {
     try {
       const { rows } = await _dbPool.query(`SELECT * FROM ${table}`);
-      backupData[table] = rows;
+      // FIX T-01: Strip kolom password/sensitif sebelum disimpan ke file backup
+      backupData[table] = stripSensitiveColumns(rows);
     } catch (err) {
       console.warn(`[AutoBackup] Skip tabel ${table}:`, err.message);
       backupData[table] = [];

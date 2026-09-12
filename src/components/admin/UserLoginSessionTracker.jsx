@@ -30,7 +30,7 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
         || sessionStorage.getItem('token')
         || '';
 
-      const res = await fetch('/api/audit-logs?page=1&limit=100', {
+      const res = await fetch('/api/audit-logs?page=1&limit=300', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {
@@ -48,11 +48,7 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
 
   useEffect(() => {
     fetchAuditLogs();
-    const interval = setInterval(() => {
-      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
-        fetchAuditLogs();
-      }
-    }, 30000);
+    const interval = setInterval(fetchAuditLogs, 10000);
     return () => clearInterval(interval);
   }, [fetchAuditLogs]);
 

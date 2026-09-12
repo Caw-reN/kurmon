@@ -10,8 +10,19 @@
 
 import crypto from 'node:crypto';
 
-const CARD_SECRET_KEY = process.env.CARD_SECRET_KEY || process.env.JWT_SECRET || 'KURMON_SMK_KG2_STUDENT_CARD_SECRET_KEY_2026';
-const DERIVED_KEY = crypto.createHash('sha256').update(CARD_SECRET_KEY).digest();
+// FIX K-02: Hapus hardcoded fallback secret key dari source code.
+// Jika CARD_SECRET_KEY dan JWT_SECRET tidak diset, log error saat startup
+// tapi jangan crash server — token yang di-generate tidak akan bisa diverifikasi
+// antar-restart, yang lebih aman daripada menggunakan key yang diketahui publik.
+const CARD_SECRET_KEY = process.env.CARD_SECRET_KEY || process.env.JWT_SECRET || null;
+if (!CARD_SECRET_KEY) {
+  console.error('[StudentCard] PERINGATAN KEAMANAN: CARD_SECRET_KEY tidak diset di .env. Token kartu pelajar tidak aman! Tambahkan CARD_SECRET_KEY ke file .env segera.');
+}
+const _effectiveKey = CARD_SECRET_KEY || crypto.randomBytes(32).toString('hex'); // random per-restart jika tidak diset
+const DERIVED_KEY = crypto.createHash('sha256').update(_effectiveKey).digest();
+
+// FIX F-03: Token expiry — kartu pelajar berlaku maksimal 1 tahun
+const CARD_TOKEN_MAX_AGE_SECONDS = 365 * 24 * 60 * 60; // 1 tahun
 
 /**
  * Menghasilkan token terenkripsi dan terotentikasi (AES-256-GCM) untuk QR Code kartu pelajar.
@@ -67,6 +78,15 @@ export function verifyStudentCardToken(token) {
 
     if (!data.nis) {
       return { valid: false, error: 'Payload token tidak valid' };
+    }
+
+    // FIX F-03: Validasi expiry token — token berlaku maksimal CARD_TOKEN_MAX_AGE_SECONDS
+    if (data.iat) {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const age = nowSeconds - data.iat;
+      if (age > CARD_TOKEN_MAX_AGE_SECONDS) {
+        return { valid: false, error: 'Token kartu pelajar sudah kadaluarsa. Silakan generate ulang kartu.' };
+      }
     }
 
     return { valid: true, nis: String(data.nis), iat: data.iat };

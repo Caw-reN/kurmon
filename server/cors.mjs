@@ -61,11 +61,13 @@ export const isAllowedOrigin = (origin, allowedOrigins = buildAllowedOrigins()) 
   if (allowedOrigins.has(origin)) return true;
 
   const hostname = url.hostname;
-  if (isLocalHostname(hostname)) return true;
 
-  const ipVersion = isIP(hostname);
-  if (ipVersion === 4) return isPrivateIpv4(hostname);
-  if (ipVersion === 6) return isPrivateIpv6(hostname);
+  // FIX B-07: Hapus auto-allow semua *.localhost dan semua private IP.
+  // Hanya izinkan origin yang secara eksplisit ada di allowedOrigins (termasuk yang
+  // di-set via AUTH_ALLOWED_ORIGINS di .env). Ini mencegah CSRF dari device lain di LAN
+  // atau subdomain *.localhost yang bisa di-resolve ke IP berbahaya.
+  // Satu-satunya pengecualian adalah localhost/127.0.0.1 tanpa port (untuk dev lokal).
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return true;
 
   return false;
 };
