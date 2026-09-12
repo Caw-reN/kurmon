@@ -38,7 +38,7 @@ const BASE_GURU_PERMISSIONS = {
   walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-  kedisiplinan_piket: "nonaktif"
+  kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -49,14 +49,15 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-    kedisiplinan_piket: "nonaktif"
+    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit"
   },
   walikelas: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
     akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
-    beban: "otomatis", pesan: "otomatis", kedisiplinan_piket: "nonaktif",
+    beban: "otomatis", pesan: "otomatis", 
+    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit",
     hikvision_report_siswa: "otomatis"
   },
 
@@ -89,7 +90,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
     pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
     pkl_laporan: "view",
-    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "view",
+    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "edit",
     walas_report: "view", catatan_walikelas: "view", riwayat_prestasi: "view",
     laporan_absensi: "view", hikvision_report_guru: "view",
     hikvision_report_karyawan: "view", hikvision_report_siswa: "view",

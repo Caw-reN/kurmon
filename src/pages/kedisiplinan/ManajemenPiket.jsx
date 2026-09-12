@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { ClipboardList, Calendar, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ClipboardList, Calendar, ShieldCheck, ShieldAlert, BarChart3 } from 'lucide-react';
 import JadwalPiket from './JadwalPiket.jsx';
 import PanelPiket from './PanelPiket.jsx';
+import RekapKedisiplinan from './RekapKedisiplinan.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 export default function ManajemenPiket({
@@ -56,26 +57,35 @@ export default function ManajemenPiket({
   const isExplicitlyDenied = permLevel === 'nonaktif' || permLevel === 'none' || permLevel === 'off';
   const isSuperAdmin = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'kepsek' || (typeof isSuperAdminRole === 'function' && isSuperAdminRole(rawRole));
 
-  // Evaluasi apakah user memiliki hak edit/kelola ke Piket & Pelanggaran
-  const canEdit = useMemo(() => {
-    if (isSuperAdmin) return true;
+  const isKesiswaanTeam = (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' ||
+    ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
+    rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
+
+  // Evaluasi apakah user memiliki hak input pelanggaran di PanelPiket
+  // Guru umum, guru piket, wali kelas, tim kesiswaan, atau admin BERHAK menginput pelanggaran siswa selama tidak dinonaktifkan eksplisit
+  const canInputPelanggaran = useMemo(() => {
+    if (isSuperAdmin || isKesiswaanTeam) return true;
     if (isExplicitlyDenied) return false;
 
-    // 2. BP/BK, Waka Kesiswaan, Kesiswaan, Pembina OSIS, Tim Kesiswaan
-    if ((rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan') return true;
-    if (subrole === 'bpbk' || rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk') return true;
-    if (subrole === 'pembina_osis' || subrole === 'sekretaris_kesiswaan' || subrole === 'anggota_kesiswaan') return true;
+    // Guru umum, wali kelas, atau guru terjadwal piket memiliki hak input pelanggaran
+    if (rawRole === 'guru' || isWalas || hasPiket) return true;
 
-    // 2b. Guru yang terjadwal dalam piket (hanya jika tidak ditolak secara eksplisit di hak akses)
-    if (hasPiket && !isExplicitlyDenied) return true;
+    // Perm level edit / otomatis / view (jika dapat melihat modul piket, guru berwenang mencatat)
+    if (permLevel === 'edit' || permLevel === 'otomatis' || permLevel === 'view' || permLevel === 'full') return true;
+    return false;
+  }, [rawRole, isWalas, isSuperAdmin, isKesiswaanTeam, isExplicitlyDenied, permLevel, hasPiket]);
 
-    // 3. Perm level edit / otomatis
+  // Evaluasi hak edit master jadwal piket (khusus admin / koordinator kesiswaan)
+  const canEditJadwal = useMemo(() => {
+    if (isSuperAdmin || isKesiswaanTeam) return true;
+    if (isExplicitlyDenied) return false;
     if (permLevel === 'edit' || permLevel === 'otomatis') return true;
     return false;
-  }, [rawRole, subrole, division, isSuperAdmin, isExplicitlyDenied, permLevel, hasPiket]);
+  }, [isSuperAdmin, isKesiswaanTeam, isExplicitlyDenied, permLevel]);
 
   const tabs = [
     { id: 'panel', label: 'Panel Input Pelanggaran', icon: ClipboardList },
+    { id: 'rekap', label: 'Rekap & Riwayat Pelanggaran', icon: BarChart3 },
     { id: 'jadwal', label: 'Jadwal Piket', icon: Calendar }
   ];
 
@@ -105,8 +115,9 @@ export default function ManajemenPiket({
       />
 
       <div className="flex-1 min-h-0 relative">
-        {activeTab === 'panel' && <PanelPiket students={students} classes={classes} canEdit={canEdit} />}
-        {activeTab === 'jadwal' && <JadwalPiket teachers={teachers} canEdit={canEdit} />}
+        {activeTab === 'panel' && <PanelPiket students={students} classes={classes} canEdit={canInputPelanggaran} />}
+        {activeTab === 'rekap' && <RekapKedisiplinan students={students} classes={classes} />}
+        {activeTab === 'jadwal' && <JadwalPiket teachers={teachers} canEdit={canEditJadwal} />}
       </div>
     </div>
   );

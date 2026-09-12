@@ -35,6 +35,7 @@ let _isRunning = false;
 let _pollOffset = 0;
 let _startTime = Date.now();
 let _initialized = false;
+let _serviceName = 'telegram_backup';
 
 // Rate-limit: max 1 pesan per event per 60 detik
 const _recentAlerts = new Map();
@@ -76,10 +77,15 @@ async function _loadConfig() {
   if (!_dbPool) return;
   try {
     const { rows } = await _dbPool.query(
-      "SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' AND is_active = true LIMIT 1"
+      `SELECT service_name, api_key, extra_config FROM api_keys 
+       WHERE (service_name = 'telegram_backup' OR service_name = 'telegram_bot_monitor' OR service_name LIKE 'telegram%') 
+       AND is_active = true 
+       ORDER BY CASE WHEN service_name = 'telegram_backup' THEN 1 WHEN service_name = 'telegram_bot_monitor' THEN 2 ELSE 3 END 
+       LIMIT 1`
     );
     if (rows.length > 0) {
-      _botToken = rows[0].api_key || null;
+      _serviceName = rows[0].service_name;
+      _botToken = rows[0].api_key ? rows[0].api_key.trim() : null;
       let cfg = {};
       try {
         cfg = typeof rows[0].extra_config === 'string' && rows[0].extra_config.trim().startsWith('{') 
@@ -88,7 +94,7 @@ async function _loadConfig() {
       } catch (e) {
         console.error("Format JSON pada Extra Config telegram bot tidak valid.");
       }
-      _chatId = cfg?.chat_id || null;
+      _chatId = cfg?.chat_id ? String(cfg.chat_id).trim() : null;
       _allowedChatIds = new Set(cfg.allowed_chat_ids || (_chatId ? [String(_chatId)] : []));
       if (cfg.alerts && typeof cfg.alerts === 'object') {
         _alertConfig = { ..._alertConfig, ...cfg.alerts };
@@ -1219,6 +1225,8 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       data: {
         isRunning: _isRunning,
         hasBotToken: !!_botToken,
+        botTokenMasked: _botToken ? (_botToken.substring(0, 8) + '...' + _botToken.slice(-4)) : '',
+        chatId: _chatId || '',
         hasChatId: !!_chatId,
         alertConfig: _alertConfig,
         uptime: Math.floor((Date.now() - _startTime) / 1000),
@@ -1243,28 +1251,53 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       return true;
     }
     
-    if (body.alerts) {
-       _alertConfig = { ..._alertConfig, ...body.alerts };
-       try {
-         // Ambil existing config dari DB
-         const { rows } = await _dbPool.query("SELECT extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' LIMIT 1");
-         if (rows.length > 0) {
-            let existingCfg = rows[0].extra_config || {};
-            if (typeof existingCfg === 'string') existingCfg = JSON.parse(existingCfg);
-            existingCfg.alerts = _alertConfig;
-            
-            await _dbPool.query(
-              "UPDATE api_keys SET extra_config = $1 WHERE service_name = 'telegram_bot_monitor'",
-              [JSON.stringify(existingCfg)]
-            );
-         }
-       } catch (err) {
-         console.warn("[TelegramBot] Failed to save config to DB:", err.message);
-       }
+    try {
+      // Ambil existing config dari DB (dukung telegram_backup dan telegram_bot_monitor)
+      const { rows } = await _dbPool.query(
+        `SELECT service_name, api_key, extra_config FROM api_keys 
+         WHERE (service_name = 'telegram_backup' OR service_name = 'telegram_bot_monitor' OR service_name LIKE 'telegram%') 
+         LIMIT 1`
+      );
+      const targetService = rows.length > 0 ? rows[0].service_name : 'telegram_backup';
+      let existingCfg = rows.length > 0 ? (typeof rows[0].extra_config === 'string' ? JSON.parse(rows[0].extra_config || '{}') : rows[0].extra_config || {}) : {};
+
+      if (body.alerts) {
+        _alertConfig = { ..._alertConfig, ...body.alerts };
+        existingCfg.alerts = _alertConfig;
+      }
+      if (body.chat_id !== undefined && String(body.chat_id).trim()) {
+        existingCfg.chat_id = String(body.chat_id).trim();
+        _chatId = existingCfg.chat_id;
+      }
+      
+      const newBotToken = (body.bot_token !== undefined && String(body.bot_token).trim()) ? String(body.bot_token).trim() : (rows[0]?.api_key || '');
+
+      await _dbPool.query(
+        `INSERT INTO api_keys (service_name, service_label, api_key, extra_config, is_active)
+         VALUES ($1, $2, $3, $4, true)
+         ON CONFLICT (service_name) DO UPDATE SET 
+           api_key = CASE WHEN $3 = '' AND api_keys.api_key IS NOT NULL THEN api_keys.api_key ELSE $3 END,
+           extra_config = $4,
+           is_active = true,
+           updated_at = CURRENT_TIMESTAMP`,
+        [targetService, 'Telegram Auto-Backup', newBotToken, JSON.stringify(existingCfg)]
+      );
+
+      await reloadTelegramBotConfig();
+      send(req, res, 200, {
+        ok: true,
+        alertConfig: _alertConfig,
+        isRunning: _isRunning,
+        hasBotToken: !!_botToken,
+        hasChatId: !!_chatId,
+        chatId: _chatId || ''
+      });
+      return true;
+    } catch (err) {
+      console.warn("[TelegramBot] Failed to save config to DB:", err.message);
+      send(req, res, 500, { ok: false, error: err.message });
+      return true;
     }
-    
-    send(req, res, 200, { ok: true, alertConfig: _alertConfig });
-    return true;
   }
 
   if (req.method === 'POST' && url.pathname === '/api/telegram-bot/test') {
@@ -1276,7 +1309,7 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     }
     await _loadConfig(); // Selalu refresh konfigurasi dari DB sebelum uji coba
     if (!_botToken || !_chatId) {
-      send(req, res, 400, { ok: false, error: 'Bot belum dikonfigurasi. Tambahkan API Key dengan service_name=telegram_bot_monitor.' });
+      send(req, res, 400, { ok: false, error: 'Bot belum dikonfigurasi. Masukkan Bot Token dan Chat ID terlebih dahulu.' });
       return true;
     }
     try {
@@ -1296,8 +1329,12 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       let errorMsg = err.message || 'Gagal mengirim pesan';
       if (errorMsg.toLowerCase().includes('chat not found')) {
         errorMsg = 'Chat tidak ditemukan di Telegram! Buka bot Anda di Telegram dan tekan tombol "START" (/start) atau kirim pesan ke bot terlebih dahulu agar bot diizinkan mengirim pesan.';
-      } else if (errorMsg.toLowerCase() === 'not found') {
+      } else if (errorMsg.toLowerCase().includes('bot was blocked')) {
+        errorMsg = 'Bot diblokir oleh akun pengguna Telegram. Buka bot di Telegram dan klik "Unblock" / /start.';
+      } else if (errorMsg.toLowerCase() === 'not found' || errorMsg.toLowerCase().includes('404')) {
         errorMsg = 'Bot Token tidak valid (Not Found). Pastikan Anda memasukkan HTTP API Token yang benar dari @BotFather.';
+      } else if (errorMsg.toLowerCase().includes('unauthorized') || errorMsg.toLowerCase().includes('401')) {
+        errorMsg = 'Bot Token tidak sah / ditolak oleh Telegram (Unauthorized). Periksa kembali token dari @BotFather.';
       }
       send(req, res, 500, { ok: false, error: errorMsg });
     }

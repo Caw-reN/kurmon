@@ -14,6 +14,29 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import ImportModal from "../../../components/monitoring/ui/ImportModal.jsx";
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { usePagination } from '../../../components/ui/PaginationControls.jsx';
+import { useDataStore } from '../../../store/useDataStore.js';
+import { useAppStore } from '../../../store/useAppStore.js';
+
+export const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const pLat1 = parseFloat(lat1);
+  const pLon1 = parseFloat(lon1);
+  const pLat2 = parseFloat(lat2);
+  const pLon2 = parseFloat(lon2);
+  if (isNaN(pLat1) || isNaN(pLon1) || isNaN(pLat2) || isNaN(pLon2)) return null;
+  if (pLat1 === 0 && pLon1 === 0) return null;
+  if (pLat2 === 0 && pLon2 === 0) return null;
+
+  const R = 6371; // Radius bumi dalam KM
+  const dLat = (pLat2 - pLat1) * Math.PI / 180;
+  const dLon = (pLon2 - pLon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(pLat1 * Math.PI / 180) * Math.cos(pLat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return Math.round(d * 10) / 10;
+};
 
 // Leaflet default icon fix
 delete L.Icon.Default.prototype._getIconUrl;
@@ -73,13 +96,18 @@ function ChangeMapView({ center, zoom }) {
 }
 
 const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
+  const schoolProfile = useDataStore(state => state.schoolProfile) || {};
+  const attendanceSettings = useAppStore(state => state.attendanceSettings) || {};
+  const schoolLat = parseFloat(attendanceSettings.schoolLat || schoolProfile.lat || -6.2383);
+  const schoolLng = parseFloat(attendanceSettings.schoolLng || schoolProfile.lng || 106.9756);
+
   const [locations, setLocations] = useState([]);
   const [pklStudentsMapping, setPklStudentsMapping] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterJurusan, setFilterJurusan] = useState('Semua');
   const [filterVerified, setFilterVerified] = useState('Semua'); // 'Semua' | 'verified' | 'pending'
-  const [sortBy, setSortBy] = useState('nama_asc'); // 'nama_asc' | 'nama_desc' | 'kuota_desc' | 'status_pending'
+  const [sortBy, setSortBy] = useState('nama_asc'); // 'nama_asc' | 'nama_desc' | 'kuota_desc' | 'jarak_asc' | 'status_pending'
   const [view, setView] = useState('list'); // 'list' | 'map'
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -247,6 +275,11 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
       if (sortBy === 'nama_asc') return nameA.localeCompare(nameB);
       if (sortBy === 'nama_desc') return nameB.localeCompare(nameA);
       if (sortBy === 'kuota_desc') return (b.kuota || 0) - (a.kuota || 0);
+      if (sortBy === 'jarak_asc') {
+        const distA = calculateDistanceKm(schoolLat, schoolLng, a.lat, a.lng) ?? 999999;
+        const distB = calculateDistanceKm(schoolLat, schoolLng, b.lat, b.lng) ?? 999999;
+        return distA - distB;
+      }
       if (sortBy === 'status_pending') {
         const isVerA = a.verified || a.status === 'aktif';
         const isVerB = b.verified || b.status === 'aktif';
@@ -257,7 +290,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
     });
 
     return res;
-  }, [locations, search, filterJurusan, filterVerified, sortBy]);
+  }, [locations, search, filterJurusan, filterVerified, sortBy, schoolLat, schoolLng]);
 
   const { paginatedData: currentLocations, PaginationBar } = usePagination(filtered, 12);
 
@@ -546,6 +579,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
               options={[
                 { value: 'nama_asc', label: 'Nama Perusahaan (A - Z)' },
                 { value: 'nama_desc', label: 'Nama Perusahaan (Z - A)' },
+                { value: 'jarak_asc', label: 'Jarak Terdekat ke Sekolah' },
                 { value: 'kuota_desc', label: 'Kuota Siswa Terbesar' },
                 { value: 'status_pending', label: 'Status: Menunggu Verifikasi Dahulu' },
               ]}
@@ -651,6 +685,15 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
                         <MapPin size={12} className="text-slate-400 shrink-0" />
                         <span className="truncate">{p.alamat || p.kota || 'Alamat belum diatur'}</span>
                       </p>
+                      {(() => {
+                        const dist = calculateDistanceKm(schoolLat, schoolLng, p.lat, p.lng);
+                        return dist !== null ? (
+                          <p className="text-sky-700 font-extrabold flex items-center gap-1.5 pt-0.5">
+                            <Compass size={12} className="text-sky-600 shrink-0" />
+                            <span>Jarak ke sekolah: <strong className="text-sky-900 font-black">{dist} km</strong></span>
+                          </p>
+                        ) : null;
+                      })()}
                       {p.telepon && (
                         <p className="text-slate-500 font-medium flex items-center gap-1.5">
                           <Phone size={12} className="text-slate-400 shrink-0" />

@@ -28,7 +28,9 @@ import {
   Save,
   CheckSquare,
   FileSpreadsheet,
-  UploadCloud
+  UploadCloud,
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -196,13 +198,33 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
 
   useEffect(() => {
     if (!student) return;
+    let isMounted = true;
     if (config.show_barcode) {
-      import("qrcode").then((QRCode) => {
+      import("qrcode").then(async (QRCode) => {
         const origin = window.location.origin;
-        const qrData = `${origin}/validasi-siswa?nis=${student.nis}&nama=${encodeURIComponent(student.name || student.namaSiswa || '')}`;
-        QRCode.default.toDataURL(qrData, { margin: 1, width: 200 }).then(setQrCode).catch(console.error);
+        let token = student.card_token;
+        if (!token && student.nis) {
+          try {
+            const res = await fetch(`/api/student/card-token?nis=${encodeURIComponent(student.nis)}`);
+            const data = await res.json();
+            if (data.ok && data.token) {
+              token = data.token;
+            }
+          } catch (e) {
+            console.error('Gagal mengambil token kartu:', e);
+          }
+        }
+        const qrData = token
+          ? `${origin}/validasi-siswa?v=${encodeURIComponent(token)}`
+          : `${origin}/validasi-siswa?nis=${student.nis}&nama=${encodeURIComponent(student.name || student.namaSiswa || '')}`;
+        QRCode.default.toDataURL(qrData, { margin: 1, width: 200 })
+          .then(url => {
+            if (isMounted) setQrCode(url);
+          })
+          .catch(console.error);
       }).catch(console.error);
     }
+    return () => { isMounted = false; };
   }, [student, config.show_barcode]);
 
   const renderFront = (
@@ -224,8 +246,13 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
       {/* Photo Box (Top Left) */}
       {config.show_photo && (
         <div className="absolute top-[35%] left-[11%] w-[14%] h-[35%] overflow-hidden z-10 flex items-center justify-center bg-white shadow-xs rounded-[var(--ui-radius-small)] p-0.5 border border-slate-200">
-          {student?.photo ? (
-            <img src={student.photo} alt="Foto" className="w-full h-full object-cover rounded-[var(--ui-radius-small)]" />
+          {(student?.photo || student?.foto) ? (
+            <img 
+              src={student.photo || student.foto} 
+              alt="Foto" 
+              className="w-full h-full object-cover rounded-[var(--ui-radius-small)]" 
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
           ) : (
             <User size={28} className="w-full h-full text-slate-300" />
           )}
@@ -322,6 +349,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
   const [activeTab, setActiveTab] = useState('cetak');
   const [toast, setToast] = useState(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [printingStudentsList, setPrintingStudentsList] = useState(null);
   const authToken = useAuthStore(state => state.user?.authToken);
 
   const [requests, setRequests] = useState([]);
@@ -518,23 +546,161 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     });
   }, [students, searchTerm, selectedClass, selectedMajor]);
 
-  const handlePrint = () => {
-    if (selectedStudents.length === 0) return showToast('Pilih minimal satu siswa untuk dicetak!', 'error');
+  const [isUploadingBatchPhotos, setIsUploadingBatchPhotos] = useState(false);
+
+  const handleUploadSinglePhoto = async (student, file) => {
+    if (!file || !student?.nis) return;
+    try {
+      showToast(`Mengompres foto siswa ${student.namaSiswa || student.name}...`, 'info');
+      const compressedBase64 = await compressImage(file, { maxWidth: 400, maxHeight: 500, quality: 0.82 });
+
+      // Simpan langsung ke database PostgreSQL
+      const res = await fetch('/api/students/photo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          nis: student.nis,
+          photo: compressedBase64
+        })
+      });
+
+      const resData = await res.json().catch(() => ({}));
+      if (res.ok && resData.ok) {
+        setStudents(prev => prev.map(s => s.nis === student.nis ? { ...s, photo: compressedBase64 } : s));
+        setTempPhotos(prev => ({ ...prev, [student.nis]: compressedBase64 }));
+        if (previewStudent?.nis === student.nis) {
+          setPreviewStudent(prev => ({ ...prev, photo: compressedBase64 }));
+        }
+        showToast(`Foto siswa ${student.namaSiswa || student.name} berhasil disimpan permanen ke database!`, 'success');
+      } else {
+        setStudents(prev => prev.map(s => s.nis === student.nis ? { ...s, photo: compressedBase64 } : s));
+        setTempPhotos(prev => ({ ...prev, [student.nis]: compressedBase64 }));
+        showToast(resData.message || 'Foto dimuat di memori (Gagal sinkron server)', 'error');
+      }
+    } catch (err) {
+      console.error('Upload foto error:', err);
+      showToast('Gagal memproses foto siswa', 'error');
+    }
+  };
+
+  const handleBatchPhotosUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploadingBatchPhotos(true);
+    showToast(`Memproses ${files.length} file foto siswa...`, 'info');
+
+    try {
+      const currentStudents = students || [];
+      const nisSet = new Set(currentStudents.map(s => String(s.nis).trim()));
+      const photosToUpload = [];
+
+      for (const file of files) {
+        const rawName = file.name.replace(/\.[^/.]+$/, "");
+        const matchedNis = rawName.split(/[-_ ]/)[0].trim();
+
+        if (matchedNis && nisSet.has(matchedNis)) {
+          try {
+            const base64 = await compressImage(file, { maxWidth: 400, maxHeight: 500, quality: 0.82 });
+            photosToUpload.push({ nis: matchedNis, photo: base64 });
+          } catch (compressErr) {
+            console.warn(`Gagal kompres foto ${file.name}:`, compressErr);
+          }
+        }
+      }
+
+      if (photosToUpload.length === 0) {
+        showToast('Tidak ada foto yang cocok dengan nomor NIS siswa yang terdaftar!', 'error');
+        setIsUploadingBatchPhotos(false);
+        e.target.value = '';
+        return;
+      }
+
+      showToast(`Mengunggah ${photosToUpload.length} foto yang cocok ke server...`, 'info');
+
+      const res = await fetch('/api/students/photos/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ photos: photosToUpload })
+      });
+      const resData = await res.json().catch(() => ({}));
+
+      if (res.ok && resData.ok) {
+        const photoLookup = {};
+        photosToUpload.forEach(p => { photoLookup[p.nis] = p.photo; });
+
+        setStudents(prev => prev.map(s => photoLookup[s.nis] ? { ...s, photo: photoLookup[s.nis] } : s));
+        setTempPhotos(prev => ({ ...prev, ...photoLookup }));
+
+        if (previewStudent && photoLookup[previewStudent.nis]) {
+          setPreviewStudent(prev => ({ ...prev, photo: photoLookup[prev.nis] }));
+        }
+
+        showToast(`Berhasil menyimpan ${resData.updated || photosToUpload.length} foto siswa secara permanen!`, 'success');
+      } else {
+        showToast(resData.message || 'Gagal menyimpan foto siswa massal ke database', 'error');
+      }
+    } catch (err) {
+      console.error('Batch upload error:', err);
+      showToast('Terjadi kesalahan saat mengunggah foto massal', 'error');
+    } finally {
+      setIsUploadingBatchPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  const handlePrint = (specificStudent = null) => {
+    let targetList = [];
+    if (specificStudent && (specificStudent.nis || specificStudent.name)) {
+      targetList = [specificStudent];
+    } else if (selectedStudents.length > 0) {
+      targetList = students.filter(s => selectedStudents.includes(s.nis));
+    } else if (previewStudent) {
+      targetList = [previewStudent];
+    } else if (students.length > 0) {
+      targetList = [students[0]];
+    }
+
+    if (targetList.length === 0) return showToast('Pilih minimal satu siswa untuk dicetak!', 'error');
+
+    setPrintingStudentsList(targetList);
     setIsPrinting(true);
-    selectedStudents.forEach(nis => {
-      const student = students.find(s => s.nis === nis);
-      if (student) logPrintAction(student);
-    });
+    targetList.forEach(student => logPrintAction(student));
     setTimeout(() => {
       window.print();
       setIsPrinting(false);
-    }, 300);
+      setPrintingStudentsList(null);
+    }, 350);
   };
 
-  const handleDownloadPDF = () => {
-    if (selectedStudents.length === 0) return showToast('Pilih minimal satu siswa untuk diunduh!', 'error');
+  const handleDownloadPDF = (specificStudent = null) => {
+    let targetList = [];
+    if (specificStudent && (specificStudent.nis || specificStudent.name)) {
+      targetList = [specificStudent];
+    } else if (selectedStudents.length > 0) {
+      targetList = students.filter(s => selectedStudents.includes(s.nis));
+    } else if (previewStudent) {
+      targetList = [previewStudent];
+    } else if (students.length > 0) {
+      targetList = [students[0]];
+    }
+
+    if (targetList.length === 0) {
+      return showToast('Tidak ada data siswa untuk diunduh', 'error');
+    }
+
+    setPrintingStudentsList(targetList);
     setIsPrinting(true);
-    showToast('Menyiapkan file PDF, mohon tunggu...', 'success');
+    const targetLabel = targetList.length === 1 
+      ? (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis) 
+      : `${targetList.length} Siswa`;
+    showToast(`Menyiapkan kartu PDF (${targetLabel})...`, 'success');
     
     setTimeout(async () => {
       try {
@@ -565,17 +731,19 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           pdf.addImage(imgData, 'JPEG', 0, 0, 656, 200);
         }
         
-        pdf.save(`Kartu_Pelajar_${new Date().getTime()}.pdf`);
-        selectedStudents.forEach(nis => {
-          const student = students.find(s => s.nis === nis);
-          if (student) logPrintAction(student);
-        });
+        const fileName = targetList.length === 1
+          ? `Kartu_Pelajar_${(targetList[0].namaSiswa || targetList[0].name || targetList[0].nis).replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+          : `Kartu_Pelajar_Batch_${new Date().getTime()}.pdf`;
+
+        pdf.save(fileName);
+        targetList.forEach(st => logPrintAction(st));
         showToast('PDF berhasil diunduh!');
       } catch (err) {
         console.error(err);
         showToast('Gagal memproses PDF', 'error');
       } finally {
         setIsPrinting(false);
+        setPrintingStudentsList(null);
       }
     }, 600);
   };
@@ -614,6 +782,13 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         });
         
         if (saveRes.ok) {
+          if (editForm.data.photo) {
+            fetch('/api/students/photo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+              body: JSON.stringify({ nis: editForm.data.nis, photo: editForm.data.photo })
+            }).catch(e => console.error('Gagal sinkron foto saat edit manual:', e));
+          }
           showToast('Data berhasil disimpan');
           setStudents(updatedStudents);
           setEditForm(null);
@@ -973,14 +1148,6 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     }
   };
 
-  const studentsToPrint = useMemo(() => {
-    const list = previewStudent ? [previewStudent] : students.filter(s => selectedStudents.includes(s.nis));
-    return list.map(s => ({
-      ...s,
-      photo: tempPhotos[s.nis] || s.photo || null
-    }));
-  }, [students, selectedStudents, previewStudent, tempPhotos]);
-
   const activeStudentForPreview = useMemo(() => {
     let base = previewStudent;
     if (!base && selectedStudents.length > 0) {
@@ -992,6 +1159,25 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       photo: tempPhotos[base.nis] || base.photo || null
     };
   }, [previewStudent, selectedStudents, students, tempPhotos]);
+
+  const studentsToPrint = useMemo(() => {
+    if (printingStudentsList && printingStudentsList.length > 0) {
+      return printingStudentsList.map(s => ({
+        ...s,
+        photo: tempPhotos[s.nis] || s.photo || null
+      }));
+    }
+    const list = previewStudent 
+      ? [previewStudent] 
+      : (selectedStudents.length > 0 
+          ? students.filter(s => selectedStudents.includes(s.nis)) 
+          : (activeStudentForPreview ? [activeStudentForPreview] : []));
+    return list.map(s => ({
+      ...s,
+      photo: tempPhotos[s.nis] || s.photo || null
+    }));
+  }, [students, selectedStudents, previewStudent, tempPhotos, printingStudentsList, activeStudentForPreview]);
+
 
   const pendingRequestsCount = useMemo(() => {
     return requests.filter(r => r.status === 'pending').length;
@@ -1083,6 +1269,24 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    <label
+                      className={`bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all ${
+                        isUploadingBatchPhotos ? 'opacity-70 pointer-events-none' : ''
+                      }`}
+                      title="Upload Banyak Foto Siswa Sekaligus (Nama file: NIS.jpg atau NIS.png)"
+                    >
+                      <Camera size={14} className="text-indigo-600" />
+                      <span>{isUploadingBatchPhotos ? 'Mengunggah...' : 'Upload Foto Massal'}</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple 
+                        onChange={handleBatchPhotosUpload} 
+                        disabled={isUploadingBatchPhotos}
+                        className="hidden" 
+                      />
+                    </label>
+
                     <button
                       type="button"
                       onClick={() => setShowExcelModal(true)}
@@ -1228,9 +1432,9 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                             </td>
                             <td className="p-3">
                               <div className="flex items-center gap-2">
-                                {tempPhotos[student.nis] || student.photo ? (
+                                {student.photo || tempPhotos[student.nis] ? (
                                   <img 
-                                    src={tempPhotos[student.nis] || student.photo} 
+                                    src={student.photo || tempPhotos[student.nis]} 
                                     alt="Foto" 
                                     className="w-7 h-7 rounded-[var(--ui-radius-small)] object-cover shrink-0 border border-emerald-300 shadow-xs" 
                                   />
@@ -1241,9 +1445,13 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                 )}
                                 <div className="min-w-0">
                                   <p className="font-bold text-slate-800 truncate">{student.namaSiswa || student.name}</p>
-                                  {tempPhotos[student.nis] && (
-                                    <span className="text-[9px] font-black text-emerald-600">Foto Ready (In-Memory)</span>
-                                  )}
+                                  {student.photo ? (
+                                    <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-0.5">
+                                      <Check size={9} /> Foto Tersimpan
+                                    </span>
+                                  ) : tempPhotos[student.nis] ? (
+                                    <span className="text-[9px] font-bold text-amber-600">Foto Ready (Memori)</span>
+                                  ) : null}
                                 </div>
                               </div>
                             </td>
@@ -1263,24 +1471,20 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                               <div className="flex items-center justify-center gap-1">
                                 <label 
                                   className={`p-1.5 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer flex items-center justify-center ${
-                                    tempPhotos[student.nis]
+                                    (student.photo || tempPhotos[student.nis])
                                       ? 'bg-emerald-50 text-emerald-600 border-emerald-300 shadow-xs'
                                       : 'bg-slate-50 text-slate-500 hover:text-[var(--ui-primary)] border-slate-200/80 hover:bg-[var(--ui-primary)]/10'
                                   }`}
-                                  title={tempPhotos[student.nis] ? "Foto tersimpan di memori (Siap Cetak - Tidak disimpan ke DB)" : "Upload Foto Siswa (Hanya di memori / Tanpa simpan DB)"}
+                                  title={(student.photo || tempPhotos[student.nis]) ? "Ubah Foto Siswa (Tersimpan Permanen ke DB)" : "Upload Foto Siswa (Tersimpan Permanen ke DB)"}
                                 >
                                   <Upload size={13} />
                                   <input 
                                     type="file" 
                                     accept="image/*" 
                                     onChange={e => {
-                                      const file = e.target.files[0];
-                                      if (file) {
-                                        compressImage(file, { maxWidth: 400, maxHeight: 500, quality: 0.8 }).then(compressedBase64 => {
-                                          setTempPhotos(prev => ({ ...prev, [student.nis]: compressedBase64 }));
-                                          showToast(`Foto siswa ${student.namaSiswa || student.name} dimuat di memori!`);
-                                        });
-                                      }
+                                      const file = e.target.files?.[0];
+                                      if (file) handleUploadSinglePhoto(student, file);
+                                      e.target.value = '';
                                     }} 
                                     className="hidden" 
                                   />
@@ -1297,6 +1501,16 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                   title="Pratinjau Kartu"
                                 >
                                   <Eye size={13} />
+                                </button>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadPDF(student)}
+                                  disabled={isPrinting}
+                                  className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 hover:text-emerald-700 border border-slate-200/80 hover:bg-emerald-50 transition-all cursor-pointer"
+                                  title="Download PDF Kartu Siswa Ini"
+                                >
+                                  <Download size={13} />
                                 </button>
                                 
                                 <button
@@ -1336,20 +1550,22 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                   <Button 
                     variant="outline" 
                     type="button" 
-                    onClick={handleDownloadPDF} 
-                    disabled={selectedStudents.length === 0 || isPrinting}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs font-bold border-slate-200 rounded-[var(--ui-radius-control)]"
+                    onClick={() => handleDownloadPDF()} 
+                    disabled={isPrinting}
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs font-bold border-slate-200 rounded-[var(--ui-radius-control)] shadow-xs hover:border-[var(--ui-primary)]"
+                    title="Download kartu siswa terpilih atau pratinjau aktif ke file PDF"
                   >
-                    <Download size={14} /> Download PDF
+                    <Download size={14} className="text-[var(--ui-primary)]" />
+                    <span>Download PDF {selectedStudents.length > 0 ? `(${selectedStudents.length})` : '(Pratinjau)'}</span>
                   </Button>
 
                   <Button 
                     type="button" 
-                    onClick={handlePrint} 
-                    disabled={selectedStudents.length === 0 || isPrinting}
+                    onClick={() => handlePrint()} 
+                    disabled={isPrinting}
                     className="flex-1 sm:flex-initial bg-[var(--ui-primary-btn,var(--ui-primary))] hover:opacity-90 active:scale-98 text-white font-black text-xs px-4 py-2 rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
-                    <Printer size={14} /> Cetak {selectedStudents.length > 0 ? `(${selectedStudents.length})` : ''}
+                    <Printer size={14} /> Cetak {selectedStudents.length > 0 ? `(${selectedStudents.length})` : '(Pratinjau)'}
                   </Button>
                 </div>
               </div>
@@ -1434,9 +1650,30 @@ export default function KartuPelajar({ students: propStudents = [] }) {
               </div>
 
               {/* Single Student Quick Action Buttons */}
-              <div className="pt-2 flex justify-between items-center text-[11px] text-slate-400 font-medium">
-                <span>Ukuran Fisik: Standar ID-Card (86mm x 54mm)</span>
-                <span className="text-emerald-400 font-bold">Siap Cetak</span>
+              <div className="pt-2 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-slate-400 font-medium border-t border-slate-800/80 mt-2">
+                <span className="truncate">Ukuran: Standar ID-Card (86x54mm)</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrint(activeStudentForPreview)}
+                    disabled={isPrinting}
+                    className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Cetak kartu ini langsung"
+                  >
+                    <Printer size={12} />
+                    <span>Cetak</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPDF(activeStudentForPreview)}
+                    disabled={isPrinting}
+                    className="px-3 py-1.5 rounded-[var(--ui-radius-small)] bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black flex items-center gap-1.5 shadow-xs transition-all cursor-pointer active:scale-98"
+                    title="Download PDF untuk kartu ini"
+                  >
+                    <Download size={12} />
+                    <span>Download PDF</span>
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -2266,6 +2503,49 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           maxWidth="max-w-md"
         >
           <form onSubmit={handleSaveManual} className="space-y-3.5 font-inherit">
+            {/* Foto Profil Siswa */}
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1">Foto Siswa</label>
+              <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-control)]">
+                <div className="w-14 h-16 rounded-[var(--ui-radius-small)] bg-white border border-slate-300 shadow-2xs overflow-hidden flex items-center justify-center shrink-0">
+                  {editForm.data.photo ? (
+                    <img src={editForm.data.photo} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={24} className="text-slate-300" />
+                  )}
+                </div>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold rounded-[var(--ui-radius-small)] cursor-pointer shadow-2xs transition-all">
+                    <Camera size={13} className="text-[var(--ui-primary)]" />
+                    <span>{editForm.data.photo ? 'Ganti Foto' : 'Unggah Foto'}</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          compressImage(file, { maxWidth: 400, maxHeight: 500, quality: 0.82 }).then(base64 => {
+                            setEditForm(prev => ({ ...prev, data: { ...prev.data, photo: base64 } }));
+                          });
+                        }
+                      }}
+                    />
+                  </label>
+                  {editForm.data.photo && (
+                    <button 
+                      type="button" 
+                      onClick={() => setEditForm(prev => ({ ...prev, data: { ...prev.data, photo: '' } }))}
+                      className="text-[10px] font-bold text-rose-600 hover:text-rose-700 block cursor-pointer"
+                    >
+                      Hapus Foto
+                    </button>
+                  )}
+                  <p className="text-[10px] text-slate-400">Rasio pas foto resmi (3:4)</p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1">NIS</label>
               <input 

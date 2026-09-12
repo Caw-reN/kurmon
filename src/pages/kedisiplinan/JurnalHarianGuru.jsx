@@ -13,6 +13,7 @@ import { PageHeader } from'../../components/monitoring/ui/index.js';
 import { PaginationControls } from'../../components/ui/PaginationControls.jsx';
 import { Modal, Button } from '../../components/ui.jsx';
 import { logJournalEntry, logFileDownload } from '../../utils/auditLogger.js';
+import RekapJurnalKelas from './RekapJurnalKelas.jsx';
 
 
 const HARI_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -1663,7 +1664,7 @@ function JurnalModal({
 
 }
 
-export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [], onBack }) {
+export default function JurnalHarianGuru({ classes = [], teachers = [], schedule = [], onBack, initialView = 'harian' }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   const role = user?.role ||'';
@@ -1678,7 +1679,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterTeacher, setFilterTeacher] = useState('');
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [activeView, setActiveView] = useState('harian'); // harian | rekap
+  const [activeView, setActiveView] = useState(initialView || 'harian'); // harian | rekap_kelas | rekap
   const [harianSubView, setHarianSubView] = useState('hari_ini'); // hari_ini | terlewat | riwayat
   const [missedRangeDays, setMissedRangeDays] = useState(14); // 7 | 14 | 30
   const [missedSearch, setMissedSearch] = useState('');
@@ -2470,10 +2471,11 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         title="Jurnal Harian Guru"
         icon={BookOpen}
         description="Pencatatan kegiatan KBM harian yang tersinkron dengan jadwal Anda."
-        tabs={isKurikulum ? [
-          { id: 'harian', label: 'Jurnal Harian', icon: BookOpen },
-          { id: 'rekap', label: 'Rekap Per Guru', icon: Users }
-        ] : []}
+        tabs={[
+          { id: 'harian', label: 'Jurnal Saya', icon: BookOpen },
+          { id: 'rekap_kelas', label: 'Rekapan Jurnal Kelas', icon: ClipboardList },
+          ...(isKurikulum ? [{ id: 'rekap', label: 'Rekap Per Guru', icon: Users }] : [])
+        ]}
         activeTab={activeView}
         onTabChange={setActiveView}
         onBack={onBack}
@@ -3401,6 +3403,16 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             </div>
           )}
         </>
+      )}
+
+      {/* === REKAPAN JURNAL KELAS VIEW === */}
+      {activeView === 'rekap_kelas' && (
+        <RekapJurnalKelas
+          classes={classes}
+          teachers={teachers}
+          schedule={schedule}
+          onBack={onBack}
+        />
       )}
 
       {/* === REKAP VIEW (Kurikulum) OVERHAULED === */}

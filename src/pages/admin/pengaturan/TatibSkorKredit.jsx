@@ -2,6 +2,7 @@ import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect, useMemo } from 'react';
 import { BookOpen, ShieldAlert, Award, HelpCircle, Search, Plus, Edit2, Trash2, X, Save, AlertCircle, CheckCircle2, Upload, Download, Calendar, Settings2, ChevronDown, ChevronUp, FileText, Filter } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
+import { useDataStore } from '../../../store/useDataStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { UISelect, Modal } from '../../../components/ui.jsx';
@@ -20,8 +21,19 @@ export default function TatibSkorKredit() {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false); // Collapsible on mobile
 
   const [form, setForm] = useState({ judul: '', keterangan: '', jenis: 'pelanggaran', nilai_poin: 10 });
-  const authToken = useAuthStore(state => state.user?.authToken);
-  const userRole = useAuthStore(state => state.user?.role || 'guru');
+  const sessionUser = useDataStore(state => state.currentUser);
+  const authUser = useAuthStore(state => state.user);
+  const rawSession = useMemo(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      return JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || localStorage.getItem('school_schedule_session_v1') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const authToken = authUser?.authToken || sessionUser?.authToken || rawSession?.authToken || '';
+  const userRole = authUser?.role || sessionUser?.role || rawSession?.role || 'guru';
   const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'guru'].includes(userRole);
 
   const { kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
@@ -34,16 +46,15 @@ export default function TatibSkorKredit() {
 
   const fetchStartDate = async () => {
     try {
-      const res = await fetch('/api/kedisiplinan/attendance-start-date', {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+      const res = await fetch('/api/kedisiplinan/attendance-start-date', { headers });
       const data = await res.json();
       if (data.ok && data.startDate) setStartDate(data.startDate);
     } catch (e) {}
   };
 
   useEffect(() => {
-    if (authToken) fetchStartDate();
+    fetchStartDate();
   }, [authToken]);
 
   const handleUpdateStartDate = async (val) => {
@@ -168,10 +179,10 @@ export default function TatibSkorKredit() {
   };
 
   const fetchData = async () => {
-    if (!authToken) return;
     setIsLoading(true);
     try {
-      const res = await fetch('/api/kedisiplinan/master', { headers: { Authorization: `Bearer ${authToken}` } });
+      const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+      const res = await fetch('/api/kedisiplinan/master', { headers });
       const data = await res.json();
       if (data.ok) {
         setItems(data.data || []);
@@ -188,15 +199,23 @@ export default function TatibSkorKredit() {
     fetchData();
   }, [authToken]);
 
+  const isItemPelanggaran = (jenis) => String(jenis || '').toLowerCase() === 'pelanggaran';
+  const isItemPrestasi = (jenis) => {
+    const j = String(jenis || '').toLowerCase();
+    return j === 'penghargaan' || j === 'prestasi';
+  };
+
   // Counts for summary tabs
   const countTotal = items.length;
-  const countPelanggaran = useMemo(() => items.filter(i => String(i.jenis || '').toLowerCase() === 'pelanggaran').length, [items]);
-  const countPrestasi = useMemo(() => items.filter(i => String(i.jenis || '').toLowerCase() === 'penghargaan').length, [items]);
+  const countPelanggaran = useMemo(() => items.filter(i => isItemPelanggaran(i.jenis)).length, [items]);
+  const countPrestasi = useMemo(() => items.filter(i => isItemPrestasi(i.jenis)).length, [items]);
 
   const filteredItems = useMemo(() => {
     let result = items.filter(item => {
       const matchSearch = !searchTerm || item.nama_tindakan?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchType = filterType === 'all' || String(item.jenis || '').toLowerCase() === filterType.toLowerCase();
+      const matchType = filterType === 'all' 
+        || (filterType === 'pelanggaran' && isItemPelanggaran(item.jenis))
+        || (filterType === 'penghargaan' && isItemPrestasi(item.jenis));
       return matchSearch && matchType;
     });
 
@@ -312,10 +331,11 @@ export default function TatibSkorKredit() {
   const openEdit = (item) => {
     setEditingItem(item);
     const parts = String(item.nama_tindakan || '').split(' - ');
+    const isPrestasi = isItemPrestasi(item.jenis);
     setForm({ 
       judul: parts[0] || '', 
       keterangan: parts.slice(1).join(' - ') || '', 
-      jenis: String(item.jenis || 'pelanggaran').toLowerCase(), 
+      jenis: isPrestasi ? 'penghargaan' : 'pelanggaran', 
       nilai_poin: item.nilai_poin 
     });
     setShowModal(true);

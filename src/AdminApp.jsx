@@ -140,7 +140,7 @@ export default function App() {
 
   useEffect(() => {
     const role = currentUser?.role ? String(currentUser.role).toLowerCase() : "";
-    if (role === "guru" && (currentUser?.code || currentUser?.id)) {
+    if ((role === "guru" || role === "walikelas" || currentUser?.isWalas) && (currentUser?.code || currentUser?.id || currentUser?.username)) {
       const storageSession = localStorage.getItem('school_schedule_session_v1') || sessionStorage.getItem('school_schedule_session_v1');
       if (storageSession) {
         try {
@@ -153,13 +153,21 @@ export default function App() {
             .then(r => r.json())
             .then(res => {
               if (res.ok && Array.isArray(res.data)) {
-                const teacherCode = currentUser.code || currentUser.id;
+                const candidateCodes = [
+                  currentUser?.code,
+                  currentUser?.id,
+                  currentUser?.username,
+                  currentUser?.nip,
+                  currentUser?.staff_code
+                ].filter(Boolean).map(c => String(c).trim().toLowerCase());
+
                 const hasSched = res.data.some(s => {
                   let ids = s.guru_ids;
                   if (typeof ids === "string") {
-                    try { ids = JSON.parse(ids); } catch { /* intentionally ignored — ids stays as-is if not valid JSON */ }
+                    try { ids = JSON.parse(ids); } catch { /* intentionally ignored */ }
                   }
-                  return Array.isArray(ids) && ids.some(id => String(id).trim().toLowerCase() === String(teacherCode).trim().toLowerCase());
+                  if (!Array.isArray(ids)) return false;
+                  return ids.some(id => candidateCodes.includes(String(id).trim().toLowerCase()));
                 });
                 setHasPiket(hasSched);
               }
@@ -1579,10 +1587,10 @@ export default function App() {
         }
       }
 
-      // Khusus kedisiplinan_piket: hanya diizinkan jika admin, kepsek, tim kesiswaan/bpbk, atau bertugas piket (hasPiket), atau diset edit/view secara eksplisit
-      if (tabId === 'kedisiplinan_piket') {
+      // Khusus kedisiplinan_piket / kedisiplinan_bpbk / kedisiplinan_hub
+      if (tabId === 'kedisiplinan_piket' || tabId === 'kedisiplinan_bpbk' || tabId === 'kedisiplinan_hub') {
         if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') return true;
-        const piketPerm = perms?.[tabId];
+        const piketPerm = perms?.[tabId] || perms?.['kedisiplinan_piket'] || perms?.['kedisiplinan_bpbk'] || perms?.['kedisiplinan_hub'];
         if (piketPerm === 'nonaktif' || piketPerm === 'none' || piketPerm === 'off') return false;
 
         const div = (currentUser?.division || "").toLowerCase().trim();
@@ -1592,9 +1600,10 @@ export default function App() {
 
         if (isKesiswaanTeam) return true;
 
-        if (piketPerm === 'edit' || piketPerm === 'full' || piketPerm === 'view') return true;
+        if (piketPerm === 'edit' || piketPerm === 'full' || piketPerm === 'view' || piketPerm === 'otomatis') return true;
         if (hasPiket && piketPerm !== 'nonaktif' && piketPerm !== 'none' && piketPerm !== 'off') return true;
-        return false;
+        if ((role === 'guru' || isWalasUser) && piketPerm !== 'nonaktif' && piketPerm !== 'none' && piketPerm !== 'off') return true;
+        return true;
       }
 
       // Walas override jika belum di-set nonaktif
@@ -1604,8 +1613,8 @@ export default function App() {
 
       // Fallback DEFAULTS
       const DEFAULTS = {
-        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
-        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
+        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","silabusguru","ketersediaan","beban","pesan"],
+        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","silabusguru","ketersediaan","beban","pesan"],
         bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","siswa","hikvision_report_siswa"],
         pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","riwayat_prestasi","siswa","modul_ajar"],
         sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi"],
@@ -2744,8 +2753,8 @@ export default function App() {
 
     let isAllowed = false;
 
-    // Khusus kedisiplinan_piket: hanya boleh jika superadmin, kepsek, tim kesiswaan/bpbk, bertugas piket (hasPiket), atau diset edit/view secara eksplisit
-    if (id === 'kedisiplinan_piket') {
+    // Khusus kedisiplinan_piket / kedisiplinan_bpbk / kedisiplinan_hub
+    if (id === 'kedisiplinan_piket' || id === 'kedisiplinan_bpbk' || id === 'kedisiplinan_hub') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
@@ -2761,9 +2770,10 @@ export default function App() {
 
       if (isKesiswaanTeam) return true;
 
-      if (level === "edit" || level === "full" || level === "view") return true;
+      if (level === "edit" || level === "full" || level === "view" || level === "otomatis") return true;
       if (hasPiket && level !== "nonaktif" && level !== "none" && level !== "off") return true;
-      return false;
+      if ((activeRole === 'guru' || isWalasUser) && level !== "nonaktif" && level !== "none" && level !== "off") return true;
+      return true;
     }
 
     if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
@@ -2774,8 +2784,8 @@ export default function App() {
       isAllowed = true;
     } else {
       const DEFAULTS = {
-        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
-        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan"],
+        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","silabusguru","ketersediaan","beban","pesan"],
+        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","silabusguru","ketersediaan","beban","pesan"],
         bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","siswa","hikvision_report_siswa"],
         pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","riwayat_prestasi","siswa","modul_ajar"],
         sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi"],

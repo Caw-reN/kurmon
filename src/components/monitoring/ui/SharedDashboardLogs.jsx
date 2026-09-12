@@ -73,6 +73,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const dataStoreTeachers = useDataStore(state => state.teachers);
   const appStoreTeachers = useAppStore(state => state.teachers);
   const storeTeachers = dataStoreTeachers || appStoreTeachers || [];
+  const dataStoreStaffs = useDataStore(state => state.staffs) || [];
+  const appStoreStaffs = useAppStore(state => state.staffs) || [];
+  const storeStaffs = dataStoreStaffs.length > 0 ? dataStoreStaffs : appStoreStaffs;
   const dataStoreStudents = useDataStore(state => state.students) || [];
   const storeStudents = useAppStore(state => state.students) || [];
   const snapshotStudents = getDatabaseSnapshot()?.students || [];
@@ -267,6 +270,23 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       return item;
     });
 
+    // Validasi ketat: HANYA yang terdaftar di master guru atau karyawan yang diperbolehkan tampil
+    logs = logs.filter(item => {
+      const empId = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
+      const normName = String(item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const isTeacher = (storeTeachers || []).some(t => {
+        const c = String(t.code || t.nip || t.id || t.username || '').trim().toLowerCase();
+        const tn = String(t.name || t.nama || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        return (c && c === empId) || (normName && normName === tn);
+      });
+      const isStaff = (storeStaffs || []).some(s => {
+        const c = String(s.code || s.nip || s.id || s.username || s.staff_code || '').trim().toLowerCase();
+        const sn = String(s.name || s.nama || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        return (c && c === empId) || (normName && normName === sn);
+      });
+      return isTeacher || isStaff;
+    });
+
     logs = dedupeFront(logs);
 
     // Diurutkan dari jam absen tercepat (ASC)
@@ -279,7 +299,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
     return logs.filter(item => (item.name || item.username || '').toLowerCase().includes(q));
-  }, [dashLogs, storeAttendanceRecords, storeTeachers, todayStr, searchQuery, subFilter]);
+  }, [dashLogs, storeAttendanceRecords, storeTeachers, storeStaffs, todayStr, searchQuery, subFilter]);
 
   const terlambatGuruLogs = useMemo(() => {
     let logs = guruKaryawanLogs.filter(item =>
@@ -310,14 +330,26 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       });
     }
 
-    // Filter ketat: Jangan biarkan kode guru (1-3 digit) atau staf (K...) masuk ke tab siswa
+    // Filter ketat: Hanya izinkan siswa yang valid dan terdaftar di master data siswa (allStudents)
     logs = logs.filter(item => {
-      const empId = String(item.employee_id || item.nis || item.username || '').trim();
-      if (!empId) return true;
+      const empId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
+      const empName = String(item.student_name || item.name || '').trim().toLowerCase();
+      if (!empId && !empName) return false;
       if (empId.toUpperCase().startsWith('K')) return false;
       const type = String(item.true_person_type || item.role_type || '').toLowerCase();
       if (type === 'guru' || type === 'karyawan') return false;
-      return true;
+
+      // Validasi terhadap master siswa (studentLookupMap)
+      let matched = studentLookupMap.nisMap.get(empId) || studentLookupMap.nameMap.get(empName);
+      if (!matched && empId.length >= 5) {
+        for (const [sNis, sObj] of studentLookupMap.nisMap.entries()) {
+          if (sNis.length >= 5 && (sNis.endsWith(empId) || empId.endsWith(sNis))) {
+            matched = sObj;
+            break;
+          }
+        }
+      }
+      return Boolean(matched);
     });
 
     logs = dedupeFront(logs);

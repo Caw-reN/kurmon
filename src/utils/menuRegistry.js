@@ -16,7 +16,7 @@ import {
   History, Users, GraduationCap, UserMinus, Trophy, ShieldAlert,
   Briefcase, PieChart, Settings, SlidersHorizontal, AppWindow,
   DoorOpen, Phone, HardDrive, DatabaseBackup, Activity, UserCog,
-  Shield, MonitorSmartphone, User, Wand2, Building2, FolderOpen, UserCheck
+  Shield, ShieldCheck, MonitorSmartphone, User, Wand2, Building2, FolderOpen, UserCheck
 } from 'lucide-react';
 
 /**
@@ -211,17 +211,9 @@ export const MENU_REGISTRY = [
   },
   {
     id: 'kedisiplinan_bpbk',
-    icon: BookOpen,
-    label: 'Bimbingan Konseling',
-    section: 'Kesiswaan',
-    adminGroup: 'Kesiswaan',
-    adminGroupIcon: Users,
-    adminGroupKey: 'kesiswaan',
-  },
-  {
-    id: 'kedisiplinan_piket',
-    icon: ClipboardList,
-    label: 'Piket & Pelanggaran',
+    activeIds: ['kedisiplinan_bpbk', 'kedisiplinan_piket', 'kedisiplinan_hub'],
+    icon: ShieldCheck,
+    label: 'BK, Piket & Pelanggaran',
     section: 'Kesiswaan',
     adminGroup: 'Kesiswaan',
     adminGroupIcon: Users,
@@ -246,6 +238,16 @@ export const MENU_REGISTRY = [
     adminGroup: 'Kesiswaan',
     adminGroupIcon: Users,
     adminGroupKey: 'kesiswaan',
+    specialCondition: 'walas_only',
+  },
+  {
+    id: 'rekap_jurnal_kelas',
+    icon: BookOpen,
+    label: 'Rekap Jurnal Kelas',
+    section: 'Wali Kelas',
+    adminGroup: 'Kurikulum',
+    adminGroupIcon: BookOpen,
+    adminGroupKey: 'kurikulum',
     specialCondition: 'walas_only',
   },
   {

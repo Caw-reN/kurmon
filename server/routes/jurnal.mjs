@@ -40,8 +40,18 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         `;
         const params = [];
 
-        if (!isKurikulum) {
-          // Guru hanya lihat milik sendiri
+        const isRekapKelas = url.searchParams.get('mode') === 'rekap_kelas' || 
+                             url.searchParams.get('scope') === 'kelas' || 
+                             url.searchParams.get('rekap_kelas') === 'true';
+
+        if (isRekapKelas && filterKelas) {
+          // Rekapan Jurnal Kelas: Boleh melihat seluruh guru di kelas tersebut
+          if (filterTeacher) {
+            params.push(filterTeacher);
+            query += ` AND j.teacher_code = $${params.length}`;
+          }
+        } else if (!isKurikulum) {
+          // Guru hanya lihat milik sendiri dalam tampilan jurnal pribadinya
           params.push(session?.code || session?.id || '');
           query += ` AND j.teacher_code = $${params.length}`;
         } else if (filterTeacher) {
@@ -77,22 +87,42 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           }
         }
         if (filterKelas) {
-          params.push(filterKelas);
-          query += ` AND j.kelas = $${params.length}`;
+          params.push(filterKelas.trim());
+          query += ` AND (LOWER(TRIM(j.kelas)) = LOWER(TRIM($${params.length})) OR j.kelas = $${params.length})`;
         }
 
-        const sortDir = (url.searchParams.get('sort') || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        const sortDir = (url.searchParams.get('sort') || (isRekapKelas ? 'asc' : 'desc')).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
         query += ` ORDER BY j.tanggal ${sortDir}, j.jam_ke ASC`;
 
-        // Limit di-cap maksimum 500 baris untuk keamanan performa server
+        // Limit di-cap maksimum 2000 baris untuk keamanan performa server dan kelengkapan 1 semester
         const rawLimit = url.searchParams.get('limit');
-        const limit = rawLimit === 'all' ? 500 : Math.min(parseInt(rawLimit || '50', 10), 500);
+        const maxLimit = isRekapKelas ? 2000 : 500;
+        const limit = rawLimit === 'all' ? maxLimit : Math.min(parseInt(rawLimit || (isRekapKelas ? '500' : '50'), 10), maxLimit);
         const offset = parseInt(url.searchParams.get('offset') || '0', 10);
         query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         params.push(limit, offset);
 
         const { rows } = await dbPool.query(query, params);
         send(req, res, 200, { ok: true, data: rows, total: rows.length });
+        return;
+      }
+
+      // GET /api/jurnal/classes-summary — ringkasan keaktifan jurnal per kelas
+      if (req.method === 'GET' && url.pathname === '/api/jurnal/classes-summary') {
+        const { rows } = await dbPool.query(`
+          SELECT 
+            TRIM(kelas) AS kelas,
+            COUNT(*) AS total_jurnal,
+            COUNT(DISTINCT teacher_code) AS total_guru,
+            COUNT(DISTINCT mapel) AS total_mapel,
+            TO_CHAR(MAX(tanggal), 'YYYY-MM-DD') AS jurnal_terakhir,
+            TO_CHAR(MIN(tanggal), 'YYYY-MM-DD') AS jurnal_pertama
+          FROM jurnal_harian_guru
+          WHERE kelas IS NOT NULL AND TRIM(kelas) != ''
+          GROUP BY TRIM(kelas)
+          ORDER BY total_jurnal DESC, kelas ASC
+        `);
+        send(req, res, 200, { ok: true, data: rows });
         return;
       }
 

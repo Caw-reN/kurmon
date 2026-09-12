@@ -153,10 +153,11 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     absensi.forEach(a => {
       const nisStr = String(a.siswa_nis);
       if (!map[nisStr]) {
-        map[nisStr] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+        map[nisStr] = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpa: 0 };
       }
       const st = String(a.status || '').toLowerCase();
-      if (st === 'sakit') map[nisStr].sakit += 1;
+      if (st === 'terlambat') map[nisStr].terlambat += 1;
+      else if (st === 'sakit') map[nisStr].sakit += 1;
       else if (st === 'izin') map[nisStr].izin += 1;
       else if (st === 'alpa' || st === 'belum scan') map[nisStr].alpa += 1;
       else map[nisStr].hadir += 1;
@@ -166,10 +167,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       students.forEach(s => {
         const nisStr = String(s.nis);
         if (!map[nisStr]) {
-          map[nisStr] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+          map[nisStr] = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpa: 0 };
         }
         const att = map[nisStr];
-        const knownDays = att.hadir + att.sakit + att.izin + att.alpa;
+        const knownDays = att.hadir + att.terlambat + att.sakit + att.izin + att.alpa;
         const missingDays = Math.max(0, totalSchoolDays - knownDays);
         att.alpa += missingDays;
       });
@@ -233,7 +234,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     const map = {};
     classes.forEach(c => {
       const cName = c.name || c.kelas || c.class_name;
-      map[cName] = { class_name: cName, poin: 0, alpa: 0, sakit: 0, izin: 0, total_students: 0, avg_score: 100 };
+      map[cName] = { class_name: cName, poin: 0, terlambat: 0, alpa: 0, sakit: 0, izin: 0, total_students: 0, avg_score: 100 };
     });
 
     // Count students per class
@@ -263,7 +264,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       const className = student ? (student.class_name || student.kelas) : null;
       if (className && map[className]) {
         const st = String(a.status || '').toLowerCase();
-        if (st === 'alpa' || st === 'belum scan') map[className].alpa += 1;
+        if (st === 'terlambat') map[className].terlambat += 1;
+        else if (st === 'alpa' || st === 'belum scan') map[className].alpa += 1;
         else if (st === 'sakit') map[className].sakit += 1;
         else if (st === 'izin') map[className].izin += 1;
       }
@@ -291,10 +293,20 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     
     // Prepare Students Recap sheet
     const studentsRecapData = filteredStudentsList.map((s, idx) => {
-      const name = s.name || s.nama || s.namaSiswa ||"";
-      const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+      const name = s.name || s.nama || s.namaSiswa || "";
+      const att = studentAttendance[s.nis] || { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpa: 0 };
       const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
-      return {"No": idx + 1,"NIS": s.nis,"Nama Siswa": name,"Kelas": s.class_name ||"-","Hadir": att.hadir,"Sakit": att.sakit,"Izin": att.izin,"Alpa": att.alpa,"Skor Kredit": score
+      return {
+        "No": idx + 1,
+        "NIS": s.nis,
+        "Nama Siswa": name,
+        "Kelas": s.class_name || "-",
+        "Hadir": att.hadir,
+        "Terlambat": att.terlambat || 0,
+        "Sakit": att.sakit,
+        "Izin": att.izin,
+        "Alpa": att.alpa,
+        "Skor Kredit": score
       };
     });
     
@@ -305,7 +317,14 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
        studentsRecapData.forEach(item => wsStudents.addRow(keys.map(k => item[k])));
     }
     
-    const classStatsData = classStats.map(cs => ({"Kelas": cs.class_name,"Total Poin Pelanggaran": cs.poin,"Rata-rata Skor Kredit": cs.avg_score,"Total Alpa": cs.alpa,"Total Sakit": cs.sakit,"Total Izin": cs.izin
+    const classStatsData = classStats.map(cs => ({
+      "Kelas": cs.class_name,
+      "Total Poin Pelanggaran": cs.poin,
+      "Rata-rata Skor Kredit": cs.avg_score,
+      "Total Terlambat": cs.terlambat || 0,
+      "Total Alpa": cs.alpa,
+      "Total Sakit": cs.sakit,
+      "Total Izin": cs.izin
     }));
     
     const wsClassStats = wb.addWorksheet("Rekap_Kelas");
@@ -406,30 +425,34 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     doc.text("I. REKAPITULASI KEHADIRAN", 15, yPos);
     doc.setFont("Helvetica", "normal");
 
-    const sAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Sakit' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const iAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Izin' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const aAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Alpa' || a.status === 'Belum Scan') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const totalHadir = absensi.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Hadir').length;
+    const sAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Sakit' || String(a.status).toLowerCase() === 'sakit') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const iAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Izin' || String(a.status).toLowerCase() === 'izin') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const aAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Alpa' || a.status === 'Belum Scan' || String(a.status).toLowerCase() === 'alpa') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const tAbs = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Terlambat' || String(a.status).toLowerCase() === 'terlambat')).length;
+    const totalHadir = absensi.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Hadir' || String(a.status).toLowerCase() === 'hadir')).length;
 
     doc.rect(15, yPos + 4, pageWidth - 30, 16);
     doc.line(15, yPos + 12, pageWidth - 15, yPos + 12);
 
-    const colWidth = (pageWidth - 30) / 4;
+    const colWidth = (pageWidth - 30) / 5;
     doc.line(15 + colWidth, yPos + 4, 15 + colWidth, yPos + 20);
     doc.line(15 + colWidth * 2, yPos + 4, 15 + colWidth * 2, yPos + 20);
     doc.line(15 + colWidth * 3, yPos + 4, 15 + colWidth * 3, yPos + 20);
+    doc.line(15 + colWidth * 4, yPos + 4, 15 + colWidth * 4, yPos + 20);
 
     doc.setFont("Helvetica", "bold");
     doc.text("Hadir", 15 + colWidth / 2, yPos + 9, { align: "center" });
-    doc.text("Sakit", 15 + colWidth * 1.5, yPos + 9, { align: "center" });
-    doc.text("Izin", 15 + colWidth * 2.5, yPos + 9, { align: "center" });
-    doc.text("Alpa", 15 + colWidth * 3.5, yPos + 9, { align: "center" });
+    doc.text("Terlambat", 15 + colWidth * 1.5, yPos + 9, { align: "center" });
+    doc.text("Sakit", 15 + colWidth * 2.5, yPos + 9, { align: "center" });
+    doc.text("Izin", 15 + colWidth * 3.5, yPos + 9, { align: "center" });
+    doc.text("Alpa", 15 + colWidth * 4.5, yPos + 9, { align: "center" });
 
     doc.setFont("Helvetica", "normal");
     doc.text(`${totalHadir} hari`, 15 + colWidth / 2, yPos + 17, { align: "center" });
-    doc.text(`${sAbs} hari`, 15 + colWidth * 1.5, yPos + 17, { align: "center" });
-    doc.text(`${iAbs} hari`, 15 + colWidth * 2.5, yPos + 17, { align: "center" });
-    doc.text(`${aAbs} hari`, 15 + colWidth * 3.5, yPos + 17, { align: "center" });
+    doc.text(`${tAbs} kali`, 15 + colWidth * 1.5, yPos + 17, { align: "center" });
+    doc.text(`${sAbs} hari`, 15 + colWidth * 2.5, yPos + 17, { align: "center" });
+    doc.text(`${iAbs} hari`, 15 + colWidth * 3.5, yPos + 17, { align: "center" });
+    doc.text(`${aAbs} hari`, 15 + colWidth * 4.5, yPos + 17, { align: "center" });
     
     yPos += 26;
 
@@ -643,10 +666,11 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                 <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
                   <th className="px-4 py-3.5 text-center w-12">No</th>
                   <th className="px-5 py-3.5">Siswa &amp; Kelas</th>
-                  <th className="px-4 py-3.5 text-center text-emerald-700">Hadir</th>
-                  <th className="px-4 py-3.5 text-center text-indigo-700">Izin</th>
-                  <th className="px-4 py-3.5 text-center text-amber-700">Sakit</th>
-                  <th className="px-4 py-3.5 text-center text-rose-700">Alpa</th>
+                  <th className="px-3 py-3.5 text-center text-emerald-700">Hadir</th>
+                  <th className="px-3 py-3.5 text-center text-amber-600">Terlambat</th>
+                  <th className="px-3 py-3.5 text-center text-indigo-700">Izin</th>
+                  <th className="px-3 py-3.5 text-center text-amber-700">Sakit</th>
+                  <th className="px-3 py-3.5 text-center text-rose-700">Alpa</th>
                   <th className="px-4 py-3.5 text-center">Skor Kredit</th>
                   <th className="px-4 py-3.5 text-right w-28">Rapor</th>
                 </tr>
@@ -654,7 +678,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-bold">
+                    <td colSpan="9" className="px-6 py-12 text-center text-slate-400 font-bold">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
                         <span>Memuat rekap data siswa...</span>
@@ -663,7 +687,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   </tr>
                 ) : filteredStudentsList.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-semibold">
+                    <td colSpan="9" className="px-6 py-12 text-center text-slate-400 font-semibold">
                       Siswa tidak ditemukan atau belum ada data rekap.
                     </td>
                   </tr>
@@ -672,7 +696,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                     .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
                     .map((s, idx) => {
                       const name = s.name || s.nama || s.namaSiswa || "";
-                      const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+                      const att = studentAttendance[s.nis] || { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpa: 0 };
                       const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
                       const globalIdx = (siswaPage - 1) * siswaPerPage + idx;
                       return (
@@ -682,10 +706,11 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                             <p className="font-extrabold text-slate-800">{name}</p>
                             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{s.nis} • {s.class_name || "-"}</p>
                           </td>
-                          <td className="px-4 py-3 text-center font-black text-emerald-600">{att.hadir}</td>
-                          <td className="px-4 py-3 text-center font-black text-indigo-600">{att.izin}</td>
-                          <td className="px-4 py-3 text-center font-black text-amber-600">{att.sakit}</td>
-                          <td className="px-4 py-3 text-center font-black text-rose-500">{att.alpa}</td>
+                          <td className="px-3 py-3 text-center font-black text-emerald-600">{att.hadir}</td>
+                          <td className="px-3 py-3 text-center font-black text-amber-600">{att.terlambat || 0}</td>
+                          <td className="px-3 py-3 text-center font-black text-indigo-600">{att.izin}</td>
+                          <td className="px-3 py-3 text-center font-black text-amber-600">{att.sakit}</td>
+                          <td className="px-3 py-3 text-center font-black text-rose-500">{att.alpa}</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] font-black text-xs border ${
                               score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
@@ -720,7 +745,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                 .slice((siswaPage - 1) * siswaPerPage, siswaPage * siswaPerPage)
                 .map((s) => {
                   const name = s.name || s.nama || s.namaSiswa || "";
-                  const att = studentAttendance[s.nis] || { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+                  const att = studentAttendance[s.nis] || { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpa: 0 };
                   const score = Math.max(0, 100 - (studentScores[s.nis] || 0));
                   return (
                     <div key={s.nis} className="p-3.5 flex flex-col gap-2.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-xs">
@@ -736,8 +761,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-[var(--ui-radius-small)] text-center text-[10px]">
+                      <div className="grid grid-cols-5 gap-1 bg-slate-50 p-2 rounded-[var(--ui-radius-small)] text-center text-[10px]">
                         <div><span className="block text-slate-400">Hadir</span><span className="font-extrabold text-emerald-600">{att.hadir}</span></div>
+                        <div><span className="block text-slate-400">Telat</span><span className="font-extrabold text-amber-600">{att.terlambat || 0}</span></div>
                         <div><span className="block text-slate-400">Izin</span><span className="font-extrabold text-indigo-600">{att.izin}</span></div>
                         <div><span className="block text-slate-400">Sakit</span><span className="font-extrabold text-amber-600">{att.sakit}</span></div>
                         <div><span className="block text-slate-400">Alpa</span><span className="font-extrabold text-rose-600">{att.alpa}</span></div>
@@ -776,7 +802,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                   <th className="px-4 py-3.5 font-bold">Kelas</th>
                   <th className="px-4 py-3.5 font-bold text-center text-rose-600">Total Poin Pelanggaran</th>
                   <th className="px-4 py-3.5 font-bold text-center text-[var(--ui-primary)]">Rata-rata Skor Kredit</th>
-                  <th className="px-4 py-3.5 font-bold text-center text-amber-600">Total Alpa</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-amber-600">Total Terlambat</th>
+                  <th className="px-4 py-3.5 font-bold text-center text-rose-600">Total Alpa</th>
                   <th className="px-4 py-3.5 font-bold text-center text-indigo-600">Total Sakit</th>
                   <th className="px-4 py-3.5 font-bold text-center text-emerald-600">Total Izin</th>
                 </tr>
@@ -784,7 +811,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
                 {classStats.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-400 font-semibold">
+                    <td colSpan="7" className="text-center py-8 text-slate-400 font-semibold">
                       Tidak ada data kelas.
                     </td>
                   </tr>
@@ -794,6 +821,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                       <td className="px-4 py-3.5 font-extrabold text-slate-800">{cs.class_name}</td>
                       <td className="px-4 py-3.5 text-center font-black text-rose-600 bg-rose-50/30">{cs.poin}</td>
                       <td className="px-4 py-3.5 text-center font-black text-[var(--ui-primary)] bg-indigo-50/30">{cs.avg_score} / 100</td>
+                      <td className="px-4 py-3.5 text-center font-extrabold text-amber-600 bg-amber-50/30">{cs.terlambat || 0}</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.alpa}</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.sakit}</td>
                       <td className="px-4 py-3.5 text-center font-extrabold text-slate-700">{cs.izin}</td>

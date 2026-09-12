@@ -91,8 +91,10 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
     return { walasName: walasName || '-', walasNip, resolvedClass: cls };
   };
 
-  // Active view: 'ringkasan' (or 'ews') | 'konseling' | 'surat'
-  const currentSubTab = tab === 'ringkasan' || tab === 'ews' ? 'ringkasan' : tab;
+  // Active view: 'ringkasan' (or 'ews') | 'konseling' | 'surat' | 'visit'
+  const currentSubTab = tab === 'ringkasan' || tab === 'ews' 
+    ? 'ringkasan' 
+    : (tab === 'visit' || tab === 'home_visit' ? 'visit' : tab);
 
   // Helper normalisasi data siswa (payload bisa beda-beda fieldnya)
   const getStudentName = (s) => s?.namaSiswa || s?.name || s?.nama || s?.nama_siswa || s?.nama_lengkap || '-';
@@ -114,13 +116,14 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
   const [filterClass, setFilterClass] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterLetterType, setFilterLetterType] = useState("all");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterTingkat, filterJurusan, filterClass, filterCategory, filterStatus]);
+  }, [search, filterTingkat, filterJurusan, filterClass, filterCategory, filterStatus, filterLetterType, currentSubTab]);
 
   // Modal Class Filter (untuk mempermudah memilih siswa dalam modal)
   const [modalClassFilter, setModalClassFilter] = useState("all");
@@ -140,6 +143,7 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
   });
 
   const [showVisitModal, setShowVisitModal] = useState(false);
+  const [editingVisit, setEditingVisit] = useState(null);
   const [formVisit, setFormVisit] = useState({
     student_nis: '',
     visit_date: new Date().toISOString().slice(0, 10),
@@ -401,18 +405,24 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
       const student = students.find(s => String(getStudentNis(s)) === String(hv.student_nis));
       const cls = student ? getStudentClass(student) : (hv.class_name || '');
 
+      if (filterTingkat !== 'all' && !cls.startsWith(filterTingkat + ' ') && !cls.startsWith(filterTingkat + '-')) return false;
+      if (filterJurusan !== 'all' && !cls.includes(` ${filterJurusan} `) && !cls.endsWith(` ${filterJurusan}`)) return false;
       if (filterClass !== 'all' && cls !== filterClass) return false;
+
       if (search) {
         const q = search.toLowerCase();
         return (
           (hv.student_name && hv.student_name.toLowerCase().includes(q)) ||
           (hv.student_nis && hv.student_nis.toLowerCase().includes(q)) ||
-          (hv.result && hv.result.toLowerCase().includes(q))
+          (hv.result && hv.result.toLowerCase().includes(q)) ||
+          (hv.counselor_name && hv.counselor_name.toLowerCase().includes(q)) ||
+          (hv.created_by_name && hv.created_by_name.toLowerCase().includes(q)) ||
+          cls.toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [homeVisits, filterClass, search, students]);
+  }, [homeVisits, filterTingkat, filterJurusan, filterClass, search, students]);
 
   // Filtered Letters
   const filteredLetters = useMemo(() => {
@@ -420,7 +430,18 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
       const student = students.find(s => String(getStudentNis(s)) === String(lt.student_nis));
       const cls = student ? getStudentClass(student) : (lt.class_name || '');
 
+      if (filterTingkat !== 'all' && !cls.startsWith(filterTingkat + ' ') && !cls.startsWith(filterTingkat + '-')) return false;
+      if (filterJurusan !== 'all' && !cls.includes(` ${filterJurusan} `) && !cls.endsWith(` ${filterJurusan}`)) return false;
       if (filterClass !== 'all' && cls !== filterClass) return false;
+
+      if (filterLetterType !== 'all') {
+        const typeLow = (lt.letter_type || '').toLowerCase();
+        if (filterLetterType === 'panggilan' && !typeLow.includes('panggilan')) return false;
+        else if (filterLetterType === 'sp' && !typeLow.includes('sp')) return false;
+        else if (filterLetterType === 'perjanjian' && !typeLow.includes('perjanjian')) return false;
+        else if (!['panggilan', 'sp', 'perjanjian'].includes(filterLetterType) && lt.letter_type !== filterLetterType) return false;
+      }
+
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -428,12 +449,13 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
           (lt.student_nis && lt.student_nis.toLowerCase().includes(q)) ||
           (lt.letter_type && lt.letter_type.toLowerCase().includes(q)) ||
           (lt.letter_no && lt.letter_no.toLowerCase().includes(q)) ||
-          (lt.reason && lt.reason.toLowerCase().includes(q))
+          (lt.reason && lt.reason.toLowerCase().includes(q)) ||
+          cls.toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [bkLetters, filterClass, search, students]);
+  }, [bkLetters, filterTingkat, filterJurusan, filterClass, filterLetterType, search, students]);
 
   // Quick Open Modal with Preselected Student
   const openSessionWithStudent = (student) => {
@@ -553,7 +575,7 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
     }
   };
 
-  // Handle Save Home Visit
+  // Handle Save Home Visit (Create & Edit)
   const handleSaveVisit = async (e) => {
     e.preventDefault();
     if (!formVisit.student_nis || !formVisit.result) {
@@ -562,16 +584,25 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
     }
 
     try {
-      const res = await fetch("/api/kedisiplinan/bk/home-visits", {
-        method: "POST",
+      const url = editingVisit ? `/api/kedisiplinan/bk/home-visits/${editingVisit.id}` : "/api/kedisiplinan/bk/home-visits";
+      const method = editingVisit ? "PUT" : "POST";
+
+      const payload = {
+        ...formVisit,
+        visit_date: formVisit.visit_date && String(formVisit.visit_date).trim() ? String(formVisit.visit_date).trim() : new Date().toISOString().slice(0, 10)
+      };
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-        body: JSON.stringify(formVisit)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
 
       if (data.ok) {
-        showToast("Jurnal Kunjungan Rumah berhasil dicatat!");
+        showToast(editingVisit ? "Jurnal Kunjungan Rumah berhasil diperbarui!" : "Jurnal Kunjungan Rumah berhasil dicatat!");
         setShowVisitModal(false);
+        setEditingVisit(null);
         fetchData();
       } else {
         showToast(data.error || "Gagal menyimpan kunjungan rumah", "error");
@@ -783,35 +814,39 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
       let yPos = 12;
 
       // ─── KOP SURAT RESMI SESUAI SETTING ADMIN ───
+      let kopImageDrawn = false;
       if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
         try {
-          let format = 'PNG';
-          if (String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg')) {
-            format = 'JPEG';
+          const imgStr = String(appSettings.kopSuratGambar);
+          if (imgStr.startsWith('data:image/')) {
+            let format = 'PNG';
+            if (imgStr.includes('data:image/jpeg') || imgStr.includes('data:image/jpg')) {
+              format = 'JPEG';
+            }
+            const props = doc.getImageProperties(imgStr);
+            const aspect = (props.width || 1) / (props.height || 1);
+            const maxKopW = pageWidth - 28;
+            let calcH = maxKopW / aspect;
+            if (calcH > 34) calcH = 34;
+            const calcW = calcH * aspect;
+            const xPos = (pageWidth - calcW) / 2;
+            doc.addImage(imgStr, format, xPos, 8, calcW, calcH);
+            yPos = 8 + calcH + 6;
+            kopImageDrawn = true;
           }
-          const props = doc.getImageProperties(appSettings.kopSuratGambar);
-          const aspect = (props.width || 1) / (props.height || 1);
-          const maxKopW = pageWidth - 28;
-          let calcH = maxKopW / aspect;
-          if (calcH > 34) calcH = 34;
-          const calcW = calcH * aspect;
-          const xPos = (pageWidth - calcW) / 2;
-          doc.addImage(appSettings.kopSuratGambar, format, xPos, 8, calcW, calcH);
-          yPos = 8 + calcH + 6;
         } catch (e) {
-          console.error("Gagal menggambar kop surat gambar:", e);
-          const format = String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg') ? 'JPEG' : 'PNG';
-          doc.addImage(appSettings.kopSuratGambar, format, 14, 8, pageWidth - 28, 28);
-          yPos = 42;
+          console.warn("Gagal menggambar kop surat gambar:", e);
         }
-      } else {
+      }
+
+      if (!kopImageDrawn) {
         const logoData = appSettings.kopSuratLogo || profileObj.logo_url || appSettings.logoUrl;
         if (logoData && typeof logoData === 'string' && logoData.startsWith('data:image/')) {
           try {
             const format = logoData.includes('data:image/jpeg') || logoData.includes('data:image/jpg') ? 'JPEG' : 'PNG';
             doc.addImage(logoData, format, 14, yPos - 2, 22, 22);
           } catch (e) {
-            console.error(e);
+            console.warn(e);
           }
         }
 
@@ -1195,88 +1230,6 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
         </div>
       )}
 
-      {/* ── TOP ACTION BAR & SHORTCUTS ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
-        <button
-          type="button"
-          onClick={() => {
-            setModalClassFilter('all');
-            setEditingSession(null);
-            setFormSession({
-              student_nis: '',
-              category: 'Kedisiplinan',
-              session_date: new Date().toISOString().slice(0, 10),
-              problem: '',
-              solution: '',
-              follow_up_date: '',
-              status: 'Berjalan',
-              privacy_level: 'Terbatas'
-            });
-            setShowSessionModal(true);
-          }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
-        >
-          <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Plus size={16} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="block font-black text-xs text-emerald-950">+ Catat Sesi Konseling</span>
-            <span className="block text-[10px] text-emerald-700 font-medium">Bimbingan belajar, karir &amp; tata tertib</span>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setModalClassFilter('all');
-            setFormVisit({
-              student_nis: '',
-              visit_date: new Date().toISOString().slice(0, 10),
-              result: '',
-              photo_url: ''
-            });
-            setShowVisitModal(true);
-          }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
-        >
-          <div className="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Home size={15} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="block font-black text-xs text-sky-950">+ Kunjungan Rumah (Home Visit)</span>
-            <span className="block text-[10px] text-sky-700 font-medium">Jurnal verifikasi domisili &amp; koordinasi ortu</span>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setModalClassFilter('all');
-            setFormLetter({
-              student_nis: '',
-              letter_type: 'Panggilan Orang Tua I',
-              letter_no: `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`,
-              issue_date: new Date().toISOString().slice(0, 10),
-              appointment_date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
-              appointment_time: '09.00 WIB s/d Selesai',
-              appointment_place: 'Ruang Bimbingan & Konseling (BK)',
-              appointed_person: 'Guru BK / Koordinator BK',
-              reason: ''
-            });
-            setShowLetterModal(true);
-          }}
-          className="flex items-center justify-center gap-2.5 p-3 rounded-[var(--ui-radius-small)] bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/80 transition-all font-black text-xs cursor-pointer shadow-xs active:scale-98 text-left"
-        >
-          <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Printer size={15} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="block font-black text-xs text-purple-950">+ Terbitkan Surat / SP</span>
-            <span className="block text-[10px] text-purple-700 font-medium">Panggilan orang tua &amp; surat perjanjian</span>
-          </div>
-        </button>
-      </div>
-
       {/* ── TAB 1: DASHBOARD RINGKASAN & EARLY WARNING SYSTEM (EWS) ────────────────── */}
       {currentSubTab === 'ringkasan' && (
         <div className="flex flex-col gap-4 sm:gap-5 animate-in fade-in duration-200">
@@ -1312,19 +1265,19 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
               iconBg="bg-sky-50"
               iconColor="text-sky-600"
               className="p-3 sm:p-5 hover:border-sky-300"
-              onClick={() => onTabChange?.('surat')}
-              title="Klik untuk membuka tab Surat & Visit (Home Visit)"
+              onClick={() => onTabChange?.('visit')}
+              title="Klik untuk membuka tab Kunjungan Rumah (Home Visit)"
             />
             <StatCard
               label="Surat Ortu & SP"
               value={bkLetters.length}
               sub="Lihat Surat & SP →"
               icon={FileText}
-              iconBg="bg-emerald-50"
-              iconColor="text-emerald-600"
-              className="p-3 sm:p-5 hover:border-emerald-300"
+              iconBg="bg-purple-50"
+              iconColor="text-purple-600"
+              className="p-3 sm:p-5 hover:border-purple-300"
               onClick={() => onTabChange?.('surat')}
-              title="Klik untuk membuka tab Surat & Visit (Surat Resmi)"
+              title="Klik untuk membuka tab Surat Panggilan & SP"
             />
           </div>
 
@@ -1883,282 +1836,546 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
         </div>
       )}
 
-      {/* ── TAB 3: SURAT & HOME VISIT ───────────────────────────────────────── */}
+      {/* ── TAB 3: SURAT PANGGILAN & SP RESMI (1 KOLOM PENUH) ────────────────── */}
       {currentSubTab === 'surat' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 animate-in fade-in duration-200">
-          {/* Left: Home Visit Log */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
-                  <Home size={16} />
+        <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+          {/* Header Action & Filter Bar */}
+          <div className="bg-white p-3.5 sm:p-5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 flex flex-col gap-3.5">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0 shadow-xs">
+                  <FileText size={20} strokeWidth={2.2} />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">Jurnal Kunjungan Rumah (Home Visit)</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">{filteredHomeVisits.length} kunjungan tercatat</p>
+                  <h3 className="font-extrabold text-slate-800 text-sm sm:text-base tracking-tight">Surat Panggilan Orang Tua &amp; SP Resmi</h3>
+                  <p className="text-xs font-semibold text-slate-400">
+                    {filteredLetters.length} dokumen surat resmi terdaftar dalam sistem
+                  </p>
                 </div>
               </div>
-              <Button
-                type="button"
-                onClick={() => {
-                  setModalClassFilter('all');
-                  setFormVisit({
-                    student_nis: '',
-                    visit_date: new Date().toISOString().slice(0, 10),
-                    result: '',
-                    photo_url: ''
-                  });
-                  setShowVisitModal(true);
-                }}
-                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-sky-600 hover:bg-sky-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
-              >
-                + Tambah Visit
-              </Button>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setModalClassFilter('all');
+                    setEditingLetter(null);
+                    setFormLetter({
+                      student_nis: '',
+                      letter_type: 'Panggilan Orang Tua I',
+                      letter_no: `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`,
+                      issue_date: new Date().toISOString().slice(0, 10),
+                      appointment_date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+                      appointment_time: '09.00 WIB s/d Selesai',
+                      appointment_place: 'Ruang Bimbingan & Konseling (BK)',
+                      appointed_person: 'Guru BK / Koordinator BK',
+                      reason: ''
+                    });
+                    setShowLetterModal(true);
+                  }}
+                  className="px-4 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)]"
+                >
+                  <Plus size={15} strokeWidth={2.5} />
+                  <span>+ Terbitkan Surat Baru</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
-              {filteredHomeVisits.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
-                  <Home size={28} className="text-slate-300" />
-                  <span>Belum ada jurnal kunjungan rumah yang dicatat.</span>
+            {/* Smart Filter Bar Khusus Surat */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-3 border-t border-slate-100">
+              <div className="relative lg:col-span-2">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama siswa, nomor surat, atau alasan..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <CustomSelect
+                  value={filterLetterType}
+                  onChange={setFilterLetterType}
+                  options={[
+                    { value: 'all', label: 'Semua Jenis Dokumen' },
+                    { value: 'panggilan', label: 'Panggilan Ortu (I, II, III)' },
+                    { value: 'sp', label: 'Surat Peringatan (SP 1, 2, 3)' },
+                    { value: 'perjanjian', label: 'Surat Perjanjian Siswa' }
+                  ]}
+                  placeholder="Jenis Surat"
+                />
+              </div>
+
+              <div>
+                <CustomSelect
+                  value={filterTingkat}
+                  onChange={v => { setFilterTingkat(v); setFilterClass('all'); }}
+                  options={[
+                    { value: 'all', label: 'Semua Tingkat' },
+                    { value: 'X', label: 'Kelas X' },
+                    { value: 'XI', label: 'Kelas XI' },
+                    { value: 'XII', label: 'Kelas XII' }
+                  ]}
+                  placeholder="Tingkat"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1 min-w-0">
+                  <CustomSelect
+                    value={filterClass}
+                    onChange={setFilterClass}
+                    options={classOptions}
+                    placeholder="Semua Kelas"
+                  />
                 </div>
-              ) : (
-                filteredHomeVisits.map((hv, idx) => (
-                  <div key={hv.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-800 font-black text-[10px] flex items-center justify-center shrink-0 border border-sky-200 mt-0.5 shadow-2xs">
-                          #{idx + 1}
-                        </span>
-                        <div>
-                          <div className="font-black text-slate-900 text-xs sm:text-sm">{hv.student_name || 'Siswa'}</div>
-                          <div className="text-[10px] font-bold text-slate-500">Kelas: {hv.class_name || '-'} • NIS: {hv.student_nis}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
-                          {new Date(hv.visit_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteVisit(hv.id)}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all border-none bg-transparent cursor-pointer"
-                          title="Hapus Kunjungan Rumah"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 bg-white rounded-[var(--ui-radius-small)] border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium">
-                      {hv.result}
-                    </div>
-
-                    <div className="text-[10px] font-bold text-slate-400 flex flex-wrap items-center justify-between pt-1.5 border-t border-slate-200/50 gap-1.5">
-                      <div className="flex flex-wrap items-center gap-2 text-slate-600">
-                        <span className="flex items-center gap-1">
-                          <User size={11} className="text-slate-400" />
-                          <span>Petugas: <strong className="text-slate-700">{hv.counselor_name || 'Guru BK'}</strong></span>
-                        </span>
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-1">
-                          <UserCheck size={11} className="text-sky-600" />
-                          <span>Diinput oleh: <strong className="text-sky-800">{hv.created_by_name || hv.counselor_name || 'Guru BK'}</strong></span>
-                        </span>
-                      </div>
-                      {hv.created_at && (
-                        <span className="text-[9.5px] text-slate-400 font-normal">
-                          {new Date(hv.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
+                {(search || filterLetterType !== 'all' || filterTingkat !== 'all' || filterClass !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setFilterLetterType('all');
+                      setFilterTingkat('all');
+                      setFilterClass('all');
+                    }}
+                    className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-[var(--ui-radius-small)] transition-all cursor-pointer shrink-0"
+                    title="Reset Filter"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right: Printed Letters Log */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                  <FileText size={16} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">Surat Panggilan &amp; SP</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">{filteredLetters.length} surat diterbitkan</p>
-                </div>
+          {/* Letters List / Grid View */}
+          {filteredLetters.length === 0 ? (
+            <div className="bg-white rounded-[var(--ui-radius-card)] p-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-3 border border-slate-200/80 shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center border border-purple-100 shadow-2xs">
+                <FileText size={28} />
               </div>
-              <Button
-                type="button"
-                onClick={() => {
-                  setModalClassFilter('all');
-                  setFormLetter({
-                    student_nis: '',
-                    letter_type: 'Panggilan Orang Tua I',
-                    letter_no: `421.5/${Math.floor(100 + Math.random() * 900)}/SMK-BK/${new Date().getFullYear()}`,
-                    issue_date: new Date().toISOString().slice(0, 10),
-                    appointment_date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
-                    appointment_time: '09.00 WIB s/d Selesai',
-                    appointment_place: 'Ruang Bimbingan & Konseling (BK)',
-                    appointed_person: 'Guru BK / Koordinator BK',
-                    reason: ''
-                  });
-                  setShowLetterModal(true);
-                }}
-                className="px-3 py-1.5 text-xs font-black cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
-              >
-                + Terbitkan Surat
-              </Button>
+              <div>
+                <h4 className="font-extrabold text-slate-700 text-sm">Belum Ada Surat Terbit</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Tidak ada surat panggilan atau SP yang sesuai dengan kriteria filter.</p>
+              </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+              {filteredLetters.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((lettr) => {
+                const isSP = lettr.letter_type?.toUpperCase().includes('SP');
+                const isPerjanjian = lettr.letter_type?.toUpperCase().includes('PERJANJIAN');
+                const badgeColor = isSP
+                  ? (lettr.letter_type?.includes('SP 3') ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-100 text-amber-800 border-amber-200')
+                  : isPerjanjian 
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : 'bg-purple-100 text-purple-800 border-purple-200';
 
-            <div className="flex flex-col gap-3 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
-              {filteredLetters.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
-                  <FileText size={28} className="text-slate-300" />
-                  <span>Belum ada surat panggilan atau SP yang diterbitkan.</span>
-                </div>
-              ) : (
-                filteredLetters.map((lettr, idx) => (
-                  <div key={lettr.id} className="p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 flex flex-col gap-2.5 transition-all shadow-xs">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-black text-[10px] flex items-center justify-center shrink-0 border border-purple-200 mt-0.5 shadow-2xs">
-                          #{idx + 1}
+                const hr = getHomeroomInfo(lettr.class_name, lettr.student_nis);
+                const st = (students || []).find(s => String(getStudentNis(s)) === String(lettr.student_nis));
+
+                return (
+                  <div 
+                    key={lettr.id}
+                    className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-3.5 group"
+                  >
+                    <div className="flex flex-col gap-3">
+                      {/* Top Header Card */}
+                      <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[11px] font-black border tracking-wide ${badgeColor}`}>
+                          {lettr.letter_type}
                         </span>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-black text-slate-900 text-xs sm:text-sm">{lettr.student_name || 'Siswa'}</span>
-                            <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-black ${
-                              lettr.letter_type?.includes('SP 3') ? 'bg-rose-100 text-rose-800 border border-rose-200' :
-                              lettr.letter_type?.includes('SP') ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                              'bg-purple-100 text-purple-800 border border-purple-200'
-                            }`}>
-                              {lettr.letter_type}
-                            </span>
-                          </div>
-                          {(() => {
-                            const hr = getHomeroomInfo(lettr.class_name, lettr.student_nis);
-                            return (
-                              <div className="text-[10px] font-bold text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
-                                <span>Kelas: {lettr.class_name || '-'}</span>
-                                <span>•</span>
-                                <span>NIS: {lettr.student_nis}</span>
-                                {hr.walasName && hr.walasName !== '-' && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="text-emerald-700 font-semibold">Walas: {hr.walasName}</span>
-                                  </>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-slate-400">
                           {new Date(lettr.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const st = students.find(s => String(getStudentNis(s)) === String(lettr.student_nis));
-                            setModalClassFilter(st ? getStudentClass(st) : 'all');
-                            setEditingLetter(lettr);
-                            setFormLetter({
-                              student_nis: lettr.student_nis,
-                              letter_type: lettr.letter_type || 'Panggilan Orang Tua I',
-                              letter_no: lettr.letter_no || '',
-                              issue_date: lettr.issue_date ? lettr.issue_date.slice(0, 10) : new Date().toISOString().slice(0, 10),
-                              appointment_date: lettr.appointment_date ? lettr.appointment_date.slice(0, 10) : '',
-                              appointment_time: lettr.appointment_time || '09.00 WIB s/d Selesai',
-                              appointment_place: lettr.appointment_place || 'Ruang Bimbingan & Konseling (BK)',
-                              appointed_person: lettr.appointed_person || 'Guru BK / Koordinator BK',
-                              reason: lettr.reason || ''
-                            });
-                            setShowLetterModal(true);
-                          }}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-slate-600 hover:bg-slate-100 transition-all border border-slate-200 bg-white cursor-pointer shadow-xs"
-                          title="Edit / Ubah Data Surat"
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const st = (students || []).find(s => String(getStudentNis(s)) === String(lettr.student_nis));
-                            setPreviewLetter({
-                              ...lettr,
-                              student_name: getStudentName(st) || lettr.student_name,
-                              class_name: getStudentClass(st) || lettr.class_name
-                            });
-                          }}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-purple-600 hover:bg-purple-50 transition-all border border-purple-200 bg-white cursor-pointer shadow-xs flex items-center gap-1 text-[11px] font-bold"
-                          title="Lihat Pratinjau Surat Resmi"
-                        >
-                          <Eye size={13} />
-                          <span className="hidden sm:inline">Pratinjau</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const st = (students || []).find(s => String(getStudentNis(s)) === String(lettr.student_nis));
-                            setPreviewLetter({
-                              ...lettr,
-                              student_name: getStudentName(st) || lettr.student_name,
-                              class_name: getStudentClass(st) || lettr.class_name
-                            });
-                          }}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-emerald-600 hover:bg-emerald-50 transition-all border border-emerald-200 bg-white cursor-pointer shadow-xs"
-                          title="Pratinjau & Cetak Surat"
-                        >
-                          <Printer size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteLetter(lettr.id)}
-                          className="p-1.5 rounded-[var(--ui-radius-small)] text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all border-none bg-transparent cursor-pointer"
-                          title="Hapus Surat"
-                        >
-                          <Trash2 size={14} />
-                        </button>
                       </div>
-                    </div>
 
-                    <div className="text-[10px] text-slate-500 font-mono">No: {lettr.letter_no || '-'}</div>
+                      {/* Student Info */}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
+                            {lettr.student_name || getStudentName(st) || 'Siswa'}
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
+                            {lettr.class_name || '-'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                          <span>NIS: {lettr.student_nis}</span>
+                          {hr.walasName && hr.walasName !== '-' && (
+                            <>
+                              <span>•</span>
+                              <span className="text-slate-500">Walas: {hr.walasName}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="text-[10.5px] font-mono text-purple-800 bg-purple-50/70 px-2 py-1 rounded-[var(--ui-radius-small)] mt-2 border border-purple-100/70 inline-block font-semibold">
+                          No: {lettr.letter_no || '-'}
+                        </div>
+                      </div>
 
-                    <div className="p-2.5 bg-white rounded-[var(--ui-radius-small)] border border-slate-100 text-xs text-slate-700 flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Keperluan:</span>
-                      <span className="font-medium leading-relaxed">{lettr.reason || 'Koordinasi pembinaan kedisiplinan.'}</span>
+                      {/* Reason / Keperluan Box */}
+                      <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/70 text-xs">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                          Alasan / Keperluan
+                        </span>
+                        <p className="text-slate-700 leading-relaxed font-medium line-clamp-3" title={lettr.reason}>
+                          {lettr.reason || 'Koordinasi pembinaan kedisiplinan siswa.'}
+                        </p>
+                      </div>
+
+                      {/* Jadwal Menghadap Box (jika ada) */}
                       {lettr.appointment_date && (
-                        <div className="mt-1 pt-1 border-t border-slate-100 text-[10.5px] font-semibold text-purple-700">
-                          Jadwal: {new Date(lettr.appointment_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • {lettr.appointment_time || '09.00 WIB'}
+                        <div className="p-2.5 bg-purple-50/40 rounded-[var(--ui-radius-small)] border border-purple-100 text-xs text-purple-900 space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold text-[11px] text-purple-800">
+                            <Calendar size={13} className="text-purple-600 shrink-0" />
+                            <span>
+                              {new Date(lettr.appointment_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10.5px] text-purple-700 font-medium">
+                            <Clock size={12} className="text-purple-500 shrink-0" />
+                            <span>{lettr.appointment_time || '09.00 WIB s/d Selesai'}</span>
+                            <span>•</span>
+                            <MapPin size={12} className="text-purple-500 shrink-0" />
+                            <span className="truncate">{lettr.appointment_place || 'Ruang BK'}</span>
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="text-[10px] font-bold text-slate-400 flex flex-wrap items-center justify-between pt-1.5 border-t border-slate-200/50 gap-1.5">
-                      <span className="flex items-center gap-1 text-slate-600">
-                        <UserCheck size={11} className="text-purple-600" />
-                        <span>Diterbitkan / Diinput oleh: <strong className="text-purple-900">{lettr.created_by_name || 'Guru BK'}</strong></span>
+                    {/* Bottom Action Footer */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                        <span>Diterbitkan: <strong className="text-slate-600">{lettr.created_by_name || 'Guru BK'}</strong></span>
                         {lettr.updated_by_name && (
-                          <span className="text-[9.5px] text-amber-700 font-normal ml-1">
-                            (diedit: {lettr.updated_by_name})
-                          </span>
+                          <span className="text-amber-600">Diedit: {lettr.updated_by_name}</span>
                         )}
-                      </span>
-                      {lettr.created_at && (
-                        <span className="text-[9.5px] text-slate-400 font-normal">
-                          {new Date(lettr.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewLetter({
+                              ...lettr,
+                              student_name: getStudentName(st) || lettr.student_name,
+                              class_name: getStudentClass(st) || lettr.class_name
+                            });
+                          }}
+                          className="col-span-2 py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black flex items-center justify-center gap-1 shadow-xs transition-all cursor-pointer active:scale-98"
+                          title="Pratinjau Surat Resmi Kedinasan"
+                        >
+                          <Eye size={13} />
+                          <span>Pratinjau Kop</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => downloadLetterPDF(lettr)}
+                          className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-[var(--ui-radius-small)] text-xs font-bold flex items-center justify-center gap-1 shadow-2xs transition-all cursor-pointer"
+                          title="Unduh Berkas PDF Resmi"
+                        >
+                          <Download size={13} />
+                          <span className="hidden sm:inline">PDF</span>
+                        </button>
+
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalClassFilter(st ? getStudentClass(st) : 'all');
+                              setEditingLetter(lettr);
+                              setFormLetter({
+                                student_nis: lettr.student_nis,
+                                letter_type: lettr.letter_type || 'Panggilan Orang Tua I',
+                                letter_no: lettr.letter_no || '',
+                                issue_date: lettr.issue_date ? lettr.issue_date.slice(0, 10) : new Date().toISOString().slice(0, 10),
+                                appointment_date: lettr.appointment_date ? lettr.appointment_date.slice(0, 10) : '',
+                                appointment_time: lettr.appointment_time || '09.00 WIB s/d Selesai',
+                                appointment_place: lettr.appointment_place || 'Ruang Bimbingan & Konseling (BK)',
+                                appointed_person: lettr.appointed_person || 'Guru BK / Koordinator BK',
+                                reason: lettr.reason || ''
+                              });
+                              setShowLetterModal(true);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white cursor-pointer shadow-2xs"
+                            title="Edit Data Surat"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLetter(lettr.id)}
+                            className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] border border-rose-200 bg-white cursor-pointer shadow-2xs"
+                            title="Hapus Surat"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))
-              )}
+                );
+              })}
             </div>
+          )}
+
+          {/* Pagination Container */}
+          <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredLetters.length / itemsPerPage) || 1}
+              totalItems={filteredLetters.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 4: KUNJUNGAN RUMAH / HOME VISIT (1 KOLOM PENUH) ────────────────── */}
+      {currentSubTab === 'visit' && (
+        <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+          {/* Header Action & Filter Bar */}
+          <div className="bg-white p-3.5 sm:p-5 rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 flex flex-col gap-3.5">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-700 flex items-center justify-center font-bold shrink-0 shadow-xs">
+                  <Home size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-sm sm:text-base tracking-tight">Jurnal Kunjungan Rumah (Home Visit)</h3>
+                  <p className="text-xs font-semibold text-slate-400">
+                    {filteredHomeVisits.length} riwayat kunjungan rumah tercatat oleh tim BK &amp; Walas
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setModalClassFilter('all');
+                    setEditingVisit(null);
+                    setFormVisit({
+                      student_nis: '',
+                      visit_date: new Date().toISOString().slice(0, 10),
+                      result: '',
+                      photo_url: ''
+                    });
+                    setShowVisitModal(true);
+                  }}
+                  className="px-4 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-sky-600 hover:bg-sky-700 text-white rounded-[var(--ui-radius-small)]"
+                >
+                  <Plus size={15} strokeWidth={2.5} />
+                  <span>+ Catat Home Visit</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Smart Filter Bar Khusus Home Visit */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-3 border-t border-slate-100">
+              <div className="relative sm:col-span-2">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama siswa, hasil kunjungan, atau nama petugas..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <CustomSelect
+                  value={filterTingkat}
+                  onChange={v => { setFilterTingkat(v); setFilterClass('all'); }}
+                  options={[
+                    { value: 'all', label: 'Semua Tingkat' },
+                    { value: 'X', label: 'Kelas X' },
+                    { value: 'XI', label: 'Kelas XI' },
+                    { value: 'XII', label: 'Kelas XII' }
+                  ]}
+                  placeholder="Tingkat"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1 min-w-0">
+                  <CustomSelect
+                    value={filterClass}
+                    onChange={setFilterClass}
+                    options={classOptions}
+                    placeholder="Semua Kelas"
+                  />
+                </div>
+                {(search || filterTingkat !== 'all' || filterClass !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setFilterTingkat('all');
+                      setFilterClass('all');
+                    }}
+                    className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-[var(--ui-radius-small)] transition-all cursor-pointer shrink-0"
+                    title="Reset Filter"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Home Visits List */}
+          {filteredHomeVisits.length === 0 ? (
+            <div className="bg-white rounded-[var(--ui-radius-card)] p-12 text-center text-slate-400 font-bold text-xs flex flex-col items-center gap-3 border border-slate-200/80 shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center border border-sky-100 shadow-2xs">
+                <Home size={28} />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-slate-700 text-sm">Belum Ada Kunjungan Rumah</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Tidak ada jurnal kunjungan rumah yang cocok dengan filter yang dipilih.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+              {filteredHomeVisits.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((hv) => {
+                const st = (students || []).find(s => String(getStudentNis(s)) === String(hv.student_nis));
+                const hr = getHomeroomInfo(hv.class_name, hv.student_nis);
+
+                return (
+                  <div 
+                    key={hv.id}
+                    className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-3.5 group"
+                  >
+                    <div className="flex flex-col gap-3">
+                      {/* Top Header Card */}
+                      <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div className="flex items-center gap-1.5 text-sky-800 font-black text-xs">
+                          <Calendar size={13} className="text-sky-600" />
+                          <span>{new Date(hv.visit_date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200/70">
+                          Home Visit
+                        </span>
+                      </div>
+
+                      {/* Student Info */}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-slate-900 text-sm group-hover:text-sky-700 transition-colors">
+                            {hv.student_name || getStudentName(st) || 'Siswa'}
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
+                            {hv.class_name || '-'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                          <span>NIS: {hv.student_nis}</span>
+                          {hr.walasName && hr.walasName !== '-' && (
+                            <>
+                              <span>•</span>
+                              <span className="text-slate-500">Walas: {hr.walasName}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hasil Kunjungan Box */}
+                      <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-small)] border border-slate-200/70 text-xs">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                          Hasil Pertemuan &amp; Kesepakatan Orang Tua
+                        </span>
+                        <p className="text-slate-700 leading-relaxed font-medium whitespace-pre-line">
+                          {hv.result}
+                        </p>
+                      </div>
+
+                      {hv.photo_url && (
+                        <div className="rounded-[var(--ui-radius-small)] overflow-hidden border border-slate-200/80 max-h-36">
+                          <img src={hv.photo_url} alt="Dokumentasi Home Visit" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                        <span className="flex items-center gap-1">
+                          <User size={11} />
+                          <span>Petugas: <strong className="text-slate-700">{hv.counselor_name || 'Guru BK'}</strong></span>
+                        </span>
+                        {hv.created_by_name && (
+                          <span className="text-sky-700 font-semibold">Diinput: {hv.created_by_name}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (st) openDossier(st);
+                          }}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[var(--ui-radius-small)] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <Eye size={13} />
+                          <span>Dossier 360°</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalClassFilter(st ? getStudentClass(st) : 'all');
+                              setEditingVisit(hv);
+                              setFormVisit({
+                                student_nis: hv.student_nis,
+                                visit_date: hv.visit_date ? hv.visit_date.slice(0, 10) : new Date().toISOString().slice(0, 10),
+                                result: hv.result || '',
+                                photo_url: hv.photo_url || ''
+                              });
+                              setShowVisitModal(true);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)] border border-slate-200 bg-white cursor-pointer shadow-2xs"
+                            title="Edit Jurnal Kunjungan"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteVisit(hv.id)}
+                            className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] border border-rose-200 bg-white cursor-pointer shadow-2xs"
+                            title="Hapus Jurnal Kunjungan"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination Container */}
+          <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80">
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredHomeVisits.length / itemsPerPage) || 1}
+              totalItems={filteredHomeVisits.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       )}
@@ -2207,6 +2424,35 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                   options={modalStudentOptions}
                   placeholder="Cari atau pilih nama siswa..."
                 />
+                {(() => {
+                  if (!formSession.student_nis) return null;
+                  const selectedStudent = (students || []).find(s => String(getStudentNis(s)) === String(formSession.student_nis));
+                  if (!selectedStudent) return null;
+                  const cls = getStudentClass(selectedStudent);
+                  const ptInfo = studentPointsMap[String(formSession.student_nis)];
+                  return (
+                    <div className="mt-2 p-2.5 bg-emerald-50/80 border border-emerald-200/90 rounded-[var(--ui-radius-small)] flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800">{getStudentName(selectedStudent)}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-emerald-700 border border-emerald-200 shadow-2xs">
+                          Kelas: {cls || '-'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px]">
+                        <span className={`px-2 py-0.5 rounded-full font-bold ${
+                          (ptInfo?.total_poin || 0) > 75 ? 'bg-rose-100 text-rose-800' :
+                          (ptInfo?.total_poin || 0) > 35 ? 'bg-amber-100 text-amber-800' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          Poin Pelanggaran: {ptInfo?.total_poin || 0}
+                        </span>
+                        <span className="text-slate-500 font-medium">
+                          Sesi Sebelumnya: {ptInfo?.sesi_count || 0}x
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -2291,8 +2537,8 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
       {showVisitModal && (
         <Modal
           isOpen={showVisitModal}
-          onClose={() => setShowVisitModal(false)}
-          title="Catat Jurnal Kunjungan Rumah (Home Visit)"
+          onClose={() => { setShowVisitModal(false); setEditingVisit(null); }}
+          title={editingVisit ? "Edit Jurnal Kunjungan Rumah (Home Visit)" : "Catat Jurnal Kunjungan Rumah (Home Visit)"}
           maxWidth="max-w-lg"
         >
           <form onSubmit={handleSaveVisit} className="p-5 sm:p-6 space-y-4 overflow-y-auto max-h-[80vh]">
@@ -2322,6 +2568,28 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
                   options={modalStudentOptions}
                   placeholder="Cari atau pilih nama siswa..."
                 />
+                {(() => {
+                  if (!formVisit.student_nis) return null;
+                  const selectedStudent = (students || []).find(s => String(getStudentNis(s)) === String(formVisit.student_nis));
+                  if (!selectedStudent) return null;
+                  const cls = getStudentClass(selectedStudent);
+                  const hr = getHomeroomInfo(cls, getStudentNis(selectedStudent));
+                  return (
+                    <div className="mt-2 p-2.5 bg-sky-50/80 border border-sky-200/90 rounded-[var(--ui-radius-small)] flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800">{getStudentName(selectedStudent)}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-sky-700 border border-sky-200 shadow-2xs">
+                          Kelas: {cls || '-'}
+                        </span>
+                      </div>
+                      {hr.walasName && hr.walasName !== '-' && (
+                        <span className="text-[11px] text-sky-800 font-semibold">
+                          Walas: {hr.walasName}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -2350,11 +2618,11 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
-              <Button type="button" variant="outline" onClick={() => setShowVisitModal(false)}>
+              <Button type="button" variant="outline" onClick={() => { setShowVisitModal(false); setEditingVisit(null); }}>
                 Batal
               </Button>
               <Button type="submit" className="font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs">
-                Simpan Jurnal Home Visit
+                {editingVisit ? 'Update Jurnal Home Visit' : 'Simpan Jurnal Home Visit'}
               </Button>
             </div>
           </form>

@@ -64,49 +64,51 @@ export const drawKopSurat = (doc, isLandscape = false) => {
   
   if (appSettings.useKopSuratGambar && appSettings.kopSuratGambar) {
     try {
-      let format = 'PNG';
-      if (String(appSettings.kopSuratGambar).includes('data:image/jpeg') || String(appSettings.kopSuratGambar).includes('data:image/jpg')) {
-        format = 'JPEG';
-      }
-      
-      const props = doc.getImageProperties(appSettings.kopSuratGambar);
-      const aspect = (props.width || 1) / (props.height || 1);
-      
-      const maxKopHeight = isLandscape ? 30 : 26;
-      const maxKopWidth = isLandscape ? 240 : (pageWidth - 28);
-      
-      let calcWidth = maxKopWidth;
-      let calcHeight = calcWidth / aspect;
-      
-      if (calcHeight > maxKopHeight) {
-        calcHeight = maxKopHeight;
-        calcWidth = calcHeight * aspect;
-      }
-      
-      const xPos = (pageWidth - calcWidth) / 2;
-      doc.addImage(appSettings.kopSuratGambar, format, xPos, yStart, calcWidth, calcHeight);
-      
-      return yStart + calcHeight + 5;
-    } catch (e) {
-      console.error("Gagal menggambar kop surat gambar:", e);
-      const fallbackH = isLandscape ? 28 : 24;
-      doc.addImage(appSettings.kopSuratGambar, 'PNG', 14, yStart, pageWidth - 28, fallbackH);
-      return yStart + fallbackH + 5;
-    }
-  } else {
-    let textStartLabel = yStart + 3;
-    doc.setFont("Helvetica", "normal");
-    
-    const logoData = appSettings.kopSuratLogo || appSettings.logoUrl;
-    if (logoData && logoData.startsWith("data:image/")) {
-      try {
+      const imgStr = String(appSettings.kopSuratGambar);
+      if (imgStr.startsWith('data:image/')) {
         let format = 'PNG';
-        if (logoData.includes('data:image/jpeg') || logoData.includes('data:image/jpg')) format = 'JPEG';
-        doc.addImage(logoData, format, 14, yStart, 18, 18);
-      } catch (e) {
-        console.error("Gagal menggambar logo kop surat:", e);
+        if (imgStr.includes('data:image/jpeg') || imgStr.includes('data:image/jpg')) {
+          format = 'JPEG';
+        }
+        
+        const props = doc.getImageProperties(imgStr);
+        const aspect = (props.width || 1) / (props.height || 1);
+        
+        const maxKopHeight = isLandscape ? 30 : 26;
+        const maxKopWidth = isLandscape ? 240 : (pageWidth - 28);
+        
+        let calcWidth = maxKopWidth;
+        let calcHeight = calcWidth / aspect;
+        
+        if (calcHeight > maxKopHeight) {
+          calcHeight = maxKopHeight;
+          calcWidth = calcHeight * aspect;
+        }
+        
+        const xPos = (pageWidth - calcWidth) / 2;
+        doc.addImage(imgStr, format, xPos, yStart, calcWidth, calcHeight);
+        
+        return yStart + calcHeight + 5;
       }
+    } catch (e) {
+      console.warn("Gagal menggambar kop surat gambar, fallback ke teks kop:", e);
     }
+  }
+
+  // Fallback ke Teks Kop Standar
+  let textStartLabel = yStart + 3;
+  doc.setFont("Helvetica", "normal");
+  
+  const logoData = appSettings.kopSuratLogo || appSettings.logoUrl;
+  if (logoData && typeof logoData === 'string' && logoData.startsWith("data:image/")) {
+    try {
+      let format = 'PNG';
+      if (logoData.includes('data:image/jpeg') || logoData.includes('data:image/jpg')) format = 'JPEG';
+      doc.addImage(logoData, format, 14, yStart, 18, 18);
+    } catch (e) {
+      console.warn("Gagal menggambar logo kop surat:", e);
+    }
+  }
     
     const baris1 = appSettings.kopSuratBaris1 || "PEMERINTAH DAERAH PROVINSI";
     const baris2 = appSettings.kopSuratBaris2 || "DINAS PENDIDIKAN";
@@ -145,6 +147,5 @@ export const drawKopSurat = (doc, isLandscape = false) => {
     doc.line(14, dividerY + 1.2, pageWidth - 14, dividerY + 1.2);
     
     return dividerY + 5;
-  }
 };
 

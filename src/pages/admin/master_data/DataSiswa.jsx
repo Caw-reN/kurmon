@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Users, CheckCircle2, XCircle, Search, Save, Upload, Download, 
   ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown,
-  GraduationCap, Briefcase, Calendar, Check, Clock, Sparkles, Layers
+  GraduationCap, Briefcase, Calendar, Check, Clock, Sparkles, Layers,
+  Compass, FileSpreadsheet, CheckCheck, HelpCircle
 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -12,6 +13,9 @@ import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
 import { Button, Modal } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { usePagination } from '../../../components/ui/PaginationControls.jsx';
+import { useDataStore } from '../../../store/useDataStore.js';
+import { useAppStore } from '../../../store/useAppStore.js';
+import { calculateDistanceKm } from './DataPerusahaan.jsx';
 
 const getToken = () => {
   try {
@@ -44,11 +48,23 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [eligibleClass, setEligibleClass] = useState("XII");
 
+  const schoolProfile = useDataStore(state => state.schoolProfile) || {};
+  const attendanceSettings = useAppStore(state => state.attendanceSettings) || {};
+  const schoolLat = parseFloat(attendanceSettings.schoolLat || schoolProfile.lat || -6.2383);
+  const schoolLng = parseFloat(attendanceSettings.schoolLng || schoolProfile.lng || 106.9756);
+
   const [perusahaanPKL, setPerusahaanPKL] = useState([]);
   const [pklStudentsMapping, setPklStudentsMapping] = useState([]);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // States untuk Modal Impor Penugasan Excel
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importPreviewRows, setImportPreviewRows] = useState([]);
+  const [isProcessingImport, setIsProcessingImport] = useState(false);
+  const [importSearch, setImportSearch] = useState('');
+  const [importFilterStatus, setImportFilterStatus] = useState('all'); // 'all' | 'valid' | 'warning' | 'error'
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -271,72 +287,340 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     });
   };
 
-  const handleSaveAssignment = async () => {
-    if (!selectedSiswa) return;
-    setIsSavingSettings(true);
+  // === DOWNLOAD TEMPLATE EXCEL PENUGASAN (MULTI-SHEET) ===
+  const handleDownloadTemplate = async () => {
+    try {
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'Sistem PKL SMK Karya Guna 2';
+      wb.created = new Date();
+
+      // --- SHEET 1: PENUGASAN PKL ---
+      const ws1 = wb.addWorksheet('Penugasan PKL', {
+        views: [{ showGridLines: true }]
+      });
+
+      ws1.columns = [
+        { header: 'NIS (Wajib)', key: 'nis', width: 18 },
+        { header: 'Nama Siswa', key: 'nama', width: 32 },
+        { header: 'Kelas', key: 'kelas', width: 14 },
+        { header: 'Jurusan', key: 'jurusan', width: 12 },
+        { header: 'Kode Guru Pembimbing (Wajib)', key: 'kode_guru', width: 30 },
+        { header: 'Nama Guru (Referensi)', key: 'nama_guru', width: 30 },
+        { header: 'No / ID Perusahaan (Wajib)', key: 'id_perusahaan', width: 26 },
+        { header: 'Nama Perusahaan (Referensi)', key: 'nama_perusahaan', width: 38 },
+      ];
+
+      const headerRow1 = ws1.getRow(1);
+      headerRow1.height = 28;
+      headerRow1.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF047857' } // Emerald 700
+        };
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'medium' }, right: { style: 'thin' }
+        };
+      });
+
+      // Baris siswa saat ini
+      pklStudents.forEach(s => {
+        const guru = teachers.find(g => String(g.code || g.id) === String(s.guruPembimbingCode));
+        const perusahaan = perusahaanPKL.find(p => String(p.id) === String(s.perusahaanId));
+        const row = ws1.addRow({
+          nis: String(s.nis),
+          nama: s.nama,
+          kelas: s.kelas,
+          jurusan: s.jurusan,
+          kode_guru: s.guruPembimbingCode || '',
+          nama_guru: guru?.name || guru?.nama || '',
+          id_perusahaan: s.perusahaanId ? Number(s.perusahaanId) : '',
+          nama_perusahaan: perusahaan?.nama_perusahaan || ''
+        });
+
+        row.getCell('nis').numFmt = '@';
+        row.getCell('kode_guru').numFmt = '@';
+      });
+
+      // --- SHEET 2: REFERENSI GURU ---
+      const ws2 = wb.addWorksheet('Referensi Guru', { views: [{ showGridLines: true }] });
+      ws2.columns = [
+        { header: 'Kode Guru (Untuk Kolom E)', key: 'code', width: 26 },
+        { header: 'Nama Guru Pembimbing', key: 'name', width: 34 },
+        { header: 'NIP', key: 'nip', width: 22 },
+        { header: 'Mata Pelajaran', key: 'mapel', width: 26 },
+      ];
+
+      const headerRow2 = ws2.getRow(1);
+      headerRow2.height = 26;
+      headerRow2.eachCell(c => {
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } }; // Indigo 700
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        c.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      teachers.forEach(t => {
+        ws2.addRow({
+          code: String(t.code || t.id || ''),
+          name: t.name || t.nama || '',
+          nip: t.nip && t.nip !== '-' ? String(t.nip) : '-',
+          mapel: t.mapel || t.subject || '-'
+        });
+      });
+
+      // --- SHEET 3: REFERENSI PERUSAHAAN PKL ---
+      const ws3 = wb.addWorksheet('Referensi Perusahaan PKL', { views: [{ showGridLines: true }] });
+      ws3.columns = [
+        { header: 'No / ID Perusahaan (Untuk Kolom G)', key: 'id', width: 32 },
+        { header: 'Nama Perusahaan Mitra', key: 'nama', width: 38 },
+        { header: 'Bidang Usaha', key: 'bidang', width: 24 },
+        { header: 'Kota / Lokasi', key: 'kota', width: 22 },
+        { header: 'Jarak ke Sekolah (KM)', key: 'jarak', width: 24 },
+        { header: 'Kapasitas Kuota', key: 'kuota', width: 16 },
+      ];
+
+      const headerRow3 = ws3.getRow(1);
+      headerRow3.height = 26;
+      headerRow3.eachCell(c => {
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6D28D9' } }; // Purple 700
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        c.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      perusahaanPKL.forEach(p => {
+        const dist = calculateDistanceKm(schoolLat, schoolLng, p.lat, p.lng);
+        ws3.addRow({
+          id: Number(p.id),
+          nama: p.nama_perusahaan || '',
+          bidang: p.bidang || '-',
+          kota: p.kota || p.alamat || '-',
+          jarak: dist !== null ? `${dist} km` : 'Belum set GPS',
+          kuota: p.kuota || 15
+        });
+      });
+
+      const buffer = await wb.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `Template_Penugasan_PKL_${eligibleClass}.xlsx`);
+      showToast("Template Excel Penugasan PKL berhasil diunduh!");
+    } catch (err) {
+      console.error("Gagal men-generate template:", err);
+      showToast("Gagal mengunduh template Excel", "error");
+    }
+  };
+
+  // === PARSER IMPOR EXCEL PENUGASAN ===
+  const handleFileSelectForImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buffer);
+
+      const ws = wb.worksheets[0];
+      if (!ws) {
+        showToast("File excel tidak memiliki worksheet.", "error");
+        return;
+      }
+
+      let headerRowIdx = 1;
+      let colMap = {};
+
+      ws.eachRow((row, rowNumber) => {
+        if (Object.keys(colMap).length === 0) {
+          row.eachCell((cell, colNumber) => {
+            const val = String(cell.value || '').toLowerCase().trim();
+            if (val.includes('nis')) colMap.nis = colNumber;
+            else if (val.includes('kode') && val.includes('guru')) colMap.kodeGuru = colNumber;
+            else if (val.includes('guru') && !colMap.kodeGuru) colMap.kodeGuru = colNumber;
+            else if ((val.includes('id') || val.includes('no')) && val.includes('perusahaan')) colMap.noPerusahaan = colNumber;
+            else if (val.includes('perusahaan') && !colMap.noPerusahaan) colMap.noPerusahaan = colNumber;
+            else if (val.includes('nama') && !val.includes('guru') && !val.includes('perusahaan')) colMap.nama = colNumber;
+          });
+          if (colMap.nis) {
+            headerRowIdx = rowNumber;
+          }
+        }
+      });
+
+      if (!colMap.nis) {
+        showToast("Kolom NIS tidak ditemukan. Gunakan template yang disediakan.", "error");
+        return;
+      }
+
+      const previewRows = [];
+
+      ws.eachRow((row, rowNumber) => {
+        if (rowNumber <= headerRowIdx) return;
+
+        const getCellVal = (col) => {
+          if (!col) return '';
+          const cell = row.getCell(col);
+          const v = cell.value;
+          if (v === null || v === undefined) return '';
+          if (typeof v === 'object' && v.text) return String(v.text).trim();
+          return String(v).trim();
+        };
+
+        const rawNis = getCellVal(colMap.nis);
+        if (!rawNis) return;
+
+        const rawKodeGuru = getCellVal(colMap.kodeGuru);
+        const rawNoPerusahaan = getCellVal(colMap.noPerusahaan);
+        const rawNama = getCellVal(colMap.nama);
+
+        const student = pklStudents.find(s => String(s.nis).trim() === rawNis);
+
+        let matchedTeacher = null;
+        if (rawKodeGuru) {
+          const qGuru = rawKodeGuru.toLowerCase();
+          matchedTeacher = teachers.find(t => 
+            String(t.code || t.id || '').trim().toLowerCase() === qGuru ||
+            String(t.nip || '').trim() === rawKodeGuru ||
+            String(t.name || t.nama || '').trim().toLowerCase() === qGuru
+          );
+        }
+
+        let matchedCompany = null;
+        if (rawNoPerusahaan) {
+          const qComp = rawNoPerusahaan.toLowerCase();
+          matchedCompany = perusahaanPKL.find(p => 
+            String(p.id).trim() === rawNoPerusahaan ||
+            String(p.nama_perusahaan || '').trim().toLowerCase() === qComp
+          );
+        }
+
+        let status = 'valid';
+        let message = 'Siap ditugaskan';
+
+        if (!student) {
+          status = 'error';
+          message = 'NIS siswa tidak terdaftar di sistem';
+        } else if (!rawKodeGuru && !rawNoPerusahaan) {
+          status = 'warning';
+          message = 'Kode guru dan perusahaan kosong';
+        } else if (rawKodeGuru && !matchedTeacher) {
+          status = 'warning';
+          message = `Kode guru "${rawKodeGuru}" tidak ditemukan di master guru`;
+        } else if (rawNoPerusahaan && !matchedCompany) {
+          status = 'warning';
+          message = `ID/Nama perusahaan "${rawNoPerusahaan}" tidak ditemukan`;
+        }
+
+        previewRows.push({
+          rowNumber,
+          nis: rawNis,
+          nama: student?.nama || rawNama || '-',
+          kelas: student?.kelas || '-',
+          jurusan: student?.jurusan || '-',
+          rawKodeGuru,
+          teacherCode: matchedTeacher ? (matchedTeacher.code || matchedTeacher.id) : null,
+          teacherName: matchedTeacher ? (matchedTeacher.name || matchedTeacher.nama) : (rawKodeGuru ? `Tidak ditemukan (${rawKodeGuru})` : '-'),
+          rawNoPerusahaan,
+          locationId: matchedCompany ? matchedCompany.id : null,
+          locationName: matchedCompany ? matchedCompany.nama_perusahaan : (rawNoPerusahaan ? `Tidak ditemukan (${rawNoPerusahaan})` : '-'),
+          status,
+          message
+        });
+      });
+
+      if (previewRows.length === 0) {
+        showToast("Tidak ada baris data siswa yang ditemukan di file Excel.", "error");
+        return;
+      }
+
+      setImportPreviewRows(previewRows);
+      setShowImportModal(true);
+    } catch (err) {
+      console.error("Gagal membaca file Excel:", err);
+      showToast("Gagal membaca file Excel: " + (err.message || "Format tidak didukung"), "error");
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  // === EKSEKUSI SIMPAN PENUGASAN BULK ===
+  const handleExecuteBulkImport = async () => {
+    const validUpdates = importPreviewRows.filter(r => r.status === 'valid' || (r.status === 'warning' && (r.teacherCode || r.locationId)));
+    if (validUpdates.length === 0) {
+      showToast("Tidak ada data yang valid untuk disimpan.", "error");
+      return;
+    }
+
+    setIsProcessingImport(true);
     const token = getToken();
 
     try {
-      await fetch("/api/monitoring/pkl-students/bulk", {
+      const payload = {
+        updates: validUpdates.map(r => ({
+          nis: r.nis,
+          location_id: r.locationId ? Number(r.locationId) : null,
+          teacher_code: r.teacherCode || null
+        }))
+      };
+
+      const res = await fetch("/api/monitoring/pkl-students/bulk", {
         method: "POST",
-        headers: { 
-          "Authorization": `Bearer ${token}`, 
-          "Content-Type": "application/json" 
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ 
-          updates: [{ 
-            nis: selectedSiswa.nis, 
-            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null, 
-            teacher_code: selectedSiswa.guruPembimbingCode || null 
-          }] 
-        })
-      });
-      
-      setPklStudentsMapping(prev => {
-        const newMap = [...prev];
-        const idx = newMap.findIndex(m => String(m.nis) === String(selectedSiswa.nis));
-        if (idx >= 0) {
-          newMap[idx] = {
-            ...newMap[idx],
-            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null,
-            teacher_code: selectedSiswa.guruPembimbingCode || null
-          };
-        } else {
-          newMap.push({ 
-            nis: selectedSiswa.nis, 
-            location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null, 
-            teacher_code: selectedSiswa.guruPembimbingCode || null 
-          });
-        }
-        return newMap;
+        body: JSON.stringify(payload)
       });
 
-      showToast("Penugasan PKL siswa berhasil diperbarui!");
-      setSelectedSiswa(null);
+      if (res.ok) {
+        showToast(`Berhasil menugaskan ${validUpdates.length} siswa PKL secara massal!`);
+        setShowImportModal(false);
+        setImportPreviewRows([]);
+        fetchPKLData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast("Gagal menyimpan penugasan massal: " + (data.error || "Terjadi kesalahan"), "error");
+      }
     } catch (e) {
-      showToast("Gagal menyimpan penugasan", "error");
+      showToast("Gagal menghubungi server.", "error");
+    } finally {
+      setIsProcessingImport(false);
     }
-    setIsSavingSettings(false);
   };
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-300 pb-10">
-      {/* Top Banner Header (Clean & Uncluttered) */}
+      {/* Top Banner Header */}
       <PageHeader
         icon={Users}
         title="Data Siswa PKL"
         description={`Manajemen ${pklStudents.length} siswa kelas ${eligibleClass} sinkron otomatis dari Master Data.`}
         rightContent={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadTemplate}
+              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)] bg-emerald-50 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100"
+              title="Unduh template excel multi-sheet untuk penugasan guru & perusahaan"
+            >
+              <FileSpreadsheet size={13} strokeWidth={2.5} className="text-emerald-600" /> 
+              <span>Template Excel</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                const f = document.createElement('input'); f.type = 'file'; f.accept = '.xlsx,.xls'; f.onchange = handleImport; f.click();
+                const f = document.createElement('input'); 
+                f.type = 'file'; 
+                f.accept = '.xlsx,.xls'; 
+                f.onchange = handleFileSelectForImport; 
+                f.click();
               }}
               className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              title="Impor hasil pencocokan kode guru & nomor perusahaan dari Excel"
             >
-              <Upload size={13} strokeWidth={2.5} /> Impor Excel
+              <Upload size={13} strokeWidth={2.5} /> Impor Penugasan
             </Button>
             <Button
               variant="outline"
@@ -344,7 +628,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
               onClick={handleExport}
               className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
             >
-              <Download size={13} strokeWidth={2.5} /> Ekspor Excel
+              <Download size={13} strokeWidth={2.5} /> Ekspor Data
             </Button>
           </div>
         }
@@ -578,13 +862,24 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                     {/* Perusahaan PKL */}
                     <td className="px-4 py-3">
                       {perusahaan ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
-                            <Building2 size={13} />
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                              <Building2 size={13} />
+                            </div>
+                            <span className="font-bold text-slate-800 text-xs truncate max-w-[220px]" title={perusahaan.nama_perusahaan}>
+                              {perusahaan.nama_perusahaan}
+                            </span>
                           </div>
-                          <span className="font-bold text-slate-800 text-xs truncate max-w-[220px]" title={perusahaan.nama_perusahaan}>
-                            {perusahaan.nama_perusahaan}
-                          </span>
+                          {(() => {
+                            const dist = calculateDistanceKm(schoolLat, schoolLng, perusahaan.lat, perusahaan.lng);
+                            return dist !== null ? (
+                              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-sky-700 pl-8">
+                                <Compass size={11} className="text-sky-500 shrink-0" />
+                                {dist} km dari sekolah
+                              </span>
+                            ) : null;
+                          })()}
                         </div>
                       ) : (
                         <span className="text-[11px] font-semibold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded border border-slate-200/60">
@@ -665,10 +960,21 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                   </span>
                 </div>
 
-                <div className="bg-[var(--ui-surface-muted)] p-2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] space-y-1 text-[11px]">
-                  <div className="flex justify-between">
+                <div className="bg-[var(--ui-surface-muted)] p-2 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] space-y-1.5 text-[11px]">
+                  <div className="flex justify-between items-start">
                     <span className="text-slate-400 font-medium">Perusahaan:</span>
-                    <span className="font-bold text-slate-700 truncate max-w-[180px]">{perusahaan?.nama_perusahaan || 'Belum Ditempatkan'}</span>
+                    <div className="text-right">
+                      <span className="font-bold text-slate-700 truncate max-w-[180px] block">{perusahaan?.nama_perusahaan || 'Belum Ditempatkan'}</span>
+                      {perusahaan && (() => {
+                        const dist = calculateDistanceKm(schoolLat, schoolLng, perusahaan.lat, perusahaan.lng);
+                        return dist !== null ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-sky-700 font-bold">
+                            <Compass size={10} className="text-sky-500" />
+                            {dist} km dari sekolah
+                          </span>
+                        ) : null;
+                      })()}
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400 font-medium">Pembimbing:</span>
@@ -780,6 +1086,137 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
                 >
                   {isSavingSettings ? <RefreshCw size={13} className="animate-spin" /> : <Check size={14} />}
                   <span>{isSavingSettings ? 'Menyimpan...' : 'Simpan Penugasan'}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* MODAL PRATINJAU IMPOR PENUGASAN EXCEL */}
+      {showImportModal && (
+        <Modal
+          isOpen={showImportModal}
+          onClose={() => { if (!isProcessingImport) setShowImportModal(false); }}
+          title="Pratinjau Impor Penugasan Siswa PKL"
+          maxWidth="max-w-4xl"
+        >
+          <div className="p-4 sm:p-6 space-y-4">
+            {/* Header Ringkasan */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 rounded-[var(--ui-radius-control)] border border-slate-200/80">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-700">Hasil Pembacaan Excel:</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-xs font-bold">
+                  {importPreviewRows.length} Siswa
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1">
+                  <Check size={12} /> {importPreviewRows.filter(r => r.status === 'valid').length} Cocok Sempurna
+                </span>
+                {importPreviewRows.filter(r => r.status === 'warning').length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center gap-1">
+                    <AlertCircle size={12} /> {importPreviewRows.filter(r => r.status === 'warning').length} Perlu Perhatian
+                  </span>
+                )}
+                {importPreviewRows.filter(r => r.status === 'error').length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-xs font-bold flex items-center gap-1">
+                    <XCircle size={12} /> {importPreviewRows.filter(r => r.status === 'error').length} Gagal/Salah
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={importSearch}
+                  onChange={e => setImportSearch(e.target.value)}
+                  placeholder="Cari nama / NIS..."
+                  className="px-2.5 py-1 text-xs border border-slate-300 rounded-[var(--ui-radius-small)] font-bold focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Table Preview */}
+            <div className="max-h-[380px] overflow-y-auto border border-slate-200 rounded-[var(--ui-radius-control)]">
+              <table className="w-full text-xs text-left">
+                <thead className="sticky top-0 bg-slate-100 border-b border-slate-200 text-[11px] font-black text-slate-600 uppercase">
+                  <tr>
+                    <th className="px-3 py-2.5">Siswa</th>
+                    <th className="px-3 py-2.5">Kode Guru</th>
+                    <th className="px-3 py-2.5">Guru Pembimbing</th>
+                    <th className="px-3 py-2.5">No Perusahaan</th>
+                    <th className="px-3 py-2.5">Perusahaan PKL</th>
+                    <th className="px-3 py-2.5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {importPreviewRows
+                    .filter(r => {
+                      if (!importSearch) return true;
+                      const q = importSearch.toLowerCase();
+                      return r.nama.toLowerCase().includes(q) || r.nis.includes(q) || (r.teacherName && r.teacherName.toLowerCase().includes(q)) || (r.locationName && r.locationName.toLowerCase().includes(q));
+                    })
+                    .map((r, i) => (
+                      <tr key={i} className={`hover:bg-slate-50 ${r.status === 'error' ? 'bg-rose-50/50' : r.status === 'warning' ? 'bg-amber-50/30' : ''}`}>
+                        <td className="px-3 py-2">
+                          <p className="font-extrabold text-slate-800">{r.nama}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">NIS: {r.nis} • {r.kelas}</p>
+                        </td>
+                        <td className="px-3 py-2 font-mono font-bold text-indigo-600">
+                          {r.rawKodeGuru || '-'}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`font-bold ${r.teacherCode ? 'text-slate-800' : 'text-slate-400'}`}>
+                            {r.teacherName}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 font-mono font-bold text-purple-600">
+                          {r.rawNoPerusahaan || '-'}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`font-bold ${r.locationId ? 'text-slate-800' : 'text-slate-400'}`}>
+                            {r.locationName}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            r.status === 'valid'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : r.status === 'warning'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`} title={r.message}>
+                            {r.status === 'valid' ? 'Cocok' : r.status === 'warning' ? 'Perhatian' : 'Gagal'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer Action */}
+            <div className="pt-2 flex items-center justify-between border-t border-slate-200">
+              <p className="text-xs text-slate-500 font-medium">
+                Pastikan data yang cocok sudah benar sebelum disimpan ke database.
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowImportModal(false)}
+                  disabled={isProcessingImport}
+                >
+                  Batal
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleExecuteBulkImport}
+                  disabled={isProcessingImport || importPreviewRows.filter(r => r.status === 'valid' || (r.status === 'warning' && (r.teacherCode || r.locationId))).length === 0}
+                  className="flex items-center gap-1.5"
+                >
+                  {isProcessingImport ? <RefreshCw size={13} className="animate-spin" /> : <CheckCheck size={14} />}
+                  <span>{isProcessingImport ? 'Menyimpan Penugasan...' : `Terapkan & Simpan Penugasan (${importPreviewRows.filter(r => r.status === 'valid' || (r.status === 'warning' && (r.teacherCode || r.locationId))).length})`}</span>
                 </Button>
               </div>
             </div>

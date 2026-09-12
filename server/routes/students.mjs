@@ -1,3 +1,5 @@
+import { generateStudentCardToken } from '../utils/studentCardSecurity.mjs';
+
 export async function handleStudentRoutes(req, res, url, ctx) {
   const { dbPool, send, requireAuthenticated, readJsonBody, normalizeServerRole, sendDatabaseError } = ctx;
 
@@ -44,6 +46,7 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       const students = rowsResult.rows.map(r => {
          const p = r.payload;
          if (p && p.password) delete p.password;
+         if (p && p.nis) p.card_token = generateStudentCardToken(p.nis);
          return p;
       });
 
@@ -92,11 +95,11 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       try {
         await client.query('BEGIN');
         
-        // Fetch existing passwords BEFORE any write (preserve hashed passwords)
-        const oldPasswordsResult = await client.query("SELECT payload->>'nis' as nis, payload->>'password' as password FROM mst_students WHERE payload->>'password' IS NOT NULL");
+        // Fetch existing passwords & photos BEFORE any write (preserve them)
+        const oldDataResult = await client.query("SELECT payload->>'nis' as nis, payload->>'password' as password, payload->>'photo' as photo FROM mst_students WHERE payload IS NOT NULL");
         const dbStudentMap = new Map();
-        for (const row of oldPasswordsResult.rows) {
-          if (row.nis) dbStudentMap.set(row.nis.toLowerCase().trim(), row.password);
+        for (const row of oldDataResult.rows) {
+          if (row.nis) dbStudentMap.set(row.nis.toLowerCase().trim(), { password: row.password, photo: row.photo });
         }
 
         // Deduplicate dan bangun daftar ID yang akan disimpan
@@ -110,10 +113,14 @@ export async function handleStudentRoutes(req, res, url, ctx) {
           const normalizedId = nis.toLowerCase();
           if (!normalizedId || seenIds.has(normalizedId)) continue;
           
+          const oldData = dbStudentMap.get(normalizedId);
           // Restore password lama jika tidak dikirim dari client
-          if (!item.password) {
-            const oldPw = dbStudentMap.get(normalizedId);
-            if (oldPw) item.password = oldPw;
+          if (!item.password && oldData?.password) {
+            item.password = oldData.password;
+          }
+          // Restore photo lama jika tidak dikirim dari client
+          if (!item.photo && oldData?.photo) {
+            item.photo = oldData.photo;
           }
 
           seenIds.add(normalizedId);
@@ -163,6 +170,96 @@ export async function handleStudentRoutes(req, res, url, ctx) {
     } catch (e) {
       console.error(e);
       sendDatabaseError(req, res, e);
+    }
+    return true;
+  }
+
+  // Handle saving single student photo (from KartuPelajar or DataSiswa)
+  if (url.pathname === '/api/students/photo' && req.method === 'POST') {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+
+    try {
+      const body = await readJsonBody(req);
+      const { nis, photo } = body;
+      if (!nis) {
+        send(req, res, 400, { ok: false, error: 'NIS wajib disertakan' });
+        return true;
+      }
+
+      const cleanNis = String(nis).trim();
+      const normalizedId = cleanNis.toLowerCase();
+
+      // Update in mst_students
+      const updateRes = await dbPool.query(
+        `UPDATE mst_students 
+         SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)
+         WHERE id = $2 OR payload->>'nis' = $2
+         RETURNING payload`,
+        [photo || '', cleanNis]
+      );
+
+      if (updateRes.rows.length === 0) {
+        await dbPool.query(
+          `UPDATE mst_students 
+           SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)
+           WHERE id = $2
+           RETURNING payload`,
+          [photo || '', normalizedId]
+        );
+      }
+
+      send(req, res, 200, { ok: true, message: 'Foto siswa berhasil disimpan ke database', nis: cleanNis });
+    } catch (err) {
+      console.error('Failed to save student photo:', err);
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
+  // Handle bulk student photos upload
+  if (url.pathname === '/api/students/photos/bulk' && req.method === 'POST') {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+
+    try {
+      const body = await readJsonBody(req);
+      const photosMap = body.photos || {}; // { [nis]: base64Data }
+      const entries = Object.entries(photosMap);
+
+      if (entries.length === 0) {
+        send(req, res, 400, { ok: false, error: 'Tidak ada foto yang dikirim' });
+        return true;
+      }
+
+      const client = await dbPool.connect();
+      try {
+        await client.query('BEGIN');
+        let updatedCount = 0;
+
+        for (const [nis, photoBase64] of entries) {
+          if (!nis || !photoBase64) continue;
+          const cleanNis = String(nis).trim();
+          const r = await client.query(
+            `UPDATE mst_students 
+             SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)
+             WHERE id = $2 OR id = $3 OR payload->>'nis' = $2`,
+            [photoBase64, cleanNis, cleanNis.toLowerCase()]
+          );
+          if (r.rowCount > 0) updatedCount++;
+        }
+
+        await client.query('COMMIT');
+        send(req, res, 200, { ok: true, message: `${updatedCount} foto siswa berhasil disimpan ke server`, updatedCount });
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error('Failed to bulk save student photos:', err);
+      sendDatabaseError(req, res, err);
     }
     return true;
   }

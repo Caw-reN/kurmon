@@ -244,7 +244,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             LEFT JOIN mst_staffs msf ON (msf.payload->>'staff_code' = l.employee_id OR msf.payload->>'code' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}'
               AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
             WHERE CAST(l.timestamp AS DATE) = $1
-              AND (ms.id IS NOT NULL OR hs.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
+              AND (ms.id IS NOT NULL OR mst.id IS NOT NULL OR msf.id IS NOT NULL)
             ORDER BY COALESCE(ms.payload->>'nis', hs.nis, l.employee_id), l.timestamp ASC
           `, [todayJkt]),
           // Staff logs: dedicated query
@@ -575,6 +575,16 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   }
                 }
                 
+                // Check mismatch & only sync into hikvision_students if registered in master data
+                const isGuru = Boolean(nipToCode[empNo.toLowerCase()]);
+                const isStaff = Boolean(staffToCode[empNo.toLowerCase()]);
+                const isSiswa = Boolean(resolveNis(empNo));
+
+                if (!isGuru && !isStaff && !isSiswa) {
+                  unmatchedIds.push({ device: device.location, type: dtype, id: empNo, name });
+                  continue; // Abaikan akun mesin yang tidak terdaftar di master data
+                }
+
                 const checkStu = await dbPool.query("SELECT id FROM hikvision_students WHERE nis = $1", [empNo]);
                 if (checkStu.rows.length > 0) {
                   await dbPool.query("UPDATE hikvision_students SET name = $1, device_group_id = $2, class_name = $3 WHERE nis = $4", [name, dbGrpId, dtype, empNo]);
@@ -584,17 +594,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 
                 allPulledNis.add(empNo);
                 usersSynced++;
-
-                // Check mismatch
-                if (dtype === 'guru' || dtype === 'karyawan') {
-                  if (!nipToCode[empNo.toLowerCase()]) {
-                    unmatchedIds.push({ device: device.location, type: dtype, id: empNo, name });
-                  }
-                } else if (dtype === 'siswa') {
-                  if (empNo && !resolveNis(empNo)) {
-                    unmatchedIds.push({ device: device.location, type: dtype, id: empNo, name });
-                  }
-                }
               }
             }
 
@@ -621,17 +620,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               for (const l of validLogs) {
                 let empRaw = String(l.employeeNoString || l.employeeNo || '').trim();
                 const empStr = empRaw.toLowerCase();
-                let personType = 'siswa';
+                let personType = null;
                 if (nipToCode[empStr]) {
                   personType = 'guru';
                   empRaw = nipToCode[empStr] || empRaw;
                 } else if (staffToCode[empStr]) {
                   personType = 'karyawan';
                   empRaw = staffToCode[empStr] || empRaw;
-                } else if (dtype === 'guru') {
-                  personType = 'guru';
-                } else if (dtype === 'karyawan' || dtype === 'staff') {
-                  personType = 'karyawan';
                 } else {
                   // Resolve canonical student NIS if available in mst_students
                   const resolvedNis = resolveNis(empRaw);
@@ -640,6 +635,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                     personType = 'siswa';
                   }
                 }
+
+                // ATURAN KETAT: Jika tidak terdaftar di data master (siswa/guru/karyawan), JANGAN DICATAT!
+                if (!personType) {
+                  continue;
+                }
+
                 const tsStr = (l.time || '').replace('T', ' ').substring(0, 19);
                 await dbPool.query(query, [device.id, empRaw, tsStr, `${l.major}-${l.minor}`, personType]);
                 logsSynced++;

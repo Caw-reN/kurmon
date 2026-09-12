@@ -4,7 +4,7 @@ import {
   MessageSquare, HardDrive, Send, Cloud, UploadCloud, Trash2, 
   FileSpreadsheet, Download, CheckCircle2, AlertCircle, RefreshCw, 
   Info, Shield, Calendar, FileJson, Sparkles, Clock, Trash, 
-  ExternalLink, ArrowRight, ShieldAlert, Check, AlertTriangle
+  ExternalLink, ArrowRight, ShieldAlert, Check, AlertTriangle, Key, Save
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -21,6 +21,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
   const [localBackups, setLocalBackups] = useState([]);
   const [schedule, setSchedule] = useState({ hour: 2, enabled: true, keepDays: 7, sendToTelegram: false });
   const [botStatus, setBotStatus] = useState(null);
+  const [telegramToken, setTelegramToken] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [isSavingTelegram, setIsSavingTelegram] = useState(false);
   
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -52,17 +55,24 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       
       if (resKeys.ok) {
         const data = await resKeys.json();
-        const telegramKey = (data.data || []).find(k => k.service_name === 'telegram_backup' && k.is_active);
+        const telegramKey = (data.data || []).find(k => (k.service_name === 'telegram_backup' || k.service_name === 'telegram_bot_monitor' || k.service_name?.startsWith('telegram')) && k.is_active);
         const r2Key = (data.data || []).find(k => k.service_name === 'cloudflare_r2' && k.is_active);
         const gdriveKey = (data.data || []).find(k => k.service_name === 'google_drive' && k.is_active);
         setIsTelegramConfigured(!!telegramKey);
         setIsR2Configured(!!r2Key);
         setIsGDriveConfigured(!!gdriveKey);
+        if (telegramKey?.extra_config?.chat_id) {
+          setTelegramChatId(telegramKey.extra_config.chat_id);
+        }
       }
       
       if (bkRes.ok) { const b = await bkRes.json(); setLocalBackups(b.data || []); }
       if (schRes.ok) { const s = await schRes.json(); setSchedule(s.data || schedule); }
-      if (botRes.ok) { const b = await botRes.json(); setBotStatus(b.data); }
+      if (botRes.ok) { 
+        const b = await botRes.json(); 
+        setBotStatus(b.data); 
+        if (b.data?.chatId) setTelegramChatId(b.data.chatId);
+      }
     } catch (e) { 
       console.error(e); 
     }
@@ -273,6 +283,40 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       if (!data.ok) showToast('Gagal menyimpan konfigurasi.', 'error');
     } catch(e) {
       showToast('Koneksi bermasalah saat menyimpan.', 'error');
+    }
+  };
+
+  const handleSaveTelegramCredentials = async () => {
+    if (!telegramToken.trim() && !botStatus?.hasBotToken) {
+      showToast('Bot Token wajib diisi.', 'error');
+      return;
+    }
+    if (!telegramChatId.trim()) {
+      showToast('Chat ID wajib diisi.', 'error');
+      return;
+    }
+    setIsSavingTelegram(true);
+    try {
+      const res = await fetch('/api/telegram-bot/config', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bot_token: telegramToken.trim() || undefined,
+          chat_id: telegramChatId.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('Konfigurasi Telegram Bot berhasil disimpan & bot aktif!');
+        setTelegramToken('');
+        loadData();
+      } else {
+        showToast(data.error || 'Gagal menyimpan konfigurasi bot.', 'error');
+      }
+    } catch(e) {
+      showToast('Gagal menghubungi server.', 'error');
+    } finally {
+      setIsSavingTelegram(false);
     }
   };
 
@@ -899,6 +943,63 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Konfigurasi Kredensial Bot Telegram */}
+          <div className="p-6 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs space-y-4">
+             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+               <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                 <div className="p-1.5 bg-sky-50 text-sky-600 rounded-md"><Key size={14} /></div>
+                 Kredensial &amp; Pengaturan Akun Bot
+               </h4>
+               {botStatus?.hasBotToken && (
+                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)]">
+                   Kredensial Tersimpan
+                 </span>
+               )}
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div>
+                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                   HTTP API Bot Token (dari @BotFather)
+                 </label>
+                 <input 
+                   type="text" 
+                   value={telegramToken}
+                   onChange={e => setTelegramToken(e.target.value)}
+                   placeholder={botStatus?.botTokenMasked ? `Token tersimpan (${botStatus.botTokenMasked})` : "Contoh: 1234567890:ABCdefGhIJKlmNoPQRstUVwxyZ"}
+                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                 />
+                 <p className="text-[10px] text-slate-400 mt-1">Dapatkan dari obrolan dengan @BotFather di Telegram.</p>
+               </div>
+
+               <div>
+                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                   Target Chat ID (Pribadi / Grup)
+                 </label>
+                 <input 
+                   type="text" 
+                   value={telegramChatId}
+                   onChange={e => setTelegramChatId(e.target.value)}
+                   placeholder="Contoh: 123456789 atau -100123456789"
+                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                 />
+                 <p className="text-[10px] text-slate-400 mt-1">Dapatkan dari @userinfobot di Telegram (ID personal atau ID grup berawalan -100).</p>
+               </div>
+             </div>
+
+             <div className="flex justify-end pt-2">
+               <button
+                 type="button"
+                 onClick={handleSaveTelegramCredentials}
+                 disabled={isSavingTelegram}
+                 className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-black text-xs rounded-[var(--ui-radius-small)] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+               >
+                 {isSavingTelegram ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+                 <span>Simpan &amp; Aktifkan Bot</span>
+               </button>
+             </div>
           </div>
 
           {/* Configuration Toggles */}

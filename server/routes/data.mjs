@@ -1,3 +1,5 @@
+import { generateStudentCardToken } from '../utils/studentCardSecurity.mjs';
+
 export async function handleDataRoutes(req, res, url, ctx) {
   const {
     dbPool,
@@ -80,7 +82,14 @@ export async function handleDataRoutes(req, res, url, ctx) {
         payload.subjects = subjects.rows.map(r => r.payload);
         // Remove passwords from teachers/students/staffs before sending to client
         payload.teachers = teachers.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
-        payload.students = students.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
+        payload.students = students.rows.map(r => { 
+          const p = r.payload; 
+          if (p && p.password) delete p.password; 
+          if (p && p.nis) {
+            p.card_token = generateStudentCardToken(p.nis);
+          }
+          return p; 
+        });
         payload.staffs = staffs.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
       } catch (e) {
         console.warn("Failed to merge relational tables on load", e);
@@ -400,15 +409,19 @@ export async function handleDataRoutes(req, res, url, ctx) {
           const existingRes = await client.query("SELECT id, payload FROM mst_students");
           const dbMap = new Map(existingRes.rows.map(r => {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
-            return [String(r.id).toLowerCase(), p?.password];
+            return [String(r.id).toLowerCase(), p];
           }));
           for (const item of items) {
             if (!item) continue;
             const nis = String(item.nis || item.code || item.id || '').trim();
             const normalizedId = nis.toLowerCase();
             if (!normalizedId) continue;
-            if (!item.password && dbMap.has(normalizedId)) {
-              item.password = dbMap.get(normalizedId);
+            const existingPayload = dbMap.get(normalizedId);
+            if (!item.password && existingPayload?.password) {
+              item.password = existingPayload.password;
+            }
+            if (!item.photo && existingPayload?.photo) {
+              item.photo = existingPayload.photo;
             }
             await client.query(
               `INSERT INTO mst_students (id, payload) VALUES ($1, $2)

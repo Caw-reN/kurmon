@@ -791,30 +791,34 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
     doc.text("I. REKAPITULASI KEHADIRAN", 15, yPos);
     doc.setFont("Helvetica", "normal");
 
-    const sAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Sakit' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const iAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Izin' && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const aAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Alpa' || a.status === 'Belum Scan') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
-    const totalHadir = absensiList.filter(a => String(a.siswa_nis) === String(nis) && a.status === 'Hadir').length;
+    const sAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Sakit' || String(a.status).toLowerCase() === 'sakit') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const iAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Izin' || String(a.status).toLowerCase() === 'izin') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const aAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Alpa' || a.status === 'Belum Scan' || String(a.status).toLowerCase() === 'alpa') && (a.approval_status === 'approved' || a.approval_status === 'otomatis')).length;
+    const tAbs = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Terlambat' || String(a.status).toLowerCase() === 'terlambat')).length;
+    const totalHadir = absensiList.filter(a => String(a.siswa_nis) === String(nis) && (a.status === 'Hadir' || String(a.status).toLowerCase() === 'hadir')).length;
 
     doc.rect(15, yPos + 4, pageWidth - 30, 16);
     doc.line(15, yPos + 12, pageWidth - 15, yPos + 12);
 
-    const colWidth = (pageWidth - 30) / 4;
+    const colWidth = (pageWidth - 30) / 5;
     doc.line(15 + colWidth, yPos + 4, 15 + colWidth, yPos + 20);
     doc.line(15 + colWidth * 2, yPos + 4, 15 + colWidth * 2, yPos + 20);
     doc.line(15 + colWidth * 3, yPos + 4, 15 + colWidth * 3, yPos + 20);
+    doc.line(15 + colWidth * 4, yPos + 4, 15 + colWidth * 4, yPos + 20);
 
     doc.setFont("Helvetica", "bold");
     doc.text("Hadir", 15 + colWidth / 2, yPos + 9, { align: "center" });
-    doc.text("Sakit", 15 + colWidth * 1.5, yPos + 9, { align: "center" });
-    doc.text("Izin", 15 + colWidth * 2.5, yPos + 9, { align: "center" });
-    doc.text("Alpa", 15 + colWidth * 3.5, yPos + 9, { align: "center" });
+    doc.text("Terlambat", 15 + colWidth * 1.5, yPos + 9, { align: "center" });
+    doc.text("Sakit", 15 + colWidth * 2.5, yPos + 9, { align: "center" });
+    doc.text("Izin", 15 + colWidth * 3.5, yPos + 9, { align: "center" });
+    doc.text("Alpa", 15 + colWidth * 4.5, yPos + 9, { align: "center" });
 
     doc.setFont("Helvetica", "normal");
     doc.text(`${totalHadir} hari`, 15 + colWidth / 2, yPos + 17, { align: "center" });
-    doc.text(`${sAbs} hari`, 15 + colWidth * 1.5, yPos + 17, { align: "center" });
-    doc.text(`${iAbs} hari`, 15 + colWidth * 2.5, yPos + 17, { align: "center" });
-    doc.text(`${aAbs} hari`, 15 + colWidth * 3.5, yPos + 17, { align: "center" });
+    doc.text(`${tAbs} kali`, 15 + colWidth * 1.5, yPos + 17, { align: "center" });
+    doc.text(`${sAbs} hari`, 15 + colWidth * 2.5, yPos + 17, { align: "center" });
+    doc.text(`${iAbs} hari`, 15 + colWidth * 3.5, yPos + 17, { align: "center" });
+    doc.text(`${aAbs} hari`, 15 + colWidth * 4.5, yPos + 17, { align: "center" });
     
     yPos += 26;
 

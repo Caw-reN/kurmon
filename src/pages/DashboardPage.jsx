@@ -682,13 +682,12 @@ export default function DashboardPage({
     if (!isTeacher) return [];
     const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
     const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || teacherSubrole === 'walikelas');
-    const canPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket', null) : false;
+    const canPiket = typeof checkIsAllowed === 'function' ? (checkIsAllowed('kedisiplinan_piket', null) || checkIsAllowed('kedisiplinan_bpbk', null)) : true;
 
     let shortcuts = [];
     if (teacherSubrole === 'bpbk') {
       shortcuts = [
-        { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
-        ...(canPiket ? [{ label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
+        { label: "BK & Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "kedisiplinan_absensi" },
         { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "siswa" },
@@ -699,7 +698,7 @@ export default function DashboardPage({
       ];
     } else if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) {
       shortcuts = [
-        ...(canPiket ? [{ label: "Piket & Tatib", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
+        ...(canPiket ? [{ label: "Piket & BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
         { label: "Aturan Tatib", icon: "/icons/013-shield.svg", color: "bg-amber-50 text-amber-600", tab: "tatib_skor" },
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
@@ -751,7 +750,7 @@ export default function DashboardPage({
         { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
-        ...(canPiket ? [{ label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
+        ...(canPiket ? [{ label: "Piket & Disiplin", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
@@ -764,7 +763,7 @@ export default function DashboardPage({
         { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
         { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "ketersediaan" },
         { label: "Beban Mengajar", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600", tab: "beban" },
-        ...(canPiket ? [{ label: "Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
+        ...(canPiket ? [{ label: "Piket & Disiplin", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];

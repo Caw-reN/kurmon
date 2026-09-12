@@ -25,7 +25,16 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedViolations, setSelectedViolations] = useState([]);
   
-  const authToken = useAuthStore(state => state.user?.authToken);
+  const authUser = useAuthStore(state => state.user);
+  const rawSession = useMemo(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      return JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || localStorage.getItem('school_schedule_session_v1') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+  const authToken = authUser?.authToken || rawSession?.authToken || '';
   const [toast, setToast] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,13 +52,12 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
   // Fetch history
   const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch("/api/kedisiplinan/riwayat", {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
+      const headers = authToken ? { "Authorization": `Bearer ${authToken}` } : {};
+      const res = await fetch("/api/kedisiplinan/riwayat", { headers });
       const data = await res.json();
       if (data.ok) {
         const today = new Date().toISOString().split('T')[0];
-        setHistory(data.data.filter(h => h.tanggal_kejadian && h.tanggal_kejadian.startsWith(today)));
+        setHistory((data.data || []).filter(h => h.tanggal_kejadian && h.tanggal_kejadian.startsWith(today)));
       }
     } catch (e) {
       console.error(e);
@@ -59,9 +67,8 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
   // Fetch master violations (hanya jenis pelanggaran)
   const fetchViolations = useCallback(async () => {
     try {
-      const res = await fetch("/api/kedisiplinan/master", {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
+      const headers = authToken ? { "Authorization": `Bearer ${authToken}` } : {};
+      const res = await fetch("/api/kedisiplinan/master", { headers });
       const data = await res.json();
       if (data.ok) {
         // Hanya tampilkan pelanggaran (bukan penghargaan/prestasi)
@@ -73,10 +80,8 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
   }, [authToken]);
 
   useEffect(() => {
-    if (authToken) {
-      fetchHistory();
-      fetchViolations();
-    }
+    fetchHistory();
+    fetchViolations();
   }, [authToken, fetchHistory, fetchViolations]);
 
   const showToast = (message, type = "success") => {
@@ -371,11 +376,10 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
               )}
            </div>
         </div>
-  
-        {/* RIGHT PANEL: Quick Action POS & Selected Tray */}
-        <div className={`w-full lg:w-2/3 flex-col gap-5 ${mobileTab === 'pelanggaran' ? 'flex' : 'hidden lg:flex'}`}>
+          {/* RIGHT PANEL: Quick Action POS & Selected Tray */}
+        <div className={`w-full lg:w-2/3 flex flex-col gap-5 ${mobileTab === 'siswa' ? 'hidden lg:flex' : 'flex'}`}>
            {/* Selected Tray */}
-           <div className="ui-card p-4 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
+           <div className={`ui-card p-4 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white ${mobileTab === 'riwayat' ? 'hidden lg:block' : 'block'}`}>
               <div className="flex items-center justify-between mb-3">
                  <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
                     <CheckCircle2 size={16} className="text-emerald-600"/> Siswa Terpilih ({selectedStudents.length})
@@ -419,9 +423,9 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
                  )}
               </div>
            </div>
-  
+   
            {/* POS Action Grid */}
-           <div className="ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
+           <div className={`ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white ${mobileTab === 'riwayat' ? 'hidden lg:block' : 'block'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                   <h2 className="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-wider">
@@ -525,58 +529,63 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
                     <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 font-black border border-rose-200">+{totalPoin} Poin</span>
                  </div>
                  <Button
-                    onClick={() => setConfirmViolation(true)}
-                    disabled={selectedStudents.length === 0 || selectedViolations.length === 0 || isSubmitting}
-                    className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 font-black text-xs cursor-pointer shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
-                 >
-                    <CheckCircle2 size={16} /> Simpan &amp; Kirim Notifikasi
-                 </Button>
-              </div>
-           </div>
-        </div>
+                     onClick={() => setConfirmViolation(true)}
+                     disabled={selectedStudents.length === 0 || selectedViolations.length === 0 || isSubmitting}
+                     className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 font-black text-xs cursor-pointer shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] transition-all active:scale-95"
+                  >
+                     <CheckCircle2 size={16} /> Simpan &amp; Kirim Notifikasi
+                  </Button>
+               </div>
+            </div>
 
-        {/* RIWAYAT PANEL (Mobile Only Tab or Desktop Bottom) */}
-        <div className={`w-full lg:w-2/3 flex flex-col gap-6 ${mobileTab === 'riwayat' ? 'block' : 'hidden lg:hidden'}`}>
-           <div className="ui-card p-4 sm:p-6 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] bg-white">
-              <h2 className="font-bold text-slate-800 mb-4 text-sm sm:text-base flex items-center gap-2">
-                 <History size={18} className="text-[var(--ui-primary)]"/> Riwayat Input Hari Ini
-              </h2>
-              {history.length === 0 ? (
-                 <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
-                    Belum ada pelanggaran yang diinput hari ini.
-                 </div>
-              ) : (
-                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                    {history.map(item => {
-                       const student = students.find(s => String(s.nis) === String(item.siswa_nis));
-                       const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
-                       return (
-                          <div key={item.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded-[var(--ui-radius-small)] gap-2">
-                             <div className="min-w-0 flex-1">
-                                <div className="font-extrabold text-slate-800 text-xs truncate flex items-center gap-1.5">
-                                   <span className="truncate max-w-[120px] sm:max-w-[160px]">{studentName}</span>
-                                   <ChevronRight size={12} className="text-slate-400 shrink-0"/> 
-                                   <span className="text-rose-600 truncate">{String(item.tindakan_nama || '').split(' - ')[0]}</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                                   {new Date(item.tanggal_kejadian).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB • {item.pelapor_nama}
-                                </div>
-                             </div>
-                             <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] font-black text-rose-600 bg-white border border-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shadow-xs">
-                                   +{item.poin}
-                                </span>
-                                <Button variant="ghost" size="icon" onClick={() => deleteHistory(item.id)} title="Hapus Riwayat" className="h-8 w-8 text-rose-500 hover:bg-rose-50">
-                                   <Trash2 size={14}/>
-                                </Button>
-                             </div>
-                          </div>
-                       );
-                    })}
-                 </div>
-              )}
-           </div>
-        </div>
+            {/* RIWAYAT PANEL (Hari Ini) */}
+            <div className={`ui-card p-4 sm:p-5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs bg-white ${mobileTab === 'pelanggaran' ? 'hidden lg:block' : 'block'}`}>
+               <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+                  <h2 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                     <History size={16} className="text-emerald-600"/> Riwayat Input Hari Ini
+                  </h2>
+                  <span className="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
+                     {history.length} Catatan
+                  </span>
+               </div>
+               {history.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs italic bg-slate-50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200">
+                     Belum ada pelanggaran yang diinput hari ini.
+                  </div>
+               ) : (
+                  <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1 custom-scrollbar">
+                     {history.map(item => {
+                        const student = students.find(s => String(s.nis) === String(item.siswa_nis));
+                        const studentName = student ? (student.namaSiswa || student.name) : item.siswa_nis;
+                        return (
+                           <div key={item.id} className="flex justify-between items-center p-2.5 sm:p-3 border border-slate-100 bg-slate-50/70 hover:bg-slate-50 rounded-[var(--ui-radius-small)] gap-2 transition-colors">
+                              <div className="min-w-0 flex-1">
+                                 <div className="font-extrabold text-slate-800 text-xs truncate flex items-center gap-1.5">
+                                    <span className="truncate max-w-[140px] sm:max-w-[200px] text-slate-900">{studentName}</span>
+                                    <ChevronRight size={12} className="text-slate-400 shrink-0"/> 
+                                    <span className="text-rose-600 truncate">{String(item.tindakan_nama || '').split(' - ')[0]}</span>
+                                 </div>
+                                 <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                                    {new Date(item.tanggal_kejadian).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB • Pelapor: {item.pelapor_nama}
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                 <span className="text-[10px] font-black text-rose-600 bg-white border border-rose-100 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shadow-2xs">
+                                    +{item.poin}
+                                 </span>
+                                 {canEdit && (
+                                   <Button variant="ghost" size="icon" onClick={() => deleteHistory(item.id)} title="Hapus Riwayat" className="h-7 w-7 text-rose-500 hover:bg-rose-50 rounded-[var(--ui-radius-small)]">
+                                      <Trash2 size={13}/>
+                                   </Button>
+                                 )}
+                              </div>
+                           </div>
+                        );
+                     })}
+                  </div>
+               )}
+            </div>
+         </div>
       </div>
 
       {/* FLOATING STICKY MOBILE ACTION BAR */}

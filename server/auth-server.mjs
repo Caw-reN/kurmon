@@ -15,6 +15,7 @@ import { handleStudentRoutes } from "./routes/students.mjs";
 import { handleTeacherRoutes } from "./routes/teachers.mjs";
 import { handleStaffRoutes } from "./routes/staffs.mjs";
 import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert, reloadTelegramBotConfig } from "./telegram-bot.mjs";
+import { generateStudentCardToken, verifyStudentCardToken } from "./utils/studentCardSecurity.mjs";
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -266,28 +267,25 @@ async function pullHikvisionLogs(force = false) {
 
             // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
             const empKey = String(employeeNo).toLowerCase();
-            let personType = (dtype === 'staff' || dtype === 'karyawan') ? 'karyawan' : (dtype === 'guru' ? 'guru' : 'siswa');
+            let personType = null;
             let userName   = log.name || 'Unknown';
 
             // Resolve canonical student NIS if matching mst_students (e.g. 8-digit to 9-digit)
             if (studentNisMap.has(empKey)) {
               employeeNo = studentNisMap.get(empKey);
               personType = 'siswa';
-            }
-
-            const hikStu = hikStudentMap.get(empKey);
-            if (hikStu && hikStu.class_name !== 'guru' && hikStu.class_name !== 'karyawan') {
-              personType = 'siswa';
-              userName   = hikStu.name || userName;
-            } else if (hikStu && (hikStu.class_name === 'guru' || hikStu.class_name === 'karyawan')) {
-              personType = hikStu.class_name;
-              userName   = hikStu.name || userName;
             } else if (teacherMap.has(empKey)) {
               personType = 'guru';
               userName   = teacherMap.get(empKey).name || userName;
             } else if (staffMap.has(empKey)) {
               personType = 'karyawan';
               userName   = staffMap.get(empKey).name || userName;
+            }
+
+            // ATURAN KETAT: Jika employeeNo TIDAK TERDAFTAR di data siswa, guru, atau karyawan,
+            // JANGAN DICATAT sama sekali ke dalam log absensi.
+            if (!personType) {
+              continue;
             }
 
             // Insert raw attendance tap without dropping - all taps must be retained for report aggregation
@@ -1901,29 +1899,76 @@ const server = createServer(async (req, res) => {
         }
       }
 
+      // === API: VERIFIKASI KARTU PELAJAR (DENGAN ENKRIPSI AES-256-GCM) ===
       if (req.method === "GET" && url.pathname === "/api/student/verify") {
         try {
-          const nis = url.searchParams.get("nis");
-          const payload = await readMainPayload();
-    let students = payload?.students || [];
-    try {
-      const dbStudents = await dbPool.query('SELECT payload FROM mst_students');
-      if (dbStudents.rows.length > 0) students = dbStudents.rows.map(r => r.payload);
-    } catch(e) {}
-    if (!students || students.length === 0) return send(req, res, 404, { ok: false, message: "No data" });
-    const student = students.find(s => String(s.nis) === String(nis));
-    if (student) {
-      const safeStudent = { ...student };
-      delete safeStudent.password;
-      send(req, res, 200, { ok: true, student: safeStudent, school: payload?.school || {} });
+          const token = url.searchParams.get("v") || url.searchParams.get("token");
+          const rawNis = url.searchParams.get("nis");
+          
+          let targetNis = null;
+          let isEncrypted = false;
+
+          if (token) {
+            const verification = verifyStudentCardToken(token);
+            if (!verification.valid) {
+              return send(req, res, 403, { 
+                ok: false, 
+                tampered: true,
+                message: "Tanda tangan digital kartu tidak sah atau telah dimodifikasi." 
+              });
+            }
+            targetNis = verification.nis;
+            isEncrypted = true;
+          } else if (rawNis) {
+            // Jika ada yang mencoba menebak / mengganti NIS langsung di URL tanpa token terenkripsi:
+            // Tolak akses publik langsung tanpa token untuk mencegah scraping & pengintipan data siswa
+            return send(req, res, 403, {
+              ok: false,
+              tampered: true,
+              message: "Akses Ditolak: Validasi kartu pelajar wajib menggunakan kode verifikasi QR Code terenkripsi resmi."
+            });
           } else {
-            send(req, res, 404, { ok: false, message: "Student not found" });
+            return send(req, res, 400, { ok: false, message: "Parameter verifikasi tidak lengkap." });
+          }
+
+          const payload = await readMainPayload();
+          let students = payload?.students || [];
+          try {
+            const dbStudents = await dbPool.query('SELECT payload FROM mst_students');
+            if (dbStudents.rows.length > 0) students = dbStudents.rows.map(r => r.payload);
+          } catch(e) {}
+          
+          if (!students || students.length === 0) return send(req, res, 404, { ok: false, message: "Data siswa tidak ditemukan" });
+          
+          const student = students.find(s => String(s.nis) === String(targetNis));
+          if (student) {
+            const safeStudent = { ...student };
+            delete safeStudent.password;
+            // Sertakan token resmi yang terenkripsi
+            safeStudent.card_token = generateStudentCardToken(safeStudent.nis);
+            send(req, res, 200, { 
+              ok: true, 
+              student: safeStudent, 
+              school: payload?.school || {},
+              verified: true,
+              isEncrypted
+            });
+          } else {
+            send(req, res, 404, { ok: false, message: "Siswa tidak ditemukan dalam database resmi sekolah." });
           }
         } catch (err) {
           console.error("Verify Error:", err);
           sendDatabaseError(req, res, err);
         }
         return;
+      }
+
+      // === API: AMBIL TOKEN TERENKRIPSI KARTU SISWA ===
+      if (req.method === "GET" && url.pathname === "/api/student/card-token") {
+        const nis = url.searchParams.get("nis");
+        if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi" });
+        const token = generateStudentCardToken(nis);
+        return send(req, res, 200, { ok: true, nis, token });
       }
 
     /* /api/data routes removed */
@@ -1968,7 +2013,9 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/api/monitoring/pkl-students/bulk") {
       const session = getSession(req);
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Hanya admin" });
+      if (!isAdminRole(session?.role) && !isMonitoringAdmin(session?.role)) {
+        return send(req, res, 403, { ok: false, error: "Hanya admin atau tim hubin yang diizinkan." });
+      }
       if (!dbPool) { send(req, res, 503, { ok: false, error: dbStatus.message }); return; }
       const body = await readJsonBody(req);
       const updates = Array.isArray(body.updates) ? body.updates : [];
@@ -2456,6 +2503,13 @@ const server = createServer(async (req, res) => {
             FROM hikvision_logs l
             WHERE l.timestamp::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
               AND l.employee_id !~* '^k'
+              AND EXISTS (
+                SELECT 1 FROM mst_students ms 
+                WHERE ms.id = l.employee_id 
+                   OR ms.payload->>'nis' = l.employee_id 
+                   OR ms.payload->>'code' = l.employee_id 
+                   OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
+              )
               AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
               AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
               AND l.employee_id !~* '^[0-9]{1,3}$'
@@ -2479,7 +2533,7 @@ const server = createServer(async (req, res) => {
                 created_at: r.created_at
               };
             })
-            .filter(r => !isDateHoliday(r.created_at))
+            .filter(r => !isDateHoliday(r.created_at) && r.name && r.name !== '-' && r.class_name)
             .slice(0, 20);
         } catch (err) {
           console.error(err);

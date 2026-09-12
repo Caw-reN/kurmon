@@ -289,11 +289,43 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
   }
 
-  // 4b. DELETE /api/kedisiplinan/bk/home-visits/:id
+  // 4b. DELETE & PUT /api/kedisiplinan/bk/home-visits/:id
   if (url.pathname.startsWith("/api/kedisiplinan/bk/home-visits/")) {
     const session = requireBkAccess(req, res);
     if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
+    if (req.method === "PUT") {
+      try {
+        const body = await readJsonBody(req);
+        const { student_nis, visit_date, result, photo_url } = body;
+        const currentUserName = session?.name || session?.username || 'Guru BK';
+        const currentUserId = session?.id || session?.nip || session?.username || '';
+        const resQuery = await dbPool.query(`
+          UPDATE bk_home_visits
+          SET student_nis = COALESCE($1, student_nis),
+              visit_date = COALESCE($2, visit_date),
+              result = COALESCE($3, result),
+              photo_url = $4,
+              updated_by = $5,
+              updated_by_name = $6,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $7
+          RETURNING *
+        `, [
+          student_nis,
+          visit_date && String(visit_date).trim() ? String(visit_date).trim() : new Date().toISOString().slice(0, 10),
+          result || '',
+          photo_url || null,
+          currentUserId,
+          currentUserName,
+          id
+        ]);
+        send(req, res, 200, { ok: true, data: resQuery.rows[0] });
+      } catch (err) {
+        sendDatabaseError(req, res, err);
+      }
+      return true;
+    }
     if (req.method === "DELETE") {
       try {
         await dbPool.query("DELETE FROM bk_home_visits WHERE id = $1", [id]);
