@@ -577,5 +577,77 @@ export async function handlePklRoutes(req, res, url, ctx) {
       return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/pkl/kunjungan-guru") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        const body = await readJsonBody(req);
+        const teacherCode = session.id || session.username || session.code;
+        await dbPool.query(`
+          CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
+            id SERIAL PRIMARY KEY,
+            teacher_code VARCHAR(100),
+            location_id INTEGER,
+            nama_perusahaan VARCHAR(255),
+            lat NUMERIC,
+            lng NUMERIC,
+            distance_meters NUMERIC,
+            is_valid_radius BOOLEAN,
+            photo TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        await dbPool.query(`
+          INSERT INTO pkl_kunjungan_guru (teacher_code, location_id, nama_perusahaan, lat, lng, distance_meters, is_valid_radius, photo, notes)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `, [
+          teacherCode,
+          body.location_id || null,
+          body.nama_perusahaan || '',
+          body.lat || 0,
+          body.lng || 0,
+          body.distance_meters || 0,
+          body.is_valid_radius || false,
+          body.photo || '',
+          body.notes || ''
+        ]);
+
+        return send(req, res, 200, { ok: true, message: "Kunjungan guru pembimbing berhasil dicatat ke sistem!" });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/pkl/kunjungan-guru") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        await dbPool.query(`
+          CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
+            id SERIAL PRIMARY KEY,
+            teacher_code VARCHAR(100),
+            location_id INTEGER,
+            nama_perusahaan VARCHAR(255),
+            lat NUMERIC,
+            lng NUMERIC,
+            distance_meters NUMERIC,
+            is_valid_radius BOOLEAN,
+            photo TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        const { rows } = await dbPool.query(`
+          SELECT * FROM pkl_kunjungan_guru 
+          ORDER BY created_at DESC LIMIT 50
+        `);
+        return send(req, res, 200, { ok: true, data: rows });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
   return false;
 }

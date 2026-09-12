@@ -1995,12 +1995,19 @@ const server = createServer(async (req, res) => {
             p.nis, p.location_id, p.teacher_code, p.status, p.location_update_count,
             TO_CHAR(p.start_date, 'YYYY-MM-DD') as start_date,
             TO_CHAR(p.end_date, 'YYYY-MM-DD') as end_date,
+            COALESCE(s.payload->>'name', s.payload->>'nama', '') as name,
+            COALESCE(s.payload->>'class_name', s.payload->>'kelas', '') as class_name,
+            COALESCE(s.payload->>'jurusan', s.payload->>'major', '') as major,
+            loc.nama_perusahaan as company_name,
             COUNT(l.id) FILTER (WHERE l.status = 'approved') as total_hadir,
             0 as total_izin,
             0 as total_absen
           FROM pkl_students p
+          LEFT JOIN mst_students s ON (p.nis = s.id OR p.nis = s.payload->>'nis')
+          LEFT JOIN pkl_locations loc ON p.location_id = loc.id
           LEFT JOIN pkl_logbooks l ON p.nis = l.student_nis
-          GROUP BY p.nis, p.location_id, p.teacher_code, p.status, p.location_update_count, p.start_date, p.end_date
+          GROUP BY p.nis, p.location_id, p.teacher_code, p.status, p.location_update_count, p.start_date, p.end_date, s.payload, loc.nama_perusahaan
+          ORDER BY class_name ASC, p.nis ASC
         `);
         
         send(req, res, 200, { ok: true, data: rows });

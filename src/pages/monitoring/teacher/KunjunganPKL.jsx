@@ -18,23 +18,43 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 
 export default function KunjunganPKL() {
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [location, setLocation] = useState(null);
   const [loadingLoc, setLoadingLoc] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [notes, setNotes] = useState("");
-  const [companyLat, setCompanyLat] = useState(-6.234839); // Dummy company location for radius testing
-  const [companyLng, setCompanyLng] = useState(106.989254);
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const showToast = (message, type ='success') => {
+  const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
+
+  // Fetch real DUDI company list
+  useState(() => {
+    fetch('/api/pkl/locations', {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok && Array.isArray(res.data)) {
+          setCompanies(res.data);
+          if (res.data.length > 0) {
+            setSelectedCompanyId(String(res.data[0].id));
+          }
+        }
+      })
+      .catch(() => {});
+  });
+
+  const selectedCompany = companies.find(c => String(c.id) === String(selectedCompanyId));
+  const companyLat = parseFloat(selectedCompany?.lat) || -6.2425;
+  const companyLng = parseFloat(selectedCompany?.lng) || 106.9982;
 
   const getGPSLocation = () => {
     setLoadingLoc(true);
@@ -49,13 +69,13 @@ export default function KunjunganPKL() {
           setLoadingLoc(false);
         },
         () => {
-          showToast("Gagal mendapatkan lokasi. Pastikan GPS aktif dan izinkan browser mengakses lokasi.","error");
+          showToast("Gagal mendapatkan lokasi. Pastikan GPS aktif dan izinkan browser mengakses lokasi.", "error");
           setLoadingLoc(false);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
-      showToast("Browser tidak mendukung Geolocation","error");
+      showToast("Browser tidak mendukung Geolocation", "error");
       setLoadingLoc(false);
     }
   };
@@ -72,32 +92,47 @@ export default function KunjunganPKL() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!location || !photo) {
-      showToast("Harap ambil lokasi GPS dan foto kunjungan terlebih dahulu!","warning");
+      showToast("Harap ambil lokasi GPS dan foto kunjungan terlebih dahulu!", "warning");
       return;
     }
     
     setIsSubmitting(true);
     
-    // Calculate distance
+    // Calculate distance to selected real company
     const dist = getDistance(location.lat, location.lng, companyLat, companyLng);
-    const radiusValid = dist <= 150; // 150 meters radius
+    const radiusValid = dist <= 250; // 250 meters geofence radius
     
-    // Simulate saving
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccess(true);
-      // In a real app, we would send this to the backend:
-      console.log("Kunjungan check-in:", {
-        lat: location.lat,
-        lng: location.lng,
-        distance: dist,
-        valid: radiusValid,
-        photo,
-        notes,
-        teacher_code: user?.username || user?.code,
-        token: authToken
+    try {
+      const res = await fetch('/api/pkl/kunjungan-guru', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          location_id: selectedCompany?.id || null,
+          nama_perusahaan: selectedCompany?.nama_perusahaan || 'Mitra DUDI',
+          lat: location.lat,
+          lng: location.lng,
+          distance_meters: Math.round(dist),
+          is_valid_radius: radiusValid,
+          photo,
+          notes,
+          teacher_code: user?.username || user?.code
+        })
       });
-    }, 1500);
+      const data = await res.json();
+      if (data.ok) {
+        setSuccess(true);
+        showToast("Check-in kunjungan PKL berhasil disimpan!");
+      } else {
+        showToast(data.error || "Gagal menyimpan check-in kunjungan.", "error");
+      }
+    } catch (err) {
+      showToast("Terjadi kesalahan koneksi saat menyimpan.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -120,12 +155,30 @@ export default function KunjunganPKL() {
       ) : (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-[var(--ui-radius-card)] shadow-sm border-none space-y-6">
           
+          {/* Company Selection Section */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              1. Pilih Mitra Perusahaan (DUDI)
+            </label>
+            <select
+              value={selectedCompanyId}
+              onChange={e => setSelectedCompanyId(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-sm font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)]"
+            >
+              {companies.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.nama_perusahaan} ({c.kota || 'Bekasi'} - {c.jurusan || 'Umum'})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* GPS Section */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">1. Deteksi Lokasi (Wajib)</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">2. Deteksi Lokasi (Wajib)</label>
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-slate-50 rounded-[var(--ui-radius-small)] border-none">
               <Button type="button" variant="outline" onClick={getGPSLocation} disabled={loadingLoc} className="flex items-center gap-2 shrink-0">
-                <Crosshair size={16} /> {loadingLoc ?'Mendeteksi...' :'Ambil Koordinat GPS'}
+                <Crosshair size={16} /> {loadingLoc ? 'Mendeteksi...' : 'Ambil Koordinat GPS'}
               </Button>
               
               <div className="flex-1">
@@ -153,7 +206,7 @@ export default function KunjunganPKL() {
 
           {/* Photo Section */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">2. Foto Bukti Kunjungan (Wajib)</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">3. Foto Bukti Kunjungan (Wajib)</label>
             <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative group">
               {photo ? (
                 <>
@@ -166,7 +219,7 @@ export default function KunjunganPKL() {
                 <div className="flex flex-col items-center gap-2 text-slate-400">
                   <Camera size={32} />
                   <span className="text-sm font-bold text-slate-600">Ambil Foto / Pilih dari Galeri</span>
-                  <span className="text-xs">Foto akan otomatis disimpan (Simulasi GDrive)</span>
+                  <span className="text-xs">Foto bukti kunjungan langsung ke lokasi DUDI</span>
                 </div>
               )}
               <input type="file" className="hidden" accept="image/*" capture="environment" onChange={handlePhotoUpload} />
@@ -175,7 +228,7 @@ export default function KunjunganPKL() {
 
           {/* Notes Section */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">3. Catatan Kunjungan (Opsional)</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">4. Catatan Kunjungan (Opsional)</label>
             <textarea 
               rows="3" 
               value={notes} 

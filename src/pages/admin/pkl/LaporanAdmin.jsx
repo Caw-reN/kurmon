@@ -63,7 +63,7 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
     fetchData();
   }, []);
 
-  // Map all eligible students (Kelas XII) with real database mappings & mock/real attendance stats
+  // Map all eligible students (Kelas XII) with real database mappings & authentic attendance stats
   const mappedSiswa = useMemo(() => {
     // If we have students prop from master data, filter Kelas XII
     const eligibleStudents = students.filter(s => {
@@ -77,28 +77,32 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
       const studentNis = String(s.nis || s.code || s.id || '').trim();
       const mapping = pklStudentsMapping.find(m => String(m.nis).trim() === studentNis) || {};
       const kelasStr = s.kelas || s.class_name || mapping.class_name || 'XII';
-      const jurusanStr = s.jurusan || s.major || (kelasStr.includes(' ') ? kelasStr.split(' ')[1] : 'Umum');
+      const jurusanStr = s.jurusan || s.major || mapping.major || (kelasStr.includes(' ') ? kelasStr.split(' ')[1] : 'Umum');
       const locId = mapping.location_id || s.location_id;
       const locObj = locations.find(l => String(l.id) === String(locId));
 
-      // Calculate attendance from real logs or mapping
-      const hadir = Number(mapping.total_hadir ?? (Math.floor(Number(studentNis.slice(-2) || 12) % 20) + 40));
-      const izin = Number(mapping.total_izin ?? (Math.floor(Number(studentNis.slice(-1) || 2) % 3)));
-      const sakit = Number(mapping.total_sakit ?? (Math.floor(Number(studentNis.slice(-1) || 1) % 2)));
-      const alpa = Number(mapping.total_absen ?? (Math.floor(Number(studentNis.slice(-1) || 0) % 2)));
-      const totalHari = hadir + izin + sakit + alpa || 45;
-      const persentase = totalHari > 0 ? Math.round((hadir / totalHari) * 100) : 0;
+      // Real attendance from validated logbooks and tracking
+      const hadir = Number(mapping.total_hadir || 0);
+      const izin = Number(mapping.total_izin || 0);
+      const sakit = Number(mapping.total_sakit || 0);
+      const alpa = Number(mapping.total_absen || 0);
+      const totalHari = hadir + izin + sakit + alpa;
+      const persentase = totalHari > 0 ? Math.round((hadir / totalHari) * 100) : (hadir > 0 ? 100 : 0);
 
       const teacherCode = mapping.teacher_code || s.teacher_code;
       const guruObj = teachers.find(g => String(g.code || g.id) === String(teacherCode));
 
+      const companyName = locObj?.nama_perusahaan || mapping.company_name || (locId ? `DUDI #${locId}` : 'Belum Ditempatkan');
+      const guruName = guruObj?.name || guruObj?.nama || (teacherCode ? `Guru (${teacherCode})` : 'Belum Ditugaskan');
+      const studentName = s.nama || s.name || mapping.name || mapping.student_name || (studentNis ? `Siswa ${studentNis}` : '-');
+
       return {
         nis: studentNis,
-        nama: s.nama || s.name || s.student_name || 'Siswa PKL',
+        nama: studentName,
         kelas: kelasStr,
         jurusan: jurusanStr,
-        perusahaan: locObj?.nama_perusahaan || 'Perusahaan Mitra',
-        guruPembimbing: guruObj?.name || guruObj?.nama || 'Belum Ditugaskan',
+        perusahaan: companyName,
+        guruPembimbing: guruName,
         teacher_code: teacherCode,
         totalHadir: hadir,
         totalIzin: izin,

@@ -261,7 +261,7 @@ export default function DashboardPKL() {
               100% Kelas XII
             </span>
             <span className="font-bold text-slate-400 hidden sm:inline">
-              5 Jurusan
+              {Object.keys(majorDistribution).filter(k => Number(majorDistribution[k]) > 0).length || 4} Konsentrasi
             </span>
           </div>
         </div>
@@ -591,8 +591,9 @@ export default function DashboardPKL() {
                     { key: 'TKJ', label: 'Teknik Komputer & Jaringan (TKJ)', count: majorDistribution.TKJ || 0, color: 'bg-indigo-500' },
                     { key: 'TKR', label: 'Teknik Kendaraan Ringan (TKR)', count: majorDistribution.TKR || 0, color: 'bg-orange-500' },
                     { key: 'MP', label: 'Manajemen Perkantoran (MPLB)', count: majorDistribution.MP || 0, color: 'bg-emerald-500' },
-                    { key: 'RPL', label: 'Rekayasa Perangkat Lunak (RPL)', count: majorDistribution.RPL || 0, color: 'bg-cyan-500' },
                     { key: 'AKL', label: 'Akuntansi & Keuangan (AKL)', count: majorDistribution.AKL || 0, color: 'bg-pink-500' },
+                    ...(Number(majorDistribution.RPL || 0) > 0 ? [{ key: 'RPL', label: 'Rekayasa Perangkat Lunak (RPL)', count: majorDistribution.RPL, color: 'bg-cyan-500' }] : []),
+                    ...(Number(majorDistribution.Lainnya || 0) > 0 ? [{ key: 'Lainnya', label: 'Konsentrasi Lainnya', count: majorDistribution.Lainnya, color: 'bg-slate-500' }] : [])
                   ].map(item => {
                     const percent = totalPlacedCount > 0 ? Math.round((item.count / totalPlacedCount) * 100) : 0;
                     return (

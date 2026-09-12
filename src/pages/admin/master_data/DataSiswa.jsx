@@ -170,35 +170,42 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   const pklStudents = useMemo(() => {
     const targetPrefix = String(eligibleClass || 'XII').toUpperCase();
     
-    return students
-      .filter(s => s.class_name && s.class_name.toUpperCase().startsWith(targetPrefix))
-      .map(s => {
-        const studentNis = String(s.nis || s.id || '').trim();
-        const mapping = pklStudentsMapping.find(m => String(m.nis).trim() === studentNis) || {};
-        
-        // Extract Jurusan code
-        const nameParts = (s.class_name || '').trim().split(/\s+/);
-        let jCode = 'Umum';
-        if (nameParts.length >= 2) {
-          jCode = nameParts[1];
-        } else if (s.jurusan) {
-          jCode = s.jurusan;
-        }
+    const propFiltered = students.filter(s => {
+      const cls = (s.class_name || s.kelas || '').toUpperCase();
+      return cls.startsWith(targetPrefix);
+    });
 
-        const isAssigned = Boolean(mapping.location_id);
+    const source = propFiltered.length > 0 ? propFiltered : pklStudentsMapping;
+    
+    return source.map(s => {
+      const studentNis = String(s.nis || s.id || s.code || '').trim();
+      const mapping = pklStudentsMapping.find(m => String(m.nis).trim() === studentNis) || {};
+      
+      const className = String(s.class_name || s.kelas || mapping.class_name || '').trim();
+      const nameParts = className.split(/\s+/);
+      let jCode = 'Umum';
+      if (nameParts.length >= 2) {
+        jCode = nameParts[1];
+      } else if (s.jurusan || s.major || mapping.major) {
+        jCode = s.jurusan || s.major || mapping.major;
+      }
 
-        return {
-          id: studentNis,
-          nis: studentNis,
-          nama: String(s.name || s.nama || '').trim(),
-          kelas: String(s.class_name || '').trim(),
-          jurusan: jCode,
-          perusahaanId: mapping.location_id || null,
-          guruPembimbingCode: mapping.teacher_code || null,
-          statusPKL: isAssigned ? 'Sudah PKL' : 'Belum PKL',
-          lamaPKL: isAssigned ? '6 Bulan' : '-'
-        };
-      });
+      const locId = mapping.location_id || s.location_id || s.perusahaanId;
+      const teacherCode = mapping.teacher_code || s.teacher_code || s.guruPembimbingCode;
+      const isAssigned = Boolean(locId);
+
+      return {
+        id: studentNis,
+        nis: studentNis,
+        nama: String(s.name || s.nama || mapping.name || mapping.student_name || '').trim(),
+        kelas: className,
+        jurusan: jCode,
+        perusahaanId: locId || null,
+        guruPembimbingCode: teacherCode || null,
+        statusPKL: isAssigned ? 'Sudah PKL' : 'Belum PKL',
+        lamaPKL: isAssigned ? '6 Bulan' : '-'
+      };
+    });
   }, [students, eligibleClass, pklStudentsMapping]);
 
   // Jurusan Options

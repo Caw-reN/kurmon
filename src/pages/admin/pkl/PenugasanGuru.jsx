@@ -111,23 +111,28 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
   // Map student fields with live database mapping
   const mappedStudents = useMemo(() => {
     const targetPrefix = String(eligibleClass || 'XII').toUpperCase();
-    return students.filter(s => {
+    const propFiltered = students.filter(s => {
       const kelasStr = s.kelas || s.class_name || '';
       return kelasStr.toUpperCase().startsWith(targetPrefix);
-    }).map(s => {
+    });
+
+    const source = propFiltered.length > 0 ? propFiltered : pklStudentsMapping;
+
+    return source.map(s => {
       const studentNis = String(s.nis || s.code || s.id || '').trim();
       const mapping = pklStudentsMapping.find(m => String(m.nis).trim() === studentNis) || {};
-      const kelasStr = s.kelas || s.class_name || '';
-      const jurusanStr = s.jurusan || s.major || (kelasStr.includes(' ') ? kelasStr.split(' ')[1] : 'Umum');
+      const kelasStr = s.kelas || s.class_name || mapping.class_name || '';
+      const jurusanStr = s.jurusan || s.major || mapping.major || (kelasStr.includes(' ') ? kelasStr.split(' ')[1] : 'Umum');
       
       const teacherCode = assignments[studentNis] || mapping.teacher_code || null;
       const locationId = mapping.location_id ? String(mapping.location_id) : (s.perusahaanId ? String(s.perusahaanId) : 'unassigned');
+      const studentName = s.nama || s.name || mapping.name || mapping.student_name || `Siswa ${studentNis}`;
 
       return {
         ...s,
         uniqueId: studentNis,
         nis: studentNis,
-        namaFix: s.nama || s.name || '',
+        namaFix: studentName,
         kelasFix: kelasStr,
         jurusanFix: jurusanStr,
         perusahaanId: locationId,
