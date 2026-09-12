@@ -76,6 +76,7 @@ const DB_CONFIG = {
   user: process.env.PG_USER || "postgres",
   password: process.env.PG_PASSWORD || "",
   database: process.env.PG_DATABASE || "school_system_db",
+  options: "-c timezone=Asia/Jakarta",
 };
 
 async function syncAllUsersToModules() {
@@ -626,9 +627,6 @@ const initDb = async () => {
     await adminPool.end();
     
     dbPool = new pg.Pool(DB_CONFIG);
-    dbPool.on('connect', (client) => {
-      client.query("SET TIME ZONE 'Asia/Jakarta'").catch(() => {});
-    });
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS app_data (
         id SERIAL PRIMARY KEY,
@@ -1376,6 +1374,11 @@ const initDb = async () => {
         CREATE INDEX IF NOT EXISTS idx_catatan_wk_teacher_date ON catatan_walikelas (teacher_code, tanggal DESC);
         CREATE INDEX IF NOT EXISTS idx_catatan_wk_siswa ON catatan_walikelas (siswa_nis);
         CREATE INDEX IF NOT EXISTS idx_catatan_wk_kelas ON catatan_walikelas (kelas);
+        CREATE INDEX IF NOT EXISTS idx_pkl_logbooks_student_date ON pkl_logbooks (student_nis, tanggal DESC);
+        CREATE INDEX IF NOT EXISTS idx_pkl_logbooks_status ON pkl_logbooks (status);
+        CREATE INDEX IF NOT EXISTS idx_pkl_students_loc ON pkl_students (location_id);
+        CREATE INDEX IF NOT EXISTS idx_pkl_students_teacher ON pkl_students (teacher_code);
+        CREATE INDEX IF NOT EXISTS idx_pkl_kunjungan_teacher ON pkl_kunjungan_guru (teacher_code, created_at DESC);
       `);
       console.log("Database indexes verified/created.");
     } catch (idxErr) {
