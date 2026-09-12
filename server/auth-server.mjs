@@ -1707,6 +1707,19 @@ const readJsonBody = (req) => new Promise((resolveBody, rejectBody) => {
   req.on("error", rejectBody);
 });
 
+const getRawBody = (req) => new Promise((resolveBody, rejectBody) => {
+  let raw = "";
+  req.on("data", (chunk) => {
+    raw += chunk;
+    if (raw.length > MAX_JSON_BODY_BYTES) {
+      rejectBody(new Error("Payload terlalu besar."));
+      req.destroy();
+    }
+  });
+  req.on("end", () => resolveBody(raw));
+  req.on("error", rejectBody);
+});
+
 const send = (req, res, statusCode, payload) => {
   const headers = getHeaders(req);
   const jsonStr = JSON.stringify(payload);
@@ -3273,7 +3286,7 @@ const server = createServer(async (req, res) => {
 
 
 
-    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit, deleteSessionFromDb, safeLog, safeWarn, safeError, maskSensitiveData };
+    const ctx = { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, requireAdminOrTu, getSession, readJsonBody, getRawBody, readMainPayload, isMonitoringAdmin, isAdminRole, createDatabaseUnavailableError, syncAllUsersToModules, toPublicPayload, sanitizePayload, verifyPassword, createSession, ensureDatabaseReadable, normalizeServerRole, dbStatus, sessions, saveSessions, getBearerToken, logAudit, deleteSessionFromDb, safeLog, safeWarn, safeError, maskSensitiveData };
     
     if (url.pathname.startsWith("/api/data")) {
         const handled = await handleDataRoutes(req, res, url, ctx);

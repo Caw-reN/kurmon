@@ -1215,7 +1215,7 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
 // ── HTTP Handler ─────────────────────────────────────────
 
 export async function handleTelegramBotRoutes(req, res, url, ctx) {
-  const { send, requireAuthenticated, normalizeServerRole, getRawBody } = ctx;
+  const { send, requireAuthenticated, normalizeServerRole, readJsonBody, getRawBody } = ctx;
 
   if (req.method === 'GET' && url.pathname === '/api/telegram-bot/status') {
     const session = requireAuthenticated(req, res);
@@ -1245,7 +1245,22 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
     
     let body;
     try {
-      body = JSON.parse(await getRawBody(req));
+      if (typeof readJsonBody === 'function') {
+        body = await readJsonBody(req);
+      } else if (typeof getRawBody === 'function') {
+        const raw = await getRawBody(req);
+        body = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } else {
+        body = await new Promise((resolve, reject) => {
+          let raw = '';
+          req.on('data', chunk => { raw += chunk; });
+          req.on('end', () => {
+            try { resolve(raw ? JSON.parse(raw) : {}); }
+            catch (err) { reject(err); }
+          });
+          req.on('error', reject);
+        });
+      }
     } catch(e) {
       send(req, res, 400, { ok: false, error: 'Invalid JSON' });
       return true;
