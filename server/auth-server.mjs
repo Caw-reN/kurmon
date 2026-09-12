@@ -924,6 +924,22 @@ const initDb = async () => {
     `);
 
     await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
+        id SERIAL PRIMARY KEY,
+        teacher_code VARCHAR(100) NOT NULL,
+        location_id INT,
+        nama_perusahaan VARCHAR(255),
+        lat DOUBLE PRECISION,
+        lng DOUBLE PRECISION,
+        distance_meters DOUBLE PRECISION,
+        is_valid_radius BOOLEAN DEFAULT false,
+        photo TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await dbPool.query(`
       CREATE TABLE IF NOT EXISTS kedisiplinan_master_poin (
         id SERIAL PRIMARY KEY,
         nama_tindakan VARCHAR(255) NOT NULL,
