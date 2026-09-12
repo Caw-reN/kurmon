@@ -777,8 +777,10 @@ const initDb = async () => {
       )
     `);
 
-    // Tambahkan indeks untuk optimasi performa dashboard
+    // Tambahkan indeks untuk optimasi performa dashboard & query log
     await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_dash ON hikvision_logs (device_id, employee_id, (timestamp::date))`);
+    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_timestamp_desc ON hikvision_logs ("timestamp" DESC)`);
+    await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_hikvision_logs_date ON hikvision_logs ((("timestamp")::date))`);
 
     // Kolom person_type di log untuk membedakan siswa/guru/karyawan
     await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
