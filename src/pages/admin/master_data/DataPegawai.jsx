@@ -6,14 +6,22 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function DataPegawai(props) {
-  const [activeTab, setActiveTab] = useState(props.initialTab || "guru");
+  const [internalTab, setInternalTab] = useState(props.initialTab || "guru");
+  const currentTab = props.activeTab || internalTab;
+
+  const handleTabChange = (tabId) => {
+    setInternalTab(tabId);
+    if (props.setActiveTab) {
+      props.setActiveTab(tabId);
+    }
+  };
 
   const teacherCount = props.teachers?.length || 0;
   const staffCount = props.staffs?.length || 0;
 
   const tabs = [
-    { id: "guru", label: `Data Guru (${teacherCount})`, icon: Users, onClick: () => setActiveTab("guru"), isActive: activeTab === "guru" },
-    { id: "karyawan", label: `Data Karyawan / Staf (${staffCount})`, icon: Briefcase, onClick: () => setActiveTab("karyawan"), isActive: activeTab === "karyawan" },
+    { id: "guru", label: `Data Guru (${teacherCount})`, icon: Users, onClick: () => handleTabChange("guru"), isActive: currentTab === "guru" },
+    { id: "karyawan", label: `Data Karyawan / Staf (${staffCount})`, icon: Briefcase, onClick: () => handleTabChange("karyawan"), isActive: currentTab === "karyawan" },
   ];
 
   return (
@@ -28,7 +36,7 @@ export default function DataPegawai(props) {
 
       {/* Content Area */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {activeTab === "guru" && (
+        {currentTab === "guru" && (
           <MasterDataGuru
             {...props}
             teachers={props.teachers}
@@ -51,7 +59,7 @@ export default function DataPegawai(props) {
             isViewOnly={props.isViewOnly}
           />
         )}
-        {activeTab === "karyawan" && (
+        {currentTab === "karyawan" && (
           <MasterDataKaryawan
             {...props}
             staffs={props.staffs}

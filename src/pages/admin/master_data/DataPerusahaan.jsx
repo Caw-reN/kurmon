@@ -16,6 +16,7 @@ import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { usePagination } from '../../../components/ui/PaginationControls.jsx';
 import { useDataStore } from '../../../store/useDataStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { setDatabaseSnapshot, getDatabaseSnapshot } from '../../../utils/dataSource.js';
 
 export const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   const pLat1 = parseFloat(lat1);
@@ -162,6 +163,15 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
     return ['Semua', ...unique];
   }, [majors, locations]);
 
+  const notifyPklLocationsChange = () => {
+    try {
+      setDatabaseSnapshot({ ...getDatabaseSnapshot(), _pklLocationsVersion: Date.now() });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('pkl-locations-updated'));
+      }
+    } catch (e) {}
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nama_perusahaan.trim()) {
@@ -186,6 +196,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
       if (res.ok) {
         setShowAddModal(false);
         fetchLocationsAndPlacements();
+        notifyPklLocationsChange();
         showToast(isEdit ? 'Data perusahaan berhasil diperbarui!' : 'Perusahaan mitra baru berhasil ditambahkan!');
         setFormData({ id: null, nama_perusahaan: '', alamat: '', kota: 'Bekasi', bidang: '', telepon: '', jurusan: 'TKJ', kuota: 15, lat: -6.2618, lng: 107.0005, kompetensi: [] });
       } else {
@@ -227,6 +238,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
       if (res.ok) {
         showToast(`Perusahaan "${nama}" berhasil dihapus.`);
         fetchLocationsAndPlacements();
+        notifyPklLocationsChange();
       } else {
         showToast('Gagal menghapus data.', 'error');
       }
@@ -245,6 +257,7 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
       if (res.ok) {
         showToast(`Perusahaan "${nama}" berhasil diverifikasi.`);
         fetchLocationsAndPlacements();
+        notifyPklLocationsChange();
       }
     } catch (err) { 
       showToast('Gagal memverifikasi perusahaan.', 'error');

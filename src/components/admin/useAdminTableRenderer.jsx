@@ -75,50 +75,54 @@ export function useAdminTableRenderer(context) {
   const [isLoadingServerData, setIsLoadingServerData] = React.useState(false);
 
   // Map semua alias activeTab ke canonical key yang digunakan server-side
-  const TAB_CANONICAL_KEY = {
-    siswa: "siswa", datasiswa: "siswa",
-    guru: "guru", dataguru: "guru", data_pegawai: "guru",
-    karyawan: "karyawan"
+  const getTabsToFetch = (tab) => {
+    if (tab === "data_pegawai") return ["guru", "karyawan"];
+    if (["guru", "dataguru"].includes(tab)) return ["guru"];
+    if (["siswa", "datasiswa"].includes(tab)) return ["siswa"];
+    if (tab === "karyawan") return ["karyawan"];
+    return [];
   };
 
   React.useEffect(() => {
-    const canonicalTab = TAB_CANONICAL_KEY[activeTab];
-    if (!canonicalTab) return;
+    const tabsToFetch = getTabsToFetch(activeTab);
+    if (tabsToFetch.length === 0) return;
     const authToken = currentUser?.authToken || '';
     if (!authToken) return;
     
     const fetchServerData = async () => {
       setIsLoadingServerData(true);
       try {
-        const page = tablePage[canonicalTab] || tablePage[activeTab] || 1;
-        const search = searchTerm || "";
-        
-        let filterQuery = "";
-        if (canonicalTab === "siswa") {
-          const classFilter = tableFilters[`siswa_class_name`] || "Semua";
-          if (classFilter !== "Semua") filterQuery += `&class_name=${encodeURIComponent(classFilter)}`;
-        } else if (canonicalTab === "guru") {
-          const typeFilter = tableFilters[`guru_type`] || "Semua";
-          const roleFilter = tableFilters[`guru_role`] || "Semua";
-          if (typeFilter !== "Semua") filterQuery += `&type=${encodeURIComponent(typeFilter)}`;
-          if (roleFilter !== "Semua") filterQuery += `&role=${encodeURIComponent(roleFilter)}`;
-        } else if (canonicalTab === "karyawan") {
-          const divFilter = tableFilters[`karyawan_division`] || "Semua";
-          if (divFilter !== "Semua") filterQuery += `&division=${encodeURIComponent(divFilter)}`;
-        }
-        
-        const apiPath = canonicalTab === "karyawan" ? "staffs" : canonicalTab === "guru" ? "teachers" : "students";
-        const res = await fetch(`/api/${apiPath}?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}${filterQuery}`, {
-          headers: { Authorization: `Bearer ${authToken}` }
-        });
-        const json = await res.json();
-        
-        if (json.ok) {
-          setServerData(prev => ({ ...prev, [canonicalTab]: json.data }));
-          setServerTotal(prev => ({ ...prev, [canonicalTab]: json.meta.total }));
-        }
+        await Promise.all(tabsToFetch.map(async (canonicalTab) => {
+          const page = typeof tablePage === 'object' ? (tablePage[canonicalTab] || 1) : (tablePage || 1);
+          const search = searchTerm || "";
+          
+          let filterQuery = "";
+          if (canonicalTab === "siswa") {
+            const classFilter = tableFilters[`siswa_class_name`] || "Semua";
+            if (classFilter !== "Semua") filterQuery += `&class_name=${encodeURIComponent(classFilter)}`;
+          } else if (canonicalTab === "guru") {
+            const typeFilter = tableFilters[`guru_type`] || "Semua";
+            const roleFilter = tableFilters[`guru_role`] || "Semua";
+            if (typeFilter !== "Semua") filterQuery += `&type=${encodeURIComponent(typeFilter)}`;
+            if (roleFilter !== "Semua") filterQuery += `&role=${encodeURIComponent(roleFilter)}`;
+          } else if (canonicalTab === "karyawan") {
+            const divFilter = tableFilters[`karyawan_division`] || "Semua";
+            if (divFilter !== "Semua") filterQuery += `&division=${encodeURIComponent(divFilter)}`;
+          }
+          
+          const apiPath = canonicalTab === "karyawan" ? "staffs" : canonicalTab === "guru" ? "teachers" : "students";
+          const res = await fetch(`/api/${apiPath}?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}${filterQuery}`, {
+            headers: { Authorization: `Bearer ${authToken}` }
+          });
+          const json = await res.json();
+          
+          if (json.ok) {
+            setServerData(prev => ({ ...prev, [canonicalTab]: json.data }));
+            setServerTotal(prev => ({ ...prev, [canonicalTab]: json.meta.total }));
+          }
+        }));
       } catch (err) {
-        console.error("Failed to fetch server data for " + canonicalTab, err);
+        console.error("Failed to fetch server data", err);
       } finally {
         setIsLoadingServerData(false);
       }
@@ -195,7 +199,7 @@ export function useAdminTableRenderer(context) {
     let totalPages = 1;
     let actualTotal = 0;
     
-    if (isServerSide) {
+    if (isServerSide && serverData[tabKey] !== undefined) {
       paginatedData = serverData[tabKey] || [];
       actualTotal = serverTotal[tabKey] || 0;
       totalPages = Math.ceil(actualTotal / itemsPerPage) || 1;
@@ -205,11 +209,11 @@ export function useAdminTableRenderer(context) {
       
       actualTotal = sortedData.length;
       totalPages = Math.ceil(actualTotal / itemsPerPage) || 1;
-      const safeTablePage = Math.max(1, Math.min(tablePage[tabKey] || 1, totalPages));
+      const safeTablePage = Math.max(1, Math.min(typeof tablePage === 'object' ? (tablePage[tabKey] || 1) : (tablePage || 1), totalPages));
       paginatedData = sortedData.slice((safeTablePage - 1) * itemsPerPage, safeTablePage * itemsPerPage);
     }
     
-    const safeTablePage = Math.max(1, Math.min(tablePage[tabKey] || 1, totalPages));
+    const safeTablePage = Math.max(1, Math.min(typeof tablePage === 'object' ? (tablePage[tabKey] || 1) : (tablePage || 1), totalPages));
     const visibleKeys = paginatedData.map(item => getRowKeyForTab(tabKey, item));
     const allVisibleSelected = visibleKeys.length > 0 && visibleKeys.every(key => selectedKeys.includes(key));
     const selectedCount = selectedKeys.length;

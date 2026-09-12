@@ -393,6 +393,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </div>}>
           <DataPegawai 
             initialTab={activeTab === "karyawan" ? "karyawan" : "guru"}
+            activeTab={activeTab === "karyawan" ? "karyawan" : "guru"}
+            setActiveTab={setActiveTab}
             teachers={teachers} 
             staffs={staffs} 
             classes={classes} 

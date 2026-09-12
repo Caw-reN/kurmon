@@ -3177,7 +3177,7 @@ const server = createServer(async (req, res) => {
       try {
         const { rows } = await dbPool.query(
           `SELECT id, nama_perusahaan, bidang, alamat, kota, telepon, website, kuota, lat, lng, jurusan, verified, status
-           FROM pkl_locations WHERE status = 'aktif' OR status = 'approved' OR verified = true ORDER BY nama_perusahaan`
+           FROM pkl_locations ORDER BY verified DESC, id DESC`
         );
         send(req, res, 200, { ok: true, data: rows });
       } catch (err) { sendDatabaseError(req, res, err); }

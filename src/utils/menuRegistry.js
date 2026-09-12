@@ -268,6 +268,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Data Sekolah',
     adminGroupIcon: FolderOpen,
     adminGroupKey: 'dataMaster',
+    activeIds: ['data_pegawai', 'guru', 'dataguru', 'karyawan'],
   },
   {
     id: 'kelas',

@@ -21,6 +21,7 @@ import {
   RotateCcw, 
   Sparkles,
   CheckCircle2,
+  Clock,
   Layers,
   ArrowUpRight,
   Filter
@@ -56,6 +57,44 @@ const getJurusanColor = (jurusanStr = '', fallback = 'var(--ui-primary, #059669)
   if (upper.includes('AKUNTANSI') || upper.includes('KEUANGAN')) return JURUSAN_COLORS.Akuntansi;
   if (upper.includes('DKV') || upper.includes('DESAIN')) return JURUSAN_COLORS.DKV;
   return fallback;
+};
+
+// Helper extractor kota agar tidak pernah bernilai "0 Kota"
+export const extractKota = (loc) => {
+  if (loc?.kota && String(loc.kota).trim()) {
+    return String(loc.kota).trim();
+  }
+  const alamat = String(loc?.alamat || '').trim();
+  if (!alamat) return 'Bekasi';
+
+  const matchBekasi = alamat.match(/bekasi/i);
+  if (matchBekasi) return 'Bekasi';
+  const matchCikarang = alamat.match(/cikarang/i);
+  if (matchCikarang) return 'Cikarang';
+  const matchTambun = alamat.match(/tambun/i);
+  if (matchTambun) return 'Tambun';
+  const matchJakarta = alamat.match(/jakarta\s*(timur|barat|pusat|selatan|utara)?/i);
+  if (matchJakarta) return matchJakarta[0];
+  const matchKarawang = alamat.match(/karawang/i);
+  if (matchKarawang) return 'Karawang';
+  const matchBogor = alamat.match(/bogor/i);
+  if (matchBogor) return 'Bogor';
+  const matchDepok = alamat.match(/depok/i);
+  if (matchDepok) return 'Depok';
+
+  if (alamat.includes(',')) {
+    const parts = alamat.split(',');
+    const candidate = parts[parts.length - 1].trim();
+    if (candidate.length > 2 && candidate.length < 30) return candidate;
+  }
+
+  return 'Bekasi';
+};
+
+// Helper kuota yang sinkron dengan admin (default 15 jika belum diatur)
+export const getLocKuota = (loc) => {
+  const val = Number(loc?.kuota);
+  return val > 0 ? val : 15;
 };
 
 // Custom modern SVG pin icon generator
@@ -125,6 +164,7 @@ export default function PklLocationsPublicPage() {
   const [search, setSearch] = useState('');
   const [selectedJurusan, setSelectedJurusan] = useState('ALL');
   const [selectedKota, setSelectedKota] = useState('ALL');
+  const [filterStatus, setFilterStatus] = useState('ALL'); // 'ALL' | 'verified' | 'pending'
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'grid' | 'split'
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -132,7 +172,18 @@ export default function PklLocationsPublicPage() {
   const [mapZoom, setMapZoom] = useState(12);
   const [dataVersion, setDataVersion] = useState(0);
 
-  useEffect(() => subscribeDatabaseSnapshot(() => setDataVersion((v) => v + 1)), []);
+  // Real-time synchronization dengan perubahan admin
+  useEffect(() => {
+    const unsub = subscribeDatabaseSnapshot(() => setDataVersion((v) => v + 1));
+    const handlePklUpdate = () => setDataVersion((v) => v + 1);
+    window.addEventListener('pkl-locations-updated', handlePklUpdate);
+    window.addEventListener('storage', handlePklUpdate);
+    return () => {
+      unsub();
+      window.removeEventListener('pkl-locations-updated', handlePklUpdate);
+      window.removeEventListener('storage', handlePklUpdate);
+    };
+  }, []);
 
   const outletContext = useOutletContext();
   const outletAppSettings = outletContext?.appSettings;
@@ -149,11 +200,13 @@ export default function PklLocationsPublicPage() {
 
   const primaryColor = appSettings.primaryColor || 'var(--ui-primary, #064e3b)';
 
-  // Fetch verified & active PKL locations from API
+  // Fetch verified & active PKL locations from API dengan re-fetch realtime
   useEffect(() => {
+    let isMounted = true;
     fetch('/api/monitoring/lokasi-pkl/public')
       .then((r) => r.ok ? r.json() : Promise.reject(r))
       .then((data) => {
+        if (!isMounted) return;
         const dbData = Array.isArray(data?.data) ? data.data : [];
         setLocations(dbData);
         // Automatically focus map on first location with coordinates
@@ -162,15 +215,21 @@ export default function PklLocationsPublicPage() {
           setMapCenter([parseFloat(firstWithCoords.lat), parseFloat(firstWithCoords.lng)]);
         }
       })
-      .catch(() => setLocations([]))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        if (isMounted) setLocations([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [dataVersion]);
 
   // Extract unique cities & majors for filter chips
   const uniqueKotas = useMemo(() => {
     const kotas = new Set();
     locations.forEach(loc => {
-      if (loc.kota) kotas.add(loc.kota.trim());
+      const k = extractKota(loc);
+      if (k) kotas.add(k);
     });
     return Array.from(kotas).sort();
   }, [locations]);
@@ -195,7 +254,7 @@ export default function PklLocationsPublicPage() {
       const bidang = (loc.bidang || '').toLowerCase();
       const jurusan = (loc.jurusan || '').toLowerCase();
       const alamat = (loc.alamat || '').toLowerCase();
-      const kota = (loc.kota || '').toLowerCase();
+      const kota = extractKota(loc).toLowerCase();
 
       // Text search match
       const matchesSearch = !q || nama.includes(q) || bidang.includes(q) || jurusan.includes(q) || alamat.includes(q) || kota.includes(q);
@@ -206,9 +265,15 @@ export default function PklLocationsPublicPage() {
       // Kota match
       const matchesKota = selectedKota === 'ALL' || kota === selectedKota.toLowerCase();
 
-      return matchesSearch && matchesJurusan && matchesKota;
+      // Status match (Terverifikasi vs Menunggu)
+      const isVerified = loc.verified || loc.status === 'aktif';
+      const matchesStatus = filterStatus === 'ALL' || 
+        (filterStatus === 'verified' && isVerified) || 
+        (filterStatus === 'pending' && !isVerified);
+
+      return matchesSearch && matchesJurusan && matchesKota && matchesStatus;
     });
-  }, [locations, search, selectedJurusan, selectedKota]);
+  }, [locations, search, selectedJurusan, selectedKota, filterStatus]);
 
   // Filtered with valid coordinates
   const filteredWithCoords = useMemo(() => {
@@ -219,13 +284,19 @@ export default function PklLocationsPublicPage() {
     });
   }, [filtered]);
 
-  // KPI Statistics
+  // KPI Statistics (Sinkron dengan tampilan Admin)
   const stats = useMemo(() => {
     const totalDudi = locations.length;
-    const totalKuota = locations.reduce((sum, l) => sum + (parseInt(l.kuota) || 0), 0);
-    const kotaCount = uniqueKotas.length;
-    const terpetakanCount = locations.filter(l => parseFloat(l.lat) && parseFloat(l.lng)).length;
-    return { totalDudi, totalKuota, kotaCount, terpetakanCount };
+    const verifiedDudi = locations.filter(l => l.verified || l.status === 'aktif').length;
+    const pendingDudi = totalDudi - verifiedDudi;
+    const totalKuota = locations.reduce((sum, l) => sum + getLocKuota(l), 0);
+    const kotaCount = uniqueKotas.length > 0 ? uniqueKotas.length : (locations.length > 0 ? 1 : 0);
+    const terpetakanCount = locations.filter(l => {
+      const lat = parseFloat(l.lat);
+      const lng = parseFloat(l.lng);
+      return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+    }).length;
+    return { totalDudi, verifiedDudi, pendingDudi, totalKuota, kotaCount, terpetakanCount };
   }, [locations, uniqueKotas]);
 
   // Handle focus to location
@@ -247,6 +318,7 @@ export default function PklLocationsPublicPage() {
     setSearch('');
     setSelectedJurusan('ALL');
     setSelectedKota('ALL');
+    setFilterStatus('ALL');
     setSelectedLocation(null);
   };
 
@@ -293,12 +365,19 @@ export default function PklLocationsPublicPage() {
           {/* KPI Mini Stat Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
             <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
-                <Building2 size={16} strokeWidth={2.5} />
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Mitra DUDI</span>
+              <div className="flex items-center justify-between gap-1 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
+                <div className="flex items-center gap-1.5">
+                  <Building2 size={16} strokeWidth={2.5} />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Mitra DUDI</span>
+                </div>
+                {stats.pendingDudi > 0 && (
+                  <span className="text-[9.5px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">
+                    +{stats.pendingDudi} Pending
+                  </span>
+                )}
               </div>
               <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-                {stats.totalDudi}
+                {stats.totalDudi} <span className="text-xs font-bold text-slate-500">Industri</span>
               </span>
             </div>
 
@@ -336,14 +415,14 @@ export default function PklLocationsPublicPage() {
         </div>
       </div>
 
-      {/* ── TOOLBAR: SEARCH, FILTERS & VIEW MODES ── */}
+      {/* ── TOOLBAR: SEARCH, STATUS, FILTERS & VIEW MODES ── */}
       <div className="flex flex-col gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-4 sm:p-5 border border-slate-200/80 shadow-xs">
         
-        {/* Row 1: Search Bar & View Mode Toggle */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Row 1: Search Bar, Status Tabs & View Mode Toggle */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           
           {/* Search Input with Icon & Clear button */}
-          <div className="relative flex-1 max-w-xl">
+          <div className="relative flex-1">
             <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
@@ -364,48 +443,72 @@ export default function PklLocationsPublicPage() {
             )}
           </div>
 
-          {/* View Mode Switcher Buttons */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-[var(--ui-radius-control,12px)] shrink-0 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setViewMode('map')}
-              className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
-                viewMode === 'map'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <MapIcon size={14} strokeWidth={2.4} />
-              <span>Peta</span>
-            </button>
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            {/* Status Filter Tabs (Sinkron dengan Admin) */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-[var(--ui-radius-control,12px)] shrink-0">
+              {[
+                { id: 'ALL', label: 'Semua Status' },
+                { id: 'verified', label: 'Terverifikasi' },
+                { id: 'pending', label: 'Menunggu' }
+              ].map(st => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setFilterStatus(st.id)}
+                  className={`px-3 py-1.5 rounded-[var(--ui-radius-small,8px)] text-xs font-black transition-all cursor-pointer border-none whitespace-nowrap ${
+                    filterStatus === st.id 
+                      ? 'bg-white text-slate-800 shadow-xs' 
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
-                viewMode === 'grid'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Grid size={14} strokeWidth={2.4} />
-              <span>Daftar</span>
-            </button>
+            {/* View Mode Switcher Buttons */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-[var(--ui-radius-control,12px)] shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+                  viewMode === 'map'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <MapIcon size={14} strokeWidth={2.4} />
+                <span>Peta</span>
+              </button>
 
-            {/* Split View on Large Screens */}
-            <button
-              type="button"
-              onClick={() => setViewMode('split')}
-              className={`hidden lg:flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
-                viewMode === 'split'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Tampilkan peta dan daftar sekaligus"
-            >
-              <Layers size={14} strokeWidth={2.4} />
-              <span>Split</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+                  viewMode === 'grid'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Grid size={14} strokeWidth={2.4} />
+                <span>Daftar</span>
+              </button>
+
+              {/* Split View on Large Screens */}
+              <button
+                type="button"
+                onClick={() => setViewMode('split')}
+                className={`hidden lg:flex items-center gap-2 px-3.5 h-9 rounded-[var(--ui-radius-small,8px)] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border-none ${
+                  viewMode === 'split'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Tampilkan peta dan daftar sekaligus"
+              >
+                <Layers size={14} strokeWidth={2.4} />
+                <span>Split</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -474,7 +577,7 @@ export default function PklLocationsPublicPage() {
           )}
 
           {/* Reset Filters button if any active */}
-          {(search || selectedJurusan !== 'ALL' || selectedKota !== 'ALL') && (
+          {(search || selectedJurusan !== 'ALL' || selectedKota !== 'ALL' || filterStatus !== 'ALL') && (
             <button
               type="button"
               onClick={handleResetFilters}
@@ -567,19 +670,32 @@ export default function PklLocationsPublicPage() {
                       >
                         <Popup>
                           <div className="p-1 max-w-[240px] font-sans text-left">
-                            <span 
-                              className="inline-block px-2 py-0.5 rounded-md text-[10px] font-black uppercase text-white mb-1.5"
-                              style={{ backgroundColor: color }}
-                            >
-                              {loc.bidang || loc.jurusan || 'Mitra PKL'}
-                            </span>
+                            <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                              <span 
+                                className="inline-block px-2 py-0.5 rounded-md text-[10px] font-black uppercase text-white"
+                                style={{ backgroundColor: color }}
+                              >
+                                {loc.bidang || loc.jurusan || 'Mitra PKL'}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase border ${
+                                loc.verified || loc.status === 'aktif'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200/80'
+                              }`}>
+                                {loc.verified || loc.status === 'aktif' ? 'Terverifikasi' : 'Menunggu'}
+                              </span>
+                            </div>
                             
                             <h4 className="font-black text-sm text-slate-900 leading-tight mb-1">
                               {loc.nama_perusahaan || loc.nama}
                             </h4>
                             
-                            <p className="text-[11px] text-slate-500 leading-relaxed mb-2">
-                              {loc.alamat}{loc.kota ? `, ${loc.kota}` : ''}
+                            <p className="text-[11px] text-slate-500 leading-relaxed mb-1.5">
+                              {loc.alamat || extractKota(loc)}
+                            </p>
+
+                            <p className="text-[10.5px] font-bold text-slate-600 mb-2">
+                              Kapasitas: <span className="font-black text-emerald-700">{getLocKuota(loc)} Siswa</span>
                             </p>
 
                             <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
@@ -615,18 +731,23 @@ export default function PklLocationsPublicPage() {
                   <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:max-w-md z-[1000] bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-200/80 animate-in slide-in-from-bottom duration-300">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                           <span 
                             className="px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase text-white"
                             style={{ backgroundColor: getJurusanColor(selectedLocation.jurusan || selectedLocation.bidang) }}
                           >
                             {selectedLocation.bidang || 'Mitra PKL'}
                           </span>
-                          {selectedLocation.kota && (
-                            <span className="text-[10px] font-bold text-slate-400">
-                              • {selectedLocation.kota}
-                            </span>
-                          )}
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase border ${
+                            selectedLocation.verified || selectedLocation.status === 'aktif'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                              : 'bg-amber-50 text-amber-700 border-amber-200/80'
+                          }`}>
+                            {selectedLocation.verified || selectedLocation.status === 'aktif' ? 'Terverifikasi' : 'Menunggu'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400">
+                            • {extractKota(selectedLocation)} • {getLocKuota(selectedLocation)} Kuota
+                          </span>
                         </div>
                         
                         <h3 className="font-black text-sm sm:text-base text-slate-900 leading-snug truncate">
@@ -722,6 +843,9 @@ function PklCardItem({ loc, isSelected, onSelect }) {
   const lat = parseFloat(loc.lat);
   const lng = parseFloat(loc.lng);
   const hasGps = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+  const isVerified = loc.verified || loc.status === 'aktif';
+  const kuota = getLocKuota(loc);
+  const displayKota = extractKota(loc);
 
   return (
     <div 
@@ -740,7 +864,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
         {/* Top Badges & Status */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <span 
-            className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider truncate max-w-[170px]"
+            className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider truncate max-w-[140px]"
             style={{ 
               backgroundColor: `${color}15`,
               color: color
@@ -749,12 +873,22 @@ function PklCardItem({ loc, isSelected, onSelect }) {
             {loc.bidang || loc.jurusan || 'Umum'}
           </span>
 
-          {loc.kuota !== undefined && loc.kuota > 0 && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Status Badge (Sinkron dengan Admin) */}
+            <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill,999px)] text-[9.5px] font-black uppercase shrink-0 border ${
+              isVerified
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                : 'bg-amber-50 text-amber-700 border-amber-200/80'
+            }`}>
+              {isVerified ? 'Terverifikasi' : 'Menunggu'}
+            </span>
+
+            {/* Kuota Penempatan */}
             <span className="flex items-center gap-1 text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full shrink-0">
               <Users size={11} className="text-slate-400" />
-              <span>{loc.kuota} Kuota</span>
+              <span>{kuota} Kuota</span>
             </span>
-          )}
+          </div>
         </div>
 
         {/* Company Avatar & Name */}
@@ -769,7 +903,7 @@ function PklCardItem({ loc, isSelected, onSelect }) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-black text-base text-slate-900 tracking-tight leading-snug line-clamp-2">
+            <h3 className="font-black text-base text-slate-900 tracking-tight leading-snug line-clamp-2" title={loc.nama_perusahaan || loc.nama}>
               {loc.nama_perusahaan || loc.nama}
             </h3>
             {loc.jurusan && (
@@ -781,12 +915,13 @@ function PklCardItem({ loc, isSelected, onSelect }) {
         </div>
 
         {/* Address & City */}
-        {(loc.alamat || loc.kota) && (
-          <div className="flex items-start gap-2 text-xs text-slate-500 font-medium mb-3 leading-relaxed">
-            <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{loc.alamat}{loc.kota ? `, ${loc.kota}` : ''}</span>
-          </div>
-        )}
+        <div className="flex items-start gap-2 text-xs text-slate-500 font-medium mb-3 leading-relaxed">
+          <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
+          <span className="line-clamp-2">
+            {loc.alamat || displayKota}
+            {loc.alamat && !loc.alamat.toLowerCase().includes(displayKota.toLowerCase()) ? `, ${displayKota}` : ''}
+          </span>
+        </div>
       </div>
 
       {/* Action Buttons Row */}
