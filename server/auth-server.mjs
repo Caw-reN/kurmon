@@ -17,8 +17,8 @@ import { handleStaffRoutes } from "./routes/staffs.mjs";
 import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert, reloadTelegramBotConfig } from "./telegram-bot.mjs";
 import { generateStudentCardToken, verifyStudentCardToken } from "./utils/studentCardSecurity.mjs";
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { randomUUID, randomBytes } from "node:crypto";
+import { readFileSync, appendFileSync } from "node:fs";
 import zlib from "node:zlib";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -64,27 +64,48 @@ const loadEnvFile = () => {
 
 loadEnvFile();
 
-// FIX K-02: Startup guard — server harus gagal start jika secret key wajib tidak ada.
-// Ini mencegah produksi berjalan dengan key lemah/kosong tanpa disadari.
+// FIX K-02 (rev2): Auto-generate secret keys yang hilang dan tulis ke .env,
+// lalu lanjut start server. Ini mencegah produksi crash hanya karena .env
+// belum punya APP_KEY / CARD_SECRET_KEY setelah git pull pertama kali.
 (function validateRequiredEnvVars() {
-  const missing = [];
-  if (!process.env.APP_KEY)         missing.push('APP_KEY');
-  if (!process.env.CARD_SECRET_KEY && !process.env.JWT_SECRET) missing.push('CARD_SECRET_KEY (atau JWT_SECRET)');
+  const envFile = resolve(rootDir, ".env");
+  const generated = [];
 
-  if (missing.length > 0) {
-    console.error('');
-    console.error('╔══════════════════════════════════════════════════════════════╗');
-    console.error('║  ⛔  KEAMANAN: Variabel .env wajib belum diset!              ║');
-    console.error('╠══════════════════════════════════════════════════════════════╣');
-    for (const key of missing) {
-      console.error(`║  ✗  ${key.padEnd(57)}║`);
+  if (!process.env.APP_KEY) {
+    const key = randomBytes(48).toString("hex");
+    process.env.APP_KEY = key;
+    try {
+      appendFileSync(envFile, `\nAPP_KEY=${key}\n`, "utf8");
+      generated.push("APP_KEY");
+    } catch (e) {
+      console.warn("[ENV] Gagal menulis APP_KEY ke .env:", e.message);
     }
-    console.error('╠══════════════════════════════════════════════════════════════╣');
-    console.error('║  Tambahkan variabel-variabel di atas ke file .env lalu       ║');
-    console.error('║  restart server. Server tidak akan berjalan tanpanya.        ║');
-    console.error('╚══════════════════════════════════════════════════════════════╝');
-    console.error('');
-    process.exit(1);
+  }
+
+  if (!process.env.CARD_SECRET_KEY && !process.env.JWT_SECRET) {
+    const key = randomBytes(48).toString("hex");
+    process.env.CARD_SECRET_KEY = key;
+    try {
+      appendFileSync(envFile, `CARD_SECRET_KEY=${key}\n`, "utf8");
+      generated.push("CARD_SECRET_KEY");
+    } catch (e) {
+      console.warn("[ENV] Gagal menulis CARD_SECRET_KEY ke .env:", e.message);
+    }
+  }
+
+  if (generated.length > 0) {
+    console.warn('');
+    console.warn('╔══════════════════════════════════════════════════════════════╗');
+    console.warn('║  ⚠️   Secret key otomatis di-generate dan disimpan ke .env   ║');
+    console.warn('╠══════════════════════════════════════════════════════════════╣');
+    for (const key of generated) {
+      console.warn(`║  ✓  ${key.padEnd(57)}║`);
+    }
+    console.warn('╠══════════════════════════════════════════════════════════════╣');
+    console.warn('║  PENTING: Jika APP_KEY berubah, semua password Hikvision     ║');
+    console.warn('║  yang tersimpan harus di-enkripsi ulang via UI.              ║');
+    console.warn('╚══════════════════════════════════════════════════════════════╝');
+    console.warn('');
   }
 })();
 
