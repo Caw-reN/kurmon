@@ -212,6 +212,134 @@ async function _pollLoop() {
   }
 }
 
+// ── Indonesian Date Parser Helper ───────────────────────────
+const MONTH_MAP = {
+  januari: 1, jan: 1,
+  februari: 2, feb: 2, pebruari: 2,
+  maret: 3, mar: 3,
+  april: 4, apr: 4,
+  mei: 5, may: 5,
+  juni: 6, jun: 6,
+  juli: 7, jul: 7,
+  agustus: 8, agu: 8, ags: 8, august: 8,
+  september: 9, sep: 9, sept: 9,
+  oktober: 10, okt: 10, oct: 10,
+  november: 11, nov: 11, nopember: 11,
+  desember: 12, des: 12, dec: 12
+};
+
+const DAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const MONTH_NAMES = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+function _buildDateResult(utcDate, isToday) {
+  const y = utcDate.getUTCFullYear();
+  const m = utcDate.getUTCMonth() + 1;
+  const d = utcDate.getUTCDate();
+  const dayOfWeek = utcDate.getUTCDay();
+
+  const isoDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const dayName = DAY_NAMES[dayOfWeek];
+  const monthName = MONTH_NAMES[m];
+  const formatted = `${dayName}, ${d} ${monthName} ${y}`;
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  return {
+    isoDate,
+    formatted,
+    dayName,
+    monthName,
+    day: d,
+    month: m,
+    year: y,
+    isToday,
+    isWeekend
+  };
+}
+
+/**
+ * Ekstraksi dan parsing tanggal bahasa Indonesia dari teks pengguna
+ * Mendukung:
+ * - "tanggal 1 agustus 2026", "1 agustus 2026", "15 juli" (tahun berjalan)
+ * - "kemarin", "kemaren", "hari ini", "besok"
+ * - "2026-08-01", "01/08/2026", "1-8-2026"
+ */
+export function _parseIndonesianDate(text) {
+  if (!text || typeof text !== 'string') return null;
+  const lower = text.toLowerCase().trim();
+
+  // Hari ini di WIB (Asia/Jakarta)
+  const now = new Date();
+  const wibTodayStr = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const [currY, currM, currD] = wibTodayStr.split('-').map(Number);
+  const nowWib = new Date(Date.UTC(currY, currM - 1, currD));
+
+  // 1. Kata relatif: kemarin, kemaren
+  if (/\b(?:kemarin|kemaren)\b/i.test(lower)) {
+    const yesterday = new Date(nowWib);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    return _buildDateResult(yesterday, false);
+  }
+
+  // 2. Kata relatif: hari ini
+  if (/\b(?:hari\s+ini)\b/i.test(lower)) {
+    return _buildDateResult(nowWib, true);
+  }
+
+  // 3. Kata relatif: besok
+  if (/\b(?:besok|esok)\b/i.test(lower)) {
+    const tomorrow = new Date(nowWib);
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    return _buildDateResult(tomorrow, false);
+  }
+
+  // 4. ISO Date: YYYY-MM-DD (contoh: 2026-08-01 atau 2026/08/01)
+  const isoMatch = lower.match(/\b(20\d{2})[-/](0?[1-9]|1[0-2])[-/](0?[1-9]|[12]\d|3[01])\b/);
+  if (isoMatch) {
+    const y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10);
+    const d = parseInt(isoMatch[3], 10);
+    const dateObj = new Date(Date.UTC(y, m - 1, d));
+    if (!isNaN(dateObj.getTime())) {
+      const isToday = (y === currY && m === currM && d === currD);
+      return _buildDateResult(dateObj, isToday);
+    }
+  }
+
+  // 5. Format numerik DD/MM/YYYY atau DD-MM-YYYY (contoh: 01/08/2026 atau 1-8-2026)
+  const numDateMatch = lower.match(/\b(0?[1-9]|[12]\d|3[01])[-/](0?[1-9]|1[0-2])[-/](20\d{2})\b/);
+  if (numDateMatch) {
+    const d = parseInt(numDateMatch[1], 10);
+    const m = parseInt(numDateMatch[2], 10);
+    const y = parseInt(numDateMatch[3], 10);
+    const dateObj = new Date(Date.UTC(y, m - 1, d));
+    if (!isNaN(dateObj.getTime())) {
+      const isToday = (y === currY && m === currM && d === currD);
+      return _buildDateResult(dateObj, isToday);
+    }
+  }
+
+  // 6. Nama bulan Indonesia: [tanggal/tgl] DD <Bulan> [YYYY]
+  // Contoh: "tanggal 1 agustus 2026", "1 agustus 2026", "tgl 15 juli", "01 agustus 2026"
+  const textDateRegex = /(?:tanggal|tgl\s*)?\b(0?[1-9]|[12]\d|3[01])\s+([a-z]+)(?:\s+(20\d{2}))?\b/i;
+  const textMatch = lower.match(textDateRegex);
+  if (textMatch) {
+    const d = parseInt(textMatch[1], 10);
+    const mStr = textMatch[2].toLowerCase();
+    const y = textMatch[3] ? parseInt(textMatch[3], 10) : currY;
+
+    const m = MONTH_MAP[mStr];
+    if (m) {
+      const dateObj = new Date(Date.UTC(y, m - 1, d));
+      if (!isNaN(dateObj.getTime())) {
+        const isToday = (y === currY && m === currM && d === currD);
+        return _buildDateResult(dateObj, isToday);
+      }
+    }
+  }
+
+  return null;
+}
+
 async function _handleUpdate(update) {
   // ── Dukung tombol inline keyboard (callback_query) ────────
   if (update.callback_query) {
@@ -305,69 +433,77 @@ async function _handleUpdate(update) {
   let cmd = parts[0].toLowerCase().split('@')[0];
   let args = parts.slice(1);
 
-  // Pemetaan teks tombol keyboard ke perintah bot (dan kosongkan args agar tidak dianggap parameter kelas/nama)
+  // Cek apakah input mengandung tanggal atau merupakan pertanyaan panjang/natural
   const lowerText = cleanInput.toLowerCase().trim();
-  if (lowerText.includes('rekap presensi') || lowerText === 'rekap') {
-    cmd = '/absen';
-    args = [];
-  } else if (lowerText.includes('presensi guru') || lowerText.includes('absen guru')) {
-    cmd = '/absen_guru';
-    args = [];
-  } else if (lowerText.includes('terlambat') || lowerText.includes('keterlambatan')) {
-    cmd = '/terlambat';
-    args = [];
-  } else if (lowerText.includes('status mesin') || lowerText.includes('mesin absensi') || lowerText === 'mesin' || lowerText === 'perangkat') {
-    cmd = '/mesin';
-    args = [];
-  } else if (lowerText.includes('tarik log') || lowerText.includes('tarik absensi') || lowerText === 'sync') {
-    cmd = '/sync';
-    args = [];
-  } else if (lowerText.includes('kasus pelanggaran') || lowerText.includes('pelanggaran') || lowerText.includes('poin')) {
-    cmd = '/pelanggaran';
-    args = [];
-  } else if (lowerText.includes('prestasi siswa') || lowerText.includes('prestasi')) {
-    cmd = '/prestasi';
-    args = [];
-  } else if (lowerText.includes('status whatsapp') || lowerText.includes('whatsapp') || lowerText === 'wa') {
-    cmd = '/wa';
-    args = [];
-  } else if (lowerText.includes('server & db') || lowerText.includes('info database') || lowerText === 'db' || lowerText === 'database') {
-    cmd = '/db';
-    args = [];
-  } else if (lowerText.includes('daftar kelas')) {
-    cmd = '/kelas';
-    args = [];
-  } else if (lowerText.includes('presensi per kelas') || lowerText.includes('rekap kelas')) {
-    cmd = '/rekap_kelas';
-    args = [];
-  } else if (lowerText.includes('status server')) {
-    cmd = '/status';
-    args = [];
-  } else if (lowerText.includes('statistik') || lowerText.includes('stats')) {
-    cmd = '/stats';
-    args = [];
-  } else if (lowerText.includes('keamanan') || lowerText.includes('alert')) {
-    cmd = '/alerts';
-    args = [];
-  } else if (lowerText.includes('backup') || lowerText.includes('cadangan')) {
-    cmd = '/backup';
-    args = [];
-  } else if (lowerText.includes('info update') || lowerText.includes('changelog') || lowerText.includes('pembaruan') || lowerText === 'update' || lowerText === 'versi') {
-    cmd = '/update';
-    args = [];
-  } else if (lowerText.includes('tanya') || lowerText.includes('bantuan') || lowerText.includes('panduan') || lowerText.includes('petunjuk')) {
-    cmd = '/help';
-    args = [];
-  } else if (lowerText === 'menu' || lowerText === '/menu') {
-    cmd = '/menu';
-    args = [];
-  } else if (!cmd.startsWith('/')) {
-    const knownWords = [
-      'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
-      'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya', 'update', 'versi', 'changelog'
-    ];
-    if (knownWords.includes(cmd)) {
-      cmd = '/' + cmd;
+  const detectedDate = _parseIndonesianDate(cleanInput);
+  const isQuestionOrNatural = !!detectedDate ||
+    /^(siapa|kapan|berapa|kenapa|mengapa|apakah|tolong|cek|bagaimana|lihat|ada\s+apa)\b|[?]/i.test(lowerText) ||
+    cleanInput.split(/\s+/).length > 2;
+
+  // Hanya petakan teks tombol keyboard ke perintah jika BUKAN kalimat pertanyaan/kueri tanggal
+  if (!isQuestionOrNatural) {
+    if (lowerText.includes('rekap presensi') || lowerText === 'rekap') {
+      cmd = '/absen';
+      args = [];
+    } else if (lowerText.includes('presensi guru') || lowerText.includes('absen guru')) {
+      cmd = '/absen_guru';
+      args = [];
+    } else if (lowerText.includes('terlambat') || lowerText.includes('keterlambatan')) {
+      cmd = '/terlambat';
+      args = [];
+    } else if (lowerText.includes('status mesin') || lowerText.includes('mesin absensi') || lowerText === 'mesin' || lowerText === 'perangkat') {
+      cmd = '/mesin';
+      args = [];
+    } else if (lowerText.includes('tarik log') || lowerText.includes('tarik absensi') || lowerText === 'sync') {
+      cmd = '/sync';
+      args = [];
+    } else if (lowerText.includes('kasus pelanggaran') || lowerText.includes('pelanggaran') || lowerText.includes('poin')) {
+      cmd = '/pelanggaran';
+      args = [];
+    } else if (lowerText.includes('prestasi siswa') || lowerText.includes('prestasi')) {
+      cmd = '/prestasi';
+      args = [];
+    } else if (lowerText.includes('status whatsapp') || lowerText.includes('whatsapp') || lowerText === 'wa') {
+      cmd = '/wa';
+      args = [];
+    } else if (lowerText.includes('server & db') || lowerText.includes('info database') || lowerText === 'db' || lowerText === 'database') {
+      cmd = '/db';
+      args = [];
+    } else if (lowerText.includes('daftar kelas')) {
+      cmd = '/kelas';
+      args = [];
+    } else if (lowerText.includes('presensi per kelas') || lowerText.includes('rekap kelas')) {
+      cmd = '/rekap_kelas';
+      args = [];
+    } else if (lowerText.includes('status server')) {
+      cmd = '/status';
+      args = [];
+    } else if (lowerText.includes('statistik') || lowerText.includes('stats')) {
+      cmd = '/stats';
+      args = [];
+    } else if (lowerText.includes('keamanan') || lowerText.includes('alert')) {
+      cmd = '/alerts';
+      args = [];
+    } else if (lowerText.includes('backup') || lowerText.includes('cadangan')) {
+      cmd = '/backup';
+      args = [];
+    } else if (lowerText.includes('info update') || lowerText.includes('changelog') || lowerText.includes('pembaruan') || lowerText === 'update' || lowerText === 'versi') {
+      cmd = '/update';
+      args = [];
+    } else if (lowerText.includes('tanya') || lowerText.includes('bantuan') || lowerText.includes('panduan') || lowerText.includes('petunjuk')) {
+      cmd = '/help';
+      args = [];
+    } else if (lowerText === 'menu' || lowerText === '/menu') {
+      cmd = '/menu';
+      args = [];
+    } else if (!cmd.startsWith('/')) {
+      const knownWords = [
+        'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
+        'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya', 'update', 'versi', 'changelog'
+      ];
+      if (knownWords.includes(cmd)) {
+        cmd = '/' + cmd;
+      }
     }
   }
 
@@ -436,7 +572,13 @@ async function _handleUpdate(update) {
       case '/absen':
       case '/rekap':
         if (args.length > 0) {
-          await _cmdAbsenPerKelas(chatId, args.join(' '));
+          const argText = args.join(' ');
+          const dateArg = _parseIndonesianDate(argText);
+          if (dateArg) {
+            await sendDailyMorningAttendanceReport(chatId, dateArg);
+          } else {
+            await _cmdAbsenPerKelas(chatId, argText);
+          }
         } else {
           await sendDailyMorningAttendanceReport(chatId);
         }
@@ -457,7 +599,13 @@ async function _handleUpdate(update) {
       case '/absen_guru':
       case '/presensi_guru':
         if (args.length > 0) {
-          await _cmdCariGuru(chatId, args.join(' '));
+          const argText = args.join(' ');
+          const dateArg = _parseIndonesianDate(argText);
+          if (dateArg) {
+            await _cmdAbsenGuru(chatId, dateArg);
+          } else {
+            await _cmdCariGuru(chatId, argText);
+          }
         } else {
           await _cmdAbsenGuru(chatId);
         }
@@ -497,7 +645,16 @@ async function _handleUpdate(update) {
         break;
       case '/terlambat':
       case '/late':
-        await _cmdTerlambat(chatId);
+        if (args.length > 0) {
+          const argText = args.join(' ');
+          const dateArg = _parseIndonesianDate(argText);
+          const isGuru = /guru|karyawan|staff/i.test(argText);
+          const isSiswa = /siswa|murid|anak/i.test(argText);
+          const filterType = isGuru ? 'guru' : (isSiswa ? 'siswa' : 'all');
+          await _cmdTerlambat(chatId, dateArg, filterType);
+        } else {
+          await _cmdTerlambat(chatId);
+        }
         break;
       case '/update':
       case '/versi':
@@ -510,7 +667,7 @@ async function _handleUpdate(update) {
         await _handleSmartAssistant(chatId, args.join(' '));
         break;
       default:
-        await _handleSmartAssistant(chatId, text);
+        await _handleSmartAssistant(chatId, cleanInput || text);
     }
   } catch (err) {
     console.error(`[TelegramBot] Gagal menjalankan perintah ${cmd}:`, err);
@@ -815,89 +972,234 @@ async function _cmdStatusMesin(chatId) {
 }
 
 /**
- * Menampilkan daftar keterlambatan siswa dan guru hari ini
+ * Menampilkan daftar keterlambatan siswa dan guru/karyawan (Hari ini atau Tanggal Tertentu)
+ * @param {string} chatId 
+ * @param {object|null} dateInfo - Hasil parse _parseIndonesianDate
+ * @param {string} filterType - 'all' | 'guru' | 'siswa'
  */
-async function _cmdTerlambat(chatId) {
+async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
   if (!_dbPool) {
     await _sendMessage(chatId, '❌ Database tidak tersedia.');
     return;
   }
   try {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const isHistorical = !!dateInfo && !dateInfo.isToday;
+    const targetDate = dateInfo ? dateInfo.isoDate : new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const targetFormatted = dateInfo ? dateInfo.formatted : new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     
     let masukLate = '07:00';
-    let guruLate = '07:00';
+    let guruLate = '07:15';
     try {
       const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
       if (confRes.rows.length > 0 && confRes.rows[0].data) {
         const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
         masukLate = conf?.featureSettings?.masuk_late || conf?.siswa?.masuk_late || '07:00';
-        guruLate = conf?.featureSettings?.guru_masuk_late || conf?.guru?.masuk_late || '07:00';
+        guruLate = conf?.featureSettings?.guru_masuk_late || conf?.guru?.masuk_late || '07:15';
       }
     } catch(e) {}
 
-    // 1. Siswa Terlambat Hari Ini
-    const { rows: siswaLate } = await _dbPool.query(`
-      SELECT l.employee_id, MIN(l.timestamp) as scan_time,
-             COALESCE(ms.payload->>'name', ms.payload->>'nama', hs.name, l.employee_id) as student_name,
-             COALESCE(ms.payload->>'class_name', ms.payload->>'kelas', hs.class_name, '-') as class_name
-      FROM hikvision_logs l
-      LEFT JOIN mst_students ms ON ms.payload->>'nis' = l.employee_id OR ms.payload->>'code' = l.employee_id
-      LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
-      WHERE l.timestamp::date = $1::date
-        AND l.person_type = 'siswa'
-        AND CAST(l.timestamp AS TIME) > $2::time
-      GROUP BY l.employee_id, ms.payload, hs.name, hs.class_name
-      ORDER BY scan_time ASC
-      LIMIT 50
-    `, [today, masukLate]);
+    // Periksa apakah ada catatan scan presensi sama sekali pada tanggal ini
+    const { rows: scanCountRows } = await _dbPool.query(
+      `SELECT COUNT(employee_id) as total_scan FROM hikvision_logs WHERE timestamp::date = $1::date`,
+      [targetDate]
+    ).catch(() => ({ rows: [{ total_scan: 0 }] }));
+    const totalScansOnDate = parseInt(scanCountRows[0]?.total_scan || 0, 10);
 
-    // 2. Guru / Karyawan Terlambat Hari Ini
-    const { rows: guruLateList } = await _dbPool.query(`
-      SELECT l.employee_id, MIN(l.timestamp) as scan_time,
-             COALESCE(mt.payload->>'name', mt.payload->>'nama', mf.payload->>'name', l.employee_id) as name,
-             l.person_type
-      FROM hikvision_logs l
-      LEFT JOIN mst_teachers mt ON mt.payload->>'code' = l.employee_id OR mt.payload->>'nip' = l.employee_id
-      LEFT JOIN mst_staffs mf ON mf.payload->>'staff_code' = l.employee_id OR mf.payload->>'code' = l.employee_id
-      WHERE l.timestamp::date = $1::date
-        AND l.person_type IN ('guru', 'karyawan', 'staff')
-        AND CAST(l.timestamp AS TIME) > $2::time
-      GROUP BY l.employee_id, mt.payload, mf.payload, l.person_type
-      ORDER BY scan_time ASC
-      LIMIT 30
-    `, [today, guruLate]);
-
-    let msg = `⏰ <b>REKAP KETERLAMBATAN HARI INI</b>\n` +
-              `📅 <b>Tanggal:</b> ${new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}\n` +
-              `⏳ <b>Batas Jam Masuk Siswa:</b> <code>${masukLate} WIB</code>\n` +
-              `⏳ <b>Batas Jam Masuk Guru:</b> <code>${guruLate} WIB</code>\n` +
-              `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-    msg += `👨‍🏫 <b>GURU & KARYAWAN TERLAMBAT (${guruLateList.length}):</b>\n`;
-    if (guruLateList.length === 0) {
-      msg += `<i>Tidak ada guru/karyawan terlambat hari ini.</i>\n\n`;
-    } else {
-      guruLateList.forEach((g, idx) => {
-        const timeStr = new Date(g.scan_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
-        msg += `${idx + 1}. <b>${escapeHtml(g.name)}</b> (${escapeHtml(g.person_type)})\n   🕒 Masuk: <code>${timeStr} WIB</code>\n`;
-      });
-      msg += `\n`;
+    // 1. Siswa Terlambat
+    let siswaLate = [];
+    if (filterType !== 'guru') {
+      const sRes = await _dbPool.query(`
+        SELECT l.employee_id, MIN(l.timestamp) as scan_time,
+               COALESCE(ms.payload->>'name', ms.payload->>'nama', hs.name, l.employee_id) as student_name,
+               COALESCE(ms.payload->>'class_name', ms.payload->>'kelas', hs.class_name, '-') as class_name
+        FROM hikvision_logs l
+        LEFT JOIN mst_students ms ON ms.payload->>'nis' = l.employee_id OR ms.payload->>'code' = l.employee_id
+        LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
+        WHERE l.timestamp::date = $1::date
+          AND l.person_type = 'siswa'
+          AND CAST(l.timestamp AS TIME) > $2::time
+        GROUP BY l.employee_id, ms.payload, hs.name, hs.class_name
+        ORDER BY scan_time ASC
+        LIMIT 50
+      `, [targetDate, masukLate]).catch(() => ({ rows: [] }));
+      siswaLate = sRes.rows;
     }
 
-    msg += `🎓 <b>SISWA TERLAMBAT (${siswaLate.length}):</b>\n`;
-    if (siswaLate.length === 0) {
-      msg += `<i>Tidak ada siswa tercatat terlambat hari ini.</i>\n`;
+    // 2. Guru / Karyawan Terlambat
+    let guruLateList = [];
+    if (filterType !== 'siswa') {
+      const gRes = await _dbPool.query(`
+        SELECT l.employee_id, MIN(l.timestamp) as scan_time,
+               COALESCE(mt.payload->>'name', mt.payload->>'nama', mf.payload->>'name', l.employee_id) as name,
+               l.person_type
+        FROM hikvision_logs l
+        LEFT JOIN mst_teachers mt ON mt.payload->>'code' = l.employee_id OR mt.payload->>'nip' = l.employee_id OR mt.payload->>'id' = l.employee_id
+        LEFT JOIN mst_staffs mf ON mf.payload->>'staff_code' = l.employee_id OR mf.payload->>'code' = l.employee_id OR mf.payload->>'id' = l.employee_id
+        WHERE l.timestamp::date = $1::date
+          AND l.person_type IN ('guru', 'karyawan', 'staff')
+          AND CAST(l.timestamp AS TIME) > $2::time
+        GROUP BY l.employee_id, mt.payload, mf.payload, l.person_type
+        ORDER BY scan_time ASC
+        LIMIT 50
+      `, [targetDate, guruLate]).catch(() => ({ rows: [] }));
+      guruLateList = gRes.rows;
+    }
+
+    let titlePrefix = isHistorical ? 'REKAP KETERLAMBATAN' : 'REKAP KETERLAMBATAN HARI INI';
+    if (filterType === 'guru') titlePrefix = isHistorical ? 'DAFTAR GURU & KARYAWAN TERLAMBAT' : 'GURU & KARYAWAN TERLAMBAT HARI INI';
+    if (filterType === 'siswa') titlePrefix = isHistorical ? 'DAFTAR SISWA TERLAMBAT' : 'SISWA TERLAMBAT HARI INI';
+
+    let msg = `⏰ <b>${titlePrefix}</b>\n` +
+              `📅 <b>Tanggal:</b> ${targetFormatted}\n`;
+    if (filterType !== 'guru') msg += `⏳ <b>Batas Jam Masuk Siswa:</b> <code>${masukLate} WIB</code>\n`;
+    if (filterType !== 'siswa') msg += `⏳ <b>Batas Jam Masuk Guru:</b> <code>${guruLate} WIB</code>\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    if (totalScansOnDate === 0) {
+      msg += `ℹ️ <i>Tidak ada rekaman log presensi scan pada tanggal ini (kemungkinan hari libur / akhir pekan atau mesin presensi sedang tidak aktif).</i>\n`;
     } else {
-      siswaLate.forEach((s, idx) => {
-        const timeStr = new Date(s.scan_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
-        msg += `${idx + 1}. <b>${escapeHtml(s.student_name)}</b> (${escapeHtml(s.class_name)})\n   🕒 Scan: <code>${timeStr} WIB</code> | NIS: <code>${escapeHtml(s.employee_id)}</code>\n`;
-      });
+      if (filterType !== 'siswa') {
+        msg += `👨‍🏫 <b>GURU & KARYAWAN TERLAMBAT (${guruLateList.length}):</b>\n`;
+        if (guruLateList.length === 0) {
+          msg += `<i>Tidak ada guru/karyawan terlambat pada tanggal ini.</i>\n\n`;
+        } else {
+          guruLateList.forEach((g, idx) => {
+            const timeStr = new Date(g.scan_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+            msg += `${idx + 1}. <b>${escapeHtml(g.name)}</b> (${escapeHtml(g.person_type)})\n   🕒 Masuk: <code>${timeStr} WIB</code>\n`;
+          });
+          msg += `\n`;
+        }
+      }
+
+      if (filterType !== 'guru') {
+        msg += `🎓 <b>SISWA TERLAMBAT (${siswaLate.length}):</b>\n`;
+        if (siswaLate.length === 0) {
+          msg += `<i>Tidak ada siswa tercatat terlambat pada tanggal ini.</i>\n`;
+        } else {
+          siswaLate.forEach((s, idx) => {
+            const timeStr = new Date(s.scan_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+            msg += `${idx + 1}. <b>${escapeHtml(s.student_name)}</b> (${escapeHtml(s.class_name)})\n   🕒 Scan: <code>${timeStr} WIB</code> | NIS: <code>${escapeHtml(s.employee_id)}</code>\n`;
+          });
+        }
+      }
     }
 
     await _sendMessage(chatId, msg, { isHtml: true });
   } catch (err) {
     await _sendMessage(chatId, `❌ Gagal mengambil rekap keterlambatan: ${escapeHtml(err.message)}`, { isHtml: true });
+  }
+}
+
+/**
+ * Menampilkan catatan izin, sakit, dan dispensasi siswa pada tanggal tertentu
+ */
+async function _cmdIzinSakitTanggal(chatId, dateInfo) {
+  if (!_dbPool) { await _sendMessage(chatId, '❌ Database tidak tersedia.'); return; }
+  try {
+    const targetDate = dateInfo.isoDate;
+    const { rows } = await _dbPool.query(`
+      SELECT a.siswa_nis, a.status, a.keterangan, a.created_at,
+             COALESCE(ms.payload->>'name', ms.payload->>'nama', a.siswa_nis) as nama,
+             COALESCE(ms.payload->>'class_name', ms.payload->>'kelas', '-') as kelas
+      FROM kedisiplinan_absensi a
+      LEFT JOIN mst_students ms ON ms.payload->>'nis' = a.siswa_nis OR ms.payload->>'code' = a.siswa_nis
+      WHERE a.tanggal::date = $1::date
+      ORDER BY a.created_at ASC
+    `, [targetDate]).catch(() => ({ rows: [] }));
+
+    let msg = `📝 <b>SURAT DISIPLIN / IZIN & SAKIT SISWA</b>\n` +
+              `📅 <b>Tanggal:</b> ${dateInfo.formatted}\n` +
+              `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    if (rows.length === 0) {
+      msg += `<i>Tidak ada catatan surat izin, sakit, atau dispensasi siswa pada tanggal ini.</i>`;
+    } else {
+      msg += `Tercatat <b>${rows.length} siswa</b> berhalangan hadir:\n\n`;
+      rows.forEach((r, idx) => {
+        msg += `${idx + 1}. <b>${escapeHtml(r.nama)}</b> (${escapeHtml(r.kelas)})\n` +
+               `   📌 Status: <b>${escapeHtml(r.status)}</b>\n` +
+               (r.keterangan ? `   💬 Keterangan: <i>${escapeHtml(r.keterangan)}</i>\n` : '');
+      });
+    }
+
+    await _sendMessage(chatId, msg, { isHtml: true });
+  } catch (err) {
+    await _sendMessage(chatId, `❌ Gagal mengambil data izin/sakit: ${escapeHtml(err.message)}`, { isHtml: true });
+  }
+}
+
+/**
+ * Ringkasan aktivitas presensi & sekolah pada tanggal tertentu
+ */
+async function _cmdRingkasanTanggal(chatId, dateInfo) {
+  if (!_dbPool) { await _sendMessage(chatId, '❌ Database tidak tersedia.'); return; }
+  try {
+    const targetDate = dateInfo.isoDate;
+    const [scanRes, lateRes, permitRes] = await Promise.all([
+      _dbPool.query(`
+        SELECT person_type, COUNT(DISTINCT employee_id) as total_user, COUNT(*) as total_scan
+        FROM hikvision_logs
+        WHERE timestamp::date = $1::date
+        GROUP BY person_type
+      `, [targetDate]).catch(() => ({ rows: [] })),
+      _dbPool.query(`
+        SELECT COUNT(DISTINCT employee_id) as total_late
+        FROM hikvision_logs
+        WHERE timestamp::date = $1::date
+          AND ((person_type = 'siswa' AND CAST(timestamp AS TIME) > '07:00'::time)
+            OR (person_type IN ('guru', 'karyawan', 'staff') AND CAST(timestamp AS TIME) > '07:15'::time))
+      `, [targetDate]).catch(() => ({ rows: [{ total_late: 0 }] })),
+      _dbPool.query(`
+        SELECT status, COUNT(*) as cnt
+        FROM kedisiplinan_absensi
+        WHERE tanggal::date = $1::date
+        GROUP BY status
+      `, [targetDate]).catch(() => ({ rows: [] }))
+    ]);
+
+    let totalSiswaTap = 0;
+    let totalGuruTap = 0;
+    let totalKaryawanTap = 0;
+    let totalScans = 0;
+
+    scanRes.rows.forEach(r => {
+      const type = String(r.person_type || '').toLowerCase();
+      const uCount = parseInt(r.total_user, 10) || 0;
+      totalScans += parseInt(r.total_scan, 10) || 0;
+      if (type === 'siswa') totalSiswaTap += uCount;
+      else if (type === 'guru') totalGuruTap += uCount;
+      else if (type === 'karyawan' || type === 'staff') totalKaryawanTap += uCount;
+    });
+
+    let totalPermits = 0;
+    permitRes.rows.forEach(r => { totalPermits += parseInt(r.cnt, 10) || 0; });
+    const totalLate = parseInt(lateRes.rows[0]?.total_late || 0, 10);
+
+    let msg = `📅 <b>INFORMASI & REKAP TANGGAL</b>\n` +
+              `🗓️ <b>${dateInfo.formatted}</b>` +
+              (dateInfo.isWeekend ? ` <i>(Akhir Pekan / Hari Libur)</i>\n\n` : `\n\n`);
+
+    if (totalScans === 0 && totalPermits === 0) {
+      msg += `ℹ️ <i>Tidak ada rekaman log presensi scan ataupun izin/sakit pada tanggal ini.</i>\n\n`;
+    } else {
+      msg += `📊 <b>Ringkasan Aktivitas Presensi:</b>\n` +
+             `• 👨‍🏫 Guru Hadir Tap: <b>${totalGuruTap}</b> orang\n` +
+             `• 💼 Karyawan Hadir Tap: <b>${totalKaryawanTap}</b> orang\n` +
+             `• 🎓 Siswa Hadir Tap: <b>${totalSiswaTap}</b> orang\n` +
+             `• ⏰ Total Terlambat: <b>${totalLate}</b> orang\n` +
+             `• 📝 Siswa Izin / Sakit: <b>${totalPermits}</b> siswa\n` +
+             `• 📟 Total Scan Log Mesin: <b>${totalScans}</b> kali\n\n`;
+    }
+
+    msg += `💡 <b>Pertanyaan tanggal yang bisa Anda tanyakan:</b>\n` +
+           `• <i>"Siapa guru yang telat tanggal ${dateInfo.day} ${dateInfo.monthName} ${dateInfo.year}?"</i>\n` +
+           `• <i>"Siapa siswa telat tanggal ${dateInfo.day} ${dateInfo.monthName} ${dateInfo.year}?"</i>\n` +
+           `• <i>"Rekap presensi tanggal ${dateInfo.day} ${dateInfo.monthName} ${dateInfo.year}"</i>\n` +
+           `• <i>"Siapa izin tanggal ${dateInfo.day} ${dateInfo.monthName} ${dateInfo.year}?"</i>`;
+
+    await _sendMessage(chatId, msg, { isHtml: true });
+  } catch (err) {
+    await _sendMessage(chatId, `❌ Gagal mengambil rekap tanggal: ${escapeHtml(err.message)}`, { isHtml: true });
   }
 }
 
@@ -1384,6 +1686,74 @@ async function _handleSmartAssistant(chatId, queryText) {
     return;
   }
 
+  // ── 0. Penanganan Pertanyaan Berbasis Tanggal (Historis & Tertentu) ──
+  const dateInfo = _parseIndonesianDate(rawQ);
+  if (dateInfo) {
+    // 0.1 Guru / Karyawan / Staff Terlambat pada tanggal tertentu
+    // Contoh: "tanggal 1 agustus 2026 siapa guru yang telat", "siapa guru yang telat tanggal 1 agustus 2026", "guru terlambat kemarin"
+    if ((/guru|karyawan|staff|ustadz|pengajar/i.test(q)) && (/telat|terlambat|keterlambatan/i.test(q) || /siapa.*telat/i.test(q))) {
+      await _cmdTerlambat(chatId, dateInfo, 'guru');
+      return;
+    }
+
+    // 0.2 Siswa Terlambat pada tanggal tertentu
+    // Contoh: "siapa siswa telat tanggal 1 agustus 2026", "siswa telat kemarin", "anak telat 5 agustus"
+    if ((/siswa|murid|anak|peserta\s+didik/i.test(q)) && (/telat|terlambat|keterlambatan/i.test(q) || /siapa.*telat/i.test(q))) {
+      await _cmdTerlambat(chatId, dateInfo, 'siswa');
+      return;
+    }
+
+    // 0.3 Keterlambatan Umum pada tanggal tertentu (Semua: Guru & Siswa)
+    // Contoh: "siapa yang telat tanggal 1 agustus 2026", "ada yang telat tanggal 1 agustus", "keterlambatan kemarin"
+    if (/telat|terlambat|keterlambatan/i.test(q)) {
+      await _cmdTerlambat(chatId, dateInfo, 'all');
+      return;
+    }
+
+    // 0.4 Presensi / Kehadiran Guru & Karyawan pada tanggal tertentu
+    // Contoh: "presensi guru tanggal 1 agustus 2026", "siapa guru hadir tanggal 1 agustus 2026", "guru masuk kemarin"
+    if ((/guru|karyawan|staff/i.test(q)) && (/hadir|absen|presensi|masuk|datang/i.test(q))) {
+      await _cmdAbsenGuru(chatId, dateInfo);
+      return;
+    }
+
+    // 0.5 Siswa Izin / Sakit / Dispensasi pada tanggal tertentu
+    // Contoh: "siapa siswa izin tanggal 1 agustus 2026", "surat izin kemarin", "ada yang sakit tanggal 1 agustus"
+    if (/izin|sakit|dispensasi|surat/i.test(q)) {
+      await _cmdIzinSakitTanggal(chatId, dateInfo);
+      return;
+    }
+
+    // 0.6 Presensi Per Kelas pada tanggal tertentu
+    // Contoh: "presensi kelas X TKJ 1 tanggal 1 agustus 2026", "rekap XI RPL 2 kemarin"
+    const classMatch = q.match(/(?:kelas|rombel)?\s*([x|xi|xii]{1,3}\s+[a-z0-9_\-\s]+)/i);
+    if (classMatch && (/absen|rekap|presensi|kehadiran/i.test(q))) {
+      let className = classMatch[1].trim();
+      className = className
+        .replace(/(?:tanggal|tgl\s*)?\b\d{1,2}\s+[a-z]+(?:\s+\d{4})?\b/gi, '')
+        .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, '')
+        .replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/g, '')
+        .replace(/\b(kemarin|kemaren|hari\s+ini|besok)\b/gi, '')
+        .trim();
+      if (className) {
+        await _cmdAbsenPerKelas(chatId, className, dateInfo);
+        return;
+      }
+    }
+
+    // 0.7 Rekap Presensi / Laporan Kehadiran Global pada tanggal tertentu
+    // Contoh: "rekap presensi 1 agustus 2026", "presensi tanggal 1 agustus 2026", "kehadiran tanggal 1 agustus", "rekap kemarin"
+    if (/rekap|presensi|kehadiran|absen|laporan/i.test(q)) {
+      await sendDailyMorningAttendanceReport(chatId, dateInfo);
+      return;
+    }
+
+    // 0.8 Pertanyaan umum lainnya seputar tanggal tersebut
+    // Contoh: "tanggal 1 agustus 2026", "cek tanggal 1 agustus 2026", "ada apa tanggal 1 agustus"
+    await _cmdRingkasanTanggal(chatId, dateInfo);
+    return;
+  }
+
   // ── 1. Salam, Sapaan & Identitas Asisten ──
   if (/^(halo|hai|hey|hei|assalamualaikum|assalamu'alaikum|samlekom|selamat\s+(pagi|siang|sore|malam)|pagi|siang|sore|malam|tes|test|ping)$/i.test(q) ||
       q.includes('kamu siapa') || q.includes('siapa kamu') || q.includes('bisa apa') || q.includes('tentang kamu') || q.includes('siapa nama')) {
@@ -1560,7 +1930,10 @@ async function _handleSmartAssistant(chatId, queryText) {
 
   // ── 9. Keterlambatan Real-Time ──
   if (q.includes('terlambat') || q.includes('telat') || q.includes('siapa telat') || q.includes('siapa terlambat')) {
-    await _cmdTerlambat(chatId);
+    const isGuru = /guru|karyawan|staff/i.test(q);
+    const isSiswa = /siswa|murid|anak/i.test(q);
+    const filterType = isGuru ? 'guru' : (isSiswa ? 'siswa' : 'all');
+    await _cmdTerlambat(chatId, null, filterType);
     return;
   }
 
@@ -1863,13 +2236,26 @@ async function _findMatchingClasses(queryStr) {
   return partial;
 }
 
-async function _cmdAbsenPerKelas(chatId, classQuery) {
+async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
   if (!_dbPool) {
     await _sendMessage(chatId, '❌ Database tidak tersedia.');
     return;
   }
 
-  const queryTrimmed = String(classQuery || '').trim();
+  let queryTrimmed = String(classQuery || '').trim();
+  if (!dateInfo) {
+    const extracted = _parseIndonesianDate(queryTrimmed);
+    if (extracted) {
+      dateInfo = extracted;
+      queryTrimmed = queryTrimmed
+        .replace(/(?:tanggal|tgl\s*)?\b\d{1,2}\s+[a-z]+(?:\s+\d{4})?\b/gi, '')
+        .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, '')
+        .replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/g, '')
+        .replace(/\b(kemarin|kemaren|hari\s+ini|besok)\b/gi, '')
+        .trim();
+    }
+  }
+
   if (!queryTrimmed) {
     await _sendMessage(chatId,
       `⚠️ <b>Nama kelas belum dimasukkan.</b>\n\n` +
@@ -1947,12 +2333,8 @@ async function _cmdAbsenPerKelas(chatId, classQuery) {
   hikStudents.forEach(r => {
     const nis = String(r.nis || '').trim();
     const name = String(r.name || '').trim();
-    if (nis) {
-      if (!studentMap.has(nis)) {
-        studentMap.set(nis, { nis, name: name || `Siswa ${nis}` });
-      } else if (!studentMap.get(nis).name && name) {
-        studentMap.get(nis).name = name;
-      }
+    if (nis && !studentMap.has(nis)) {
+      studentMap.set(nis, { nis, name: name || `Siswa ${nis}` });
     }
   });
 
@@ -1966,9 +2348,10 @@ async function _cmdAbsenPerKelas(chatId, classQuery) {
     return;
   }
 
+  const isHistorical = !!dateInfo && !dateInfo.isToday;
   const nisList = Array.from(studentMap.keys());
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-  const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const today = dateInfo ? dateInfo.isoDate : new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const todayFormatted = dateInfo ? dateInfo.formatted : new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
   const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 
   // Ambil batas jam masuk (default 07:00)
@@ -1997,6 +2380,17 @@ async function _cmdAbsenPerKelas(chatId, classQuery) {
       [nisList, today]
     ).catch(() => ({ rows: [] }))
   ]);
+
+  if (isHistorical && logsRes.rows.length === 0 && permitsRes.rows.length === 0) {
+    const headerTime = isHistorical ? '' : ` (${nowTime} WIB)`;
+    let emptyMsg = `📊 <b>PRESENSI KELAS: ${escapeHtml(className)}</b>\n`;
+    emptyMsg += `📅 <i>${todayFormatted}${headerTime}</i>\n`;
+    emptyMsg += `👨‍🏫 <b>Wali Kelas:</b> ${escapeHtml(walasName)}\n\n`;
+    emptyMsg += `👥 <b>Total Siswa:</b> ${totalStudents} orang\n\n`;
+    emptyMsg += `ℹ️ <i>Tidak ada rekaman log scan presensi ataupun surat izin/sakit pada tanggal ini (hari libur/akhir pekan atau mesin offline).</i>\n`;
+    await _sendMessage(chatId, emptyMsg, { isHtml: true });
+    return;
+  }
 
   const tapMap = new Map();
   logsRes.rows.forEach(r => {
@@ -2256,14 +2650,15 @@ async function _cmdRekapSemuaKelas(chatId) {
   await _sendMessage(chatId, msg, { isHtml: true });
 }
 
-async function _cmdAbsenGuru(chatId) {
+async function _cmdAbsenGuru(chatId, dateInfo = null) {
   if (!_dbPool) {
     await _sendMessage(chatId, '❌ Database tidak tersedia.');
     return;
   }
 
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-  const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const isHistorical = !!dateInfo && !dateInfo.isToday;
+  const today = dateInfo ? dateInfo.isoDate : new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const todayFormatted = dateInfo ? dateInfo.formatted : new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
   const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 
   // 1. Ambil data guru
@@ -2275,7 +2670,7 @@ async function _cmdAbsenGuru(chatId) {
     return;
   }
 
-  // 2. Ambil logs presensi hari ini
+  // 2. Ambil logs presensi
   const { rows: logs } = await _dbPool.query(
     `SELECT employee_id, MIN(timestamp) as first_tap
      FROM hikvision_logs
@@ -2283,6 +2678,15 @@ async function _cmdAbsenGuru(chatId) {
      GROUP BY employee_id`,
     [today]
   ).catch(() => ({ rows: [] }));
+
+  if (isHistorical && logs.length === 0) {
+    let emptyMsg = `👨‍🏫 <b>PRESENSI GURU & KARYAWAN</b>\n`;
+    emptyMsg += `📅 <i>${todayFormatted}</i>\n\n`;
+    emptyMsg += `• Total Guru Terdaftar: <b>${teachers.length}</b> orang\n\n`;
+    emptyMsg += `ℹ️ <i>Tidak ada rekaman log scan presensi guru/karyawan pada tanggal ini (hari libur/akhir pekan atau mesin absensi offline).</i>\n`;
+    await _sendMessage(chatId, emptyMsg, { isHtml: true });
+    return;
+  }
 
   const tapMap = new Map();
   logs.forEach(r => {
@@ -2323,14 +2727,19 @@ async function _cmdAbsenGuru(chatId) {
   const totalHadir = tepatList.length + telatList.length;
   const pct = Math.round((totalHadir / teachers.length) * 100);
 
-  let msg = `👨‍🏫 <b>PRESENSI GURU HARI INI</b>\n`;
-  msg += `📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n\n`;
+  let msg = isHistorical
+    ? `👨‍🏫 <b>PRESENSI GURU & KARYAWAN</b>\n📅 <i>${todayFormatted}</i>\n\n`
+    : `👨‍🏫 <b>PRESENSI GURU HARI INI</b>\n📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n\n`;
 
   msg += `• Total Guru Terdaftar: <b>${teachers.length}</b> orang\n`;
   msg += `• Hadir Scan: <b>${totalHadir}</b> (${pct}%)\n`;
   msg += `  - Tepat Waktu (&lt;= ${masukLate}): <b>${tepatList.length}</b> orang\n`;
   msg += `  - Terlambat (&gt; ${masukLate}): <b>${telatList.length}</b> orang\n`;
-  msg += `• Belum Presensi Scan: <b>${belumList.length}</b> orang\n\n`;
+  if (!isHistorical) {
+    msg += `• Belum Presensi Scan: <b>${belumList.length}</b> orang\n\n`;
+  } else {
+    msg += `\n`;
+  }
 
   if (telatList.length > 0) {
     msg += `⏰ <b>Guru Terlambat:</b>\n`;
@@ -2340,7 +2749,7 @@ async function _cmdAbsenGuru(chatId) {
     msg += `\n`;
   }
 
-  if (belumList.length > 0) {
+  if (belumList.length > 0 && !isHistorical) {
     msg += `❌ <b>Belum Presensi Scan (${belumList.length} guru):</b>\n`;
     const maxShow = 30;
     belumList.slice(0, maxShow).forEach((t, idx) => {
@@ -2349,8 +2758,8 @@ async function _cmdAbsenGuru(chatId) {
     if (belumList.length > maxShow) {
       msg += `<i>...dan ${belumList.length - maxShow} guru lainnya.</i>\n`;
     }
-  } else {
-    msg += `🎉 <i>Seluruh guru telah melakukan presensi scan hari ini!</i>\n`;
+  } else if (belumList.length === 0) {
+    msg += `🎉 <i>Seluruh guru telah melakukan presensi scan!</i>\n`;
   }
 
   await _sendMessage(chatId, msg, { isHtml: true });
@@ -2423,9 +2832,11 @@ ${formattedContent}
 }
 
 /**
- * Kirim Rekap Absensi Siswa & Guru (dijalankan otomatis pk 07:05 atau via /absen di bot)
+ * Kirim Rekap Absensi Siswa & Guru (dijalankan otomatis pk 07:05, via /absen, atau kueri tanggal tertentu)
+ * @param {string|null} targetChatId 
+ * @param {object|null} dateInfo - Hasil parse _parseIndonesianDate
  */
-export async function sendDailyMorningAttendanceReport(targetChatId = null) {
+export async function sendDailyMorningAttendanceReport(targetChatId = null, dateInfo = null) {
   if (!_dbPool) return;
   if (!_initialized) await _loadConfig();
   if (_alertConfig['attendance'] === false && !targetChatId) return; // Ignore if disabled globally unless requested via bot cmd
@@ -2433,17 +2844,32 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
   if (!_botToken || !destChatId) return;
 
   try {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-    const todayFormatted = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    const isHistorical = !!dateInfo && !dateInfo.isToday;
+    const today = dateInfo ? dateInfo.isoDate : new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const todayFormatted = dateInfo ? dateInfo.formatted : new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
     const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 
-    // 1. Data log presensi dari hikvision_logs hari ini
+    // 1. Data log presensi dari hikvision_logs
     const { rows: todayLogs } = await _dbPool.query(`
       SELECT employee_id, person_type, timestamp
       FROM hikvision_logs
       WHERE timestamp::date = $1::date
       ORDER BY timestamp ASC
     `, [today]).catch((e) => { console.error('[TelegramBot] Query Absensi Error:', e.message); return { rows: [] }; });
+
+    // Ambil rekap surat izin / sakit / dispensasi siswa
+    const { rows: suratRows } = await _dbPool.query(`
+      SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi 
+      WHERE tanggal::date = $1::date GROUP BY status
+    `, [today]).catch(() => ({ rows: [] }));
+
+    if (isHistorical && todayLogs.length === 0 && suratRows.length === 0) {
+      let emptyMsg = `📋 <b>REKAP PRESENSI HARIAN</b>\n` +
+        `📅 <i>${todayFormatted}</i>\n\n` +
+        `ℹ️ <i>Tidak ada rekaman data scan presensi mesin ataupun surat izin/sakit pada tanggal ini (kemungkinan hari libur / akhir pekan).</i>\n`;
+      await _sendMessage(destChatId, emptyMsg, { isHtml: true });
+      return;
+    }
 
     // Ambil data master guru, staff, dan siswa
     const { rows: tRows } = await _dbPool.query(`SELECT payload FROM mst_teachers`).catch(() => ({ rows: [] }));
@@ -2515,12 +2941,6 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
     });
     const siswaBelum = Math.max(0, totalStudentMaster - studentTaps.size);
 
-    // Ambil rekap surat izin / sakit / dispensasi siswa
-    const { rows: suratRows } = await _dbPool.query(`
-      SELECT status, COUNT(*) as cnt FROM kedisiplinan_absensi 
-      WHERE tanggal::date = $1::date GROUP BY status
-    `, [today]).catch(() => ({ rows: [] }));
-
     let siswaIzin = 0, siswaSakit = 0, siswaDispen = 0;
     suratRows.forEach(sr => {
       const st = String(sr.status || '').toLowerCase();
@@ -2529,35 +2949,35 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null) {
       else if (st.includes('dispen')) siswaDispen += parseInt(sr.cnt, 10);
     });
 
+    const reportTitle = isHistorical ? 'REKAP LAPORAN PRESENSI' : 'LAPORAN KEHADIRAN PAGI';
+    const reportTime = isHistorical ? '' : ` (Pukul ${nowTime} WIB)`;
+
     const msg = 
-`📋 <b>LAPORAN KEHADIRAN PAGI</b>
-📅 <i>${todayFormatted} (Pukul ${nowTime} WIB)</i>
+`📋 <b>${reportTitle}</b>
+📅 <i>${todayFormatted}${reportTime}</i>
 
 👨‍🏫 <b>GURU & KARYAWAN</b>
 • Hadir Tepat Waktu: <b>${guruTepat}</b> orang
 • Terlambat: <b>${guruTelat}</b> orang
 • Sudah Presensi Scan: <b>${teacherTaps.size}</b> dari ${totalGuruMaster} orang
-• Belum Terdata Scan: <b>${guruBelum}</b> orang
-
-🎓 <b>PRESENSI SISWA</b>
+` + (!isHistorical ? `• Belum Terdata Scan: <b>${guruBelum}</b> orang\n\n` : `\n`) +
+`🎓 <b>PRESENSI SISWA</b>
 • Hadir Tepat Waktu: <b>${siswaTepat}</b> siswa
 • Terlambat: <b>${siswaTelat}</b> siswa
 • Izin / Sakit: <b>${siswaIzin + siswaSakit + siswaDispen}</b> siswa (Izin: ${siswaIzin}, Sakit: ${siswaSakit})
 • Total Tap Mesin: <b>${studentTaps.size}</b> dari ${totalStudentMaster} siswa
-• Belum Absen: <b>${siswaBelum}</b> siswa
-
-<i>Laporan otomatis dikirim dari Mesin Presensi & Sistem Kurmon.</i>
+` + (!isHistorical ? `• Belum Absen: <b>${siswaBelum}</b> siswa\n\n` : `\n`) +
+`<i>Laporan presensi sistem Kurmon.</i>
 
 💡 <b>Perintah Tambahan:</b>
 • <code>/absen [nama_kelas]</code> — Detail presensi per kelas
 • <code>/rekap_kelas</code> — Ringkasan kehadiran per kelas
 • <code>/absen_guru</code> — Detail presensi guru & karyawan
-• <code>/kelas</code> — Daftar seluruh kelas`;
+• <code>/terlambat</code> — Rekap keterlambatan siswa & guru`;
 
     await _sendMessage(destChatId, msg, { isHtml: true });
-    console.log('[TelegramBot] ✅ Laporan kehadiran pagi 07:05 berhasil dikirim ke Telegram.');
   } catch (err) {
-    console.error('[TelegramBot] Gagal kirim laporan kehadiran pagi:', err.message);
+    console.error('[TelegramBot] Gagal kirim laporan kehadiran:', err.message);
   }
 }
 
