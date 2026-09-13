@@ -1349,8 +1349,8 @@ async function _cmdPkl(chatId) {
 }
 
 /**
- * Asisten Cerdas Kurmon (Smart AI Assistant / Q&A Engine)
- * Menjawab pertanyaan natural dan query data secara cerdas
+ * Asisten Cerdas Kurmon (Smart AI Assistant / Comprehensive Knowledge Engine)
+ * Mampu memahami segala pertanyaan natural, bahasa sehari-hari, dan kueri data aplikasi Kurmon.
  */
 async function _handleSmartAssistant(chatId, queryText) {
   if (!_dbPool) {
@@ -1364,47 +1364,239 @@ async function _handleSmartAssistant(chatId, queryText) {
   if (!rawQ) {
     await _sendMessage(chatId,
       `🤖 <b>Halo! Saya Asisten Cerdas Kurmon.</b>\n\n` +
-      `Silakan ajukan pertanyaan apa saja tentang aplikasi Kurmon, misalnya:\n` +
-      `• <i>"Bagaimana cara setting mesin absensi?"</i>\n` +
-      `• <i>"Kenapa absensi hari ini kosong?"</i>\n` +
-      `• <i>"Apa password default admin?"</i>\n` +
-      `• <i>"Bagaimana alur poin pelanggaran dan SP?"</i>\n` +
-      `• <i>"Berapa jumlah siswa sekarang?"</i>\n` +
-      `• <i>"Cari siswa Budi"</i> atau <i>"Cari guru Joko"</i>\n` +
-      `• <i>"Cara cetak kartu pelajar"</i>\n` +
-      `• <i>"Cara broadcast WhatsApp ke wali murid"</i>`,
+      `Saya dapat menjawab semua pertanyaan seputar sistem sekolah Kurmon dan menampilkan data aplikasi secara langsung. Contoh pertanyaan:\n\n` +
+      `• <i>"Berapa jumlah siswa dan guru sekarang?"</i>\n` +
+      `• <i>"Siapa saja yang terlambat hari ini?"</i>\n` +
+      `• <i>"Cari siswa [Nama/NIS]"</i> atau <i>"Cari kontak guru [Nama]"</i>\n` +
+      `• <i>"Bagaimana kondisi mesin absensi di kampus?"</i>\n` +
+      `• <i>"Apa nama kepala sekolah dan NPSN?"</i>\n` +
+      `• <i>"Apa saja jurusan / keahlian di sekolah?"</i>\n` +
+      `• <i>"Siapa siswa yang izin atau sakit hari ini?"</i>\n` +
+      `• <i>"Bagaimana aturan SP1, SP2, dan SP3?"</i>\n` +
+      `• <i>"Cara cetak kartu pelajar ber-QR Code"</i>\n` +
+      `• <i>"Cara mengisi jurnal mengajar guru"</i>\n` +
+      `• <i>"Status siswa PKL dan mitra industri"</i>\n` +
+      `• <i>"Apa password default admin sekolah?"</i>\n` +
+      `• <i>"Cara membuka aplikasi dari HP via WiFi"</i>\n\n` +
+      `💡 <i>Ketik pertanyaan Anda secara bebas, saya siap membantu!</i>`,
       { isHtml: true }
     );
     return;
   }
 
-  // Query: Update / Changelog / Fitur Baru
+  // ── 1. Salam, Sapaan & Identitas Asisten ──
+  if (/^(halo|hai|hey|hei|assalamualaikum|assalamu'alaikum|samlekom|selamat\s+(pagi|siang|sore|malam)|pagi|siang|sore|malam|tes|test|ping)$/i.test(q) ||
+      q.includes('kamu siapa') || q.includes('siapa kamu') || q.includes('bisa apa') || q.includes('tentang kamu') || q.includes('siapa nama')) {
+    const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+    const todayStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+    let quickStat = '';
+    try {
+      const [sRes, tRes, devRes] = await Promise.all([
+        _dbPool.query('SELECT COUNT(*) FROM mst_students'),
+        _dbPool.query('SELECT COUNT(*) FROM mst_teachers'),
+        _dbPool.query('SELECT COUNT(*) FROM hikvision_devices')
+      ]);
+      quickStat = `\n📊 <b>Kondisi Data Saat Ini:</b>\n` +
+        `• Siswa Terdaftar: <b>${sRes.rows[0].count}</b> orang\n` +
+        `• Guru Terdaftar: <b>${tRes.rows[0].count}</b> orang\n` +
+        `• Mesin Terpasang: <b>${devRes.rows[0].count}</b> unit\n`;
+    } catch (e) {}
+
+    await _sendMessage(chatId,
+      `👋 <b>Halo! Senang bisa membantu Anda.</b>\n\n` +
+      `Saya adalah <b>Asisten Cerdas Kurmon</b> (Kurikulum & Monitoring Sekolah Terpadu).\n` +
+      `📅 <i>${todayStr} — Pukul ${timeStr} WIB</i>\n` +
+      quickStat + `\n` +
+      `Anda dapat mengajukan pertanyaan apa saja tentang data siswa, guru, presensi, mesin absensi, aturan sekolah, hingga panduan teknis aplikasi.\n\n` +
+      `💡 <i>Silakan ketik pertanyaan Anda atau klik <b>/menu</b> untuk navigasi tombol.</i>`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 2. Ucapan Terima Kasih ──
+  if (q.includes('terima kasih') || q.includes('makasih') || q.includes('tengkyu') || q.includes('thanks') || q.includes('matur nuwun')) {
+    await _sendMessage(chatId,
+      `😊 <b>Sama-sama! Senang bisa membantu Anda.</b>\n\n` +
+      `Jika membutuhkan data presensi, pengecekan mesin, atau informasi tata kelola sekolah lainnya, jangan ragu untuk bertanya kembali kapan saja. Semoga hari Anda menyenangkan! ✨`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 3. Info Update, Versi & Changelog ──
   if (q.includes('update') || q.includes('pembaruan') || q.includes('fitur baru') || q.includes('changelog') || q.includes('versi') || q.includes('apa yang baru')) {
     await _cmdInfoUpdate(chatId);
     return;
   }
 
-  // 1. Query Dinamis: Cari Siswa Langsung
-  const cariSiswaMatch = q.match(/^(?:cari\s+siswa|siswa\s+bernama|data\s+siswa|profil\s+siswa|nis)\s+(.+)$/i);
+  // ── 4. Profil Sekolah, Kepala Sekolah & Identitas ──
+  if (q.includes('profil sekolah') || q.includes('nama sekolah') || q.includes('kepala sekolah') || q.includes('kepsek') || q.includes('npsn') || q.includes('alamat sekolah') || q.includes('visi') || q.includes('misi')) {
+    let profileData = {};
+    try {
+      const { rows } = await _dbPool.query("SELECT key, value FROM school_profile");
+      rows.forEach(r => { profileData[r.key] = r.value; });
+    } catch (e) {}
+
+    const schoolName = profileData.name || profileData.school_name || 'SMK / SMA Kurmon';
+    const kepsek = profileData.headmaster || profileData.kepala_sekolah || profileData.kepsek || 'Belum diatur di Profil Sekolah';
+    const npsn = profileData.npsn || 'Belum diatur';
+    const address = profileData.address || profileData.alamat || 'Belum diatur';
+
+    await _sendMessage(chatId,
+      `🏫 <b>PROFIL & IDENTITAS SEKOLAH</b>\n\n` +
+      `• 🏛️ <b>Nama Sekolah:</b> <b>${escapeHtml(schoolName)}</b>\n` +
+      `• 👨‍💼 <b>Kepala Sekolah:</b> <b>${escapeHtml(kepsek)}</b>\n` +
+      `• 🆔 <b>NPSN:</b> <code>${escapeHtml(npsn)}</code>\n` +
+      `• 📍 <b>Alamat:</b> ${escapeHtml(address)}\n\n` +
+      `💡 <i>Profil sekolah dapat disesuaikan oleh Administrator melalui menu <b>Pengaturan > Profil Sekolah</b> di aplikasi web.</i>`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 5. Jurusan / Program Keahlian ──
+  if (q.includes('jurusan') || q.includes('proli') || q.includes('keahlian') || q.includes('program studi')) {
+    let deptList = [];
+    try {
+      const { rows } = await _dbPool.query("SELECT payload FROM mst_departments ORDER BY id ASC");
+      deptList = rows.map(r => r.payload?.name || r.payload?.nama).filter(Boolean);
+    } catch (e) {}
+
+    if (deptList.length > 0) {
+      const formatted = deptList.map((d, i) => `${i + 1}. <b>${escapeHtml(d)}</b>`).join('\n');
+      await _sendMessage(chatId,
+        `🎓 <b>KOMPETENSI KEAHLIAN / JURUSAN SEKOLAH</b>\n\n` +
+        `Terdapat <b>${deptList.length} jurusan</b> yang terdaftar:\n\n` +
+        formatted + `\n\n` +
+        `💡 <i>Manajemen kurikulum, penugasan guru kejuruan, dan penempatan PKL dikelompokkan berdasarkan jurusan di atas.</i>`,
+        { isHtml: true }
+      );
+    } else {
+      await _sendMessage(chatId,
+        `🎓 <b>KOMPETENSI KEAHLIAN / JURUSAN</b>\n\n` +
+        `Data jurusan dikelola di menu <b>Master Data > Jurusan</b> di aplikasi web Kurmon. Setiap jurusan terhubung otomatis dengan modul jadwal, rombel kelas, dan penempatan siswa PKL.`,
+        { isHtml: true }
+      );
+    }
+    return;
+  }
+
+  // ── 6. Ruangan, Lab Komputer & Bengkel Praktik ──
+  if (q.includes('ruang') || q.includes('ruangan') || q.includes('lab') || q.includes('laboratorium') || q.includes('bengkel') || q.includes('fasilitas')) {
+    let roomList = [];
+    try {
+      const { rows } = await _dbPool.query("SELECT payload FROM mst_rooms ORDER BY id ASC LIMIT 30");
+      roomList = rows.map(r => r.payload?.name || r.payload?.nama).filter(Boolean);
+    } catch (e) {}
+
+    if (roomList.length > 0) {
+      const formatted = roomList.slice(0, 20).map((rm, i) => `• ${escapeHtml(rm)}`).join('\n');
+      await _sendMessage(chatId,
+        `🏛️ <b>FASILITAS RUANGAN, LAB & BENGKEL</b>\n\n` +
+        `Total terdata: <b>${roomList.length} ruangan/fasilitas</b>:\n\n` +
+        formatted + (roomList.length > 20 ? `\n<i>...dan ${roomList.length - 20} ruangan lainnya.</i>` : '') + `\n\n` +
+        `💡 <i>Pengaturan kapasitas dan jadwal penggunaan ruangan dapat diakses di menu <b>Fasilitas & Ruangan</b> pada aplikasi web.</i>`,
+        { isHtml: true }
+      );
+    } else {
+      await _sendMessage(chatId,
+        `🏛️ <b>FASILITAS RUANGAN & BENGKEL</b>\n\n` +
+        `Sistem Kurmon mencakup pengelolaan denah gedung, ruang kelas teori, laboratorium komputer, dan bengkel praktik kejuruan pada menu <b>Administrasi > Fasilitas & Ruangan</b>.`,
+        { isHtml: true }
+      );
+    }
+    return;
+  }
+
+  // ── 7. Guru Piket & Pos Kedisiplinan ──
+  if (q.includes('piket') || q.includes('guru piket') || q.includes('pos piket') || q.includes('tugas piket')) {
+    await _sendMessage(chatId,
+      `📋 <b>SISTEM GURU PIKET & POS KEDISIPLINAN</b>\n\n` +
+      `• <b>Fungsi Pos Piket Digital:</b>\n` +
+      `  1. Scan barcode/QR kartu pelajar siswa yang datang terlambat.\n` +
+      `  2. Otomatisasi pencatatan poin pelanggaran keterlambatan & cetak surat izin masuk kelas.\n` +
+      `  3. Pencatatan tamu sekolah, izin keluar gerbang, dan rekap penertiban atribut seragam.\n\n` +
+      `• <b>Cara Akses Pos Piket:</b>\n` +
+      `  Guru yang bertugas dapat login ke web Kurmon > menu <b>Kedisiplinan > Pos Piket</b>.\n\n` +
+      `💡 <i>Ketik <code>/terlambat</code> untuk melihat siapa saja siswa & guru yang tercatat terlambat hari ini.</i>`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 8. Surat Izin, Sakit & Dispensasi Siswa Hari Ini ──
+  if (q.includes('izin') || q.includes('sakit') || q.includes('dispen') || q.includes('dispensasi') || q.includes('surat izin')) {
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    try {
+      const { rows } = await _dbPool.query(`
+        SELECT student_name, class_name, status, keterangan 
+        FROM kedisiplinan_absensi 
+        WHERE tanggal::date = $1::date
+        ORDER BY class_name ASC, student_name ASC
+      `, [today]);
+
+      if (rows.length > 0) {
+        let msg = `📝 <b>DAFTAR SISWA IZIN / SAKIT / DISPENSASI HARI INI</b>\n📅 <i>${today}</i>\n\n`;
+        rows.slice(0, 25).forEach((r, idx) => {
+          const icon = r.status?.toLowerCase().includes('sakit') ? '💊' : (r.status?.toLowerCase().includes('dispen') ? '🎟️' : '📩');
+          msg += `${idx + 1}. ${icon} <b>${escapeHtml(r.student_name)}</b> (${escapeHtml(r.class_name)})\n   Status: <b>${escapeHtml(r.status)}</b>${r.keterangan ? ` — <i>${escapeHtml(r.keterangan)}</i>` : ''}\n`;
+        });
+        if (rows.length > 25) msg += `\n<i>...dan ${rows.length - 25} siswa lainnya.</i>`;
+        await _sendMessage(chatId, msg, { isHtml: true });
+        return;
+      }
+    } catch (e) {}
+
+    await _sendMessage(chatId,
+      `📝 <b>SURAT IZIN, SAKIT & DISPENSASI SISWA</b>\n\n` +
+      `Belum ada data surat izin atau sakit yang diinput untuk hari ini.\n\n` +
+      `💡 <i>Wali Kelas atau Petugas Piket dapat menginput surat izin/sakit melalui menu <b>Kedisiplinan > Izin & Sakit</b> di web Kurmon.</i>`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 9. Keterlambatan Real-Time ──
+  if (q.includes('terlambat') || q.includes('telat') || q.includes('siapa telat') || q.includes('siapa terlambat')) {
+    await _cmdTerlambat(chatId);
+    return;
+  }
+
+  // ── 10. Presensi Guru & Karyawan ──
+  if (q.includes('absen guru') || q.includes('presensi guru') || q.includes('guru hadir') || q.includes('guru yang hadir') || q.includes('guru belum absen')) {
+    await _cmdAbsenGuru(chatId);
+    return;
+  }
+
+  // ── 11. Presensi Global & Laporan Kehadiran ──
+  if (q.includes('rekap') || q.includes('presensi') || q.includes('kehadiran') || q.includes('siapa hadir') || q.includes('berapa hadir') || q.includes('siapa alpa') || q.includes('siapa bolos')) {
+    await sendDailyMorningAttendanceReport(chatId);
+    return;
+  }
+
+  // ── 12. Cari Siswa Langsung ──
+  const cariSiswaMatch = q.match(/^(?:cari\s+siswa|siswa\s+bernama|data\s+siswa|profil\s+siswa|nis|cek\s+siswa)\s+(.+)$/i);
   if (cariSiswaMatch) {
     await _cmdCariSiswa(chatId, cariSiswaMatch[1].trim());
     return;
   }
 
-  // 2. Query Dinamis: Cari Guru Langsung
-  const cariGuruMatch = q.match(/^(?:cari\s+guru|guru\s+bernama|data\s+guru|profil\s+guru|kontak\s+guru|nip)\s+(.+)$/i);
+  // ── 13. Cari Guru Langsung ──
+  const cariGuruMatch = q.match(/^(?:cari\s+guru|guru\s+bernama|data\s+guru|profil\s+guru|kontak\s+guru|nip|cek\s+guru)\s+(.+)$/i);
   if (cariGuruMatch) {
     await _cmdCariGuru(chatId, cariGuruMatch[1].trim());
     return;
   }
 
-  // 3. Query Dinamis: Hitung Data (Siswa, Guru, Kelas, Mesin)
+  // ── 14. Hitung Total Data (Siswa, Guru, Kelas, Mesin) ──
   if (q.includes('berapa siswa') || q.includes('jumlah siswa') || q.includes('total siswa')) {
     const { rows } = await _dbPool.query('SELECT COUNT(*) as cnt FROM mst_students');
     await _sendMessage(chatId,
       `🎓 <b>Statistik Siswa Kurmon</b>\n\n` +
       `• Total Siswa Terdaftar: <b>${rows[0].cnt} siswa</b>.\n\n` +
-      `💡 <i>Ketik <code>/kelas</code> untuk melihat rekap per kelas atau <code>/siswa [nama]</code> untuk mencari detail siswa.</i>`,
+      `💡 <i>Ketik <code>/kelas</code> untuk melihat rekap per rombel atau <code>/siswa [nama]</code> untuk mencari profil siswa.</i>`,
       { isHtml: true }
     );
     return;
@@ -1415,262 +1607,221 @@ async function _handleSmartAssistant(chatId, queryText) {
     await _sendMessage(chatId,
       `👨‍🏫 <b>Statistik Guru Kurmon</b>\n\n` +
       `• Total Guru Terdaftar: <b>${rows[0].cnt} guru</b>.\n\n` +
-      `💡 <i>Ketik <code>/absen_guru</code> untuk melihat daftar kehadiran guru dan karyawan hari ini.</i>`,
+      `💡 <i>Ketik <code>/absen_guru</code> untuk melihat presensi guru hari ini atau <code>/guru [nama]</code> untuk mencari kontak guru.</i>`,
       { isHtml: true }
     );
     return;
   }
 
-  if (q.includes('berapa kelas') || q.includes('jumlah kelas') || q.includes('total kelas')) {
-    const { rows } = await _dbPool.query('SELECT COUNT(*) as cnt FROM mst_classes');
-    await _sendMessage(chatId,
-      `🏫 <b>Statistik Kelas Kurmon</b>\n\n` +
-      `• Total Rombel Kelas: <b>${rows[0].cnt} kelas</b>.\n\n` +
-      `💡 <i>Ketik <code>/kelas</code> untuk melihat daftar seluruh kelas.</i>`,
-      { isHtml: true }
-    );
+  if (q.includes('berapa kelas') || q.includes('jumlah kelas') || q.includes('total kelas') || q.includes('daftar kelas')) {
+    await _cmdDaftarKelas(chatId);
     return;
   }
 
-  // 4. Pertanyaan: Password / Login / Akun
-  if (q.includes('password') || q.includes('kata sandi') || q.includes('login') || q.includes('masuk akun') || q.includes('lupa password')) {
+  // ── 15. Password / Akun / Login ──
+  if (q.includes('password') || q.includes('kata sandi') || q.includes('login') || q.includes('masuk akun') || q.includes('lupa password') || q.includes('akun admin') || q.includes('admin123')) {
     await _sendMessage(chatId,
       `🔐 <b>PANDUAN LOGIN & AKUN KURMON</b>\n\n` +
       `• <b>Akun Admin Default:</b>\n` +
       `  - Username: <code>admin</code> atau <code>masadmin</code>\n` +
       `  - Password Default: <code>admin123</code>\n\n` +
       `• <b>Cara Mengganti Password:</b>\n` +
-      `  1. Login ke aplikasi web Kurmon.\n` +
-      `  2. Buka menu <b>Pengaturan > Keamanan Akun</b>.\n` +
-      `  3. Masukkan password lama dan tentukan password baru yang kuat.\n\n` +
-      `• <b>Sistem Auto-Logout (Keamanan):</b>\n` +
-      `  Sesi login akan otomatis kedaluwarsa jika inaktif selama 8 jam, dengan notifikasi banner peringatan 5 menit sebelumnya.\n\n` +
-      `• <b>Role Pengguna:</b>\n` +
-      `  Admin, Kepala Sekolah, Waka, Guru Mapel, Wali Kelas, Guru Piket, BP/BK, dan Siswa memiliki hak akses terpisah.`,
+      `  1. Login ke web Kurmon > buka menu <b>Pengaturan > Keamanan Akun</b>.\n` +
+      `  2. Masukkan password lama dan tentukan password baru yang kuat.\n\n` +
+      `• <b>Sistem Proteksi & Auto-Logout:</b>\n` +
+      `  Sesi akan otomatis kedaluwarsa setelah 8 jam inaktif, disertai banner peringatan 5 menit sebelumnya.\n\n` +
+      `• <b>Tingkatan Hak Akses (Role):</b>\n` +
+      `  Superadmin, Admin, Kepala Sekolah, Waka, Guru Mapel, Wali Kelas, Guru Piket, BP/BK, dan Siswa memiliki menu tersendiri.`,
       { isHtml: true }
     );
     return;
   }
 
-  // 5. Pertanyaan: Kenapa Absensi Kosong / Log Tidak Muncul
+  // ── 16. Kenapa Absensi Kosong / Dashboard 0 ──
   if (q.includes('kenapa kosong') || q.includes('absensi kosong') || q.includes('tidak ada yang absen') || q.includes('log tidak muncul') || q.includes('absen tidak masuk') || q.includes('dashboard kosong')) {
     await _sendMessage(chatId,
       `🔍 <b>KENAPA LOG ABSENSI KOSONG / BELUM MUNCUL?</b>\n\n` +
       `Berikut 4 penyebab paling umum dan solusinya:\n\n` +
-      `1. <b>Hari Libur / Hari Minggu:</b>\n` +
-      `   Dashboard utama memfilter data <b>khusus hari ini</b>. Jika hari ini hari libur atau belum ada jam masuk KBM, rekap harian wajar bernilai 0.\n\n` +
-      `2. <b>Mesin Sedang Offline / Tidak Terhubung:</b>\n` +
-      `   Ketik <code>/mesin</code> untuk mengecek apakah mesin di lokasi mengalami timeout (mati lampu / kabel LAN lepas) atau unreachable.\n\n` +
+      `1. <b>Hari Libur / Akhir Pekan (Minggu):</b>\n` +
+      `   Dashboard utama memfilter data <b>khusus hari ini</b>. Jika hari ini libur, angka 0 adalah wajar.\n\n` +
+      `2. <b>Mesin Sedang Offline / Kabel Lepas:</b>\n` +
+      `   Ketik <code>/mesin</code> untuk mengecek apakah mesin di kampus mengalami timeout atau link antar-kampus terputus.\n\n` +
       `3. <b>Sinkronisasi Belum Berjalan:</b>\n` +
-      `   Cron server menarik log setiap 5 menit. Anda bisa memaksa server menarik log saat ini juga dengan mengetik perintah <code>/sync</code>.\n\n` +
-      `4. <b>NIS / NIP Belum Terdaftar:</b>\n` +
-      `   Sistem hanya mencatat tap dari siswa/guru yang terdaftar di Master Data. Jika kartu baru belum di-assign, scan akan diabaikan demi integritas data.`,
+      `   Tarik data sekarang juga dari seluruh mesin dengan mengetik perintah <code>/sync</code>.\n\n` +
+      `4. <b>Kartu Belum Didaftarkan:</b>\n` +
+      `   Hanya tap kartu yang NIS/NIP-nya sudah terdaftar di Master Data yang akan diproses ke database.`,
       { isHtml: true }
     );
     return;
   }
 
-  // 6. Pertanyaan: Mesin Absensi / Hikvision / Setting Perangkat
-  if (q.includes('setting mesin') || q.includes('tambah mesin') || q.includes('mesin mati') || q.includes('hikvision') || q.includes('offline') || q.includes('koneksi mesin')) {
-    await _sendMessage(chatId,
-      `📟 <b>PANDUAN MESIN ABSENSI HIKVISION IoT</b>\n\n` +
-      `• <b>Cek Status Seluruh Mesin:</b>\n` +
-      `  Ketik perintah <code>/mesin</code> untuk diagnosa koneksi real-time.\n\n` +
-      `• <b>Langkah Menambah / Setting Mesin di Web:</b>\n` +
-      `  1. Masuk ke web Kurmon > menu <b>Pengaturan > Mesin Hikvision</b>.\n` +
-      `  2. Masukkan <b>IP Address Mesin</b> (contoh: <code>192.168.101.250</code>), port <code>80</code>.\n` +
-      `  3. Masukkan <b>Username</b> (default: <code>admin</code>) dan <b>Password</b> perangkat.\n` +
-      `  4. Pilih tipe mesin: <code>siswa</code> atau <code>staff/guru</code>.\n` +
-      `  5. Klik <b>Tes Koneksi</b> lalu simpan.\n\n` +
-      `• <b>Penyebab Umum Mesin Bermasalah:</b>\n` +
-      `  - <code>ETIMEDOUT:</code> Power adaptor PoE mati atau kabel LAN lepas.\n` +
-      `  - <code>EHOSTUNREACH:</code> Router/link antar-kampus terputus.\n` +
-      `  - <code>401 Unauthorized:</code> Password di database tidak cocok dengan mesin.\n\n` +
-      `💡 <i>Ketik <code>/sync</code> untuk menarik log kehadiran dari mesin secara instan.</i>`,
-      { isHtml: true }
-    );
+  // ── 17. Mesin Hikvision & Koneksi Hardware ──
+  if (q.includes('setting mesin') || q.includes('tambah mesin') || q.includes('mesin mati') || q.includes('hikvision') || q.includes('koneksi mesin') || q.includes('status mesin') || q.includes('perangkat')) {
+    await _cmdStatusMesin(chatId);
     return;
   }
 
-  // 7. Pertanyaan: Keterlambatan & Jam Masuk
-  if (q.includes('terlambat') || q.includes('jam masuk') || q.includes('batas jam') || q.includes('koreksi jam') || q.includes('toleransi')) {
-    await _sendMessage(chatId,
-      `⏰ <b>ATURAN JAM MASUK & KETERLAMBATAN</b>\n\n` +
-      `• <b>Batas Jam Masuk Siswa:</b> <code>07:00 WIB</code>\n` +
-      `• <b>Batas Jam Masuk Guru:</b> <code>07:00 WIB</code>\n` +
-      `<i>(Jam dapat diubah di menu Pengaturan > Kebijakan Sekolah)</i>\n\n` +
-      `• <b>Bagaimana Jika Siswa Scan > 07:00?</b>\n` +
-      `  - Status otomatis tercatat <b>Terlambat</b> di log.\n` +
-      `  - Notifikasi keterlambatan otomatis terkirim ke WhatsApp orang tua (jika WA Gateway aktif).\n` +
-      `  - Siswa wajib melapor ke Pos Piket untuk pencatatan poin kedisiplinan.\n\n` +
-      `• <b>Fitur Koreksi Jam:</b>\n` +
-      `  Jika mesin salah jam atau ada kendala massal, Admin dapat menekan tombol <b>Koreksi Jam</b> di Dashboard web.\n\n` +
-      `💡 <i>Ketik <code>/terlambat</code> untuk melihat siapa saja yang terlambat hari ini.</i>`,
-      { isHtml: true }
-    );
+  // ── 18. Sinkronisasi / Tarik Log Manual ──
+  if (q.includes('tarik log') || q.includes('tarik absen') || q.includes('sync') || q.includes('sinkron')) {
+    await _cmdSync(chatId);
     return;
   }
 
-  // 8. Pertanyaan: Tata Tertib, Poin, dan Surat Peringatan (SP)
-  if (q.includes('poin') || q.includes('pelanggaran') || q.includes('tata tertib') || q.includes('sp') || q.includes('surat peringatan') || q.includes('skor kredit') || q.includes('piket') || q.includes('bk')) {
+  // ── 19. Tata Tertib, Poin, SP & Bimbingan Konseling (BP/BK) ──
+  if (q.includes('poin') || q.includes('pelanggaran') || q.includes('tata tertib') || q.includes('sp') || q.includes('surat peringatan') || q.includes('skor kredit') || q.includes('bk') || q.includes('bpbk') || q.includes('konseling') || q.includes('home visit')) {
     await _sendMessage(chatId,
-      `🚨 <b>SISTEM SKOR KREDIT & SURAT PERINGATAN (SP)</b>\n\n` +
-      `Kurmon menggunakan sistem akumulasi poin pelanggaran dan penghargaan:\n\n` +
-      `• <b>Ambang Batas Surat Peringatan:</b>\n` +
-      `  🟡 <b>SP-1 (Teguran Pertama):</b> Akumulasi <b>≥ 15 Poin</b>\n` +
-      `  🟠 <b>SP-2 (Peringatan Keras):</b> Akumulasi <b>≥ 30 Poin</b>\n` +
+      `🚨 <b>SISTEM SKOR KREDIT, SP & BIMBINGAN KONSELING</b>\n\n` +
+      `Kurmon menerapkan sistem akumulasi poin pelanggaran terintegrasi:\n\n` +
+      `• <b>Tingkatan Surat Peringatan:</b>\n` +
+      `  🟡 <b>SP-1 (Teguran):</b> Akumulasi <b>≥ 15 Poin</b>\n` +
+      `  🟠 <b>SP-2 (Peringatan):</b> Akumulasi <b>≥ 30 Poin</b>\n` +
       `  🔴 <b>SP-3 (Panggilan Orang Tua):</b> Akumulasi <b>≥ 50 Poin</b>\n\n` +
-      `• <b>Eskalasi Multi-Level Berdasarkan Tahun Ajaran:</b>\n` +
-      `  Siswa yang mencapai SP-1 akan bereskalasi ke SP-2 lalu SP-3 secara adil dalam tahun ajaran berjalan.\n\n` +
-      `• <b>Cara Input Pelanggaran:</b>\n` +
-      `  - Petugas Piket menggunakan menu <b>Kedisiplinan > Pos Piket</b> (Mode POS scan cepat).\n` +
-      `  - Guru BK dapat mencatat sesi konseling & Home Visit di menu <b>Bimbingan Konseling</b>.\n\n` +
-      `💡 <i>Ketik <code>/pelanggaran</code> untuk melihat top 5 pelanggaran siswa terkini.</i>`,
+      `• <b>Alur Penanganan BK:</b>\n` +
+      `  - Guru BK dapat menjadwalkan konseling individu/kelompok dan mencatat rekam Home Visit di menu <b>Bimbingan Konseling</b>.\n` +
+      `  - Cetak otomatis surat panggilan resmi orang tua ber-barcode.\n\n` +
+      `💡 <i>Ketik <code>/pelanggaran</code> untuk melihat top 5 siswa dengan poin pelanggaran tertinggi saat ini.</i>`,
       { isHtml: true }
     );
     return;
   }
 
-  // 9. Pertanyaan: Kartu Pelajar Digital
+  // ── 20. Prestasi Siswa ──
+  if (q.includes('prestasi') || q.includes('juara') || q.includes('lomba') || q.includes('kejuaraan') || q.includes('penghargaan') || q.includes('reward')) {
+    await _cmdPrestasi(chatId);
+    return;
+  }
+
+  // ── 21. Praktik Kerja Lapangan (PKL) ──
+  if (q.includes('pkl') || q.includes('prakerin') || q.includes('magang') || q.includes('logbook') || q.includes('dudi') || q.includes('industri')) {
+    await _cmdPkl(chatId);
+    return;
+  }
+
+  // ── 22. Jurnal Guru & Modul Ajar ──
+  if (q.includes('jurnal') || q.includes('modul ajar') || q.includes('kbm') || q.includes('materi') || q.includes('rpp') || q.includes('silabus') || q.includes('kurikulum merdeka')) {
+    await _sendMessage(chatId,
+      `📖 <b>JURNAL MENGAJAR GURU & MODUL AJAR</b>\n\n` +
+      `• <b>Cara Isi Jurnal Guru:</b>\n` +
+      `  1. Login sebagai Guru > buka menu <b>Jurnal Harian Guru</b>.\n` +
+      `  2. Pilih tanggal, rombel kelas, jam pelajaran ke-, dan mata pelajaran.\n` +
+      `  3. Catat materi ajar & tandai siswa yang absen (Alpa/Izin/Sakit).\n` +
+      `  4. Simpan jurnal. Kehadiran otomatis tersinkronisasi ke rekap kurikulum.\n\n` +
+      `• <b>Modul Ajar / RPP Digital:</b>\n` +
+      `  Guru dapat mengunggah modul ajar berformat PDF/Doc untuk diverifikasi oleh Waka Kurikulum.`,
+      { isHtml: true }
+    );
+    return;
+  }
+
+  // ── 23. Kartu Pelajar Digital ──
   if (q.includes('kartu') || q.includes('kartu pelajar') || q.includes('cetak kartu') || q.includes('qr code') || q.includes('barcode')) {
     await _sendMessage(chatId,
-      `🪪 <b>MODUL KARTU PELAJAR DIGITAL</b>\n\n` +
-      `• <b>Fitur Kartu Pelajar:</b>\n` +
-      `  - Desain template kustom depan & belakang (landscape/portrait).\n` +
-      `  - <b>QR Code Ber-Token HMAC Aman:</b> Mencegah pemalsuan kartu atau scan liar.\n` +
-      `  - Generator Cetak Massal PDF: Layout otomatis 8 kartu per lembar kertas A4 siap cetak.\n\n` +
-      `• <b>Cara Mencetak:</b>\n` +
-      `  1. Buka menu <b>Administrasi > Kartu Pelajar</b> di aplikasi web.\n` +
-      `  2. Pilih kelas atau cari nama siswa yang ingin dicetak.\n` +
-      `  3. Klik tombol <b>Cetak Kartu Terpilih (PDF)</b>.\n\n` +
-      `• <b>Penggunaan untuk Absensi:</b>\n` +
-      `  QR Code pada kartu dapat di-scan langsung di kamera webcam/HP atau mesin scanner barcode 2D.`,
+      `🪪 <b>KARTU PELAJAR DIGITAL BER-QR CODE TOKEN</b>\n\n` +
+      `• <b>Fitur Keamanan:</b>\n` +
+      `  - Menggunakan <b>Token HMAC SHA-256</b> anti-pemalsuan.\n` +
+      `  - Generator Cetak Massal PDF: Format pas 8 kartu per lembar A4 siap potong/laminasi.\n\n` +
+      `• <b>Cara Cetak:</b>\n` +
+      `  Buka menu <b>Administrasi > Kartu Pelajar</b> > pilih kelas > klik <b>Cetak Kartu Terpilih (PDF)</b>.`,
       { isHtml: true }
     );
     return;
   }
 
-  // 10. Pertanyaan: WhatsApp Gateway (Fonnte)
-  if (q.includes('whatsapp') || q.includes('wa') || q.includes('fonnte') || q.includes('notifikasi wa') || q.includes('broadcast')) {
-    await _sendMessage(chatId,
-      `💬 <b>INTEGRASI WHATSAPP GATEWAY (FONNTE)</b>\n\n` +
-      `• <b>Fungsi Otomatisasi WA:</b>\n` +
-      `  1. <b>Auto-Notif Terlambat:</b> Begitu siswa scan > 07:00, bot langsung mengirim pesan WhatsApp ke nomor HP orang tua.\n` +
-      `  2. <b>Rekap Harian Wali Kelas:</b> Setiap pkl 12:00 WIB, ringkasan kehadiran kelas dikirim otomatis ke WA Wali Kelas.\n` +
-      `  3. <b>Notifikasi SP & Panggilan:</b> Kirim surat panggilan resmi via WA.\n\n` +
-      `• <b>Cara Konfigurasi Token:</b>\n` +
-      `  1. Dapatkan token akun dari <b>Fonnte.com</b>.\n` +
-      `  2. Buka web Kurmon > menu <b>Pengaturan > Layanan API</b>.\n` +
-      `  3. Masukkan token di kolom <i>WhatsApp Gateway</i> dan aktifkan tombol switch.\n\n` +
-      `💡 <i>Ketik <code>/wa</code> untuk memeriksa status aktivasi WhatsApp saat ini.</i>`,
-      { isHtml: true }
-    );
+  // ── 24. WhatsApp Gateway ──
+  if (q.includes('whatsapp') || q.includes('wa') || q.includes('fonnte') || q.includes('notif wa') || q.includes('broadcast')) {
+    await _cmdStatusWa(chatId);
     return;
   }
 
-  // 11. Pertanyaan: Jurnal Guru & Modul Ajar
-  if (q.includes('jurnal') || q.includes('modul ajar') || q.includes('kbm') || q.includes('materi')) {
-    await _sendMessage(chatId,
-      `📖 <b>MODUL JURNAL MENGAJAR GURU</b>\n\n` +
-      `• <b>Fungsi Jurnal:</b>\n` +
-      `  Mencatat kegiatan belajar mengajar harian guru di kelas secara transparan dan terintegrasi dengan presensi siswa.\n\n` +
-      `• <b>Cara Mengisi Jurnal Guru:</b>\n` +
-      `  1. Login sebagai Guru > buka menu <b>Jurnal Harian Guru</b>.\n` +
-      `  2. Pilih tanggal, kelas, jam pelajaran ke-, dan mata pelajaran.\n` +
-      `  3. Catat materi/topik bahasan yang diajarkan.\n` +
-      `  4. Tandai siswa yang tidak hadir di kelas (Alpa/Sakit/Izin/Dispen).\n` +
-      `  5. Simpan jurnal. Rekap kehadiran per mapel otomatis terupdate!\n\n` +
-      `• <b>Modul Ajar / RPP:</b>\n` +
-      `  Guru dapat mengunggah berkas modul ajar (PDF/Doc) untuk verifikasi kurikulum oleh Waka Kurikulum.`,
-      { isHtml: true }
-    );
+  // ── 25. Backup & Database ──
+  if (q.includes('backup') || q.includes('cadangan') || q.includes('restore') || q.includes('database') || q.includes('db')) {
+    await _cmdStatusDb(chatId);
     return;
   }
 
-  // 12. Pertanyaan: PKL (Praktik Kerja Lapangan)
-  if (q.includes('pkl') || q.includes('prakerin') || q.includes('magang') || q.includes('logbook')) {
-    await _sendMessage(chatId,
-      `🏢 <b>SISTEM MONITORING PKL (PRAKERIN)</b>\n\n` +
-      `• <b>Fitur Modul PKL:</b>\n` +
-      `  - Database DU/DI (Dunia Usaha & Industri) mitra sekolah.\n` +
-      `  - <b>Auto-Assign Siswa:</b> Penempatan otomatis siswa ke lokasi PKL berdasarkan jurusan & kuota.\n` +
-      `  - <b>Logbook Digital:</b> Siswa mengisi laporan kegiatan harian disertai foto dan koordinat GPS.\n` +
-      `  - <b>Monitoring Pembimbing:</b> Guru pembimbing mencatat kunjungan dan penilaian siswa di tempat magang.\n` +
-      `  - <b>Surat Pengantar Otomatis:</b> Cetak surat pengantar resmi ber-barcode verifikasi.\n\n` +
-      `💡 <i>Ketik <code>/pkl</code> untuk melihat ringkasan data PKL saat ini.</i>`,
-      { isHtml: true }
-    );
-    return;
-  }
-
-  // 13. Pertanyaan: Backup & Restore Database
-  if (q.includes('backup') || q.includes('cadangan') || q.includes('restore') || q.includes('database')) {
-    await _sendMessage(chatId,
-      `💾 <b>PANDUAN CADANGAN (BACKUP) & RESTORE</b>\n\n` +
-      `• <b>Jadwal Backup Otomatis:</b>\n` +
-      `  Server menjalankan backup database otomatis setiap hari pkl 16:00 WIB.\n\n` +
-      `• <b>Trigger Backup Langsung dari Bot:</b>\n` +
-      `  Cukup ketik perintah <code>/backup</code> di sini, database akan langsung dicadangkan ke format JSON terenkripsi dan berkasnya siap diunduh.\n\n` +
-      `• <b>Keamanan Data (Hardened):</b>\n` +
-      `  Kolom sensitif seperti password hash dan token otomatis disamarkan [REDACTED] pada berkas ekspor cadangan.\n\n` +
-      `• <b>Kapasitas Database:</b>\n` +
-      `  Ketik <code>/db</code> untuk melihat ukuran penyimpanan database PostgreSQL dan baris per tabel.`,
-      { isHtml: true }
-    );
-    return;
-  }
-
-  // 14. Pertanyaan: Akses dari HP / Jaringan Lokal
+  // ── 26. Akses HP / Jaringan Lokal ──
   if (q.includes('buka di hp') || q.includes('akses hp') || q.includes('wifi') || q.includes('jaringan') || q.includes('ip address') || q.includes('port')) {
     await _sendMessage(chatId,
-      `📱 <b>CARA MEMBUKA KURMON DI HP (JARINGAN LOKAL)</b>\n\n` +
-      `1. Pastikan HP dan Komputer Server terhubung ke <b>jaringan WiFi / LAN yang sama</b>.\n` +
-      `2. Cari tahu IP komputer server (buka Command Prompt lalu ketik <code>ipconfig</code>).\n` +
-      `3. Buka browser HP (Chrome / Safari), lalu ketik URL:\n` +
-      `   <code>http://[IP_KOMPUTER]:6677</code>\n` +
-      `   <i>(Contoh: <code>http://192.168.1.50:6677</code>)</i>\n\n` +
-      `• <b>Port Server Kurmon:</b>\n` +
-      `  - Web Frontend: <code>6677</code> (Vite)\n` +
-      `  - API Backend: <code>4174</code> (Node.js Auth Server)\n` +
-      `  - PostgreSQL: <code>5432</code>`,
+      `📱 <b>CARA MEMBUKA APLIKASI DI HP (WIFI / LAN)</b>\n\n` +
+      `1. Sambungkan HP ke jaringan WiFi sekolah yang sama dengan server.\n` +
+      `2. Buka browser HP (Chrome / Safari), lalu akses URL:\n` +
+      `   <code>http://[IP_KOMPUTER_SERVER]:6677</code>\n` +
+      `   <i>(Cek IP komputer server dengan mengetik <code>ipconfig</code> di CMD)</i>\n\n` +
+      `• <b>Port Aktif:</b> Web (<code>6677</code>), API Server (<code>4174</code>), DB (<code>5432</code>).`,
       { isHtml: true }
     );
     return;
   }
 
-  // 15. Pertanyaan: Apa itu Kurmon / Gambaran Umum
-  if (q.includes('apa itu kurmon') || q.includes('tentang kurmon') || q.includes('aplikasi apa') || q.includes('fitur') || q.includes('kurmon')) {
-    await _sendMessage(chatId,
-      `🏫 <b>TENTANG SISTEM KURMON v2.1.0</b>\n\n` +
-      `<b>Kurmon</b> (Kurikulum & Monitoring) adalah sistem tata kelola sekolah terpadu yang menghubungkan perangkat keras IoT, guru, siswa, dan manajemen sekolah.\n\n` +
-      `🚀 <b>MODUL UTAMA APLIKASI:</b>\n` +
-      `1. <b>Presensi Real-time:</b> Integrasi mesin absensi biometrik wajah & sidik jari Hikvision.\n` +
-      `2. <b>Kedisiplinan & Piket:</b> Sistem poin pelanggaran, POS piket cepat, reward prestasi, dan eskalasi SP.\n` +
-      `3. <b>Bimbingan Konseling (BP/BK):</b> Rekam jejak konseling siswa, home visit, dan pemanggilan orang tua.\n` +
-      `4. <b>Jurnal Mengajar Guru:</b> Pencatatan KBM harian, absensi kelas, dan upload modul ajar.\n` +
-      `5. <b>Monitoring PKL:</b> Pengelolaan tempat magang DU/DI, auto-assign, dan logbook kegiatan siswa.\n` +
-      `6. <b>Kartu Pelajar Digital:</b> Pembuat kartu pelajar ber-QR Code token aman anti-pemalsuan.\n` +
-      `7. <b>WhatsApp Gateway:</b> Broadcast otomatis kehadiran dan keterlambatan via Fonnte.\n` +
-      `8. <b>Telegram Bot Monitor:</b> Pemantauan operasional, rekap presensi, dan diagnosa mesin langsung dari HP.\n\n` +
-      `💡 <i>Ketik <code>/menu</code> untuk mengakses seluruh fitur bot ini.</i>`,
-      { isHtml: true }
-    );
-    return;
-  }
+  // ── 27. Auto Search: Cari kecocokan entitas (Siswa, Guru, Kelas, PKL) di Database ──
+  try {
+    const searchPattern = `%${rawQ.replace(/[%_]/g, '')}%`;
 
-  // Fallback: Tawarkan panduan dan topik bantuan
+    // Cek siswa
+    const stuMatch = await _dbPool.query(`
+      SELECT payload FROM mst_students 
+      WHERE payload->>'name' ILIKE $1 OR payload->>'nis' ILIKE $1
+      LIMIT 1
+    `, [searchPattern]);
+    if (stuMatch.rows.length > 0) {
+      const p = stuMatch.rows[0].payload;
+      await _cmdCariSiswa(chatId, p.name || p.nis);
+      return;
+    }
+
+    // Cek guru
+    const teachMatch = await _dbPool.query(`
+      SELECT payload FROM mst_teachers 
+      WHERE payload->>'name' ILIKE $1 OR payload->>'code' ILIKE $1 OR payload->>'nip' ILIKE $1
+      LIMIT 1
+    `, [searchPattern]);
+    if (teachMatch.rows.length > 0) {
+      const p = teachMatch.rows[0].payload;
+      await _cmdCariGuru(chatId, p.name || p.code || p.nip);
+      return;
+    }
+
+    // Cek kelas
+    const classMatch = await _dbPool.query(`
+      SELECT payload FROM mst_classes 
+      WHERE payload->>'name' ILIKE $1
+      LIMIT 1
+    `, [searchPattern]);
+    if (classMatch.rows.length > 0) {
+      const cName = classMatch.rows[0].payload?.name;
+      await _cmdAbsenPerKelas(chatId, cName);
+      return;
+    }
+  } catch (e) {}
+
+  // ── 28. Fallback Cerdas: Ringkasan Real-Time Sekolah & Solusi ──
+  let summaryInfo = '';
+  try {
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const [tapsRes, devsRes] = await Promise.all([
+      _dbPool.query("SELECT COUNT(DISTINCT employee_id) as cnt FROM hikvision_logs WHERE timestamp::date = $1::date", [today]),
+      _dbPool.query("SELECT COUNT(*) as total, COUNT(CASE WHEN is_active = true THEN 1 END) as active FROM hikvision_devices")
+    ]);
+    summaryInfo = `\n📊 <b>Status Operasional Hari Ini:</b>\n` +
+      `• Presensi Scan Masuk: <b>${tapsRes.rows[0].cnt}</b> orang\n` +
+      `• Perangkat Terhubung: <b>${devsRes.rows[0].active}</b> dari ${devsRes.rows[0].total} mesin\n`;
+  } catch (e) {}
+
   await _sendMessage(chatId,
     `🤖 <b>Asisten Cerdas Kurmon</b>\n\n` +
-    `Saya belum menemukan jawaban langsung untuk pertanyaan Anda: <i>"${escapeHtml(rawQ)}"</i>.\n\n` +
-    `💡 <b>Topik yang dapat Anda tanyakan secara langsung:</b>\n` +
-    `• <i>"Kenapa absensi hari ini kosong?"</i>\n` +
-    `• <i>"Bagaimana cara setting mesin absensi?"</i>\n` +
-    `• <i>"Apa password default admin?"</i>\n` +
-    `• <i>"Berapa jumlah siswa?"</i> atau <i>"Cari siswa [Nama]"</i>\n` +
-    `• <i>"Bagaimana alur surat peringatan SP?"</i>\n` +
-    `• <i>"Cara broadcast WhatsApp ke wali murid"</i>\n` +
-    `• <i>"Cara buka aplikasi di HP"</i>\n\n` +
-    `Atau ketik <b>/help</b> untuk melihat daftar seluruh menu perintah.`,
+    `Pertanyaan Anda: <i>"${escapeHtml(rawQ)}"</i>\n` +
+    summaryInfo + `\n` +
+    `💡 <b>Pilihan menu cepat yang dapat Anda ketikkan:</b>\n` +
+    `• <code>/absen</code> — Rekap kehadiran siswa & guru hari ini\n` +
+    `• <code>/terlambat</code> — Daftar siswa & guru terlambat\n` +
+    `• <code>/mesin</code> — Diagnosa status mesin absensi IoT\n` +
+    `• <code>/sync</code> — Tarik log mesin absensi saat ini juga\n` +
+    `• <code>/siswa [nama]</code> — Cari profil, kelas & poin siswa\n` +
+    `• <code>/guru [nama]</code> — Cari kontak & data guru\n` +
+    `• <code>/pelanggaran</code> — Rekap poin pelanggaran & status SP\n` +
+    `• <code>/prestasi</code> — Catatan prestasi siswa di kesiswaan\n` +
+    `• <code>/kelas</code> — Daftar rombel kelas\n` +
+    `• <code>/menu</code> — Munculkan tombol navigasi lengkap`,
     { isHtml: true }
   );
 }
