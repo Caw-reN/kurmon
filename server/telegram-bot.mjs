@@ -232,7 +232,7 @@ async function _handleUpdate(update) {
       [{ text: '🏆 Prestasi Siswa' }, { text: '📈 Presensi Per Kelas' }],
       [{ text: '🏫 Daftar Kelas' }, { text: '💬 Status WhatsApp' }],
       [{ text: '💻 Server & DB' }, { text: '💾 Backup Database' }],
-      [{ text: '❓ Tanya & Bantuan' }]
+      [{ text: '📢 Info Update & Versi' }, { text: '❓ Tanya & Bantuan' }]
     ],
     resize_keyboard: true,
     is_persistent: true
@@ -269,6 +269,7 @@ async function _handleUpdate(update) {
         { text: '💾 Backup Database', callback_data: '/backup' }
       ],
       [
+        { text: '📢 Info Update & Versi', callback_data: '/update' },
         { text: '❓ Tanya Asisten & Bantuan', callback_data: '/help' }
       ]
     ]
@@ -309,6 +310,8 @@ async function _handleUpdate(update) {
     cmd = '/alerts';
   } else if (lowerText.includes('backup') || lowerText.includes('cadangan')) {
     cmd = '/backup';
+  } else if (lowerText.includes('info update') || lowerText.includes('changelog') || lowerText.includes('pembaruan') || lowerText === 'update' || lowerText === 'versi') {
+    cmd = '/update';
   } else if (lowerText.includes('tanya') || lowerText.includes('bantuan') || lowerText.includes('panduan') || lowerText.includes('petunjuk')) {
     cmd = '/help';
   } else if (lowerText === 'menu' || lowerText === '/menu') {
@@ -316,7 +319,7 @@ async function _handleUpdate(update) {
   } else if (!cmd.startsWith('/')) {
     const knownWords = [
       'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
-      'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya'
+      'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya', 'update', 'versi', 'changelog'
     ];
     if (knownWords.includes(cmd)) {
       cmd = '/' + cmd;
@@ -443,6 +446,13 @@ async function _handleUpdate(update) {
     case '/late':
       await _cmdTerlambat(chatId);
       break;
+    case '/update':
+    case '/versi':
+    case '/changelog':
+    case '/pembaruan':
+    case '/info_update':
+      await _cmdInfoUpdate(chatId);
+      break;
     case '/tanya':
       await _handleSmartAssistant(chatId, args.join(' '));
       break;
@@ -462,7 +472,7 @@ async function _cmdHelp(chatId) {
       [{ text: '🏆 Prestasi Siswa' }, { text: '📈 Presensi Per Kelas' }],
       [{ text: '🏫 Daftar Kelas' }, { text: '💬 Status WhatsApp' }],
       [{ text: '💻 Server & DB' }, { text: '💾 Backup Database' }],
-      [{ text: '❓ Tanya & Bantuan' }]
+      [{ text: '📢 Info Update & Versi' }, { text: '❓ Tanya & Bantuan' }]
     ],
     resize_keyboard: true,
     is_persistent: true
@@ -473,6 +483,7 @@ async function _cmdHelp(chatId) {
     `Bot resmi untuk pemantauan presensi, kehadiran guru, diagnosa perangkat keras IoT, kedisiplinan siswa, dan bantuan cerdas operasional sekolah.\n\n` +
     `📱 <b>NAVIGASI UTAMA:</b>\n` +
     `• <b>/menu</b> — Munculkan tombol menu navigasi utama\n` +
+    `• <b>/update</b> — <b>Informasi rilis, update & fitur baru sistem</b>\n` +
     `• <b>/help</b> — Menampilkan buku panduan ini\n\n` +
     `📊 <b>PRESENSI & KETERLAMBATAN:</b>\n` +
     `• <b>/absen</b> — Rekap presensi lengkap siswa & guru hari ini\n` +
@@ -499,9 +510,11 @@ async function _cmdHelp(chatId) {
     `• <b>/wa</b> — Status integrasi WhatsApp Gateway (Fonnte)\n` +
     `• <b>/alerts</b> — Peringatan keamanan & aktivitas mencurigakan\n` +
     `• <b>/logs [n]</b> — Log audit aktivitas admin/pengguna terkini\n` +
-    `• <b>/backup</b> — Unduh dan buat cadangan database seketika\n\n` +
+    `• <b>/backup</b> — Unduh dan buat cadangan database seketika\n` +
+    `• <b>/update</b> — Log versi dan rincian pembaruan Kurmon\n\n` +
     `💡 <b>ASISTEN CERDAS (TANYA APA SAJA):</b>\n` +
     `Anda bisa langsung mengetik pertanyaan bebas di chat tanpa garis miring! Contoh:\n` +
+    `• <i>"Ada update apa saja?"</i>\n` +
     `• <i>"Bagaimana cara setting mesin absensi?"</i>\n` +
     `• <i>"Kenapa absensi hari ini kosong?"</i>\n` +
     `• <i>"Berapa jumlah siswa?"</i> atau <i>"Cari siswa Budi"</i>\n` +
@@ -509,6 +522,54 @@ async function _cmdHelp(chatId) {
     `• <i>"Bagaimana alur surat peringatan SP?"</i>`,
     { isHtml: true, reply_markup: MAIN_MENU_KEYBOARD }
   );
+}
+
+/**
+ * Menampilkan informasi rilis, update, dan fitur baru sistem Kurmon
+ */
+async function _cmdInfoUpdate(chatId) {
+  const version = 'v2.1.0';
+  const releaseDate = '13 September 2026';
+  
+  const msg = 
+`🚀 <b>INFORMASI PEMBARUAN & LOG RILIS SISTEM</b>
+📦 <b>Versi Aplikasi:</b> <code>Kurmon ${version}</code>
+📅 <b>Tanggal Rilis:</b> <i>${releaseDate}</i>
+🏛️ <b>Status Sistem:</b> 🟢 <b>Stabil & Operasional</b>
+
+✨ <b>DAFTAR PEMBARUAN TERBARU:</b>
+
+1. 🤖 <b>Asisten Cerdas & AI Q&A Telegram:</b>
+   • Bot kini dapat diajak bicara bahasa sehari-hari tanpa tanda garis miring (<code>/</code>).
+   • Menjawab pertanyaan seputar akun default (<code>admin123</code>), aturan presensi 07:00, alur SP kesiswaan, kartu pelajar digital, modul ajar, dan akses HP lewat LAN.
+   • Pencarian profil siswa (<code>/siswa [nama]</code>) & guru (<code>/guru [nama]</code>) instan dari chat.
+
+2. 📟 <b>Diagnosa Mesin Absensi Mendalam (/mesin):</b>
+   • Probe soket jaringan TCP secara live untuk mendeteksi latency dan respons.
+   • Deteksi penyebab otomatis jika mesin mati:
+     - <code>EHOSTUNREACH:</code> Jalur jaringan / link antar-kampus terputus.
+     - <code>ETIMEDOUT:</code> Mesin mati, adaptor lepas, atau IP berubah.
+     - <code>401 Unauthorized:</code> Password Digest Auth di database tidak cocok.
+   • Fitur <b>/sync</b> untuk memaksa penarikan log mesin detik itu juga.
+
+3. ⏰ <b>Rekap Keterlambatan Real-time (/terlambat):</b>
+   • Rekap instan siswa & guru yang scan > 07:00 WIB hari ini beserta jam scan.
+   • Terkoneksi ke auto-notifikasi WhatsApp Gateway untuk orang tua.
+
+4. 🔒 <b>Peningkatan Keamanan & Manajemen Token:</b>
+   • Hook sesi terpusat (<code>useAuthToken</code>) dan deteksi kedaluwarsa sesi (<code>useSessionExpiry</code>) dengan peringatan banner otomatis 5 menit sebelum logout.
+   • Redaksi proteksi keamanan untuk kredensial sensitif saat backup database.
+
+5. 📊 <b>Menu Operasional Baru:</b>
+   • <code>/pelanggaran</code> — Monitoring 5 siswa poin tertinggi & kasus terkini.
+   • <code>/prestasi</code> — Rekap prestasi lomba dan akademik siswa.
+   • <code>/wa</code> — Pengecekan token & status gateway WhatsApp.
+   • <code>/db</code> — Ukuran storage PostgreSQL dan statistik baris tabel.
+   • <code>/pkl</code> — Status lokasi DU/DI dan siswa PKL aktif.
+
+💡 <i>Gunakan tombol <b>Menu</b> di bawah atau ketik <b>/menu</b> untuk menjelajahi semua fitur.</i>`;
+
+  await _sendMessage(chatId, msg, { isHtml: true });
 }
 
 async function _cmdStatus(chatId) {
@@ -884,6 +945,7 @@ async function _registerBotCommands() {
       { command: 'alerts', description: 'Alert peringatan keamanan sistem' },
       { command: 'logs', description: 'Log audit aktivitas terakhir' },
       { command: 'backup', description: 'Trigger backup database manual' },
+      { command: 'update', description: 'Info pembaruan & rilis fitur baru' },
       { command: 'help', description: 'Panduan lengkap & tanya asisten' },
     ];
     await fetch(`https://api.telegram.org/bot${_botToken}/setMyCommands`, {
@@ -1251,6 +1313,12 @@ async function _handleSmartAssistant(chatId, queryText) {
       `• <i>"Cara broadcast WhatsApp ke wali murid"</i>`,
       { isHtml: true }
     );
+    return;
+  }
+
+  // Query: Update / Changelog / Fitur Baru
+  if (q.includes('update') || q.includes('pembaruan') || q.includes('fitur baru') || q.includes('changelog') || q.includes('versi') || q.includes('apa yang baru')) {
+    await _cmdInfoUpdate(chatId);
     return;
   }
 
