@@ -243,16 +243,17 @@ async function _handleUpdate(update) {
   const text = msg.text.trim();
   const from = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || chatId);
 
-  // Keyboard menu utama yang menempel permanen di bawah chat HP/Desktop (Lengkap & Terorganisir)
+  // Keyboard menu utama yang menempel permanen di bawah chat HP/Desktop.
+  // Catatan: Menggunakan awalan '/' agar di grup Telegram tombol tetap dikirim meski Group Privacy Mode aktif!
   const MAIN_MENU_KEYBOARD = {
     keyboard: [
-      [{ text: '📊 Rekap Presensi' }, { text: '👨‍🏫 Presensi Guru' }],
-      [{ text: '⏰ Siswa Terlambat' }, { text: '📟 Status Mesin Absensi' }],
-      [{ text: '🔄 Tarik Log Mesin' }, { text: '🚨 Kasus Pelanggaran' }],
-      [{ text: '🏆 Prestasi Siswa' }, { text: '📈 Presensi Per Kelas' }],
-      [{ text: '🏫 Daftar Kelas' }, { text: '💬 Status WhatsApp' }],
-      [{ text: '💻 Server & DB' }, { text: '💾 Backup Database' }],
-      [{ text: '📢 Info Update & Versi' }, { text: '❓ Tanya & Bantuan' }]
+      [{ text: '/absen' }, { text: '/absen_guru' }],
+      [{ text: '/terlambat' }, { text: '/mesin' }],
+      [{ text: '/sync' }, { text: '/pelanggaran' }],
+      [{ text: '/prestasi' }, { text: '/rekap_kelas' }],
+      [{ text: '/kelas' }, { text: '/wa' }],
+      [{ text: '/status' }, { text: '/db' }],
+      [{ text: '/update' }, { text: '/menu' }]
     ],
     resize_keyboard: true,
     is_persistent: true
@@ -295,47 +296,71 @@ async function _handleUpdate(update) {
     ]
   };
 
-  const parts = text.split(/\s+/);
-  let cmd = parts[0].toLowerCase().split('@')[0];
+  // Bersihkan mention bot (@bot_name atau @name_bot) dari teks pengguna
+  // Contoh: "@KurmonBot /absen" -> "/absen", "/status@KurmonBot" -> "/status"
+  let cleanInput = text.replace(/@\w+/g, '').trim();
+  if (!cleanInput) cleanInput = text.trim();
 
-  // Pemetaan teks tombol keyboard ke perintah bot
-  const lowerText = text.toLowerCase().trim();
+  const parts = cleanInput.split(/\s+/);
+  let cmd = parts[0].toLowerCase().split('@')[0];
+  let args = parts.slice(1);
+
+  // Pemetaan teks tombol keyboard ke perintah bot (dan kosongkan args agar tidak dianggap parameter kelas/nama)
+  const lowerText = cleanInput.toLowerCase().trim();
   if (lowerText.includes('rekap presensi') || lowerText === 'rekap') {
     cmd = '/absen';
+    args = [];
   } else if (lowerText.includes('presensi guru') || lowerText.includes('absen guru')) {
     cmd = '/absen_guru';
+    args = [];
   } else if (lowerText.includes('terlambat') || lowerText.includes('keterlambatan')) {
     cmd = '/terlambat';
+    args = [];
   } else if (lowerText.includes('status mesin') || lowerText.includes('mesin absensi') || lowerText === 'mesin' || lowerText === 'perangkat') {
     cmd = '/mesin';
+    args = [];
   } else if (lowerText.includes('tarik log') || lowerText.includes('tarik absensi') || lowerText === 'sync') {
     cmd = '/sync';
+    args = [];
   } else if (lowerText.includes('kasus pelanggaran') || lowerText.includes('pelanggaran') || lowerText.includes('poin')) {
     cmd = '/pelanggaran';
+    args = [];
   } else if (lowerText.includes('prestasi siswa') || lowerText.includes('prestasi')) {
     cmd = '/prestasi';
+    args = [];
   } else if (lowerText.includes('status whatsapp') || lowerText.includes('whatsapp') || lowerText === 'wa') {
     cmd = '/wa';
+    args = [];
   } else if (lowerText.includes('server & db') || lowerText.includes('info database') || lowerText === 'db' || lowerText === 'database') {
     cmd = '/db';
+    args = [];
   } else if (lowerText.includes('daftar kelas')) {
     cmd = '/kelas';
+    args = [];
   } else if (lowerText.includes('presensi per kelas') || lowerText.includes('rekap kelas')) {
     cmd = '/rekap_kelas';
+    args = [];
   } else if (lowerText.includes('status server')) {
     cmd = '/status';
+    args = [];
   } else if (lowerText.includes('statistik') || lowerText.includes('stats')) {
     cmd = '/stats';
+    args = [];
   } else if (lowerText.includes('keamanan') || lowerText.includes('alert')) {
     cmd = '/alerts';
+    args = [];
   } else if (lowerText.includes('backup') || lowerText.includes('cadangan')) {
     cmd = '/backup';
+    args = [];
   } else if (lowerText.includes('info update') || lowerText.includes('changelog') || lowerText.includes('pembaruan') || lowerText === 'update' || lowerText === 'versi') {
     cmd = '/update';
+    args = [];
   } else if (lowerText.includes('tanya') || lowerText.includes('bantuan') || lowerText.includes('panduan') || lowerText.includes('petunjuk')) {
     cmd = '/help';
+    args = [];
   } else if (lowerText === 'menu' || lowerText === '/menu') {
     cmd = '/menu';
+    args = [];
   } else if (!cmd.startsWith('/')) {
     const knownWords = [
       'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
@@ -345,7 +370,6 @@ async function _handleUpdate(update) {
       cmd = '/' + cmd;
     }
   }
-  const args = parts.slice(1);
 
   // Perintah /start dan /menu menampilkan sambutan dan memunculkan menu tombol di chat
   if (cmd === '/start' || cmd === '/menu') {
@@ -504,13 +528,13 @@ async function _handleUpdate(update) {
 async function _cmdHelp(chatId) {
   const MAIN_MENU_KEYBOARD = {
     keyboard: [
-      [{ text: '📊 Rekap Presensi' }, { text: '👨‍🏫 Presensi Guru' }],
-      [{ text: '⏰ Siswa Terlambat' }, { text: '📟 Status Mesin Absensi' }],
-      [{ text: '🔄 Tarik Log Mesin' }, { text: '🚨 Kasus Pelanggaran' }],
-      [{ text: '🏆 Prestasi Siswa' }, { text: '📈 Presensi Per Kelas' }],
-      [{ text: '🏫 Daftar Kelas' }, { text: '💬 Status WhatsApp' }],
-      [{ text: '💻 Server & DB' }, { text: '💾 Backup Database' }],
-      [{ text: '📢 Info Update & Versi' }, { text: '❓ Tanya & Bantuan' }]
+      [{ text: '/absen' }, { text: '/absen_guru' }],
+      [{ text: '/terlambat' }, { text: '/mesin' }],
+      [{ text: '/sync' }, { text: '/pelanggaran' }],
+      [{ text: '/prestasi' }, { text: '/rekap_kelas' }],
+      [{ text: '/kelas' }, { text: '/wa' }],
+      [{ text: '/status' }, { text: '/db' }],
+      [{ text: '/update' }, { text: '/menu' }]
     ],
     resize_keyboard: true,
     is_persistent: true
