@@ -1,12 +1,10 @@
-import { Button } from '../../../components/ui.jsx';
+import { Button, UISelect } from '../../../components/ui.jsx';
 import React from'react';
 import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
 import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
-import { UISelect } from'../../../components/ui.jsx';
 
 
 const Instagram = ({ size = 16, className ="", style = {} }) => (
@@ -69,9 +67,7 @@ export default function TabTampilan(props) {
     heroHighlightColor: globalAppSettings.heroHighlightColor || globalAppSettings.primaryColor ||"#00bfa5",
   }));
 
-  React.useEffect(() => {
-    // Dihapus agar tidak overwrite state lokal (unsaved changes) saat database sync (polling) berjalan.
-  }, []);
+
 
   // Set status preview aktif hanya pada saat komponen mount/unmount
   React.useEffect(() => {

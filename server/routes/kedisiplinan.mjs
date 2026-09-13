@@ -116,7 +116,18 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/attendance-start-date") {
           const resStart = await dbPool.query("SELECT value FROM school_profile WHERE key = 'attendance_start_date' LIMIT 1");
-          const dateVal = resStart.rows.length > 0 ? resStart.rows[0].value : '2026-08-01';
+          // S-08 FIX: Fallback dinamis — menghitung awal tahun ajaran berdasarkan tanggal sekarang
+          // Semester ganjil mulai Juli; semester genap mulai Januari
+          let dynamicDefault;
+          {
+            const now = new Date();
+            const month = now.getMonth(); // 0-indexed
+            const year  = now.getFullYear();
+            // Bulan Juli (6) - Desember (11) = semester ganjil, mulai 1 Juli tahun ini
+            // Bulan Jan (0) - Juni (5) = semester genap, mulai 1 Januari tahun ini
+            dynamicDefault = month >= 6 ? `${year}-07-01` : `${year}-01-01`;
+          }
+          const dateVal = resStart.rows.length > 0 ? resStart.rows[0].value : dynamicDefault;
           send(req, res, 200, { ok: true, startDate: dateVal });
           return;
         }
@@ -124,7 +135,12 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/attendance-start-date") {
           if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan." });
           const body = await readJsonBody(req);
-          const startDate = body.startDate || '2026-08-01';
+          // S-08 FIX: Fallback dinamis jika tidak ada tanggal dikirim
+          const now = new Date();
+          const dynamicFallback = now.getMonth() >= 6
+            ? `${now.getFullYear()}-07-01`
+            : `${now.getFullYear()}-01-01`;
+          const startDate = body.startDate || dynamicFallback;
           await dbPool.query(`
             INSERT INTO school_profile (key, value) VALUES ('attendance_start_date', $1)
             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
@@ -258,9 +274,39 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/riwayat") {
-          const limit = Math.min(parseInt(url.searchParams.get('limit') || '5000', 10), 10000);
-          const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-          const { rows } = await dbPool.query("SELECT * FROM kedisiplinan_riwayat_poin ORDER BY tanggal_kejadian DESC LIMIT $1 OFFSET $2", [limit, offset]);
+          // SECURITY-FIX K-02: Batasi akses berdasarkan role
+          // Siswa hanya bisa melihat riwayat pelanggaran miliknya sendiri
+          const currentSession = getSession(req);
+          const currentRole = String(currentSession?.role || '').toLowerCase();
+          const isSiswa = currentRole === 'siswa';
+
+          // SECURITY-FIX T-06: Validasi parameter pagination
+          const rawLimit = parseInt(url.searchParams.get('limit') || '200', 10);
+          const rawOffset = parseInt(url.searchParams.get('offset') || '0', 10);
+          // Non-admin/staf dibatasi max 200 rows; admin/staf max 5000
+          const maxLimit = isSchoolStaff ? 5000 : 200;
+          const limit = Math.min(isNaN(rawLimit) || rawLimit < 1 ? 200 : rawLimit, maxLimit);
+          const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
+
+          let query, params;
+          if (isSiswa) {
+            // Siswa: hanya data dirinya sendiri
+            const myNis = currentSession?.id || currentSession?.username;
+            query = "SELECT * FROM kedisiplinan_riwayat_poin WHERE siswa_nis = $1 ORDER BY tanggal_kejadian DESC LIMIT $2 OFFSET $3";
+            params = [myNis, limit, offset];
+          } else {
+            // Staf & Admin: bisa filter per siswa via query param, atau lihat semua
+            const filterNis = url.searchParams.get('siswa_nis');
+            if (filterNis) {
+              query = "SELECT * FROM kedisiplinan_riwayat_poin WHERE siswa_nis = $1 ORDER BY tanggal_kejadian DESC LIMIT $2 OFFSET $3";
+              params = [filterNis, limit, offset];
+            } else {
+              query = "SELECT * FROM kedisiplinan_riwayat_poin ORDER BY tanggal_kejadian DESC LIMIT $1 OFFSET $2";
+              params = [limit, offset];
+            }
+          }
+
+          const { rows } = await dbPool.query(query, params);
           send(req, res, 200, { ok: true, data: rows });
           return;
         }
@@ -545,8 +591,26 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/kesiswaan/prestasi") {
-          const { rows } = await dbPool.query("SELECT * FROM kesiswaan_prestasi ORDER BY tanggal_prestasi DESC, id DESC");
-          send(req, res, 200, { ok: true, data: rows });
+          // SECURITY-FIX K-03: Endpoint prestasi harus memerlukan autentikasi
+          // (requireAuthenticated sudah dipanggil di atas untuk seluruh blok non-public)
+          // Tambahan: siswa hanya bisa lihat prestasi miliknya sendiri
+          const prestasiSession = getSession(req);
+          const prestasiRole = String(prestasiSession?.role || '').toLowerCase();
+          const isSiswaReq = prestasiRole === 'siswa';
+
+          let prestasiRows;
+          if (isSiswaReq) {
+            const myNis = prestasiSession?.id || prestasiSession?.username;
+            const res2 = await dbPool.query(
+              "SELECT * FROM kesiswaan_prestasi WHERE siswa_nis = $1 ORDER BY tanggal_prestasi DESC, id DESC",
+              [myNis]
+            );
+            prestasiRows = res2.rows;
+          } else {
+            const res2 = await dbPool.query("SELECT * FROM kesiswaan_prestasi ORDER BY tanggal_prestasi DESC, id DESC");
+            prestasiRows = res2.rows;
+          }
+          send(req, res, 200, { ok: true, data: prestasiRows });
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/prestasi") {
@@ -585,11 +649,20 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
   return false;
 }
 
+// T-03 FIX: In-memory lock set untuk mencegah race condition saat banyak request masuk
+// bersamaan untuk siswa yang sama (fire-and-forget calls).
+const _autoSpLocks = new Set();
+
 export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
   if (!siswaNis) return;
-  try {
-    const cleanNis = String(siswaNis).trim();
 
+  const cleanNis = String(siswaNis).trim();
+
+  // T-03 FIX: Jika sedang diproses untuk NIS yang sama, skip untuk hindari race condition
+  if (_autoSpLocks.has(cleanNis)) return;
+  _autoSpLocks.add(cleanNis);
+
+  try {
     // Fetch student's class name from mst_students
     const stRes = await dbPool.query(`
       SELECT payload FROM mst_students 
@@ -617,10 +690,23 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
 
     // If student belongs to PKL class (e.g. Class XII), fingerprint attendance auto-sanksi does NOT apply!
     if (className && className.startsWith(eligibleClass)) {
+      _autoSpLocks.delete(cleanNis);
       return;
     }
 
-    // Count total Alpa for this student from kedisiplinan_absensi
+    // K-01 FIX: Hitung SP level berdasarkan akumulasi alpa saat ini
+    // SP-1: alpa > batas, SP-2: alpa > 2x batas, SP-3: alpa > 3x batas
+    const batasAlpa = kSettings.batasAlpa || 5;
+    const batasTerlambat = kSettings.batasTerlambat || 3;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-indexed; bulan >= 6 = semester ganjil tahun ini
+    // Semester ganjil: Juli-Desember (bulan 6-11), genap: Jan-Juni (0-5)
+    const tahunAjaran = currentMonth >= 6
+      ? `${currentYear}/${currentYear + 1}`
+      : `${currentYear - 1}/${currentYear}`;
+    const semesterStr = currentMonth >= 6 ? 'Ganjil' : 'Genap';
+
+    // Count total Alpa untuk siswa ini (dari awal tahun ajaran aktif)
     const countRes = await dbPool.query(`
       SELECT COUNT(*) as total_alpa 
       FROM kedisiplinan_absensi 
@@ -630,14 +716,28 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     
     const alpaCount = parseInt(countRes.rows[0]?.total_alpa || 0, 10);
 
-    if (alpaCount > (kSettings.batasAlpa || 5)) {
-      // 1. Check if point violation already recorded
+    // Tentukan level SP yang seharusnya berdasarkan jumlah alpa
+    let targetSpLevel = 0;
+    if (alpaCount > batasAlpa * 3) targetSpLevel = 3;
+    else if (alpaCount > batasAlpa * 2) targetSpLevel = 2;
+    else if (alpaCount > batasAlpa) targetSpLevel = 1;
+
+    if (targetSpLevel > 0) {
+      const spLabel = `SP ${targetSpLevel}`;
+      const spNote = targetSpLevel === 1
+        ? `Penerbitan Surat Peringatan 1 (SP-1) & Pemanggilan Orang Tua`
+        : targetSpLevel === 2
+          ? `Penerbitan Surat Peringatan 2 (SP-2) — Peringatan Keras & Skorsing`
+          : `Penerbitan Surat Peringatan 3 (SP-3) — Rekomendasi Dikeluarkan`;
+
+      // 1. Cek apakah poin pelanggaran untuk level SP ini sudah dicatat tahun ajaran ini
+      const poinLabel = `Akumulasi Alpa > ${batasAlpa * targetSpLevel} Hari [${tahunAjaran}]`;
       const checkPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
         WHERE siswa_nis = $1
-          AND tindakan_nama LIKE '%Akumulasi Alpa >%'
+          AND tindakan_nama LIKE $2
         LIMIT 1
-      `, [cleanNis]);
+      `, [cleanNis, `%${poinLabel}%`]);
 
       if (checkPoin.rows.length === 0) {
         await dbPool.query(`
@@ -646,23 +746,26 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
-          `Pelanggaran Absensi: Akumulasi Alpa > ${kSettings.batasAlpa || 5} Hari`, 
+          `Pelanggaran Absensi: ${poinLabel}`, 
           kSettings.poinAlpa || 15, 
           'pelanggaran', 
           'Sistem Kedisiplinan', 
-          `Otomatis oleh sistem: Siswa mencapai ${alpaCount} hari Alpa (melebihi batas ${kSettings.batasAlpa || 5} hari)`
+          `Otomatis oleh sistem: Siswa mencapai ${alpaCount} hari Alpa — ${spLabel} TA ${tahunAjaran} Semester ${semesterStr}`
         ]);
       }
 
-      // 2. Check if SP-1 already recorded in bk_sessions
-      const checkKonseling = await dbPool.query(`
-        SELECT id FROM bk_sessions 
+      // 2. Cek apakah SP level ini sudah ada di bk_letters tahun ajaran ini
+      // K-01 FIX: Filter per level SP DAN per tahun ajaran agar SP-2 bisa diterbitkan
+      const checkSpExists = await dbPool.query(`
+        SELECT id FROM bk_letters
         WHERE student_nis = $1
-          AND (problem LIKE '%Alpa >%' OR status LIKE '%SP%')
+          AND letter_type = $2
+          AND letter_no LIKE $3
         LIMIT 1
-      `, [cleanNis]);
+      `, [cleanNis, spLabel, `BK-AUTO/${currentYear}/%`]);
 
-      if (checkKonseling.rows.length === 0) {
+      if (checkSpExists.rows.length === 0) {
+        // Insert bk_sessions
         await dbPool.query(`
           INSERT INTO bk_sessions 
           (student_nis, counselor_name, category, problem, solution, status) 
@@ -671,28 +774,28 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           cleanNis, 
           'Sistem Kesiswaan', 
           'Kedisiplinan',
-          `Pelanggaran Absensi (Alpa > ${kSettings.batasAlpa || 5} Hari)`, 
-          'Penerbitan Surat Peringatan 1 (SP-1) & Pemanggilan Orang Tua', 
+          `Pelanggaran Absensi (Alpa > ${batasAlpa * targetSpLevel} Hari) — TA ${tahunAjaran}`, 
+          spNote,
           'Berjalan'
         ]);
         
-        // Terbitkan SP-1 secara otomatis di bk_letters
+        // Terbitkan SP secara otomatis di bk_letters
         await dbPool.query(`
           INSERT INTO bk_letters
           (student_nis, letter_type, letter_no, reason, status, appointed_person)
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis,
-          'SP 1',
-          `BK-AUTO/${new Date().getFullYear()}/ALPA-${alpaCount}`,
-          `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari.`,
+          spLabel,
+          `BK-AUTO/${currentYear}/ALPA-${alpaCount}-SP${targetSpLevel}`,
+          `Otomatis diterbitkan oleh sistem karena akumulasi Alpa siswa mencapai ${alpaCount} hari (melebihi ${batasAlpa * targetSpLevel} hari) — TA ${tahunAjaran} Semester ${semesterStr}.`,
           'Diterbitkan',
           'Sistem BK Otomatis'
         ]);
       }
     }
 
-    // Count total Terlambat for this student
+    // Count total Terlambat untuk siswa ini
     const tltRes = await dbPool.query(`
       SELECT COUNT(*) as total_terlambat 
       FROM kedisiplinan_absensi 
@@ -702,14 +805,15 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     
     const terlambatCount = parseInt(tltRes.rows[0]?.total_terlambat || 0, 10);
 
-    if (terlambatCount > (kSettings.batasTerlambat || 3)) {
-      // 1. Check if point violation for Terlambat already recorded
+    if (terlambatCount > batasTerlambat) {
+      // K-01 FIX: Cek per tahun ajaran, bukan seumur hidup
+      const tltPoinLabel = `Akumulasi Terlambat > ${batasTerlambat} Kali [${tahunAjaran}]`;
       const checkTltPoin = await dbPool.query(`
         SELECT id FROM kedisiplinan_riwayat_poin 
         WHERE siswa_nis = $1
-          AND tindakan_nama LIKE '%Akumulasi Terlambat >%'
+          AND tindakan_nama LIKE $2
         LIMIT 1
-      `, [cleanNis]);
+      `, [cleanNis, `%${tltPoinLabel}%`]);
 
       if (checkTltPoin.rows.length === 0) {
         await dbPool.query(`
@@ -718,21 +822,21 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           cleanNis, 
-          `Akumulasi Terlambat > ${kSettings.batasTerlambat || 3} Kali (Teguran Lisan)`, 
+          `${tltPoinLabel} (Teguran Lisan)`, 
           kSettings.poinTerlambat || 10, 
           'pelanggaran', 
           'Sistem Kedisiplinan', 
-          `Otomatis oleh sistem: Siswa mencapai ${terlambatCount} kali Terlambat (melebihi batas ${kSettings.batasTerlambat || 3} kali)`
+          `Otomatis oleh sistem: Siswa mencapai ${terlambatCount} kali Terlambat (melebihi batas ${batasTerlambat} kali) — TA ${tahunAjaran}`
         ]);
       }
 
-      // 2. Check if Teguran already recorded in bk_sessions
+      // Cek teguran per tahun ajaran
       const checkTltKonseling = await dbPool.query(`
         SELECT id FROM bk_sessions 
         WHERE student_nis = $1
-          AND (problem LIKE '%Terlambat >%' OR solution LIKE '%Teguran%')
+          AND problem LIKE $2
         LIMIT 1
-      `, [cleanNis]);
+      `, [cleanNis, `%Terlambat%${tahunAjaran}%`]);
 
       if (checkTltKonseling.rows.length === 0) {
         await dbPool.query(`
@@ -743,7 +847,7 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
           cleanNis, 
           'Sistem Kesiswaan', 
           'Kedisiplinan',
-          `Kedisiplinan: Terlambat Datang > ${kSettings.batasTerlambat || 3} Kali`, 
+          `Kedisiplinan: Terlambat Datang > ${batasTerlambat} Kali — TA ${tahunAjaran}`, 
           `Otomatis diterbitkan oleh sistem karena akumulasi Terlambat siswa mencapai ${terlambatCount} kali. (Teguran Lisan)`, 
           'Berjalan'
         ]);
@@ -751,5 +855,9 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
     }
   } catch (err) {
     console.error("Error in checkAndApplyAutoSpAndPoints:", err.message);
+  } finally {
+    // T-03 FIX: Selalu lepas lock di finally agar tidak terjadi deadlock
+    _autoSpLocks.delete(cleanNis);
   }
 }
+

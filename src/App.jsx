@@ -1,4 +1,4 @@
-import { lazy, useState, useEffect } from 'react';
+import { lazy, useState, useEffect, useCallback } from 'react';
 import { applyDocumentBranding, resetDocumentBranding } from './utils/branding.js';
 import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subscribeDatabaseSnapshot } from './utils/dataSource.js';
 import { useDataStore } from './store/useDataStore.js';
@@ -10,6 +10,7 @@ import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
 import PermissionPromptModal from './components/PermissionPromptModal.jsx';
 import { saveOfflineSnapshot, loadOfflineSnapshot } from './utils/offlineStorage.js';
+import { useSessionExpiry } from './hooks/useSessionExpiry.js';
 
 // Pre-hydrate snapshot immediately from cache so branding (school name, primary color) is ready synchronously on frame 0
 if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
@@ -249,6 +250,36 @@ export default function App() {
   const [dbLoaded, setDbLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [isFatalOffline, setIsFatalOffline] = useState(false);
+  const [sessionWarning, setSessionWarning] = useState(false);
+
+  // F-10 FIX: Auto-logout saat sesi tidak aktif selama 8 jam
+  const handleSessionExpired = useCallback(() => {
+    try {
+      sessionStorage.removeItem('school_schedule_session_v1');
+      localStorage.removeItem('school_schedule_session_v1');
+    } catch {}
+    // Hard reload ke halaman utama agar semua state bersih
+    window.location.replace('/');
+  }, []);
+
+  const handleSessionWarning = useCallback(() => {
+    setSessionWarning(true);
+    // Sembunyikan peringatan setelah 30 detik (user mungkin sudah klik extend)
+    setTimeout(() => setSessionWarning(false), 30000);
+  }, []);
+
+  // Cek apakah sesi aktif (hanya jalankan session expiry jika user sudah login)
+  const hasActiveSession = Boolean(
+    typeof sessionStorage !== 'undefined' &&
+    sessionStorage.getItem('school_schedule_session_v1')
+  );
+
+  useSessionExpiry({
+    timeoutMs: 8 * 60 * 60 * 1000, // 8 jam
+    enabled: hasActiveSession,
+    onExpired: handleSessionExpired,
+    onWarning: handleSessionWarning,
+  });
 
   useEffect(() => {
     const snapSettings = getDatabaseSnapshot().appSettings;
@@ -424,6 +455,34 @@ export default function App() {
       </Suspense>
         </BrowserRouter>
       </GlobalDialogProvider>
+
+      {/* F-10: Session expiry warning banner — muncul 5 menit sebelum auto-logout */}
+      {sessionWarning && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px',
+            background: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(12px)',
+            color: '#f8fafc', padding: '14px 20px', borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)',
+            fontSize: '14px', fontWeight: '600', maxWidth: '420px', width: 'calc(100vw - 48px)'
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>⚠️</span>
+          <span style={{ flex: 1 }}>Sesi Anda akan berakhir dalam <strong>5 menit</strong> karena tidak ada aktivitas.</span>
+          <button
+            onClick={() => { setSessionWarning(false); }}
+            style={{
+              background: '#22c55e', color: '#fff', border: 'none',
+              borderRadius: '8px', padding: '6px 14px', cursor: 'pointer',
+              fontWeight: '700', fontSize: '13px', whiteSpace: 'nowrap'
+            }}
+          >
+            Lanjutkan
+          </button>
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

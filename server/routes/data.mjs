@@ -50,7 +50,6 @@ export async function handleDataRoutes(req, res, url, ctx) {
         console.warn("Failed to merge relational tables on load", e);
       }
 
-      console.log("Sending payload for /api/data/public");
       send(req, res, 200, { ok: true, payload: payload ? toPublicPayload(payload) : null });
     } catch (err) {
       console.error("Load Data Error:", err);
@@ -98,6 +97,64 @@ export async function handleDataRoutes(req, res, url, ctx) {
       send(req, res, 200, { ok: true, payload: payload ? sanitizePayload(payload) : null });
     } catch (err) {
       console.error("Load Data Error:", err);
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
+  // T-02 FIX: Endpoint paginasi khusus untuk data siswa agar /api/data/load lebih ringan
+  // Mendukung: ?page=1&limit=100&search=keyword&kelas=XII-RPL-1
+  if (req.method === "GET" && url.pathname === "/api/data/students") {
+    if (!requireAuthenticated(req, res)) return true;
+    try {
+      const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+      const limit = Math.min(500, Math.max(1, parseInt(url.searchParams.get('limit') || '100', 10)));
+      const offset = (page - 1) * limit;
+      const search = (url.searchParams.get('search') || '').trim();
+      const kelasFilter = (url.searchParams.get('kelas') || '').trim();
+
+      let whereClause = '';
+      const params = [];
+
+      if (search) {
+        params.push(`%${search}%`);
+        whereClause += (whereClause ? ' AND ' : 'WHERE ') +
+          `(payload->>'name' ILIKE $${params.length} OR payload->>'nis' ILIKE $${params.length} OR payload->>'nisn' ILIKE $${params.length})`;
+      }
+      if (kelasFilter) {
+        params.push(`%${kelasFilter}%`);
+        whereClause += (whereClause ? ' AND ' : 'WHERE ') +
+          `(payload->>'class_name' ILIKE $${params.length} OR payload->>'kelas' ILIKE $${params.length})`;
+      }
+
+      const countRes = await dbPool.query(
+        `SELECT COUNT(*) as total FROM mst_students ${whereClause}`,
+        params
+      );
+      const total = parseInt(countRes.rows[0]?.total || 0, 10);
+
+      params.push(limit, offset);
+      const studentsRes = await dbPool.query(
+        `SELECT payload FROM mst_students ${whereClause} ORDER BY id ASC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        params
+      );
+
+      const students = studentsRes.rows.map(r => {
+        const p = r.payload;
+        if (p && p.password) delete p.password;
+        if (p && p.nis) {
+          try { p.card_token = generateStudentCardToken(p.nis); } catch {}
+        }
+        return p;
+      });
+
+      send(req, res, 200, {
+        ok: true,
+        data: students,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+      });
+    } catch (err) {
+      console.error("Students paginated load error:", err);
       sendDatabaseError(req, res, err);
     }
     return true;

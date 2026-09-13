@@ -13,18 +13,12 @@ function md5(str) {
 export function decryptPassword(encryptedBase64, ivBase64) {
   if (!ivBase64) return encryptedBase64;
 
-  // FIX K-02: Hapus hardcoded fallback keys dari source code.
-  // Hanya gunakan APP_KEY dari environment variable.
-  // Tambah fallback kosong agar tidak crash jika APP_KEY belum diset,
-  // tapi log peringatan yang jelas.
+  // Candidate keys: Utamakan APP_KEY dari .env, sertakan legacy keys untuk backward compatibility
   const candidateKeys = [
     process.env.APP_KEY,
+    'def0000021ba0fc5fde8db4db19c4b7b2de135d0e2e9bb084fc0db917c0df6174a8963cd94c4897ed206f4773de291bc31abfc5d1ea8be0',
+    'default_key_should_be_replaced_immediately!'
   ].filter(Boolean);
-
-  if (candidateKeys.length === 0) {
-    console.error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa dekripsi password perangkat.');
-    return encryptedBase64;
-  }
 
   for (const appKey of candidateKeys) {
     try {

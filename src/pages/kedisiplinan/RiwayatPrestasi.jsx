@@ -27,10 +27,10 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
-  };
+  }, []);
   
   const [formData, setFormData] = useState({
     siswa_nis: "",
@@ -47,19 +47,24 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
   const fetchPrestasi = useCallback(async () => {
     if (!authToken) return;
     setIsLoading(true);
+    const controller = new AbortController();
     try {
       const res = await fetch("/api/kesiswaan/prestasi", {
-        headers: { "Authorization": `Bearer ${authToken}` }
+        headers: { "Authorization": `Bearer ${authToken}` },
+        signal: controller.signal
       });
       const data = await res.json();
       if (data.ok) {
         setPrestasiList(Array.isArray(data.data) ? data.data : []);
       }
     } catch (e) {
-      console.error("Gagal mengambil data prestasi:", e);
+      if (e.name !== 'AbortError') {
+        console.error("Gagal mengambil data prestasi:", e);
+      }
     } finally {
       setIsLoading(false);
     }
+    return () => controller.abort();
   }, [authToken]);
 
   useEffect(() => {

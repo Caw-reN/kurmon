@@ -34,7 +34,7 @@ export default function TatibSkorKredit() {
 
   const authToken = authUser?.authToken || sessionUser?.authToken || rawSession?.authToken || '';
   const userRole = authUser?.role || sessionUser?.role || rawSession?.role || 'guru';
-  const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'guru'].includes(userRole);
+  const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan'].includes(userRole);
 
   const { kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
   const [batasPoin, setBatasPoin] = useState(100);
@@ -42,7 +42,14 @@ export default function TatibSkorKredit() {
   const [poinAlpa, setPoinAlpa] = useState(15);
   const [batasTerlambat, setBatasTerlambat] = useState(3);
   const [poinTerlambat, setPoinTerlambat] = useState(10);
-  const [startDate, setStartDate] = useState('2026-08-01');
+  // S-08 FIX: Hitung awal tahun ajaran secara dinamis berdasarkan bulan saat ini
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    const month = now.getMonth(); // 0-indexed
+    const year  = now.getFullYear();
+    // Juli-Des = semester ganjil (mulai 1 Juli), Jan-Jun = semester genap (mulai 1 Jan)
+    return month >= 6 ? `${year}-07-01` : `${year}-01-01`;
+  });
 
   const fetchStartDate = async () => {
     try {

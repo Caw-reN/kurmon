@@ -204,7 +204,7 @@ function toMinutes(hhmm) {
   return (h || 0) * 60 + (m || 0);
 }
 
-async function pullHikvisionLogs(force = false) {
+export async function pullHikvisionLogs(force = false) {
   if (!dbPool) return { logs_found: 0, logs_saved: 0 };
   const config = await getHikvisionConfig();
   let totalSaved = 0;
