@@ -173,23 +173,41 @@ function _stopPolling() {
   _isRunning = false;
 }
 
+// ── Action Helper (Mengetik...) ──────────────────────────
+
+function _sendChatAction(chatId, action = 'typing') {
+  if (!_botToken || !chatId) return;
+  fetch(`https://api.telegram.org/bot${_botToken}/sendChatAction`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, action }),
+    signal: AbortSignal.timeout(8000)
+  }).catch(() => {});
+}
+
 async function _pollLoop() {
   while (_isRunning && _botToken) {
     try {
+      // Pasang timeout 35 detik (lebih tinggi dari timeout long-poll 25s) agar socket tidak hang
       const res = await fetch(
-        `https://api.telegram.org/bot${_botToken}/getUpdates?offset=${_pollOffset}&timeout=25`
+        `https://api.telegram.org/bot${_botToken}/getUpdates?offset=${_pollOffset}&timeout=25`,
+        { signal: AbortSignal.timeout(35_000) }
       );
-      if (!res.ok) { await _sleep(5000); continue; }
+      if (!res.ok) { await _sleep(3000); continue; }
       const data = await res.json();
-      if (data.ok && data.result.length > 0) {
+      if (data.ok && Array.isArray(data.result) && data.result.length > 0) {
         for (const update of data.result) {
           _pollOffset = update.update_id + 1;
           _handleUpdate(update).catch(err => console.warn('[TelegramBot] handleUpdate error:', err.message));
         }
       }
     } catch (err) {
-      console.warn('[TelegramBot] Polling error:', err.message);
-      await _sleep(5000);
+      // Jangan sleep lama jika hanya abort / timeout rutin getUpdates
+      if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+        continue;
+      }
+      console.warn('[TelegramBot] Polling network error:', err.message);
+      await _sleep(3000);
     }
   }
 }
@@ -201,11 +219,13 @@ async function _handleUpdate(update) {
     const cbChatId = String(cb.message?.chat?.id || cb.from?.id);
     const cbData = cb.data;
 
+    // Respon answerCallbackQuery sesegera mungkin agar icon loading di tombol Telegram berhenti
     if (_botToken && cb.id) {
       fetch(`https://api.telegram.org/bot${_botToken}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callback_query_id: cb.id })
+        body: JSON.stringify({ callback_query_id: cb.id }),
+        signal: AbortSignal.timeout(5000)
       }).catch(() => {});
     }
 
@@ -360,11 +380,19 @@ async function _handleUpdate(update) {
   }
 
   // Whitelist check
-  if (_allowedChatIds.size > 0 && !_allowedChatIds.has(chatId)) {
-    await _sendMessage(chatId, `⛔ <b>Akses Tidak Diizinkan</b>\n\nChat ID Anda: <code>${chatId}</code>\nHubungi administrator untuk mendaftarkan ID ini.`, { isHtml: true });
+  const isAllowed = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
+  if (!isAllowed && (_allowedChatIds.size > 0 || _chatId)) {
+    await _sendMessage(chatId, 
+      `⛔ <b>Akses Belum Didaftarkan</b>\n\n` +
+      `ID Chat Telegram Anda: <code>${chatId}</code>\n\n` +
+      `Sistem ini diproteksi untuk keamanan. Daftarkan Chat ID ini di web Kurmon pada menu <b>Pengaturan > Backup & Bot Telegram > API Key</b> agar dapat mengakses seluruh fitur bot.`,
+      { isHtml: true }
+    );
     return;
   }
-  if (_allowedChatIds.size === 0 && _chatId && chatId !== String(_chatId)) return;
+
+  // Tampilkan indikator "bot sedang mengetik" sesegera mungkin
+  _sendChatAction(chatId, 'typing');
 
   // Pintasan langsung dari link perintah, contoh: /absen_X_TKJ_1
   if (cmd.startsWith('/absen_') && !['/absen_guru', '/absen_semua', '/absen_rekap'].includes(cmd)) {
@@ -373,91 +401,101 @@ async function _handleUpdate(update) {
     return;
   }
 
-  switch (cmd) {
-    case '/help':   await _cmdHelp(chatId); break;
-    case '/status': await _cmdStatus(chatId); break;
-    case '/logs':   await _cmdLogs(chatId, parseInt(args[0]) || 10); break;
-    case '/backup': await _cmdBackup(chatId, from); break;
-    case '/alerts': await _cmdAlerts(chatId); break;
-    case '/stats':  await _cmdStats(chatId); break;
-    case '/absen':
-    case '/rekap':
-      if (args.length > 0) {
-        await _cmdAbsenPerKelas(chatId, args.join(' '));
-      } else {
+  try {
+    switch (cmd) {
+      case '/help':   await _cmdHelp(chatId); break;
+      case '/status': await _cmdStatus(chatId); break;
+      case '/logs':   await _cmdLogs(chatId, parseInt(args[0]) || 10); break;
+      case '/backup': await _cmdBackup(chatId, from); break;
+      case '/alerts': await _cmdAlerts(chatId); break;
+      case '/stats':  await _cmdStats(chatId); break;
+      case '/absen':
+      case '/rekap':
+        if (args.length > 0) {
+          await _cmdAbsenPerKelas(chatId, args.join(' '));
+        } else {
+          await sendDailyMorningAttendanceReport(chatId);
+        }
+        break;
+      case '/absen_semua':
+      case '/rekap_semua':
         await sendDailyMorningAttendanceReport(chatId);
-      }
-      break;
-    case '/absen_semua':
-    case '/rekap_semua':
-      await sendDailyMorningAttendanceReport(chatId);
-      break;
-    case '/kelas':
-    case '/daftarkelas':
-      await _cmdDaftarKelas(chatId);
-      break;
-    case '/rekap_kelas':
-    case '/rekapkelas':
-      await _cmdRekapSemuaKelas(chatId);
-      break;
-    case '/guru':
-    case '/absen_guru':
-    case '/presensi_guru':
-      if (args.length > 0) {
-        await _cmdCariGuru(chatId, args.join(' '));
-      } else {
-        await _cmdAbsenGuru(chatId);
-      }
-      break;
-    case '/siswa':
-    case '/carisiswa':
-      await _cmdCariSiswa(chatId, args.join(' '));
-      break;
-    case '/pelanggaran':
-    case '/poin':
-      await _cmdPelanggaran(chatId);
-      break;
-    case '/prestasi':
-      await _cmdPrestasi(chatId);
-      break;
-    case '/sync':
-    case '/tarik_log':
-    case '/tariklog':
-      await _cmdSync(chatId);
-      break;
-    case '/wa':
-    case '/whatsapp':
-      await _cmdStatusWa(chatId);
-      break;
-    case '/db':
-    case '/database':
-      await _cmdStatusDb(chatId);
-      break;
-    case '/pkl':
-      await _cmdPkl(chatId);
-      break;
-    case '/mesin':
-    case '/perangkat':
-    case '/device':
-    case '/devices':
-      await _cmdStatusMesin(chatId);
-      break;
-    case '/terlambat':
-    case '/late':
-      await _cmdTerlambat(chatId);
-      break;
-    case '/update':
-    case '/versi':
-    case '/changelog':
-    case '/pembaruan':
-    case '/info_update':
-      await _cmdInfoUpdate(chatId);
-      break;
-    case '/tanya':
-      await _handleSmartAssistant(chatId, args.join(' '));
-      break;
-    default:
-      await _handleSmartAssistant(chatId, text);
+        break;
+      case '/kelas':
+      case '/daftarkelas':
+        await _cmdDaftarKelas(chatId);
+        break;
+      case '/rekap_kelas':
+      case '/rekapkelas':
+        await _cmdRekapSemuaKelas(chatId);
+        break;
+      case '/guru':
+      case '/absen_guru':
+      case '/presensi_guru':
+        if (args.length > 0) {
+          await _cmdCariGuru(chatId, args.join(' '));
+        } else {
+          await _cmdAbsenGuru(chatId);
+        }
+        break;
+      case '/siswa':
+      case '/carisiswa':
+        await _cmdCariSiswa(chatId, args.join(' '));
+        break;
+      case '/pelanggaran':
+      case '/poin':
+        await _cmdPelanggaran(chatId);
+        break;
+      case '/prestasi':
+        await _cmdPrestasi(chatId);
+        break;
+      case '/sync':
+      case '/tarik_log':
+      case '/tariklog':
+        await _cmdSync(chatId);
+        break;
+      case '/wa':
+      case '/whatsapp':
+        await _cmdStatusWa(chatId);
+        break;
+      case '/db':
+      case '/database':
+        await _cmdStatusDb(chatId);
+        break;
+      case '/pkl':
+        await _cmdPkl(chatId);
+        break;
+      case '/mesin':
+      case '/perangkat':
+      case '/device':
+      case '/devices':
+        await _cmdStatusMesin(chatId);
+        break;
+      case '/terlambat':
+      case '/late':
+        await _cmdTerlambat(chatId);
+        break;
+      case '/update':
+      case '/versi':
+      case '/changelog':
+      case '/pembaruan':
+      case '/info_update':
+        await _cmdInfoUpdate(chatId);
+        break;
+      case '/tanya':
+        await _handleSmartAssistant(chatId, args.join(' '));
+        break;
+      default:
+        await _handleSmartAssistant(chatId, text);
+    }
+  } catch (err) {
+    console.error(`[TelegramBot] Gagal menjalankan perintah ${cmd}:`, err);
+    await _sendMessage(chatId, 
+      `⚠️ <b>Maaf, terjadi kendala saat memproses menu:</b>\n` +
+      `<i>${escapeHtml(err.message || 'Kesalahan sistem')}</i>\n\n` +
+      `💡 <i>Silakan coba beberapa saat lagi atau ketik <b>/menu</b> untuk navigasi.</i>`, 
+      { isHtml: true }
+    );
   }
 }
 
@@ -2551,9 +2589,39 @@ export function formatMessageToHtml(rawText) {
   return text;
 }
 
+/**
+ * Kirim pesan ke Telegram dengan auto-split untuk pesan > 4000 karakter,
+ * fallback plain-text otomatis jika format HTML ditolak, dan timeout proteksi
+ */
 async function _sendMessage(chatId, text, options = {}) {
-  if (!_botToken || !chatId) return;
-  
+  if (!_botToken || !chatId || text === null || text === undefined) return;
+  const str = String(text);
+  if (!str.trim()) return;
+
+  // Batas maksimal Telegram adalah 4096 karakter per pesan.
+  // Jika lebih panjang, potong per baris agar tidak ditolak oleh Telegram (Error 400 MESSAGE_TOO_LONG)
+  const MAX_CHUNK = 3800;
+  if (str.length > MAX_CHUNK) {
+    const lines = str.split('\n');
+    let chunk = '';
+    for (const line of lines) {
+      if ((chunk + '\n' + line).length > MAX_CHUNK) {
+        if (chunk) await _sendSingleMessage(chatId, chunk, { ...options, reply_markup: undefined });
+        chunk = line;
+      } else {
+        chunk = chunk ? (chunk + '\n' + line) : line;
+      }
+    }
+    if (chunk) {
+      return await _sendSingleMessage(chatId, chunk, options);
+    }
+    return;
+  }
+
+  return await _sendSingleMessage(chatId, str, options);
+}
+
+async function _sendSingleMessage(chatId, text, options = {}) {
   const htmlText = options.isHtml ? text : formatMessageToHtml(text);
 
   try {
@@ -2571,36 +2639,35 @@ async function _sendMessage(chatId, text, options = {}) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15_000)
     });
     const d = await r.json();
-    if (!d.ok) {
-      console.warn('[TelegramBot] sendMessage HTML gagal:', d.description, 'Mencoba fallback plain text bersih...');
-      // Fallback: hapus semua tag HTML dan karakter markdown yang merusak
-      const cleanPlainText = text
-        .replace(/<[^>]*>/g, '')
-        .replace(/[*_`]/g, '');
-      const retryPayload = {
-        chat_id: chatId,
-        text: cleanPlainText,
-        disable_web_page_preview: true,
-      };
-      if (options.reply_markup) {
-        retryPayload.reply_markup = options.reply_markup;
-      }
-      const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(retryPayload),
-      });
-      const retryData = await retryRes.json();
-      if (retryData.ok) return retryData;
-      console.warn('[TelegramBot] sendMessage fallback gagal:', retryData.description);
-      throw new Error(d.description);
+    if (d.ok) return d;
+
+    // Jika ditolak karena tag HTML rusak / can't parse entities, kirim sebagai Plain Text tanpa parse_mode
+    console.warn('[TelegramBot] sendMessage HTML gagal:', d.description, 'Mencoba fallback plain text...');
+    const cleanPlainText = text.replace(/<[^>]*>/g, '').trim() || text;
+    const retryPayload = {
+      chat_id: chatId,
+      text: cleanPlainText,
+      disable_web_page_preview: true,
+    };
+    if (options.reply_markup) {
+      retryPayload.reply_markup = options.reply_markup;
     }
-    return d;
+
+    const retryRes = await fetch(`https://api.telegram.org/bot${_botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(retryPayload),
+      signal: AbortSignal.timeout(15_000)
+    });
+    const retryData = await retryRes.json();
+    if (retryData.ok) return retryData;
+    console.warn('[TelegramBot] sendMessage fallback plain text gagal:', retryData.description);
+    return retryData;
   } catch (err) {
-    console.error('[TelegramBot] network error:', err.message);
-    throw err;
+    console.error('[TelegramBot] network error saat kirim pesan:', err.message);
   }
 }
 
