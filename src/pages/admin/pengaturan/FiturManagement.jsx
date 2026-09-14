@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
-  CheckCircle2, BookOpen, MapPin, FileBarChart2, BadgeCheck, UserCog, 
-  Users, GraduationCap, Settings, LayoutDashboard, MessageSquare, KeyRound, 
+  CheckCircle2, BookOpen, MapPin, FileBarChart2, BadgeCheck, UserCog, LayoutDashboard,
+  Users, GraduationCap, Settings, MessageSquare, KeyRound, 
   DatabaseBackup, Info, AlertTriangle, RotateCcw, ShieldCheck, ToggleRight, Sparkles, Layers
 } from 'lucide-react';
 import useFiturStore, { FITUR_CONFIG } from '../../../store/monitoring/fiturStore';
@@ -15,7 +15,7 @@ import { Button } from '../../../components/ui.jsx';
  */
 
 const ICON_MAP = {
-  CheckCircle2, BookOpen, MapPin, FileBarChart2, BadgeCheck, UserCog,
+  CheckCircle2, BookOpen, MapPin, FileBarChart2, BadgeCheck, UserCog, LayoutDashboard,
 };
 
 const ROLE_BADGE = {

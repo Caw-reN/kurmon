@@ -49,7 +49,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit"
+    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit",
+    rpp_guru: "otomatis",
   },
   walikelas: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
@@ -71,7 +72,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     guru: "view", karyawan: "view", laporan_absensi: "otomatis",
     hikvision_report_guru: "view", hikvision_report_karyawan: "view",
     hikvision_report_siswa: "view", riwayat_prestasi: "view",
-    siswa_keluar: "view", akademik: "view", pesan: "view"
+    siswa_keluar: "view", akademik: "view", pesan: "view",
+    data_pegawai: "view", kelas: "view", jurusan: "view",
   },
   sekretaris_tu: {
     dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
@@ -107,7 +109,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
     modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
     pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis",
-    hikvision_report_guru: "view"
+    hikvision_report_guru: "view", data_pegawai: "view",
+    laporan_absensi: "view", kedisiplinan_absensi: "view",
   },
   waka_kesiswaan: {
     ...BASE_GURU_PERMISSIONS,
@@ -130,7 +133,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     pkl_data_perusahaan: "otomatis", pkl_penugasan: "otomatis",
     pkl_administrasi: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "otomatis",
     pkl_absensi_setting: "otomatis", pesan: "otomatis",
-    walas_report: "view", catatan_walikelas: "view", akademik: "view", hikvision_report_siswa: "otomatis"
+    walas_report: "view", catatan_walikelas: "view", akademik: "view",
+    hikvision_report_siswa: "otomatis", laporan_absensi: "view",
   },
 
   // ─── TIM KESISWAAN ──────────────────────────────────────────────────────────

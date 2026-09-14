@@ -336,7 +336,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_dashboard',
   },
   {
     id: 'pkl_data_siswa',
@@ -346,7 +345,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_data_siswa',
   },
   {
     id: 'pkl_data_perusahaan',
@@ -356,7 +354,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_data_perusahaan',
   },
   {
     id: 'pkl_penugasan',
@@ -366,7 +363,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_penugasan',
   },
   {
     id: 'pkl_administrasi',
@@ -376,7 +372,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_administrasi',
   },
   {
     id: 'pkl_jurnal',
@@ -386,7 +381,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_jurnal',
   },
   {
     id: 'pkl_laporan',
@@ -396,7 +390,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_laporan',
   },
   {
     id: 'pkl_absensi_setting',
@@ -406,7 +399,6 @@ export const MENU_REGISTRY = [
     adminGroup: 'Hubungan Industri',
     adminGroupIcon: Briefcase,
     adminGroupKey: 'hubin',
-    featureKey: 'pkl_absensi_setting',
   },
 
   // ─── SARANA & PRASARANA ──────────────────────────────────────────────────────

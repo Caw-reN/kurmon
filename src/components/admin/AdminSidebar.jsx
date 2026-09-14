@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
-  LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity
+  LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -179,7 +179,7 @@ export default function AdminSidebar({
         {/* MONITORING & KBM */}
         <SidebarSection label="MONITORING & KBM" />
         {renderNavItem({ id: 'generate', icon: Calendar, label: 'Jadwal & KBM' })}
-        {renderNavItem({ id: 'laporan_absensi', icon: ClipboardList, label: 'Rekap Absensi' })}
+        {renderNavItem({ id: 'laporan_absensi', icon: ClipboardList, label: 'Rekap Kehadiran', activeIds: ['laporan_absensi', 'hikvision_report_guru', 'hikvision_report_karyawan'] })}
         {renderNavItem({ id: 'pesan', icon: MessageSquare, label: 'Pengumuman' })}
         {renderNavItem({ id: 'kedisiplinan_bpbk', icon: Trophy, label: 'Buku BPBK' })}
         {renderNavItem({ id: 'pkl_dashboard', icon: Briefcase, label: 'Dashboard PKL' })}
@@ -190,6 +190,12 @@ export default function AdminSidebar({
         {renderNavItem({ id: 'dataguru', icon: Users, label: 'Data Guru', activeIds: ['dataguru', 'guru', 'data_pegawai', 'karyawan'] })}
         {renderNavItem({ id: 'datasiswa', icon: GraduationCap, label: 'Data Siswa', activeIds: ['datasiswa', 'siswa'] })}
         {renderNavItem({ id: 'dataperusahaan', icon: Building2, label: 'Mitra DUDI', activeIds: ['dataperusahaan', 'pkl_data_perusahaan'] })}
+        {renderNavItem({ id: 'riwayat_prestasi', icon: Trophy, label: 'Riwayat Prestasi' })}
+
+        {/* LAPORAN KEHADIRAN */}
+        <SidebarSection label="LAPORAN" />
+        {renderNavItem({ id: 'hikvision_report_guru', icon: FileText, label: 'Absensi Guru' })}
+        {renderNavItem({ id: 'hikvision_report_siswa', icon: FileText, label: 'Absensi Siswa' })}
 
         {/* LOG AKTIVITAS */}
         <SidebarSection label="AKTIVITAS" />
