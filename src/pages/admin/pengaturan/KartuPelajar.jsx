@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   CreditCard, 
   Printer, 
@@ -344,6 +344,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [previewStudent, setPreviewStudent] = useState(null);
   const [previewSide, setPreviewSide] = useState('front');
+  const pdfRenderRef = useRef(null); // hidden container for PDF rendering
   
   const [editForm, setEditForm] = useState(null);
   const [activeTab, setActiveTab] = useState('cetak');
@@ -679,7 +680,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     }, 350);
   };
 
-  const handleDownloadPDF = (specificStudent = null) => {
+  const handleDownloadPDF = useCallback((specificStudent = null) => {
     let targetList = [];
     if (specificStudent && (specificStudent.nis || specificStudent.name)) {
       targetList = [specificStudent];
@@ -695,21 +696,24 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       return showToast('Tidak ada data siswa untuk diunduh', 'error');
     }
 
-    setPrintingStudentsList(targetList);
     setIsPrinting(true);
-    const targetLabel = targetList.length === 1 
-      ? (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis) 
+    const targetLabel = targetList.length === 1
+      ? (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis)
       : `${targetList.length} Siswa`;
     showToast(`Menyiapkan kartu PDF (${targetLabel})...`, 'success');
-    
+
+    // Update students to print → React will re-render pdfRenderRef content
+    setPrintingStudentsList(targetList);
+
+    // Give React time to mount the cards into pdfRenderRef
     setTimeout(async () => {
       try {
-        const printArea = document.querySelector('.print-area');
-        if (!printArea) throw new Error("Print area not found");
-        
-        const cards = printArea.querySelectorAll('.student-card-wrapper');
-        if (cards.length === 0) throw new Error("Tidak ada kartu");
-        
+        const container = pdfRenderRef.current;
+        if (!container) throw new Error('PDF render container tidak ditemukan');
+
+        const cards = container.querySelectorAll('.student-card-wrapper');
+        if (cards.length === 0) throw new Error('Tidak ada kartu untuk dirender');
+
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'pt',
@@ -719,34 +723,35 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           const canvas = await html2canvas(card, {
-            scale: 2, 
+            scale: 3,
             useCORS: true,
             allowTaint: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: null
           });
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-          
+          const imgData = canvas.toDataURL('image/png');
           if (i > 0) pdf.addPage([656, 200], 'l');
-          pdf.addImage(imgData, 'JPEG', 0, 0, 656, 200);
+          pdf.addImage(imgData, 'PNG', 0, 0, 656, 200);
         }
-        
+
+        const safeName = (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis || 'siswa')
+          .replace(/[^a-zA-Z0-9]/g, '_');
         const fileName = targetList.length === 1
-          ? `Kartu_Pelajar_${(targetList[0].namaSiswa || targetList[0].name || targetList[0].nis).replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
-          : `Kartu_Pelajar_Batch_${new Date().getTime()}.pdf`;
+          ? `Kartu_Pelajar_${safeName}.pdf`
+          : `Kartu_Pelajar_Batch_${Date.now()}.pdf`;
 
         pdf.save(fileName);
         targetList.forEach(st => logPrintAction(st));
-        showToast('PDF berhasil diunduh!');
+        showToast('✅ PDF berhasil diunduh!');
       } catch (err) {
-        console.error(err);
-        showToast('Gagal memproses PDF', 'error');
+        console.error('[PDF]', err);
+        showToast('Gagal memproses PDF: ' + err.message, 'error');
       } finally {
         setIsPrinting(false);
         setPrintingStudentsList(null);
       }
-    }, 600);
-  };
+    }, 700);
+  }, [selectedStudents, students, previewStudent, showToast, logPrintAction]);
 
   const handleSaveManual = async (e) => {
     e.preventDefault();
@@ -1375,7 +1380,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
               </div>
 
               {/* Students Table */}
-              <div className="border border-slate-200/80 rounded-[var(--ui-radius-control)] overflow-hidden max-h-[460px] overflow-y-auto">
+              <div className="border border-slate-200/80 rounded-[var(--ui-radius-control)] overflow-hidden max-h-[460px] overflow-y-auto overflow-x-auto">
                 {isLoading ? (
                   <div className="p-10 text-center text-slate-400">
                     <RefreshCw size={24} className="animate-spin mx-auto mb-2 opacity-40" />
@@ -2616,6 +2621,33 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           <span>{toast.message}</span>
         </div>
       )}
+
+      {/* Hidden PDF Render Container (off-screen, used by html2canvas) */}
+      <div
+        ref={pdfRenderRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          zIndex: -1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          background: 'transparent',
+          pointerEvents: 'none',
+        }}
+      >
+        {isPrinting && printingStudentsList && printingStudentsList.map(s => (
+          <StudentCard
+            key={s.nis || s.name}
+            student={{ ...s, photo: tempPhotos[s.nis] || s.photo || null }}
+            school={school}
+            config={config}
+            side={previewSide === 'back' ? 'back' : 'front'}
+          />
+        ))}
+      </div>
 
       {/* Print Media Query CSS */}
       <style>{`

@@ -43,8 +43,25 @@ function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
+// Kolom sensitif yang di-strip sebelum ditulis ke file backup
+const SENSITIVE_COLUMNS = ["password", "password_hash", "hashed_password", "pin", "secret"];
+
 /**
- * Buat backup JSON dari semua tabel + simpan lokal + hitung checksum SHA-256.
+ * Strip kolom sensitif dari satu row object
+ */
+function stripRow(row) {
+  const clean = { ...row };
+  for (const col of SENSITIVE_COLUMNS) {
+    if (col in clean) delete clean[col];
+  }
+  return clean;
+}
+
+/**
+ * Buat backup JSON dari semua tabel menggunakan STREAMING ke disk.
+ * Tidak memuat seluruh database ke memory — setiap tabel di-cursor 100 baris
+ * sekaligus dan langsung ditulis ke WriteStream.
+ *
  * @returns {{ fileName, filePath, size, checksum }}
  */
 export async function runBackupJson() {
@@ -54,47 +71,77 @@ export async function runBackupJson() {
   const fileName = `backup_${PG_DATABASE}_${dateStr}.json`;
   const filePath = path.join(BACKUP_DIR, fileName);
 
-  console.log(`[AutoBackup] 📦 Membuat backup JSON: ${fileName}...`);
+  console.log(`[AutoBackup] 📦 Streaming backup JSON: ${fileName}...`);
 
   // Ambil semua tabel dari public schema
   const tblResult = await _dbPool.query(
     "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' ORDER BY tablename ASC"
   );
-  const tables = tblResult.rows.map(r => r.tablename);
+  const tables = tblResult.rows.map((r) => r.tablename);
 
-  // FIX T-01: Daftar kolom sensitif yang wajib di-strip sebelum ditulis ke file backup.
-  // Password hash tetap tidak boleh tersimpan di file JSON yang bisa diakses via API/download.
-  const SENSITIVE_COLUMNS = ['password', 'password_hash', 'hashed_password', 'pin', 'secret'];
+  const hashStream = crypto.createHash("sha256");
+  const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
 
-  const stripSensitiveColumns = (rows) => {
-    if (!Array.isArray(rows) || rows.length === 0) return rows;
-    const hasSensitive = SENSITIVE_COLUMNS.some(col => col in rows[0]);
-    if (!hasSensitive) return rows;
-    return rows.map(row => {
-      const clean = { ...row };
-      for (const col of SENSITIVE_COLUMNS) {
-        if (col in clean) delete clean[col];
-      }
-      return clean;
-    });
-  };
-
-  const backupData = { _meta: { generatedAt: new Date().toISOString(), database: PG_DATABASE, tables: tables.length } };
-  for (const table of tables) {
-    try {
-      const { rows } = await _dbPool.query(`SELECT * FROM ${table}`);
-      // FIX T-01: Strip kolom password/sensitif sebelum disimpan ke file backup
-      backupData[table] = stripSensitiveColumns(rows);
-    } catch (err) {
-      console.warn(`[AutoBackup] Skip tabel ${table}:`, err.message);
-      backupData[table] = [];
-    }
+  // Helper: write ke file + update hash secara bersamaan
+  function write(str) {
+    writeStream.write(str);
+    hashStream.update(str);
   }
 
-  const jsonStr = JSON.stringify(backupData, null, 2);
-  fs.writeFileSync(filePath, jsonStr, "utf-8");
+  const waitFinish = () =>
+    new Promise((resolve, reject) => {
+      writeStream.on("finish", resolve);
+      writeStream.on("error", reject);
+    });
 
-  const checksum = crypto.createHash("sha256").update(jsonStr).digest("hex");
+  // Tulis header meta
+  const meta = JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    database: PG_DATABASE,
+    tables: tables.length,
+  });
+  write(`{"_meta":${meta}`);
+
+  const CURSOR_BATCH = 100; // baris per fetch agar heap tetap rendah
+
+  for (const table of tables) {
+    write(`,"${table}":[`);
+    let firstRow = true;
+    try {
+      const client = await _dbPool.connect();
+      try {
+        await client.query("BEGIN");
+        const cursorName = `cur_${table.replace(/[^a-z0-9_]/gi, "_")}`;
+        await client.query(`DECLARE ${cursorName} CURSOR FOR SELECT * FROM "${table}"`);
+
+        while (true) {
+          const { rows } = await client.query(`FETCH ${CURSOR_BATCH} FROM ${cursorName}`);
+          if (rows.length === 0) break;
+          for (const row of rows) {
+            if (!firstRow) write(",");
+            write(JSON.stringify(stripRow(row)));
+            firstRow = false;
+          }
+        }
+
+        await client.query("COMMIT");
+      } catch (err) {
+        await client.query("ROLLBACK").catch(() => {});
+        console.warn(`[AutoBackup] Skip tabel ${table}:`, err.message);
+      } finally {
+        client.release();
+      }
+    } catch (connErr) {
+      console.warn(`[AutoBackup] Koneksi gagal untuk ${table}:`, connErr.message);
+    }
+    write("]");
+  }
+
+  write("}");
+  writeStream.end();
+  await waitFinish();
+
+  const checksum = hashStream.digest("hex");
   const size = formatBytes(fs.statSync(filePath).size);
 
   console.log(`[AutoBackup] ✅ Backup selesai: ${fileName} (${size})`);
