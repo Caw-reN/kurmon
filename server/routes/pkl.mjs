@@ -17,19 +17,19 @@ export async function handlePklRoutes(req, res, url, ctx) {
         };
         
         const locRes = await dbPool.query("SELECT COUNT(*), COALESCE(SUM(kuota), 0) as total_kuota FROM pkl_locations WHERE status = 'aktif' OR verified = true");
-        stats.totalPerusahaan = parseInt(locRes.rows[0].count, 10);
-        stats.totalKuota = parseInt(locRes.rows[0].total_kuota, 10);
+        stats.totalPerusahaan = parseInt(locRes?.rows?.[0]?.count || 0, 10);
+        stats.totalKuota = parseInt(locRes?.rows?.[0]?.total_kuota || 0, 10);
         
         const stuRes = await dbPool.query(`
           SELECT COUNT(*) FROM pkl_students 
           WHERE status = 'aktif' 
             AND location_id IS NOT NULL
         `);
-        stats.totalSiswa = parseInt(stuRes.rows[0].count, 10) || 0;
+        stats.totalSiswa = parseInt(stuRes?.rows?.[0]?.count || 0, 10);
         stats.kuotaTerisi = stats.totalSiswa;
         
         const guruRes = await dbPool.query("SELECT COUNT(DISTINCT teacher_code) FROM pkl_students WHERE teacher_code IS NOT NULL AND teacher_code != ''");
-        stats.totalGuru = parseInt(guruRes.rows[0].count, 10) || 0;
+        stats.totalGuru = parseInt(guruRes?.rows?.[0]?.count || 0, 10);
         
         const logRes = await dbPool.query(`
           SELECT l.id, l.student_nis, l.kegiatan, l.catatan as kendala, l.status, l.created_at, 
@@ -101,7 +101,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
           RETURNING *
         `, [nama_perusahaan, alamat, jurusan, lat, lng, kuota || 0, status || 'aktif', bidang, kota, telepon, JSON.stringify(kompetensi || [])]);
         
-        return send(req, res, 201, { ok: true, data: result.rows[0] });
+        return send(req, res, 201, { ok: true, data: result?.rows?.[0] || null });
       } catch (err) {
         return sendDatabaseError(req, res, err);
       }
@@ -133,7 +133,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
           RETURNING *
         `, [nama_perusahaan, alamat, jurusan, lat, lng, kuota, status, bidang, kota, telepon, JSON.stringify(kompetensi || []), id]);
         
-        return send(req, res, 200, { ok: true, data: result.rows[0] });
+        return send(req, res, 200, { ok: true, data: result?.rows?.[0] || null });
       } catch (err) {
         return sendDatabaseError(req, res, err);
       }
@@ -165,7 +165,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
             "INSERT INTO pkl_locations (nama_perusahaan, lat, lng, status, verified, submitted_by) VALUES ($1, $2, $3, 'aktif', false, 'siswa') RETURNING id",
             [body.namaLokasi, body.lat, body.lng]
           );
-          locId = locRes.rows[0].id;
+          locId = locRes?.rows?.[0]?.id;
         }
         
         const stuRes = await dbPool.query("SELECT location_update_count FROM pkl_students WHERE nis = $1", [nis]);
@@ -336,13 +336,13 @@ export async function handlePklRoutes(req, res, url, ctx) {
           "INSERT INTO pkl_locations (nama_perusahaan, alamat, status) VALUES ($1, $2, 'pending') RETURNING id",
           [pt_name, pt_address || ""]
         );
-        const location_id = locRes.rows[0].id;
+        const location_id = locRes?.rows?.[0]?.id;
         
         const suratRes = await dbPool.query(
           "INSERT INTO pkl_surat_pengantar (location_id, pt_name_temp, created_by_nis) VALUES ($1, $2, $3) RETURNING id",
           [location_id, pt_name, session.id || session.username || ""]
         );
-        const surat_id = suratRes.rows[0].id;
+        const surat_id = suratRes?.rows?.[0]?.id;
         
         for (const s of students) {
           await dbPool.query(
@@ -450,7 +450,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
              "INSERT INTO pkl_locations (nama_perusahaan, status) VALUES ($1, 'pending') RETURNING id",
              [new_pt_name]
            );
-           new_location_id = locRes.rows[0].id;
+            new_location_id = locRes?.rows?.[0]?.id;
         }
 
         await dbPool.query(

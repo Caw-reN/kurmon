@@ -1,9 +1,9 @@
-import { lazy, useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { applyDocumentBranding, resetDocumentBranding } from './utils/branding.js';
 import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subscribeDatabaseSnapshot } from './utils/dataSource.js';
 import { useDataStore } from './store/useDataStore.js';
-import { Suspense } from 'react';
 import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
+
 import { BarChart2 } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
@@ -23,7 +23,9 @@ if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
         applyDocumentBranding(parsedBrand.appSettings);
         try {
           useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...parsedBrand.appSettings }));
-        } catch {}
+        } catch (err) {
+          console.debug?.("Failed to pre-hydrate appSettings from branding cache:", err);
+        }
       }
     } else {
       const raw = localStorage.getItem("kurmon_offline_payload");
@@ -35,11 +37,15 @@ if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
           applyDocumentBranding(payload.appSettings);
           try {
             useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...payload.appSettings }));
-          } catch {}
+          } catch (err) {
+            console.debug?.("Failed to pre-hydrate appSettings from offline payload:", err);
+          }
         }
       }
     }
-  } catch {}
+  } catch (err) {
+    console.debug?.("Error during initial pre-hydrate snapshot:", err);
+  }
 }
 
 // Preload route chunks in parallel with initial API fetch to prevent loading waterfall & double loader
@@ -257,7 +263,9 @@ export default function App() {
     try {
       sessionStorage.removeItem('school_schedule_session_v1');
       localStorage.removeItem('school_schedule_session_v1');
-    } catch {}
+    } catch (err) {
+      console.warn("Could not clear session storage on expiration:", err);
+    }
     // Hard reload ke halaman utama agar semua state bersih
     window.location.replace('/');
   }, []);
@@ -287,14 +295,18 @@ export default function App() {
       applyDocumentBranding(snapSettings);
       try {
         useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...snapSettings }));
-      } catch {}
+      } catch (err) {
+        console.warn("Failed to sync snapSettings to useDataStore:", err);
+      }
     }
     return subscribeDatabaseSnapshot((snapshot) => {
       if (snapshot?.appSettings) {
         applyDocumentBranding(snapshot.appSettings);
         try {
           useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...snapshot.appSettings }));
-        } catch {}
+        } catch (err) {
+          console.warn("Failed to sync snapshot appSettings:", err);
+        }
       }
     });
   }, []);
@@ -315,7 +327,9 @@ export default function App() {
           if (nextPayload?.appSettings) {
             try {
               useDataStore.getState().setAppSettings((prev) => ({ ...prev, ...nextPayload.appSettings }));
-            } catch {}
+            } catch (err) {
+              console.warn("Failed to update appSettings from loadDbData:", err);
+            }
           }
           // PRELOAD HERO IMAGE FOR LANDING PAGE (LCP OPTIMIZATION)
           if (nextPayload?.appSettings?.heroImage && !document.getElementById('preload-hero')) {

@@ -138,6 +138,8 @@ if (typeof window !== 'undefined') {
       }
       const session = raw ? JSON.parse(raw) : null;
       useDataStore.setState({ currentUser: session?.authToken && session?.role ? session : null });
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to parse session during session-updated event:', err);
+    }
   });
 }

@@ -68,7 +68,9 @@ const useAuthStore = create((set, get) => ({
         try {
           sessionStorage.setItem(SESSION_KEY, JSON.stringify(updated));
           localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
-        } catch {}
+        } catch (err) {
+          console.warn('Failed to persist session to storage:', err);
+        }
         set({ user: updated, isLoggedIn: true });
         return updated;
       }

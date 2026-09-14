@@ -6,10 +6,6 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   X, 
-  ChevronRight, 
-  HelpCircle,
-  Smartphone,
-  ExternalLink,
   Sparkles
 } from 'lucide-react';
 import { requestPushPermissionAndSubscribe } from '../utils/pushUtils.js';
@@ -145,7 +141,7 @@ export default function PermissionPromptModal() {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        () => {
           setGeoStatus('granted');
           localStorage.setItem('kurmon_location_granted', 'true');
           resolve('granted');

@@ -1,10 +1,8 @@
-import { lazy } from'react';
-import { BookOpen, MapPin, AlertCircle, ClipboardList, UserX } from'lucide-react';
-import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parseTeacherCodes, parsePositiveInt, getLoadKey } from'../../utils/adminHelpers.js';
-import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
-import { Suspense } from'react';
-import { Shield, Edit2, Lock, Trash2 } from'lucide-react';
-import { PageHeader } from'../monitoring/ui/index.js';
+import { lazy, Suspense } from 'react';
+import { BookOpen, AlertCircle, Shield, Edit2, Lock, Trash2 } from 'lucide-react';
+import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parseTeacherCodes, parsePositiveInt, getLoadKey } from '../../utils/adminHelpers.js';
+import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from '../../utils/constants.js';
+import { PageHeader } from '../monitoring/ui/index.js';
 
 const AbsensiSiswa = lazy(() => import('../../pages/kedisiplinan/AbsensiSiswa.jsx'));
 const ManajemenPiket = lazy(() => import('../../pages/kedisiplinan/ManajemenPiket.jsx'));
@@ -80,21 +78,14 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
     normalizeUserRole, rolePermissions, saveDatabaseNow, classes, teachers, subjects,
     rooms, schedule, teachingLoads, openModal, setActiveTab, renderTable, checkDependencies,
     handleDelete, updateSelectionForTab, appSettings, setAppSettings, showNotification,
-    teacherAvailability, handleSort, getTableSort, getActiveSortConfig, selectedRows,
-    tablePage, setTablePage, itemsPerPage, getRowKeyForTab, tabSubtitles, searchTerm,
-    getSearchTextForTab, handleSelectAll, activeUserRole, handleBulkDelete, layoutByDay,
-    setLayoutByDay, roomLayout, setRoomLayout, layoutSettings, setLayoutSettings, generateRoomLayout,
-    removeClassFromDenahSlot, renameRoomInline, updateKampusALabel, updateKampusBLabel, exportLayoutJson,
+    teacherAvailability, getTableSort, getActiveSortConfig, selectedRows, searchTerm,
+    activeUserRole, handleBulkDelete,
     majors, isGenerated, loadDistribution, subjectComposition, staffs, teacherTargetJpMap,
     teacherScheduleCountMap, quickEditGuruCode, quickGuruForm, setQuickGuruForm, setQuickEditGuruCode,
     saveQuickEditGuru, startQuickEditGuru, getPracticeRoomLabel, setStudents, students, setTeachers, setStaffs, getTeacherName,
     adminUser, setAdminUser, syncAuthSnapshotNow,
     setSearchTerm, setTableSorts, setLoadFilters, loadFilters, applyRecommendations, recommendedLoads,
-    openImportGuide, downloadMasterTemplate, days, dashboardMessages, timeSlots,
-    syllabuses, setSyllabuses, syllabusCategories, setSyllabusCategories, activityLogs,
-    academicCalendar, calendarCategories, featureSettings, updateFeatureSettings, updateRolePermissions,
-    attendanceRecords, attendanceSettings, updateAttendanceSettings,
-    addDashboardMessage, updateDashboardMessage, removeDashboardMessage,
+    openImportGuide, downloadMasterTemplate,
   } = context;
 
   // Support kedua pola: checkIsAllowed sebagai prop terpisah (baru) atau dari dalam context (lama)
@@ -169,6 +160,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       if (typeof checkIsAllowed === "function") {
         return checkIsAllowed(activeTab);
       }
+      const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
       if (role ==="admin" || role ==="superadmin") return true;
       if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
       if (activeTab === "kedisiplinan_piket" || activeTab === "kedisiplinan_bpbk" || activeTab === "kedisiplinan_hub") {
@@ -635,14 +627,6 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       case "laporan_rekap_walas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
           <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
-        </Suspense>;
-      case "absensiguru":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat absensi guru...</div>}>
-          <TabAbsensiGuru {...context} />
-        </Suspense>;
-      case "absensi":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat absensi...</div>}>
-          <TabAbsensi {...context} />
         </Suspense>;
       case"hikvision_students":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">

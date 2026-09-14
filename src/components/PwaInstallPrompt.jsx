@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, X, Share, PlusSquare, Smartphone, Sparkles } from 'lucide-react';
+import { Download, X, Share, PlusSquare, Smartphone } from 'lucide-react';
 import { Button } from './ui.jsx';
 
 export default function PwaInstallPrompt() {

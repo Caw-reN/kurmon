@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 
 import { useAppStore } from './store/useAppStore.js';
 import { useDataStore } from './store/useDataStore.js';
@@ -18,7 +18,7 @@ import { useAdminScheduleGenerator } from './components/admin/useAdminScheduleGe
 import { useAdminCRUD } from './components/admin/useAdminCRUD.jsx';
 import { useAdminDatabaseSync } from './hooks/useAdminDatabaseSync.js';
 import { applyDocumentBranding } from './utils/branding.js';
-import { Suspense } from 'react';
+
 import { ChevronDown } from 'lucide-react';
 import Login from './pages/Login.jsx';
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
@@ -32,7 +32,7 @@ const BulkEditModal = lazy(() => import('./components/admin/BulkEditModal.jsx'))
 const DefaultPasswordModal = lazy(() => import('./components/admin/DefaultPasswordModal.jsx'));
 import { GlobalAdminUI } from "./components/admin/layout/GlobalAdminUI.jsx";
 import { SidebarNavItem, Modal } from './components/ui.jsx';
-import { logTabAccess, logFileDownload } from './utils/auditLogger.js';
+import { logTabAccess } from './utils/auditLogger.js';
 
 
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -133,7 +133,7 @@ export default function App() {
   const [rememberMe, setRememberMe] = useState(() => loadInitialState("rememberMe", true));
   const currentUser = useDataStore(state => state.currentUser);
   const setCurrentUser = useDataStore(state => state.setCurrentUser);
-  const { attendanceRecords, setAttendanceRecords, attendanceCorrections, addAttendanceCorrection, reviewAttendanceCorrection, syllabuses, setSyllabuses, syllabusCategories, setSyllabusCategories, activityLogs, dashboardMessages, addDashboardMessage, updateDashboardMessage, removeDashboardMessage, featureSettings, updateFeatureSettings, rolePermissions, updateRolePermissions, removeSyllabus, addSyllabus, updateSyllabus, addSyllabusCategory, updateSyllabusCategory, removeSyllabusCategory, addAttendanceRecord, removeAttendanceRecord, clearAttendanceRecords, attendanceSettings, updateAttendanceSettings, addActivityLog, academicCalendar, calendarCategories, addCalendarEvent, updateCalendarEvent, removeCalendarEvent, addCalendarCategory, updateCalendarCategory, removeCalendarCategory, setAcademicCalendar, setCalendarCategories, passwordResetRequests, kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
+  const { attendanceRecords, setAttendanceRecords, attendanceCorrections, addAttendanceCorrection, reviewAttendanceCorrection, syllabuses, setSyllabuses, syllabusCategories, setSyllabusCategories, activityLogs, dashboardMessages, addDashboardMessage, updateDashboardMessage, removeDashboardMessage, featureSettings, updateFeatureSettings, rolePermissions, updateRolePermissions, addAttendanceRecord, attendanceSettings, updateAttendanceSettings, addActivityLog, academicCalendar, calendarCategories, setAcademicCalendar, setCalendarCategories, passwordResetRequests, kedisiplinanSettings } = useAppStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasPiket, setHasPiket] = useState(false);
 
@@ -384,7 +384,7 @@ export default function App() {
           lng: position.coords.longitude
         });
         setLocationError("");
-      }, error => {
+      }, () => {
         setLocationError("Gagal mendapatkan lokasi. Pastikan GPS aktif.");
       });
     } else {
@@ -1512,25 +1512,6 @@ export default function App() {
   }, [pendingServerPayloadRef]);
 
   useEffect(() => {
-    const teacherTabs = new Set(["dashboard", "ketersediaan", "generate", "akademik", "absensiguru", "silabusguru", "kedisiplinan_bpbk", "riwayat_prestasi"]);
-    const kepsekTabs = new Set([
-      "dashboard","generate","akademik","kalender","kalender_akademik",
-      "absensi","jurnal_harian","catatan_walikelas","modul_ajar","walas_report",
-      "pesan","kedisiplinan_piket","siswa","guru","kelas","data_pegawai",
-      "pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan",
-      "pkl_administrasi","pkl_jurnal","pkl_laporan",
-      "kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi",
-      "laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa"
-    ]);
-    const wakaDivision = (currentUser?.division || WAKA_DIVISION_OPTIONS[0].value).toLowerCase();
-    const wakaTabsByDivision = {
-      kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules"],
-      kesiswaan: ["dashboard","absensi","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","laporan_absensi","hikvision_report_siswa","siswa"],
-      sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
-      humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
-      hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
-    };
-    const wakaTabs = new Set(wakaTabsByDivision[wakaDivision] || wakaTabsByDivision.kurikulum);
     const role = normalizeUserRole(currentUser?.role);
     if (role === "admin" || role === "superadmin") return;
     if (!databaseHydrated) return;
@@ -2137,7 +2118,9 @@ export default function App() {
       sessionStorage.removeItem("skip_default_pw_modal");
       sessionStorage.removeItem("last_prompted_pw_user");
       localStorage.removeItem("skip_default_pw_modal");
-    } catch {}
+    } catch (err) {
+      console.debug?.("Storage cleanup error:", err);
+    }
     writeSessionUser(null);
     setCurrentUser(null);
     setUsername("");
@@ -2536,7 +2519,6 @@ export default function App() {
     scheduleGenerationMode,
     setScheduleGenerationMode,
     manualSlotModal,
-    setManualSlotModal,
     openManualSlotModal,
     closeManualSlotModal,
     saveManualSlot,
@@ -3538,7 +3520,8 @@ export default function App() {
 
 
 
-    openModal: typeof openModal !== "undefined" ? openModal : undefined,
+
+
 
 
 
@@ -3936,8 +3919,7 @@ export default function App() {
       uiTheme={uiTheme} loginBrandTitle={loginBrandTitle}
     />;
   }
-  const activeTabLabel = activeTab === "kedisiplinan_piket" ? "Piket & Pelanggaran" : activeTab === "pengaturanuser" ? "Pengaturan User" : activeTab === "absensiguru" ? "Absen KBM (GPS)" : activeTab === "silabusguru" ? "Modul Ajar Saya" : activeTab === "silabus" ? "Modul Ajar" : activeTab === "modul_ajar" ? "Modul Ajar" : activeTab === "pkl_dashboard" ? "Dashboard PKL" : activeTab === "pkl_data_siswa" ? "Data Siswa PKL" : activeTab === "pkl_data_perusahaan" ? "Data Perusahaan" : activeTab === "pkl_administrasi" ? "Administrasi PKL" : activeTab === "pkl_jurnal" ? "Jurnal Siswa" : activeTab === "pkl_laporan" ? "Laporan PKL" : activeTab === "pkl_absensi_setting" ? "Pengaturan Absensi PKL" : activeTab === "laporan_absensi" ? "Semua Laporan Absensi" : activeTab.replace(/_/g, " ");
-  const sidebarSummary = tabSubtitles[activeTab] || "Manage data, records, and system configuration.";
+
   const activeUserDivision = activeUserRole === "waka" ? (currentUser?.division || WAKA_DIVISION_OPTIONS[0].value).toLowerCase() : "";
   const baseRoleLabel = isSuperAdminRole(activeUserRole) ? "Admin Utama" : activeUserRole === "kepsek" ? "Kepala Sekolah" : activeUserRole === "waka" ? getWakaDivisionOption(activeUserDivision, appSettings).label : activeUserRole === "karyawan" ? "Karyawan" : activeUserRole === "tu" ? "Tata Usaha" : "Guru";
   const walasSuffix = (currentUser?.isWalas || currentUser?.walasClass) ? ` • Walas ${currentUser?.walasClass || ''}`.trimEnd() : '';

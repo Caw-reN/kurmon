@@ -1,7 +1,5 @@
-import { Button } from '../components/ui.jsx';
-
-import { LayoutTemplate, Settings } from'lucide-react';
-;
+import { Button } from './ui.jsx';
+import { LayoutTemplate, Settings } from 'lucide-react';
 
 
 export const WorkspaceGuidePanel = ({ guide, onManage }) => {

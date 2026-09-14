@@ -11,9 +11,9 @@ export function LegacyScheduleTable({
   const schedule = getSchedule();
   const days = getDays();
   const timeSlots = getTimeSlots();
-  const teachers = (typeof getTeachers === 'function' ? getTeachers() : []) || [];
 
   const teacherMap = React.useMemo(() => {
+    const teachers = (typeof getTeachers === 'function' ? getTeachers() : []) || [];
     const map = new Map();
     teachers.forEach(t => {
       const name = t.name || t.nama;
@@ -23,7 +23,8 @@ export function LegacyScheduleTable({
       map.set(String(name).trim().toLowerCase(), name);
     });
     return map;
-  }, [teachers]);
+  }, [getTeachers]);
+
 
   const getTeacherName = (codeOrId) => {
     if (!codeOrId) return '';

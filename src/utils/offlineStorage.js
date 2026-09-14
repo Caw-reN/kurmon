@@ -177,10 +177,14 @@ export const clearOfflineSnapshot = async () => {
         resolve(false);
       };
     });
-  } catch {}
+  } catch (err) {
+    console.debug?.("Error during indexedDB storage clear:", err);
+  }
 
   try {
     localStorage.removeItem(LEGACY_STORAGE_KEY);
     localStorage.removeItem(BRANDING_CACHE_KEY);
-  } catch {}
+  } catch (err) {
+    console.debug?.("Error clearing legacy localStorage keys:", err);
+  }
 };

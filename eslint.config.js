@@ -33,6 +33,8 @@ export default defineConfig([
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^[A-Z_]', args: 'after-used', argsIgnorePattern: '^[A-Z_]' }],
       'no-undef': 'error',
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-uses-react': 'error',
       'react/jsx-no-undef': 'error',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/immutability': 'off',
