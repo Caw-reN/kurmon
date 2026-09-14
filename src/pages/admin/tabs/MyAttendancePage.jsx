@@ -28,7 +28,7 @@ function getStatusStyle(dayData) {
     return                         { bg:'bg-emerald-100',text:'text-emerald-700',border:'border-emerald-200',label:'Hadir',     dot:'bg-emerald-500' };
   }
   if (dayData.out) {
-    return { bg:'bg-amber-100', text:'text-amber-800', border:'border-amber-300', label:'Tanpa Masuk', dot:'bg-amber-500' };
+    return { bg:'bg-orange-50', text:'text-orange-900', border:'border-orange-300', label:'Tdk Absen Pagi', dot:'bg-orange-500' };
   }
   return null;
 }
@@ -36,7 +36,7 @@ function getStatusStyle(dayData) {
 const LEGEND = [
   { dot:'bg-emerald-500', label:'Hadir' },
   { dot:'bg-amber-500',   label:'Terlambat' },
-  { dot:'bg-amber-500',   label:'Tanpa Masuk' },
+  { dot:'bg-orange-500',  label:'Tdk Absen Pagi' },
   { dot:'bg-indigo-500',  label:'Izin' },
   { dot:'bg-yellow-500',  label:'Sakit' },
   { dot:'bg-purple-500',  label:'Dinas Luar' },
@@ -749,9 +749,16 @@ export default function MyAttendancePage({ setActiveTab }) {
                   <div className="flex flex-col items-center w-full px-0 sm:px-1">
                     <div className="flex items-center gap-0.5 w-full justify-center">
                       <span className={`hidden sm:inline text-[7px] font-black ${style?.text || 'text-emerald-500'}`}>↑</span>
-                      <span className={`text-[8px] font-black tracking-tighter ${!showIn ? 'text-amber-700 font-extrabold' : (style?.text || 'text-emerald-700')}`}>
-                        {showIn ? fmt5(dayData.in) : '--:--'}
-                      </span>
+                      {!showIn ? (
+                        <span className="text-[7.5px] font-extrabold text-rose-600 flex items-center justify-center gap-0.5 leading-none">
+                          <span className="text-[6.5px]">❌</span>
+                          <span>Tdk Absen</span>
+                        </span>
+                      ) : (
+                        <span className={`text-[8px] font-black tracking-tighter ${style?.text || 'text-emerald-700'}`}>
+                          {fmt5(dayData.in)}
+                        </span>
+                      )}
                     </div>
                     {showOut && (
                       <div className="flex items-center gap-0.5 w-full justify-center">
@@ -760,8 +767,8 @@ export default function MyAttendancePage({ setActiveTab }) {
                       </div>
                     )}
                     {!showIn && showOut && (
-                      <span className="text-[7.5px] font-black uppercase tracking-tight text-amber-800 bg-amber-200/90 px-1 py-0.2 rounded-[var(--ui-radius-small)] mt-0.5 border border-amber-300">
-                        Tanpa Masuk
+                      <span className="text-[7px] font-black uppercase tracking-tight text-white bg-orange-500 px-1 py-0.2 rounded-[var(--ui-radius-small)] mt-0.5 border border-orange-600 shadow-2xs">
+                        TDK ABSEN PAGI
                       </span>
                     )}
                   </div>

@@ -358,8 +358,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const outTime = formatAttendanceTime(dayData.out);
     if (!inTime && Boolean(outTime)) {
       return {
-        className: "bg-amber-100 text-amber-900 font-bold border border-amber-300 shadow-xs",
-        style: { color: "#78350f" }
+        className: "bg-orange-50/90 text-orange-950 font-bold border-2 border-orange-300 shadow-xs",
+        style: { color: "#7c2d12" }
       };
     }
     return {
@@ -1751,8 +1751,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           <div className="flex items-center gap-2 shrink-0">
                             {dailyDetailModal === 'present' && (
                               (!dayData.in && dayData.out) ? (
-                                <span className="px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs bg-amber-50 text-amber-800 border-amber-300">
-                                  Tanpa Masuk (Plg {formatAttendanceTime(dayData.out) || '--:--'})
+                                <span className="px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs bg-orange-50 text-orange-900 border-orange-300">
+                                  Tdk Absen Pagi (Plg {formatAttendanceTime(dayData.out) || '--:--'})
                                 </span>
                               ) : (
                                 <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
@@ -2178,7 +2178,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Tanpa Masuk</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> Tdk Absen Pagi</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span> PraPKL</span>
@@ -2304,17 +2304,24 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                      const isMissingIn = !inTime && Boolean(outTime);
 
                                      const titleAttr = isMissingIn 
-                                       ? (noteText ? `Catatan: ${noteText} (Tidak Absen Masuk - Hanya Pulang: ${outTime})` : `Tidak Absen Masuk (Hanya Tap Pulang: ${outTime})`)
+                                       ? (noteText ? `Catatan: ${noteText} (Tidak Absen Pagi - Hanya Pulang: ${outTime})` : `Tidak Absen Pagi (Hanya Tap Pulang: ${outTime})`)
                                        : (noteText ? `Catatan: ${noteText}` : undefined);
 
                                      return (
                                        <div title={titleAttr}>
-                                         <div>{inTime || '--:--'}</div>
-                                         <div className="border-t border-black/10 my-0.5"></div>
-                                         <div>{outTime || '--:--'}</div>
+                                         {isMissingIn ? (
+                                           <div className="text-rose-600 font-extrabold flex items-center justify-center gap-0.5 text-[8px] py-0.5 leading-none">
+                                             <span className="text-[7.5px]">❌</span>
+                                             <span className="tracking-tight">Tdk Absen</span>
+                                           </div>
+                                         ) : (
+                                           <div>{inTime || '--:--'}</div>
+                                         )}
+                                         <div className={`border-t my-0.5 ${isMissingIn ? 'border-orange-300' : 'border-black/10'}`}></div>
+                                         <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
                                          {isMissingIn && (
-                                           <div className="text-[7.5px] font-black uppercase tracking-tight text-amber-900 bg-amber-200/90 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-amber-300 inline-block shadow-2xs">
-                                             Tanpa Masuk
+                                           <div className="text-[7px] font-black uppercase tracking-tight text-white bg-orange-500 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-orange-600 inline-block shadow-2xs">
+                                             TDK ABSEN PAGI
                                            </div>
                                          )}
                                        </div>
@@ -2460,16 +2467,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
              
              <form onSubmit={handleCellSubmit} className="p-4 space-y-4">
                {selectedCell?.isMissingIn && (
-                 <div className="bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-amber-900 text-xs shadow-xs">
-                   <AlertTriangle size={15} className="shrink-0 mt-0.5 text-amber-600" />
-                   <div>
-                     <p className="font-black text-amber-800">Catatan: Tidak Ada Absen Masuk</p>
-                     <p className="text-[11px] text-amber-700 mt-0.5">
-                       Siswa tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa melakukan scan masuk pagi.
-                     </p>
-                   </div>
-                 </div>
-               )}
+                  <div className="bg-orange-50 border border-orange-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-orange-950 text-xs shadow-xs">
+                    <AlertTriangle size={15} className="shrink-0 mt-0.5 text-orange-600" />
+                    <div>
+                      <p className="font-black text-orange-900">Catatan: Tidak Absen Pagi</p>
+                      <p className="text-[11px] text-orange-800 mt-0.5">
+                        Siswa tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa melakukan scan masuk pagi.
+                      </p>
+                    </div>
+                  </div>
+                )}
                <div>
                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nama Siswa</label>
                  <div className="text-xs font-black text-slate-800">{selectedCell.name} ({selectedCell.nis})</div>
