@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle, UserX, UserCheck, Clock, Edit2 } from 'lucide-react';
+import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle, UserX, UserCheck, Clock, Edit2, Eye, CheckCircle2 } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
@@ -118,6 +118,134 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
     return list.reverse();
   }, [viewMode, selectedWeek, daysInMonth, filter.month, filter.year]);
+
+  const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day, inTime, outTime, isMissingIn }
+  const [permissionForm, setPermissionForm] = useState({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null, gdriveUrl: null, replaceImage: true });
+  const [isSubmittingCell, setIsSubmittingCell] = useState(false);
+  const [showPermissionPreviewModal, setShowPermissionPreviewModal] = useState(false);
+
+  const handleCellClick = (d, dayNum) => {
+    const dayData = d.days?.[dayNum];
+    let pd = dayData?.pending_permission || dayData;
+
+    let initialStatus = "Sakit";
+    let initialKet = "";
+    let initialUrl = null;
+
+    if (pd && (["Sakit", "Izin", "Dinas Luar", "Alpa"].includes(pd.status))) {
+        initialStatus = pd.status;
+        initialKet = pd.keterangan || pd.note || "";
+        initialUrl = pd.gdrive_url || pd.gdriveUrl || null;
+    }
+
+    setPermissionForm({ 
+       status: initialStatus, 
+       keterangan: initialKet, 
+       gdriveUrl: initialUrl, 
+       fileData: null, 
+       fileName: null, 
+       fileSizeKB: null,
+       replaceImage: !initialUrl
+    });
+
+    const inTimeVal = formatAttendanceTime(dayData?.in);
+    const outTimeVal = formatAttendanceTime(dayData?.out);
+    setSelectedCell({
+      nis: d.nis,
+      name: d.name,
+      day: dayNum,
+      inTime: inTimeVal,
+      outTime: outTimeVal,
+      isMissingIn: !inTimeVal && Boolean(outTimeVal)
+    });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
+        const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
+        const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
+        const sizeInKB = Math.round(sizeInBytes / 1024);
+
+        setPermissionForm(prev => ({
+          ...prev,
+          fileData: dataUrl,
+          fileName: file.name,
+          fileSizeKB: sizeInKB
+        }));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCellSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedCell) return;
+    setIsSubmittingCell(true);
+    try {
+      const dateStr = `${filter.year}-${String(filter.month).padStart(2,'0')}-${String(selectedCell.day).padStart(2,'0')}`;
+      const res = await fetch("/api/hikvision/manual-attendance", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          personType: "guru",
+          teacherCode: selectedCell.nis,
+          startDate: dateStr,
+          endDate: dateStr,
+          status: permissionForm.status,
+          note: permissionForm.keterangan,
+          fileData: permissionForm.fileData,
+          gdrive_url: permissionForm.gdriveUrl
+        })
+      });
+      const json = await res.json();
+      if (json.ok) {
+        showToast(`Berhasil menyimpan perizinan ${permissionForm.status} untuk ${selectedCell.name}.`);
+        setSelectedCell(null);
+        setPermissionForm({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null, gdriveUrl: null, replaceImage: true });
+        fetchData();
+      } else {
+        showToast(json.error || "Gagal menyimpan pengajuan.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan.", "error");
+    }
+    setIsSubmittingCell(false);
+  };
 
   const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -1707,13 +1835,21 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                          <td className="px-3 py-3 text-center font-black text-amber-700 border-r border-slate-100">{d.total_sakit}</td>
                          <td className="px-3 py-3 text-center font-black text-slate-800 border-r border-slate-100">{d.total_alpa}</td>
                          {daysToRender.map((dayNum) => {
-                            const dayData = d.days[dayNum];
-                            return (
-                               <td key={dayNum} className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px]">
-                                  {getDayBadge(dayData)}
-                               </td>
-                            );
-                         })}
+                             const dayData = d.days[dayNum];
+                             return (
+                                <td 
+                                  key={dayNum} 
+                                  onClick={() => handleCellClick(d, dayNum)}
+                                  className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px] cursor-pointer hover:bg-slate-50 transition-colors relative"
+                                  title="Klik untuk input/edit surat izin atau sakit"
+                                >
+                                   {dayData?.pending_permission && (
+                                     <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
+                                   )}
+                                   {getDayBadge(dayData)}
+                                </td>
+                             );
+                          })}
                       </tr>
                     );
                   })
@@ -2321,6 +2457,147 @@ export default function HikvisionTeacherReport({ isNested = false }) {
            </div>
          </div>
        )}
+
+      {/* MODAL INPUT / EDIT SURAT IZIN / SAKIT GURU */}
+      <Modal 
+        isOpen={Boolean(selectedCell)} 
+        onClose={() => setSelectedCell(null)}
+        title="Input Surat Izin / Sakit Guru"
+      >
+        {selectedCell && (
+          <div className="p-4 space-y-4">
+            <form onSubmit={handleCellSubmit} className="space-y-4">
+              {selectedCell?.isMissingIn && (
+                <div className="bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-amber-950 text-xs shadow-xs">
+                  <AlertTriangle size={15} className="shrink-0 mt-0.5 text-amber-600" />
+                  <div>
+                    <p className="font-black text-amber-900">Catatan: Tidak Absen Pagi</p>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      Guru tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa scan masuk pagi.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nama Guru</label>
+                <div className="text-xs font-black text-slate-800">{selectedCell.name} ({selectedCell.nis})</div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Tanggal</label>
+                <div className="text-xs font-black text-slate-800">
+                  {String(selectedCell.day).padStart(2,'0')} / {String(filter.month).padStart(2,'0')} / {filter.year}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Status Kehadiran</label>
+                <UISelect
+                  value={permissionForm.status}
+                  onChange={(e) => setPermissionForm({ ...permissionForm, status: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-black focus:outline-[var(--ui-primary)]"
+                >
+                  <option value="Sakit">Sakit</option>
+                  <option value="Izin">Izin</option>
+                  <option value="Dinas Luar">Dinas Luar</option>
+                  <option value="Alpa">Alpa (Tanpa Keterangan)</option>
+                </UISelect>
+              </div>
+
+              {["Sakit", "Izin", "Dinas Luar"].includes(permissionForm.status) && (
+                <div>
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                    Upload Surat / Bukti (Gambar)
+                  </label>
+                  {permissionForm.gdriveUrl && !permissionForm.replaceImage ? (
+                    <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-[var(--ui-radius-small)] text-center space-y-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPermissionPreviewModal(true)} 
+                        className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2"
+                      >
+                        <Eye size={14} /> Lihat Surat / Foto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPermissionForm(prev => ({ ...prev, replaceImage: true }))}
+                        className="text-[10px] text-slate-500 hover:text-slate-800 underline font-semibold"
+                      >
+                        Ganti Foto Surat
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="w-full bg-slate-50 border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-semibold"
+                      />
+                      {permissionForm.fileData && (
+                        <div className="inline-flex items-center gap-1 text-[9px] text-emerald-600 font-bold mt-1">
+                          <CheckCircle2 size={11} className="shrink-0 text-emerald-600" />
+                          <span>Gambar siap diupload ({permissionForm.fileSizeKB} KB)</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Keterangan / Alasan</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={permissionForm.keterangan}
+                  onChange={(e) => setPermissionForm({ ...permissionForm, keterangan: e.target.value })}
+                  placeholder="Tulis alasan izin/sakit guru di sini..."
+                  className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => setSelectedCell(null)}
+                  disabled={isSubmittingCell}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmittingCell}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                >
+                  {isSubmittingCell ? "Menyimpan..." : "Simpan Perizinan"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+      </Modal>
+
+      {/* PREVIEW MODAL DOKUMEN / FOTO */}
+      <Modal
+        isOpen={showPermissionPreviewModal}
+        onClose={() => setShowPermissionPreviewModal(false)}
+        title="Dokumen Surat Izin / Sakit"
+      >
+        <div className="p-4 flex flex-col items-center justify-center">
+          {permissionForm.gdriveUrl ? (
+            <img 
+              src={permissionForm.gdriveUrl} 
+              alt="Surat Izin/Sakit" 
+              className="max-w-full max-h-[70vh] rounded-[var(--ui-radius-small)] object-contain border border-slate-200 shadow-sm"
+            />
+          ) : (
+            <p className="text-xs text-slate-500">Tidak ada gambar yang ditampilkan</p>
+          )}
+        </div>
+      </Modal>
+
       {toast && (
         <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
           {toast.message}
