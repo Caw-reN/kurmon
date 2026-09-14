@@ -12,6 +12,7 @@ const ProfilSiswa = () => {
   const schoolName = appSettings.kopSuratBaris1 || 'SMK';
   const schoolLogo = appSettings.kopSuratLogo || appSettings.logoUrl || null;
 
+  const [studentProfile, setStudentProfile] = useState(null);
   const [pklData, setPklData] = useState(null);
   const [perusahaan, setPerusahaan] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,18 +23,18 @@ const ProfilSiswa = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const authToken = user?.authToken;
-  const nama = user?.name || user?.username || 'Siswa';
-  const nis = user?.username || user?.nis || '-';
-  const kelas = user?.kelas || user?.class_name || user?.class || '-';
-  const initials = nama.substring(0, 2).toUpperCase();
 
   useEffect(() => {
     if (!authToken) { setLoading(false); return; }
     setLoading(true);
     Promise.all([
-      fetch('/api/monitoring/pkl-students', { headers: { 'Authorization': 'Bearer ' + authToken } }).then(r => r.json()),
-      fetch('/api/monitoring/lokasi-pkl/public').then(r => r.json()),
-    ]).then(([studentsRes, lokasiRes]) => {
+      fetch('/api/student/profile', { headers: { 'Authorization': 'Bearer ' + authToken } }).then(r => r.json()).catch(() => ({})),
+      fetch('/api/monitoring/pkl-students', { headers: { 'Authorization': 'Bearer ' + authToken } }).then(r => r.json()).catch(() => ({})),
+      fetch('/api/monitoring/lokasi-pkl/public').then(r => r.json()).catch(() => ({})),
+    ]).then(([profileRes, studentsRes, lokasiRes]) => {
+      if (profileRes.ok && profileRes.data) {
+        setStudentProfile(profileRes.data);
+      }
       if (studentsRes.ok && Array.isArray(studentsRes.data)) {
         const myRecord = studentsRes.data.find(s => s.nis === user?.username || s.nis === user?.nis);
         setPklData(myRecord || null);
@@ -44,6 +45,17 @@ const ProfilSiswa = () => {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [authToken, user]);
+
+  const currentStudent = studentProfile || user || {};
+
+  const nama = currentStudent.name || currentStudent.nama || currentStudent.namaSiswa || user?.name || user?.username || 'Siswa';
+  const nis = currentStudent.nis || currentStudent.username || user?.username || user?.nis || '-';
+  const nisn = currentStudent.nisn || user?.nisn || '-';
+  const ttl = currentStudent.ttl || user?.ttl || '-';
+  const kelas = currentStudent.class_name || currentStudent.kelas || user?.class_name || user?.kelas || '-';
+  const jurusan = currentStudent.jurusan || currentStudent.major || user?.jurusan || user?.major || '-';
+  const photoUrl = currentStudent.photo || currentStudent.foto || pklData?.photo_url || user?.photo || user?.foto || null;
+  const initials = nama.substring(0, 2).toUpperCase();
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -64,8 +76,6 @@ const ProfilSiswa = () => {
     setSubmitting(false);
   };
 
-  const photoUrl = pklData?.photo_url || pklData?.photo || null;
-  const jurusan = pklData?.major || pklData?.jurusan || user?.jurusan || user?.major || '-';
   const pembimbing = pklData?.teacher_code || pklData?.teacher_name || 'Belum Ditugaskan';
   const statusPKL = pklData?.status || 'Siswa Aktif';
   const isAktif = pklData?.status && pklData.status !== 'Belum Aktif';
@@ -123,15 +133,17 @@ const ProfilSiswa = () => {
         <div className="ui-card overflow-hidden">
           <div className="px-5 py-4 border-b border-[var(--ui-border-muted)] bg-slate-50/50 flex items-center gap-2">
             <User size={16} className="text-slate-500" />
-            <h3 className="font-black text-sm text-slate-800 uppercase tracking-wider">Identitas Akun</h3>
+            <h3 className="font-black text-sm text-slate-800 uppercase tracking-wider">Identitas Siswa Terverifikasi</h3>
           </div>
           <div className="divide-y divide-slate-100">
             {[
-              { label: 'NIS / NISN', value: nis, Icon: Shield, color: 'text-indigo-500', bg: 'bg-indigo-50 border-indigo-200' },
+              { label: 'NIS / Nomor Induk', value: nis, Icon: Shield, color: 'text-indigo-500', bg: 'bg-indigo-50 border-indigo-200' },
+              { label: 'NISN', value: nisn, Icon: Shield, color: 'text-sky-500', bg: 'bg-sky-50 border-sky-200' },
               { label: 'Nama Lengkap', value: nama, Icon: User, color: 'text-slate-500', bg: 'bg-slate-100 border-slate-200' },
+              { label: 'Tempat, Tanggal Lahir', value: ttl, Icon: BookOpen, color: 'text-amber-500', bg: 'bg-amber-50 border-amber-200' },
               { label: 'Kelas', value: kelas, Icon: GraduationCap, color: 'text-cyan-500', bg: 'bg-cyan-50 border-cyan-200' },
               { label: 'Jurusan', value: jurusan, Icon: BookOpen, color: 'text-purple-500', bg: 'bg-purple-50 border-purple-200' },
-              { label: 'Status Akun', value: statusPKL, Icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50 border-emerald-200' },
+              { label: 'Status Siswa', value: statusPKL, Icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50 border-emerald-200' },
             ].map(({ label, value, Icon, color, bg }) => (
               <div key={label} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/60 transition-colors">
                 <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] ${bg} border flex items-center justify-center shrink-0`}>

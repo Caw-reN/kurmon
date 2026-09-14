@@ -264,5 +264,86 @@ export async function handleStudentRoutes(req, res, url, ctx) {
     return true;
   }
 
+  // Handle getting single student profile (for logged-in student or admin lookup)
+  if ((url.pathname === '/api/student/profile' || url.pathname === '/api/students/me') && req.method === 'GET') {
+    const session = requireAuthenticated(req, res);
+    if (!session) return true;
+
+    try {
+      const paramNis = url.searchParams.get('nis');
+      // Siswa hanya boleh akses profilnya sendiri, admin/guru/tu boleh akses student manapun lewat ?nis=
+      const sessionRole = normalizeServerRole(session.role);
+      let targetNis = '';
+      if (paramNis && ['admin', 'superadmin', 'guru', 'tu', 'bk'].includes(sessionRole)) {
+        targetNis = String(paramNis).trim();
+      } else {
+        targetNis = String(session.username || session.id || '').trim();
+      }
+
+      if (!targetNis) {
+        send(req, res, 400, { ok: false, error: 'NIS tidak valid dalam sesi login' });
+        return true;
+      }
+
+      // Query dari mst_students
+      const studentRes = await dbPool.query(
+        "SELECT payload FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1 OR payload->>'code' = $1",
+        [targetNis, targetNis.toLowerCase()]
+      );
+
+      let studentData = null;
+      if (studentRes.rows.length > 0) {
+        const raw = studentRes.rows[0].payload;
+        studentData = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } else {
+        // Fallback: cari di app_data main_store
+        try {
+          const { rows: storeRows } = await dbPool.query(
+            "SELECT (data::json)->'students' as students FROM app_data WHERE store_key = 'main_store'"
+          );
+          const storeStudents = (storeRows.length > 0 && Array.isArray(storeRows[0].students)) ? storeRows[0].students : [];
+          studentData = storeStudents.find(s => String(s.nis).trim().toLowerCase() === targetNis.toLowerCase());
+        } catch {}
+      }
+
+      if (!studentData) {
+        send(req, res, 404, { ok: false, error: 'Data siswa tidak ditemukan di master data' });
+        return true;
+      }
+
+      // Hapus password
+      if (studentData.password) delete studentData.password;
+
+      // Pastikan token kartu terisi
+      if (studentData.nis && !studentData.card_token) {
+        try {
+          studentData.card_token = generateStudentCardToken(studentData.nis);
+        } catch {}
+      }
+
+      // Sertakan data PKL jika ada
+      try {
+        const pklRes = await dbPool.query(
+          `SELECT p.*, loc.nama_perusahaan as company_name, loc.alamat as company_address,
+                  COALESCE(t.payload->>'name', t.payload->>'nama', '') as teacher_name
+           FROM pkl_students p
+           LEFT JOIN pkl_locations loc ON p.location_id = loc.id
+           LEFT JOIN mst_teachers t ON (p.teacher_code = t.id OR p.teacher_code = t.payload->>'code')
+           WHERE p.nis = $1`,
+          [targetNis]
+        );
+        if (pklRes.rows.length > 0) {
+          studentData.pkl = pklRes.rows[0];
+        }
+      } catch {}
+
+      send(req, res, 200, { ok: true, data: studentData });
+    } catch (err) {
+      console.error('Failed to get student profile:', err);
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
   return false;
 }

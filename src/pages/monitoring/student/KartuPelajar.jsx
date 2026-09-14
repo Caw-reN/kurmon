@@ -55,16 +55,26 @@ const KartuPelajarSiswa = () => {
   const [customReason, setCustomReason] = useState('');
   const [toast, setToast] = useState(null);
 
+  // Live Synchronized Student Master Data State
+  const [studentProfile, setStudentProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
   const todayDate = new Date();
   const hari = todayDate.toLocaleDateString('id-ID', { weekday: 'long' });
   const tanggal = todayDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   const dateFormatted = `${hari}, ${tanggal}`;
 
-  const studentName = user?.name || user?.nama || user?.username || 'ADAM PUTRA SETIAWAN';
-  const studentNis = user?.username || user?.nis || '242510001';
-  const studentNisn = user?.nisn || '0058291048';
-  const studentClass = user?.class_name || user?.kelas || 'XII TKR 1';
-  const studentPhoto = user?.photo || user?.avatar || null;
+  // Priority: live master data -> session user -> fallback kosong
+  const currentStudent = studentProfile || user || {};
+
+  const studentName = currentStudent.name || currentStudent.nama || currentStudent.namaSiswa || user?.name || user?.username || 'Siswa';
+  const studentNis = currentStudent.nis || currentStudent.username || user?.username || user?.nis || '-';
+  const studentNisn = currentStudent.nisn || user?.nisn || '-';
+  const studentClass = currentStudent.class_name || currentStudent.kelas || user?.class_name || user?.kelas || '-';
+  const studentMajor = currentStudent.jurusan || currentStudent.major || user?.jurusan || user?.major || '-';
+  const studentPhoto = currentStudent.photo || currentStudent.foto || user?.photo || user?.foto || null;
+  const studentTtl = currentStudent.ttl || user?.ttl || '-';
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -105,6 +115,22 @@ const KartuPelajarSiswa = () => {
         }
       })
       .catch(() => {});
+
+    // Fetch Live Master Student Profile from mst_students
+    if (token) {
+      setLoadingProfile(true);
+      fetch('/api/student/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok && res.data) {
+            setStudentProfile(res.data);
+          }
+        })
+        .catch(err => console.warn('Gagal sinkron profil siswa:', err))
+        .finally(() => setLoadingProfile(false));
+    }
   }, [appSettings]);
 
   // Fetch Card Requests History
@@ -189,6 +215,48 @@ const KartuPelajarSiswa = () => {
     window.print();
   };
 
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPdf(true);
+    showToast('Menyiapkan file PDF kartu pelajar...', 'info');
+    try {
+      const cardElement = cardRef.current || document.querySelector('.student-card-wrapper');
+      if (!cardElement) throw new Error('Elemen kartu belum selesai dirender');
+
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
+
+      const width = cardElement.offsetWidth || 320;
+      const height = cardElement.offsetHeight || 200;
+
+      const canvas = await html2canvas(cardElement, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: null
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: width > height ? 'landscape' : 'portrait',
+        unit: 'pt',
+        format: [width, height]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+      const safeNis = (studentNis || 'siswa').replace(/[^a-zA-Z0-9]/g, '_');
+      pdf.save(`Kartu_Pelajar_${safeNis}_${cardSide}.pdf`);
+      showToast('✅ Kartu PDF berhasil diunduh!');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memproses PDF kartu: ' + (err.message || 'Kesalahan sistem'), 'error');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const studentObjectForCard = {
     nis: studentNis,
     name: studentName,
@@ -196,8 +264,11 @@ const KartuPelajarSiswa = () => {
     kelas: studentClass,
     class_name: studentClass,
     photo: studentPhoto,
-    ttl: user?.ttl || '-',
-    jurusan: user?.major || user?.jurusan || studentClass
+    foto: studentPhoto,
+    ttl: studentTtl,
+    jurusan: studentMajor,
+    major: studentMajor,
+    card_token: currentStudent.card_token || user?.card_token
   };
 
   const schoolNameDisplay = schoolData.nama_sekolah || appSettings.schoolName || appSettings.namaSekolah || 'SMK MONITORING';
@@ -319,12 +390,12 @@ const KartuPelajarSiswa = () => {
               side={cardSide}
             />
 
-            {/* Quick Card Flip & Print Controls */}
-            <div className="flex items-center gap-3 mt-6">
+            {/* Quick Card Flip, Download PDF & Print Controls */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5 mt-6">
               <button
                 type="button"
                 onClick={() => setCardSide(prev => prev === 'front' ? 'back' : 'front')}
-                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold border border-slate-200 shadow-xs flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2 rounded-[var(--ui-radius-control,16px)] bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold border border-slate-200 shadow-xs flex items-center gap-2 cursor-pointer transition-all active:scale-98"
               >
                 <ArrowLeftRight size={14} />
                 <span>Putar Kartu ({cardSide === 'front' ? 'Ke Sisi Belakang' : 'Ke Sisi Depan'})</span>
@@ -332,11 +403,21 @@ const KartuPelajarSiswa = () => {
 
               <button
                 type="button"
+                onClick={handleDownloadPDF}
+                disabled={isDownloadingPdf}
+                className="px-3.5 py-2 rounded-[var(--ui-radius-control,16px)] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs flex items-center gap-2 cursor-pointer transition-all active:scale-98 disabled:opacity-50"
+              >
+                <Download size={14} />
+                <span>{isDownloadingPdf ? 'Mengunduh...' : 'Download PDF'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handlePrintCard}
-                className="px-4 py-2 rounded-[var(--ui-radius-control,16px)] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-200 shadow-xs flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2 rounded-[var(--ui-radius-control,16px)] bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold shadow-xs flex items-center gap-2 cursor-pointer transition-all active:scale-98"
               >
                 <Printer size={14} />
-                <span>Cetak Pratinjau PDF</span>
+                <span>Cetak Fisik</span>
               </button>
             </div>
 
@@ -354,23 +435,31 @@ const KartuPelajarSiswa = () => {
             </h3>
 
             <div className="divide-y divide-slate-100 text-xs">
-              <div className="py-2 flex justify-between">
+              <div className="py-2 flex justify-between items-center">
                 <span className="text-slate-400 font-semibold">Nama Lengkap</span>
-                <span className="font-black text-slate-900 text-right">{studentName}</span>
+                <span className="font-black text-slate-900 text-right uppercase">{studentName}</span>
               </div>
-              <div className="py-2 flex justify-between">
+              <div className="py-2 flex justify-between items-center">
                 <span className="text-slate-400 font-semibold">NIS / Nomor Induk</span>
-                <span className="font-extrabold text-slate-800">{studentNis}</span>
+                <span className="font-extrabold text-slate-800 font-mono">{studentNis}</span>
               </div>
-              <div className="py-2 flex justify-between">
+              <div className="py-2 flex justify-between items-center">
                 <span className="text-slate-400 font-semibold">NISN</span>
-                <span className="font-extrabold text-slate-800">{studentNisn}</span>
+                <span className="font-extrabold text-slate-800 font-mono">{studentNisn}</span>
               </div>
-              <div className="py-2 flex justify-between">
+              <div className="py-2 flex justify-between items-center">
+                <span className="text-slate-400 font-semibold">Tempat, Tgl Lahir</span>
+                <span className="font-extrabold text-slate-800">{studentTtl}</span>
+              </div>
+              <div className="py-2 flex justify-between items-center">
                 <span className="text-slate-400 font-semibold">Kelas</span>
                 <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
                   {studentClass}
                 </span>
+              </div>
+              <div className="py-2 flex justify-between items-center">
+                <span className="text-slate-400 font-semibold">Jurusan</span>
+                <span className="font-extrabold text-slate-800 text-right">{studentMajor}</span>
               </div>
             </div>
           </div>
@@ -493,6 +582,15 @@ const KartuPelajarSiswa = () => {
           </div>
         </div>
       )}
+
+      {/* Print Media Query CSS */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          .student-card-wrapper, .student-card-wrapper * { visibility: visible !important; }
+          .student-card-wrapper { position: fixed; top: 20px; left: 20px; z-index: 999999 !important; }
+        }
+      `}</style>
 
     </div>
   );

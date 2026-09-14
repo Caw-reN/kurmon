@@ -467,7 +467,44 @@ export async function handleAuthRoutes(req, res, url, ctx) {
                 } catch (e) {}
               }
             }
-            send(req, res, 200, { ok: true, user: { role, id: dbUser.id, name: dbUser.name, username: dbUser.username, isDefaultPassword, hasChangedPassword, authToken: token } });
+            let studentDetail = {};
+            if (role === 'siswa') {
+              try {
+                const sRow = await dbPool.query(
+                  "SELECT payload FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1",
+                  [dbUser.username, dbUser.username.toLowerCase()]
+                );
+                if (sRow.rows.length > 0) {
+                  const p = typeof sRow.rows[0].payload === 'string' ? JSON.parse(sRow.rows[0].payload) : sRow.rows[0].payload;
+                  studentDetail = p || {};
+                }
+              } catch (e) {}
+            }
+            send(req, res, 200, { 
+              ok: true, 
+              user: { 
+                role, 
+                id: dbUser.id, 
+                nis: dbUser.username,
+                name: studentDetail.name || studentDetail.nama || dbUser.name, 
+                nama: studentDetail.nama || studentDetail.name || dbUser.name,
+                namaSiswa: studentDetail.name || studentDetail.nama || dbUser.name,
+                username: dbUser.username, 
+                class_name: studentDetail.class_name || studentDetail.kelas || "",
+                kelas: studentDetail.kelas || studentDetail.class_name || "",
+                jurusan: studentDetail.jurusan || studentDetail.major || "",
+                major: studentDetail.major || studentDetail.jurusan || "",
+                photo: studentDetail.photo || studentDetail.foto || "",
+                foto: studentDetail.foto || studentDetail.photo || "",
+                ttl: studentDetail.ttl || "",
+                nisn: studentDetail.nisn || "",
+                gender: studentDetail.gender || "",
+                card_token: studentDetail.card_token || "",
+                isDefaultPassword, 
+                hasChangedPassword, 
+                authToken: token 
+              } 
+            });
             return true;
           }
         }
@@ -540,15 +577,40 @@ export async function handleAuthRoutes(req, res, url, ctx) {
                 } catch (e) {}
               }
             }
+
+            // Ambil data terbaru langsung dari database mst_students
+            let latestStudent = { ...student };
+            try {
+              const freshRes = await dbPool.query(
+                "SELECT payload FROM mst_students WHERE id = $1 OR payload->>'nis' = $1",
+                [String(student.nis)]
+              );
+              if (freshRes.rows.length > 0) {
+                const fp = typeof freshRes.rows[0].payload === 'string' ? JSON.parse(freshRes.rows[0].payload) : freshRes.rows[0].payload;
+                Object.assign(latestStudent, fp);
+              }
+            } catch (e) {}
+
             send(req, res, 200, { 
               ok: true, 
               user: { 
                 role: "siswa", 
-                id: student.nis, 
-                name: student.name, 
-                username: student.nis, 
-                class_name: student.class_name, 
-                jurusan: student.jurusan || student.major || "", 
+                id: latestStudent.nis, 
+                nis: latestStudent.nis,
+                name: latestStudent.name || latestStudent.nama || latestStudent.namaSiswa || "", 
+                nama: latestStudent.nama || latestStudent.name || "",
+                namaSiswa: latestStudent.namaSiswa || latestStudent.name || "",
+                username: latestStudent.nis, 
+                class_name: latestStudent.class_name || latestStudent.kelas || "", 
+                kelas: latestStudent.kelas || latestStudent.class_name || "",
+                jurusan: latestStudent.jurusan || latestStudent.major || "", 
+                major: latestStudent.major || latestStudent.jurusan || "",
+                photo: latestStudent.photo || latestStudent.foto || "",
+                foto: latestStudent.foto || latestStudent.photo || "",
+                ttl: latestStudent.ttl || "",
+                nisn: latestStudent.nisn || "",
+                gender: latestStudent.gender || "",
+                card_token: latestStudent.card_token || "",
                 isPklEligible,
                 isDefaultPassword, 
                 hasChangedPassword, 

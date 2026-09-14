@@ -72,11 +72,11 @@ const StudentDashboard = () => {
     { label: 'Riwayat', iconSrc: '/icons/035-graph bar.svg', route: '/student/riwayat', bg: 'bg-amber-50 border-amber-100/80' },
   ];
 
-  const rawName = user?.name || user?.nama || user?.username || 'Adam Putra Setiawan';
-  const firstName = rawName.split(' ')[0];
-  const studentNis = user?.username || user?.nis || '242510001';
-  const studentClass = user?.class_name || user?.kelas || 'XII TKR 1';
-  const studentPhoto = user?.photo || pklData?.photo_url || null;
+  const rawName = user?.name || user?.nama || user?.username || 'Siswa';
+  const firstName = rawName.split(' ')[0] || 'Siswa';
+  const studentNis = user?.username || user?.nis || '-';
+  const studentClass = user?.class_name || user?.kelas || '-';
+  const studentPhoto = user?.photo || user?.foto || pklData?.photo_url || null;
   const initials = rawName.substring(0, 2).toUpperCase();
 
   const pklLocationName = perusahaan?.nama_perusahaan || pklData?.company_name || pklData?.nama_perusahaan || (pklData?.location_id ? `Lokasi PKL #${pklData.location_id}` : 'Belum Diplot Perusahaan');

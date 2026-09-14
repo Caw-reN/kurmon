@@ -32,7 +32,7 @@ const mobileNavItems = [
 ];
 
 const StudentLayout = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, fetchStudentProfile } = useAuthStore();
   const { fetchFiturFromServer, isFiturAktif } = useFiturStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,13 +80,16 @@ const StudentLayout = () => {
 
   useEffect(() => {
     fetchFiturFromServer();
+    if (user?.authToken) {
+      fetchStudentProfile?.();
+    }
 
     const isDefaultPass = user?.mustChangePassword || user?.isDefaultPassword || user?.username === user?.password;
     const promptDismissed = localStorage.getItem(`pass_prompt_dismissed_${user?.username}`);
     if (isDefaultPass && !promptDismissed) {
       setShowPasswordModal(true);
     }
-  }, [fetchFiturFromServer, user]);
+  }, [fetchFiturFromServer, fetchStudentProfile, user?.authToken, user?.mustChangePassword, user?.isDefaultPassword, user?.username, user?.password]);
 
   const handleSetTabbarMode = (mode) => {
     setTabbarMode(mode);
@@ -132,8 +135,8 @@ const StudentLayout = () => {
     }, 800);
   };
 
-  const initials = (user?.name || user?.username || 'AD').substring(0, 2).toUpperCase();
-  const namaDisplay = (user?.name || user?.username || 'ADAM PUTRA SETIAWAN').toUpperCase();
+  const initials = (user?.name || user?.nama || user?.username || 'S').substring(0, 2).toUpperCase();
+  const namaDisplay = (user?.name || user?.nama || user?.username || 'SISWA').toUpperCase();
 
   return (
     <div className="flex h-screen bg-[var(--ui-bg-page,#eef2f7)] overflow-hidden w-full font-sans relative">
@@ -206,8 +209,12 @@ const StudentLayout = () => {
             onClick={() => setShowProfileModal(true)}
             className="flex items-center gap-3 cursor-pointer group hover:bg-slate-100/80 p-1.5 rounded-[var(--ui-radius-small)] transition-colors"
           >
-            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-black text-white shadow-xs shrink-0">
-              {initials}
+            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-black text-white shadow-xs shrink-0 overflow-hidden">
+              {(user?.photo || user?.foto) ? (
+                <img src={user.photo || user.foto} alt="Foto Siswa" className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-slate-800 truncate">{namaDisplay}</p>
@@ -310,8 +317,12 @@ const StudentLayout = () => {
 
             {/* User Card */}
             <div className="p-4 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-slate-50/50 flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-base shadow-xs shrink-0">
-                {initials}
+              <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-base shadow-xs shrink-0 overflow-hidden">
+                {(user?.photo || user?.foto) ? (
+                  <img src={user.photo || user.foto} alt="Foto Siswa" className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-black text-slate-900 text-sm truncate">{namaDisplay}</h3>

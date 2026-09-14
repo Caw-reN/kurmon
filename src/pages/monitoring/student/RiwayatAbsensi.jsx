@@ -33,9 +33,9 @@ const RiwayatAbsensi = () => {
   const tanggal = todayDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   const currentMonth = todayDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
-  const studentName = user?.name || user?.nama || user?.username || 'ADAM PUTRA SETIAWAN';
-  const studentNis = user?.username || user?.nis || '242510001';
-  const studentClass = user?.class_name || user?.kelas || 'XII TKR 1';
+  const studentName = user?.name || user?.nama || user?.username || 'Siswa';
+  const studentNis = user?.username || user?.nis || '-';
+  const studentClass = user?.class_name || user?.kelas || '-';
 
   const fetchAttendanceHistory = useCallback(async () => {
     setLoading(true);

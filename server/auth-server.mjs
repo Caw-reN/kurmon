@@ -2080,6 +2080,9 @@ const server = createServer(async (req, res) => {
             COALESCE(s.payload->>'name', s.payload->>'nama', '') as name,
             COALESCE(s.payload->>'class_name', s.payload->>'kelas', '') as class_name,
             COALESCE(s.payload->>'jurusan', s.payload->>'major', '') as major,
+            COALESCE(s.payload->>'photo', s.payload->>'foto', '') as photo_url,
+            COALESCE(s.payload->>'ttl', '') as ttl,
+            COALESCE(s.payload->>'nisn', '') as nisn,
             loc.nama_perusahaan as company_name,
             COUNT(l.id) FILTER (WHERE l.status = 'approved') as total_hadir,
             0 as total_izin,
@@ -3292,7 +3295,7 @@ const server = createServer(async (req, res) => {
         const handled = await handleDataRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
-    if (url.pathname.startsWith("/api/students")) {
+    if (url.pathname.startsWith("/api/students") || url.pathname.startsWith("/api/student")) {
         const handled = await handleStudentRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }

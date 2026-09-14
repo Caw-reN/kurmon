@@ -334,10 +334,10 @@ const StudentAbsensi = () => {
     return new Date(filter.year, filter.month - 1, 1).getDay();
   }, [filter.year, filter.month]);
 
-  const studentName = user?.name || user?.nama || user?.username || 'Adam Putra Setiawan';
-  const studentNis = user?.username || user?.nis || '242510001';
-  const studentClass = user?.class_name || user?.kelas || 'XII TKR 1';
-  const companyName = pklData?.nama_perusahaan || pklData?.company_name || 'PT. TELKOM INDONESIA - DIVISI DIGITAL';
+  const studentName = user?.name || user?.nama || user?.username || 'Siswa';
+  const studentNis = user?.username || user?.nis || '-';
+  const studentClass = user?.class_name || user?.kelas || '-';
+  const companyName = pklData?.nama_perusahaan || pklData?.company_name || 'Belum Diplot Perusahaan';
 
   return (
     <div className="space-y-6 w-full pb-20 font-sans text-slate-800">
