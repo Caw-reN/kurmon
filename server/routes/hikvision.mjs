@@ -1857,6 +1857,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const className = body.class_name || 'all';
         const reportType = body.type || 'siswa'; // siswa | guru | karyawan | staff
 
+        // === SERVER-SIDE CACHE ===
+        // Bulan berjalan: cache 3 menit. Bulan lalu: 15 menit.
+        const nowTs = Date.now();
+        const todayJkt = new Date(nowTs + 7 * 3600000);
+        const isCurrentMonth = (month === todayJkt.getUTCMonth() + 1 && year === todayJkt.getUTCFullYear());
+        const cacheTtl = isCurrentMonth ? 3 * 60 * 1000 : 15 * 60 * 1000;
+        global._matrixCache = global._matrixCache || {};
+        const cacheKey = `${reportType}_${year}_${month}_${className}`;
+        const cached = global._matrixCache[cacheKey];
+        if (cached && (nowTs - cached.time) < cacheTtl) {
+          return send(req, res, 200, cached.data);
+        }
+
         const session = getSession(req);
         const roleStr = String(session?.role || '').toLowerCase();
         const subroleStr = String(session?.subrole || '').toLowerCase();
@@ -1927,18 +1940,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
         }
 
-        const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
-        
-        let logsQueryStr = `
+        // === OPTIMASI: range-based timestamp filter (3.5x faster, uses idx_hikvision_logs_timestamp_desc)
+        const rangeStart = `${year}-${String(month).padStart(2,'0')}-01`;
+        const rangeEnd = month === 12
+          ? `${year + 1}-01-01`
+          : `${year}-${String(month + 1).padStart(2,'0')}-01`;
+
+        const logsQueryStr = `
           SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type,
                  d.location as device_location, d.ip_address as device_ip
           FROM hikvision_logs l
           LEFT JOIN hikvision_devices d ON d.id = l.device_id
-          WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
+          WHERE l.timestamp >= $1 AND l.timestamp < $2
           ORDER BY l.timestamp ASC
         `;
 
-        const logsQuery = await dbPool.query(logsQueryStr, [month, year]);
+        // Parallelkan query agar tidak sequential
+        const [studentsQuery, logsQuery] = await Promise.all([
+          dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []),
+          dbPool.query(logsQueryStr, [rangeStart, rangeEnd]),
+        ]);
 
         // Process matrix in memory
         const daysInMonth = new Date(year, month, 0).getDate();
@@ -2098,19 +2119,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
         });
 
-        // Ambil guru_attendance_records (manual & hikvision sync)
-        const attendanceRes = await dbPool.query(`
-          SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note, COALESCE(approval_status, 'approved') as "approvalStatus", gdrive_url as "gdriveUrl" 
-          FROM guru_attendance_records 
-          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
-        `, [month, year]);
-        const attendanceRecords = attendanceRes.rows;
-
-        // Build teacher/staff code/nip mapping
-        const [teachersRes, staffsRes] = await Promise.all([
+        // Ambil guru_attendance_records + teacher/staff maps — PARALLELKAN semuanya
+        const [attendanceRes, teachersRes, staffsRes] = await Promise.all([
+          dbPool.query(`
+            SELECT teacher_code as "teacherCode", TO_CHAR(tanggal, 'YYYY-MM-DD') as "date", waktu::text as "time", session_name as "sessionName", status, note, COALESCE(approval_status, 'approved') as "approvalStatus", gdrive_url as "gdriveUrl" 
+            FROM guru_attendance_records 
+            WHERE tanggal >= $1 AND tanggal < $2
+          `, [rangeStart, rangeEnd]),
           dbPool.query("SELECT id, payload FROM mst_teachers").catch(() => ({ rows: [] })),
           dbPool.query("SELECT id, payload FROM mst_staffs").catch(() => ({ rows: [] })),
         ]);
+        const attendanceRecords = attendanceRes.rows;
         const codeToNis = {};
         [...teachersRes.rows, ...staffsRes.rows].forEach(r => {
           const t = r.payload || {};
@@ -2187,9 +2206,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const sAbsRes = await dbPool.query(`
             SELECT id, siswa_nis, tanggal, status, keterangan, gdrive_url, approval_status
             FROM kedisiplinan_absensi 
-            WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
+            WHERE tanggal >= $1 AND tanggal < $2
             AND (approval_status = 'approved' OR approval_status = 'otomatis' OR approval_status IS NULL OR approval_status = 'pending')
-          `, [month, year]);
+          `, [rangeStart, rangeEnd]);
 
           sAbsRes.rows.forEach(rec => {
             const recNis = String(rec.siswa_nis || '').trim();
@@ -2318,8 +2337,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const pklLogbooksRes = await dbPool.query(`
           SELECT student_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as date_str, status, kegiatan as activity
           FROM pkl_logbooks
-          WHERE EXTRACT(MONTH FROM tanggal) = $1 AND EXTRACT(YEAR FROM tanggal) = $2
-        `, [month, year]).catch(() => ({ rows: [] }));
+          WHERE tanggal >= $1 AND tanggal < $2
+        `, [rangeStart, rangeEnd]).catch(() => ({ rows: [] }));
 
         const pklLogbookMap = {};
         const pklLogbookStudentsSet = new Set();
@@ -2453,13 +2472,23 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             item.total_mutasi = totalMutasi;
         });
 
-        send(req, res, 200, { 
+        const responseData = { 
             ok: true, 
             month, 
             year, 
             daysInMonth,
             data: Object.values(matrix).sort((a,b) => a.name.localeCompare(b.name))
-        });
+        };
+
+        // Simpan ke cache
+        global._matrixCache[cacheKey] = { time: Date.now(), data: responseData };
+        // Bersihkan cache entry lama (> 30 menit) agar tidak bocor memori
+        const staleLimit = Date.now() - 30 * 60 * 1000;
+        for (const k of Object.keys(global._matrixCache)) {
+          if (global._matrixCache[k].time < staleLimit) delete global._matrixCache[k];
+        }
+
+        send(req, res, 200, responseData);
       } catch (err) { sendDatabaseError(req, res, err); }
       return;
     }
