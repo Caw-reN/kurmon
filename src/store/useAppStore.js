@@ -74,6 +74,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     hikvision_report_siswa: "view", riwayat_prestasi: "view",
     siswa_keluar: "view", akademik: "view", pesan: "view",
     data_pegawai: "view", kelas: "view", jurusan: "view",
+    absensiguru: "otomatis",
   },
   sekretaris_tu: {
     dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
@@ -87,17 +88,19 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   // ─── KEPALA SEKOLAH ─────────────────────────────────────────────────────────
   kepsek: {
-    dashboard: "otomatis", generate: "view", absensi: "otomatis", pesan: "otomatis",
+    dashboard: "otomatis", generate: "view", absensi: "view", pesan: "otomatis",
     akademik: "view", kalender: "view", kalender_akademik: "view",
     pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
     pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
     pkl_laporan: "view",
-    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "edit",
+    kedisiplinan_absensi: "view", kedisiplinan_bpbk: "view", kedisiplinan_piket: "view",
     walas_report: "view", catatan_walikelas: "view", riwayat_prestasi: "view",
     laporan_absensi: "view", hikvision_report_guru: "view",
     hikvision_report_karyawan: "view", hikvision_report_siswa: "view",
-    dataguru: "view", datasiswa: "view", dataperusahaan: "view", guru: "view", siswa: "view", karyawan: "view", data_pegawai: "view",
-    jurnal_harian: "view", ruangan: "view", fasilitas: "view", silabus: "view", modul_ajar: "view",
+    dataguru: "view", datasiswa: "view", dataperusahaan: "view",
+    guru: "view", siswa: "view", karyawan: "view", data_pegawai: "view",
+    absensiguru: "view", jurnal_harian: "view", beban: "view",
+    ruangan: "view", fasilitas: "view", silabus: "view", modul_ajar: "view",
     keamanan: "view", audit_log: "view", activity_logs: "view", pengumuman: "view"
   },
 
