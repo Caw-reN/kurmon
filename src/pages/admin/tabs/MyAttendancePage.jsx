@@ -27,16 +27,20 @@ function getStatusStyle(dayData) {
     if (dayData.isLate)     return { bg:'bg-amber-100',  text:'text-amber-700',  border:'border-amber-200',  label:'Terlambat', dot:'bg-amber-500' };
     return                         { bg:'bg-emerald-100',text:'text-emerald-700',border:'border-emerald-200',label:'Hadir',     dot:'bg-emerald-500' };
   }
+  if (dayData.out) {
+    return { bg:'bg-amber-100', text:'text-amber-800', border:'border-amber-300', label:'Tanpa Masuk', dot:'bg-amber-500' };
+  }
   return null;
 }
 
 const LEGEND = [
   { dot:'bg-emerald-500', label:'Hadir' },
   { dot:'bg-amber-500',   label:'Terlambat' },
-  { dot:'bg-indigo-500',    label:'Izin' },
+  { dot:'bg-amber-500',   label:'Tanpa Masuk' },
+  { dot:'bg-indigo-500',  label:'Izin' },
   { dot:'bg-yellow-500',  label:'Sakit' },
   { dot:'bg-purple-500',  label:'Dinas Luar' },
-  { dot:'bg-rose-500',     label:'Alpa' },
+  { dot:'bg-rose-500',    label:'Alpa' },
 ];
 
 // Helper
@@ -741,17 +745,24 @@ export default function MyAttendancePage({ setActiveTab }) {
                 )}
 
                 {/* Jam Masuk & Keluar */}
-                {showIn && (
+                {(showIn || showOut) && (
                   <div className="flex flex-col items-center w-full px-0 sm:px-1">
                     <div className="flex items-center gap-0.5 w-full justify-center">
                       <span className={`hidden sm:inline text-[7px] font-black ${style?.text || 'text-emerald-500'}`}>↑</span>
-                      <span className={`text-[8px] font-black tracking-tighter ${style?.text || 'text-emerald-700'}`}>{fmt5(dayData.in)}</span>
+                      <span className={`text-[8px] font-black tracking-tighter ${!showIn ? 'text-amber-700 font-extrabold' : (style?.text || 'text-emerald-700')}`}>
+                        {showIn ? fmt5(dayData.in) : '--:--'}
+                      </span>
                     </div>
                     {showOut && (
                       <div className="flex items-center gap-0.5 w-full justify-center">
                         <span className="hidden sm:inline text-[7px] text-slate-400 font-black">↓</span>
                         <span className="text-[8px] font-black text-slate-500 tracking-tighter">{fmt5(dayData.out)}</span>
                       </div>
+                    )}
+                    {!showIn && showOut && (
+                      <span className="text-[7.5px] font-black uppercase tracking-tight text-amber-800 bg-amber-200/90 px-1 py-0.2 rounded-[var(--ui-radius-small)] mt-0.5 border border-amber-300">
+                        Tanpa Masuk
+                      </span>
                     )}
                   </div>
                 )}

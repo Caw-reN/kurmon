@@ -811,6 +811,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   <UISelect value={form.status} onChange={e=>setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]">
                     <option value="Sakit">Sakit</option>
                     <option value="Izin">Izin</option>
+                    <option value="PraPKL">PraPKL</option>
                     <option value="Alpa">Alpa</option>
                   </UISelect>
                 </div>
@@ -897,11 +898,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                  <UISelect value={editForm.status} onChange={e=>setEditForm({...editForm, status: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]">
                    <option value="Sakit">Sakit</option>
                    <option value="Izin">Izin</option>
+                   <option value="PraPKL">PraPKL</option>
                    <option value="Alpa">Alpa</option>
                  </UISelect>
                </div>
                
-               {["Sakit","Izin"].includes(editForm.status) && (
+               {["Sakit","Izin","PraPKL"].includes(editForm.status) && (
                  <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Surat (Otomatis ke GDrive)</label>
                   <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">

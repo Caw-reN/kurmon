@@ -1216,8 +1216,14 @@ const initDb = async () => {
         status VARCHAR(20) DEFAULT 'pending',
         requested_by VARCHAR(50) DEFAULT 'admin',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        processed_at TIMESTAMP
-      )
+        processed_at TIMESTAMP,
+        request_type VARCHAR(50) DEFAULT 'cetak_kartu',
+        proposed_data JSONB DEFAULT '{}'::jsonb,
+        admin_note TEXT
+      );
+      ALTER TABLE student_card_requests ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'cetak_kartu';
+      ALTER TABLE student_card_requests ADD COLUMN IF NOT EXISTS proposed_data JSONB DEFAULT '{}'::jsonb;
+      ALTER TABLE student_card_requests ADD COLUMN IF NOT EXISTS admin_note TEXT;
     `);
 
     // siswa_keluar
@@ -1231,8 +1237,12 @@ const initDb = async () => {
         alasan VARCHAR(100) NOT NULL,
         keterangan TEXT,
         student_payload JSONB DEFAULT '{}'::jsonb,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP DEFAULT NULL
       )
+    `);
+    await dbPool.query(`
+      ALTER TABLE siswa_keluar ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL;
     `);
 
     // modul_ajar_guru
@@ -4208,42 +4218,153 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    // === API: STUDENT CARD PRINT REQUESTS ===
-    if (url.pathname.startsWith("/api/student-card-requests")) {
+    // === API: STUDENT CARD PRINT & DATA UPDATE REQUESTS ===
+    if (url.pathname.startsWith("/api/student-card-requests") || url.pathname.startsWith("/api/card-requests")) {
       if (!requireAuthenticated(req, res)) return;
+      const session = getSession(req);
+      const userRole = normalizeServerRole(session?.role);
+      const isStudent = userRole === 'siswa' || session?.role === 'siswa';
+
       if (req.method === "GET") {
         try {
-          const { rows } = await dbPool.query("SELECT * FROM student_card_requests ORDER BY created_at DESC");
+          let rows;
+          if (isStudent) {
+            const studentNis = String(session.username || session.nis || session.id || '').trim();
+            const resData = await dbPool.query(
+              "SELECT * FROM student_card_requests WHERE nis = $1 OR requested_by = $1 ORDER BY created_at DESC",
+              [studentNis]
+            );
+            rows = resData.rows;
+          } else {
+            const filterNis = url.searchParams.get("nis");
+            if (filterNis) {
+              const resData = await dbPool.query(
+                "SELECT * FROM student_card_requests WHERE nis = $1 ORDER BY created_at DESC",
+                [String(filterNis).trim()]
+              );
+              rows = resData.rows;
+            } else {
+              const resData = await dbPool.query("SELECT * FROM student_card_requests ORDER BY created_at DESC");
+              rows = resData.rows;
+            }
+          }
+
+          const formattedRows = rows.map(r => {
+            let pData = r.proposed_data;
+            if (typeof pData === 'string') {
+              try { pData = JSON.parse(pData); } catch {}
+            }
+            return { ...r, proposed_data: pData || {} };
+          });
+
           const { rows: stats } = await dbPool.query(
             "SELECT nis, COUNT(*) as count FROM student_card_requests WHERE status = 'selesai' GROUP BY nis"
           );
-          send(req, res, 200, { ok: true, data: rows, stats });
+          send(req, res, 200, { ok: true, data: formattedRows, stats });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;
       }
+
       if (req.method === "POST") {
         try {
           const body = await readJsonBody(req);
-          const session = getSession(req);
           
           if (body.action === "create") {
-            const { nis, nama, kelas, alasan, status } = body;
-            if (!nis || !nama || !kelas || !alasan) {
-              return send(req, res, 400, { ok: false, error: "Data pengajuan tidak lengkap." });
+            const { nis, nama, kelas, alasan, status, request_type, proposed_data } = body;
+            const targetNis = String(nis || session?.username || session?.nis || '').trim();
+            const targetNama = String(nama || session?.name || session?.nama || 'Siswa').trim();
+            const targetKelas = String(kelas || session?.class_name || session?.kelas || '-').trim();
+            const targetAlasan = String(alasan || 'Pembaruan data kartu').trim();
+            const reqType = String(request_type || (proposed_data?.photo || proposed_data?.ttl ? 'update_foto_ttl' : 'cetak_ulang')).trim();
+            const safeProposedData = proposed_data && typeof proposed_data === 'object' ? proposed_data : {};
+
+            if (!targetNis) {
+              return send(req, res, 400, { ok: false, error: "NIS siswa wajib disertakan." });
             }
-            const defaultStatus = status || (alasan.includes("Tanpa Antrean") || alasan.includes("Langsung") ? "selesai" : "pending");
-            await dbPool.query(
-              "INSERT INTO student_card_requests (nis, nama, kelas, alasan, status, requested_by, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-              [nis, nama, kelas, alasan, defaultStatus, session?.name || "Admin / TU", defaultStatus === "selesai" ? new Date() : null]
+
+            const defaultStatus = isStudent 
+              ? 'pending'
+              : (status || (targetAlasan.includes("Tanpa Antrean") || targetAlasan.includes("Langsung") ? "selesai" : "pending"));
+
+            const insertRes = await dbPool.query(
+              `INSERT INTO student_card_requests 
+                (nis, nama, kelas, alasan, status, requested_by, processed_at, request_type, proposed_data) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+               RETURNING *`,
+              [
+                targetNis, 
+                targetNama, 
+                targetKelas, 
+                targetAlasan, 
+                defaultStatus, 
+                session?.username || session?.name || "Siswa", 
+                defaultStatus === "selesai" ? new Date() : null,
+                reqType,
+                JSON.stringify(safeProposedData)
+              ]
             );
-            send(req, res, 200, { ok: true });
+            send(req, res, 200, { ok: true, data: insertRes.rows[0], message: "Permohonan berhasil dikirimkan!" });
           } else if (body.action === "approve") {
             if (!requireAdminOrTu(req, res)) return;
+            const reqId = body.id;
+            const adminNote = body.admin_note || 'Pengajuan disetujui oleh Admin / TU';
+
+            // 1. Dapatkan detail pengajuan
+            const checkReq = await dbPool.query("SELECT * FROM student_card_requests WHERE id = $1", [reqId]);
+            if (checkReq.rows.length === 0) {
+              return send(req, res, 404, { ok: false, error: "Pengajuan tidak ditemukan" });
+            }
+            const requestItem = checkReq.rows[0];
+            let proposed = requestItem.proposed_data;
+            if (typeof proposed === 'string') {
+              try { proposed = JSON.parse(proposed); } catch {}
+            }
+            proposed = proposed || {};
+
+            // 2. Jika ada usulan foto atau ttl, update mst_students secara otomatis!
+            const studentNis = String(requestItem.nis).trim();
+            if (proposed && (proposed.photo || proposed.ttl || proposed.tempat_lahir || proposed.tanggal_lahir)) {
+              const studentRes = await dbPool.query(
+                "SELECT payload FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1",
+                [studentNis, studentNis.toLowerCase()]
+              );
+
+              if (studentRes.rows.length > 0) {
+                let payload = studentRes.rows[0].payload;
+                if (typeof payload === 'string') {
+                  try { payload = JSON.parse(payload); } catch {}
+                }
+                payload = payload || {};
+
+                // Update foto jika diajukan
+                if (proposed.photo) {
+                  payload.photo = proposed.photo;
+                  payload.foto = proposed.photo;
+                }
+
+                // Update TTL jika diajukan
+                if (proposed.ttl) {
+                  payload.ttl = proposed.ttl;
+                } else if (proposed.tempat_lahir || proposed.tanggal_lahir) {
+                  const tpt = proposed.tempat_lahir || '';
+                  const tgl = proposed.tanggal_lahir || '';
+                  payload.ttl = tpt && tgl ? `${tpt}, ${tgl}` : (tpt || tgl);
+                }
+
+                // Simpan perubahan ke mst_students
+                await dbPool.query(
+                  "UPDATE mst_students SET payload = $1 WHERE id = $2 OR id = $3 OR payload->>'nis' = $2",
+                  [JSON.stringify(payload), studentNis, studentNis.toLowerCase()]
+                );
+              }
+            }
+
+            // 3. Update status permohonan menjadi 'disetujui'
             await dbPool.query(
-              "UPDATE student_card_requests SET status = 'disetujui', processed_at = NOW() WHERE id = $1",
-              [body.id]
+              "UPDATE student_card_requests SET status = 'disetujui', processed_at = NOW(), admin_note = $2 WHERE id = $1",
+              [reqId, adminNote]
             );
-            send(req, res, 200, { ok: true });
+            send(req, res, 200, { ok: true, message: "Pengajuan berhasil disetujui (ACC) dan data siswa telah diperbarui!" });
           } else if (body.action === "selesai") {
             if (!requireAdminOrTu(req, res)) return;
             await dbPool.query(
@@ -4253,11 +4374,12 @@ const server = createServer(async (req, res) => {
             send(req, res, 200, { ok: true });
           } else if (body.action === "reject") {
             if (!requireAdminOrTu(req, res)) return;
+            const adminNote = body.admin_note || 'Pengajuan ditolak oleh Admin / TU.';
             await dbPool.query(
-              "UPDATE student_card_requests SET status = 'ditolak', processed_at = NOW() WHERE id = $1",
-              [body.id]
+              "UPDATE student_card_requests SET status = 'ditolak', processed_at = NOW(), admin_note = $2 WHERE id = $1",
+              [body.id, adminNote]
             );
-            send(req, res, 200, { ok: true });
+            send(req, res, 200, { ok: true, message: "Pengajuan telah ditolak." });
           } else if (body.action === "delete") {
             if (!requireAdminOrTu(req, res)) return;
             await dbPool.query("DELETE FROM student_card_requests WHERE id = $1", [body.id]);
@@ -4270,24 +4392,31 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    // === API: SISWA KELUAR (PENDATAAN KELUAR) ===
+    // === API: SISWA KELUAR (PENDATAAN KELUAR & SISTEM RESTORE) ===
     if (url.pathname.startsWith("/api/siswa-keluar")) {
       if (!requireAuthenticated(req, res)) return;
       if (req.method === "GET") {
         try {
-          const { rows } = await dbPool.query("SELECT * FROM siswa_keluar ORDER BY created_at DESC");
-          send(req, res, 200, { ok: true, data: rows });
+          const [activeRes, trashRes] = await Promise.all([
+            dbPool.query("SELECT * FROM siswa_keluar WHERE deleted_at IS NULL ORDER BY created_at DESC"),
+            dbPool.query("SELECT * FROM siswa_keluar WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC")
+          ]);
+          send(req, res, 200, { ok: true, data: activeRes.rows, trash: trashRes.rows });
         } catch (err) { sendDatabaseError(req, res, err); }
         return;
       }
       if (req.method === "POST") {
-        if (!requireAdmin(req, res)) return;
+        const session = requireAuthenticated(req, res);
+        if (!session) return;
+        const roleStr = normalizeServerRole(session?.role);
+        const isAllowed = isAdminRole(session?.role) || ["tu", "tata_usaha", "waka", "waka_kesiswaan", "kesiswaan"].includes(roleStr);
+        if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan sesi admin atau tata usaha." });
         try {
           const body = await readJsonBody(req);
           const { action } = body;
           
           if (action === "keluar") {
-            const { nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan } = body;
+            const { nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan, hapus_mesin } = body;
             if (!nis || !nama || !kelas_terakhir || !tanggal_keluar || !alasan) {
               return send(req, res, 400, { ok: false, error: "Data pengeluaran siswa tidak lengkap." });
             }
@@ -4301,30 +4430,57 @@ const server = createServer(async (req, res) => {
             try {
               await client.query("BEGIN");
               
-              // 1. Insert into siswa_keluar
+              // 1. Insert into siswa_keluar (ensure deleted_at is reset to NULL)
               await client.query(
-                "INSERT INTO siswa_keluar (nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan, student_payload) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (nis) DO UPDATE SET tanggal_keluar = EXCLUDED.tanggal_keluar, alasan = EXCLUDED.alasan, keterangan = EXCLUDED.keterangan",
+                "INSERT INTO siswa_keluar (nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan, student_payload, deleted_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NULL) ON CONFLICT (nis) DO UPDATE SET tanggal_keluar = EXCLUDED.tanggal_keluar, alasan = EXCLUDED.alasan, keterangan = EXCLUDED.keterangan, deleted_at = NULL",
                 [nis, nama, kelas_terakhir, tanggal_keluar, alasan, keterangan || "", JSON.stringify(studentPayload)]
               );
               
               // 2. Delete from mst_students to deactivate (by id or payload->>'nis')
               await client.query("DELETE FROM mst_students WHERE id = $1 OR payload->>'nis' = $1", [nis]);
+
+              // 3. Delete from hikvision_students to prevent phantom detection
+              await client.query("DELETE FROM hikvision_students WHERE nis = $1", [nis]);
+
+              // 4. Delete student user login from users (username = nis)
+              await client.query("DELETE FROM users WHERE username = $1", [nis]);
               
               await client.query("COMMIT");
-              send(req, res, 200, { ok: true });
+              send(req, res, 200, { ok: true, message: "Siswa berhasil dimutasi keluar." });
             } catch (e) {
               await client.query("ROLLBACK");
               throw e;
             } finally {
               client.release();
             }
-          } else if (action === "batal") {
+          } else if (action === "soft_delete" || action === "hapus") {
+            // Pindahkan ke kotak sampah (soft delete agar tidak takut salah hapus)
+            const { nis } = body;
+            if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi." });
+            await dbPool.query("UPDATE siswa_keluar SET deleted_at = CURRENT_TIMESTAMP WHERE nis = $1", [nis]);
+            send(req, res, 200, { ok: true, message: "Data siswa berhasil dipindahkan ke Kotak Sampah." });
+          } else if (action === "restore_trash") {
+            // Kembalikan dari kotak sampah ke arsip siswa keluar
+            const { nis } = body;
+            if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi." });
+            await dbPool.query("UPDATE siswa_keluar SET deleted_at = NULL WHERE nis = $1", [nis]);
+            send(req, res, 200, { ok: true, message: "Data siswa berhasil dipulihkan dari Kotak Sampah." });
+          } else if (action === "restore_all_trash") {
+            // Pulihkan semua data dari kotak sampah kembali ke arsip siswa keluar
+            await dbPool.query("UPDATE siswa_keluar SET deleted_at = NULL WHERE deleted_at IS NOT NULL");
+            send(req, res, 200, { ok: true, message: "Semua data di Kotak Sampah berhasil dipulihkan." });
+          } else if (action === "empty_trash") {
+            // Bersihkan semua data di kotak sampah secara permanen
+            await dbPool.query("DELETE FROM siswa_keluar WHERE deleted_at IS NOT NULL");
+            send(req, res, 200, { ok: true, message: "Kotak Sampah berhasil dikosongkan." });
+          } else if (action === "batal" || action === "restore_to_active") {
+            // Batalkan status keluar & kembalikan ke siswa aktif
             const { nis } = body;
             if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi." });
             
             const keluarRes = await dbPool.query("SELECT student_payload FROM siswa_keluar WHERE nis = $1", [nis]);
             if (keluarRes.rowCount === 0) {
-              return send(req, res, 400, { ok: false, error: "Data siswa keluar tidak ditemukan." });
+              return send(req, res, 400, { ok: false, error: "Data siswa tidak ditemukan." });
             }
             const studentPayload = keluarRes.rows[0].student_payload || {};
             const restoreId = studentPayload.id || studentPayload.nis || nis;
@@ -4345,7 +4501,25 @@ const server = createServer(async (req, res) => {
               await client.query("DELETE FROM siswa_keluar WHERE nis = $1", [nis]);
               
               await client.query("COMMIT");
-              send(req, res, 200, { ok: true });
+              send(req, res, 200, { ok: true, message: "Siswa berhasil dipulihkan menjadi siswa aktif kembali." });
+            } catch (e) {
+              await client.query("ROLLBACK");
+              throw e;
+            } finally {
+              client.release();
+            }
+          } else if (action === "hapus_permanen") {
+            const { nis } = body;
+            if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi." });
+            const client = await dbPool.connect();
+            try {
+              await client.query("BEGIN");
+              await client.query("DELETE FROM siswa_keluar WHERE nis = $1", [nis]);
+              await client.query("DELETE FROM mst_students WHERE id = $1 OR payload->>'nis' = $1", [nis]);
+              await client.query("DELETE FROM hikvision_students WHERE nis = $1", [nis]);
+              await client.query("DELETE FROM users WHERE username = $1", [nis]);
+              await client.query("COMMIT");
+              send(req, res, 200, { ok: true, message: "Data siswa berhasil dihapus secara permanen dari seluruh sistem." });
             } catch (e) {
               await client.query("ROLLBACK");
               throw e;

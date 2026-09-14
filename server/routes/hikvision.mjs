@@ -143,22 +143,68 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
 
   async function getHikvisionConfig() {
+    const defaultSchedules = {
+      kampus_a: {
+        siswa: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "16:30" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        },
+        guru: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "17:00" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        },
+        karyawan: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        }
+      },
+      kampus_b: {
+        siswa: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        },
+        guru: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:00" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        },
+        karyawan: {
+          regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" },
+          sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+        }
+      }
+    };
+
     const defaultConf = {
-      masuk_open: "05:00",
-      masuk_late: "07:15",
+      masuk_open: "05:30",
+      masuk_late: "07:01",
       masuk_close: "11:00",
       pulang_open: "14:00",
-      pulang_close: "18:00",
-      siswa: { masuk_start: "05:00", masuk_late: "07:15", masuk_end: "11:00", pulang_start: "14:00", pulang_end: "18:00" },
-      guru: { masuk_start: "05:00", masuk_late: "07:00", masuk_end: "11:00", pulang_start: "14:00", pulang_end: "18:00" },
-      karyawan: { masuk_start: "05:00", masuk_late: "07:00", masuk_end: "11:00", pulang_start: "15:00", pulang_end: "18:00" },
+      pulang_close: "16:30",
+      siswa: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+      guru: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+      karyawan: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+      schedules: defaultSchedules,
       notify_role: "none",
       notify_custom_phone: ""
     };
     try {
       const res = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config'");
       if (res.rowCount > 0 && res.rows[0].data) {
-        return { ...defaultConf, ...(typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data) };
+        const parsed = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
+        return {
+          ...defaultConf,
+          ...parsed,
+          schedules: {
+            kampus_a: { ...(defaultSchedules.kampus_a), ...(parsed.schedules?.kampus_a || {}) },
+            kampus_b: { ...(defaultSchedules.kampus_b), ...(parsed.schedules?.kampus_b || {}) }
+          }
+        };
       }
     } catch (e) {
       console.error("Error getHikvisionConfig:", e);
@@ -166,14 +212,53 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     return defaultConf;
   }
 
-  const getRoleTimeConfig = (conf, role) => {
-    const roleConf = conf[role] || {};
+  const getRoleTimeConfig = (conf, role, dateStr, campusHint) => {
+    // 1. Resolve dayKey ('jumat', 'sabtu', 'regular')
+    let dayKey = 'regular';
+    if (dateStr) {
+      const datePart = String(dateStr).substring(0, 10);
+      const d = new Date(datePart + "T12:00:00Z");
+      const dayOfWeek = d.getUTCDay(); // 0: Sun, 1: Mon, ..., 5: Fri, 6: Sat
+      if (dayOfWeek === 5) dayKey = 'jumat';
+      else if (dayOfWeek === 6) dayKey = 'sabtu';
+      else if (dayOfWeek === 0) dayKey = 'minggu';
+    }
+
+    // 2. Resolve campusKey ('kampus_a', 'kampus_b')
+    let campusKey = null;
+    if (campusHint) {
+      const ch = String(campusHint).toLowerCase();
+      if (ch.includes('kampus a') || ch.includes('kampus_a')) campusKey = 'kampus_a';
+      else if (ch.includes('kampus b') || ch.includes('kampus_b')) campusKey = 'kampus_b';
+    }
+
     const defaults = {
-      siswa: { masuk_open: "05:00", masuk_late: "07:15", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "19:00" },
-      guru: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "19:00" },
-      karyawan: { masuk_open: "05:00", masuk_late: "07:00", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "19:00" }
+      siswa: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+      guru: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+      karyawan: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" }
     };
     const roleDefault = defaults[role] || defaults.siswa;
+
+    // Check schedules hierarchy
+    let matchedConf = null;
+    const schedules = conf?.schedules || {};
+    if (campusKey && schedules[campusKey]?.[role]) {
+      matchedConf = schedules[campusKey][role][dayKey] || schedules[campusKey][role]['regular'];
+    }
+    if (!matchedConf && schedules['all']?.[role]) {
+      matchedConf = schedules['all'][role][dayKey] || schedules['all'][role]['regular'];
+    }
+
+    // Built-in intelligent defaults if schedules hasn't been configured for this campus/day
+    if (!matchedConf && dayKey === 'jumat' && role === 'siswa') {
+      if (campusKey === 'kampus_a') {
+        matchedConf = { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "16:30" };
+      } else if (campusKey === 'kampus_b') {
+        matchedConf = { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" };
+      }
+    }
+
+    const roleConf = matchedConf || conf[role] || {};
 
     const formatTime = (timeStr) => {
       if (!timeStr) return "";
@@ -189,7 +274,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     const pulang_open = formatTime(roleConf.pulang_start || roleConf.pulang_open || conf.pulang_open || roleDefault.pulang_open);
     const pulang_close = formatTime(roleConf.pulang_end || roleConf.pulang_close || conf.pulang_close || roleDefault.pulang_close);
 
-    return { masuk_open, masuk_late, masuk_close, pulang_open, pulang_close };
+    return { masuk_open, masuk_late, masuk_close, pulang_open, pulang_close, dayKey, campusKey };
   };
     if (req.method === "GET" && url.pathname === "/api/hikvision/dashboard") {
       if (!requireAuthenticated(req, res)) return;
@@ -866,11 +951,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "POST" && url.pathname === "/api/hikvision/config") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      const roleStr = String(session?.role || '').toLowerCase();
+      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kurikulum', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr);
+      if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan hak akses admin atau tata usaha." });
       try {
         const body = await readJsonBody(req);
-        // Ensure we accept both legacy flat configs and new nested configs
-        const { masuk_open, masuk_late, masuk_close, pulang_open, pulang_close, notify_role, notify_custom_phone, siswa, guru, karyawan } = body;
+        // Ensure we accept both legacy flat configs and new nested schedules
+        const { masuk_open, masuk_late, masuk_close, pulang_open, pulang_close, notify_role, notify_custom_phone, siswa, guru, karyawan, schedules } = body;
         
         // Merge with existing config or default to prevent losing data if only one is updated
         const existingConf = await getHikvisionConfig();
@@ -885,14 +972,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           notify_custom_phone: notify_custom_phone !== undefined ? notify_custom_phone : existingConf.notify_custom_phone,
           siswa: siswa ? { ...(existingConf.siswa || {}), ...siswa } : existingConf.siswa,
           guru: guru ? { ...(existingConf.guru || {}), ...guru } : existingConf.guru,
-          karyawan: karyawan ? { ...(existingConf.karyawan || {}), ...karyawan } : existingConf.karyawan
+          karyawan: karyawan ? { ...(existingConf.karyawan || {}), ...karyawan } : existingConf.karyawan,
+          schedules: schedules ? {
+            ...(existingConf.schedules || {}),
+            ...schedules,
+            kampus_a: { ...(existingConf.schedules?.kampus_a || {}), ...(schedules.kampus_a || {}) },
+            kampus_b: { ...(existingConf.schedules?.kampus_b || {}), ...(schedules.kampus_b || {}) }
+          } : existingConf.schedules
         };
 
         await dbPool.query(
           "INSERT INTO app_data (store_key, data) VALUES ('hikvision_attendance_config', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP",
           [JSON.stringify(newConf)]
         );
-        send(req, res, 200, { ok: true, message: "Pengaturan absensi Hikvision berhasil disimpan.", config: newConf });
+        send(req, res, 200, { ok: true, message: "Pengaturan batas waktu absensi berhasil disimpan.", config: newConf });
       } catch (err) {
         sendDatabaseError(req, res, err);
       }
@@ -1738,18 +1831,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "DELETE" && url.pathname.startsWith("/api/hikvision/students/") && url.pathname !== "/api/hikvision/students/bulk") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      const roleStr = String(session?.role || '').toLowerCase();
+      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr);
+      if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan hak akses admin atau tata usaha." });
       try {
         const nis = url.pathname.split("/").pop();
         const delRes = await dbPool.query(
           "DELETE FROM hikvision_students WHERE nis = $1 RETURNING id",
           [nis]
         );
-        if (delRes.rowCount > 0) {
-          send(req, res, 200, { ok: true, message: "Berhasil menghapus data siswa dari database mesin." });
-        } else {
-          send(req, res, 404, { ok: false, error: "Data tidak ditemukan." });
+        await dbPool.query("DELETE FROM hikvision_user_devices WHERE employee_no = $1", [nis]).catch(() => {});
+        if (url.searchParams.get('delete_master') === 'true') {
+          await dbPool.query("DELETE FROM mst_students WHERE id = $1 OR payload->>'nis' = $1", [nis]);
         }
+        send(req, res, 200, { ok: true, message: "Berhasil menghapus data siswa dari mesin absensi dan laporan." });
       } catch (err) { sendDatabaseError(req, res, err); }
       return;
     }
@@ -1835,8 +1930,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const studentsQuery = await dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []);
         
         let logsQueryStr = `
-          SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type
+          SELECT l.employee_id, TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str, l.event_type,
+                 d.location as device_location, d.ip_address as device_ip
           FROM hikvision_logs l
+          LEFT JOIN hikvision_devices d ON d.id = l.device_id
           WHERE EXTRACT(MONTH FROM l.timestamp) = $1 AND EXTRACT(YEAR FROM l.timestamp) = $2
           ORDER BY l.timestamp ASC
         `;
@@ -1848,8 +1945,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const matrix = {};
         const employeeToNisMap = {};
         
+        // Fetch mutasi keluar students to mark indicator and avoid artificial Alpa
+        const mutasiMap = new Map();
+        if (reportType === 'siswa') {
+          try {
+            const mutasiRes = await dbPool.query(
+              "SELECT nis, nama, kelas_terakhir, TO_CHAR(tanggal_keluar, 'YYYY-MM-DD') as tanggal_keluar, alasan, keterangan FROM siswa_keluar WHERE deleted_at IS NULL"
+            );
+            mutasiRes.rows.forEach(r => {
+              if (r.nis) mutasiMap.set(String(r.nis).trim().toLowerCase(), r);
+            });
+          } catch (e) {
+            console.warn("Failed to fetch siswa_keluar in matrix:", e.message);
+          }
+        }
+
         // Initialize with all students/teachers
         studentsQuery.rows.forEach(s => {
+            const sNisKey = String(s.nis || '').trim().toLowerCase();
+            const sCanonKey = String(s.canon_nis || '').trim().toLowerCase();
+            const mutasiInfo = mutasiMap.get(sNisKey) || mutasiMap.get(sCanonKey);
             matrix[s.nis] = {
                 nis: s.canon_nis || s.nis,
                 name: s.name,
@@ -1859,11 +1974,44 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 total_izin: 0,
                 total_sakit: 0,
                 total_alpa: 0,
+                total_mutasi: 0,
+                is_mutasi: Boolean(mutasiInfo),
+                tanggal_keluar: mutasiInfo?.tanggal_keluar || null,
+                alasan_keluar: mutasiInfo?.alasan || null,
+                keterangan_keluar: mutasiInfo?.keterangan || null,
                 days: {}
             };
             employeeToNisMap[String(s.nis).toLowerCase()] = s.nis;
             if (s.name) employeeToNisMap[String(s.name).trim().toLowerCase()] = s.nis;
         });
+
+        // Also include mutated students from siswa_keluar if not already in matrix
+        if (reportType === 'siswa') {
+          mutasiMap.forEach((mStud) => {
+            if (!matrix[mStud.nis]) {
+              if (targetClassName === 'all' || targetClassName === mStud.kelas_terakhir) {
+                matrix[mStud.nis] = {
+                  nis: mStud.nis,
+                  name: mStud.nama,
+                  class_name: mStud.kelas_terakhir,
+                  total_hadir: 0,
+                  total_terlambat: 0,
+                  total_izin: 0,
+                  total_sakit: 0,
+                  total_alpa: 0,
+                  total_mutasi: 0,
+                  is_mutasi: true,
+                  tanggal_keluar: mStud.tanggal_keluar,
+                  alasan_keluar: mStud.alasan,
+                  keterangan_keluar: mStud.keterangan,
+                  days: {}
+                };
+                employeeToNisMap[String(mStud.nis).toLowerCase()] = mStud.nis;
+                if (mStud.nama) employeeToNisMap[String(mStud.nama).trim().toLowerCase()] = mStud.nis;
+              }
+            }
+          });
+        }
 
         try {
           const hikStudentsRes = await dbPool.query("SELECT nis, name FROM hikvision_students");
@@ -1917,15 +2065,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               logRole = "karyawan";
             }
 
-            const roleConf = getRoleTimeConfig(conf, logRole);
-            const masukOpen = roleConf.masuk_open + ":00";
-            const masukLate = roleConf.masuk_late + ":00";
-            const masukClose = roleConf.masuk_close + ":00";
-            const pulangOpen = roleConf.pulang_open + ":00";
-            const pulangClose = roleConf.pulang_close + ":00";
-            
             const day = parseInt(log.time_str.substring(8, 10), 10);
             const timeStr = log.time_str.substring(11, 19); // "HH:MM:SS"
+            const logDateStr = log.time_str.substring(0, 10);
+            const campusHint = log.device_location || matrix[nis]?.class_name || "";
+
+            const roleConf = getRoleTimeConfig(conf, logRole, logDateStr, campusHint);
+            const masukLate = roleConf.masuk_late + ":00";
+            const pulangOpen = roleConf.pulang_open + ":00";
             
             if (!matrix[nis].days[day]) {
                  matrix[nis].days[day] = { in: null, out: null, isLate: false };
@@ -1937,8 +2084,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 matrix[nis].days[day].taps.sort();
             }
 
-            // Categorize taps into morning (Masuk: < 12:00) and afternoon/evening (Pulang: >= 12:00)
-            const cutoff = "12:00:00";
+            // Categorize taps into morning (Masuk) and afternoon/evening (Pulang)
+            // Cutoff is dynamically based on pulangOpen (e.g. 11:50 on Friday for Kampus A, 15:30 for Kampus B)
+            const cutoff = (pulangOpen && pulangOpen < "12:00:00") ? pulangOpen : "12:00:00";
             const morningTaps = matrix[nis].days[day].taps.filter(t => t < cutoff);
             const afternoonTaps = matrix[nis].days[day].taps.filter(t => t >= cutoff);
 
@@ -2075,7 +2223,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
-                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar"].includes(status);
+                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL"].includes(status);
                  const actualIn = prevDayData.in || parsedTime || (isPermit ? status : null);
                  const actualOut = prevDayData.out || (isPermit ? status : null);
 
@@ -2211,7 +2359,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               } else if (item.class_name === "karyawan" || item.class_name === "staff") {
                 logRole = "karyawan";
               }
-              const roleConf = getRoleTimeConfig(conf, logRole);
+              const roleConf = getRoleTimeConfig(conf, logRole, dateStr, item.class_name);
               const limit = (roleConf.masuk_close || "11:00") + ":00";
               if (currentTime <= limit) continue; // Still within check-in window
             }
@@ -2219,9 +2367,25 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             // Skip weekends & academic calendar holidays
             if (isHolidayOrWeekend(dateStr, item)) continue;
 
-            // If no fingerprint record exists for this day:
             const dayData = item.days[day];
             const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));
+
+            // CRITICAL CHECK: If student has mutated out on or before this date, do NOT mark Alpa!
+            if (item.is_mutasi && item.tanggal_keluar && dateStr >= item.tanggal_keluar) {
+              if (!hasRecord) {
+                item.days[day] = {
+                  in: "Mutasi",
+                  out: "Mutasi",
+                  isLate: false,
+                  isMutasi: true,
+                  status: "Mutasi",
+                  note: `Mutasi Keluar: ${item.alasan_keluar || 'Pindah Sekolah'}`
+                };
+              }
+              continue;
+            }
+
+            // If no fingerprint record exists for this day:
             if (!hasRecord) {
               if (isPklStudent) {
                 const pklLogStatus = pklLogbookMap[`${item.nis}_${day}`] || pklLogbookMap[`${String(item.nis).trim()}_${day}`];
@@ -2256,13 +2420,16 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             let totalSakit = 0;
             let totalAlpa = 0;
             let totalPkl = 0;
+            let totalMutasi = 0;
 
             Object.values(item.days).forEach(dayData => {
                 if (dayData.status) {
-                  if (dayData.status === "Izin") totalIzin++;
+                  if (dayData.status === "Mutasi" || dayData.isMutasi) {
+                    totalMutasi++;
+                  } else if (dayData.status === "Izin") totalIzin++;
                   else if (dayData.status === "Sakit") totalSakit++;
                   else if (dayData.status === "Alpa") totalAlpa++;
-                  else if (dayData.status === "PKL" || String(dayData.status).startsWith("PKL")) {
+                  else if (dayData.status === "PKL" || String(dayData.status).startsWith("PKL") || dayData.status === "PraPKL" || dayData.status === "Pra-PKL") {
                     totalPkl++;
                     totalHadir++;
                   } else if (dayData.status === "Hadir" || dayData.status === "Terlambat") {
@@ -2283,6 +2450,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             item.total_sakit = totalSakit;
             item.total_alpa = totalAlpa;
             item.total_pkl = totalPkl;
+            item.total_mutasi = totalMutasi;
         });
 
         send(req, res, 200, { 

@@ -285,8 +285,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
             }
 
             const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            const isMissingIn = !dayData.in && Boolean(dayData.out);
             
-            if (status === 'Hadir') {
+            if (isMissingIn) {
+              fgColor = "FFFEF3C7"; // amber-100
+              fontColor = "FFB45309"; // amber-800
+            } else if (status === 'Hadir') {
               fgColor = "FFDCFCE7"; // emerald-100
               fontColor = "FF166534"; // emerald-800
             } else if (status === 'Terlambat') {
@@ -416,8 +420,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
             }
 
             const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            const isMissingIn = !dayData.in && Boolean(dayData.out);
             
-            if (status === 'Hadir') {
+            if (isMissingIn) {
+              fillColor = [254, 243, 199]; 
+              textColor = [180, 83, 9];
+            } else if (status === 'Hadir') {
               fillColor = [220, 252, 231]; 
               textColor = [22, 101, 52];
             } else if (status === 'Terlambat') {
@@ -1024,12 +1032,22 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       const outTime = formatAttendanceTime(dayData.out);
       const rawNote = dayData.note || '';
       const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+      const isMissingIn = !inTime && Boolean(outTime);
+
+      const titleAttr = isMissingIn 
+        ? (noteText ? `Catatan: ${noteText} (Tidak Absen Masuk - Hanya Pulang: ${outTime})` : `Tidak Absen Masuk (Hanya Tap Pulang: ${outTime})`)
+        : (noteText ? `Catatan: ${noteText}` : undefined);
 
       return (
-        <div className="flex flex-col gap-0.5" title={noteText ? `Catatan: ${noteText}` : undefined}>
+        <div className="flex flex-col gap-0.5" title={titleAttr}>
           <div>{inTime || '--:--'}</div>
           <div className="border-t border-black/10 w-full my-0.5"></div>
           <div>{outTime || '--:--'}</div>
+          {isMissingIn && (
+            <span className="text-[7.5px] font-black uppercase tracking-tight text-amber-900 bg-amber-200/90 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-amber-300 inline-block shadow-2xs">
+              Tanpa Masuk
+            </span>
+          )}
         </div>
       );
     };
@@ -1043,6 +1061,20 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         </div>
       );
     }
+    const inTime = formatAttendanceTime(dayData.in);
+    const outTime = formatAttendanceTime(dayData.out);
+    const isMissingIn = !inTime && Boolean(outTime);
+
+    if (isMissingIn) {
+      return (
+        <div 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-900 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-xs" 
+        >
+          {renderTaps(dayData)}
+        </div>
+      );
+    }
+
     return (
       <div 
         className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 border border-emerald-200 text-center flex flex-col items-center justify-center min-h-[36px]" 
@@ -1334,8 +1366,9 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
            <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Tanpa Masuk</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span> Sakit</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> Alpa</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Kosong</span>
            </div>
@@ -1779,11 +1812,17 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
                        <div className="flex items-center gap-2 shrink-0">
                          {dailyDetailModal === 'present' && (
-                           <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
-                             isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                           }`}>
-                             {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
-                           </span>
+                           (!dayData.in && dayData.out) ? (
+                             <span className="px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs bg-amber-50 text-amber-800 border-amber-300">
+                               Tanpa Masuk (Plg {formatAttendanceTime(dayData.out) || '--:--'})
+                             </span>
+                           ) : (
+                             <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
+                               isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                             }`}>
+                               {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
+                             </span>
+                           )
                          )}
 
                          {dailyDetailModal === 'late' && (

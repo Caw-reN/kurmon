@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -192,7 +192,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     let initialUrl = null;
     let initialId = null;
 
-    if (pd && (["Sakit", "Izin", "Alpa", "Terlambat"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
+    if (pd && (["Sakit", "Izin", "Alpa", "Terlambat", "PraPKL"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
         initialStatus = pd.status;
         initialKet = pd.keterangan || pd.note || "";
         initialUrl = pd.gdrive_url || null;
@@ -211,10 +211,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
        replaceImage: !initialUrl
     });
 
+    const inTimeVal = formatAttendanceTime(dayData?.in);
+    const outTimeVal = formatAttendanceTime(dayData?.out);
     setSelectedCell({
       nis: d.nis,
       name: d.name,
-      day: dayNum
+      day: dayNum,
+      inTime: inTimeVal,
+      outTime: outTimeVal,
+      isMissingIn: !inTimeVal && Boolean(outTimeVal)
     });
   };
 
@@ -307,10 +312,22 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const getCellStyle = (dayData) => {
     const status = dayData.status || (dayData.isLate ?"Terlambat" : (dayData.in || dayData.out ?"Hadir" :""));
     
+    if (status === "Mutasi" || dayData.isMutasi) {
+      return {
+        className: "bg-slate-100 text-slate-500 font-bold border border-slate-200/80",
+        style: { color: "#64748b" }
+      };
+    }
     if (status === "PKL" || String(status || '').startsWith("PKL") || dayData.isPkl) {
       return {
         className: "bg-indigo-100 text-indigo-900 font-black border border-indigo-200",
         style: { color: "#3730a3" }
+      };
+    }
+    if (status === "PraPKL" || status === "Pra-PKL" || status === "Pra PKL") {
+      return {
+        className: "bg-teal-100 text-teal-900 font-black border border-teal-200",
+        style: { color: "#134e4a" }
       };
     }
     if (status ==="Alpa") {
@@ -335,6 +352,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       return {
         className:"bg-rose-100 text-rose-800 font-bold",
         style: { color:"#b91c1c" }
+      };
+    }
+    const inTime = formatAttendanceTime(dayData.in);
+    const outTime = formatAttendanceTime(dayData.out);
+    if (!inTime && Boolean(outTime)) {
+      return {
+        className: "bg-amber-100 text-amber-900 font-bold border border-amber-300 shadow-xs",
+        style: { color: "#78350f" }
       };
     }
     return {
@@ -376,9 +401,38 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const [sortBy, setSortBy] = useState("class_nis");
   const [sortDir, setSortDir] = useState("asc");
+  const [studentStatusFilter, setStudentStatusFilter] = useState("active"); // 'active' | 'all' | 'mutasi'
+  const [targetDeleteStudent, setTargetDeleteStudent] = useState(null);
+  const [isDeletingStudent, setIsDeletingStudent] = useState(false);
+
+  const executeDeleteStudent = async () => {
+    if (!targetDeleteStudent) return;
+    setIsDeletingStudent(true);
+    try {
+      const res = await fetch(`/api/hikvision/students/${targetDeleteStudent.nis}?delete_master=true`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(`Siswa "${targetDeleteStudent.name}" berhasil dihapus dari laporan dan mesin absensi.`);
+        setTargetDeleteStudent(null);
+        fetchData();
+      } else {
+        showToast(data.error || 'Gagal menghapus siswa', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal menghapus siswa', 'error');
+    } finally {
+      setIsDeletingStudent(false);
+    }
+  };
 
   const filteredData = React.useMemo(() => {
     const list = data.filter(d => {
+      if (studentStatusFilter === "active" && d.is_mutasi) return false;
+      if (studentStatusFilter === "mutasi" && !d.is_mutasi) return false;
       if (search && !d.name?.toLowerCase().includes(search.toLowerCase()) && !d.nis?.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
@@ -411,7 +465,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       }
       return compareTableValues(av, bv, sortDir);
     });
-  }, [data, search, sortBy, sortDir]);
+  }, [data, search, sortBy, sortDir, studentStatusFilter]);
 
   const isExportingRef = useRef(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -518,6 +572,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             } else if (status === "Izin") {
               content = "I";
               fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
+            } else if (status === "PraPKL" || status === "Pra-PKL") {
+              content = "PRA";
+              fgColor = "FFCCFBF1"; fontColor = "FF115E59";
             } else if (status === "Terlambat" || dayData.isLate) {
               if (isDetailed && (dayData.in || dayData.out)) {
                 const tIn = formatAttendanceTime(dayData.in) || '--:--';
@@ -528,14 +585,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               }
               fgColor = "FFFEE2E2"; fontColor = "FF991B1B";
             } else if (dayData.in || dayData.out || status === "Hadir") {
+              const inTimeVal = formatAttendanceTime(dayData.in);
+              const outTimeVal = formatAttendanceTime(dayData.out);
+              const isMissingIn = !inTimeVal && Boolean(outTimeVal);
               if (isDetailed && (dayData.in || dayData.out)) {
-                const tIn = formatAttendanceTime(dayData.in) || '--:--';
-                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                const tIn = inTimeVal || '--:--';
+                const tOut = outTimeVal || '--:--';
                 content = `${tIn}\n${tOut}`;
               } else {
-                content = "H";
+                content = isMissingIn ? "TM" : "H";
               }
-              fgColor = "FFDCFCE7"; fontColor = "FF166534";
+              if (isMissingIn) {
+                fgColor = "FFFEF3C7"; fontColor = "FFB45309";
+              } else {
+                fgColor = "FFDCFCE7"; fontColor = "FF166534";
+              }
             }
             
             cell.value = content;
@@ -643,6 +707,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             } else if (status === "Izin") {
               content = "I";
               fillColor = [219, 234, 254]; textColor = [30, 58, 138];
+            } else if (status === "PraPKL" || status === "Pra-PKL") {
+              content = "PRA";
+              fillColor = [204, 251, 241]; textColor = [17, 94, 89];
             } else if (status === "Terlambat" || dayData.isLate) {
               if (isDetailed && (dayData.in || dayData.out)) {
                 const tIn = formatAttendanceTime(dayData.in) || '--:--';
@@ -653,14 +720,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               }
               fillColor = [254, 226, 226]; textColor = [153, 27, 27];
             } else if (dayData.in || dayData.out || status === "Hadir") {
+              const inTimeVal = formatAttendanceTime(dayData.in);
+              const outTimeVal = formatAttendanceTime(dayData.out);
+              const isMissingIn = !inTimeVal && Boolean(outTimeVal);
               if (isDetailed && (dayData.in || dayData.out)) {
-                const tIn = formatAttendanceTime(dayData.in) || '--:--';
-                const tOut = formatAttendanceTime(dayData.out) || '--:--';
+                const tIn = inTimeVal || '--:--';
+                const tOut = outTimeVal || '--:--';
                 content = `${tIn}\n${tOut}`;
               } else {
-                content = "H";
+                content = isMissingIn ? "TM" : "H";
               }
-              fillColor = [220, 252, 231]; textColor = [22, 101, 52];
+              if (isMissingIn) {
+                fillColor = [254, 243, 199]; textColor = [180, 83, 9];
+              } else {
+                fillColor = [220, 252, 231]; textColor = [22, 101, 52];
+              }
             }
             
             if (content.includes(':')) {
@@ -854,6 +928,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   }, [filteredData, daysToRender]);
 
   const checkViolation = useCallback((d, daysList = []) => {
+    if (d?.is_mutasi) {
+      return {
+        isLateViolation: false,
+        isAlpaViolation: false,
+        level: 0,
+        bgClass: "bg-slate-50/70 border-slate-200 text-slate-500",
+        stickyBgClass: "bg-slate-50 border-slate-200 text-slate-500 shadow-xs",
+        textClass: "text-slate-600 font-medium",
+        subTextClass: "text-slate-400 font-normal"
+      };
+    }
+
     let maxConsecutiveLate = 0;
     let currConsecutiveLate = 0;
     let maxConsecutiveAlpa = 0;
@@ -1664,11 +1750,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
                           <div className="flex items-center gap-2 shrink-0">
                             {dailyDetailModal === 'present' && (
-                              <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
-                                isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              }`}>
-                                {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
-                              </span>
+                              (!dayData.in && dayData.out) ? (
+                                <span className="px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs bg-amber-50 text-amber-800 border-amber-300">
+                                  Tanpa Masuk (Plg {formatAttendanceTime(dayData.out) || '--:--'})
+                                </span>
+                              ) : (
+                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
+                                  isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                }`}>
+                                  {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
+                                </span>
+                              )
                             )}
 
                             {dailyDetailModal === 'late' && (
@@ -1869,6 +1961,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
+        <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status Siswa</label>
+          <CustomSelect
+            value={studentStatusFilter}
+            onChange={val => setStudentStatusFilter(val)}
+            options={[
+              { value: "active", label: "Siswa Aktif (Default)" },
+              { value: "all", label: "Semua Siswa" },
+              { value: "mutasi", label: "Mutasi Keluar Saja" }
+            ]}
+          />
+        </div>
+
         {/* Tampilkan Data Action Button */}
         <button
           type="button"
@@ -1904,6 +2009,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> IZIN/SKT
           </span>
+          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-700 border border-teal-200/60 shrink-0 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" /> PraPKL
+          </span>
           <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> ALPA
           </span>
@@ -1913,7 +2021,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       {/* Desktop Filter Container */}
       <div className="hidden sm:flex ui-card p-4 sm:p-5 flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
         {/* Top Filter Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           <div className="min-w-0">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Siswa</label>
             <div className="relative w-full">
@@ -1926,6 +2034,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
               />
             </div>
+          </div>
+          <div className="min-w-0">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Status Siswa</label>
+            <CustomSelect
+              value={studentStatusFilter}
+              onChange={val => setStudentStatusFilter(val)}
+              options={[
+                { value: "active", label: "Siswa Aktif" },
+                { value: "all", label: "Semua Siswa" },
+                { value: "mutasi", label: "Mutasi Keluar" }
+              ]}
+            />
           </div>
           <div className="min-w-0">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
@@ -2058,8 +2178,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Tanpa Masuk</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span> PraPKL</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> PKL</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> Alpa</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Kosong</span>
@@ -2107,6 +2229,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                          <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[190px] ${v.stickyBgClass}`}>
                             <div className="flex items-center gap-1.5 min-w-0">
                               <span className={`font-bold text-xs truncate max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
+                              {d.is_mutasi && (
+                                <span className="px-1.5 py-0.5 text-[8.5px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                                  MUTASI
+                                </span>
+                              )}
                               {v.level > 0 && (
                                 <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa ≥3x)"}>
                                   <AlertTriangle 
@@ -2116,7 +2243,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 </span>
                               )}
                             </div>
-                            <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>{d.class_name || d.nis || 'Tanpa Kelas'}</div>
+                            <div className="flex items-center justify-between gap-1 mt-0.5">
+                              <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>
+                                {d.class_name || 'Tanpa Kelas'} {d.nis ? `• ${d.nis}` : ''}
+                              </div>
+                              {['admin', 'tata_usaha', 'tu', 'waka_kesiswaan', 'kesiswaan'].includes(user?.role) && (
+                                <button 
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setTargetDeleteStudent(d); }}
+                                  title="Hapus data siswa dari mesin absensi / sistem"
+                                  className="text-slate-400 hover:text-rose-600 transition-colors p-0.5 rounded cursor-pointer shrink-0"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
                          </td>
                          <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
                          <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
@@ -2151,21 +2292,31 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                  <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
                               )}
                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] ${cellColors.className}`} style={cellColors.style}>
-                                  {["Sakit","Izin","Alpa"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
+                                  {["Sakit","Izin","Alpa","Mutasi","PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
-                                      <span className="font-extrabold">{dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
+                                      <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
                                     </div>
                                   ) : (() => {
                                      const inTime = formatAttendanceTime(dayData.in);
                                      const outTime = formatAttendanceTime(dayData.out);
                                      const rawNote = dayData.note || '';
                                      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+                                     const isMissingIn = !inTime && Boolean(outTime);
+
+                                     const titleAttr = isMissingIn 
+                                       ? (noteText ? `Catatan: ${noteText} (Tidak Absen Masuk - Hanya Pulang: ${outTime})` : `Tidak Absen Masuk (Hanya Tap Pulang: ${outTime})`)
+                                       : (noteText ? `Catatan: ${noteText}` : undefined);
 
                                      return (
-                                       <div title={noteText ? `Catatan: ${noteText}` : undefined}>
+                                       <div title={titleAttr}>
                                          <div>{inTime || '--:--'}</div>
                                          <div className="border-t border-black/10 my-0.5"></div>
                                          <div>{outTime || '--:--'}</div>
+                                         {isMissingIn && (
+                                           <div className="text-[7.5px] font-black uppercase tracking-tight text-amber-900 bg-amber-200/90 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-amber-300 inline-block shadow-2xs">
+                                             Tanpa Masuk
+                                           </div>
+                                         )}
                                        </div>
                                      );
                                    })()}
@@ -2308,6 +2459,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
              </div>
              
              <form onSubmit={handleCellSubmit} className="p-4 space-y-4">
+               {selectedCell?.isMissingIn && (
+                 <div className="bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-amber-900 text-xs shadow-xs">
+                   <AlertTriangle size={15} className="shrink-0 mt-0.5 text-amber-600" />
+                   <div>
+                     <p className="font-black text-amber-800">Catatan: Tidak Ada Absen Masuk</p>
+                     <p className="text-[11px] text-amber-700 mt-0.5">
+                       Siswa tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa melakukan scan masuk pagi.
+                     </p>
+                   </div>
+                 </div>
+               )}
                <div>
                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nama Siswa</label>
                  <div className="text-xs font-black text-slate-800">{selectedCell.name} ({selectedCell.nis})</div>
@@ -2329,12 +2491,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  >
                    <option value="Sakit">Sakit</option>
                    <option value="Izin">Izin</option>
+                   <option value="PraPKL">PraPKL</option>
                    <option value="Terlambat">Terlambat (Tetap Masuk)</option>
                    <option value="Alpa">Alpa (Tanpa Keterangan)</option>
                  </UISelect>
                </div>
 
-               {["Sakit","Izin","Terlambat"].includes(permissionForm.status) && (
+               {["Sakit","Izin","Terlambat","PraPKL"].includes(permissionForm.status) && (
                  <div>
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
                      Upload Surat / Bukti (Gambar)
@@ -2557,6 +2720,48 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            </div>
          </div>
        )}
+        {/* Modal Konfirmasi Hapus Siswa dari Mesin & Data */}
+        {targetDeleteStudent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
+            <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+              <div className="p-5">
+                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+                  <Trash2 size={24} />
+                </div>
+                <h3 className="text-sm font-black text-slate-800 text-center mb-1">
+                  Hapus Data Siswa dari Mesin Absensi?
+                </h3>
+                <p className="text-xs text-slate-600 text-center leading-relaxed mb-4">
+                  Apakah Anda yakin ingin menghapus data absensi siswa <span className="font-bold text-slate-800">{targetDeleteStudent.name}</span> (NIS: {targetDeleteStudent.nis})? Tindakan ini akan menghapus siswa dari mesin Hikvision serta sinkronisasi data master.
+                </p>
+                {targetDeleteStudent.is_mutasi && (
+                  <div className="p-3 bg-amber-50 rounded-[var(--ui-radius-small)] border border-amber-200 text-[11px] text-amber-800 font-medium mb-4 flex items-center gap-2">
+                    <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+                    <span>Siswa ini sudah berstatus <strong>Mutasi Keluar</strong> (Tgl: {targetDeleteStudent.tanggal_keluar || '-'}).</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isDeletingStudent}
+                    onClick={() => setTargetDeleteStudent(null)}
+                    className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isDeletingStudent}
+                    onClick={executeDeleteStudent}
+                    className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isDeletingStudent ? 'Menghapus...' : 'Ya, Hapus Siswa'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
        </>
       )}
 

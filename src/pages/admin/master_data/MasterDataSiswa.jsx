@@ -216,6 +216,21 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
 
   const notConnectedCount = Math.max(0, students.length - connectedCount);
 
+  const handleDeleteStudent = async (item) => {
+    const nis = item.nis || item.code;
+    if (nis && authToken) {
+      try {
+        await fetch(`/api/hikvision/students/${nis}?delete_master=true`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+      } catch (e) {
+        console.error("Gagal sinkronisasi hapus siswa dari Hikvision:", e);
+      }
+    }
+    handleDelete('siswa', item.id || item.code || item.nis);
+  };
+
   const pageHeader = (
     <div className="flex flex-col gap-4">
       <PageHeader 
@@ -300,7 +315,14 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
               <td className="px-2.5 py-2.5 font-bold text-slate-800 text-xs font-mono">{item.nis || item.code ||'-'}</td>
               <td className="px-3 py-2.5">
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-slate-800 text-xs line-clamp-1">{item.name || item.nama ||'-'}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-extrabold text-slate-800 text-xs line-clamp-1">{item.name || item.nama ||'-'}</span>
+                    {item.is_mutasi && (
+                      <span className="px-1.5 py-0.5 text-[8.5px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                        Mutasi Keluar
+                      </span>
+                    )}
+                  </div>
                   {(item.wa_ortu || item.phone) && (
                     <span className="text-[10.5px] font-mono text-slate-500 font-semibold mt-0.5">
                       WA Ortu: {item.wa_ortu || item.phone}
@@ -335,7 +357,7 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
                 {!isViewOnly && (
                   <div className="flex justify-end items-center gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7 p-0" onClick={() => openModal('siswa','edit', item)} title="Edit Siswa"><Edit2 size={13} className="text-slate-600" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-rose-50 text-rose-500" onClick={() => handleDelete('siswa', item.id || item.code || item.nis)} title="Hapus"><Trash2 size={13} /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-rose-50 text-rose-500" onClick={() => handleDeleteStudent(item)} title="Hapus"><Trash2 size={13} /></Button>
                   </div>
                 )}
               </td>

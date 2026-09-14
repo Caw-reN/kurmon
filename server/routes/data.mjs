@@ -65,15 +65,21 @@ export async function handleDataRoutes(req, res, url, ctx) {
 
       // Merge with relational tables (all master data sources)
       try {
-        const [majors, classes, rooms, subjects, teachers, students, staffs] = await Promise.all([
+        const [majors, classes, rooms, subjects, teachers, students, staffs, exitedStudents] = await Promise.all([
           dbPool.query('SELECT payload FROM mst_majors ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_classes ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_rooms ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_subjects ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_teachers ORDER BY id ASC'),
           dbPool.query('SELECT payload FROM mst_students ORDER BY id ASC'),
-          dbPool.query('SELECT payload FROM mst_staffs ORDER BY id ASC')
+          dbPool.query('SELECT payload FROM mst_staffs ORDER BY id ASC'),
+          dbPool.query('SELECT nis, alasan, TO_CHAR(tanggal_keluar, \'YYYY-MM-DD\') as tanggal_keluar FROM siswa_keluar WHERE deleted_at IS NULL').catch(() => ({ rows: [] }))
         ]);
+        const exitedMap = new Map();
+        (exitedStudents.rows || []).forEach(r => {
+          if (r.nis) exitedMap.set(String(r.nis).trim().toLowerCase(), r);
+        });
+
         // Always set from DB (even if empty) so store is in sync with database
         payload.majors = majors.rows.map(r => r.payload);
         payload.classes = classes.rows.map(r => r.payload);
@@ -86,6 +92,13 @@ export async function handleDataRoutes(req, res, url, ctx) {
           if (p && p.password) delete p.password; 
           if (p && p.nis) {
             p.card_token = generateStudentCardToken(p.nis);
+            const ex = exitedMap.get(String(p.nis).trim().toLowerCase());
+            if (ex) {
+              p.is_mutasi = true;
+              p.status_mutasi = 'Mutasi Keluar';
+              p.alasan_keluar = ex.alasan;
+              p.tanggal_keluar = ex.tanggal_keluar;
+            }
           }
           return p; 
         });
@@ -463,6 +476,10 @@ export async function handleDataRoutes(req, res, url, ctx) {
         const client = await dbPool.connect();
         try {
           await client.query('BEGIN');
+          // Fetch exited students to avoid resurrecting them
+          const exitedRes = await client.query("SELECT nis FROM siswa_keluar WHERE deleted_at IS NULL").catch(() => ({ rows: [] }));
+          const exitedNisSet = new Set((exitedRes.rows || []).map(r => String(r.nis || '').trim().toLowerCase()));
+
           const existingRes = await client.query("SELECT id, payload FROM mst_students");
           const dbMap = new Map(existingRes.rows.map(r => {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
@@ -473,6 +490,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
             const nis = String(item.nis || item.code || item.id || '').trim();
             const normalizedId = nis.toLowerCase();
             if (!normalizedId) continue;
+            if (exitedNisSet.has(normalizedId)) continue; // Skip mutated out students!
             const existingPayload = dbMap.get(normalizedId);
             if (!item.password && existingPayload?.password) {
               item.password = existingPayload.password;

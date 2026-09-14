@@ -43,8 +43,102 @@ export default function HikvisionDashboard() {
     karyawan: { masuk_open:"05:00", masuk_late:"07:00", masuk_close:"11:00", pulang_open:"15:00", pulang_close:"18:00" }
   });
   const [activeConfigTab, setActiveConfigTab] = useState('siswa');
+  const [activeCampusTab, setActiveCampusTab] = useState('kampus_a'); // 'kampus_a' | 'kampus_b' | 'all'
+  const [activeDayTab, setActiveDayTab] = useState('jumat'); // 'regular' | 'jumat' | 'sabtu'
   const [savingConfig, setSavingConfig] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const getCurrentSchedule = () => {
+    if (activeCampusTab === 'all') {
+      return config[activeConfigTab] || {};
+    }
+    const campusSched = config.schedules?.[activeCampusTab]?.[activeConfigTab];
+    if (campusSched) {
+      return campusSched[activeDayTab] || campusSched['regular'] || config[activeConfigTab] || {};
+    }
+    return config[activeConfigTab] || {};
+  };
+
+  const updateCurrentSchedule = (field, value) => {
+    if (activeCampusTab === 'all') {
+      setConfig(prev => ({
+        ...prev,
+        [activeConfigTab]: {
+          ...(prev[activeConfigTab] || {}),
+          [field]: value
+        }
+      }));
+      return;
+    }
+
+    setConfig(prev => {
+      const prevSchedules = prev.schedules || {};
+      const campusObj = prevSchedules[activeCampusTab] || {};
+      const roleObj = campusObj[activeConfigTab] || {};
+      const dayObj = roleObj[activeDayTab] || { ...(roleObj['regular'] || prev[activeConfigTab] || {}) };
+
+      return {
+        ...prev,
+        schedules: {
+          ...prevSchedules,
+          [activeCampusTab]: {
+            ...campusObj,
+            [activeConfigTab]: {
+              ...roleObj,
+              [activeDayTab]: {
+                ...dayObj,
+                [field]: value
+              }
+            }
+          }
+        }
+      };
+    });
+  };
+
+  const handleApplyPreset = () => {
+    setConfig(prev => ({
+      ...prev,
+      schedules: {
+        ...(prev.schedules || {}),
+        kampus_a: {
+          siswa: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "16:30" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          },
+          guru: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "17:00" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          },
+          karyawan: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          }
+        },
+        kampus_b: {
+          siswa: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          },
+          guru: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:00" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          },
+          karyawan: {
+            regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:00", pulang_close: "17:30" },
+            jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" },
+            sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
+          }
+        }
+      }
+    }));
+    showToast("Jadwal standar (Jumat Kampus A: 11.50, Kampus B: 15.30) diterapkan.");
+  };
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -315,38 +409,131 @@ export default function HikvisionDashboard() {
             </div>
           </div>
 
-          {/* Pengaturan Batas Absensi */}
-          <div className="ui-card overflow-hidden">
-            <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-              <Clock size={18} className="text-[var(--ui-primary)]" />
-              <h3 className="font-bold text-slate-800 text-sm">Batas Waktu Absensi</h3>
+          {/* Pengaturan Batas Absensi Multi-Kampus & Hari */}
+          <div className="ui-card overflow-hidden shadow-xs border border-slate-200/80">
+            <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-[var(--ui-primary)]" />
+                <h3 className="font-bold text-slate-800 text-sm">Batas Waktu Absensi</h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleApplyPreset}
+                title="Terapkan jadwal standar Kampus A (Jumat 11.50) & Kampus B (Jumat 15.30)"
+                className="text-[10.5px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] transition-all cursor-pointer shadow-2xs"
+              >
+                Preset Standar A/B
+              </button>
             </div>
             <div className="p-4 space-y-4">
+              {/* Tab Bar 1: Peran */}
               <div className="flex border-b border-slate-200 gap-4">
                 {['siswa','guru','karyawan'].map(tab => (
                   <button 
                     key={tab}
-                    onClick={() =>setActiveConfigTab(tab)}
-                    className={`pb-2 text-sm font-bold capitalize transition-colors border-b-2 bg-transparent cursor-pointer ${activeConfigTab === tab ?'border-[var(--ui-primary)] text-[var(--ui-primary)]' :'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    type="button"
+                    onClick={() => setActiveConfigTab(tab)}
+                    className={`pb-2 text-xs font-black capitalize transition-colors border-b-2 bg-transparent cursor-pointer ${
+                      activeConfigTab === tab 
+                        ? 'border-[var(--ui-primary)] text-[var(--ui-primary)]' 
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                    }`}
                   >
-                    {tab}</button>
+                    {tab}
+                  </button>
                 ))}
               </div>
+
+              {/* Tab Bar 2: Pilihan Kampus */}
+              <div>
+                <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Pilih Lokasi Kampus:</label>
+                <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/70">
+                  {[
+                    { id: 'kampus_a', label: 'Kampus A' },
+                    { id: 'kampus_b', label: 'Kampus B' },
+                    { id: 'all', label: 'Semua / Umum' }
+                  ].map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setActiveCampusTab(c.id)}
+                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all text-center cursor-pointer ${
+                        activeCampusTab === c.id
+                          ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                          : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tab Bar 3: Pilihan Hari (Reguler vs Jumat vs Sabtu) */}
+              {activeCampusTab !== 'all' && (
+                <div>
+                  <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Pilih Hari:</label>
+                  <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/70">
+                    {[
+                      { id: 'regular', label: 'Senin - Kamis' },
+                      { id: 'jumat', label: 'Jumat' },
+                      { id: 'sabtu', label: 'Sabtu' }
+                    ].map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setActiveDayTab(d.id)}
+                        className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all text-center cursor-pointer ${
+                          activeDayTab === d.id
+                            ? 'bg-emerald-600 text-white shadow-xs font-extrabold'
+                            : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Context Banner Info */}
+              {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
+                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-indigo-900 text-[11px] font-semibold leading-relaxed">
+                  <span className="font-extrabold text-indigo-700">⚡ Aturan Jumat Kampus A:</span> Jam buka absen pulang disetel pukul <strong>11:50</strong>. Tap siswa mulai 11:50 otomatis tercatat sebagai absen Pulang.
+                </div>
+              )}
+              {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
+                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold leading-relaxed">
+                  <span className="font-extrabold text-amber-700">⚡ Aturan Jumat Kampus B:</span> Jam buka absen pulang disetel pukul <strong>15:30</strong>.
+                </div>
+              )}
               
               <div>
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Absen Masuk (Pagi)</h4>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
-                    <UITimeInput24 placeholder="06:00" value={config[activeConfigTab]?.masuk_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_open: e.target.value}})} />
+                    <UITimeInput24 
+                      placeholder="05:30" 
+                      value={getCurrentSchedule()?.masuk_open || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_open', e.target.value)} 
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
-                    <UITimeInput24 placeholder="07:00" value={config[activeConfigTab]?.masuk_late ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_late: e.target.value}})} />
+                    <UITimeInput24 
+                      placeholder="07:01" 
+                      value={getCurrentSchedule()?.masuk_late || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_late', e.target.value)} 
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
-                    <UITimeInput24 placeholder="08:00" value={config[activeConfigTab]?.masuk_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], masuk_close: e.target.value}})} />
+                    <UITimeInput24 
+                      placeholder="11:00" 
+                      value={getCurrentSchedule()?.masuk_close || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_close', e.target.value)} 
+                    />
                   </div>
                 </div>
               </div>
@@ -356,11 +543,19 @@ export default function HikvisionDashboard() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
-                    <UITimeInput24 placeholder="14:00" value={config[activeConfigTab]?.pulang_open ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_open: e.target.value}})} />
+                    <UITimeInput24 
+                      placeholder={activeDayTab === 'jumat' && activeCampusTab === 'kampus_a' ? "11:50" : activeDayTab === 'jumat' && activeCampusTab === 'kampus_b' ? "15:30" : "14:00"} 
+                      value={getCurrentSchedule()?.pulang_open || ""} 
+                      onChange={e => updateCurrentSchedule('pulang_open', e.target.value)} 
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
-                    <UITimeInput24 placeholder="17:00" value={config[activeConfigTab]?.pulang_close ||""} onChange={e => setConfig({...config, [activeConfigTab]: {...config[activeConfigTab], pulang_close: e.target.value}})} />
+                    <UITimeInput24 
+                      placeholder="16:30" 
+                      value={getCurrentSchedule()?.pulang_close || ""} 
+                      onChange={e => updateCurrentSchedule('pulang_close', e.target.value)} 
+                    />
                   </div>
                 </div>
               </div>
@@ -371,7 +566,7 @@ export default function HikvisionDashboard() {
                   <div>
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Kirim Ke Peran / Nomor</label>
                     <UISelect 
-                      value={config.notify_role ||"none"} 
+                      value={config.notify_role || "none"} 
                       onChange={e => setConfig({...config, notify_role: e.target.value})} 
                       className="w-full border border-slate-200 rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold bg-white focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none"
                     >
@@ -382,12 +577,12 @@ export default function HikvisionDashboard() {
                       <option value="custom">Nomor WA Kustom</option>
                     </UISelect>
                   </div>
-                  {config.notify_role ==="custom" && (
+                  {config.notify_role === "custom" && (
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold block mb-1">Nomor WA Penerima</label>
                       <input 
                         type="text" 
-                        value={config.notify_custom_phone ||""} 
+                        value={config.notify_custom_phone || ""} 
                         onChange={e => setConfig({...config, notify_custom_phone: e.target.value})} 
                         className="w-full border border-slate-200 bg-white rounded-[var(--ui-radius-small)] px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" 
                         placeholder="Contoh: 628123456789"
@@ -398,7 +593,7 @@ export default function HikvisionDashboard() {
               </div>
 
               <Button onClick={handleSaveConfig} disabled={savingConfig} className="w-full mt-2">
-                {savingConfig ?"Menyimpan..." :"Simpan Batas Waktu"}
+                {savingConfig ? "Menyimpan..." : "Simpan Batas Waktu"}
               </Button>
             </div>
           </div>
