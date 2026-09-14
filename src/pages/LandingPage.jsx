@@ -1,8 +1,7 @@
-import { Button } from '../components/ui.jsx';
-import React, { useState, useEffect, useMemo } from'react';
-import { useOutletContext, useNavigate, Link } from'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, GraduationCap, FileText, Sun, CloudRain, Moon, CloudSun } from'lucide-react';
-import { X, Search, ArrowRight, ChevronLeft, ChevronRight, Check, Info, Mail } from'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useOutletContext, useNavigate, Link } from 'react-router-dom';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun } from 'lucide-react';
+import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
@@ -10,7 +9,7 @@ import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 
 const hexToRgba = (hexColor, alpha = 1) => {
   try {
-    const cleanHex = String(hexColor).replace('#','').trim();
+    const cleanHex = String(hexColor).replace('#', '').trim();
     if (cleanHex.length === 3) {
       const r = parseInt(cleanHex[0] + cleanHex[0], 16);
       const g = parseInt(cleanHex[1] + cleanHex[1], 16);
@@ -22,7 +21,9 @@ const hexToRgba = (hexColor, alpha = 1) => {
       const b = parseInt(cleanHex.slice(4, 6), 16);
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-  } catch (e) {}
+  } catch (err) {
+    console.debug?.("hexToRgba parsing error:", err);
+  }
   return hexColor;
 };
 
@@ -31,6 +32,112 @@ const ICON_MAP = {
   palette: Palette, map: MapPin, users: Users, sparkles: Sparkles,
   user: User, booktext: BookOpenText, shield: ShieldCheck
 };
+
+const PROGRAM_SOLID_PALETTES = [
+  // 01. Teknik Kendaraan Ringan
+  {
+    color: "#059669",
+    tagline: "Otomotif & Manufaktur Modern",
+  },
+  // 02. Teknik Komputer & Jaringan
+  {
+    color: "#0284c7",
+    tagline: "Jaringan & Komputasi Cloud",
+  },
+  // 03. Manajemen Perkantoran
+  {
+    color: "#d97706",
+    tagline: "Manajemen & Bisnis Digital",
+  },
+  // 04. Akuntansi Keuangan
+  {
+    color: "#e11d48",
+    tagline: "Finansial & Lembaga Keuangan",
+  }
+];
+
+const PRESET_SOLID_COLORS = {
+  red: "#e11d48",
+  blue: "#2563eb",
+  emerald: "#059669",
+  green: "#15803d",
+  purple: "#9333ea",
+  orange: "#ea580c",
+  cyan: "#0891b2",
+  pink: "#db2777"
+};
+
+const getProgramSolidStyle = (idx, rawColor) => {
+  const defaultItem = PROGRAM_SOLID_PALETTES[(idx - 1) % PROGRAM_SOLID_PALETTES.length];
+  let solidColor = defaultItem.color;
+
+  if (rawColor && PRESET_SOLID_COLORS[rawColor]) {
+    solidColor = PRESET_SOLID_COLORS[rawColor];
+  } else if (rawColor && rawColor.startsWith('#')) {
+    solidColor = rawColor;
+  }
+
+  return {
+    color: solidColor,
+    tagline: defaultItem.tagline,
+  };
+};
+
+const getMajorAbbreviation = (name, fallbackIdx = 1) => {
+  if (!name || typeof name !== 'string') return `0${fallbackIdx}`;
+  
+  const trimmed = name.trim();
+  if (!trimmed) return `0${fallbackIdx}`;
+
+  // If already in parentheses like "Teknik Kendaraan Ringan (TKR)"
+  const parenMatch = trimmed.match(/\((([A-Za-z0-9&/-]){2,6})\)/);
+  if (parenMatch && parenMatch[1]) {
+    return parenMatch[1].toUpperCase();
+  }
+
+  // If already short like "TKR", "TKJ", "RPL", "MPLB"
+  if (trimmed.length <= 5 && !trimmed.includes(' ')) {
+    return trimmed.toUpperCase();
+  }
+
+  const upper = trimmed.toUpperCase();
+
+  // Common SMK majors mapping
+  if (upper.includes("KENDARAAN RINGAN") || (upper.includes("OTOMOTIF") && !upper.includes("MOTOR"))) return "TKR";
+  if (upper.includes("KOMPUTER") && upper.includes("JARINGAN")) return "TKJ";
+  if (upper.includes("SEPEDA MOTOR")) return "TBSM";
+  if (upper.includes("PERKANTORAN") || upper.includes("LAYANAN BISNIS")) return upper.includes("LAYANAN") ? "MPLB" : "MP";
+  if (upper.includes("AKUNTANSI") || (upper.includes("KEUANGAN") && upper.includes("LEMBAGA"))) return upper.includes("LEMBAGA") ? "AKL" : "AK";
+  if (upper.includes("REKAYASA PERANGKAT LUNAK") || upper.includes("PERANGKAT LUNAK")) return "RPL";
+  if (upper.includes("DESAIN KOMUNIKASI VISUAL")) return "DKV";
+  if (upper.includes("MULTIMEDIA")) return "MM";
+  if (upper.includes("PEMODELAN") && upper.includes("BANGUNAN")) return "DPIB";
+  if (upper.includes("INSTALASI TENAGA LISTRIK")) return "TITL";
+  if (upper.includes("ELEKTRONIKA")) return "TEI";
+  if (upper.includes("PEMESINAN") || upper.includes("MESIN")) return "TPM";
+  if (upper.includes("PENGELASAN") || upper.includes("LAS")) return "TPL";
+  if (upper.includes("BISNIS DARING") || upper.includes("PEMASARAN")) return "BDP";
+  if (upper.includes("TATA BOGA") || upper.includes("KULINER")) return "TB";
+  if (upper.includes("TATA BUSANA")) return "TBS";
+  if (upper.includes("PERHOTELAN")) return "PH";
+  if (upper.includes("FARMASI")) return "FAR";
+
+  // Algorithmic acronym from significant words (ignoring prepositions & generic words)
+  const stopWords = new Set(['DAN', '&', 'DAN/ATAU', 'DI', 'KE', 'DARI', 'UNTUK', 'PADA', 'DENGAN', 'PROGRAM', 'KEAHLIAN', 'KONSENTRASI', 'KOMPETENSI', 'JURUSAN']);
+  const cleanWords = upper
+    .replace(/[^A-Z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 0 && !stopWords.has(w));
+
+  if (cleanWords.length >= 2) {
+    return cleanWords.slice(0, 4).map(w => w[0]).join('');
+  } else if (cleanWords.length === 1) {
+    return cleanWords[0].slice(0, 4);
+  }
+
+  return `0${fallbackIdx}`;
+};
+
 
 export default function LandingPage() {
   const { appSettings, setIsLoginModalOpen, setModalViewMode } = useOutletContext();
@@ -1487,51 +1594,71 @@ export default function LandingPage() {
                 <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-wider uppercase">
                   {appSettings.trustedByText || "Program Keahlian Unggulan"}
                 </h2>
-                <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-1">
+                <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-0.5">
                   Kompetensi keahlian terakreditasi berstandar industri
                 </p>
               </div>
 
-              {/* Banner Card Hijau Solid #3DAA37 - Proporsional, Interaktif & Elegan */}
+              {/* Banner Card Solid Modern - Interaktif & Elegan */}
               {(() => {
                 const activeProgram = availablePrograms[activeProgramIdx] || availablePrograms[0];
-                const cardColor = activeProgram.color && activeProgram.color.startsWith('#') ? activeProgram.color : '#3DAA37';
+                const activeIdx = activeProgram.index || activeProgramIdx + 1;
+                const styleInfo = getProgramSolidStyle(activeIdx, activeProgram.color);
+                const ActiveIcon = ICON_MAP[activeProgram.icon] || HelpCircle;
+
                 return (
                   <div 
-                    className="w-full rounded-xl sm:rounded-2xl h-[44px] sm:h-[46px] px-2.5 sm:px-3 shadow-xs text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
+                    className="w-full rounded-2xl h-[60px] sm:h-[64px] px-3 shadow-md text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
                     style={{
-                      background: `linear-gradient(135deg, ${cardColor} 0%, color-mix(in srgb, ${cardColor} 85%, #000000) 100%)`,
-                      boxShadow: `0 4px 14px ${hexToRgba(cardColor, 0.22)}`
+                      backgroundColor: styleInfo.color,
+                      boxShadow: `0 8px 20px -4px ${hexToRgba(styleInfo.color, 0.35)}`
                     }}
                   >
-                    {/* Subtle Top Glass Highlight */}
-                    <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/12 to-transparent pointer-events-none" />
-
                     {/* Tombol Panah Kiri */}
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev === 0 ? availablePrograms.length - 1 : prev - 1))}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/75 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-white/20 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Sebelumnya"
                     >
-                      <ChevronLeft size={16} strokeWidth={2.6} />
+                      <ChevronLeft size={18} strokeWidth={2.6} />
                     </button>
 
-                    {/* Area Konten Tengah: Nama Jurusan (Lebih Compact & Rapi) */}
-                    <div className="flex-1 flex items-center justify-center px-2 min-w-0 z-10">
-                      <h3 className="text-[11.5px] sm:text-xs font-black text-white uppercase tracking-wider text-center drop-shadow-sm truncate w-full leading-none">
-                        {activeProgram.name}
-                      </h3>
+                    {/* Konten Tengah: Logo + Info Keahlian */}
+                    <div className="flex-1 flex items-center gap-2.5 px-2 min-w-0 z-10">
+                      {/* Logo Badge */}
+                      <div className="w-9 h-9 rounded-xl bg-white p-1 shadow-sm border border-white/80 flex items-center justify-center shrink-0">
+                        {activeProgram.image ? (
+                          <img src={activeProgram.image} alt={activeProgram.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <ActiveIcon size={18} strokeWidth={2.2} className="text-slate-800" />
+                        )}
+                      </div>
+
+                      {/* Teks */}
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-white bg-black/25 px-2 py-0.5 rounded-full border border-white/20">
+                            {getMajorAbbreviation(activeProgram.name, activeIdx)}
+                          </span>
+                          <span className="text-[9.5px] font-semibold text-white/85 truncate">
+                            {styleInfo.tagline}
+                          </span>
+                        </div>
+                        <h3 className="text-[12px] sm:text-[12.5px] font-black text-white uppercase tracking-tight truncate drop-shadow-xs leading-tight mt-0.5">
+                          {activeProgram.name}
+                        </h3>
+                      </div>
                     </div>
 
                     {/* Tombol Panah Kanan */}
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white/75 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-white/20 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Selanjutnya"
                     >
-                      <ChevronRight size={16} strokeWidth={2.6} />
+                      <ChevronRight size={18} strokeWidth={2.6} />
                     </button>
                   </div>
                 );
@@ -1756,17 +1883,19 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* JURUSAN / PROGRAM (Colorful Flat Cards without Box in Box) */}
-        <div className="shrink-0 mt-8 mb-6 bottom-jurusan-section relative z-10">
-          {/* Centered Title like Layanan Publik */}
-          <div className="flex flex-col items-center justify-center text-center mb-5">
-            <h2 className="text-base lg:text-lg font-black text-slate-800 tracking-tight leading-none">
+        {/* JURUSAN / PROGRAM KEAHLIAN UNGGULAN (SOPHISTICATED PREMIUM CARDS) */}
+        <div className="shrink-0 mt-9 mb-7 bottom-jurusan-section relative z-10">
+          {/* Centered Title */}
+          <div className="flex flex-col items-center justify-center text-center mb-6">
+            <h2 className="text-lg lg:text-2xl font-black text-slate-800 tracking-tight leading-none">
               {appSettings.trustedByText || "Program Keahlian Unggulan"}
             </h2>
-            <p className="text-[11px] text-slate-400 font-semibold mt-1">Kompetensi keahlian terakreditasi berstandar industri</p>
+            <p className="text-xs text-slate-400 font-semibold mt-1.5 max-w-lg">
+              Kompetensi keahlian terakreditasi berstandar industri &amp; siap kerja global
+            </p>
           </div>
 
-          {/* 4 Colorful Borderless Flat Cards */}
+          {/* 4 Solid Modern Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 w-full">
             {[1, 2, 3, 4].map((idx) => {
               const name = appSettings[`partner${idx}`];
@@ -1775,58 +1904,64 @@ export default function LandingPage() {
               const iconStr = appSettings[`partnerIcon${idx}`] || "book";
               const IconComponent = ICON_MAP[iconStr] || HelpCircle;
               const imageSrc = appSettings[`partnerImage${idx}`];
-              
               const rawColor = appSettings[`partnerColor${idx}`];
-              const defaultGradients = [
-                "bg-gradient-to-br from-amber-500 to-orange-600",
-                "bg-gradient-to-br from-sky-600 to-indigo-700",
-                "bg-gradient-to-br from-emerald-600 to-teal-700",
-                "bg-gradient-to-br from-rose-500 to-pink-600"
-              ];
-              const colorMap = {
-                red: "bg-gradient-to-br from-rose-500 to-rose-600",
-                blue: "bg-gradient-to-br from-sky-600 to-indigo-700",
-                emerald: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                green: "bg-gradient-to-br from-emerald-600 to-teal-700",
-                purple: "bg-gradient-to-br from-purple-600 to-indigo-700",
-                orange: "bg-gradient-to-br from-amber-500 to-orange-600",
-                cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
-                pink: "bg-gradient-to-br from-rose-500 to-pink-600"
-              };
-              
-              const isHexColor = rawColor && rawColor.startsWith('#');
-              const bgClass = isHexColor ? '' : (colorMap[rawColor] || defaultGradients[idx - 1] || "bg-gradient-to-br from-emerald-600 to-teal-700");
+              const desc = appSettings[`partnerDesc${idx}`];
+
+              const styleInfo = getProgramSolidStyle(idx, rawColor);
 
               return (
                 <div 
                   key={idx} 
-                  className={`group relative rounded-[var(--ui-radius-card)] p-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex items-center justify-between gap-3.5 min-h-[96px] lg:min-h-[102px] w-full overflow-hidden cursor-pointer select-none text-white ${bgClass}`}
-                  style={isHexColor ? { backgroundColor: rawColor } : {}}
+                  className="group relative rounded-2xl lg:rounded-3xl p-4.5 lg:p-5 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between min-h-[142px] lg:min-h-[152px] w-full overflow-hidden cursor-pointer select-none text-white border border-white/20"
+                  style={{
+                    backgroundColor: styleInfo.color,
+                    boxShadow: `0 8px 24px -4px ${hexToRgba(styleInfo.color, 0.32)}, 0 2px 6px -1px rgba(0,0,0,0.06)`
+                  }}
                 >
-                  {/* Subtle ambient decorative backdrop light */}
-                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/15 rounded-full blur-lg pointer-events-none group-hover:scale-150 transition-transform duration-500" />
-                  
-                  {/* Left text content */}
-                  <div className="relative z-10 flex flex-col justify-center text-left min-w-0 flex-1">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-white/80 block mb-1">
-                      Keahlian 0{idx}
-                    </span>
-                    <div className="min-h-[34px] flex items-center">
-                      <h4 className="text-[13px] lg:text-[14px] font-black text-white tracking-tight leading-snug uppercase drop-shadow-xs line-clamp-2">
-                        {name}
-                      </h4>
+                  {/* Ambient Watermark Background Icon */}
+                  <div className="absolute -right-3 -bottom-3 w-24 h-24 text-white/10 group-hover:scale-115 group-hover:rotate-6 group-hover:text-white/18 transition-all duration-500 pointer-events-none flex items-center justify-center">
+                    <IconComponent size={86} strokeWidth={1.4} />
+                  </div>
+
+                  {/* TOP ROW: Badge Singkatan Keahlian & Floating White Logo */}
+                  <div className="relative z-10 flex items-start justify-between gap-2.5 w-full">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/25 text-[10px] font-black uppercase tracking-wider text-white shadow-2xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span>{getMajorAbbreviation(name, idx)}</span>
+                    </div>
+
+                    {/* Floating Logo Badge Container */}
+                    <div className="w-12 h-12 lg:w-13 lg:h-13 rounded-2xl bg-white p-1.5 shadow-md border border-white/80 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:shadow-lg transition-all duration-300">
+                      {imageSrc ? (
+                        <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-800">
+                          <IconComponent size={24} strokeWidth={2.2} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Right logo badge container */}
-                  <div className="relative z-10 w-12 h-12 lg:w-13 lg:h-13 rounded-[var(--ui-radius-small)] bg-white/95 backdrop-blur-md shadow-xs p-1.5 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 transition-transform duration-300">
-                    {imageSrc ? (
-                      <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <IconComponent size={24} strokeWidth={2} />
-                      </div>
-                    )}
+                  {/* MIDDLE: Major Title & Tagline */}
+                  <div className="relative z-10 my-2 flex-1 flex flex-col justify-center">
+                    <h3 className="text-[13.5px] lg:text-[15px] font-black text-white tracking-tight leading-snug uppercase drop-shadow-xs line-clamp-2">
+                      {name}
+                    </h3>
+                    <p className="text-[11px] font-medium text-white/85 mt-1 line-clamp-1">
+                      {desc || styleInfo.tagline}
+                    </p>
+                  </div>
+
+                  {/* BOTTOM ROW: Accreditation Pill & Action Arrow */}
+                  <div className="relative z-10 pt-2.5 border-t border-white/20 flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-white">
+                      <CheckCircle2 size={12} className="text-white shrink-0" />
+                      <span>Standar Industri</span>
+                    </div>
+
+                    <div className="w-6.5 h-6.5 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-slate-900 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300 shadow-xs">
+                      <ArrowUpRight size={13} strokeWidth={2.6} />
+                    </div>
                   </div>
                 </div>
               );
