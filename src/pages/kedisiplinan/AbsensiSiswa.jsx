@@ -84,18 +84,29 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const [toast, setToast] = useState(null);
 
 
+  const [matrixMonth, setMatrixMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
+  });
+
+  // Fetch dijalankan ulang setiap kali matrixMonth berubah supaya data
+  // yang dimuat selalu sesuai bulan yang sedang dilihat
   const fetchData = useCallback(async () => {
     if (!authToken) return;
     setIsLoading(true);
     try {
-      const res = await fetch("/api/kedisiplinan/absensi", { headers: {"Authorization": `Bearer ${authToken}` } });
+      // Kirim filter bulan aktif ke backend agar tidak terpotong limit di production
+      const bulanParam = matrixMonth ? `&bulan=${matrixMonth}` : '';
+      const res = await fetch(`/api/kedisiplinan/absensi?limit=5000${bulanParam}`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
       const data = await res.json();
       if (data.ok) setItems(data.data || []);
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
-  }, [authToken]);
+  }, [authToken, matrixMonth]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -194,11 +205,9 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     };
   }, [baseSuratItems]);
 
+
   const [activeTab, setActiveTab] = useState('surat_izin');
-  const [matrixMonth, setMatrixMonth] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
-  });
+
 
   const [currentPageSurat, setCurrentPageSurat] = useState(1);
   const [itemsPerPageSurat, setItemsPerPageSurat] = useState(20);

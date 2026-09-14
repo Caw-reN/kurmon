@@ -387,11 +387,19 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           
           const bulan = queryParams.get("bulan");
           if (bulan) {
+            // Filter eksplisit dari frontend
             params.push(`${bulan}%`);
+            conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
+          } else if (!startDate) {
+            // Jika tidak ada filter bulan DAN tidak ada startDate, 
+            // default ke bulan berjalan agar data tidak terpotong di production
+            const now = new Date();
+            const defaultBulan = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            params.push(`${defaultBulan}%`);
             conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
           }
           
-          if (startDate) {
+          if (startDate && !bulan) {
             params.push(startDate);
             conditions.push(`k.tanggal >= $${params.length}`);
           }
@@ -400,7 +408,8 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           }
           query += " ORDER BY k.tanggal DESC, k.id DESC";
           
-          const limit = parseInt(queryParams.get('limit') || '500', 10);
+          // Naikkan default limit dari 500 ke 5000 agar tidak terpotong di production
+          const limit = Math.min(parseInt(queryParams.get('limit') || '5000', 10), 99999);
           const offset = parseInt(queryParams.get('offset') || '0', 10);
           query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
           params.push(limit, offset);
