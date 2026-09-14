@@ -1361,14 +1361,32 @@ export function useAdminScheduleGenerator(props) {
       textColor: appSettings.textColor,
       fontFamily: appSettings.fontFamily,
       trustedByText: appSettings.trustedByText,
+      trustedBySubtitle: appSettings.trustedBySubtitle,
+      programBottomTag: appSettings.programBottomTag,
       partner1: appSettings.partner1,
       partner2: appSettings.partner2,
       partner3: appSettings.partner3,
       partner4: appSettings.partner4,
+      partnerBadge1: appSettings.partnerBadge1,
+      partnerBadge2: appSettings.partnerBadge2,
+      partnerBadge3: appSettings.partnerBadge3,
+      partnerBadge4: appSettings.partnerBadge4,
+      partnerTag1: appSettings.partnerTag1,
+      partnerTag2: appSettings.partnerTag2,
+      partnerTag3: appSettings.partnerTag3,
+      partnerTag4: appSettings.partnerTag4,
+      partnerDesc1: appSettings.partnerDesc1,
+      partnerDesc2: appSettings.partnerDesc2,
+      partnerDesc3: appSettings.partnerDesc3,
+      partnerDesc4: appSettings.partnerDesc4,
       partnerIcon1: appSettings.partnerIcon1,
       partnerIcon2: appSettings.partnerIcon2,
       partnerIcon3: appSettings.partnerIcon3,
-      partnerIcon4: appSettings.partnerIcon4
+      partnerIcon4: appSettings.partnerIcon4,
+      partnerColor1: appSettings.partnerColor1,
+      partnerColor2: appSettings.partnerColor2,
+      partnerColor3: appSettings.partnerColor3,
+      partnerColor4: appSettings.partnerColor4
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type:"application/json"

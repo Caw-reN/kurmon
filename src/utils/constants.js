@@ -949,3 +949,59 @@ export const getMajorFullName = (abbrev) => {
   const clean = String(abbrev || "").trim().toUpperCase();
   return mapping[clean] || abbrev || "-";
 };
+
+export const getMajorAbbreviation = (name, fallbackIdx = 1) => {
+  if (!name || typeof name !== 'string') return `0${fallbackIdx}`;
+  
+  const trimmed = name.trim();
+  if (!trimmed) return `0${fallbackIdx}`;
+
+  // If already in parentheses like "Teknik Kendaraan Ringan (TKR)"
+  const parenMatch = trimmed.match(/\((([A-Za-z0-9&/-]){2,6})\)/);
+  if (parenMatch && parenMatch[1]) {
+    return parenMatch[1].toUpperCase();
+  }
+
+  // If already short like "TKR", "TKJ", "RPL", "MPLB"
+  if (trimmed.length <= 5 && !trimmed.includes(' ')) {
+    return trimmed.toUpperCase();
+  }
+
+  const upper = trimmed.toUpperCase();
+
+  // Common SMK majors mapping
+  if (upper.includes("KENDARAAN RINGAN") || (upper.includes("OTOMOTIF") && !upper.includes("MOTOR"))) return "TKR";
+  if (upper.includes("KOMPUTER") && upper.includes("JARINGAN")) return "TKJ";
+  if (upper.includes("SEPEDA MOTOR")) return "TBSM";
+  if (upper.includes("PERKANTORAN") || upper.includes("LAYANAN BISNIS")) return upper.includes("LAYANAN") ? "MPLB" : "MP";
+  if (upper.includes("AKUNTANSI") || (upper.includes("KEUANGAN") && upper.includes("LEMBAGA"))) return upper.includes("LEMBAGA") ? "AKL" : "AK";
+  if (upper.includes("REKAYASA PERANGKAT LUNAK") || upper.includes("PERANGKAT LUNAK")) return "RPL";
+  if (upper.includes("DESAIN KOMUNIKASI VISUAL")) return "DKV";
+  if (upper.includes("MULTIMEDIA")) return "MM";
+  if (upper.includes("PEMODELAN") && upper.includes("BANGUNAN")) return "DPIB";
+  if (upper.includes("INSTALASI TENAGA LISTRIK")) return "TITL";
+  if (upper.includes("ELEKTRONIKA")) return "TEI";
+  if (upper.includes("PEMESINAN") || upper.includes("MESIN")) return "TPM";
+  if (upper.includes("PENGELASAN") || upper.includes("LAS")) return "TPL";
+  if (upper.includes("BISNIS DARING") || upper.includes("PEMASARAN")) return "BDP";
+  if (upper.includes("TATA BOGA") || upper.includes("KULINER")) return "TB";
+  if (upper.includes("TATA BUSANA")) return "TBS";
+  if (upper.includes("PERHOTELAN")) return "PH";
+  if (upper.includes("FARMASI")) return "FAR";
+
+  // Algorithmic acronym from significant words (ignoring prepositions & generic words)
+  const stopWords = new Set(['DAN', '&', 'DAN/ATAU', 'DI', 'KE', 'DARI', 'UNTUK', 'PADA', 'DENGAN', 'PROGRAM', 'KEAHLIAN', 'KONSENTRASI', 'KOMPETENSI', 'JURUSAN']);
+  const cleanWords = upper
+    .replace(/[^A-Z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 0 && !stopWords.has(w));
+
+  if (cleanWords.length >= 2) {
+    return cleanWords.slice(0, 4).map(w => w[0]).join('');
+  } else if (cleanWords.length === 1) {
+    return cleanWords[0].slice(0, 4);
+  }
+
+  return `0${fallbackIdx}`;
+};
+

@@ -4,6 +4,7 @@ import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, He
 import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
+import { getMajorAbbreviation } from '../utils/constants.js';
 
 
 
@@ -83,60 +84,6 @@ const getProgramSolidStyle = (idx, rawColor) => {
   };
 };
 
-const getMajorAbbreviation = (name, fallbackIdx = 1) => {
-  if (!name || typeof name !== 'string') return `0${fallbackIdx}`;
-  
-  const trimmed = name.trim();
-  if (!trimmed) return `0${fallbackIdx}`;
-
-  // If already in parentheses like "Teknik Kendaraan Ringan (TKR)"
-  const parenMatch = trimmed.match(/\((([A-Za-z0-9&/-]){2,6})\)/);
-  if (parenMatch && parenMatch[1]) {
-    return parenMatch[1].toUpperCase();
-  }
-
-  // If already short like "TKR", "TKJ", "RPL", "MPLB"
-  if (trimmed.length <= 5 && !trimmed.includes(' ')) {
-    return trimmed.toUpperCase();
-  }
-
-  const upper = trimmed.toUpperCase();
-
-  // Common SMK majors mapping
-  if (upper.includes("KENDARAAN RINGAN") || (upper.includes("OTOMOTIF") && !upper.includes("MOTOR"))) return "TKR";
-  if (upper.includes("KOMPUTER") && upper.includes("JARINGAN")) return "TKJ";
-  if (upper.includes("SEPEDA MOTOR")) return "TBSM";
-  if (upper.includes("PERKANTORAN") || upper.includes("LAYANAN BISNIS")) return upper.includes("LAYANAN") ? "MPLB" : "MP";
-  if (upper.includes("AKUNTANSI") || (upper.includes("KEUANGAN") && upper.includes("LEMBAGA"))) return upper.includes("LEMBAGA") ? "AKL" : "AK";
-  if (upper.includes("REKAYASA PERANGKAT LUNAK") || upper.includes("PERANGKAT LUNAK")) return "RPL";
-  if (upper.includes("DESAIN KOMUNIKASI VISUAL")) return "DKV";
-  if (upper.includes("MULTIMEDIA")) return "MM";
-  if (upper.includes("PEMODELAN") && upper.includes("BANGUNAN")) return "DPIB";
-  if (upper.includes("INSTALASI TENAGA LISTRIK")) return "TITL";
-  if (upper.includes("ELEKTRONIKA")) return "TEI";
-  if (upper.includes("PEMESINAN") || upper.includes("MESIN")) return "TPM";
-  if (upper.includes("PENGELASAN") || upper.includes("LAS")) return "TPL";
-  if (upper.includes("BISNIS DARING") || upper.includes("PEMASARAN")) return "BDP";
-  if (upper.includes("TATA BOGA") || upper.includes("KULINER")) return "TB";
-  if (upper.includes("TATA BUSANA")) return "TBS";
-  if (upper.includes("PERHOTELAN")) return "PH";
-  if (upper.includes("FARMASI")) return "FAR";
-
-  // Algorithmic acronym from significant words (ignoring prepositions & generic words)
-  const stopWords = new Set(['DAN', '&', 'DAN/ATAU', 'DI', 'KE', 'DARI', 'UNTUK', 'PADA', 'DENGAN', 'PROGRAM', 'KEAHLIAN', 'KONSENTRASI', 'KOMPETENSI', 'JURUSAN']);
-  const cleanWords = upper
-    .replace(/[^A-Z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 0 && !stopWords.has(w));
-
-  if (cleanWords.length >= 2) {
-    return cleanWords.slice(0, 4).map(w => w[0]).join('');
-  } else if (cleanWords.length === 1) {
-    return cleanWords[0].slice(0, 4);
-  }
-
-  return `0${fallbackIdx}`;
-};
 
 
 export default function LandingPage() {
@@ -170,6 +117,9 @@ export default function LandingPage() {
         progs.push({
           index: i,
           name: name,
+          badge: appSettings[`partnerBadge${i}`],
+          tag: appSettings[`partnerTag${i}`],
+          desc: appSettings[`partnerDesc${i}`],
           image: appSettings[`partnerImage${i}`],
           icon: appSettings[`partnerIcon${i}`] || "book",
           color: appSettings[`partnerColor${i}`] || "#3DAA37"
@@ -1595,7 +1545,7 @@ export default function LandingPage() {
                   {appSettings.trustedByText || "Program Keahlian Unggulan"}
                 </h2>
                 <p className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold mt-0.5">
-                  Kompetensi keahlian terakreditasi berstandar industri
+                  {appSettings.trustedBySubtitle || "Kompetensi keahlian terakreditasi berstandar industri"}
                 </p>
               </div>
 
@@ -1639,10 +1589,10 @@ export default function LandingPage() {
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[9px] font-black uppercase tracking-wider text-white bg-black/25 px-2 py-0.5 rounded-full border border-white/20">
-                            {getMajorAbbreviation(activeProgram.name, activeIdx)}
+                            {activeProgram.badge || getMajorAbbreviation(activeProgram.name, activeIdx)}
                           </span>
                           <span className="text-[9.5px] font-semibold text-white/85 truncate">
-                            {styleInfo.tagline}
+                            {activeProgram.desc || styleInfo.tagline}
                           </span>
                         </div>
                         <h3 className="text-[12px] sm:text-[12.5px] font-black text-white uppercase tracking-tight truncate drop-shadow-xs leading-tight mt-0.5">
@@ -1891,7 +1841,7 @@ export default function LandingPage() {
               {appSettings.trustedByText || "Program Keahlian Unggulan"}
             </h2>
             <p className="text-xs text-slate-400 font-semibold mt-1.5 max-w-lg">
-              Kompetensi keahlian terakreditasi berstandar industri &amp; siap kerja global
+              {appSettings.trustedBySubtitle || "Kompetensi keahlian terakreditasi berstandar industri & siap kerja global"}
             </p>
           </div>
 
@@ -1927,7 +1877,7 @@ export default function LandingPage() {
                   <div className="relative z-10 flex items-start justify-between gap-2.5 w-full">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/25 text-[10px] font-black uppercase tracking-wider text-white shadow-2xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      <span>{getMajorAbbreviation(name, idx)}</span>
+                      <span>{appSettings[`partnerBadge${idx}`] || getMajorAbbreviation(name, idx)}</span>
                     </div>
 
                     {/* Floating Logo Badge Container */}
@@ -1956,7 +1906,7 @@ export default function LandingPage() {
                   <div className="relative z-10 pt-2.5 border-t border-white/20 flex items-center justify-between">
                     <div className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-white">
                       <CheckCircle2 size={12} className="text-white shrink-0" />
-                      <span>Standar Industri</span>
+                      <span>{appSettings[`partnerTag${idx}`] || appSettings.programBottomTag || "Standar Industri"}</span>
                     </div>
 
                     <div className="w-6.5 h-6.5 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-slate-900 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300 shadow-xs">

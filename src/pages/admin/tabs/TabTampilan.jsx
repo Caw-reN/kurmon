@@ -5,6 +5,7 @@ import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
 import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { getMajorAbbreviation } from '../../../utils/constants.js';
 
 
 const Instagram = ({ size = 16, className ="", style = {} }) => (
@@ -594,11 +595,45 @@ export default function TabTampilan(props) {
                     {tampilanTab ==="footer" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
-                      <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Informasi Jurusan / Program</p>
                       <div>
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Pengantar</label>
-                        <input type="text" value={appSettings.trustedByText ||""} onChange={(e) => setAppSettings({ ...appSettings, trustedByText: e.target.value })} className="w-full border-none bg-white p-3 rounded-[var(--ui-radius-card)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-sm" />
+                        <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Informasi Program Keahlian / Jurusan Unggulan</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">Kelola judul, subjudul, nama jurusan, singkatan badge, tagline, dan status akreditasi pada 4 card beranda.</p>
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Judul Bagian</label>
+                          <input 
+                            type="text" 
+                            placeholder="Program Keahlian Unggulan"
+                            value={appSettings.trustedByText || ""} 
+                            onChange={(e) => setAppSettings({ ...appSettings, trustedByText: e.target.value })} 
+                            className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Sub-Judul / Keterangan</label>
+                          <input 
+                            type="text" 
+                            placeholder="Kompetensi keahlian terakreditasi berstandar industri & siap kerja global"
+                            value={appSettings.trustedBySubtitle || ""} 
+                            onChange={(e) => setAppSettings({ ...appSettings, trustedBySubtitle: e.target.value })} 
+                            className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Label Status Default (Kiri Bawah Card)</label>
+                        <input 
+                          type="text" 
+                          placeholder="Standar Industri"
+                          value={appSettings.programBottomTag || ""} 
+                          onChange={(e) => setAppSettings({ ...appSettings, programBottomTag: e.target.value })} 
+                          className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                        />
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[1, 2, 3, 4].map((number) => {
                           const iconKey = `partnerIcon${number}`;
@@ -646,23 +681,47 @@ export default function TabTampilan(props) {
                                 </div>
                               </div>
                               <div className="p-4 space-y-3 flex-1 flex flex-col">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                  <div className="sm:col-span-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Nama Jurusan</label>
+                                    <input
+                                      type="text"
+                                      placeholder={["Teknik Kendaraan Ringan", "Teknik Komputer Jaringan", "Manajemen Perkantoran", "Akuntansi Keuangan"][number - 1] || "Nama Jurusan"}
+                                      value={appSettings[`partner${number}`] || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, [`partner${number}`]: e.target.value })}
+                                      className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-bold text-slate-800"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Singkatan / Badge</label>
+                                    <input
+                                      type="text"
+                                      placeholder={getMajorAbbreviation(appSettings[`partner${number}`] || ["Teknik Kendaraan Ringan", "Teknik Komputer Jaringan", "Manajemen Perkantoran", "Akuntansi Keuangan"][number - 1], number)}
+                                      value={appSettings[`partnerBadge${number}`] || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, [`partnerBadge${number}`]: e.target.value })}
+                                      className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-bold text-slate-800 uppercase"
+                                    />
+                                  </div>
+                                </div>
+
                                 <div>
-                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Nama Jurusan</label>
+                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Deskripsi / Tagline Jurusan</label>
                                   <input
                                     type="text"
-                                    placeholder="Contoh: Rekayasa Perangkat Lunak"
-                                    value={appSettings[`partner${number}`] ||""}
-                                    onChange={(e) => setAppSettings({ ...appSettings, [`partner${number}`]: e.target.value })}
-                                    className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-bold text-slate-800"
+                                    placeholder={["Otomotif & Manufaktur Modern", "Jaringan & Komputasi Cloud", "Manajemen & Bisnis Digital", "Finansial & Lembaga Keuangan"][number - 1] || "Penjelasan singkat jurusan..."}
+                                    value={appSettings[`partnerDesc${number}`] || ""}
+                                    onChange={(e) => setAppSettings({ ...appSettings, [`partnerDesc${number}`]: e.target.value })}
+                                    className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-medium text-slate-600"
                                   />
                                 </div>
+
                                 <div>
-                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Deskripsi Singkat</label>
+                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Status / Label Bawah</label>
                                   <input
                                     type="text"
-                                    placeholder="Penjelasan singkat jurusan..."
-                                    value={appSettings[`partnerDesc${number}`] ||""}
-                                    onChange={(e) => setAppSettings({ ...appSettings, [`partnerDesc${number}`]: e.target.value })}
+                                    placeholder={appSettings.programBottomTag || "Standar Industri"}
+                                    value={appSettings[`partnerTag${number}`] || ""}
+                                    onChange={(e) => setAppSettings({ ...appSettings, [`partnerTag${number}`]: e.target.value })}
                                     className="w-full bg-white border border-slate-200 px-3 py-2 text-sm rounded-[var(--ui-radius-small)] focus:outline-none focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] transition-all font-medium text-slate-600"
                                   />
                                 </div>
