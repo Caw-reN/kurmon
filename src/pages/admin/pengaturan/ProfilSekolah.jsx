@@ -4,7 +4,7 @@ import {
   MapPin, Users, Sparkles, Star, Upload, Globe, Save, Plus, Edit2, 
   Trash2, Printer, ImageIcon, X, AlertCircle, CheckCircle2, RefreshCw, 
   Layers, Check, Calendar, Phone, Mail, Building2, Sliders, AlignCenter, 
-  AlignLeft, MoveVertical, MoveHorizontal, RotateCcw
+  AlignLeft, MoveVertical, MoveHorizontal, RotateCcw, Landmark, FileText
 } from 'lucide-react';
 import { compressImage } from '../../../utils/imageUtils.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -626,21 +626,24 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                 onClick={() => applyPreset('resmi')}
                 className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
               >
-                🏛️ Standar Dinas Resmi
+                <Landmark size={13} className="text-emerald-600" />
+                <span>Standar Dinas Resmi</span>
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('banner')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                🖼️ Banner Gambar Utuh
+                <ImageIcon size={13} className="text-indigo-600" />
+                <span>Banner Gambar Utuh</span>
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('compact')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                📄 Kompak Minimalis
+                <FileText size={13} className="text-amber-600" />
+                <span>Kompak Minimalis</span>
               </button>
             </div>
 
@@ -902,7 +905,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                         { id: 'single', label: '─ Tunggal' },
                         { id: 'thick', label: '━ Tebal' },
                         { id: 'dashed', label: '╌ Putus' },
-                        { id: 'none', label: '🚫 Tanpa Garis' }
+                        { id: 'none', label: 'Tanpa Garis' }
                       ].map(d => (
                         <button
                           key={d.id}

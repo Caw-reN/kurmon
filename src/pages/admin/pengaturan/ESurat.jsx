@@ -735,14 +735,14 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
               onClick={() => setMobileStudioTab('form')}
               className={`flex-1 ${mobileStudioTab !== 'form' ? 'text-slate-500' : ''}`}
             >
-              📝 Form & Pengaturan
+              <span className="flex items-center justify-center gap-1.5"><FileText size={14} /> Form &amp; Pengaturan</span>
             </Button>
             <Button
               variant={mobileStudioTab === 'preview' ? 'primary' : 'ghost'}
               onClick={() => setMobileStudioTab('preview')}
               className={`flex-1 ${mobileStudioTab !== 'preview' ? 'text-slate-500' : ''}`}
             >
-              👁️ Pratinjau Dokumen A4
+              <span className="flex items-center justify-center gap-1.5"><Eye size={14} /> Pratinjau Dokumen A4</span>
             </Button>
           </div>
 

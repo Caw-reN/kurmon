@@ -49,6 +49,7 @@ const KartuPelajarSiswa = () => {
   const [schoolData, setSchoolData] = useState({});
   const [cardConfig, setCardConfig] = useState(DEFAULT_CARD_CONFIG);
   const cardRef = useRef();
+  const highResCardRef = useRef();
 
   // Form Pengajuan Pembaruan & Cetak
   const [showModalForm, setShowModalForm] = useState(false);
@@ -285,7 +286,7 @@ const KartuPelajarSiswa = () => {
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('✅ Permohonan berhasil dikirim! Menunggu ACC petugas Tata Usaha / Admin.');
+        showToast('Permohonan berhasil dikirim! Menunggu ACC petugas Tata Usaha / Admin.');
         setShowModalForm(false);
         setNewPhoto(null);
         setPhotoPreview(null);
@@ -312,7 +313,11 @@ const KartuPelajarSiswa = () => {
     setIsDownloadingPdf(true);
     showToast('Menyiapkan file PDF kartu pelajar...', 'info');
     try {
-      const cardElement = cardRef.current || document.querySelector('.student-card-wrapper');
+      const cardElement = highResCardRef.current?.querySelector('.student-card-face') 
+        || highResCardRef.current?.querySelector('.student-card-wrapper') 
+        || cardRef.current?.querySelector('.student-card-face') 
+        || cardRef.current 
+        || document.querySelector('.student-card-wrapper');
       if (!cardElement) throw new Error('Elemen kartu belum selesai dirender');
 
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -320,28 +325,26 @@ const KartuPelajarSiswa = () => {
         import('jspdf')
       ]);
 
-      const width = cardElement.offsetWidth || 320;
-      const height = cardElement.offsetHeight || 200;
-
       const canvas = await html2canvas(cardElement, {
-        scale: 3,
+        scale: 2, // 1012 * 2 = 2024px, kualitas tajam 600 DPI
         useCORS: true,
         allowTaint: true,
         logging: false,
-        backgroundColor: null
+        backgroundColor: null,
+        imageTimeout: 5000
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
-        orientation: width > height ? 'landscape' : 'portrait',
-        unit: 'pt',
-        format: [width, height]
+        orientation: 'landscape',
+        unit: 'mm',
+        format: [85.6, 54]
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+      pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54, undefined, 'FAST');
       const safeNis = (studentNis || 'siswa').replace(/[^a-zA-Z0-9]/g, '_');
       pdf.save(`Kartu_Pelajar_${safeNis}_${cardSide}.pdf`);
-      showToast('✅ Kartu PDF berhasil diunduh!');
+      showToast('Kartu PDF berhasil diunduh!');
     } catch (err) {
       console.error(err);
       showToast('Gagal memproses PDF kartu: ' + (err.message || 'Kesalahan sistem'), 'error');
@@ -520,6 +523,28 @@ const KartuPelajarSiswa = () => {
               cardRef={cardRef}
               side={cardSide}
             />
+
+            {/* Hidden High-Res Card Container for 600 DPI PDF Export */}
+            <div
+              ref={highResCardRef}
+              aria-hidden="true"
+              style={{
+                position: 'fixed',
+                left: '-9999px',
+                top: '0px',
+                width: '1200px',
+                zIndex: -9999,
+                pointerEvents: 'none',
+              }}
+            >
+              <StudentCard
+                student={studentObjectForCard}
+                school={schoolData}
+                config={cardConfig}
+                side={cardSide}
+                highRes={true}
+              />
+            </div>
 
             {/* Quick Card Flip, Download PDF & Print Controls */}
             <div className="flex flex-wrap items-center justify-center gap-2.5 mt-6">

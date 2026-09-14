@@ -972,7 +972,7 @@ export default function SiswaKeluar() {
                     value={selectedClassFilter}
                     onChange={(val) => setSelectedClassFilter(val)}
                     options={[
-                      { value: 'ALL', label: `✨ Semua Kelas (${activeStudents.length} Siswa)` },
+                      { value: 'ALL', label: `Semua Kelas (${activeStudents.length} Siswa)` },
                       ...classList.map(cls => ({ value: cls, label: `Kelas ${cls}` }))
                     ]}
                     searchable={true}

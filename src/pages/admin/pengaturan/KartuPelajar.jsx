@@ -154,7 +154,7 @@ const formatIndonesianDate = (dateString) => {
 };
 
 // ─── Student Card Render Component ──────────────────────────────────────────
-export function StudentCard({ student, school, config, cardRef, side = 'both' }) {
+export function StudentCard({ student, school, config, cardRef, side = 'both', highRes = false }) {
   const frontBg = config.front_template || '';
   const backBg = config.back_template || '';
   const [qrCode, setQrCode] = useState("");
@@ -217,7 +217,8 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
         const qrData = token
           ? `${origin}/validasi-siswa?v=${encodeURIComponent(token)}`
           : `${origin}/validasi-siswa?nis=${student.nis}&nama=${encodeURIComponent(student.name || student.namaSiswa || '')}`;
-        QRCode.default.toDataURL(qrData, { margin: 1, width: 200 })
+        const qrSize = highRes ? 400 : 200;
+        QRCode.default.toDataURL(qrData, { margin: 1, width: qrSize })
           .then(url => {
             if (isMounted) setQrCode(url);
           })
@@ -225,11 +226,15 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
       }).catch(console.error);
     }
     return () => { isMounted = false; };
-  }, [student, config.show_barcode]);
+  }, [student, config.show_barcode, highRes]);
 
   const renderFront = (
     <div 
-      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
+      className={`student-card-face relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit ${
+        highRes 
+          ? 'w-[1012px] h-[638px] rounded-[24px]' 
+          : 'w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs'
+      }`}
       style={{ 
         backgroundImage: frontBg ? `url(${frontBg})` : 'none', 
         backgroundSize: 'cover', 
@@ -238,66 +243,87 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
       }}
     >
       {!frontBg && (
-        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-white/40 z-0">
+        <div className={`absolute inset-0 flex items-center justify-center font-extrabold text-white/40 z-0 ${
+          highRes ? 'text-2xl' : 'text-[10px]'
+        }`}>
           Belum ada gambar background depan
         </div>
       )}
       
       {/* Photo Box (Top Left) */}
       {config.show_photo && (
-        <div className="absolute top-[35%] left-[11%] w-[14%] h-[35%] overflow-hidden z-10 flex items-center justify-center bg-white shadow-xs rounded-[var(--ui-radius-small)] p-0.5 border border-slate-200">
+        <div className={`absolute top-[35%] left-[11%] w-[14%] h-[35%] overflow-hidden z-10 flex items-center justify-center bg-white shadow-xs border border-slate-200 ${
+          highRes ? 'rounded-xl p-1.5' : 'rounded-[var(--ui-radius-small)] p-0.5'
+        }`}>
           {(student?.photo || student?.foto) ? (
             <img 
               src={student.photo || student.foto} 
               alt="Foto" 
-              className="w-full h-full object-cover rounded-[var(--ui-radius-small)]" 
+              className={`w-full h-full object-cover ${highRes ? 'rounded-lg' : 'rounded-[var(--ui-radius-small)]'}`} 
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : (
-            <User size={28} className="w-full h-full text-slate-300" />
+            <User size={highRes ? 84 : 28} className="w-full h-full text-slate-300" />
           )}
         </div>
       )}
 
       {/* Data Box (Top Right) */}
       <div 
-        className="absolute top-[35%] left-[30%] w-[58%] h-[40%] z-10 flex flex-col justify-start pt-0.5 gap-[1.5px] pl-1" 
+        className={`absolute top-[35%] left-[30%] w-[58%] h-[40%] z-10 flex flex-col justify-start ${
+          highRes ? 'pt-1 gap-1 pl-2' : 'pt-0.5 gap-[1.5px] pl-1'
+        }`} 
         style={{ color: config.text_color || '#000000' }}
       >
-        <p className="text-[8px] font-bold leading-tight">NIS: {student?.nis || '000'}</p>
+        <p className={`${highRes ? 'text-[24px]' : 'text-[8px]'} font-bold leading-tight`}>
+          NIS: {student?.nis || '000'}
+        </p>
         <p 
-          className="text-[10px] font-black uppercase leading-tight truncate mt-0.5 mb-0.5" 
+          className={`${
+            highRes ? 'text-[30px] mt-1 mb-1' : 'text-[10px] mt-0.5 mb-0.5'
+          } font-black uppercase leading-tight truncate`} 
           title={student?.name || student?.namaSiswa}
         >
           {config.auto_abbreviate_name !== false
             ? formatAbbreviatedName(student?.name || student?.namaSiswa || 'NAMA SISWA', config.max_name_length || 22)
             : (student?.name || student?.namaSiswa || 'NAMA SISWA')}
         </p>
-        <p className="text-[8px] font-bold leading-tight">TTL: {student?.ttl || '-'}</p>
-        <p className="text-[8px] font-bold leading-tight truncate">Jurusan: {getStudentMajor(student)}</p>
+        <p className={`${highRes ? 'text-[24px]' : 'text-[8px]'} font-bold leading-tight`}>
+          TTL: {student?.ttl || '-'}
+        </p>
+        <p className={`${highRes ? 'text-[24px]' : 'text-[8px]'} font-bold leading-tight truncate`}>
+          Jurusan: {getStudentMajor(student)}
+        </p>
         
-        <div className="absolute bottom-0.5 left-1">
-          <p className="text-[5px] italic font-semibold opacity-75">
+        <div className={`absolute ${highRes ? 'bottom-2 left-2' : 'bottom-0.5 left-1'}`}>
+          <p className={`${highRes ? 'text-[15px]' : 'text-[5px]'} italic font-semibold opacity-75`}>
             *Berlaku selama menjadi siswa {school?.name || 'Sekolah'}
           </p>
         </div>
       </div>
 
       {/* QR & Kepsek Box (Bottom Right) */}
-      <div className="absolute bottom-[4%] right-[4%] w-[24%] flex flex-col items-center justify-end z-10" style={{ color: config.text_color || '#000000' }}>
-        <p className="text-[5px] mb-0.5 opacity-80">
+      <div 
+        className="absolute bottom-[4%] right-[4%] w-[24%] flex flex-col items-center justify-end z-10" 
+        style={{ color: config.text_color || '#000000' }}
+      >
+        <p className={`${highRes ? 'text-[15px] mb-1.5' : 'text-[5px] mb-0.5'} opacity-80 font-semibold`}>
           {new Date(student?.updated_at || student?.created_at || new Date()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
         </p>
         {config.show_barcode && (
-          <div className="w-[50%] aspect-square flex items-center justify-center bg-white/70 rounded-[var(--ui-radius-small)] p-0.5 shadow-xs">
+          <div className={`w-[50%] aspect-square flex items-center justify-center bg-white/70 shadow-xs ${
+            highRes ? 'rounded-xl p-1.5' : 'rounded-[var(--ui-radius-small)] p-0.5'
+          }`}>
             {qrCode ? (
               <img src={qrCode} alt="QR TTD" className="w-full h-full object-contain mix-blend-multiply" />
             ) : (
-              <QrCode size={12} className="text-slate-400" />
+              <QrCode size={highRes ? 36 : 12} className="text-slate-400" />
             )}
           </div>
         )}
-        <p className="text-[6px] font-bold leading-tight text-center mt-0.5 border-b border-black/20 pb-0.5">
+        <p className={`${
+          highRes ? 'text-[18px] mt-1.5 pb-1 border-b-2' : 'text-[6px] mt-0.5 pb-0.5 border-b'
+        } font-bold leading-tight text-center border-black/20`}>
           {school?.kepala_sekolah || 'Kepala Sekolah'}
         </p>
       </div>
@@ -306,7 +332,11 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
 
   const renderBack = (
     <div 
-      className="w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit"
+      className={`student-card-face relative overflow-hidden shrink-0 border border-slate-200/80 transition-all select-none font-inherit ${
+        highRes 
+          ? 'w-[1012px] h-[638px] rounded-[24px]' 
+          : 'w-[320px] h-[200px] rounded-[var(--ui-radius-card)] shadow-xs'
+      }`}
       style={{ 
         backgroundImage: backBg ? `url(${backBg})` : 'none', 
         backgroundSize: 'cover', 
@@ -315,7 +345,9 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
       }}
     >
       {!backBg && (
-        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-white/40 z-0">
+        <div className={`absolute inset-0 flex items-center justify-center font-extrabold text-white/40 z-0 ${
+          highRes ? 'text-2xl' : 'text-[10px]'
+        }`}>
           Belum ada gambar background belakang
         </div>
       )}
@@ -323,7 +355,7 @@ export function StudentCard({ student, school, config, cardRef, side = 'both' })
   );
 
   return (
-    <div ref={cardRef} className="student-card-wrapper flex flex-wrap gap-4 items-start justify-center">
+    <div ref={cardRef} className={`student-card-wrapper flex flex-wrap ${highRes ? 'gap-8' : 'gap-4'} items-start justify-center`}>
       {(side === 'both' || side === 'front') && renderFront}
       {(side === 'both' || side === 'back') && renderBack}
     </div>
@@ -551,7 +583,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       });
       const data = await response.json();
       if (data.ok) {
-        showToast('✅ Pengajuan disetujui (ACC) & data master siswa berhasil diperbarui!');
+        showToast('Pengajuan disetujui (ACC) & data master siswa berhasil diperbarui!');
         setApproveDialog({ isOpen: false, item: null, note: '' });
         await reloadDataAfterApproval();
       } else {
@@ -784,17 +816,18 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     setTimeout(async () => {
       try {
         let container = pdfRenderRef.current;
-        let cards = container ? container.querySelectorAll('.student-card-wrapper') : [];
+        let cardFaces = container ? Array.from(container.querySelectorAll('.student-card-face')) : [];
 
-        // Fallback: Jika render container belum siap dan hanya 1 kartu aktif, ambil langsung dari DOM Preview Studio
-        if ((!cards || cards.length === 0) && targetList.length === 1) {
-          const previewCard = document.querySelector('.bg-slate-950\\/70 .student-card-wrapper');
+        // Fallback: Jika render container belum siap dan hanya 1 kartu aktif, ambil dari wrapper
+        if ((!cardFaces || cardFaces.length === 0) && targetList.length === 1) {
+          const previewCard = document.querySelector('.student-card-wrapper');
           if (previewCard) {
-            cards = [previewCard];
+            cardFaces = Array.from(previewCard.querySelectorAll('.student-card-face'));
+            if (!cardFaces.length) cardFaces = [previewCard];
           }
         }
 
-        if (!cards || cards.length === 0) {
+        if (!cardFaces || cardFaces.length === 0) {
           throw new Error('Elemen kartu belum selesai dirender, silakan coba beberapa detik lagi');
         }
 
@@ -811,32 +844,26 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           }));
         }
 
-        // Tentukan dimensi kartu berdasarkan elemen riil (agar tidak terdistorsi/gepeng)
-        const sampleCard = cards[0];
-        const cardWidth = sampleCard.offsetWidth || (previewSide === 'both' ? 656 : 320);
-        const cardHeight = sampleCard.offsetHeight || 200;
-
+        // Standar Fisik ID-Card ISO CR80: 85.6 mm x 54 mm
         const pdf = new jsPDF({
-          orientation: cardWidth > cardHeight ? 'landscape' : 'portrait',
-          unit: 'pt',
-          format: [cardWidth, cardHeight]
+          orientation: 'landscape',
+          unit: 'mm',
+          format: [85.6, 54]
         });
 
-        for (let i = 0; i < cards.length; i++) {
-          const card = cards[i];
-          const cWidth = card.offsetWidth || cardWidth;
-          const cHeight = card.offsetHeight || cardHeight;
-          const canvas = await html2canvas(card, {
-            scale: 3,
+        for (let i = 0; i < cardFaces.length; i++) {
+          const face = cardFaces[i];
+          const canvas = await html2canvas(face, {
+            scale: 2, // 1012 * 2 = 2024px width, kualitas cetak tajam 600 DPI
             useCORS: true,
             allowTaint: true,
             logging: false,
             backgroundColor: null,
-            windowWidth: 1200
+            imageTimeout: 5000
           });
           const imgData = canvas.toDataURL('image/png');
-          if (i > 0) pdf.addPage([cWidth, cHeight], cWidth > cHeight ? 'l' : 'p');
-          pdf.addImage(imgData, 'PNG', 0, 0, cWidth, cHeight);
+          if (i > 0) pdf.addPage([85.6, 54], 'landscape');
+          pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54, undefined, 'FAST');
         }
 
         const safeName = (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis || 'siswa')
@@ -847,7 +874,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
 
         pdf.save(fileName);
         targetList.forEach(st => logPrintAction(st));
-        showToast('✅ PDF berhasil diunduh!');
+        showToast('PDF berhasil diunduh!');
       } catch (err) {
         console.error('[PDF]', err);
         showToast('Gagal memproses PDF: ' + (err.message || 'Kesalahan rendering kartu'), 'error');
@@ -3031,13 +3058,13 @@ export default function KartuPelajar({ students: propStudents = [] }) {
           aria-hidden="true"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            opacity: 0,
+            left: '-9999px',
+            top: '0px',
+            width: '1200px',
             zIndex: -9999,
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '24px',
             background: '#ffffff',
             pointerEvents: 'none',
           }}
@@ -3049,6 +3076,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
               school={school}
               config={config}
               side={previewSide}
+              highRes={true}
             />
           ))}
         </div>
