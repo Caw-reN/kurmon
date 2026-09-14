@@ -750,8 +750,8 @@ export default function MyAttendancePage({ setActiveTab }) {
                     <div className="flex items-center gap-0.5 w-full justify-center">
                       <span className={`hidden sm:inline text-[7px] font-black ${style?.text || 'text-emerald-500'}`}>↑</span>
                       {!showIn ? (
-                        <span className="text-[7.5px] font-extrabold text-rose-600 flex items-center justify-center gap-0.5 leading-none">
-                          <span className="text-[6.5px]">❌</span>
+                        <span className="text-[7.5px] font-extrabold text-rose-600 flex items-center justify-center gap-1 leading-none">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
                           <span>Tdk Absen</span>
                         </span>
                       ) : (
@@ -763,13 +763,8 @@ export default function MyAttendancePage({ setActiveTab }) {
                     {showOut && (
                       <div className="flex items-center gap-0.5 w-full justify-center">
                         <span className="hidden sm:inline text-[7px] text-slate-400 font-black">↓</span>
-                        <span className="text-[8px] font-black text-slate-500 tracking-tighter">{fmt5(dayData.out)}</span>
+                        <span className="text-[8px] font-black text-slate-600 tracking-tighter">{fmt5(dayData.out)}</span>
                       </div>
-                    )}
-                    {!showIn && showOut && (
-                      <span className="text-[7px] font-black uppercase tracking-tight text-white bg-orange-500 px-1 py-0.2 rounded-[var(--ui-radius-small)] mt-0.5 border border-orange-600 shadow-2xs">
-                        TDK ABSEN PAGI
-                      </span>
                     )}
                   </div>
                 )}

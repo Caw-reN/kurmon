@@ -358,8 +358,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const outTime = formatAttendanceTime(dayData.out);
     if (!inTime && Boolean(outTime)) {
       return {
-        className: "bg-orange-50/90 text-orange-950 font-bold border-2 border-orange-300 shadow-xs",
-        style: { color: "#7c2d12" }
+        className: "bg-amber-50/90 text-amber-950 font-bold border border-amber-300 shadow-2xs",
+        style: { color: "#78350f" }
       };
     }
     return {
@@ -2310,20 +2310,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                      return (
                                        <div title={titleAttr}>
                                          {isMissingIn ? (
-                                           <div className="text-rose-600 font-extrabold flex items-center justify-center gap-0.5 text-[8px] py-0.5 leading-none">
-                                             <span className="text-[7.5px]">❌</span>
+                                           <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
+                                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
                                              <span className="tracking-tight">Tdk Absen</span>
                                            </div>
                                          ) : (
                                            <div>{inTime || '--:--'}</div>
                                          )}
-                                         <div className={`border-t my-0.5 ${isMissingIn ? 'border-orange-300' : 'border-black/10'}`}></div>
+                                         <div className="border-t border-black/10 my-0.5"></div>
                                          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
-                                         {isMissingIn && (
-                                           <div className="text-[7px] font-black uppercase tracking-tight text-white bg-orange-500 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-orange-600 inline-block shadow-2xs">
-                                             TDK ABSEN PAGI
-                                           </div>
-                                         )}
                                        </div>
                                      );
                                    })()}

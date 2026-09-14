@@ -1270,20 +1270,15 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <div className="flex flex-col gap-0.5" title={titleAttr}>
           {isMissingIn ? (
-            <div className="text-rose-600 font-extrabold flex items-center justify-center gap-0.5 text-[8px] py-0.5 leading-none">
-              <span className="text-[7.5px]">❌</span>
+            <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
               <span className="tracking-tight">Tdk Absen</span>
             </div>
           ) : (
             <div>{inTime || '--:--'}</div>
           )}
-          <div className={`border-t w-full my-0.5 ${isMissingIn ? 'border-orange-300' : 'border-black/10'}`}></div>
+          <div className="border-t border-black/10 w-full my-0.5"></div>
           <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
-          {isMissingIn && (
-            <span className="text-[7px] font-black uppercase tracking-tight text-white bg-orange-500 px-1 py-0.5 rounded-[var(--ui-radius-small)] mt-0.5 border border-orange-600 inline-block shadow-2xs">
-              TDK ABSEN PAGI
-            </span>
-          )}
         </div>
       );
     };
@@ -1304,7 +1299,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (isMissingIn) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-orange-50/90 text-orange-950 border-2 border-orange-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-xs" 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/90 text-amber-950 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs" 
         >
           {renderTaps(dayData)}
         </div>
