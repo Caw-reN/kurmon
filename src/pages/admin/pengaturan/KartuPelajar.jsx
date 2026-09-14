@@ -708,30 +708,60 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     // Give React time to mount the cards into pdfRenderRef
     setTimeout(async () => {
       try {
-        const container = pdfRenderRef.current;
-        if (!container) throw new Error('PDF render container tidak ditemukan');
+        let container = pdfRenderRef.current;
+        let cards = container ? container.querySelectorAll('.student-card-wrapper') : [];
 
-        const cards = container.querySelectorAll('.student-card-wrapper');
-        if (cards.length === 0) throw new Error('Tidak ada kartu untuk dirender');
+        // Fallback: Jika render container belum siap dan hanya 1 kartu aktif, ambil langsung dari DOM Preview Studio
+        if ((!cards || cards.length === 0) && targetList.length === 1) {
+          const previewCard = document.querySelector('.bg-slate-950\\/70 .student-card-wrapper');
+          if (previewCard) {
+            cards = [previewCard];
+          }
+        }
+
+        if (!cards || cards.length === 0) {
+          throw new Error('Elemen kartu belum selesai dirender, silakan coba beberapa detik lagi');
+        }
+
+        // Tunggu semua gambar (foto & QR barcode) selesai dimuat
+        const images = Array.from(container?.querySelectorAll('img') || []);
+        if (images.length > 0) {
+          await Promise.all(images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+              img.onload = resolve;
+              img.onerror = resolve;
+              setTimeout(resolve, 800);
+            });
+          }));
+        }
+
+        // Tentukan dimensi kartu berdasarkan elemen riil (agar tidak terdistorsi/gepeng)
+        const sampleCard = cards[0];
+        const cardWidth = sampleCard.offsetWidth || (previewSide === 'both' ? 656 : 320);
+        const cardHeight = sampleCard.offsetHeight || 200;
 
         const pdf = new jsPDF({
-          orientation: 'landscape',
+          orientation: cardWidth > cardHeight ? 'landscape' : 'portrait',
           unit: 'pt',
-          format: [656, 200]
+          format: [cardWidth, cardHeight]
         });
 
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
+          const cWidth = card.offsetWidth || cardWidth;
+          const cHeight = card.offsetHeight || cardHeight;
           const canvas = await html2canvas(card, {
             scale: 3,
             useCORS: true,
             allowTaint: true,
             logging: false,
-            backgroundColor: null
+            backgroundColor: null,
+            windowWidth: 1200
           });
           const imgData = canvas.toDataURL('image/png');
-          if (i > 0) pdf.addPage([656, 200], 'l');
-          pdf.addImage(imgData, 'PNG', 0, 0, 656, 200);
+          if (i > 0) pdf.addPage([cWidth, cHeight], cWidth > cHeight ? 'l' : 'p');
+          pdf.addImage(imgData, 'PNG', 0, 0, cWidth, cHeight);
         }
 
         const safeName = (targetList[0].namaSiswa || targetList[0].name || targetList[0].nis || 'siswa')
@@ -745,13 +775,13 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         showToast('✅ PDF berhasil diunduh!');
       } catch (err) {
         console.error('[PDF]', err);
-        showToast('Gagal memproses PDF: ' + err.message, 'error');
+        showToast('Gagal memproses PDF: ' + (err.message || 'Kesalahan rendering kartu'), 'error');
       } finally {
         setIsPrinting(false);
         setPrintingStudentsList(null);
       }
     }, 700);
-  }, [selectedStudents, students, previewStudent, showToast, logPrintAction]);
+  }, [selectedStudents, students, previewStudent, previewSide, showToast, logPrintAction]);
 
   const handleSaveManual = async (e) => {
     e.preventDefault();
@@ -2134,15 +2164,6 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         </div>
       )}
 
-      {/* Hidden Print Area */}
-      {isPrinting && (
-        <div className="print-area bg-white z-[9999] flex flex-wrap gap-4 p-4 justify-start content-start">
-          {studentsToPrint.map(student => (
-            <StudentCard key={student.nis} student={student} school={school} config={config} />
-          ))}
-        </div>
-      )}
-
       {/* Modal: Upload Excel / CSV Data Siswa & TTL */}
       {showExcelModal && (
         <Modal
@@ -2622,39 +2643,43 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         </div>
       )}
 
-      {/* Hidden PDF Render Container (off-screen, used by html2canvas) */}
-      <div
-        ref={pdfRenderRef}
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          top: '-9999px',
-          left: '-9999px',
-          zIndex: -1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          background: 'transparent',
-          pointerEvents: 'none',
-        }}
-      >
-        {isPrinting && printingStudentsList && printingStudentsList.map(s => (
-          <StudentCard
-            key={s.nis || s.name}
-            student={{ ...s, photo: tempPhotos[s.nis] || s.photo || null }}
-            school={school}
-            config={config}
-            side={previewSide === 'back' ? 'back' : 'front'}
-          />
-        ))}
-      </div>
+      {/* Hidden Render Container (digunakan oleh html2canvas untuk PDF & window.print) */}
+      {isPrinting && printingStudentsList && (
+        <div
+          ref={pdfRenderRef}
+          className="print-area"
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            opacity: 0,
+            zIndex: -9999,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            background: '#ffffff',
+            pointerEvents: 'none',
+          }}
+        >
+          {printingStudentsList.map(s => (
+            <StudentCard
+              key={s.nis || s.name}
+              student={{ ...s, photo: tempPhotos[s.nis] || s.photo || null }}
+              school={school}
+              config={config}
+              side={previewSide}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Print Media Query CSS */}
       <style>{`
         @media print {
           body * { visibility: hidden !important; }
-          .print-area, .print-area * { visibility: visible !important; }
-          .print-area { position: fixed; top: 0; left: 0; width: 100%; }
+          .print-area, .print-area * { visibility: visible !important; opacity: 1 !important; }
+          .print-area { position: fixed; top: 0; left: 0; width: 100%; z-index: 999999 !important; background: #ffffff !important; }
         }
       `}</style>
     </div>
