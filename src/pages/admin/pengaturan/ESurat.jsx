@@ -8,7 +8,7 @@ import {
   SlidersHorizontal, Save
 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { useDataStore } from '../../../store/useDataStore';

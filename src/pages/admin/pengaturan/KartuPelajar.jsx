@@ -33,7 +33,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import useAuthStore from '../../../store/monitoring/authStore.js';
