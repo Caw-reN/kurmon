@@ -147,12 +147,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       kampus_a: {
         siswa: {
           regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "16:30" },
-          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "16:30" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:20", pulang_close: "16:30" },
           sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
         },
         guru: {
           regular: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "14:00", pulang_close: "17:00" },
-          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "17:00" },
+          jumat: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:20", pulang_close: "17:00" },
           sabtu: { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "12:00", pulang_close: "15:00" }
         },
         karyawan: {
@@ -251,8 +251,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
     // Built-in intelligent defaults if schedules hasn't been configured for this campus/day
     if (!matchedConf && dayKey === 'jumat' && role === 'siswa') {
-      if (campusKey === 'kampus_a') {
-        matchedConf = { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:50", pulang_close: "16:30" };
+      if (campusKey === 'kampus_a' || !campusKey) {
+        matchedConf = { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "11:20", pulang_close: "16:30" };
       } else if (campusKey === 'kampus_b') {
         matchedConf = { masuk_open: "05:30", masuk_late: "07:01", masuk_close: "11:00", pulang_open: "15:30", pulang_close: "17:30" };
       }
@@ -787,7 +787,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           if (nipToCode[empKey]) personType = 'guru';
           else if (staffToCode[empKey]) personType = 'karyawan';
 
-          const roleConf = getRoleTimeConfig(conf, personType);
+          const roleConf = getRoleTimeConfig(conf, personType, date, log.location);
 
           let sessionName = "";
           let status = "";
@@ -2204,7 +2204,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         if (reportType === 'siswa') {
           const sAbsRes = await dbPool.query(`
-            SELECT id, siswa_nis, tanggal, status, keterangan, gdrive_url, approval_status
+            SELECT id, siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal_str, status, keterangan, gdrive_url, approval_status, pelapor_nama
             FROM kedisiplinan_absensi 
             WHERE tanggal >= $1 AND tanggal < $2
             AND (approval_status = 'approved' OR approval_status = 'otomatis' OR approval_status IS NULL OR approval_status = 'pending')
@@ -2221,8 +2221,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               return kLower === rNis || cLower === rNis || (rNis.length >= 5 && kLower.length >= 5 && (kLower.endsWith(rNis) || rNis.endsWith(kLower))) || (rNis.length >= 5 && cLower.length >= 5 && (cLower.endsWith(rNis) || rNis.endsWith(cLower)));
             });
             if (targetKey && matrix[targetKey]) {
-              const recDate = new Date(rec.tanggal);
-              const day = recDate.getDate();
+              const day = rec.tanggal_str ? parseInt(rec.tanggal_str.substring(8, 10), 10) : new Date(rec.tanggal).getDate();
               const status = rec.status;
               const isLate = status === "Terlambat";
               
@@ -2246,13 +2245,25 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const actualIn = prevDayData.in || parsedTime || (isPermit ? status : null);
                  const actualOut = prevDayData.out || (isPermit ? status : null);
 
+                 const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
+                 let finalIsLate = isLate;
+                 let finalStatus = status;
+
+                 // Proteksi cerdas: Jika record berasal dari sinkronisasi otomatis mesin (bukan manual admin/guru),
+                 // dan siswa sebenarnya memiliki jam tap masuk yang sah dan tidak terlambat (!prevDayData.isLate),
+                 // jangan biarkan status 'Terlambat' dari cron/jadwal usang menimpa kehadiran siswa menjadi merah.
+                 if (isOtomatis && prevDayData.in && !prevDayData.isLate && status === "Terlambat") {
+                   finalIsLate = false;
+                   finalStatus = "Hadir";
+                 }
+
                  matrix[targetKey].days[day] = {
                    ...prevDayData,
                    in: actualIn,
                    out: actualOut,
-                   isLate: isLate,
-                   isManual: true,
-                   status: status,
+                   isLate: finalIsLate,
+                   isManual: !isOtomatis,
+                   status: finalStatus,
                    note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin:")) ? rec.keterangan : null,
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
