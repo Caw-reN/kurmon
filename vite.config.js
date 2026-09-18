@@ -179,12 +179,44 @@ export default defineConfig({
     watch: {
       ignored: ['**/data/**']
     },
+    // SEC-14 FIX: Security headers untuk dev server
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(self), geolocation=(self), microphone=(), payment=()',
+      'X-XSS-Protection': '1; mode=block',
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:4174',
         changeOrigin: true,
         ws: false,
       },
+    },
+  },
+  // SEC-14 FIX: Security headers untuk preview server (production-like)
+  preview: {
+    host: true,
+    port: Number(env.VITE_PORT || 6677),
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(self), geolocation=(self), microphone=(), payment=()',
+      'X-XSS-Protection': '1; mode=block',
+      'Content-Security-Policy': [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",  // Diperlukan untuk React dev
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' http://localhost:* http://127.0.0.1:*",
+        "frame-ancestors 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join('; '),
     },
   },
 })

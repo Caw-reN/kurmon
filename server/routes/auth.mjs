@@ -18,13 +18,17 @@ const getClientIp = (req) => {
 };
 
 // Cleanup memory leak prevention
+// BUG-02/04 FIX: Hanya hapus entry yang sudah pernah dikunci (lockUntil > 0) DAN
+// masa blokirnya sudah habis. Entry dengan lockUntil=0 (belum pernah locked) TIDAK
+// dihapus, sehingga counter percobaan login tidak direset tiap jam.
 setInterval(() => {
   const now = Date.now();
   for (const [key, val] of loginAttempts.entries()) {
-    if (val.lockUntil < now) loginAttempts.delete(key);
+    // Hapus hanya jika: sudah pernah dikunci (lockUntil > 0) DAN waktu blokir sudah habis
+    if (val.lockUntil > 0 && val.lockUntil < now) loginAttempts.delete(key);
   }
   for (const [key, val] of loginAttemptsByIp.entries()) {
-    if (val.lockUntil < now) loginAttemptsByIp.delete(key);
+    if (val.lockUntil > 0 && val.lockUntil < now) loginAttemptsByIp.delete(key);
   }
 }, 3600000); // 1 jam
 
@@ -248,6 +252,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     
     try {
       const payload = await readMainPayload();
+      // BUG-01 FIX: Cek null SEGERA setelah readMainPayload() sebelum akses property apapun
+      if (!payload) throw new Error("Main payload empty");
       // FIX BUG-09: Jangan menelan error, minimal log warning agar bisa di-debug
       try {
         const dbTeachers = await dbPool.query('SELECT payload FROM mst_teachers');
@@ -267,7 +273,6 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       } catch (e) {
         console.warn("[Auth] Failed to load mst_classes:", e.message);
       }
-      if (!payload) throw new Error("Main payload empty");
       
       // Admin login
       if (username && payload.adminUser?.username?.trim().toLowerCase() === username) {
@@ -304,20 +309,18 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
       // Teacher / Staff login
       let isStaffAccount = false;
+      // SEC-06 FIX: Hapus matching berdasarkan name dan firstName — terlalu mudah ditebak.
+      // Hanya izinkan login menggunakan identifier eksplisit: code, nip, id, atau username.
       const matchAccount = (item, isStaff) => {
         const u = username.toLowerCase().trim();
         const code = String(item.code || (isStaff ? item.staff_code : "") || "").trim().toLowerCase();
         const nip = String(item.nip || "").trim().toLowerCase();
         const id = String(item.id || "").trim().toLowerCase();
         const usr = String(item.username || "").trim().toLowerCase();
-        const name = String(item.name || "").trim().toLowerCase();
-        const firstName = name.split(/[\s,.]+/)[0];
         return (code && code === u) ||
                (nip && nip === u) ||
                (id && id === u) ||
-               (usr && usr === u) ||
-               (name && name === u) ||
-               (firstName && firstName.length >= 3 && firstName === u);
+               (usr && usr === u);
       };
       let teacher = (payload.teachers || []).find(item => matchAccount(item, false));
       if (!teacher) {

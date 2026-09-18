@@ -162,13 +162,19 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const body = await readJsonBody(req);
         const { student_nis, category, session_date, problem, solution, follow_up_date, status, privacy_level } = body;
+        // BK-FIX-01: Validasi student_nis wajib — data BK tanpa NIS siswa tidak berarti
+        const cleanNis = String(student_nis || '').trim();
+        if (!cleanNis) {
+          send(req, res, 400, { ok: false, error: 'NIS siswa wajib diisi.' });
+          return true;
+        }
 
         const result = await dbPool.query(`
           INSERT INTO bk_sessions (student_nis, category, session_date, problem, solution, follow_up_date, status, counselor_nip, counselor_name, privacy_level)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           RETURNING *
         `, [
-          student_nis,
+          cleanNis,
           category || 'Umum',
           session_date && String(session_date).trim() ? String(session_date).trim() : new Date().toISOString().slice(0, 10),
           problem || '',
@@ -193,6 +199,11 @@ export async function handleBkRoutes(req, res, url, ctx) {
     const session = requireBkAccess(req, res);
     if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
+    // BK-FIX-02: Validasi NaN dari URL — cegah DELETE/PUT dengan id=NaN
+    if (isNaN(id) || id <= 0) {
+      send(req, res, 400, { ok: false, error: 'ID sesi konseling tidak valid.' });
+      return true;
+    }
 
     if (req.method === "PUT") {
       try {
@@ -260,6 +271,12 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const body = await readJsonBody(req);
         const { student_nis, visit_date, result, photo_url } = body;
+        // BK-FIX-01: Validasi student_nis wajib
+        const cleanNis = String(student_nis || '').trim();
+        if (!cleanNis) {
+          send(req, res, 400, { ok: false, error: 'NIS siswa wajib diisi.' });
+          return true;
+        }
         const currentUserName = session?.name || session?.username || 'Guru BK';
         const currentUserId = session?.id || session?.nip || session?.username || '';
 
@@ -271,7 +288,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
           RETURNING *
         `, [
-          student_nis,
+          cleanNis,
           visit_date && String(visit_date).trim() ? String(visit_date).trim() : new Date().toISOString().slice(0, 10),
           result || '',
           photo_url || null,
@@ -294,6 +311,11 @@ export async function handleBkRoutes(req, res, url, ctx) {
     const session = requireBkAccess(req, res);
     if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
+    // BK-FIX-02: Validasi NaN dari URL
+    if (isNaN(id) || id <= 0) {
+      send(req, res, 400, { ok: false, error: 'ID kunjungan tidak valid.' });
+      return true;
+    }
     if (req.method === "PUT") {
       try {
         const body = await readJsonBody(req);
@@ -407,6 +429,11 @@ export async function handleBkRoutes(req, res, url, ctx) {
     const session = requireBkAccess(req, res);
     if (!session) return true;
     const id = parseInt(url.pathname.split("/").pop(), 10);
+    // BK-FIX-02: Validasi NaN dari URL
+    if (isNaN(id) || id <= 0) {
+      send(req, res, 400, { ok: false, error: 'ID surat BK tidak valid.' });
+      return true;
+    }
 
     if (req.method === "PUT") {
       try {

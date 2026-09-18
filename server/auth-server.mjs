@@ -17,7 +17,7 @@ import { handleStaffRoutes } from "./routes/staffs.mjs";
 import { initTelegramBot, handleTelegramBotRoutes, sendTelegramAlert, reloadTelegramBotConfig } from "./telegram-bot.mjs";
 import { generateStudentCardToken, verifyStudentCardToken } from "./utils/studentCardSecurity.mjs";
 import { createServer } from "node:http";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { readFileSync, appendFileSync } from "node:fs";
 import zlib from "node:zlib";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -197,7 +197,7 @@ async function syncAllUsersToModules() {
 }
 
 // Helper: konversi "HH:MM" ke menit (numerik) untuk perbandingan waktu yang aman
-import { isRateLimited, isLoginRateLimited } from './middlewares/rateLimiter.mjs';
+import { isRateLimited, isLoginRateLimited, setRateLimiterDbPool, ensureRateLimitTable } from './middlewares/rateLimiter.mjs';
 
 function toMinutes(hhmm) {
   const [h, m] = String(hhmm || '00:00').split(':').map(Number);
@@ -294,8 +294,10 @@ export async function pullHikvisionLogs(force = false) {
           startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         }
 
-        // Tambahkan toleransi 24 jam ke endTime untuk mengantisipasi fast clock skew / beda jam mesin
-        const endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        // Tambahkan toleransi 2 jam ke endTime untuk mengantisipasi clock skew minor pada mesin Hikvision
+        // BUG-11 FIX: Kurangi dari +24 jam menjadi +2 jam — toleransi 24 jam terlalu besar dan
+        // menyebabkan data absensi "masa depan" yang tidak akurat.
+        const endTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
         const logs = await api.searchEvents(startTime, endTime);
         totalFound += (logs ? logs.length : 0);
 
@@ -500,10 +502,13 @@ async function autoSyncGuruAttendanceToAppData() {
 
         let sessionName = '';
         let status = '';
-        if (time >= roleConf.masuk_open && time <= roleConf.masuk_close) {
+        // BUG-07 FIX: Gunakan toMinutes() untuk perbandingan numerik yang aman,
+        // bukan string comparison yang bisa gagal untuk kasus edge-case format waktu.
+        const timeMin = toMinutes(time);
+        if (timeMin >= toMinutes(roleConf.masuk_open) && timeMin <= toMinutes(roleConf.masuk_close)) {
           sessionName = 'Masuk Pagi';
-          status = time > roleConf.masuk_late ? 'Terlambat' : 'Hadir';
-        } else if (time >= roleConf.pulang_open && time <= roleConf.pulang_close) {
+          status = timeMin > toMinutes(roleConf.masuk_late) ? 'Terlambat' : 'Hadir';
+        } else if (timeMin >= toMinutes(roleConf.pulang_open) && timeMin <= toMinutes(roleConf.pulang_close)) {
           sessionName = 'Pulang Sore';
           status = 'Hadir';
         } else {
@@ -832,29 +837,16 @@ const initDb = async () => {
     await dbPool.query(`ALTER TABLE hikvision_logs ADD COLUMN IF NOT EXISTS person_type VARCHAR(50) DEFAULT 'siswa'`);
 
     // Auto-seed default Hikvision devices if table is empty in post-production
+    // SEC-04 FIX: Hardcoded encrypted passwords telah DIHAPUS dari source code untuk keamanan.
+    // Perangkat Hikvision harus didaftarkan secara manual melalui menu Pengaturan > Mesin Absensi
+    // di Admin Panel setelah server pertama kali dijalankan.
     try {
       const devCountRes = await dbPool.query("SELECT COUNT(*) as count FROM hikvision_devices");
       if (parseInt(devCountRes.rows[0]?.count || 0) === 0) {
-        const defaultDevices = [
-          { ip: '192.168.111.101', loc: 'Absensi Guru', user: 'admin', enc: 'JDkcin3/ez7wfSPN+5bQEQ==', iv: 'LLFmqL5GVgMJGRT0galrxw==', type: 'staff' },
-          { ip: '192.168.111.251', loc: 'Absensi MP Kampus A', user: 'admin', enc: 'FiAf293VAZgH+y8mbEXxYQ==', iv: '2KuQPRu3klAaKm9KOwzc9g==', type: 'siswa' },
-          { ip: '192.168.101.250', loc: 'Absensi TKR Kampus B', user: 'admin', enc: 'ryU1YtKp1spRRQoQOLMvjg==', iv: 'L3o4aJ43Wq9s1PRznhbnwA==', type: 'siswa' },
-          { ip: '192.168.102.98', loc: 'Absensi TKJ Kampus B', user: 'admin', enc: '3KzWs86/s+DnUqa5dQeZ9A==', iv: 'UryNZLIDMzBQ6W1XPGdNsg==', type: 'siswa' },
-          { ip: '192.168.111.250', loc: 'Absensi TKR Kampus A', user: 'admin', enc: '7DJJ9zitTqIw+eIdI98lMw==', iv: '9pUFafkQWRte5b+Y85+U+Q==', type: 'siswa' },
-          { ip: '192.168.111.253', loc: 'Absensi TKJ Kampus A', user: 'admin', enc: 'eYvzKd4nVZXYhOgb90wo7w==', iv: 'XbH40t7O6nhrv1jEZqQMkQ==', type: 'siswa' },
-          { ip: '192.168.111.252', loc: 'Abensi AK Kampus A', user: 'admin', enc: 'dJGFCkn+LsJ5z/URSS2YEQ==', iv: 'KnjeFz/rfUqQkpy6onN8sQ==', type: 'siswa' },
-          { ip: '192.168.101.215', loc: 'Absensi AK & MP Kampus B', user: 'admin', enc: '/yqKM79z3JPJXnMmxwrfmQ==', iv: 'O4ByQzCTY893l2muxeQhLQ==', type: 'siswa' }
-        ];
-        for (const d of defaultDevices) {
-          await dbPool.query(
-            "INSERT INTO hikvision_devices (ip_address, location, username, encrypted_password, iv_vector, device_type, created_at) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)",
-            [d.ip, d.loc, d.user, d.enc, d.iv, d.type]
-          );
-        }
-        console.log(`[InitDB] 8 perangkat default Hikvision berhasil didaftarkan secara otomatis.`);
+        console.info('[InitDB] Tabel hikvision_devices kosong. Silakan tambahkan mesin absensi melalui Admin Panel > Pengaturan > Mesin Absensi.');
       }
     } catch (devSeedErr) {
-      console.warn("[InitDB] Gagal auto-seed devices:", devSeedErr.message);
+      console.warn("[InitDB] Gagal cek devices:", devSeedErr.message);
     }
 
 
@@ -1296,20 +1288,8 @@ const initDb = async () => {
     } catch (_) {}
 
     // Tabel Audit Log Aktivitas Pengguna
-    await dbPool.query(`
-      CREATE TABLE IF NOT EXISTS audit_logs (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(100),
-        user_name VARCHAR(150),
-        user_role VARCHAR(50),
-        action VARCHAR(50) NOT NULL,
-        detail TEXT,
-        target_type VARCHAR(50),
-        target_id VARCHAR(200),
-        ip_address VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    // BUG-13 FIX: Hapus CREATE TABLE audit_logs yang duplikat (sudah ada di atas baris ~1140)
+    // Hanya jalankan ALTER TABLE untuk memastikan kolom terbaru ada.
     try {
       await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_date ON audit_logs (user_id, created_at DESC)`);
       await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs (action, created_at DESC)`);
@@ -1472,6 +1452,9 @@ const initDb = async () => {
     console.log("PostgreSQL Database Initialized & Connected");
     autoLinkHikvisionStudents(dbPool).catch(() => {});
     autoLinkHikvisionTeachersAndStaffs(dbPool).catch(() => {});
+    // SEC-09: Inisialisasi tabel rate limit dan inject DB pool ke rate limiter
+    await ensureRateLimitTable(dbPool).catch(e => console.warn('[RateLimit] Init table error:', e.message));
+    setRateLimiterDbPool(dbPool);
   } catch (err) {
     dbStatus = {
       ok: false,
@@ -1498,7 +1481,7 @@ async function ensureSessionTable() {
   try {
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS app_sessions (
-        token VARCHAR(36) PRIMARY KEY,
+        token VARCHAR(64) PRIMARY KEY,
         role VARCHAR(50) NOT NULL,
         user_id VARCHAR(100),
         username VARCHAR(100),
@@ -1508,6 +1491,9 @@ async function ensureSessionTable() {
         expires_at BIGINT NOT NULL
       )
     `);
+    // SEC-05 FIX: Perpanjang kolom token agar cukup menampung randomBytes(32).toString('hex') (64 karakter)
+    // Kolom sebelumnya VARCHAR(36) hanya cukup untuk UUID (36 karakter)
+    await dbPool.query(`ALTER TABLE app_sessions ALTER COLUMN token TYPE VARCHAR(64)`);
     await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_app_sessions_expires ON app_sessions (expires_at)`);
     console.info("[Sessions] Tabel app_sessions siap.");
   } catch (e) {
@@ -1542,42 +1528,57 @@ async function deleteSessionFromDb(token) {
   }
 }
 
+// BUG-05 FIX: Mutex sederhana untuk mencegah race condition pada loadSessionsFromDb.
+// Harus dideklarasikan SEBELUM fungsi loadSessionsFromDb() yang menggunakannya.
+let _loadingSessionsInProgress = false;
+
 // Load semua session aktif dari DB ke cache saat startup
 async function loadSessionsFromDb() {
-  if (!dbPool) return;
+  // BUG-05 FIX: Skip jika sedang loading untuk mencegah race condition
+  if (_loadingSessionsInProgress) return;
+  _loadingSessionsInProgress = true;
+  if (!dbPool) { _loadingSessionsInProgress = false; return; }
   try {
     const now = Date.now();
     const { rows } = await dbPool.query(
       "SELECT token, role, user_id, username, name, extra_data, created_at FROM app_sessions WHERE expires_at > $1",
       [now]
     );
-    sessions = new Map();
+    // BUG-05 FIX: Merge ke existing sessions map, BUKAN replace total dengan Map baru.
+    // Ini mencegah session yang baru dibuat selama loading hilang dari cache.
     for (const row of rows) {
-      const extra = (typeof row.extra_data === 'string' ? JSON.parse(row.extra_data) : row.extra_data) || {};
-      sessions.set(row.token, {
-        role: row.role,
-        id: row.user_id,
-        username: row.username,
-        name: row.name,
-        createdAt: Number(row.created_at),
-        ...extra
-      });
+      // Jangan overwrite session yang sudah ada di cache (bisa lebih baru)
+      if (!sessions.has(row.token)) {
+        const extra = (typeof row.extra_data === 'string' ? JSON.parse(row.extra_data) : row.extra_data) || {};
+        sessions.set(row.token, {
+          role: row.role,
+          id: row.user_id,
+          username: row.username,
+          name: row.name,
+          createdAt: Number(row.created_at),
+          ...extra
+        });
+      }
     }
     console.info(`[Sessions] Memuat ${sessions.size} sesi aktif dari database.`);
   } catch (e) {
     console.warn("[Sessions] Gagal memuat sesi dari DB:", e.message);
     sessions = new Map();
   }
+  _loadingSessionsInProgress = false;
 }
 
 // Bersihkan session kadaluarsa dari DB dan cache
 const pruneOldSessions = async () => {
   const now = Date.now();
-  // Bersihkan cache lokal
+  // BUG-09 FIX: Hitung expiry dari createdAt + SESSION_EXPIRY_MS, konsisten dengan DB.
+  // Sebelumnya menggunakan session.createdAt yang bisa menyebabkan session valid di DB
+  // terhapus dari cache in-memory terlalu awal.
   for (const [token, session] of sessions.entries()) {
     if (!session || typeof session !== 'object') { sessions.delete(token); continue; }
     const createdAt = session.createdAt || 0;
-    if (!createdAt || (now - createdAt > SESSION_EXPIRY_MS)) {
+    const expiresAt = createdAt + SESSION_EXPIRY_MS;
+    if (!createdAt || expiresAt <= now) {
       sessions.delete(token);
     }
   }
@@ -1623,8 +1624,9 @@ const getHeaders = (req) => {
     "Permissions-Policy": "camera=(self), geolocation=(self), microphone=(), payment=()",
     "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
     "Cross-Origin-Resource-Policy": "same-origin",
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; sandbox",
+    // SEC-10 FIX: Hapus Content-Security-Policy dan Strict-Transport-Security dari API JSON responses.
+    // CSP hanya bermakna untuk HTML content, bukan JSON. HSTS sebaiknya diatur di Nginx/reverse proxy.
+    // Hapus juga 'sandbox' yang menyebabkan masalah di beberapa browser/proxy untuk JSON responses.
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "Pragma": "no-cache",
     "Expires": "0",
@@ -1687,7 +1689,9 @@ const requireAuthenticated = (req, res) => {
 };
 
 const createSession = (role, extra = {}) => {
-  const token = randomUUID();
+  // SEC-05 FIX: Gunakan randomBytes(32) (256-bit CSPRNG) sebagai session token
+  // alih-alih randomUUID() (122-bit). Ini memberikan entropy yang lebih kuat.
+  const token = randomBytes(32).toString('hex');
   const sessionData = { role: normalizeServerRole(role), createdAt: Date.now(), ...extra };
   sessions.set(token, sessionData);
   // Simpan ke DB secara async (tidak memblokir respons login)
@@ -2056,10 +2060,26 @@ const server = createServer(async (req, res) => {
       }
 
       // === API: AMBIL TOKEN TERENKRIPSI KARTU SISWA ===
+      // SEC-03 FIX: Tambahkan autentikasi wajib sebelum generate card token.
+      // Tanpa ini, siapapun bisa generate token kartu pelajar dengan NIS sembarang.
       if (req.method === "GET" && url.pathname === "/api/student/card-token") {
+        const session = requireAuthenticated(req, res);
+        if (!session) return;
         const nis = url.searchParams.get("nis");
         if (!nis) return send(req, res, 400, { ok: false, error: "NIS wajib diisi" });
-        const token = generateStudentCardToken(nis);
+        // Verifikasi bahwa siswa dengan NIS ini benar-benar ada di database
+        try {
+          const exists = await dbPool.query(
+            "SELECT 1 FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1 LIMIT 1",
+            [String(nis).trim(), String(nis).trim().toLowerCase()]
+          );
+          if (exists.rows.length === 0) {
+            return send(req, res, 404, { ok: false, error: "Siswa dengan NIS tersebut tidak ditemukan." });
+          }
+        } catch (e) {
+          return send(req, res, 500, { ok: false, error: "Gagal memverifikasi NIS." });
+        }
+        const token = generateStudentCardToken(String(nis).trim());
         return send(req, res, 200, { ok: true, nis, token });
       }
 

@@ -150,9 +150,11 @@ export async function handleStudentRoutes(req, res, url, ctx) {
         }
 
         // Hapus secara selektif: hanya siswa yang sudah tidak ada di daftar baru
+        // BUG-10 FIX: Gunakan LOWER() di sisi database agar penghapusan case-insensitive
+        // (misal: id 'NIS001' di DB tidak salah-dihapus karena incomingIds berisi 'nis001')
         if (incomingIds.length > 0) {
           const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
-          await client.query(`DELETE FROM mst_students WHERE id NOT IN (${placeholders})`, incomingIds);
+          await client.query(`DELETE FROM mst_students WHERE LOWER(id) NOT IN (${placeholders})`, incomingIds);
         } else {
           // Jika daftar kosong (misal: reset total), baru hapus semua
           await client.query('DELETE FROM mst_students');
@@ -191,6 +193,8 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       const normalizedId = cleanNis.toLowerCase();
 
       // Update in mst_students
+      // BUG-03 FIX: Tambahkan RETURNING payload agar updateRes.rows.length bisa dievaluasi
+      // dengan benar dan query fallback tidak selalu dieksekusi dua kali.
       const updateRes = await dbPool.query(
         `UPDATE mst_students 
          SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)
@@ -199,12 +203,12 @@ export async function handleStudentRoutes(req, res, url, ctx) {
         [photo || '', cleanNis]
       );
 
+      // Hanya jalankan fallback jika query pertama tidak menemukan record apapun
       if (updateRes.rows.length === 0) {
         await dbPool.query(
           `UPDATE mst_students 
            SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)
-           WHERE id = $2
-           RETURNING payload`,
+           WHERE id = $2`,
           [photo || '', normalizedId]
         );
       }
@@ -236,10 +240,17 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       try {
         await client.query('BEGIN');
         let updatedCount = 0;
+        // SEC-13 FIX: Validasi ukuran foto per item — max 2MB per foto (base64 ~2.7MB)
+        const MAX_PHOTO_BASE64_LEN = 2 * 1024 * 1024 * 4 / 3; // ~2.7MB base64 untuk 2MB binary
 
         for (const [nis, photoBase64] of entries) {
           if (!nis || !photoBase64) continue;
           const cleanNis = String(nis).trim();
+          // Validasi panjang base64 (mencegah upload foto raksasa)
+          if (typeof photoBase64 === 'string' && photoBase64.length > MAX_PHOTO_BASE64_LEN) {
+            console.warn(`[BulkPhotos] Foto untuk NIS ${cleanNis} terlalu besar (${Math.round(photoBase64.length / 1024)}KB base64), dilewati.`);
+            continue;
+          }
           const r = await client.query(
             `UPDATE mst_students 
              SET payload = jsonb_set(payload, '{photo}', to_jsonb($1::text), true)

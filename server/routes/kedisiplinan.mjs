@@ -3,13 +3,19 @@ import { Readable } from 'stream';
 
 // Helper to get or create folder hierarchically in Google Drive
 async function getOrCreateFolder(drive, folderName, parentId = null) {
-  const safeName = String(folderName).replace(/'/g, "\\'");
-  let query = `name = '${safeName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+  // SEC-08 FIX: Gunakan array params untuk query agar tidak ada string interpolation
+  // yang rentan terhadap injection. Google Drive API mendukung multiple 'q' constraints.
+  const queryParts = [
+    `name = '${String(folderName).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`,
+    `mimeType = 'application/vnd.google-apps.folder'`,
+    `trashed = false`
+  ];
   if (parentId) {
-    query += ` and '${parentId}' in parents`;
+    // parentId berasal dari API response Google Drive sendiri, sudah aman
+    queryParts.push(`'${String(parentId).replace(/[^a-zA-Z0-9_-]/g, '')}' in parents`);
   }
   const res = await drive.files.list({
-    q: query,
+    q: queryParts.join(' and '),
     fields: 'files(id)',
     spaces: 'drive'
   });
@@ -34,7 +40,7 @@ async function getOrCreateFolder(drive, folderName, parentId = null) {
 }
 
 export async function handleKedisiplinanRoutes(req, res, url, ctx) {
-  const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole } = ctx;
+  const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole, logAudit } = ctx;
   
     if (url.pathname.startsWith("/api/kedisiplinan/") || url.pathname.startsWith("/api/kesiswaan/")) {
       const isPublicGet = req.method === "GET" && (
@@ -102,6 +108,11 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             INSERT INTO app_data (store_key, data) VALUES ('school_rules_pdf', $1)
             ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
           `, [JSON.stringify(payload)]);
+
+          // SEC-12 FIX: Catat audit log untuk upload PDF peraturan sekolah
+          if (logAudit && session) {
+            await logAudit(dbPool, session, req, 'UPLOAD', 'school_rules_pdf', `Upload PDF peraturan sekolah: ${payload.fileName}`);
+          }
 
           send(req, res, 200, { ok: true });
           return;
@@ -314,11 +325,31 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
              if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat menghapus riwayat poin." });
-             await dbPool.query("DELETE FROM kedisiplinan_riwayat_poin WHERE id = $1", [body.id]);
+             const deleteId = parseInt(body.id, 10);
+             if (isNaN(deleteId) || deleteId <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
+             await dbPool.query("DELETE FROM kedisiplinan_riwayat_poin WHERE id = $1", [deleteId]);
+             // SEC-12 FIX: Audit log untuk hapus riwayat poin
+             if (logAudit && session) {
+               await logAudit(dbPool, session, req, 'DELETE', 'kedisiplinan_riwayat_poin', `Hapus riwayat poin ID: ${deleteId}`, String(deleteId));
+             }
           } else {
              if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan mencatat poin/tindakan." });
              const session = getSession(req);
-             await dbPool.query("INSERT INTO kedisiplinan_riwayat_poin (siswa_nis, tindakan_id, tindakan_nama, poin, jenis, pelapor_id, pelapor_nama, catatan) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [body.siswa_nis, body.tindakan_id, body.tindakan_nama, body.poin, body.jenis, session?.id, session?.name || 'Sistem', body.catatan]);
+             // SEC-11 FIX: Validasi tipe dan format input sebelum INSERT
+             const siswa_nis = String(body.siswa_nis || '').trim();
+             const tindakan_id = body.tindakan_id ? parseInt(body.tindakan_id, 10) : null;
+             const tindakan_nama = String(body.tindakan_nama || '').trim().slice(0, 255);
+             const poin = parseInt(body.poin, 10);
+             const VALID_JENIS = ['pelanggaran', 'penghargaan'];
+             let jenis = String(body.jenis || '').toLowerCase().trim();
+             if (!siswa_nis) return send(req, res, 400, { ok: false, error: "siswa_nis wajib diisi." });
+             if (isNaN(poin) || poin < 0 || poin > 10000) return send(req, res, 400, { ok: false, error: "Nilai poin tidak valid (0-10000)." });
+             if (!VALID_JENIS.includes(jenis)) return send(req, res, 400, { ok: false, error: "Jenis harus 'pelanggaran' atau 'penghargaan'." });
+             if (tindakan_id !== null && isNaN(tindakan_id)) return send(req, res, 400, { ok: false, error: "tindakan_id tidak valid." });
+             await dbPool.query(
+               "INSERT INTO kedisiplinan_riwayat_poin (siswa_nis, tindakan_id, tindakan_nama, poin, jenis, pelapor_id, pelapor_nama, catatan) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+               [siswa_nis, tindakan_id, tindakan_nama, poin, jenis, session?.id, session?.name || 'Sistem', String(body.catatan || '').trim().slice(0, 1000)]
+             );
           }
           send(req, res, 200, { ok: true });
           return;

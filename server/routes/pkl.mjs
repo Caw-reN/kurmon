@@ -554,7 +554,9 @@ export async function handlePklRoutes(req, res, url, ctx) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       if (!isMonitoringAdmin(session.role)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
-      const id = parseInt(url.pathname.split("/").pop());
+      // BUG-NEW: parseInt tanpa radix bisa menghasilkan octal pada beberapa engine
+      const id = parseInt(url.pathname.split("/").pop(), 10);
+      if (isNaN(id) || id <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
       try {
         await dbPool.query("DELETE FROM pkl_surat_pengantar WHERE id = $1", [id]);
         send(req, res, 200, { ok: true, message: "Deleted successfully" });
@@ -567,7 +569,9 @@ export async function handlePklRoutes(req, res, url, ctx) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       if (!isMonitoringAdmin(session.role)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
-      const id = parseInt(url.pathname.split("/").pop());
+      // BUG-NEW: parseInt tanpa radix bisa menghasilkan octal pada beberapa engine
+      const id = parseInt(url.pathname.split("/").pop(), 10);
+      if (isNaN(id) || id <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
       try {
         await dbPool.query("DELETE FROM pkl_mutasi WHERE id = $1", [id]);
         send(req, res, 200, { ok: true, message: "Deleted successfully" });

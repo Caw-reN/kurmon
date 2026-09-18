@@ -26,3 +26,10 @@ dist-ssr
 scratch/
 Login_main.jsx
 server/backups/backup_*.json
+# BUG-14 FIX: File artefak besar di root yang tidak perlu di-commit
+useAdminImportExport.serve.jsx
+promosi.html
+# File temporary / scratch
+scratch/*.mjs
+scratch/*.js
+scratch/*.json

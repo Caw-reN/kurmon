@@ -13,32 +13,32 @@ function md5(str) {
 export function decryptPassword(encryptedBase64, ivBase64) {
   if (!ivBase64) return encryptedBase64;
 
-  // Candidate keys: Utamakan APP_KEY dari .env, sertakan legacy keys untuk backward compatibility
-  const candidateKeys = [
-    process.env.APP_KEY,
-    'def0000021ba0fc5fde8db4db19c4b7b2de135d0e2e9bb084fc0db917c0df6174a8963cd94c4897ed206f4773de291bc31abfc5d1ea8be0',
-    'default_key_should_be_replaced_immediately!'
-  ].filter(Boolean);
+  // SEC-04 FIX: Hapus legacy hardcoded candidate keys dari source code.
+  // Hanya gunakan APP_KEY dari .env. Jika APP_KEY tidak di-set, return string kosong
+  // agar koneksi ke Hikvision gagal dengan jelas daripada menggunakan key yang bocor.
+  const appKey = process.env.APP_KEY;
+  if (!appKey) {
+    console.error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa mendekripsi password perangkat. Tambahkan APP_KEY ke .env segera.');
+    return '';
+  }
 
-  for (const appKey of candidateKeys) {
-    try {
-      const key = crypto.createHash('sha256').update(appKey).digest();
-      const iv = Buffer.from(ivBase64, 'base64');
-      const encrypted = Buffer.from(encryptedBase64, 'base64');
-      
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      let decrypted = decipher.update(encrypted);
-      decrypted = Buffer.concat([decrypted, decipher.final()]);
-      const result = decrypted.toString('utf8');
-      if (result) return result;
-    } catch {
-      // Coba kunci berikutnya
-    }
+  try {
+    const key = crypto.createHash('sha256').update(appKey).digest();
+    const iv = Buffer.from(ivBase64, 'base64');
+    const encrypted = Buffer.from(encryptedBase64, 'base64');
+    
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encrypted);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    const result = decrypted.toString('utf8');
+    if (result) return result;
+  } catch (e) {
+    console.error('[Hikvision] Gagal mendekripsi password perangkat:', e.message);
   }
   
-  console.error("Gagal mendeskripsi password perangkat: Semua candidate keys gagal.");
-  return encryptedBase64;
+  return '';
 }
+
 
 export function encryptPassword(plainText) {
   // FIX B-03: Throw jika APP_KEY kosong — jangan enkripsi dengan key 'MISSING_KEY'
