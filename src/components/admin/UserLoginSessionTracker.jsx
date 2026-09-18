@@ -6,12 +6,16 @@ import {
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
 import { getRoleBadge, formatLogTime, getDuration } from './LiveUserActivityLog.jsx';
+import { useAuthToken } from '../../hooks/useAuthToken.js'; // B4-SEC-C FIX: token terpusat
 
 export default function UserLoginSessionTracker({ onNavigateTab }) {
   const user = useAuthStore(state => state.user);
   const teachers = useDataStore(state => state.teachers) || [];
   const staffs = useDataStore(state => state.staffs) || [];
   const classes = useDataStore(state => state.classes) || [];
+
+  // B4-SEC-C FIX: Gunakan hook terpusat — tidak perlu 5 fallback sumber token manual
+  const { token: authToken } = useAuthToken();
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,15 +27,8 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
   const fetchAuditLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const token = user?.authToken
-        || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken
-        || JSON.parse(localStorage.getItem('school_schedule_session_v1') || '{}')?.authToken
-        || localStorage.getItem('token')
-        || sessionStorage.getItem('token')
-        || '';
-
       const res = await fetch('/api/audit-logs?page=1&limit=300', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
       });
       if (res.ok) {
         const json = await res.json();
@@ -44,7 +41,7 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [authToken]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -101,36 +98,12 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
       if (logTime > item.latestLoginTime) item.latestLoginTime = logTime;
     });
 
-    // 2. Fallback / Active Session Telemetry
-    if (map.size === 0 && user) {
-      const currName = user.name || user.nama || user.username || 'Pengguna';
-      map.set('curr-session', {
-        key: 'curr-session',
-        userId: user.id || 'curr',
-        userName: currName,
-        userRole: user.role || 'kepsek',
-        loginCount: 3,
-        firstLoginTime: now - 180 * 60000,
-        latestLoginTime: now - 5 * 60000,
-        allLogins: [now - 180 * 60000, now - 90 * 60000, now - 5 * 60000]
-      });
-
-      if (teachers.length > 0) {
-        teachers.slice(0, 4).forEach((t, i) => {
-          const tName = t.name || t.nama || `Guru ${t.code}`;
-          map.set(`t-${t.code}`, {
-            key: `t-${t.code}`,
-            userId: t.code,
-            userName: tName,
-            userRole: 'guru',
-            loginCount: (i % 3) + 1,
-            firstLoginTime: now - (i * 45 + 30) * 60000,
-            latestLoginTime: now - (i * 20 + 5) * 60000,
-            allLogins: [now - (i * 45 + 30) * 60000]
-          });
-        });
-      }
-    }
+    // B4-SEC-B FIX: Hapus fake data fallback yang menggunakan nama guru nyata
+    // dengan data login palsu (loginCount dikarang, waktu login dibuat-buat).
+    // Sebelumnya admin akan melihat dashboard yang menampilkan guru-guru seolah
+    // sudah login padahal data tersebut 100% fiktif — sangat menyesatkan.
+    // Sekarang: jika tidak ada data audit, biarkan map kosong → empty state.
+    // (Kosong bukan berarti error — mungkin memang belum ada login hari ini)
 
     // Convert map to array with computed metrics
     const todayStart = new Date();

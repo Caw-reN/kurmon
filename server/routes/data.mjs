@@ -175,6 +175,24 @@ export async function handleDataRoutes(req, res, url, ctx) {
 
   if (req.method === "POST" && url.pathname === "/api/data/save") {
     if (!requireAuthenticated(req, res)) return true;
+
+    // B4-SEC-A FIX: Endpoint ini menyimpan data global sistem (jadwal, appSettings,
+    // rolePermissions, featureSettings, dll). Hanya admin/waka/TU yang boleh mengakses.
+    // Sebelumnya hanya ada requireAuthenticated → guru biasa bisa privilege escalation.
+    const _session = getSession(req);
+    const _role = String(_session?.role || '').toLowerCase().trim();
+    const DATA_SAVE_ALLOWED_ROLES = [
+      'admin', 'superadmin', 'tu', 'tata_usaha',
+      'waka', 'waka_kurikulum', 'kepsek',
+    ];
+    if (!DATA_SAVE_ALLOWED_ROLES.includes(_role)) {
+      send(req, res, 403, {
+        ok: false,
+        error: 'Hanya admin, waka, atau TU yang dapat menyimpan data sistem.'
+      });
+      return true;
+    }
+
     try {
       if (!dbPool) throw createDatabaseUnavailableError();
       const body = await readJsonBody(req);
