@@ -51,7 +51,9 @@ export function useAuthToken() {
       authUser?.role    ||
       sessionUser?.role ||
       rawSession?.role  ||
-      'guru'
+      // B3-MINOR-C FIX: Ganti fallback dari 'guru' ke '' agar semua isXxx flag bernilai false
+      // untuk pengguna yang tidak login (mencegah UI menampilkan konten yang salah)
+      ''
     ).toLowerCase();
 
     const userId =

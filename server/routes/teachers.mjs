@@ -4,10 +4,11 @@ export async function handleTeacherRoutes(req, res, url, ctx) {
   if (url.pathname === '/api/teachers' && req.method === 'GET') {
     if (!requireAuthenticated(req, res)) return true;
     try {
-      const page = parseInt(url.searchParams.get('page') || '1', 10);
-      const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+      const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10));
+      // B3-SEC-D FIX: Cap limit dan offset agar tidak bisa menyebabkan DoS
+      const limit  = Math.min(Math.max(1, parseInt(url.searchParams.get('limit') || '50', 10)), 500);
       const search = url.searchParams.get('search') || '';
-      const offset = (page - 1) * limit;
+      const offset = Math.min((page - 1) * limit, 50000);
 
       let query = 'SELECT payload FROM mst_teachers';
       let countQuery = 'SELECT COUNT(*) as total FROM mst_teachers';

@@ -2,6 +2,31 @@ import webpush from 'web-push';
 
 let vapidKeys = null;
 
+// B3-SEC-C FIX: Resolusi VAPID subject secara dinamis.
+// Urutan prioritas: env VAPID_SUBJECT → appSettings.adminEmail dari DB → env ADMIN_EMAIL → fallback
+const resolveVapidSubject = async (dbPool) => {
+  // 1. Env variable eksplisit (paling direkomendasikan, format: "mailto:admin@sekolah.sch.id")
+  if (process.env.VAPID_SUBJECT) return process.env.VAPID_SUBJECT;
+
+  // 2. Baca dari appSettings di database
+  try {
+    const { rows } = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+    if (rows.length > 0) {
+      const payload = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
+      const email = payload?.appSettings?.adminEmail || payload?.appSettings?.schoolEmail;
+      if (email && String(email).includes('@')) return `mailto:${email}`;
+    }
+  } catch {
+    // Lanjut ke fallback jika gagal
+  }
+
+  // 3. Env variable email admin
+  if (process.env.ADMIN_EMAIL) return `mailto:${process.env.ADMIN_EMAIL}`;
+
+  // 4. Fallback terakhir — gunakan domain yang bermakna, bukan placeholder
+  return 'mailto:noreply@kurmon.app';
+};
+
 // Initialize keys
 export async function initializeWebPush(dbPool) {
   try {
@@ -15,12 +40,13 @@ export async function initializeWebPush(dbPool) {
         [JSON.stringify(vapidKeys)]
       );
     }
+    const vapidSubject = await resolveVapidSubject(dbPool);
     webpush.setVapidDetails(
-      'mailto:admin@example.com',
+      vapidSubject,
       vapidKeys.publicKey,
       vapidKeys.privateKey
     );
-    console.log("[PUSH] Web Push initialized with VAPID keys.");
+    console.log(`[PUSH] Web Push initialized. VAPID subject: ${vapidSubject}`);
   } catch (error) {
     console.error("[PUSH] Failed to initialize Web Push:", error);
   }

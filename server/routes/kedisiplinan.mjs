@@ -371,7 +371,13 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
              await dbPool.query("DELETE FROM kedisiplinan_buku_konseling WHERE id = $1", [body.id]);
           } else {
              const session = getSession(req);
-             await dbPool.query("INSERT INTO kedisiplinan_buku_konseling (siswa_nis, guru_bk_id, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) VALUES ($1, $2, $3, $4, $5, $6, $7)", [body.siswa_nis, session?.id, session?.name || 'BPBK', body.jenis_kasus, body.tindak_lanjut, body.catatan_konseling, body.status || 'Selesai']);
+             // B3-MINOR-B FIX: Tambah trim + batas panjang maksimal field teks konseling
+             // agar tidak ada oversized DB row dari input yang sangat panjang
+             const jenis_kasus       = String(body.jenis_kasus       || '').trim().slice(0, 500);
+             const tindak_lanjut     = String(body.tindak_lanjut     || '').trim().slice(0, 2000);
+             const catatan_konseling = String(body.catatan_konseling || '').trim().slice(0, 2000);
+             const status_konseling  = String(body.status            || 'Selesai').trim().slice(0, 50);
+             await dbPool.query("INSERT INTO kedisiplinan_buku_konseling (siswa_nis, guru_bk_id, guru_bk_nama, jenis_kasus, tindak_lanjut, catatan_konseling, status) VALUES ($1, $2, $3, $4, $5, $6, $7)", [body.siswa_nis, session?.id, session?.name || 'BPBK', jenis_kasus, tindak_lanjut, catatan_konseling, status_konseling]);
           }
           send(req, res, 200, { ok: true });
           return;
@@ -439,9 +445,12 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           }
           query += " ORDER BY k.tanggal DESC, k.id DESC";
           
-          // Naikkan default limit dari 500 ke 5000 agar tidak terpotong di production
-          const limit = Math.min(parseInt(queryParams.get('limit') || '5000', 10), 99999);
-          const offset = parseInt(queryParams.get('offset') || '0', 10);
+          // B3-SEC-A FIX: Cap limit dari 99999 ke 5000 untuk mencegah DoS via query param
+          // Sebelumnya limit=99999 bisa menyebabkan server mengambil puluhan ribu rows sekaligus
+          const rawLimit  = parseInt(queryParams.get('limit')  || '5000', 10);
+          const rawOffset = parseInt(queryParams.get('offset') || '0',    10);
+          const limit  = Math.min(isNaN(rawLimit)  || rawLimit  < 1 ? 5000 : rawLimit,  5000);
+          const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
           query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
           params.push(limit, offset);
 
