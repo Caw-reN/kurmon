@@ -81,8 +81,10 @@ export async function handlePklRoutes(req, res, url, ctx) {
       }
     }
     if (req.method === "GET" && url.pathname === "/api/pkl/locations") {
+      // SEC-A FIX: Data DUDI/perusahaan PKL bersifat internal — wajib login untuk akses
+      if (!requireAuthenticated(req, res)) return;
       try {
-        const result = await dbPool.query("SELECT * FROM pkl_locations ORDER BY id DESC");
+        const result = await dbPool.query("SELECT * FROM pkl_locations ORDER BY id DESC LIMIT 1000");
         return send(req, res, 200, { ok: true, data: result.rows });
       } catch (err) {
         return sendDatabaseError(req, res, err);

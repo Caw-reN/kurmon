@@ -354,7 +354,10 @@ export async function handleDataRoutes(req, res, url, ctx) {
             let rowId;
             let val;
             if (typeof item === 'object' && item !== null) {
-              rowId = String(item[idKey] || Math.random().toString(36).substring(7));
+              // BUG-C FIX: Skip item tanpa ID valid daripada buat ID random tidak deterministik
+              // Math.random() menyebabkan setiap save = duplicate rows baru untuk item yang sama
+              rowId = String(item[idKey] || '').trim();
+              if (!rowId) continue;
               val = item;
             } else {
               rowId = String(item || '').trim();

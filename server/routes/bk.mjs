@@ -394,6 +394,13 @@ export async function handleBkRoutes(req, res, url, ctx) {
         const currentUserName = session?.name || session?.username || 'Guru BK';
         const currentUserId = session?.id || session?.nip || session?.username || '';
 
+        // BUG-B FIX: Validasi student_nis wajib — konsisten dengan bk/sessions & bk/home-visits
+        const cleanNis = String(student_nis || '').trim();
+        if (!cleanNis) {
+          send(req, res, 400, { ok: false, error: 'NIS siswa wajib diisi.' });
+          return true;
+        }
+
         const resQuery = await dbPool.query(`
           INSERT INTO bk_letters (
             student_nis, letter_type, letter_no, issue_date, reason, 
@@ -403,7 +410,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           RETURNING *
         `, [
-          student_nis,
+          cleanNis,
           letter_type || 'Panggilan Orang Tua',
           letter_no || `BK/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`,
           issue_date && String(issue_date).trim() ? String(issue_date).trim() : new Date().toISOString().slice(0, 10),

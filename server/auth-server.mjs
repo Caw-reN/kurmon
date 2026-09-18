@@ -1448,6 +1448,24 @@ const initDb = async () => {
       console.warn("Failed to create unique constraints:", uniqueErr.message);
     }
 
+    // MINOR-A FIX: Buat tabel 2FA saat startup agar GET /api/auth/2fa/status
+    // tidak perlu menjalankan DDL di setiap request (overhead DDL per-request).
+    try {
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS user_two_factor_auth (
+          user_id VARCHAR(100) PRIMARY KEY,
+          is_enabled BOOLEAN DEFAULT FALSE,
+          method VARCHAR(20) DEFAULT 'whatsapp',
+          phone_number VARCHAR(30),
+          secret_key TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    } catch (e2fa) {
+      console.warn('[InitDB] Failed to create user_two_factor_auth table:', e2fa.message);
+    }
+
     dbStatus = { ok: true, code: "DB_CONNECTED", message: "Database PostgreSQL tersambung." };
     console.log("PostgreSQL Database Initialized & Connected");
     autoLinkHikvisionStudents(dbPool).catch(() => {});

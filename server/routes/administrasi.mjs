@@ -64,7 +64,13 @@ export async function handleAdministrasiRoutes(req, res, url, ctx) {
 
     if (req.method === 'GET' && url.pathname.includes('/file/')) {
       try {
-        const id = url.pathname.split('/').pop();
+        // SEC-C FIX: Validasi ID dari URL — cegah non-numeric atau ID negatif
+        const rawId = url.pathname.split('/').pop();
+        const id = parseInt(rawId, 10);
+        if (isNaN(id) || id <= 0) {
+          send(req, res, 400, { ok: false, error: 'ID file tidak valid.' });
+          return true;
+        }
         const { rows } = await dbPool.query("SELECT file_url FROM modul_ajar_guru WHERE id = $1", [id]);
         if (rows.length > 0) {
           send(req, res, 200, { ok: true, file_url: rows[0].file_url });

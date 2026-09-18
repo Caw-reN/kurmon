@@ -98,7 +98,8 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const rawLimit = url.searchParams.get('limit');
         const maxLimit = isRekapKelas ? 2000 : 500;
         const limit = rawLimit === 'all' ? maxLimit : Math.min(parseInt(rawLimit || (isRekapKelas ? '500' : '50'), 10), maxLimit);
-        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+        // SEC-D FIX: Cap offset untuk cegah DoS via huge offset (e.g. ?offset=999999999)
+        const offset = Math.min(Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10)), 50000);
         query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         params.push(limit, offset);
 
@@ -302,17 +303,24 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           }
         } else if (body.id) {
           // Update
-          await dbPool.query(`
+          // BUG-A FIX: Tambahkan cek kepemilikan record (BOLA) — walikelas hanya bisa
+          // edit catatan miliknya sendiri. Admin bisa edit semua.
+          const isAdminEdit = ['admin', 'superadmin'].includes(session?.role || '');
+          const updateResult = await dbPool.query(`
             UPDATE catatan_walikelas
             SET siswa_nis = $1, siswa_name = $2, tanggal = $3, jenis_catatan = $4,
                 isi_catatan = $5, tindak_lanjut = $6, poin_pelanggaran_id = $7,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $8
+            WHERE id = $8 AND ($9::boolean OR teacher_code = $10)
           `, [
             body.siswa_nis, body.siswa_name || '', body.tanggal || new Date().toISOString().split('T')[0],
             body.jenis_catatan || 'umum', body.isi_catatan, body.tindak_lanjut || null,
-            body.poin_pelanggaran_id || null, body.id
+            body.poin_pelanggaran_id || null, body.id, isAdminEdit, teacherCode
           ]);
+          if (updateResult.rowCount === 0 && !isAdminEdit) {
+            send(req, res, 403, { ok: false, error: 'Anda tidak memiliki izin untuk mengedit catatan ini.' });
+            return;
+          }
         } else {
           // Insert baru
           // Dapatkan nama kelas dari walikelas session jika ada

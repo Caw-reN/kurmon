@@ -226,6 +226,13 @@ export async function handleStudentRoutes(req, res, url, ctx) {
     const session = requireAuthenticated(req, res);
     if (!session) return true;
 
+    // BUG-D FIX: Cek role — hanya admin/tu yang boleh upload foto massal
+    const sessionRole = normalizeServerRole(session.role);
+    if (!['admin', 'superadmin', 'tu'].includes(sessionRole)) {
+      send(req, res, 403, { ok: false, error: 'Hanya Admin dan Tata Usaha yang dapat mengupload foto siswa secara massal.' });
+      return true;
+    }
+
     try {
       const body = await readJsonBody(req);
       const photosMap = body.photos || {}; // { [nis]: base64Data }

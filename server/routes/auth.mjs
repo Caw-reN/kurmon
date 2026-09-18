@@ -653,16 +653,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const students = dbStudents.rows.map(r => r.payload);
       const staffs = dbStaffs.rows.map(r => r.payload);
 
-      let targetItem = teachers.find(t => String(t.code || "").trim().toLowerCase() === username || String(t.name || "").trim().toLowerCase() === username);
+      // SEC-B FIX: Hapus matching berdasarkan name — mencegah user enumeration attack.
+      // Penyerang tidak bisa lagi mengonfirmasi apakah seseorang terdaftar hanya dengan mengetik namanya.
+      // Hanya izinkan lookup via identifier eksplisit: code, nip, staff_code, atau nis.
+      let targetItem = teachers.find(t => String(t.code || "").trim().toLowerCase() === username);
       let foundType = "";
       if (targetItem) {
         foundType = "guru";
       } else {
-        targetItem = staffs.find(t => String(t.code || t.staff_code || "").trim().toLowerCase() === username || String(t.name || "").trim().toLowerCase() === username);
+        targetItem = staffs.find(t => String(t.code || t.staff_code || "").trim().toLowerCase() === username || String(t.nip || "").trim().toLowerCase() === username);
         if (targetItem) {
           foundType = "karyawan";
         } else {
-          targetItem = students.find(s => String(s.nis || "").trim().toLowerCase() === username || String(s.code || "").trim().toLowerCase() === username || String(s.name || "").trim().toLowerCase() === username);
+          targetItem = students.find(s => String(s.nis || "").trim().toLowerCase() === username || String(s.code || "").trim().toLowerCase() === username);
           if (targetItem) {
             foundType = "siswa";
           }
@@ -736,15 +739,16 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       let targetItem = null;
       let foundType = "";
 
-      targetItem = teachers.find(t => String(t.code || "").trim().toLowerCase() === username || String(t.name || "").trim().toLowerCase() === username);
+      // SEC-B FIX: Hapus matching by name — konsisten dengan endpoint validate di atas
+      targetItem = teachers.find(t => String(t.code || "").trim().toLowerCase() === username);
       if (targetItem) {
         foundType = "guru";
       } else {
-        targetItem = staffs.find(t => String(t.code || t.staff_code || "").trim().toLowerCase() === username || String(t.name || "").trim().toLowerCase() === username);
+        targetItem = staffs.find(t => String(t.code || t.staff_code || "").trim().toLowerCase() === username || String(t.nip || "").trim().toLowerCase() === username);
         if (targetItem) {
           foundType = "karyawan";
         } else {
-          targetItem = students.find(s => String(s.nis || "").trim().toLowerCase() === username || String(s.code || "").trim().toLowerCase() === username || String(s.name || "").trim().toLowerCase() === username);
+          targetItem = students.find(s => String(s.nis || "").trim().toLowerCase() === username || String(s.code || "").trim().toLowerCase() === username);
           if (targetItem) {
             foundType = "siswa";
           }
@@ -910,8 +914,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         return true;
       }
 
-      if (newPassword.length < 6 || newPassword.length > 12) {
-        send(req, res, 200, { ok: false, message: "Kata sandi baru harus berukuran minimal 6 hingga 12 karakter!" });
+      // SEC-G FIX: Batas 12 karakter terlalu pendek (antipattern NIST SP 800-63B).
+      // Password panjang (passphrase) jauh lebih aman. Ubah max ke 128 karakter.
+      if (newPassword.length < 6 || newPassword.length > 128) {
+        send(req, res, 200, { ok: false, message: "Kata sandi baru harus minimal 6 karakter (maksimal 128 karakter)." });
         return true;
       }
 
@@ -1090,17 +1096,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     if (!session) return true;
     try {
       if (!dbPool) throw createDatabaseUnavailableError();
-      await dbPool.query(`
-        CREATE TABLE IF NOT EXISTS user_two_factor_auth (
-          user_id VARCHAR(100) PRIMARY KEY,
-          is_enabled BOOLEAN DEFAULT FALSE,
-          method VARCHAR(20) DEFAULT 'whatsapp',
-          phone_number VARCHAR(30),
-          secret_key TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+      // MINOR-A FIX: DDL tidak perlu di setiap request — tabel dibuat saat startup.
+      // CREATE TABLE IF NOT EXISTS dipindahkan ke initializeTables() di auth-server.mjs.
       const { rows } = await dbPool.query(
         "SELECT is_enabled, method, phone_number FROM user_two_factor_auth WHERE user_id = $1",
         [session.username || session.id]
@@ -1108,7 +1105,12 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       const statusData = rows.length > 0 ? rows[0] : { is_enabled: false, method: 'whatsapp', phone_number: null };
       send(req, res, 200, { ok: true, data: statusData });
     } catch (err) {
-      sendDatabaseError(req, res, err);
+      // Jika tabel belum ada (misal: first deploy), kembalikan default aman
+      if (err.code === '42P01') {
+        send(req, res, 200, { ok: true, data: { is_enabled: false, method: 'whatsapp', phone_number: null } });
+      } else {
+        sendDatabaseError(req, res, err);
+      }
     }
     return true;
   }
