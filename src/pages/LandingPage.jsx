@@ -5,6 +5,7 @@ import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, Chevron
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 import { getMajorAbbreviation } from '../utils/constants.js';
+import { sanitizeHtml } from '../utils/sanitizeHtml.js'; // FE-SEC-B FIX
 
 
 
@@ -2064,9 +2065,9 @@ export default function LandingPage() {
           <div className="w-full border-t border-slate-200/70 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
             <p>
               {appSettings.footerDescription ? (
-                <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
               ) : appSettings.footerText ? (
-                <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
+                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
               ) : (
                 `© ${new Date().getFullYear()} ${appSettings.appName || "Sistem Akademik"}. Seluruh hak cipta dilindungi undang-undang.`
               )}

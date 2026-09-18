@@ -30,6 +30,9 @@ export default function Login({
   const [forgotError, setForgotError] = React.useState(null);
   const [forgotMessage, setForgotMessage] = React.useState("");
   const [captchaAnswer, setCaptchaAnswer] = React.useState("");
+  // FE-MINOR-C FIX: Tambah deklarasi state captcha yang hilang — sebelumnya
+  // captcha.id diakses di handleForgotSubmit tanpa useState yang sesuai → ReferenceError
+  const [captcha, setCaptcha] = React.useState({ id: '', question: '' });
   
   const fetchCaptcha = async () => {
     try {

@@ -54,7 +54,18 @@ export async function handleSettingsRoutes(req, res, url, ctx) {
       return true;
     }
     const body = await readJsonBody(req);
-    store.featureSettings = body;
+
+    // FE-MINOR-D FIX: Whitelist tipe nilai — featureSettings hanya boleh berisi boolean
+    // dengan key yang valid secara alphanumeric. Ini mencegah admin menyimpan HTML/script
+    // sembarangan ke dalam featureSettings yang bisa disuntikkan ke store global.
+    const safeFeatureSettings = {};
+    for (const [key, val] of Object.entries(body || {})) {
+      if (typeof val === 'boolean' && /^[a-zA-Z][a-zA-Z0-9_]{0,60}$/.test(key)) {
+        safeFeatureSettings[key] = val;
+      }
+    }
+
+    store.featureSettings = safeFeatureSettings;
     await writeStore(store);
     send(req, res, 200, { ok: true, data: store.featureSettings });
     return true;

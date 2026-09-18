@@ -7,6 +7,7 @@ import { loadInitialState, normalizeLayoutBlockLabels } from './utils/state.js';
 import { clearLegacyLocalStorage } from './utils/dataSource.js';
 import { hashPassword, normalizeAdminUser, normalizeTeachers } from './utils/auth.js';
 import { assessGenerateReadiness } from './utils/scheduleGeneration.js';
+import { sanitizeHtml } from './utils/sanitizeHtml.js'; // FE-SEC-B FIX
 import { DAYS as DATA_DAYS, INITIAL_CLASSES as DATA_INITIAL_CLASSES, INITIAL_ROOMS as DATA_INITIAL_ROOMS, INITIAL_SUBJECTS as DATA_INITIAL_SUBJECTS, INITIAL_TEACHERS as DATA_INITIAL_TEACHERS, INITIAL_TEACHER_AVAILABILITY as DATA_INITIAL_TEACHER_AVAILABILITY, INITIAL_TEACHING_LOADS as DATA_INITIAL_TEACHING_LOADS, MAJORS as DATA_MAJORS, TIME_SLOTS as DATA_TIME_SLOTS } from './data.js';
 import { DEFAULT_SIDEBAR_GROUPS, SIDEBAR_GROUP_BY_TAB, DEFAULT_TABLE_SORTS, ATTENDANCE_MODE_OPTIONS, DASHBOARD_MESSAGE_PRIORITIES, DASHBOARD_MESSAGE_TARGETS, WAKA_DIVISION_OPTIONS, WORKSPACE_GUIDES, normalizeUserRole, isSuperAdminRole, isLeadershipRole, getWakaDivisionOption, ROLE_KEY_LABELS } from './utils/constants.js';
 import { PageHeader } from './components/monitoring/ui/index.js';
@@ -3987,9 +3988,9 @@ export default function App() {
         <div className="mt-6 pt-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 pb-3 shrink-0 print:hidden">
           <div className="text-xs font-medium text-muted-foreground">
             {appSettings.footerDescription ? (
-              <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
             ) : appSettings.footerText ? (
-              <span dangerouslySetInnerHTML={{ __html: appSettings.footerText }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
             ) : (
               `© ${new Date().getFullYear()} ${appSettings.appName || "TimeSchedule"}. All rights reserved.`
             )}

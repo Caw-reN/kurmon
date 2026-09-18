@@ -1837,7 +1837,9 @@ const toPublicPayload = (payload = {}) => {
     syllabuses: safe.syllabuses,
     teacherAvailability: safe.teacherAvailability,
     teachers: safe.teachers,
-    adminUser: safe.adminUser,
+    // FE-SEC-A FIX: Hapus adminUser dari public payload — endpoint ini bisa diakses
+    // tanpa login sehingga username admin sebelumnya bocor ke publik.
+    // adminUser: safe.adminUser,  ← DIHAPUS
     teachingLoads: safe.teachingLoads,
     timeSlots: safe.timeSlots,
     strukturOrganisasi: safe.strukturOrganisasi,

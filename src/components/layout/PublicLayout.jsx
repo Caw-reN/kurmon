@@ -6,6 +6,7 @@ import { loadInitialState } from'../../utils/state.js';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { ChevronLeft, MessageSquare, HelpCircle, X, Info, Mail, LogIn } from 'lucide-react';
 import HeaderNavbar from'./HeaderNavbar.jsx';
+import { sanitizeHtml } from '../../utils/sanitizeHtml.js'; // FE-SEC-B FIX
 
 
 export default function PublicLayout() {
@@ -353,9 +354,9 @@ export default function PublicLayout() {
             <div className="w-full border-t border-slate-200 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] font-semibold text-slate-400">
               <div>
                 {appSettings.footerDescription ? (
-                  <span dangerouslySetInnerHTML={{ __html: appSettings.footerDescription }} />
+                  <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
                 ) : footerText ? (
-                  <span dangerouslySetInnerHTML={{ __html: footerText }} />
+                  <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(footerText) }} />
                 ) : (
                   <p>{`© ${new Date().getFullYear()} ${appName ||'Sistem Akademik'}. All rights reserved.`}</p>
                 )}

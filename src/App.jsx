@@ -423,7 +423,7 @@ export default function App() {
             <Route path="/struktur" element={<StrukturOrganisasiPage />} />
 
             {/* ── Public Monitoring page ── */}
-            <Route path="/pkl-locations" element={<PklLocationsPage />} />
+            {/* FE-SEC-D FIX: /validasi-siswa tetap publik, /pkl-locations dipindah ke ProtectedRoute */}
             <Route path="/validasi-siswa" element={<ValidasiSiswa />} />
           </Route>
 
@@ -432,6 +432,11 @@ export default function App() {
             <Route path="/dashboard/*" element={<AdminApp />} />
           </Route>
           <Route path="/teacher/*" element={<Navigate to="/dashboard" replace />} />
+
+          {/* ── PKL Locations (protected — butuh login, konsisten dengan SEC-A backend fix) ── */}
+          <Route element={<ProtectedRoute allowedRoles={["admin", "superadmin", "guru", "karyawan", "tu", "waka", "piket", "bk", "kepsek", "siswa"]} />}>
+            <Route path="/pkl-locations" element={<PklLocationsPage />} />
+          </Route>
 
           {/* ── Monitoring Admin (Hubin / SuperAdmin) has been migrated into AdminApp.jsx ── */}
 
