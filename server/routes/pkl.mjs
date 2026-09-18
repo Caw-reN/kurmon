@@ -1,6 +1,30 @@
 export async function handlePklRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole } = ctx;
-  
+
+  // B5-SEC-C FIX: Inisialisasi tabel kunjungan guru sekali saat modul pertama kali aktif,
+  // bukan di setiap request. CREATE TABLE per-request menyebabkan DDL overhead dan potensi
+  // database lock pada high-traffic endpoint.
+  // Tabel hanya dibuat jika belum ada (idempotent).
+  try {
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
+        id SERIAL PRIMARY KEY,
+        teacher_code VARCHAR(100),
+        location_id INTEGER,
+        nama_perusahaan VARCHAR(255),
+        lat NUMERIC,
+        lng NUMERIC,
+        distance_meters NUMERIC,
+        is_valid_radius BOOLEAN,
+        photo TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (e) {
+    console.warn('[PKL] Gagal memastikan tabel pkl_kunjungan_guru:', e.message);
+  }
+
     if (req.method === "GET" && url.pathname === "/api/pkl/dashboard-stats") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
@@ -251,6 +275,13 @@ export async function handlePklRoutes(req, res, url, ctx) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       try {
+        // B5-MINOR-B FIX: Tambahkan LIMIT + offset paginasi untuk mencegah payload besar
+        // Sebelumnya query ini mengembalikan SEMUA logbook tanpa limit — berbahaya jika ribuan entri
+        const rawLimit  = parseInt(url.searchParams.get('limit')  || '200', 10);
+        const rawOffset = parseInt(url.searchParams.get('offset') || '0',   10);
+        const limit  = Math.min(isNaN(rawLimit)  || rawLimit  < 1 ? 200 : rawLimit,  1000);
+        const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
+
         const result = await dbPool.query(`
           SELECT l.id, l.student_nis, 
                  TO_CHAR(l.tanggal, 'YYYY-MM-DD') as tanggal, 
@@ -265,8 +296,9 @@ export async function handlePklRoutes(req, res, url, ctx) {
           LEFT JOIN pkl_students ps ON l.student_nis = ps.nis
           LEFT JOIN pkl_locations loc ON ps.location_id = loc.id
           ORDER BY l.created_at DESC
-        `);
-        return send(req, res, 200, { ok: true, data: result.rows });
+          LIMIT $1 OFFSET $2
+        `, [limit, offset]);
+        return send(req, res, 200, { ok: true, data: result.rows, limit, offset });
       } catch (err) {
         if (err.code === '42P01') return send(req, res, 200, { ok: true, data: [] });
         return sendDatabaseError(req, res, err);
@@ -588,23 +620,11 @@ export async function handlePklRoutes(req, res, url, ctx) {
       if (!session) return;
       try {
         const body = await readJsonBody(req);
+        // B5-SEC-B: teacher_code WAJIB diambil dari session (server-side), BUKAN dari body.
+        // Frontend mengirim body.teacher_code tapi server mengabaikannya untuk mencegah
+        // pemalsuan identitas (guru A mengklaim kunjungan sebagai guru B).
         const teacherCode = session.id || session.username || session.code;
-        await dbPool.query(`
-          CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
-            id SERIAL PRIMARY KEY,
-            teacher_code VARCHAR(100),
-            location_id INTEGER,
-            nama_perusahaan VARCHAR(255),
-            lat NUMERIC,
-            lng NUMERIC,
-            distance_meters NUMERIC,
-            is_valid_radius BOOLEAN,
-            photo TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          )
-        `);
-
+        // Tabel sudah dibuat di inisialisasi awal (B5-SEC-C FIX), tidak perlu CREATE TABLE lagi
         await dbPool.query(`
           INSERT INTO pkl_kunjungan_guru (teacher_code, location_id, nama_perusahaan, lat, lng, distance_meters, is_valid_radius, photo, notes)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -630,21 +650,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       try {
-        await dbPool.query(`
-          CREATE TABLE IF NOT EXISTS pkl_kunjungan_guru (
-            id SERIAL PRIMARY KEY,
-            teacher_code VARCHAR(100),
-            location_id INTEGER,
-            nama_perusahaan VARCHAR(255),
-            lat NUMERIC,
-            lng NUMERIC,
-            distance_meters NUMERIC,
-            is_valid_radius BOOLEAN,
-            photo TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          )
-        `);
+        // Tabel sudah dibuat di inisialisasi awal (B5-SEC-C FIX), tidak perlu CREATE TABLE lagi
         const { rows } = await dbPool.query(`
           SELECT * FROM pkl_kunjungan_guru 
           ORDER BY created_at DESC LIMIT 50

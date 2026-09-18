@@ -4577,6 +4577,9 @@ const server = createServer(async (req, res) => {
     // === API: MODUL AJAR GURU ===
     if (url.pathname.startsWith("/api/modul-ajar-guru")) {
       if (req.method === "GET") {
+        // BUG MODUL AJAR FIX: Endpoint ini sebelumnya tanpa auth check!
+        // Siapapun bisa mengakses daftar dokumen modul ajar semua guru tanpa login.
+        if (!requireAuthenticated(req, res)) return;
         try {
           const { rows } = await dbPool.query("SELECT * FROM modul_ajar_guru ORDER BY uploaded_at DESC");
           send(req, res, 200, { ok: true, data: rows });

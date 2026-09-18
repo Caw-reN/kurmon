@@ -1,8 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
-import { useState } from'react';
-import useAuthStore from'../../../store/monitoring/authStore.js';
-import { compressImage } from'../../../utils/imageUtils.js';
-import { MapPin, CheckCircle2, Crosshair, Camera } from'lucide-react';
+import { useState, useEffect } from 'react';
+import useAuthStore from '../../../store/monitoring/authStore.js';
+import { compressImage } from '../../../utils/imageUtils.js';
+import { MapPin, CheckCircle2, Crosshair, Camera } from 'lucide-react';
 
 
 // Calculate distance in meters using Haversine formula
@@ -35,8 +35,11 @@ export default function KunjunganPKL() {
   const authToken = useAuthStore(state => state.user?.authToken);
   const user = useAuthStore(state => state.user);
 
-  // Fetch real DUDI company list
-  useState(() => {
+  // B5-MINOR-A FIX: Gunakan useEffect bukan useState untuk fetch side-effect.
+  // Sebelumnya menggunakan useState(() => fetch()) yang merupakan anti-pattern:
+  // tidak bisa di-cleanup dan tidak refresh jika authToken berubah.
+  useEffect(() => {
+    if (!authToken) return;
     fetch('/api/pkl/locations', {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
     })
@@ -50,7 +53,7 @@ export default function KunjunganPKL() {
         }
       })
       .catch(() => {});
-  });
+  }, [authToken]);
 
   const selectedCompany = companies.find(c => String(c.id) === String(selectedCompanyId));
   const companyLat = parseFloat(selectedCompany?.lat) || -6.2425;

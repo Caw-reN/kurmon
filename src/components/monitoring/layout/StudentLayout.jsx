@@ -109,7 +109,7 @@ const StudentLayout = () => {
     }
   };
 
-  const handleChangePasswordSubmit = (e) => {
+  const handleChangePasswordSubmit = async (e) => {
     e.preventDefault();
     setPassError('');
     setPassSuccess('');
@@ -124,15 +124,41 @@ const StudentLayout = () => {
     }
 
     setSubmittingPass(true);
-    setTimeout(() => {
+    // B5-SEC-A FIX: Ganti setTimeout() fake dengan API call nyata.
+    // Sebelumnya modal hanya mensimulasikan ganti password dengan delay 800ms
+    // tanpa memanggil server sama sekali — password di DB tidak pernah berubah!
+    try {
+      const token = user?.authToken
+        || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken
+        || '';
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          oldPassword: passForm.oldPass,
+          newPassword: passForm.newPass
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPassSuccess('Password berhasil diperbarui!');
+        localStorage.setItem(`pass_prompt_dismissed_${user?.username}`, 'true');
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setPassSuccess('');
+          setPassForm({ oldPass: '', newPass: '', confirmPass: '' });
+        }, 1500);
+      } else {
+        setPassError(data.message || data.error || 'Gagal mengubah password. Pastikan password lama benar.');
+      }
+    } catch {
+      setPassError('Gagal menghubungi server. Coba lagi.');
+    } finally {
       setSubmittingPass(false);
-      setPassSuccess('Password berhasil diperbarui!');
-      localStorage.setItem(`pass_prompt_dismissed_${user?.username}`, 'true');
-      setTimeout(() => {
-        setShowPasswordModal(false);
-        setPassSuccess('');
-      }, 1500);
-    }, 800);
+    }
   };
 
   const initials = (user?.name || user?.nama || user?.username || 'S').substring(0, 2).toUpperCase();
