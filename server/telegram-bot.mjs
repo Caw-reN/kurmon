@@ -166,7 +166,17 @@ function _startPolling() {
   if (_isRunning) return;
   _isRunning = true;
   _registerBotCommands().catch(err => console.warn('[TelegramBot] register commands error:', err.message));
-  _pollLoop();
+  
+  // Bersihkan webhook aktif lama sebelum memulai polling agar tidak terjadi HTTP 409 Conflict
+  if (_botToken) {
+    fetch(`https://api.telegram.org/bot${_botToken}/deleteWebhook?drop_pending_updates=false`)
+      .catch(() => {})
+      .finally(() => {
+        _pollLoop();
+      });
+  } else {
+    _pollLoop();
+  }
 }
 
 function _stopPolling() {
@@ -193,7 +203,22 @@ async function _pollLoop() {
         `https://api.telegram.org/bot${_botToken}/getUpdates?offset=${_pollOffset}&timeout=25`,
         { signal: AbortSignal.timeout(35_000) }
       );
-      if (!res.ok) { await _sleep(3000); continue; }
+      if (!res.ok) {
+        if (res.status === 409) {
+          console.warn('[TelegramBot] ⚠️ HTTP 409 Conflict: Webhook aktif. Menghapus webhook lama...');
+          await fetch(`https://api.telegram.org/bot${_botToken}/deleteWebhook?drop_pending_updates=false`).catch(() => {});
+          await _sleep(2000);
+          continue;
+        }
+        if (res.status === 401 || res.status === 404) {
+          const errData = await res.json().catch(() => ({}));
+          console.error(`[TelegramBot] ❌ Bot Token tidak valid (${res.status}):`, errData.description || res.statusText);
+          _stopPolling();
+          break;
+        }
+        await _sleep(3000);
+        continue;
+      }
       const data = await res.json();
       if (data.ok && Array.isArray(data.result) && data.result.length > 0) {
         for (const update of data.result) {
@@ -320,7 +345,8 @@ export function _parseIndonesianDate(text) {
 
   // 6. Nama bulan Indonesia: [tanggal/tgl] DD <Bulan> [YYYY]
   // Contoh: "tanggal 1 agustus 2026", "1 agustus 2026", "tgl 15 juli", "01 agustus 2026"
-  const textDateRegex = /(?:tanggal|tgl\s*)?\b(0?[1-9]|[12]\d|3[01])\s+([a-z]+)(?:\s+(20\d{2}))?\b/i;
+  const monthNamesPattern = '(?:januari|jan|februari|feb|pebruari|maret|mar|april|apr|mei|may|juni|jun|juli|jul|agustus|agu|ags|august|september|sep|sept|oktober|okt|oct|november|nov|nopember|desember|des|dec)';
+  const textDateRegex = new RegExp(`(?:\\b(?:tanggal|tgl)\\s+)?\\b(0?[1-9]|[12]\\d|3[01])\\s+(${monthNamesPattern})(?:\\s+(20\\d{2}))?\\b`, 'i');
   const textMatch = lower.match(textDateRegex);
   if (textMatch) {
     const d = parseInt(textMatch[1], 10);
@@ -338,6 +364,23 @@ export function _parseIndonesianDate(text) {
   }
 
   return null;
+}
+
+/**
+ * Membersihkan kata-kata tanggal dari input teks tanpa merusak angka nama kelas (contoh: 'X TKJ 1 kemarin' -> 'X TKJ 1')
+ */
+export function _cleanDateFromText(text) {
+  if (!text) return '';
+  const monthNamesPattern = '(?:januari|jan|februari|feb|pebruari|maret|mar|april|apr|mei|may|juni|jun|juli|jul|agustus|agu|ags|august|september|sep|sept|oktober|okt|oct|november|nov|nopember|desember|des|dec)';
+  const textDateRegex = new RegExp(`(?:\\b(?:tanggal|tgl)\\s+)?\\b(0?[1-9]|[12]\\d|3[01])\\s+${monthNamesPattern}(?:\\s+(20\\d{2}))?\\b`, 'gi');
+  return text
+    .replace(textDateRegex, '')
+    .replace(/\b(20\d{2})[-/](0?[1-9]|1[0-2])[-/](0?[1-9]|[12]\d|3[01])\b/gi, '')
+    .replace(/\b(0?[1-9]|[12]\d|3[01])[-/](0?[1-9]|1[0-2])[-/](20\d{2})\b/gi, '')
+    .replace(/\b(kemarin|kemaren|hari\s+ini|besok|esok)\b/gi, '')
+    .replace(/\b(tanggal|tgl)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function _handleUpdate(update) {
@@ -364,10 +407,11 @@ async function _handleUpdate(update) {
     };
   }
 
-  const msg = update.message;
+  const msg = update.message || update.channel_post || update.edited_message;
   if (!msg || !msg.text) return;
 
-  const chatId = String(msg.chat.id);
+  const chatId = String(msg.chat?.id || '');
+  const fromId = String(msg.from?.id || '');
   const text = msg.text.trim();
   const from = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || chatId);
 
@@ -539,8 +583,12 @@ async function _handleUpdate(update) {
     return;
   }
 
-  // Whitelist check
-  const isAllowed = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
+  // Whitelist check: Cocokkan Chat ID grup/pribadi atau ID pengirim yang berwenang
+  const isAllowed = _allowedChatIds.has(chatId) || 
+                    (!!_chatId && chatId === String(_chatId)) ||
+                    (fromId && _allowedChatIds.has(fromId)) ||
+                    (!!_chatId && fromId === String(_chatId));
+
   if (!isAllowed && (_allowedChatIds.size > 0 || _chatId)) {
     await _sendMessage(chatId, 
       `⛔ <b>Akses Belum Didaftarkan</b>\n\n` +
@@ -574,7 +622,10 @@ async function _handleUpdate(update) {
         if (args.length > 0) {
           const argText = args.join(' ');
           const dateArg = _parseIndonesianDate(argText);
-          if (dateArg) {
+          const potentialClass = dateArg ? _cleanDateFromText(argText) : argText;
+          if (potentialClass && potentialClass.length >= 2) {
+            await _cmdAbsenPerKelas(chatId, potentialClass, dateArg);
+          } else if (dateArg) {
             await sendDailyMorningAttendanceReport(chatId, dateArg);
           } else {
             await _cmdAbsenPerKelas(chatId, argText);
@@ -990,11 +1041,18 @@ async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
     let masukLate = '07:00';
     let guruLate = '07:15';
     try {
-      const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
+      const confRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
       if (confRes.rows.length > 0 && confRes.rows[0].data) {
         const conf = typeof confRes.rows[0].data === 'string' ? JSON.parse(confRes.rows[0].data) : confRes.rows[0].data;
-        masukLate = conf?.featureSettings?.masuk_late || conf?.siswa?.masuk_late || '07:00';
-        guruLate = conf?.featureSettings?.guru_masuk_late || conf?.guru?.masuk_late || '07:15';
+        masukLate = conf?.siswa?.masuk_late || conf?.masuk_late || '07:00';
+        guruLate = conf?.guru?.masuk_late || conf?.masuk_late || '07:15';
+      } else {
+        const mainConf = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+        if (mainConf.rows.length > 0 && mainConf.rows[0].data) {
+          const m = typeof mainConf.rows[0].data === 'string' ? JSON.parse(mainConf.rows[0].data) : mainConf.rows[0].data;
+          masukLate = m?.featureSettings?.masuk_late || m?.siswa?.masuk_late || '07:00';
+          guruLate = m?.featureSettings?.guru_masuk_late || m?.guru?.masuk_late || '07:15';
+        }
       }
     } catch(e) {}
 
@@ -1005,7 +1063,7 @@ async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
     ).catch(() => ({ rows: [{ total_scan: 0 }] }));
     const totalScansOnDate = parseInt(scanCountRows[0]?.total_scan || 0, 10);
 
-    // 1. Siswa Terlambat
+    // 1. Siswa Terlambat (Berdasarkan tap pertama dalam hari tersebut)
     let siswaLate = [];
     if (filterType !== 'guru') {
       const sRes = await _dbPool.query(`
@@ -1017,15 +1075,15 @@ async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
         LEFT JOIN hikvision_students hs ON hs.nis = l.employee_id
         WHERE l.timestamp::date = $1::date
           AND l.person_type = 'siswa'
-          AND CAST(l.timestamp AS TIME) > $2::time
         GROUP BY l.employee_id, ms.payload, hs.name, hs.class_name
+        HAVING TO_CHAR(MIN(l.timestamp), 'HH24:MI') > $2
         ORDER BY scan_time ASC
         LIMIT 50
       `, [targetDate, masukLate]).catch(() => ({ rows: [] }));
       siswaLate = sRes.rows;
     }
 
-    // 2. Guru / Karyawan Terlambat
+    // 2. Guru / Karyawan Terlambat (Berdasarkan tap pertama dalam hari tersebut)
     let guruLateList = [];
     if (filterType !== 'siswa') {
       const gRes = await _dbPool.query(`
@@ -1037,8 +1095,8 @@ async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
         LEFT JOIN mst_staffs mf ON mf.payload->>'staff_code' = l.employee_id OR mf.payload->>'code' = l.employee_id OR mf.payload->>'id' = l.employee_id
         WHERE l.timestamp::date = $1::date
           AND l.person_type IN ('guru', 'karyawan', 'staff')
-          AND CAST(l.timestamp AS TIME) > $2::time
         GROUP BY l.employee_id, mt.payload, mf.payload, l.person_type
+        HAVING TO_CHAR(MIN(l.timestamp), 'HH24:MI') > $2
         ORDER BY scan_time ASC
         LIMIT 50
       `, [targetDate, guruLate]).catch(() => ({ rows: [] }));
@@ -1143,11 +1201,14 @@ async function _cmdRingkasanTanggal(chatId, dateInfo) {
         GROUP BY person_type
       `, [targetDate]).catch(() => ({ rows: [] })),
       _dbPool.query(`
-        SELECT COUNT(DISTINCT employee_id) as total_late
-        FROM hikvision_logs
-        WHERE timestamp::date = $1::date
-          AND ((person_type = 'siswa' AND CAST(timestamp AS TIME) > '07:00'::time)
-            OR (person_type IN ('guru', 'karyawan', 'staff') AND CAST(timestamp AS TIME) > '07:15'::time))
+        SELECT COUNT(*) as total_late FROM (
+          SELECT employee_id, person_type, MIN(timestamp) as first_time
+          FROM hikvision_logs
+          WHERE timestamp::date = $1::date
+          GROUP BY employee_id, person_type
+          HAVING (person_type = 'siswa' AND TO_CHAR(MIN(timestamp), 'HH24:MI') > '07:00')
+              OR (person_type IN ('guru', 'karyawan', 'staff') AND TO_CHAR(MIN(timestamp), 'HH24:MI') > '07:15')
+        ) sub
       `, [targetDate]).catch(() => ({ rows: [{ total_late: 0 }] })),
       _dbPool.query(`
         SELECT status, COUNT(*) as cnt
@@ -1223,7 +1284,7 @@ async function _cmdLogs(chatId, n) {
 
 async function _cmdBackup(chatId, from) {
   if (!_dbPool) { await _sendMessage(chatId, '❌ Database tidak tersedia.'); return; }
-  await _sendMessage(chatId, `⏳ Sedang membuat berkas cadangan database...`);
+  await _sendMessage(chatId, `⏳ <i>Sedang membuat berkas cadangan database... Mohon tunggu sebentar.</i>`, { isHtml: true });
   try {
     const { runBackupJson } = await import('./auto-backup.mjs');
     const result = await runBackupJson();
@@ -1233,9 +1294,43 @@ async function _cmdBackup(chatId, from) {
       `• <b>Ukuran:</b> <b>${result.size}</b>\n` +
       `• <b>SHA-256:</b> <code>${result.checksum ? result.checksum.slice(0, 20) + '...' : '-'}</code>\n` +
       `• <b>Diminta Oleh:</b> ${escapeHtml(from)}\n` +
-      `• <b>Waktu:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
+      `• <b>Waktu:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB\n\n` +
+      `📤 <i>Mengunggah berkas cadangan ke chat...</i>`,
       { isHtml: true }
     );
+
+    // Kirim berkas dokumen backup langsung ke Telegram jika berkas tersedia
+    if (result.filePath && _botToken) {
+      try {
+        const fsPromises = await import('node:fs/promises');
+        const fileBuffer = await fsPromises.readFile(result.filePath);
+        const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
+        const captionText = `📦 <b>Berkas Cadangan Database Kurmon</b>\n🗂 <code>${result.fileName}</code>\n💾 Ukuran: ${result.size}`;
+        const multipartHeader = Buffer.from(
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="document"; filename="${result.fileName}"\r\n` +
+          `Content-Type: application/json\r\n\r\n`,
+          'utf-8'
+        );
+        const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+        const finalBody = Buffer.concat([multipartHeader, fileBuffer, multipartFooter]);
+
+        await fetch(`https://api.telegram.org/bot${_botToken}/sendDocument`, {
+          method: 'POST',
+          headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+          body: finalBody,
+          signal: AbortSignal.timeout(60_000)
+        });
+      } catch (uploadErr) {
+        console.warn('[TelegramBot] Gagal upload berkas cadangan ke Telegram:', uploadErr.message);
+      }
+    }
   } catch (err) {
     await _sendMessage(chatId, `❌ <b>Pencadangan Gagal!</b>\n\nKendala: ${escapeHtml(err.message)}`, { isHtml: true });
   }
@@ -1395,6 +1490,10 @@ async function _cmdCariSiswa(chatId, query) {
 async function _cmdCariGuru(chatId, query) {
   if (!_dbPool) { await _sendMessage(chatId, '❌ Database tidak tersedia.'); return; }
   const q = String(query || '').trim();
+  if (!q) {
+    await _sendMessage(chatId, '💡 <b>Format Penggunaan:</b>\n<code>/guru [nama, NIP, atau kode]</code>\n\nContoh: <code>/guru Budi</code>', { isHtml: true });
+    return;
+  }
   const { rows } = await _dbPool.query(`
     SELECT id, payload FROM mst_teachers
     WHERE payload->>'name' ILIKE $1 
@@ -1728,13 +1827,7 @@ async function _handleSmartAssistant(chatId, queryText) {
     // Contoh: "presensi kelas X TKJ 1 tanggal 1 agustus 2026", "rekap XI RPL 2 kemarin"
     const classMatch = q.match(/(?:kelas|rombel)?\s*([x|xi|xii]{1,3}\s+[a-z0-9_\-\s]+)/i);
     if (classMatch && (/absen|rekap|presensi|kehadiran/i.test(q))) {
-      let className = classMatch[1].trim();
-      className = className
-        .replace(/(?:tanggal|tgl\s*)?\b\d{1,2}\s+[a-z]+(?:\s+\d{4})?\b/gi, '')
-        .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, '')
-        .replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/g, '')
-        .replace(/\b(kemarin|kemaren|hari\s+ini|besok)\b/gi, '')
-        .trim();
+      let className = _cleanDateFromText(classMatch[1]);
       if (className) {
         await _cmdAbsenPerKelas(chatId, className, dateInfo);
         return;
@@ -1901,9 +1994,12 @@ async function _handleSmartAssistant(chatId, queryText) {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
     try {
       const { rows } = await _dbPool.query(`
-        SELECT student_name, class_name, status, keterangan 
-        FROM kedisiplinan_absensi 
-        WHERE tanggal::date = $1::date
+        SELECT a.siswa_nis, a.status, a.keterangan,
+               COALESCE(ms.payload->>'name', ms.payload->>'nama', a.siswa_nis) as student_name,
+               COALESCE(ms.payload->>'class_name', ms.payload->>'kelas', '-') as class_name
+        FROM kedisiplinan_absensi a
+        LEFT JOIN mst_students ms ON ms.payload->>'nis' = a.siswa_nis OR ms.payload->>'code' = a.siswa_nis
+        WHERE a.tanggal::date = $1::date
         ORDER BY class_name ASC, student_name ASC
       `, [today]);
 
@@ -1917,7 +2013,9 @@ async function _handleSmartAssistant(chatId, queryText) {
         await _sendMessage(chatId, msg, { isHtml: true });
         return;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[TelegramBot] Query izin/sakit hari ini error:', e.message);
+    }
 
     await _sendMessage(chatId,
       `📝 <b>SURAT IZIN, SAKIT & DISPENSASI SISWA</b>\n\n` +
@@ -2199,11 +2297,11 @@ async function _handleSmartAssistant(chatId, queryText) {
   );
 }
 
-function _normalizeClassInput(str) {
+export function _normalizeClassInput(str) {
   let s = String(str || '').trim().toUpperCase();
-  s = s.replace(/^10(\s+|$)/, 'X $1')
-       .replace(/^11(\s+|$)/, 'XI $1')
-       .replace(/^12(\s+|$)/, 'XII $1')
+  s = s.replace(/^10(?=\s*[^0-9]|$)/, 'X ')
+       .replace(/^11(?=\s*[^0-9]|$)/, 'XI ')
+       .replace(/^12(?=\s*[^0-9]|$)/, 'XII ')
        .replace(/\s+/g, ' ');
   return s.trim();
 }
@@ -2211,7 +2309,7 @@ function _normalizeClassInput(str) {
 async function _findMatchingClasses(queryStr) {
   if (!_dbPool) return [];
   const { rows } = await _dbPool.query("SELECT payload FROM mst_classes");
-  const allClasses = rows.map(r => r.payload).filter(Boolean);
+  const allClasses = rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload).filter(Boolean);
 
   const cleanQuery = _normalizeClassInput(queryStr);
   const cleanQueryNoSpace = cleanQuery.replace(/\s+/g, '');
@@ -2247,12 +2345,7 @@ async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
     const extracted = _parseIndonesianDate(queryTrimmed);
     if (extracted) {
       dateInfo = extracted;
-      queryTrimmed = queryTrimmed
-        .replace(/(?:tanggal|tgl\s*)?\b\d{1,2}\s+[a-z]+(?:\s+\d{4})?\b/gi, '')
-        .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, '')
-        .replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/g, '')
-        .replace(/\b(kemarin|kemaren|hari\s+ini|besok)\b/gi, '')
-        .trim();
+      queryTrimmed = _cleanDateFromText(queryTrimmed);
     }
   }
 
@@ -2986,6 +3079,28 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null, date
 export async function handleTelegramBotRoutes(req, res, url, ctx) {
   const { send, requireAuthenticated, normalizeServerRole, readJsonBody, getRawBody } = ctx;
 
+  // ── Webhook Handler (Menerima update dari Telegram jika mode webhook diaktifkan) ──
+  if (req.method === 'POST' && (url.pathname === '/api/telegram-bot/webhook' || url.pathname.startsWith('/api/telegram-bot/webhook/'))) {
+    let body;
+    try {
+      if (typeof readJsonBody === 'function') {
+        body = await readJsonBody(req);
+      } else if (typeof getRawBody === 'function') {
+        const raw = await getRawBody(req);
+        body = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      }
+    } catch(e) {
+      send(req, res, 400, { ok: false, error: 'Invalid JSON' });
+      return true;
+    }
+
+    if (body && typeof body === 'object') {
+      _handleUpdate(body).catch(err => console.warn('[TelegramBot Webhook] handleUpdate error:', err.message));
+    }
+    send(req, res, 200, { ok: true });
+    return true;
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/telegram-bot/status') {
     const session = requireAuthenticated(req, res);
     if (!session) return true;
@@ -3040,6 +3155,7 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       const { rows } = await _dbPool.query(
         `SELECT service_name, api_key, extra_config FROM api_keys 
          WHERE (service_name = 'telegram_backup' OR service_name = 'telegram_bot_monitor' OR service_name LIKE 'telegram%') 
+         ORDER BY CASE WHEN service_name = 'telegram_backup' THEN 1 WHEN service_name = 'telegram_bot_monitor' THEN 2 ELSE 3 END
          LIMIT 1`
       );
       const targetService = rows.length > 0 ? rows[0].service_name : 'telegram_backup';
@@ -3052,6 +3168,8 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       if (body.chat_id !== undefined && String(body.chat_id).trim()) {
         existingCfg.chat_id = String(body.chat_id).trim();
         _chatId = existingCfg.chat_id;
+        // Sinkronkan ke allowed_chat_ids agar selalu diizinkan
+        existingCfg.allowed_chat_ids = Array.from(new Set([...(existingCfg.allowed_chat_ids || []), existingCfg.chat_id]));
       }
       
       const newBotToken = (body.bot_token !== undefined && String(body.bot_token).trim()) ? String(body.bot_token).trim() : (rows[0]?.api_key || '');
@@ -3070,6 +3188,15 @@ export async function handleTelegramBotRoutes(req, res, url, ctx) {
       await reloadTelegramBotConfig();
       send(req, res, 200, {
         ok: true,
+        data: {
+          isRunning: _isRunning,
+          hasBotToken: !!_botToken,
+          botTokenMasked: _botToken ? (_botToken.substring(0, 8) + '...' + _botToken.slice(-4)) : '',
+          chatId: _chatId || '',
+          hasChatId: !!_chatId,
+          alertConfig: _alertConfig,
+          uptime: Math.floor((Date.now() - _startTime) / 1000),
+        },
         alertConfig: _alertConfig,
         isRunning: _isRunning,
         hasBotToken: !!_botToken,

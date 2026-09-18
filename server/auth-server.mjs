@@ -3941,20 +3941,30 @@ const server = createServer(async (req, res) => {
       }
       try {
         let { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-        if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
+        const parseCfg = (r) => {
+          if (!r?.extra_config) return {};
+          if (typeof r.extra_config === 'object') return r.extra_config;
+          try { return JSON.parse(r.extra_config); } catch { return {}; }
+        };
+        let cfg = rows.length > 0 ? parseCfg(rows[0]) : {};
+        if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
           // Fallback otomatis ke telegram_bot_monitor jika telegram_backup belum disetel
           const monitorRes = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' AND is_active = true LIMIT 1");
-          if (monitorRes.rows.length > 0 && monitorRes.rows[0].api_key && monitorRes.rows[0].extra_config?.chat_id) {
-            rows = monitorRes.rows;
+          if (monitorRes.rows.length > 0) {
+            const mCfg = parseCfg(monitorRes.rows[0]);
+            if (monitorRes.rows[0].api_key && mCfg.chat_id) {
+              rows = monitorRes.rows;
+              cfg = mCfg;
+            }
           }
         }
-        if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
+        if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
           send(req, res, 400, { ok: false, error: "Telegram Backup belum dikonfigurasi atau tidak aktif (Bot Token & Chat ID wajib diisi)." });
           return;
         }
 
         const botToken = rows[0].api_key;
-        const chatId = rows[0].extra_config.chat_id;
+        const chatId = cfg.chat_id;
 
         const backupData = {};
         const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
@@ -4169,11 +4179,12 @@ const server = createServer(async (req, res) => {
         // 2. TRY TELEGRAM IF R2 FAILS
         if (!uploadSuccess) {
            const { rows: tgRows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-           if (tgRows.length > 0 && tgRows[0].api_key) {
+           const tgCfg = tgRows.length > 0 ? (typeof tgRows[0].extra_config === 'object' ? tgRows[0].extra_config : (() => { try { return JSON.parse(tgRows[0].extra_config); } catch { return {}; } })()) : {};
+           if (tgRows.length > 0 && tgRows[0].api_key && tgCfg.chat_id) {
               try {
                 const boundary = "----KurmonArchiveBoundary" + Date.now().toString(16);
                 let multipartBody = "--" + boundary + "\r\n";
-                multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${tgRows[0].extra_config?.chat_id || ''}\r\n`;
+                multipartBody += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${tgCfg.chat_id}\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
                 multipartBody += `Content-Disposition: form-data; name="caption"\r\n\r\n📦 <b>Arsip Kurmon (Cadangan Telegram)</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n\n<i>Diunggah ke Telegram sebagai cadangan arsip.</i>\r\n`;
                 multipartBody += "--" + boundary + "\r\n";
@@ -5783,13 +5794,19 @@ cron.schedule('15 2 * * *', async () => {
   console.log("[CRON] Memulai otomatisasi Telegram Backup...");
   try {
     const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-    if (rows.length === 0 || !rows[0].api_key || !rows[0].extra_config?.chat_id) {
+    const parseCfg = (r) => {
+      if (!r?.extra_config) return {};
+      if (typeof r.extra_config === 'object') return r.extra_config;
+      try { return JSON.parse(r.extra_config); } catch { return {}; }
+    };
+    const cfg = rows.length > 0 ? parseCfg(rows[0]) : {};
+    if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
       console.log("[CRON] Batal backup: Telegram Backup belum dikonfigurasi atau tidak aktif.");
       return;
     }
     
     const botToken = rows[0].api_key;
-    const chatId = rows[0].extra_config.chat_id;
+    const chatId = cfg.chat_id;
 
     const backupData = {};
     const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");

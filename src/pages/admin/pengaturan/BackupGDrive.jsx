@@ -1011,6 +1011,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               {[
                 { key: 'attendance', label: 'Laporan Absensi Harian', desc: 'Rekap kehadiran otomatis & request manual via /absen' },
+                { key: 'deviceOffline', label: 'Mesin Absensi Terputus (Offline)', desc: 'Peringatan otomatis saat mesin absensi mati, kabel lepas, atau gagal sinkron' },
                 { key: 'serverError', label: 'Log Error Server (HTTP 500)', desc: 'Notifikasi saat backend crash atau unhandled exceptions' },
                 { key: 'bruteForce', label: 'Keamanan & Brute-Force', desc: 'Peringatan otomatis saat ada serangan login beruntun' },
                 { key: 'backupStatus', label: 'Status Backup & Restore', desc: 'Laporan keberhasilan atau kegagalan proses backup' },
