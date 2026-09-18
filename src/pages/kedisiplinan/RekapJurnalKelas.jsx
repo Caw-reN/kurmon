@@ -413,109 +413,129 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
       return;
     }
 
-    const doc = new jsPDF('landscape', 'mm', 'a4');
-    const { r, g, b } = getPrimaryColorRgb(appSettings?.primaryColor || '#0f766e');
+    try {
+      const isF4 = appSettings?.defaultPaperSize === 'F4';
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: isF4 ? [330, 215] : 'a4'
+      });
 
-    let yPos = drawKopSurat(doc, schoolProfile, appSettings);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const [r, g, b] = getPrimaryColorRgb();
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(30, 41, 59);
-    doc.text('REKAPITULASI BUKU JURNAL KBM KELAS', 148.5, yPos, { align: 'center' });
-    yPos += 5;
+      let yPos = drawKopSurat(doc, true);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(71, 85, 105);
-    doc.text(`Kelas: ${selectedKelas}   |   Wali Kelas: ${currentClassInfo.walasName}   |   Periode: ${periodeLabel}`, 148.5, yPos, { align: 'center' });
-    yPos += 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(30, 41, 59);
+      doc.text('REKAPITULASI BUKU JURNAL KBM KELAS', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 5;
 
-    const tableRows = filteredJurnals.map((j, idx) => {
-      const dObj = new Date(j.tanggal);
-      const dayName = !isNaN(dObj.getTime()) ? HARI_ID[dObj.getDay()] : '';
-      const dateFormatted = `${dayName}, ${j.tanggal}`;
-      const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Kelas: ${selectedKelas}   |   Wali Kelas: ${currentClassInfo.walasName || '-'}   |   Periode: ${periodeLabel}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 6;
 
-      let hadirText = `${j.jumlah_hadir || 0} Hadir`;
-      if (Array.isArray(j.rincian_absensi) && j.rincian_absensi.length > 0) {
-        const sCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'sakit').length;
-        const iCount = j.rincian_absensi.filter(s => ['izin', 'dispen'].includes((s.status || '').toLowerCase())).length;
-        const aCount = j.rincian_absensi.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length;
-        const parts = [];
-        if (sCount > 0) parts.push(`${sCount}S`);
-        if (iCount > 0) parts.push(`${iCount}I`);
-        if (aCount > 0) parts.push(`${aCount}A`);
-        if (parts.length > 0) hadirText += `\n(${parts.join(', ')})`;
+      const tableRows = filteredJurnals.map((j, idx) => {
+        let dateFormatted = j.tanggal;
+        if (j.tanggal) {
+          const parts = String(j.tanggal).split('-');
+          if (parts.length === 3) {
+            const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayName = !isNaN(dObj.getTime()) ? HARI_ID[dObj.getDay()] : '';
+            dateFormatted = `${dayName}, ${j.tanggal}`;
+          }
+        }
+        const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
+
+        let hadirText = `${j.jumlah_hadir || 0} Hadir`;
+        if (Array.isArray(j.rincian_absensi) && j.rincian_absensi.length > 0) {
+          const sCount = j.rincian_absensi.filter(s => (s.status || '').toLowerCase() === 'sakit').length;
+          const iCount = j.rincian_absensi.filter(s => ['izin', 'dispen'].includes((s.status || '').toLowerCase())).length;
+          const aCount = j.rincian_absensi.filter(s => ['alpa', 'alpha'].includes((s.status || '').toLowerCase())).length;
+          const parts = [];
+          if (sCount > 0) parts.push(`${sCount}S`);
+          if (iCount > 0) parts.push(`${iCount}I`);
+          if (aCount > 0) parts.push(`${aCount}A`);
+          if (parts.length > 0) hadirText += `\n(${parts.join(', ')})`;
+        }
+
+        let kegiatanStr = (j.kegiatan_pembelajaran || '-').trim();
+        if (j.metode_pembelajaran) kegiatanStr += `\n[${j.metode_pembelajaran}]`;
+
+        return [
+          idx + 1,
+          dateFormatted,
+          `Jam ${j.jam_ke}`,
+          j.mapel || '-',
+          j.teacher_name ? `${j.teacher_name}\n(${j.teacher_code})` : (j.teacher_code || '-'),
+          j.materi_pokok || '-',
+          kegiatanStr,
+          hadirText,
+          j.catatan || '-',
+          st.label
+        ];
+      });
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [[
+          'No', 'Hari, Tanggal', 'Jam', 'Mata Pelajaran', 'Guru Pengajar',
+          'Materi Pokok / KD', 'Kegiatan Pembelajaran', 'Presensi', 'Catatan', 'Status'
+        ]],
+        body: tableRows,
+        theme: 'grid',
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+          valign: 'middle',
+          lineColor: [210, 215, 225],
+          lineWidth: 0.1,
+          textColor: [30, 41, 59]
+        },
+        headStyles: {
+          fillColor: [r, g, b],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center',
+          fontSize: 7.5
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 8 },
+          1: { cellWidth: 26 },
+          2: { halign: 'center', cellWidth: 14 },
+          3: { fontStyle: 'bold', cellWidth: 28 },
+          4: { cellWidth: 32 },
+          5: { cellWidth: 42 },
+          6: { cellWidth: 48 },
+          7: { halign: 'center', cellWidth: 20 },
+          8: { cellWidth: 26 },
+          9: { halign: 'center', cellWidth: 23 }
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] }
+      });
+
+      let finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : yPos) + 12;
+      if (finalY > pageHeight - 45) {
+        doc.addPage();
+        finalY = 20;
       }
 
-      let kegiatanStr = (j.kegiatan_pembelajaran || '-').trim();
-      if (j.metode_pembelajaran) kegiatanStr += `\n[${j.metode_pembelajaran}]`;
-
-      return [
-        idx + 1,
-        dateFormatted,
-        `Jam ${j.jam_ke}`,
-        j.mapel || '-',
-        j.teacher_name ? `${j.teacher_name}\n(${j.teacher_code})` : (j.teacher_code || '-'),
-        j.materi_pokok || '-',
-        kegiatanStr,
-        hadirText,
-        j.catatan || '-',
-        st.label
-      ];
-    });
-
-    autoTable(doc, {
-      startY: yPos,
-      head: [[
-        'No', 'Hari, Tanggal', 'Jam', 'Mata Pelajaran', 'Guru Pengajar',
-        'Materi Pokok / KD', 'Kegiatan Pembelajaran', 'Presensi', 'Catatan', 'Status'
-      ]],
-      body: tableRows,
-      theme: 'grid',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        valign: 'middle',
-        lineColor: [210, 215, 225],
-        lineWidth: 0.1,
-        textColor: [30, 41, 59]
-      },
-      headStyles: {
-        fillColor: [r, g, b],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        halign: 'center',
-        fontSize: 7.5
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { cellWidth: 26 },
-        2: { halign: 'center', cellWidth: 14 },
-        3: { fontStyle: 'bold', cellWidth: 28 },
-        4: { cellWidth: 32 },
-        5: { cellWidth: 42 },
-        6: { cellWidth: 48 },
-        7: { halign: 'center', cellWidth: 20 },
-        8: { cellWidth: 26 },
-        9: { halign: 'center', cellWidth: 23 }
-      },
-      alternateRowStyles: { fillColor: [248, 250, 252] }
-    });
-
-    const finalY = doc.lastAutoTable.finalY + 12;
-    if (finalY < 185) {
       const curDateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       const city = schoolProfile?.city || 'Bekasi';
+      const rightColX = pageWidth - 65;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(30, 41, 59);
 
-      doc.text(`${city}, ${curDateStr}`, 230, finalY);
+      doc.text(`${city}, ${curDateStr}`, rightColX, finalY, { align: 'center' });
       doc.text('Wali Kelas,', 50, finalY + 5, { align: 'center' });
-      doc.text('Mengetahui,', 230, finalY + 5, { align: 'center' });
-      doc.text('Kepala Sekolah / Waka Kurikulum,', 230, finalY + 10, { align: 'center' });
+      doc.text('Mengetahui,', rightColX, finalY + 5, { align: 'center' });
+      doc.text('Kepala Sekolah / Waka Kurikulum,', rightColX, finalY + 10, { align: 'center' });
 
       const nameY = finalY + 28;
       doc.setFont('helvetica', 'bold');
@@ -530,15 +550,18 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
       const kepsekNip = schoolProfile?.principalNip ? `NIP. ${schoolProfile.principalNip}` : '';
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
-      doc.text(kepsekName, 230, nameY, { align: 'center' });
+      doc.text(kepsekName, rightColX, nameY, { align: 'center' });
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
       if (kepsekNip) {
-        doc.text(kepsekNip, 230, nameY + 4, { align: 'center' });
+        doc.text(kepsekNip, rightColX, nameY + 4, { align: 'center' });
       }
-    }
 
-    doc.save(`Rekap_Jurnal_Resmi_${selectedKelas.replace(/\s+/g, '_')}.pdf`);
+      doc.save(`Rekap_Jurnal_Resmi_${selectedKelas.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF Rekap Jurnal Kelas:', err);
+      alert('Gagal mendownload PDF: ' + (err?.message || 'Terjadi kesalahan sistem'));
+    }
   };
 
   // Pagination Logic
