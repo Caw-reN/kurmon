@@ -873,17 +873,21 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           global._deviceOnlineStatus[r.ip] = !isFail;
         }
 
-        // Send Telegram alert if any machine failed to connect
-        const failedDevs = syncResults.filter(r => String(r.status).toLowerCase().includes('error') || String(r.status).toLowerCase().includes('gagal'));
-        if (failedDevs.length > 0) {
-          import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
-            const listStr = failedDevs.map(d => `• *${d.ip}* (${d.type}): ${String(d.status).replace(/^Error:\s*/i, '')}`).join('\n');
-            const alertText = `Sinkronisasi mendeteksi *${failedDevs.length} dari ${devices.length}* mesin absensi tidak dapat dihubungi:\n\n` +
-              `${listStr}\n\n` +
-              `_Kemungkinan penyebab:_ Server beda segmen LAN, kabel LAN terlepas, IP mesin berubah, atau mesin mati.`;
-            sendTelegramAlert('deviceOffline', alertText, failedDevs.length === devices.length ? 'critical' : 'warning').catch(e => console.error("Telegram alert error:", e));
-          }).catch(() => {});
-        }
+        // Update central device health tracker in telegram-bot.mjs (reported at 05:00 & 20:00)
+        import('../telegram-bot.mjs').then(({ updateDeviceHealthStatus }) => {
+          for (const r of syncResults) {
+            const isFail = String(r.status).toLowerCase().includes('error') || String(r.status).toLowerCase().includes('gagal');
+            const matchedDev = devices.find(d => d.ip === r.ip || d.id === r.deviceId);
+            updateDeviceHealthStatus(
+              matchedDev?.id || r.deviceId || r.ip,
+              r.ip,
+              !isFail,
+              isFail ? String(r.status).replace(/^Error:\s*/i, '') : null,
+              null,
+              { name: matchedDev?.name || matchedDev?.nama || r.ip, type: matchedDev?.type || r.type }
+            );
+          }
+        }).catch(() => {});
 
         send(req, res, 200, {
           ok: true,

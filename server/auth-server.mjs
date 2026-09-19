@@ -391,23 +391,20 @@ export async function pullHikvisionLogs(force = false) {
             }
           }
         }
+        // Update status kesehatan mesin ke bot tracker (Online)
+        import('./telegram-bot.mjs').then(({ updateDeviceHealthStatus }) => {
+          updateDeviceHealthStatus(device.id, device.ip_address, true, '', null, { loc: device.location, type: dtype }).catch(() => {});
+        }).catch(() => {});
       } catch (e) {
         const isTimeout = e.name === 'AbortError' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET';
         const errLabel = isTimeout ? 'Timeout/Offline' : e.message;
         console.warn(`[Hikvision] Device ${device.ip_address} (${device.location || 'Mesin Absensi'}): ${errLabel}`);
         failedDevices.push({ ip: device.ip_address, loc: device.location || 'Mesin Absensi', error: errLabel, isTimeout });
+        // Update status kesehatan mesin ke bot tracker (Offline - melacak kapan mulai mati tanpa spam)
+        import('./telegram-bot.mjs').then(({ updateDeviceHealthStatus }) => {
+          updateDeviceHealthStatus(device.id, device.ip_address, false, errLabel, null, { loc: device.location, type: dtype }).catch(() => {});
+        }).catch(() => {});
       }
-    }
-
-    if (failedDevices.length > 0) {
-      import('./telegram-bot.mjs').then(({ sendTelegramAlert }) => {
-        const listStr = failedDevices.map(d => `• *${d.ip}* (${d.loc}): ${d.error}`).join('\n');
-        sendTelegramAlert(
-          'deviceOffline',
-          `Background Sync mendeteksi *${failedDevices.length} dari ${devices.length}* mesin absensi gagal dihubungi:\n\n${listStr}\n\n_Silakan periksa koneksi jaringan / router sekolah._`,
-          failedDevices.length === devices.length ? 'critical' : 'warning'
-        ).catch(() => {});
-      }).catch(() => {});
     }
 
     // Auto-link newly pulled logs to students, classes, and teachers
@@ -5644,6 +5641,27 @@ cron.schedule('*/5 * * * *', async () => {
 cron.schedule('0 12 * * *', () => {
   console.log("[CRON] Mengirim Rekap Harian ke Wali Kelas...");
   sendDailyClassSummary().catch(console.error);
+});
+
+// ==================== TELEGRAM DEVICE STATUS CRON (05:00 WIB & 20:00 WIB) ====================
+cron.schedule('0 5 * * *', async () => {
+  console.log("[CRON] 📟 Mengirim Laporan Kesiapan Mesin Absensi Pagi (05:00 WIB)...");
+  try {
+    const { sendScheduledDeviceStatusReport } = await import('./telegram-bot.mjs');
+    await sendScheduledDeviceStatusReport('05:00');
+  } catch (e) {
+    console.error("[CRON] Gagal kirim status mesin pagi 05:00:", e.message);
+  }
+});
+
+cron.schedule('0 20 * * *', async () => {
+  console.log("[CRON] 📟 Mengirim Laporan Status Penutupan Mesin Absensi Malam (20:00 WIB)...");
+  try {
+    const { sendScheduledDeviceStatusReport } = await import('./telegram-bot.mjs');
+    await sendScheduledDeviceStatusReport('20:00');
+  } catch (e) {
+    console.error("[CRON] Gagal kirim status mesin malam 20:00:", e.message);
+  }
 });
 
 // ==================== TELEGRAM MORNING ATTENDANCE REPORT CRON (07:05 WIB) ====================
