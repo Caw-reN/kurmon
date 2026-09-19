@@ -1,6 +1,6 @@
-// KG2 School — Service Worker v2
+// KG2 School — Service Worker v3
 // Strategi: Network First untuk API, Cache First untuk aset statis
-const CACHE_NAME = 'kg2-school-v2';
+const CACHE_NAME = 'kg2-school-v3';
 const OFFLINE_FALLBACK = '/index.html';
 const STATIC_ASSETS = [
   '/',
@@ -8,6 +8,9 @@ const STATIC_ASSETS = [
   '/favicon.svg',
   '/icon-192x192.png',
   '/icon-512x512.png',
+  '/icon-maskable-192x192.png',
+  '/icon-maskable-512x512.png',
+  '/apple-touch-icon.png',
 ];
 
 // ── Install: pre-cache aset statis penting ───────────────────────────────────

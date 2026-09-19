@@ -42,7 +42,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'robots.txt', 'icon-192x192.png', 'icon-512x512.png'],
+      includeAssets: [
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'robots.txt',
+        'icon-192x192.png',
+        'icon-512x512.png',
+        'icon-maskable-192x192.png',
+        'icon-maskable-512x512.png'
+      ],
       workbox: {
         cleanupOutdatedCaches: true,
         clientsClaim: true,
@@ -85,8 +93,8 @@ export default defineConfig({
         name: 'KG2School',
         short_name: 'KG2School',
         description: 'KG2School — Sistem Informasi Akademik dan Monitoring Kehadiran Sekolah',
-        theme_color: '#84cc16',
-        background_color: '#052e16',
+        theme_color: '#059669',
+        background_color: '#059669',
         display: 'standalone',
         orientation: 'portrait-primary',
         start_url: '/',
@@ -94,12 +102,6 @@ export default defineConfig({
         lang: 'id',
         categories: ['education', 'productivity'],
         icons: [
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          },
           {
             src: '/icon-192x192.png',
             sizes: '192x192',
@@ -110,7 +112,19 @@ export default defineConfig({
             src: '/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/icon-maskable-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/icon-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: '/apple-touch-icon.png',
