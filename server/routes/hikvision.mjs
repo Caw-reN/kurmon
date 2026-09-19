@@ -1956,10 +1956,60 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         `;
 
         // Parallelkan query agar tidak sequential
-        const [studentsQuery, logsQuery] = await Promise.all([
+        const [studentsQuery, logsQuery, msR] = await Promise.all([
           dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []),
           dbPool.query(logsQueryStr, [rangeStart, rangeEnd]),
+          dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'").catch(() => ({ rows: [] }))
         ]);
+
+        const mainData = msR.rows.length > 0 ? JSON.parse(msR.rows[0].data || '{}') : {};
+        const academicCalendar = mainData.academicCalendar || [];
+        const calendarCategories = mainData.calendarCategories || [];
+
+        // Function to check if YYYY-MM-DD is holiday or weekend
+        const isHolidayOrWeekend = (dateStr, personItem) => {
+          const d = new Date(dateStr);
+          const day = d.getDay();
+          if (day === 0 || day === 6) return true; // Saturday & Sunday are weekends
+          
+          let personGrade = "";
+          let personRole = "siswa";
+          
+          if (personItem) {
+            const cn = String(personItem.class_name || "").toUpperCase();
+            if (cn === "GURU") { personRole = "guru"; }
+            else if (cn === "KARYAWAN" || cn === "STAFF") { personRole = "karyawan"; }
+            else {
+              if (cn.startsWith("X ")) personGrade = "X";
+              else if (cn.startsWith("XI ")) personGrade = "XI";
+              else if (cn.startsWith("XII ")) personGrade = "XII";
+            }
+          }
+          
+          const matchedEvent = academicCalendar.find(evt => {
+            const start = evt.dateStart;
+            const end = evt.dateEnd || evt.dateStart;
+            if (dateStr >= start && dateStr <= end) {
+              const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
+              const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+              
+              if (isEventHoliday) {
+                if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
+                if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
+              }
+              
+              // Fallback to legacy check if isHoliday is not set
+              if (evt.isHoliday === undefined) {
+                const cat = calendarCategories.find(c => c.id === evt.categoryId);
+                const catName = cat ? String(cat.name).toLowerCase() : "";
+                const title = String(evt.title).toLowerCase();
+                return catName.includes("libur") || title.includes("libur");
+              }
+            }
+            return false;
+          });
+          return !!matchedEvent;
+        };
 
         // Process matrix in memory
         const daysInMonth = new Date(year, month, 0).getDate();
@@ -2105,18 +2155,32 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 matrix[nis].days[day].taps.sort();
             }
 
+            const isWeekendHoliday = isHolidayOrWeekend(logDateStr, matrix[nis]);
+
             // Categorize taps into morning (Masuk) and afternoon/evening (Pulang)
             // Cutoff is dynamically based on pulangOpen (e.g. 11:50 on Friday for Kampus A, 15:30 for Kampus B)
             const cutoff = (pulangOpen && pulangOpen < "12:00:00") ? pulangOpen : "12:00:00";
             const morningTaps = matrix[nis].days[day].taps.filter(t => t < cutoff);
             const afternoonTaps = matrix[nis].days[day].taps.filter(t => t >= cutoff);
 
-            matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : null;
-            if (morningTaps.length > 0) {
-                matrix[nis].days[day].isLate = morningTaps[0] > masukLate;
+            if (isWeekendHoliday) {
+                // USER REQUIREMENT: Walau libur/weekend dan mereka absen, TETAP TERBACA SEBAGAI TANDA MEREKA ADA DI SEKOLAH!
+                // Jangan diberi sanksi terlambat karena hari libur/kegiatan bebas.
+                matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : (afternoonTaps.length > 0 ? afternoonTaps[0] : null);
+                matrix[nis].days[day].out = (morningTaps.length > 0 && afternoonTaps.length > 0) ? afternoonTaps[afternoonTaps.length - 1] : (afternoonTaps.length > 1 ? afternoonTaps[afternoonTaps.length - 1] : null);
+                matrix[nis].days[day].isLate = false;
+                matrix[nis].days[day].status = "Hadir";
+                matrix[nis].days[day].isWeekendHoliday = true;
+                if (!matrix[nis].days[day].note) {
+                    matrix[nis].days[day].note = "Hadir (Hari Libur / Weekend)";
+                }
+            } else {
+                matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : null;
+                if (morningTaps.length > 0) {
+                    matrix[nis].days[day].isLate = morningTaps[0] > masukLate;
+                }
+                matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
             }
-
-            matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
         });
 
         // Ambil guru_attendance_records + teacher/staff maps — PARALLELKAN semuanya
@@ -2277,56 +2341,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           });
         }
 
-        // Get academic calendar lists from mainData
-        const msR = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'");
-        const mainData = msR.rows.length > 0 ? JSON.parse(msR.rows[0].data || '{}') : {};
-        const academicCalendar = mainData.academicCalendar || [];
-        const calendarCategories = mainData.calendarCategories || [];
-
-        // Function to check if YYYY-MM-DD is holiday or weekend
-        const isHolidayOrWeekend = (dateStr, personItem) => {
-          const d = new Date(dateStr);
-          const day = d.getDay();
-          if (day === 0 || day === 6) return true; // Saturday & Sunday are weekends
-          
-          let personGrade = "";
-          let personRole = "siswa";
-          
-          if (personItem) {
-            const cn = String(personItem.class_name || "").toUpperCase();
-            if (cn === "GURU") { personRole = "guru"; }
-            else if (cn === "KARYAWAN" || cn === "STAFF") { personRole = "karyawan"; }
-            else {
-              if (cn.startsWith("X ")) personGrade = "X";
-              else if (cn.startsWith("XI ")) personGrade = "XI";
-              else if (cn.startsWith("XII ")) personGrade = "XII";
-            }
-          }
-          
-          const matchedEvent = academicCalendar.find(evt => {
-            const start = evt.dateStart;
-            const end = evt.dateEnd || evt.dateStart;
-            if (dateStr >= start && dateStr <= end) {
-              const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
-              const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
-              
-              if (isEventHoliday) {
-                if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
-                if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
-              }
-              
-              // Fallback to legacy check if isHoliday is not set
-              if (evt.isHoliday === undefined) {
-                const cat = calendarCategories.find(c => c.id === evt.categoryId);
-                const catName = cat ? String(cat.name).toLowerCase() : "";
-                const title = String(evt.title).toLowerCase();
-                return catName.includes("libur") || title.includes("libur");
-              }
-            }
-            return false;
-          });
-          return !!matchedEvent;
-        };
+        // academicCalendar dan isHolidayOrWeekend sudah dimuat dan didefinisikan di awal query di atas
 
         // Determine current date in Jakarta/WIB timezone
         const todayStr = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);

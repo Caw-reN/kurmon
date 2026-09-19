@@ -505,7 +505,14 @@ async function autoSyncGuruAttendanceToAppData() {
         // BUG-07 FIX: Gunakan toMinutes() untuk perbandingan numerik yang aman,
         // bukan string comparison yang bisa gagal untuk kasus edge-case format waktu.
         const timeMin = toMinutes(time);
-        if (timeMin >= toMinutes(roleConf.masuk_open) && timeMin <= toMinutes(roleConf.masuk_close)) {
+        const dayOfWeek = new Date(date + "T12:00:00Z").getUTCDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        if (isWeekend) {
+          // Pada hari libur / weekend, kehadiran guru dan staf selalu diakui Hadir (tanpa penalti terlambat)
+          sessionName = timeMin < toMinutes('12:00') ? 'Masuk Pagi' : 'Kegiatan / Hadir';
+          status = 'Hadir';
+        } else if (timeMin >= toMinutes(roleConf.masuk_open) && timeMin <= toMinutes(roleConf.masuk_close)) {
           sessionName = 'Masuk Pagi';
           status = timeMin > toMinutes(roleConf.masuk_late) ? 'Terlambat' : 'Hadir';
         } else if (timeMin >= toMinutes(roleConf.pulang_open) && timeMin <= toMinutes(roleConf.pulang_close)) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Plus, Download, Search, Filter, ShieldAlert, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2 } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -917,8 +917,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           if (status === "Sakit") totals.sakit[dayNum]++;
           else if (status === "Izin") totals.izin[dayNum]++;
           else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") totals.alpa[dayNum]++;
-          else if (status === "PKL" || String(status || '').startsWith("PKL")) totals.pkl[dayNum]++;
-          else if (dayData.isLate || status === "Terlambat") totals.terlambat[dayNum]++;
+          else if (dayData.isLate || status === "Terlambat") {
+            totals.terlambat[dayNum]++;
+            totals.hadir[dayNum]++;
+          }
           else if (dayData.in || dayData.out || status === "Hadir") totals.hadir[dayNum]++;
         }
       });
@@ -1339,24 +1341,33 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
   const absentStudentsToday = React.useMemo(() => {
-    if (!isCurrentMonthYear || isHolidayOrWeekendToday) return [];
+    if (!isCurrentMonthYear) return [];
+    // Pada hari libur / weekend, siswa yang tidak scan tidak dianggap alpa/belum hadir
+    if (isHolidayOrWeekendToday) {
+      return data.filter(student => {
+        const dayData = student.days[todayNum];
+        return dayData && ["Sakit", "Izin"].includes(dayData.status);
+      });
+    }
     return data.filter(student => {
       const dayData = student.days[todayNum];
-      if (!dayData) return true; // No scan yet
+      if (!dayData) return true; // No scan yet pada hari sekolah
       return ["Sakit","Izin","Alpa"].includes(dayData.status) || dayData.in ==="Alpa" || dayData.in ==="Sakit" || dayData.in ==="Izin";
     });
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
   const presentStudentsToday = React.useMemo(() => {
-    if (!isCurrentMonthYear || isHolidayOrWeekendToday) return [];
+    if (!isCurrentMonthYear) return [];
+    // USER REQUIREMENT: Walau libur/weekend dan mereka absen, TETAP TERBACA DAN TERHITUNG SEBAGAI TANDA MEREKA ADA DI SEKOLAH!
     return data.filter(student => {
       const dayData = student.days[todayNum];
       if (!dayData) return false;
-      // Hadir: punya scan, bukan Sakit/Izin/Alpa (termasuk Terlambat)
-      return !["Sakit","Izin","Alpa"].includes(dayData.status) 
-        && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin";
+      // Hadir jika punya scan tap (in/out) atau status Hadir, bukan Sakit/Izin/Alpa/Mutasi
+      return !["Sakit","Izin","Alpa","Mutasi"].includes(dayData.status) 
+        && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin"
+        && (Boolean(dayData.in) || Boolean(dayData.out) || dayData.status === "Hadir");
     });
-  }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
+  }, [data, isCurrentMonthYear, todayNum]);
 
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
      return (
@@ -1459,7 +1470,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       ) : (
         <>
           {/* Daily Attendance KPI Summary Cards (Ramping & 3 Kolom Sejajar) */}
-          {isCurrentMonthYear && !isHolidayOrWeekendToday && data.length > 0 && (
+          {isCurrentMonthYear && data.length > 0 && (!isHolidayOrWeekendToday || presentStudentsToday.length > 0) && (
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {/* Card 1: Siswa Hadir */}
               <div 
@@ -1469,14 +1480,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
                   <div className="min-w-0">
                     <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
-                      <span className="sm:hidden">Hadir (Hari Ini)</span>
-                      <span className="hidden sm:inline">Total Siswa Hadir (Hari Ini)</span>
+                      <span className="sm:hidden">{isHolidayOrWeekendToday ? "Hadir (Libur)" : "Hadir (Hari Ini)"}</span>
+                      <span className="hidden sm:inline">{isHolidayOrWeekendToday ? "Siswa Hadir di Sekolah (Hari Libur / Ekskul)" : "Total Siswa Hadir (Hari Ini)"}</span>
                     </span>
                     <div className="flex items-baseline gap-1">
                       <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {presentStudentsToday.length}
                       </h3>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">/{data.length}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">
+                        {isHolidayOrWeekendToday ? "Siswa di Sekolah" : `/${data.length}`}
+                      </span>
                     </div>
                   </div>
                   <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
@@ -1486,7 +1499,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 
                 <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
                   <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
-                    {data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir
+                    {isHolidayOrWeekendToday ? "Kegiatan / Libur" : `${data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir`}
                   </span>
                   <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-emerald-700 items-center gap-1 transition-colors">
                     Lihat &rarr;
