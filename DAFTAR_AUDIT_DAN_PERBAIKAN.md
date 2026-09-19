@@ -1,7 +1,7 @@
 # 📋 DAFTAR AUDIT, EVALUASI & CHECKLIST PERBAIKAN SISTEM
 **Aplikasi:** KG2 School / Kurmon (Sistem Manajemen Kurikulum, PKL, Absensi Biometrik & Kesiswaan)  
-**Dokumen Diperbarui:** 8 September 2026 (Analisa Ulang Menyeluruh & Komprehensif)  
-**Status:** Siap Direview & Dikerjakan Bertahap
+**Dokumen Diperbarui:** 19 September 2026 (Audit Menyeluruh Otomatis via Script)  
+**Status:** Skor Kesehatan Sistem 50/100 → Target 80+/100
 
 ---
 
@@ -253,6 +253,11 @@ Berdasarkan **analisa ulang komprehensif terhadap seluruh source code** (backend
 | 27 | Absensi PKL | Absensi gagal saat siswa/guru di area tanpa sinyal | Buat offline sync queue dengan IndexedDB | P4 | [ ] Fitur Baru |
 | 28 | Impor Siswa/Guru | Format impor belum kompatibel dengan Dapodik | Tambah template parser untuk format file Dapodik | P4 | [ ] Fitur Baru |
 | 29 | `MyAttendancePage` & `AdminMobileNav` | Pengajuan surat sakit tidak muncul modal di desktop & tabbar mobile hilang/tertutup | Rombak modal pop-up mengambang + tambah tab Absensi guru & support karyawan | P1 | ✅ Selesai |
+| 30 | `mst_students` | 1.203 siswa tanpa password — tidak bisa login ke portal siswa | Generate password default = NIS via `scratch/fix_siswa_password.mjs --apply` | P1 | ✅ Selesai |
+| 31 | `kedisiplinan_absensi` | 324 record absensi orphan (NIS format lama, tidak ada di mst_students) | Data historis migrasi, biarkan (tidak mengganggu operasional) | P3 | ℹ️ Dicatat |
+| 32 | `hikvision_logs` | 1.543 tap duplikat <5 menit (3 hari terakhir) | Normal di mesin biometrik (double-scan fisik); logika absensi sudah pakai `MIN(timestamp)` | P3 | ℹ️ Dicatat |
+| 33 | `mst_teachers` / `mst_staffs` | 53 guru & 27 staf tanpa nomor HP — notifikasi WA absensi tidak bisa terkirim | Input HP guru/staf di UI admin (tidak bisa auto-fix tanpa data HP asli) | P2 | ⏳ Perlu input manual |
+| 34 | `audit_logs` | Script audit menyeluruh otomatis dibuat (`scratch/audit_aplikasi_menyeluruh.mjs`) | Jalankan kapan saja untuk mendapat laporan kesehatan sistem 9 area pemeriksaan | P2 | ✅ Selesai |
 
 ---
 *Dokumen ini akan terus diperbarui seiring berjalannya audit dan penyelesaian setiap item tugas.*
