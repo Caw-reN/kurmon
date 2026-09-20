@@ -540,6 +540,123 @@ async function autoSyncGuruAttendanceToAppData() {
   }
 }
 
+async function autoSyncStudentAttendanceToAppData() {
+  if (!dbPool) return;
+  try {
+    const studentsRes = await dbPool.query("SELECT payload FROM mst_students");
+    const allNisList = studentsRes.rows.map(r => String(r.payload?.nis || "").trim().toLowerCase());
+    const nisSet = new Set(allNisList);
+
+    const resolveNis = (machineId) => {
+      const mid = String(machineId || '').trim().toLowerCase();
+      if (!mid) return null;
+      if (nisSet.has(mid)) return mid;
+      return allNisList.find(dbNis => dbNis.length >= 5 && mid.length >= 5 && (dbNis.endsWith(mid) || mid.endsWith(dbNis))) || null;
+    };
+
+    // Ambil log siswa 3 hari terakhir
+    const { rows: logs } = await dbPool.query(`
+      SELECT l.employee_id,
+             TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str,
+             d.location, d.ip_address, l.person_type
+      FROM hikvision_logs l
+      LEFT JOIN hikvision_devices d ON l.device_id = d.id
+      WHERE (l.person_type = 'siswa' OR l.person_type IS NULL)
+        AND l.employee_id !~* '^[a-z]'
+        AND l.timestamp >= NOW() - INTERVAL '3 days'
+      ORDER BY l.timestamp ASC
+    `);
+
+    if (logs.length === 0) return;
+
+    // Load academic calendar & config for holiday and time limit checking
+    let academicCalendar = [];
+    try {
+      const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+      if (mainRes.rows.length > 0 && mainRes.rows[0].data) {
+        const m = typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data;
+        academicCalendar = m?.academicCalendar || [];
+      }
+    } catch {}
+
+    const conf = await getHikvisionConfig();
+    const siswaMasukLate = (conf?.siswa?.masuk_late || conf?.masuk_late || "07:15");
+
+    const isHolidayDate = (dateStr) => {
+      const d = new Date(dateStr + 'T12:00:00Z');
+      const day = d.getUTCDay();
+      if (day === 0 || day === 6) return true; // Akhir pekan (Sabtu / Minggu)
+      return academicCalendar.some(evt => {
+        const s = evt.dateStart || evt.date;
+        const e = evt.dateEnd || s;
+        if (dateStr >= s && dateStr <= e) {
+          return evt.isHoliday === true || evt.isHoliday === 'true' || String(evt.title || '').toLowerCase().includes('libur');
+        }
+        return false;
+      });
+    };
+
+    // Ambil log pertama setiap siswa per hari
+    const firstLogMap = new Map();
+    for (const log of logs) {
+      const empId = String(log.employee_id || '').trim();
+      const actualNis = resolveNis(empId);
+      if (!actualNis) continue;
+
+      const date = log.time_str.substring(0, 10);
+      const key = `${actualNis}_${date}`;
+      if (!firstLogMap.has(key)) {
+        firstLogMap.set(key, { ...log, actualNis, date });
+      }
+    }
+
+    let added = 0;
+    for (const [key, item] of firstLogMap.entries()) {
+      const time = item.time_str.substring(11, 16); // "HH:MM"
+      const isHoliday = isHolidayDate(item.date);
+      
+      let status = 'Hadir';
+      let ket = `Mesin: ${item.location || item.ip_address || 'Hikvision'} (${time} WIB)`;
+      if (isHoliday) {
+        status = 'Hadir';
+        ket += ' - Kegiatan / Libur';
+      } else {
+        if (toMinutes(time) > toMinutes(siswaMasukLate)) {
+          status = 'Terlambat';
+        } else {
+          status = 'Hadir';
+        }
+      }
+
+      try {
+        const res = await dbPool.query(`
+          INSERT INTO kedisiplinan_absensi 
+          (siswa_nis, tanggal, status, keterangan, pelapor_nama, approval_status)
+          VALUES ($1, $2, $3, $4, 'Mesin Hikvision', 'otomatis')
+          ON CONFLICT (siswa_nis, tanggal) DO UPDATE
+          SET status = CASE 
+                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.status
+                ELSE EXCLUDED.status
+              END,
+              keterangan = CASE
+                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.keterangan
+                ELSE EXCLUDED.keterangan
+              END
+        `, [item.actualNis, item.date, status, ket]);
+        if (res.rowCount > 0) added++;
+      } catch (e) {
+        // Abaikan duplicate / conflict error
+      }
+    }
+
+    if (added > 0) {
+      console.log(`[CRON] Berhasil otomatis sinkronisasi ${added} data absensi siswa dari mesin ke kedisiplinan_absensi.`);
+    }
+  } catch (err) {
+    console.error('Error in autoSyncStudentAttendanceToAppData:', err);
+  }
+}
+
 async function sendDailyClassSummary() {
   if (!dbPool) return;
   try {
@@ -2631,38 +2748,43 @@ const server = createServer(async (req, res) => {
           const masukLate = (hConfig?.siswa?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
           const masukClose = (hConfig?.siswa?.masuk_end || hConfig?.siswa?.masuk_close || hConfig?.masuk_close || "12:00") + ":00";
 
-          let lateQ = `
-            SELECT student_nis as nis, status, created_at
-            FROM attendances
-            WHERE status = 'terlambat'
-          `;
-          let lateP = [];
-          if (startDate) {
-            lateQ += ` AND created_at::date >= $1 `;
-            lateP.push(startDate);
+          let lateRes = { rows: [] };
+          let hLateRes = { rows: [] };
+          const isTodayHoliday = isDateHoliday(todayJktDate);
+          if (!isTodayHoliday) {
+            let lateQ = `
+              SELECT student_nis as nis, status, created_at
+              FROM attendances
+              WHERE status = 'terlambat'
+            `;
+            let lateP = [];
+            if (startDate) {
+              lateQ += ` AND created_at::date >= $1 `;
+              lateP.push(startDate);
+            }
+            lateQ += ` ORDER BY created_at DESC LIMIT 50 `;
+            lateRes = await dbPool.query(lateQ, lateP);
+            
+            hLateRes = await dbPool.query(`
+              SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
+              FROM hikvision_logs l
+              WHERE l.timestamp::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
+                AND l.employee_id !~* '^k'
+                AND EXISTS (
+                  SELECT 1 FROM mst_students ms 
+                  WHERE ms.id = l.employee_id 
+                     OR ms.payload->>'nis' = l.employee_id 
+                     OR ms.payload->>'code' = l.employee_id 
+                     OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
+                )
+                AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
+                AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
+                AND l.employee_id !~* '^[0-9]{1,3}$'
+                AND CAST(l.timestamp AS TIME) > $1::time
+                AND CAST(l.timestamp AS TIME) <= $2::time
+              ORDER BY l.timestamp DESC LIMIT 50
+            `, [masukLate, masukClose]);
           }
-          lateQ += ` ORDER BY created_at DESC LIMIT 50 `;
-          const lateRes = await dbPool.query(lateQ, lateP);
-          
-          const hLateRes = await dbPool.query(`
-            SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
-            FROM hikvision_logs l
-            WHERE l.timestamp::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
-              AND l.employee_id !~* '^k'
-              AND EXISTS (
-                SELECT 1 FROM mst_students ms 
-                WHERE ms.id = l.employee_id 
-                   OR ms.payload->>'nis' = l.employee_id 
-                   OR ms.payload->>'code' = l.employee_id 
-                   OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
-              )
-              AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
-              AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
-              AND l.employee_id !~* '^[0-9]{1,3}$'
-              AND CAST(l.timestamp AS TIME) > $1::time
-              AND CAST(l.timestamp AS TIME) <= $2::time
-            ORDER BY l.timestamp DESC LIMIT 50
-          `, [masukLate, masukClose]);
           
           const combined = [...lateRes.rows, ...hLateRes.rows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -3122,7 +3244,8 @@ const server = createServer(async (req, res) => {
             }
 
             let status = 'hadir';
-            if (lateLimit && firstScanTime > lateLimit) {
+            const isTodayHoliday = isDateHoliday(todayJktDate);
+            if (!isTodayHoliday && lateLimit && firstScanTime > lateLimit) {
               status = 'terlambat';
             }
 
@@ -5633,6 +5756,7 @@ cron.schedule('*/5 * * * *', async () => {
   try {
     await pullHikvisionLogs();
     await autoSyncGuruAttendanceToAppData();
+    await autoSyncStudentAttendanceToAppData();
   } catch (e) {
     console.error(e);
   }
@@ -5972,6 +6096,16 @@ server.listen(PORT, AUTH_BIND_HOST, async () => {
     // Set database pool untuk auto-backup JSON
     const { setBackupDbPool } = await import('./auto-backup.mjs');
     setBackupDbPool(dbPool);
+
+    // Initial sync of attendance from machine to relational tables
+    setTimeout(async () => {
+      try {
+        await autoSyncGuruAttendanceToAppData();
+        await autoSyncStudentAttendanceToAppData();
+      } catch (e) {
+        console.warn('[Startup] Initial attendance sync error:', e.message);
+      }
+    }, 3000);
 
     // Health Monitor: Trafik & Resource
     setInterval(() => {

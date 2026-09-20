@@ -417,7 +417,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           `;
           let conditions = [];
           const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
-          if (queryParams.get("includeHikvision") !== "true") {
+          if (queryParams.get("includeHikvision") === "false") {
             conditions.push("(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')");
           }
           let params = [];

@@ -388,14 +388,41 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:00") + ":00";
         const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
+        let academicCalendar = [];
+        try {
+          const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+          if (mainRes.rows.length > 0 && mainRes.rows[0].data) {
+            const m = typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data;
+            academicCalendar = m?.academicCalendar || [];
+          }
+        } catch {}
+
+        const isHolidayDate = (dateStr) => {
+          if (!dateStr) return false;
+          const d = new Date(dateStr + 'T12:00:00Z');
+          const day = d.getUTCDay();
+          if (day === 0 || day === 6) return true;
+          return academicCalendar.some(evt => {
+            const s = evt.dateStart || evt.date;
+            const e = evt.dateEnd || s;
+            if (dateStr >= s && dateStr <= e) {
+              return evt.isHoliday === true || evt.isHoliday === 'true' || String(evt.title || '').toLowerCase().includes('libur');
+            }
+            return false;
+          });
+        };
+
         // Since we use DISTINCT ON (employee_id) ORDER BY employee_id, timestamp ASC,
         // each row is already the FIRST scan — no JS dedup loop needed
         const mapLogStatus = (r) => {
           let scanTime = "";
+          let scanDate = "";
           if (r.timestamp instanceof Date) {
-            scanTime = r.timestamp.toTimeString().slice(0, 8);
+            scanDate = r.timestamp.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+            scanTime = r.timestamp.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
           } else {
             const tsStr = String(r.timestamp || '');
+            scanDate = tsStr.substring(0, 10);
             if (tsStr.includes('T')) scanTime = tsStr.split('T')[1].substring(0, 8);
             else if (tsStr.match(/\d{2}:\d{2}:\d{2}/)) scanTime = tsStr.match(/\d{2}:\d{2}:\d{2}/)[0];
             else scanTime = tsStr.substring(11, 19);
@@ -404,7 +431,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           let lateLimit = siswaMasukLate, closeLimit = siswaMasukClose;
           if (personType === 'karyawan') { lateLimit = karyawanMasukLate; closeLimit = karyawanMasukClose; }
           else if (personType === 'guru') { lateLimit = guruMasukLate; closeLimit = guruMasukClose; }
-          const status = (lateLimit && scanTime > lateLimit) ? 'terlambat' : 'hadir';
+          
+          const isHoliday = isHolidayDate(scanDate);
+          const status = (!isHoliday && lateLimit && scanTime > lateLimit) ? 'terlambat' : 'hadir';
           return { ...r, status, role_type: personType === 'karyawan' ? 'KARYAWAN' : (personType === 'guru' ? 'GURU' : 'SISWA') };
         };
 
@@ -775,6 +804,30 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const newTeacherRecords = [];
         const newStudentRecords = [];
 
+        let syncAcademicCalendar = [];
+        try {
+          const mainRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+          if (mainRes.rows.length > 0 && mainRes.rows[0].data) {
+            const m = typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data;
+            syncAcademicCalendar = m?.academicCalendar || [];
+          }
+        } catch {}
+
+        const isHolidayDateSync = (dateStr) => {
+          if (!dateStr) return false;
+          const d = new Date(dateStr + 'T12:00:00Z');
+          const day = d.getUTCDay();
+          if (day === 0 || day === 6) return true;
+          return syncAcademicCalendar.some(evt => {
+            const s = evt.dateStart || evt.date;
+            const e = evt.dateEnd || s;
+            if (dateStr >= s && dateStr <= e) {
+              return evt.isHoliday === true || evt.isHoliday === 'true' || String(evt.title || '').toLowerCase().includes('libur');
+            }
+            return false;
+          });
+        };
+
         logsRes.rows.forEach(log => {
           const empId = String(log.employee_id || "").trim();
           const ts = new Date(log.timestamp);
@@ -792,7 +845,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           let sessionName = "";
           let status = "";
 
-          if (time >= roleConf.masuk_open && time < roleConf.pulang_open) {
+          const isWeekendHoliday = isHolidayDateSync(date);
+          if (isWeekendHoliday) {
+            sessionName = time < "12:00" ? "Masuk Pagi" : "Kegiatan / Hadir";
+            status = "Hadir";
+          } else if (time >= roleConf.masuk_open && time < roleConf.pulang_open) {
             sessionName = "Masuk Pagi";
             status = time > roleConf.masuk_late ? "Terlambat" : "Hadir";
           } else if (time >= roleConf.pulang_open && time <= roleConf.pulang_close) {
@@ -823,7 +880,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               siswa_nis: actualNis, 
               tanggal: date, 
               status, 
-              keterangan: `Mesin: ${log.location} (${time})`,
+              keterangan: isWeekendHoliday ? `Mesin: ${log.location} (${time}) - Kegiatan/Libur` : `Mesin: ${log.location} (${time})`,
               pelapor_nama: "Mesin Hikvision",
               approval_status: "otomatis"
             });
@@ -860,7 +917,15 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             INSERT INTO kedisiplinan_absensi 
             (siswa_nis, tanggal, status, keterangan, pelapor_nama, approval_status) 
             VALUES ${values.join(', ')}
-            ON CONFLICT (siswa_nis, tanggal) DO NOTHING
+            ON CONFLICT (siswa_nis, tanggal) DO UPDATE
+            SET status = CASE 
+                  WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.status
+                  ELSE EXCLUDED.status
+                END,
+                keterangan = CASE
+                  WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.keterangan
+                  ELSE EXCLUDED.keterangan
+                END
           `;
           await dbPool.query(insertQuery, params);
         }

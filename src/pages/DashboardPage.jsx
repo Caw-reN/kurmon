@@ -2788,6 +2788,22 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
   }, []);
 
+  const isWeekendOrHoliday = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay();
+    if (day === 0 || day === 6) return true; // Sabtu & Minggu
+    const jktDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const cal = useAppStore.getState().academicCalendar || [];
+    return cal.some(evt => {
+      const s = evt.dateStart || evt.date;
+      const e = evt.dateEnd || s;
+      if (jktDateStr >= s && jktDateStr <= e) {
+        return evt.isHoliday === true || evt.isHoliday === 'true' || String(evt.title || '').toLowerCase().includes('libur');
+      }
+      return false;
+    });
+  }, []);
+
   // ── Role-guard ──
   const canSeeTeacherAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && (activeDivision === 'kurikulum' || activeDivision === 'kesiswaan'));
@@ -2870,14 +2886,14 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     });
     const totalGuru = baseTotalGuru + unknownCount;
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (currentTimeJkt > "08:00:00") {
+    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00") {
       const recordedTeachers = Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length;
       statuses.Alpa += Math.max(0, baseTotalGuru - recordedTeachers);
     }
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
     const belumAbsen = Math.max(0, totalGuru - Object.keys(mergedLogs).length);
     return { ...statuses, belumAbsen, totalMasuk, totalGuru };
-  }, [attendanceRecords, todayStr, teachers, dashLogs]);
+  }, [attendanceRecords, todayStr, teachers, dashLogs, isWeekendOrHoliday]);
 
   // ── Statistik Karyawan ──
   const karyawanStats = useMemo(() => {
@@ -2949,14 +2965,14 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     });
     const totalKaryawan = baseTotalKaryawan + unknownCount;
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (currentTimeJkt > "08:00:00") {
+    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00") {
       const recorded = Object.keys(mergedLogs).filter(k => validStaffs.has(k)).length;
       statuses.Alpa += Math.max(0, baseTotalKaryawan - recorded);
     }
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
     const belumAbsen = Math.max(0, totalKaryawan - Object.keys(mergedLogs).length);
     return { ...statuses, belumAbsen, totalMasuk, totalKaryawan };
-  }, [todayStr, staffs, storeStaffs, dashLogs]);
+  }, [todayStr, staffs, storeStaffs, dashLogs, isWeekendOrHoliday]);
 
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
@@ -3061,13 +3077,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     // Auto-calculate Alpa if current time is past cutoff limit (08:00)
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
+    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
       const unrecorded = Math.max(0, totalSiswaInSchool - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses.Alpa));
       statuses.Alpa += unrecorded;
     }
 
     return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
-  }, [dashLogs, storeStudents]);
+  }, [dashLogs, storeStudents, isWeekendOrHoliday]);
 
   const guruPercent = guruStats.totalGuru > 0 
     ? Math.min(100, Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100))

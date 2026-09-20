@@ -2833,13 +2833,14 @@ async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
   const belumList = [];
 
   const sortedStudents = Array.from(studentMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'));
+  const isWeekendHoliday = await _isHolidayOrWeekend(today);
 
   for (const s of sortedStudents) {
     const timeIn = tapMap.get(s.nis);
     const permit = permitMap.get(s.nis);
 
     if (timeIn) {
-      if (timeIn > masukLate) {
+      if (!isWeekendHoliday && timeIn > masukLate) {
         telatList.push({ ...s, time: timeIn });
       } else {
         tepatList.push({ ...s, time: timeIn });
@@ -2857,6 +2858,23 @@ async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
   let msg = `📊 <b>PRESENSI KELAS: ${escapeHtml(className)}</b>\n`;
   msg += `📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n`;
   msg += `👨‍🏫 <b>Wali Kelas:</b> ${escapeHtml(walasName)}\n\n`;
+
+  if (isWeekendHoliday) {
+    msg += `🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan\n\n`;
+    msg += `👥 <b>Total Siswa:</b> ${totalStudents} orang\n`;
+    msg += `✨ <b>Hadir di Sekolah (Kegiatan / Ekskul):</b> <b>${totalHadir}</b> siswa\n\n`;
+    if (totalHadir > 0) {
+      msg += `📋 <b>Daftar Siswa Hadir:</b>\n`;
+      tepatList.forEach((s, idx) => {
+        msg += `${idx + 1}. <b>${escapeHtml(s.name)}</b> (Scan: <code>${s.time}</code> WIB)\n`;
+      });
+      msg += `\n💡 <i>Kehadiran pada hari libur tidak dihitung terlambat dan siswa lain tidak dihitung alpa.</i>`;
+    } else {
+      msg += `<i>Tidak ada presensi siswa di kelas ini hari ini (hari libur).</i>`;
+    }
+    await _sendMessage(chatId, msg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
+    return;
+  }
 
   msg += `👥 <b>Total Siswa:</b> ${totalStudents} orang\n`;
   msg += `✅ <b>Hadir:</b> <b>${totalHadir}</b> (${hadirPct}%)\n`;
@@ -3318,25 +3336,42 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null, date
     // Ambil data master guru, staff, dan siswa
     const { rows: tRows } = await _dbPool.query(`SELECT payload FROM mst_teachers`).catch(() => ({ rows: [] }));
     const { rows: sRows } = await _dbPool.query(`SELECT payload FROM mst_staffs`).catch(() => ({ rows: [] }));
-    const { rows: stdRows } = await _dbPool.query(`SELECT COUNT(*) as count FROM mst_students`).catch(() => ({ rows: [{ count: 0 }] }));
+    const { rows: stRows } = await _dbPool.query(`SELECT payload FROM mst_students`).catch(() => ({ rows: [] }));
 
     const teacherCodes = new Set();
+    const teacherNameMap = new Map();
     tRows.forEach(r => {
       const p = r.payload || {};
-      if (p.id) teacherCodes.add(String(p.id).trim());
-      if (p.code) teacherCodes.add(String(p.code).trim());
+      const name = p.name || p.nama || '';
+      if (p.id) { teacherCodes.add(String(p.id).trim()); teacherNameMap.set(String(p.id).trim().toLowerCase(), name); }
+      if (p.code) { teacherCodes.add(String(p.code).trim()); teacherNameMap.set(String(p.code).trim().toLowerCase(), name); }
+      if (p.nip) teacherNameMap.set(String(p.nip).trim().toLowerCase(), name);
     });
 
     const staffCodes = new Set();
     sRows.forEach(r => {
       const p = r.payload || {};
-      if (p.id) staffCodes.add(String(p.id).trim());
-      if (p.code) staffCodes.add(String(p.code).trim());
+      const name = p.name || p.nama || '';
+      if (p.id) { staffCodes.add(String(p.id).trim()); teacherNameMap.set(String(p.id).trim().toLowerCase(), name); }
+      if (p.staff_code) { staffCodes.add(String(p.staff_code).trim()); teacherNameMap.set(String(p.staff_code).trim().toLowerCase(), name); }
+      if (p.code) { staffCodes.add(String(p.code).trim()); teacherNameMap.set(String(p.code).trim().toLowerCase(), name); }
+    });
+
+    const studentMap = new Map();
+    stRows.forEach(r => {
+      const p = r.payload || {};
+      const nis = String(p.nis || p.code || p.id || '').trim().toLowerCase();
+      const name = p.name || p.nama || nis;
+      const kelas = p.class_name || p.kelas || '-';
+      if (nis) {
+        studentMap.set(nis, { name, kelas, nis });
+        if (nis.length >= 6) studentMap.set(nis.slice(-8), { name, kelas, nis });
+      }
     });
 
     const totalGuruMaster = tRows.length;
     const totalStaffMaster = sRows.length;
-    const totalStudentMaster = parseInt(stdRows[0]?.count || 0, 10);
+    const totalStudentMaster = stRows.length;
 
     // Ambil batas waktu keterlambatan dari config sistem
     let masukLateGuru = '07:15';
@@ -3377,14 +3412,43 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null, date
 
 🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan
 
-👨‍🏫 <b>GURU & KARYAWAN HADIR:</b> <b>${teacherTaps.size}</b> orang
+👨‍🏫 <b>GURU & KARYAWAN HADIR:</b> <b>${teacherTaps.size + staffTaps.size}</b> orang
 🎓 <b>SISWA HADIR DI SEKOLAH:</b> <b>${studentTaps.size}</b> siswa (Ekskul / Pembinaan)
 
 `;
-      if (teacherTaps.size === 0 && studentTaps.size === 0) {
+      if (teacherTaps.size === 0 && staffTaps.size === 0 && studentTaps.size === 0) {
         msg += `<i>Tidak ada aktivitas scan kehadiran di mesin hari ini (sekolah libur).</i>\n`;
       } else {
-        msg += `✨ <i>Seluruh siswa & guru yang scan hari ini tercatat hadir di sekolah dan tidak dihitung terlambat.</i>\n`;
+        const combinedTeachers = new Map([...teacherTaps, ...staffTaps]);
+        if (combinedTeachers.size > 0) {
+          msg += `✨ <b>Guru & Karyawan Hadir:</b>\n`;
+          let idx = 1;
+          combinedTeachers.forEach((r, empId) => {
+            const timeOnly = new Date(r.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+            const name = teacherNameMap.get(empId.toLowerCase()) || empId;
+            msg += `${idx++}. <b>${escapeHtml(name)}</b> (Scan: <code>${timeOnly}</code> WIB)\n`;
+          });
+          msg += `\n`;
+        }
+
+        if (studentTaps.size > 0) {
+          msg += `✨ <b>Siswa Hadir di Sekolah:</b>\n`;
+          let idx = 1;
+          const maxShow = 25;
+          const studentList = Array.from(studentTaps.values());
+          studentList.slice(0, maxShow).forEach((r) => {
+            const timeOnly = new Date(r.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
+            const empId = String(r.employee_id || '').trim().toLowerCase();
+            const sInfo = studentMap.get(empId) || { name: empId, kelas: '-' };
+            msg += `${idx++}. <b>${escapeHtml(sInfo.name)}</b> (${escapeHtml(sInfo.kelas)}) - <code>${timeOnly}</code> WIB\n`;
+          });
+          if (studentList.length > maxShow) {
+            msg += `<i>...dan ${studentList.length - maxShow} siswa lainnya.</i>\n`;
+          }
+          msg += `\n`;
+        }
+
+        msg += `💡 <i>Seluruh siswa & guru yang scan hari ini tercatat hadir di sekolah dan tidak dihitung terlambat.</i>\n`;
       }
 
       await _sendMessage(destChatId, msg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });

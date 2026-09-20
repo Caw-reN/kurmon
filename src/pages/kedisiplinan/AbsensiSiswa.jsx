@@ -97,7 +97,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     try {
       // Kirim filter bulan aktif ke backend agar tidak terpotong limit di production
       const bulanParam = matrixMonth ? `&bulan=${matrixMonth}` : '';
-      const res = await fetch(`/api/kedisiplinan/absensi?limit=5000${bulanParam}`, {
+      const res = await fetch(`/api/kedisiplinan/absensi?limit=5000${bulanParam}&includeHikvision=true`, {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
       const data = await res.json();
