@@ -1925,18 +1925,24 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const year = parseInt(body.year) || new Date().getFullYear();
         const className = body.class_name || 'all';
         const reportType = body.type || 'siswa'; // siswa | guru | karyawan | staff
+        const isForceRefresh = Boolean(body.force || body.refresh || req.headers['cache-control']?.includes('no-cache'));
 
         // === SERVER-SIDE CACHE ===
-        // Bulan berjalan: cache 3 menit. Bulan lalu: 15 menit.
+        // Bulan berjalan: cache 3 menit. Bulan lalu: 15 menit. (Bypass jika isForceRefresh)
         const nowTs = Date.now();
         const todayJkt = new Date(nowTs + 7 * 3600000);
         const isCurrentMonth = (month === todayJkt.getUTCMonth() + 1 && year === todayJkt.getUTCFullYear());
         const cacheTtl = isCurrentMonth ? 3 * 60 * 1000 : 15 * 60 * 1000;
         global._matrixCache = global._matrixCache || {};
         const cacheKey = `${reportType}_${year}_${month}_${className}`;
-        const cached = global._matrixCache[cacheKey];
-        if (cached && (nowTs - cached.time) < cacheTtl) {
-          return send(req, res, 200, cached.data);
+        if (isForceRefresh) {
+          delete global._matrixCache[cacheKey];
+        } else {
+          const cached = global._matrixCache[cacheKey];
+          if (cached && (nowTs - cached.time) < cacheTtl) {
+            try { res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate'); } catch {}
+            return send(req, res, 200, cached.data);
+          }
         }
 
         const session = getSession(req);
@@ -2235,8 +2241,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             if (isWeekendHoliday) {
                 // USER REQUIREMENT: Walau libur/weekend dan mereka absen, TETAP TERBACA SEBAGAI TANDA MEREKA ADA DI SEKOLAH!
                 // Jangan diberi sanksi terlambat karena hari libur/kegiatan bebas.
-                matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : (afternoonTaps.length > 0 ? afternoonTaps[0] : null);
-                matrix[nis].days[day].out = (morningTaps.length > 0 && afternoonTaps.length > 0) ? afternoonTaps[afternoonTaps.length - 1] : (afternoonTaps.length > 1 ? afternoonTaps[afternoonTaps.length - 1] : null);
+                const rawIn = morningTaps.length > 0 ? morningTaps[0] : (afternoonTaps.length > 0 ? afternoonTaps[0] : null);
+                const rawOut = (morningTaps.length > 0 && afternoonTaps.length > 0) ? afternoonTaps[afternoonTaps.length - 1] : (afternoonTaps.length > 1 ? afternoonTaps[afternoonTaps.length - 1] : null);
+                matrix[nis].days[day].in = rawIn ? rawIn.substring(0, 5) : null;
+                matrix[nis].days[day].out = rawOut ? rawOut.substring(0, 5) : null;
                 matrix[nis].days[day].isLate = false;
                 matrix[nis].days[day].status = "Hadir";
                 matrix[nis].days[day].isWeekendHoliday = true;
@@ -2244,11 +2252,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                     matrix[nis].days[day].note = "Hadir (Hari Libur / Weekend)";
                 }
             } else {
-                matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0] : null;
+                matrix[nis].days[day].in = morningTaps.length > 0 ? morningTaps[0].substring(0, 5) : null;
                 if (morningTaps.length > 0) {
                     matrix[nis].days[day].isLate = morningTaps[0] > masukLate;
                 }
-                matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1] : null;
+                matrix[nis].days[day].out = afternoonTaps.length > 0 ? afternoonTaps[afternoonTaps.length - 1].substring(0, 5) : null;
             }
         });
 
@@ -2583,6 +2591,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           if (global._matrixCache[k].time < staleLimit) delete global._matrixCache[k];
         }
 
+        try { res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); } catch {}
         send(req, res, 200, responseData);
       } catch (err) { sendDatabaseError(req, res, err); }
       return;

@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -229,19 +229,25 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     setIsSubmittingCell(false);
   };
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isManualRefresh = false) => {
     setLoading(true);
     try {
       const res = await fetch("/api/hikvision/report/matrix", {
         method:'POST',
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Content-Type":"application/json",
+          ...(isManualRefresh ? { "Cache-Control": "no-cache" } : {})
         },
-        body: JSON.stringify({ ...filter, type: 'karyawan' })
+        body: JSON.stringify({ ...filter, type: 'karyawan', force: Boolean(isManualRefresh) })
       });
       const json = await res.json();
       if (json.ok) {
         setData(json.data || []);
         setDaysInMonth(json.daysInMonth || 31);
+        if (isManualRefresh) {
+          showToast("Data matriks kehadiran berhasil diperbarui!", "success");
+        }
       } else {
         showToast(json.error ||"Gagal memuat laporan matrix","error");
       }
@@ -1346,6 +1352,17 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
         {/* Bottom Action Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <Button 
+            variant="outline"
+            type="button"
+            onClick={() => fetchData(true)}
+            disabled={loading}
+            className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs transition-all"
+            title="Segarkan data terbaru dari mesin absensi & database"
+          >
+            <RefreshCw size={14} className={`shrink-0 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? "Memuat..." : "Segarkan"}</span>
+          </Button>
           <Button 
             variant="outline"
             type="button"

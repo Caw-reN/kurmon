@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2 } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -368,19 +368,25 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     };
   };
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isManualRefresh = false) => {
     setLoading(true);
     try {
       const res = await fetch("/api/hikvision/report/matrix", {
         method:'POST',
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Content-Type":"application/json",
+          ...(isManualRefresh ? { "Cache-Control": "no-cache" } : {})
         },
-        body: JSON.stringify(filter)
+        body: JSON.stringify({ ...filter, force: Boolean(isManualRefresh) })
       });
       const json = await res.json();
       if (json.ok) {
         setData(json.data || []);
         setDaysInMonth(json.daysInMonth || 31);
+        if (isManualRefresh) {
+          showToast("Data matriks kehadiran siswa berhasil diperbarui!", "success");
+        }
       } else {
         showToast(json.error ||"Gagal memuat laporan matrix","error");
       }
@@ -2147,6 +2153,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
 
           <div className="flex items-center gap-2 shrink-0 justify-end">
+            <Button 
+              variant="outline"
+              type="button"
+              onClick={() => fetchData(true)}
+              disabled={loading}
+              className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs transition-all"
+              title="Segarkan data terbaru dari mesin absensi & database"
+            >
+              <RefreshCw size={14} className={`shrink-0 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
+              <span>{loading ? "Memuat..." : "Segarkan"}</span>
+            </Button>
+
             <Button 
               variant="outline"
               type="button"
