@@ -72,10 +72,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
   const dataStoreTeachers = useDataStore(state => state.teachers);
   const appStoreTeachers = useAppStore(state => state.teachers);
-  const storeTeachers = dataStoreTeachers || appStoreTeachers || [];
+  const snapshotTeachers = getDatabaseSnapshot()?.teachers || [];
+  const storeTeachers = (dataStoreTeachers && dataStoreTeachers.length > 0) ? dataStoreTeachers : ((appStoreTeachers && appStoreTeachers.length > 0) ? appStoreTeachers : snapshotTeachers);
+  
   const dataStoreStaffs = useDataStore(state => state.staffs) || [];
   const appStoreStaffs = useAppStore(state => state.staffs) || [];
-  const storeStaffs = dataStoreStaffs.length > 0 ? dataStoreStaffs : appStoreStaffs;
+  const snapshotStaffs = getDatabaseSnapshot()?.staffs || [];
+  const storeStaffs = dataStoreStaffs.length > 0 ? dataStoreStaffs : (appStoreStaffs.length > 0 ? appStoreStaffs : snapshotStaffs);
+
   const dataStoreStudents = useDataStore(state => state.students) || [];
   const storeStudents = useAppStore(state => state.students) || [];
   const snapshotStudents = getDatabaseSnapshot()?.students || [];
@@ -95,8 +99,30 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       }
       if (name) nameMap.set(name, s);
     });
+
+    // Perkaya lookup dari data log siswa yang sudah divalidasi backend
+    (dashLogs?.hikvisionStudentToday || []).forEach(s => {
+      const nis = String(s.canonical_nis || s.employee_id || s.nis || '').trim().toLowerCase();
+      const name = String(s.student_name || s.name || '').trim().toLowerCase();
+      const sObj = {
+        nis: s.canonical_nis || s.employee_id || s.nis,
+        name: s.student_name || s.name,
+        kelas: s.class_name,
+        class_name: s.class_name
+      };
+      if (nis && !nisMap.has(nis)) {
+        nisMap.set(nis, sObj);
+        if (nis.length > 6) {
+          nisMap.set(nis.slice(-8), sObj);
+        }
+      }
+      if (name && !nameMap.has(name)) {
+        nameMap.set(name, sObj);
+      }
+    });
+
     return { nisMap, nameMap };
-  }, [allStudents]);
+  }, [allStudents, dashLogs]);
 
   // Toggle check specifically for Student Dashboard
   const isVisibleForStudent = isFiturAktif('show_dashboard_logs_siswa') ?? true;
@@ -190,23 +216,29 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   const uniqueSiswaOptions = useMemo(() => {
     const defaultOption = { label: 'Semua Jurusan', value: 'all' };
-    if (!allStudents || allStudents.length === 0) return [defaultOption];
-
     const majorSet = new Set();
-    allStudents.forEach(s => {
+
+    (allStudents || []).forEach(s => {
       let cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
       if (cls && cls !== '-' && cls !== 'UNDEFINED' && cls !== 'NULL') {
-        // Hapus tingkat (X/XI/XII) dan rombel angka
         let major = cls.replace(/^(X|XI|XII|XIII)\s+/i, '').replace(/\s+\d+$/i, '').trim();
-        if (major) {
-          majorSet.add(major);
-        }
+        if (major) majorSet.add(major);
+      }
+    });
+
+    // Kumpulkan juga dari data log siswa yang sudah ditarik dari server
+    const studentLogs = dashLogs?.hikvisionStudentToday || dashLogs?.recentLogs || [];
+    studentLogs.forEach(s => {
+      let cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
+      if (cls && cls !== '-' && cls !== 'UNDEFINED' && cls !== 'NULL' && cls !== 'SISWA') {
+        let major = cls.replace(/^(X|XI|XII|XIII)\s+/i, '').replace(/\s+\d+$/i, '').trim();
+        if (major) majorSet.add(major);
       }
     });
 
     const majorOptions = Array.from(majorSet).sort().map(m => ({ label: m, value: m }));
     return [defaultOption, ...majorOptions];
-  }, [allStudents]);
+  }, [allStudents, dashLogs]);
 
   const guruKaryawanLogs = useMemo(() => {
     let logs = [];
@@ -270,10 +302,17 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       return item;
     });
 
-    // Validasi ketat: HANYA yang terdaftar di master guru atau karyawan yang diperbolehkan tampil
+    // Validasi ketat: HANYA izinkan data yang valid.
+    // Jika data berasal dari server yang sudah tervalidasi sebagai guru/karyawan, izinkan tampil.
     logs = logs.filter(item => {
       const empId = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
       const normName = String(item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const type = String(item.true_person_type || item.role_type || '').toLowerCase();
+      
+      if (type.includes('guru') || type.includes('karyawan') || empId.toUpperCase().startsWith('K')) {
+        return true;
+      }
+
       const isTeacher = (storeTeachers || []).some(t => {
         const c = String(t.code || t.nip || t.id || t.username || '').trim().toLowerCase();
         const tn = String(t.name || t.nama || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -314,7 +353,8 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const kehadiranSiswaLogs = useMemo(() => {
     // Prioritas: gunakan hikvisionStudentToday jika ada, fallback ke recentLogs HANYA siswa hari ini
     let logs = [];
-    if (dashLogs?.hikvisionStudentToday && dashLogs.hikvisionStudentToday.length > 0) {
+    const isFromHikvisionToday = Boolean(dashLogs?.hikvisionStudentToday && dashLogs.hikvisionStudentToday.length > 0);
+    if (isFromHikvisionToday) {
       logs = [...dashLogs.hikvisionStudentToday];
     } else {
       logs = (dashLogs?.recentLogs || []).filter(item => {
@@ -330,7 +370,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       });
     }
 
-    // Filter ketat: Hanya izinkan siswa yang valid dan terdaftar di master data siswa (allStudents)
+    // Filter ketat: Hanya izinkan siswa yang valid
     logs = logs.filter(item => {
       const empId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
       const empName = String(item.student_name || item.name || '').trim().toLowerCase();
@@ -339,17 +379,27 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       const type = String(item.true_person_type || item.role_type || '').toLowerCase();
       if (type === 'guru' || type === 'karyawan') return false;
 
-      // Validasi terhadap master siswa (studentLookupMap)
-      let matched = studentLookupMap.nisMap.get(empId) || studentLookupMap.nameMap.get(empName);
-      if (!matched && empId.length >= 5) {
-        for (const [sNis, sObj] of studentLookupMap.nisMap.entries()) {
-          if (sNis.length >= 5 && (sNis.endsWith(empId) || empId.endsWith(sNis))) {
-            matched = sObj;
-            break;
+      // Jika data berasal dari server yang sudah divalidasi dengan mst_students (true_name != null)
+      if (isFromHikvisionToday && (item.student_name || item.name)) {
+        return true;
+      }
+
+      // Validasi terhadap master siswa jika allStudents tersedia di client
+      if (allStudents && allStudents.length > 0) {
+        let matched = studentLookupMap.nisMap.get(empId) || studentLookupMap.nameMap.get(empName);
+        if (!matched && empId.length >= 5) {
+          for (const [sNis, sObj] of studentLookupMap.nisMap.entries()) {
+            if (sNis.length >= 5 && (sNis.endsWith(empId) || empId.endsWith(sNis))) {
+              matched = sObj;
+              break;
+            }
           }
         }
+        return Boolean(matched);
       }
-      return Boolean(matched);
+
+      // Fallback jika allStudents belum dimuat di client: selama bukan role guru/staf dan punya nama/id, izinkan tampil
+      return true;
     });
 
     logs = dedupeFront(logs);
