@@ -2750,6 +2750,7 @@ const server = createServer(async (req, res) => {
 
           let lateRes = { rows: [] };
           let hLateRes = { rows: [] };
+          const todayJktDate = getJakartaDateStr(new Date());
           const isTodayHoliday = isDateHoliday(todayJktDate);
           if (!isTodayHoliday) {
             let lateQ = `

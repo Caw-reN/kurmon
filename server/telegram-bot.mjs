@@ -588,109 +588,105 @@ async function _handleUpdate(update) {
   let cmd = parts[0].toLowerCase().split('@')[0];
   let args = parts.slice(1);
 
-  // Cek apakah input mengandung tanggal atau merupakan pertanyaan panjang/natural
-  const lowerText = cleanInput.toLowerCase().trim();
-  const detectedDate = _parseIndonesianDate(cleanInput);
-  const isQuestionOrNatural = !!detectedDate ||
-    /^(siapa|kapan|berapa|kenapa|mengapa|apakah|tolong|cek|bagaimana|lihat|ada\s+apa)\b|[?]/i.test(lowerText) ||
-    cleanInput.split(/\s+/).length > 2;
+  // Jika pesan diawali '/', parse sebagai command langsung dan pertahankan argumen aslinya
+  const isExplicitCommand = cleanInput.startsWith('/');
 
-  // Hanya petakan teks tombol keyboard ke perintah jika BUKAN kalimat pertanyaan/kueri tanggal
-  if (!isQuestionOrNatural) {
-    if (lowerText.includes('presensi hari ini') || lowerText.includes('rekap siswa') || lowerText.includes('rekap presensi') || lowerText === 'rekap' || lowerText === 'absen' || lowerText === '/absen') {
-      cmd = '/absen';
-      args = [];
-    } else if (lowerText.includes('presensi guru') || lowerText.includes('absen guru') || lowerText === '/absen_guru') {
-      cmd = '/absen_guru';
-      args = [];
-    } else if (lowerText.includes('keterlambatan') || lowerText.includes('terlambat') || lowerText.includes('telat') || lowerText === '/terlambat') {
-      cmd = '/terlambat';
-      args = [];
-    } else if (lowerText.includes('status mesin') || lowerText.includes('mesin absensi') || lowerText.includes('mesin') || lowerText.includes('perangkat') || lowerText === '/mesin') {
-      cmd = '/mesin';
-      args = [];
-    } else if (lowerText.includes('tarik log') || lowerText.includes('tarik absensi') || lowerText.includes('sync') || lowerText === '/sync') {
-      cmd = '/sync';
-      args = [];
-    } else if (lowerText.includes('menu lengkap') || lowerText.includes('menu utama') || lowerText.includes('pilihan menu') || lowerText === 'menu' || lowerText === '/menu') {
-      cmd = '/menu';
-      args = [];
-    } else if (lowerText.includes('kasus pelanggaran') || lowerText.includes('pelanggaran') || lowerText.includes('poin') || lowerText === '/pelanggaran') {
-      cmd = '/pelanggaran';
-      args = [];
-    } else if (lowerText.includes('prestasi siswa') || lowerText.includes('prestasi') || lowerText === '/prestasi') {
-      cmd = '/prestasi';
-      args = [];
-    } else if (lowerText.includes('status whatsapp') || lowerText.includes('whatsapp') || lowerText.includes('wa') || lowerText === '/wa') {
-      cmd = '/wa';
-      args = [];
-    } else if (lowerText.includes('server & db') || lowerText.includes('info database') || lowerText.includes('db') || lowerText.includes('database') || lowerText === '/db') {
-      cmd = '/db';
-      args = [];
-    } else if (lowerText.includes('daftar kelas') || lowerText === '/kelas') {
-      cmd = '/kelas';
-      args = [];
-    } else if (lowerText.includes('presensi per kelas') || lowerText.includes('rekap per kelas') || lowerText.includes('rekap kelas') || lowerText === '/rekap_kelas') {
-      cmd = '/rekap_kelas';
-      args = [];
-    } else if (lowerText.includes('status server') || lowerText === '/status') {
-      cmd = '/status';
-      args = [];
-    } else if (lowerText.includes('statistik') || lowerText.includes('stats') || lowerText === '/stats') {
-      cmd = '/stats';
-      args = [];
-    } else if (lowerText.includes('keamanan') || lowerText.includes('alert') || lowerText === '/alerts') {
-      cmd = '/alerts';
-      args = [];
-    } else if (lowerText.includes('backup') || lowerText.includes('cadangan') || lowerText === '/backup') {
-      cmd = '/backup';
-      args = [];
-    } else if (lowerText.includes('info update') || lowerText.includes('changelog') || lowerText.includes('pembaruan') || lowerText === 'update' || lowerText === 'versi' || lowerText === '/update') {
-      cmd = '/update';
-      args = [];
-    } else if (lowerText.includes('tanya') || lowerText.includes('bantuan') || lowerText.includes('panduan') || lowerText.includes('help') || lowerText === '/help') {
-      cmd = '/help';
-      args = [];
-    } else if (!cmd.startsWith('/')) {
-      const knownWords = [
-        'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
-        'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya', 'update', 'versi', 'changelog'
-      ];
-      if (knownWords.includes(cmd)) {
-        cmd = '/' + cmd;
+  if (!isExplicitCommand) {
+    const lowerText = cleanInput.toLowerCase().trim();
+    const detectedDate = _parseIndonesianDate(cleanInput);
+    const isQuestionOrNatural = !!detectedDate ||
+      /^(siapa|kapan|berapa|kenapa|mengapa|apakah|tolong|cek|bagaimana|lihat|ada\s+apa)\b|[?]/i.test(lowerText) ||
+      cleanInput.split(/\s+/).length > 3;
+
+    // Petakan teks tombol keyboard menu ke perintah hanya jika bukan kalimat pertanyaan bebas
+    if (!isQuestionOrNatural) {
+      if (lowerText === '📊 presensi hari ini' || lowerText === 'rekap siswa' || lowerText === 'rekap presensi' || lowerText === 'absen' || lowerText === 'rekap') {
+        cmd = '/absen';
+        args = [];
+      } else if (lowerText === '👨‍🏫 presensi guru' || lowerText === 'absen guru' || lowerText === 'guru') {
+        cmd = '/absen_guru';
+        args = [];
+      } else if (lowerText === '⏰ keterlambatan' || lowerText === 'terlambat' || lowerText === 'telat') {
+        cmd = '/terlambat';
+        args = [];
+      } else if (lowerText === '📟 status mesin' || lowerText === 'mesin absensi' || lowerText === 'status mesin' || lowerText === 'mesin') {
+        cmd = '/mesin';
+        args = [];
+      } else if (lowerText === '🔄 tarik log mesin' || lowerText === 'tarik log' || lowerText === 'tarik absensi' || lowerText === 'sync') {
+        cmd = '/sync';
+        args = [];
+      } else if (lowerText === '📋 menu lengkap' || lowerText === 'menu utama' || lowerText === 'menu') {
+        cmd = '/menu';
+        args = [];
+      } else if (lowerText === '🚨 pelanggaran & skor sp' || lowerText === 'kasus pelanggaran' || lowerText === 'pelanggaran' || lowerText === 'poin') {
+        cmd = '/pelanggaran';
+        args = [];
+      } else if (lowerText === '🏆 prestasi siswa' || lowerText === 'prestasi') {
+        cmd = '/prestasi';
+        args = [];
+      } else if (/\b(whatsapp|fonnte)\b/i.test(lowerText) || lowerText === 'wa' || lowerText === 'status wa') {
+        cmd = '/wa';
+        args = [];
+      } else if (lowerText === '🗄️ info database' || lowerText === 'database' || lowerText === 'db' || lowerText === 'status db') {
+        cmd = '/db';
+        args = [];
+      } else if (lowerText === '🏫 daftar kelas aktif' || lowerText === 'daftar kelas' || lowerText === 'kelas') {
+        cmd = '/kelas';
+        args = [];
+      } else if (lowerText === '📈 rekap per kelas' || lowerText === 'rekap kelas' || lowerText === 'rekap per kelas') {
+        cmd = '/rekap_kelas';
+        args = [];
+      } else if (lowerText === '💻 status server & cpu' || lowerText === 'status server' || lowerText === 'server') {
+        cmd = '/status';
+        args = [];
+      } else if (lowerText === 'statistik' || lowerText === 'stats') {
+        cmd = '/stats';
+        args = [];
+      } else if (lowerText === 'keamanan' || lowerText === 'alerts' || lowerText === 'alert') {
+        cmd = '/alerts';
+        args = [];
+      } else if (lowerText === '💾 backup database' || lowerText === 'backup' || lowerText === 'cadangan') {
+        cmd = '/backup';
+        args = [];
+      } else if (lowerText === 'info update' || lowerText === 'changelog' || lowerText === 'pembaruan' || lowerText === 'update') {
+        cmd = '/update';
+        args = [];
+      } else if (lowerText === '❓ panduan & tanya ai' || lowerText === 'panduan' || lowerText === 'help' || lowerText === 'bantuan') {
+        cmd = '/help';
+        args = [];
+      } else {
+        const knownSingleWords = [
+          'help', 'status', 'logs', 'backup', 'alerts', 'stats', 'absen', 'rekap', 'kelas', 'guru', 'menu', 
+          'mesin', 'perangkat', 'terlambat', 'sync', 'siswa', 'pelanggaran', 'poin', 'prestasi', 'wa', 'db', 'pkl', 'tanya', 'update', 'versi', 'changelog'
+        ];
+        if (knownSingleWords.includes(cmd)) {
+          cmd = '/' + cmd;
+        }
       }
     }
   }
 
-  // Perintah /start dan /menu menampilkan sambutan dan memunculkan menu tombol di chat
+  // Perintah /start dan /menu menampilkan sambutan dan menu tombol dalam 1 pesan rapi
   if (cmd === '/start' || cmd === '/menu') {
     const isRegistered = _allowedChatIds.has(chatId) || (!!_chatId && chatId === String(_chatId));
     const safeFrom = escapeHtml(from);
 
-    await _sendMessage(chatId,
-      `👋 <b>Halo ${safeFrom}! Selamat datang di Bot Kurmon!</b>\n\n` +
-      `Sistem Monitoring & Presensi Sekolah Terpadu.\n` +
-      `ID Chat Telegram Anda: <code>${chatId}</code>\n\n` +
+    const welcomeMsg = 
+      `👋 <b>Halo, ${safeFrom}! Selamat Datang di Bot Kurmon</b>\n` +
+      `<i>Sistem Terpadu Monitoring Presensi & Keamanan Sekolah</i>\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `🆔 <b>ID Chat Telegram:</b> <code>${chatId}</code>\n` +
       (isRegistered
-        ? `✅ Chat ID Anda sudah terdaftar dan siap digunakan.\nSilakan gunakan tombol menu di bawah ini untuk memulai:`
-        : `⚠️ Chat ID ini belum didaftarkan di sistem Kurmon.\nSalin ID ini: <code>${chatId}</code> lalu masukkan ke menu <b>Pengaturan > Backup & Bot Telegram > API Key</b> di aplikasi Kurmon.`
-      ),
-      {
-        isHtml: true,
-        reply_markup: isRegistered ? MAIN_MENU_KEYBOARD : undefined
-      }
-    );
-
-    if (isRegistered) {
-      await _sendMessage(chatId,
-        `📋 <b>PILIHAN MENU CEPAT</b>\n\n` +
-        `Pilih opsi yang ingin Anda akses:`,
-        {
-          isHtml: true,
-          reply_markup: MAIN_INLINE_KEYBOARD
-        }
+        ? `✅ <b>Status Akses:</b> Terdaftar & Aktif\n\n` +
+          `Silakan gunakan menu navigasi cepat di bawah ini atau ketik langsung pertanyaan Anda kepada <b>Asisten Cerdas</b>:`
+        : `⚠️ <b>Status Akses:</b> Belum Didaftarkan\n\n` +
+          `Salin Chat ID Anda: <code>${chatId}</code> lalu masukkan ke web Kurmon di menu <b>Pengaturan > Backup & Bot Telegram</b> untuk mengaktifkan akses penuh bot.`
       );
-    }
+
+    await _sendMessage(chatId, welcomeMsg, {
+      isHtml: true,
+      reply_markup: isRegistered ? MAIN_INLINE_KEYBOARD : undefined
+    });
     return;
   }
 
@@ -846,48 +842,46 @@ async function _handleUpdate(update) {
 
 async function _cmdHelp(chatId) {
   await _sendMessage(chatId,
-    `🤖 <b>PANDUAN LENGKAP BOT MONITORING & ASISTEN KURMON</b>\n\n` +
-    `Bot resmi untuk pemantauan presensi, kehadiran guru, diagnosa perangkat keras IoT, kedisiplinan siswa, dan bantuan cerdas operasional sekolah.\n\n` +
+    `🤖 <b>PANDUAN LENGKAP BOT & ASISTEN KURMON</b>\n` +
+    `<i>Sistem Monitoring Presensi, IoT & Keamanan Sekolah</i>\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `📱 <b>NAVIGASI UTAMA:</b>\n` +
-    `• <b>/menu</b> — Munculkan tombol menu navigasi utama\n` +
-    `• <b>/update</b> — <b>Informasi rilis, update & fitur baru sistem</b>\n` +
-    `• <b>/help</b> — Menampilkan buku panduan ini\n\n` +
+    `• <b>/menu</b> — Tombol navigasi menu cepat\n` +
+    `• <b>/update</b> — Informasi update & log rilis terbaru\n` +
+    `• <b>/help</b> — Panduan lengkap & bantuan perintah\n\n` +
     `📊 <b>PRESENSI & KETERLAMBATAN:</b>\n` +
-    `• <b>/absen</b> — Rekap presensi lengkap siswa & guru hari ini\n` +
-    `• <b>/terlambat</b> — Daftar siswa & guru yang terlambat hari ini\n` +
-    `• <b>/rekap_kelas</b> — Ringkasan persentase kehadiran seluruh kelas\n` +
-    `• <b>/kelas</b> — Daftar seluruh kelas aktif (bisa diklik instan)\n` +
-    `• <b>/absen [nama kelas]</b> — Presensi detail satu kelas (contoh: <code>/absen XI TKJ 1</code>)\n\n` +
+    `• <b>/absen</b> — Rekap presensi siswa & guru hari ini\n` +
+    `• <b>/terlambat</b> — Daftar keterlambatan siswa & guru\n` +
+    `• <b>/rekap_kelas</b> — Persentase kehadiran seluruh kelas\n` +
+    `• <b>/kelas</b> — Daftar seluruh kelas aktif (klik instan)\n` +
+    `• <b>/absen [kelas]</b> — Detail presensi satu kelas (contoh: <code>/absen XI TKJ 1</code>)\n\n` +
     `👨‍🏫 <b>GURU & KARYAWAN:</b>\n` +
-    `• <b>/absen_guru</b> — Daftar kehadiran guru dan karyawan hari ini\n` +
-    `• <b>/guru [nama/kode]</b> — Cari profil, NIP, kontak WA, dan status guru\n\n` +
+    `• <b>/absen_guru</b> — Daftar kehadiran guru/staff hari ini\n` +
+    `• <b>/guru [nama]</b> — Cari data guru, mapel & kontak WA\n\n` +
     `🎓 <b>SISWA & KEDISIPLINAN:</b>\n` +
-    `• <b>/siswa [nama/NIS]</b> — Cek data siswa, kelas, presensi & poin pelanggaran\n` +
-    `• <b>/pelanggaran</b> — Rekap siswa dengan poin pelanggaran tertinggi & SP\n` +
-    `• <b>/prestasi</b> — Daftar prestasi dan kejuaraan siswa terkini\n` +
-    `• <b>/pkl</b> — Status penempatan dan monitoring PKL siswa\n\n` +
-    `📟 <b>MESIN ABSENSI HIKVISION IoT:</b>\n` +
-    `• <b>/mesin</b> — <b>Diagnosa real-time seluruh mesin absensi</b>\n` +
-    `  <i>(Mengecek status online/offline dan mendeteksi penyebab detail jika mati/terputus)</i>\n` +
-    `• <b>/sync</b> — <b>Tarik log absensi sekarang juga</b> secara manual\n\n` +
-    `⚙️ <b>SERVER, DATABASE & SISTEM:</b>\n` +
-    `• <b>/status</b> — Kesehatan server (Uptime, RAM, Koneksi Database)\n` +
-    `• <b>/stats</b> — Statistik total data (Siswa, Guru, Staff, Log)\n` +
-    `• <b>/db</b> — Kapasitas database PostgreSQL dan jumlah baris tabel\n` +
-    `• <b>/wa</b> — Status integrasi WhatsApp Gateway (Fonnte)\n` +
-    `• <b>/alerts</b> — Peringatan keamanan & aktivitas mencurigakan\n` +
-    `• <b>/logs [n]</b> — Log audit aktivitas admin/pengguna terkini\n` +
-    `• <b>/backup</b> — Unduh dan buat cadangan database seketika\n` +
-    `• <b>/update</b> — Log versi dan rincian pembaruan Kurmon\n\n` +
+    `• <b>/siswa [nama/NIS]</b> — Cek data siswa, kelas & poin SP\n` +
+    `• <b>/pelanggaran</b> — Rekap siswa poin tertinggi & status SP\n` +
+    `• <b>/prestasi</b> — Daftar prestasi siswa terbaru\n` +
+    `• <b>/pkl</b> — Status penempatan & monitoring PKL\n\n` +
+    `📟 <b>MESIN ABSENSI IoT:</b>\n` +
+    `• <b>/mesin</b> — Diagnosa real-time seluruh mesin absensi\n` +
+    `• <b>/sync</b> — Paksa tarik log absensi detik ini juga\n\n` +
+    `⚙️ <b>SERVER & SISTEM:</b>\n` +
+    `• <b>/status</b> — Kesehatan server (RAM, Uptime, Database)\n` +
+    `• <b>/stats</b> — Statistik total data sekolah\n` +
+    `• <b>/db</b> — Kapasitas database PostgreSQL & baris tabel\n` +
+    `• <b>/wa</b> — Status WhatsApp Gateway (Fonnte)\n` +
+    `• <b>/alerts</b> — Riwayat peringatan keamanan sistem\n` +
+    `• <b>/logs [n]</b> — Log audit aktivitas admin terbaru\n` +
+    `• <b>/backup</b> — Trigger backup database langsung\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
     `💡 <b>ASISTEN CERDAS (TANYA APA SAJA):</b>\n` +
-    `Anda bisa langsung mengetik pertanyaan bebas di chat tanpa garis miring! Contoh:\n` +
-    `• <i>"Ada update apa saja?"</i>\n` +
-    `• <i>"Bagaimana cara setting mesin absensi?"</i>\n` +
-    `• <i>"Kenapa absensi hari ini kosong?"</i>\n` +
-    `• <i>"Berapa jumlah siswa?"</i> atau <i>"Cari siswa Budi"</i>\n` +
-    `• <i>"Apa password default admin?"</i>\n` +
-    `• <i>"Bagaimana alur surat peringatan SP?"</i>`,
-    { isHtml: true, reply_markup: MAIN_MENU_KEYBOARD }
+    `Anda dapat bertanya dengan bahasa sehari-hari tanpa garis miring! Contoh:\n` +
+    `• <i>"Berapa jumlah siswa sekarang?"</i>\n` +
+    `• <i>"Siapa saja yang telat hari ini?"</i>\n` +
+    `• <i>"Kondisi mesin absensi bagaimana?"</i>\n` +
+    `• <i>"Cari siswa Fajar"</i> atau <i>"Cari guru Matematika"</i>`,
+    { isHtml: true, reply_markup: MAIN_INLINE_KEYBOARD }
   );
 }
 
@@ -896,45 +890,37 @@ async function _cmdHelp(chatId) {
  */
 async function _cmdInfoUpdate(chatId) {
   const version = 'v2.1.0';
-  const releaseDate = '13 September 2026';
+  const releaseDate = 'September 2026';
   
   const msg = 
-`🚀 <b>INFORMASI PEMBARUAN & LOG RILIS SISTEM</b>
-📦 <b>Versi Aplikasi:</b> <code>Kurmon ${version}</code>
-📅 <b>Tanggal Rilis:</b> <i>${releaseDate}</i>
-🏛️ <b>Status Sistem:</b> 🟢 <b>Stabil & Operasional</b>
+`🚀 <b>INFORMASI PEMBARUAN SISTEM KURMON</b>
+━━━━━━━━━━━━━━━━━━━━━
+📦 <b>Versi:</b> <code>Kurmon ${version}</code>
+📅 <b>Rilis:</b> <i>${releaseDate}</i>
+🟢 <b>Status:</b> <b>Stabil & Terverifikasi</b>
+━━━━━━━━━━━━━━━━━━━━━
 
-✨ <b>DAFTAR PEMBARUAN TERBARU:</b>
+✨ <b>RANGKUMAN FITUR TERBARU:</b>
 
-1. 🤖 <b>Asisten Cerdas & AI Q&A Telegram:</b>
-   • Bot kini dapat diajak bicara bahasa sehari-hari tanpa tanda garis miring (<code>/</code>).
-   • Menjawab pertanyaan seputar akun default (<code>admin123</code>), aturan presensi 07:00, alur SP kesiswaan, kartu pelajar digital, modul ajar, dan akses HP lewat LAN.
-   • Pencarian profil siswa (<code>/siswa [nama]</code>) & guru (<code>/guru [nama]</code>) instan dari chat.
+1. 📟 <b>Diagnosa & Monitoring Mesin Absensi:</b>
+   • Diagnosa real-time TCP socket latency & status mesin.
+   • Laporan terjadwal otomatis pk 05:00 pagi & 20:00 malam WIB.
+   • Deteksi downtime presisi (jam mulai mati & durasi mati).
 
-2. 📟 <b>Diagnosa Mesin Absensi Mendalam (/mesin):</b>
-   • Probe soket jaringan TCP secara live untuk mendeteksi latency dan respons.
-   • Deteksi penyebab otomatis jika mesin mati:
-     - <code>EHOSTUNREACH:</code> Jalur jaringan / link antar-kampus terputus.
-     - <code>ETIMEDOUT:</code> Mesin mati, adaptor lepas, atau IP berubah.
-     - <code>401 Unauthorized:</code> Password Digest Auth di database tidak cocok.
-   • Fitur <b>/sync</b> untuk memaksa penarikan log mesin detik itu juga.
+2. 🤖 <b>Asisten Cerdas Terpadu:</b>
+   • Memahami pertanyaan natural berbahasa Indonesia.
+   • Integrasi pencarian siswa, guru, rekap presensi, dan data kedisiplinan langsung dari obrolan.
 
-3. ⏰ <b>Rekap Keterlambatan Real-time (/terlambat):</b>
-   • Rekap instan siswa & guru yang scan > 07:00 WIB hari ini beserta jam scan.
-   • Terkoneksi ke auto-notifikasi WhatsApp Gateway untuk orang tua.
+3. ⏰ <b>Sinkronisasi & Rekap Keterlambatan:</b>
+   • Rekap presisi siswa & guru terlambat (> 07:00 WIB).
+   • Penanganan otomatis hari libur/akhir pekan (kegiatan ekskul tetap tercatat tanpa penalti telat).
 
-4. 🔒 <b>Peningkatan Keamanan & Manajemen Token:</b>
-   • Hook sesi terpusat (<code>useAuthToken</code>) dan deteksi kedaluwarsa sesi (<code>useSessionExpiry</code>) dengan peringatan banner otomatis 5 menit sebelum logout.
-   • Redaksi proteksi keamanan untuk kredensial sensitif saat backup database.
+4. 🛡️ <b>Keamanan & Proteksi Sesi:</b>
+   • Manajemen token terpusat dan warning kedaluwarsa sesi otomatis.
+   • Redaksi kredensial rahasia saat ekspor backup.
 
-5. 📊 <b>Menu Operasional Baru:</b>
-   • <code>/pelanggaran</code> — Monitoring 5 siswa poin tertinggi & kasus terkini.
-   • <code>/prestasi</code> — Rekap prestasi lomba dan akademik siswa.
-   • <code>/wa</code> — Pengecekan token & status gateway WhatsApp.
-   • <code>/db</code> — Ukuran storage PostgreSQL dan statistik baris tabel.
-   • <code>/pkl</code> — Status lokasi DU/DI dan siswa PKL aktif.
-
-💡 <i>Gunakan tombol <b>Menu</b> di bawah atau ketik <b>/menu</b> untuk menjelajahi semua fitur.</i>`;
+━━━━━━━━━━━━━━━━━━━━━
+💡 <i>Gunakan tombol di bawah untuk kembali ke menu utama.</i>`;
 
   await _sendMessage(chatId, msg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
 }
@@ -949,18 +935,23 @@ async function _cmdStatus(chatId) {
 
   let dbStatus = '❓ Tidak diketahui';
   if (_dbPool) {
-    try { await _dbPool.query('SELECT 1'); dbStatus = '✅ Terhubung Normal'; }
-    catch { dbStatus = '❌ Terputus'; }
+    try { await _dbPool.query('SELECT 1'); dbStatus = '🟢 Terhubung Normal'; }
+    catch { dbStatus = '🔴 Terputus'; }
   }
 
   await _sendMessage(chatId,
-    `📊 <b>Status Server Kurmon</b>\n\n` +
-    `• <b>Uptime:</b> ${uptime}\n` +
-    `• <b>RAM Terpakai:</b> ${usedMemGB} GB / ${totalMemGB} GB\n` +
+    `💻 <b>STATUS KESEHATAN SERVER KURMON</b>\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `• <b>Status Sistem:</b> 🟢 <b>Operasional Normal</b>\n` +
+    `• <b>Uptime Server:</b> <b>${uptime}</b>\n` +
+    `• <b>Penggunaan RAM:</b> <b>${usedMemGB} GB</b> / ${totalMemGB} GB\n` +
     `• <b>Heap Memory:</b> ${(mem.heapUsed / 1024 / 1024).toFixed(1)} MB\n` +
     `• <b>Koneksi Database:</b> ${dbStatus}\n` +
-    `• <b>Platform:</b> ${os.platform()} (${os.arch()})\n` +
-    `• <b>Waktu Server:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
+    `• <b>Platform OS:</b> ${os.platform()} (${os.arch()})\n` +
+    `• <b>Node.js:</b> ${process.version}\n` +
+    `• <b>Waktu Server:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💡 <i>Ketik <b>/mesin</b> untuk status mesin absensi atau <b>/db</b> untuk ukuran tabel database.</i>`,
     { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD }
   );
 }
@@ -1026,33 +1017,14 @@ async function _cmdStatusMesin(chatId) {
 
         if (probeRes.code === 'EHOSTUNREACH') {
           errDesc = 'Host Unreachable (Jalur router terputus)';
-          detailDiagnostic = 
-            `⚠️ <b>Analisis Kendala:</b> <code>Host Unreachable</code>\n` +
-            `• <b>Penyebab:</b> Jalur router antar-kampus terputus atau subnet tidak dapat dijangkau dari server.\n` +
-            `• <b>Solusi:</b> Periksa switch utama / link radio / kabel FO antar kampus, pastikan gateway router menyala.`;
         } else if (probeRes.code === 'ENETUNREACH') {
-          errDesc = 'Network Unreachable';
-          detailDiagnostic = 
-            `⚠️ <b>Analisis Kendala:</b> <code>Network Unreachable</code>\n` +
-            `• <b>Penyebab:</b> Tidak ada rute gateway menuju alamat IP <code>${escapeHtml(ip)}</code>.\n` +
-            `• <b>Solusi:</b> Periksa kabel LAN server atau tabel routing jaringan lokal.`;
+          errDesc = 'Network Unreachable (Subnet tidak terjangkau)';
         } else if (probeRes.code === 'ETIMEDOUT') {
           errDesc = 'Connection Timeout (Mesin mati / kabel terlepas)';
-          detailDiagnostic = 
-            `⚠️ <b>Analisis Kendala:</b> <code>Connection Timeout (2.5s)</code>\n` +
-            `• <b>Penyebab:</b> Mesin tidak merespon paket jaringan. Kemungkinan mesin mati (power off / mati lampu), kabel LAN tercabut, atau IP mesin diubah / bentrok.\n` +
-            `• <b>Solusi:</b> Cek fisik mesin di lokasi, pastikan adaptor PoE / power menyala dan lampu port LAN berkedip.`;
         } else if (probeRes.code === 'ECONNREFUSED') {
-          errDesc = 'Connection Refused (Port 80 ditolak)';
-          detailDiagnostic = 
-            `⚠️ <b>Analisis Kendala:</b> <code>Connection Refused (Port 80)</code>\n` +
-            `• <b>Penyebab:</b> IP aktif namun port HTTP ditolak. Service web ISAPI Hikvision mungkin sedang restart atau crash.\n` +
-            `• <b>Solusi:</b> Restart mesin absensi (cabut dan colok kembali power adaptor).`;
+          errDesc = 'Port 80 Ditutup (Service restart/crash)';
         } else {
           errDesc = probeRes.message || 'Gagal terhubung';
-          detailDiagnostic = 
-            `⚠️ <b>Analisis Kendala:</b> <code>${escapeHtml(probeRes.message || 'Gagal terhubung')}</code>\n` +
-            `• <b>Solusi:</b> Cek jaringan fisik dan status kelistrikan mesin di lokasi.`;
         }
       } else {
         // TCP OK -> Cek Autentikasi ISAPI
@@ -1063,7 +1035,6 @@ async function _cmdStatusMesin(chatId) {
           const testEnd = new Date();
           await api.searchEvents(testStart, testEnd);
           onlineCount++;
-          detailDiagnostic = `✅ <b>Kondisi:</b> Terhubung stabil (${latencyStr}), port terbuka & kredensial valid siap tarik log.`;
         } catch (authErr) {
           if (authErr.message?.includes('401') || authErr.message?.includes('auth') || authErr.message?.includes('Unauthorized')) {
             isOk = false;
@@ -1071,13 +1042,8 @@ async function _cmdStatusMesin(chatId) {
             statusBadge = 'KREDENSIAL SALAH (401)';
             errDesc = 'Kredensial Ditolak (401 Unauthorized)';
             offlineCount++;
-            detailDiagnostic = 
-              `⚠️ <b>Analisis Kendala:</b> <code>401 Unauthorized (Digest Auth)</code>\n` +
-              `• <b>Penyebab:</b> Mesin online dan port terbuka (${latencyStr}), namun password ditolak oleh mesin.\n` +
-              `• <b>Solusi:</b> Perbarui password perangkat di menu <b>Pengaturan > Mesin Hikvision</b>.`;
           } else {
             onlineCount++;
-            detailDiagnostic = `✅ <b>Kondisi:</b> Port terbuka (${latencyStr}), respon: ${escapeHtml(authErr.message.slice(0, 80))}`;
           }
         }
       }
@@ -1086,70 +1052,54 @@ async function _cmdStatusMesin(chatId) {
       await updateDeviceHealthStatus(dev.id, ip, isOk, errDesc, probeRes.latency, { loc: dev.location, type: dev.device_type });
       const currentTrack = _deviceStatusTracker.get(String(dev.id)) || {};
 
-      const lastScanStr = stats.last_log_time 
-        ? new Date(stats.last_log_time).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        : 'Belum ada data';
-      const lastSyncStr = stats.last_sync_time
-        ? new Date(stats.last_sync_time).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        : 'Belum pernah';
-
-      let downtimeInfo = '';
-      if (!isOk) {
+      if (isOk) {
+        deviceReports.push(
+          `🟢 <b>[ID ${dev.id}] ${escapeHtml(dev.location || 'Mesin Absensi')}</b>\n` +
+          `   • <b>IP:</b> <code>${escapeHtml(ip)}</code> (${latencyStr}) | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
+          `   • <b>Hari Ini:</b> <b>${stats.today_logs}</b> scan | <b>Total:</b> ${stats.total_logs} log`
+        );
+      } else {
         const offlineSinceTs = currentTrack.offlineSince || now;
         const downtimeMs = Math.max(0, now - offlineSinceTs);
         const offlineSinceDate = new Date(offlineSinceTs);
         const offlineSinceTimeStr = offlineSinceDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
         const isSameDay = offlineSinceDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) === todayJkt;
         const offlineSinceDisplay = isSameDay 
-          ? `Pukul ${offlineSinceTimeStr} WIB` 
+          ? `pk ${offlineSinceTimeStr} WIB` 
           : `${offlineSinceDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} pk ${offlineSinceTimeStr} WIB`;
 
-        downtimeInfo = 
-          `• ⏳ <b>Mati Sejak:</b> <b>${offlineSinceDisplay}</b>\n` +
-          `• ⏱️ <b>Durasi Mati:</b> <b>${formatDowntimeDuration(downtimeMs)}</b>\n`;
+        deviceReports.push(
+          `🔴 <b>[ID ${dev.id}] ${escapeHtml(dev.location || 'Mesin Absensi')}</b>\n` +
+          `   • <b>IP:</b> <code>${escapeHtml(ip)}</code> | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
+          `   • ⏳ <b>Mati Sejak:</b> ${offlineSinceDisplay} (Durasi: <b>${formatDowntimeDuration(downtimeMs)}</b>)\n` +
+          `   • ⚠️ <b>Kendala:</b> <code>${escapeHtml(errDesc)}</code>`
+        );
       }
-
-      deviceReports.push(
-        `${statusIcon} <b>[ID ${dev.id}] ${escapeHtml(dev.location || 'Mesin Absensi')}</b>\n` +
-        `• <b>IP:</b> <code>${escapeHtml(ip)}</code> | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
-        `• <b>Status Jaringan:</b> <b>${statusBadge}</b> ${probeRes.latency ? `(${latencyStr})` : ''}\n` +
-        `${downtimeInfo}` +
-        `• <b>Log Hari Ini:</b> <b>${stats.today_logs}</b> scan | <b>Total:</b> ${stats.total_logs} log\n` +
-        `• <b>Scan Terakhir:</b> ${lastScanStr}\n` +
-        `• <b>Sinkron Terakhir:</b> ${lastSyncStr}\n` +
-        `${detailDiagnostic}`
-      );
     }
 
     const summaryHeader = 
       `📟 <b>DIAGNOSA REAL-TIME MESIN ABSENSI</b>\n` +
-      `<i>Pengecekan koneksi langsung dari server Kurmon</i>\n\n` +
-      `📊 <b>Hasil:</b> 🟢 <b>${onlineCount} Online</b> | 🔴 <b>${offlineCount} Bermasalah</b>\n` +
+      `<i>Pengecekan live dari server Kurmon</i>\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `📊 <b>Kondisi:</b> 🟢 <b>${onlineCount} Online</b> | 🔴 <b>${offlineCount} Bermasalah</b>\n` +
       `📅 <b>Waktu Cek:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
     const troubleshootFooter = offlineCount > 0
-      ? `\n━━━━━━━━━━━━━━━━━━━━━\n` +
-        `💡 <b>CATATAN TIM IT / TEKNISI:</b>\n` +
-        `• Jika hari Minggu/Libur, mesin di kampus tertentu wajar dimatikan.\n` +
-        `• Jika hari aktif sekolah namun mesin 🔴, periksa power adaptor PoE & switch LAN di lokasi bersangkutan.`
-      : `\n━━━━━━━━━━━━━━━━━━━━━\n` +
-        `✨ <i>Semua mesin absensi terhubung lancar dan siap memproses kehadiran.</i>`;
+      ? `\n\n━━━━━━━━━━━━━━━━━━━━━\n` +
+        `💡 <b>PETUNJUK TEKNIS IT:</b>\n` +
+        `• Jika hari libur / akhir pekan, wajar jika mesin dimatikan petugas sekolah.\n` +
+        `• Jika hari aktif sekolah, periksa colokan PoE & lampu link LAN di lokasi mesin.\n` +
+        `• Ketik <b>/sync</b> untuk memaksa penarikan log mesin yang online.`
+      : `\n\n━━━━━━━━━━━━━━━━━━━━━\n` +
+        `✨ <i>Seluruh perangkat absensi dalam kondisi prima & siap memproses presensi.</i>`;
 
-    const half = Math.ceil(deviceReports.length / 2);
-    const part1 = summaryHeader + deviceReports.slice(0, half).join('\n\n');
-    const part2 = deviceReports.slice(half).join('\n\n') + troubleshootFooter;
+    const fullMessage = summaryHeader + deviceReports.join('\n\n') + troubleshootFooter;
 
-    await _sendMessage(chatId, part1, { 
+    await _sendMessage(chatId, fullMessage, { 
       isHtml: true,
-      reply_markup: deviceReports.length <= half ? BACK_TO_MENU_KEYBOARD : undefined 
+      reply_markup: BACK_TO_MENU_KEYBOARD 
     });
-    if (deviceReports.length > half) {
-      await _sendMessage(chatId, part2, { 
-        isHtml: true,
-        reply_markup: BACK_TO_MENU_KEYBOARD 
-      });
-    }
 
   } catch (err) {
     await _sendMessage(chatId, `❌ Gagal memeriksa status mesin: ${escapeHtml(err.message)}`, { 
@@ -1220,10 +1170,10 @@ export async function sendScheduledDeviceStatusReport(timeSlot = '05:00', target
           }
         }
       } else {
-        if (probeRes.code === 'ETIMEDOUT') errDesc = 'Koneksi Timeout (Mesin mati / kabel terlepas)';
+        if (probeRes.code === 'ETIMEDOUT') errDesc = 'Koneksi Timeout (Mesin mati / kabel lepas)';
         else if (probeRes.code === 'EHOSTUNREACH') errDesc = 'Host Unreachable (Jalur router terputus)';
         else if (probeRes.code === 'ENETUNREACH') errDesc = 'Network Unreachable';
-        else if (probeRes.code === 'ECONNREFUSED') errDesc = 'Port Ditolak (Service restart / crash)';
+        else if (probeRes.code === 'ECONNREFUSED') errDesc = 'Port Ditolak (Service restart/crash)';
         else errDesc = probeRes.message || 'Gagal terhubung';
       }
 
@@ -1234,9 +1184,8 @@ export async function sendScheduledDeviceStatusReport(timeSlot = '05:00', target
         onlineCount++;
         deviceReports.push(
           `🟢 <b>[ID ${dev.id}] ${escapeHtml(dev.location || 'Mesin Absensi')}</b>\n` +
-          `• <b>IP:</b> <code>${escapeHtml(ip)}</code> | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
-          `• <b>Status:</b> <b>ONLINE NORMAL</b> (${latencyStr})\n` +
-          `• <b>Scan Hari Ini:</b> <b>${stats.today_logs}</b> scan`
+          `   • <b>IP:</b> <code>${escapeHtml(ip)}</code> (${latencyStr}) | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
+          `   • <b>Hari Ini:</b> <b>${stats.today_logs}</b> scan`
         );
       } else {
         offlineCount++;
@@ -1246,16 +1195,14 @@ export async function sendScheduledDeviceStatusReport(timeSlot = '05:00', target
         const offlineSinceTimeStr = offlineSinceDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
         const isSameDay = offlineSinceDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) === todayJkt;
         const offlineSinceDisplay = isSameDay 
-          ? `Pukul ${offlineSinceTimeStr} WIB` 
+          ? `pk ${offlineSinceTimeStr} WIB` 
           : `${offlineSinceDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} pk ${offlineSinceTimeStr} WIB`;
 
         deviceReports.push(
           `🔴 <b>[ID ${dev.id}] ${escapeHtml(dev.location || 'Mesin Absensi')}</b>\n` +
-          `• <b>IP:</b> <code>${escapeHtml(ip)}</code> | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
-          `• <b>Status Jaringan:</b> <b>OFFLINE / TERPUTUS</b>\n` +
-          `• ⏳ <b>Mati Sejak:</b> <b>${offlineSinceDisplay}</b>\n` +
-          `• ⏱️ <b>Durasi Mati:</b> <b>${formatDowntimeDuration(downtimeMs)}</b>\n` +
-          `• ⚠️ <b>Analisis Kendala:</b> <code>${escapeHtml(errDesc)}</code>`
+          `   • <b>IP:</b> <code>${escapeHtml(ip)}</code> | <b>Tipe:</b> ${escapeHtml(dev.device_type || 'siswa')}\n` +
+          `   • ⏳ <b>Mati Sejak:</b> ${offlineSinceDisplay} (Durasi: <b>${formatDowntimeDuration(downtimeMs)}</b>)\n` +
+          `   • ⚠️ <b>Kendala:</b> <code>${escapeHtml(errDesc)}</code>`
         );
       }
     }
@@ -1283,8 +1230,8 @@ ${deviceReports.join('\n\n')}
 
     if (offlineCount > 0) {
       msg += `\n💡 <b>TINDAKAN TIM IT / PETUGAS:</b>\n` +
-             `• Periksa power adaptor / colokan listrik mesin di lokasi.\n` +
-             `• Pastikan kabel LAN terpasang kencang dan switch PoE menyala.\n` +
+             `• Periksa colokan power adaptor / PoE di lokasi mesin.\n` +
+             `• Pastikan kabel LAN terpasang kencang dan switch menyala.\n` +
              `• Ketik <b>/mesin</b> untuk diagnosa ulang setelah perbaikan.`;
     } else {
       msg += `\n✨ <i>Seluruh perangkat absensi dalam kondisi prima dan siap merekam kehadiran.</i>`;
@@ -1296,7 +1243,7 @@ ${deviceReports.join('\n\n')}
         inline_keyboard: [
           [
             { text: '🔄 Diagnosa Ulang', callback_data: '/mesin' },
-            { text: '📋 Menu Utama', callback_data: '/menu' }
+            { text: '📋 Menu Lengkap', callback_data: '/menu' }
           ]
         ]
       }
@@ -1774,6 +1721,7 @@ async function _cmdCariSiswa(chatId, query) {
   }
 
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const studentReports = [];
 
   for (const r of rows) {
     const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
@@ -1788,30 +1736,37 @@ async function _cmdCariSiswa(chatId, query) {
       _dbPool.query("SELECT COALESCE(SUM(poin), 0) as total_poin FROM kedisiplinan_riwayat_poin WHERE siswa_nis = $1 AND jenis = 'pelanggaran'", [nis])
     ]);
 
-    let absenStatus = '⚪ Belum ada catatan scan hari ini';
+    let absenStatus = '⚪ Belum ada scan hari ini';
     if (logRes.rows.length > 0) {
       const scanTime = new Date(logRes.rows[0].timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
-      absenStatus = `🟢 Hadir (Scan: ${scanTime} WIB)`;
+      absenStatus = `🟢 Hadir (pk ${scanTime} WIB)`;
     } else if (permitRes.rows.length > 0) {
       absenStatus = `🟡 ${permitRes.rows[0].status} (${permitRes.rows[0].keterangan || '-'})`;
     }
 
     const totalPoin = parseInt(poinRes.rows[0]?.total_poin || 0, 10);
     let statusSP = '🟢 Tertib';
-    if (totalPoin >= 50) statusSP = '🔴 SP-3 (Panggilan Orang Tua)';
-    else if (totalPoin >= 30) statusSP = '🟠 SP-2 (Peringatan Keras)';
-    else if (totalPoin >= 15) statusSP = '🟡 SP-1 (Teguran Pertama)';
+    if (totalPoin >= 50) statusSP = '🔴 SP-3';
+    else if (totalPoin >= 30) statusSP = '🟠 SP-2';
+    else if (totalPoin >= 15) statusSP = '🟡 SP-1';
 
-    await _sendMessage(chatId,
-      `🎓 <b>PROFIL SISWA: ${escapeHtml(name)}</b>\n\n` +
-      `• <b>NIS:</b> <code>${escapeHtml(nis)}</code>\n` +
-      `• <b>Kelas:</b> <b>${escapeHtml(className)}</b>\n` +
-      `• <b>Jenis Kelamin:</b> ${escapeHtml(gender)}\n` +
-      `• <b>Presensi Hari Ini:</b> ${absenStatus}\n` +
-      `• <b>Poin Pelanggaran:</b> <b>${totalPoin} Poin</b> (${statusSP})\n`,
-      { isHtml: true }
+    studentReports.push(
+      `🎓 <b>${escapeHtml(name)}</b> (NIS: <code>${escapeHtml(nis)}</code>)\n` +
+      `   • <b>Kelas:</b> ${escapeHtml(className)} | <b>JK:</b> ${escapeHtml(gender)}\n` +
+      `   • <b>Presensi:</b> ${absenStatus}\n` +
+      `   • <b>Kedisiplinan:</b> <b>${totalPoin} Poin</b> (${statusSP})`
     );
   }
+
+  const resultMsg = 
+    `🔍 <b>HASIL PENCARIAN SISWA (${rows.length})</b>\n` +
+    `Kata kunci: <i>"${escapeHtml(q)}"</i>\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    studentReports.join('\n\n') +
+    `\n\n━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💡 <i>Ketik <b>/siswa [nama]</b> untuk mencari siswa lain atau <b>/menu</b> ke menu utama.</i>`;
+
+  await _sendMessage(chatId, resultMsg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
 }
 
 /**
@@ -1825,47 +1780,64 @@ async function _cmdCariGuru(chatId, query) {
     return;
   }
   const { rows } = await _dbPool.query(`
-    SELECT id, payload FROM mst_teachers
+    SELECT id, payload, 'Guru' as role_label FROM mst_teachers
     WHERE payload->>'name' ILIKE $1 
        OR payload->>'nama' ILIKE $1 
        OR payload->>'nip' ILIKE $1 
+       OR payload->>'code' ILIKE $1
+       OR id ILIKE $1
+    UNION ALL
+    SELECT id, payload, 'Staff/Karyawan' as role_label FROM mst_staffs
+    WHERE payload->>'name' ILIKE $1 
+       OR payload->>'nama' ILIKE $1 
+       OR payload->>'staff_code' ILIKE $1 
        OR payload->>'code' ILIKE $1
        OR id ILIKE $1
     LIMIT 5
   `, [`%${q}%`]);
 
   if (rows.length === 0) {
-    await _sendMessage(chatId, `❌ Guru dengan kata kunci "<b>${escapeHtml(q)}</b>" tidak ditemukan.`, { isHtml: true });
+    await _sendMessage(chatId, `❌ Guru / Staf dengan kata kunci "<b>${escapeHtml(q)}</b>" tidak ditemukan.`, { isHtml: true });
     return;
   }
 
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const teacherReports = [];
 
   for (const r of rows) {
     const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : (r.payload || {});
-    const code = p.code || r.id;
-    const name = p.name || p.nama || 'Guru';
+    const code = p.code || p.staff_code || r.id;
+    const name = p.name || p.nama || 'Guru/Staff';
     const nip = p.nip || '-';
     const phone = p.phone || p.no_hp || p.telepon || '-';
-    const subject = p.subject || p.mapel || '-';
+    const subject = p.subject || p.mapel || p.division || '-';
+    const role = r.role_label || 'Guru';
 
     const logRes = await _dbPool.query("SELECT timestamp FROM hikvision_logs WHERE employee_id = $1 AND timestamp::date = $2 ORDER BY timestamp ASC LIMIT 1", [code, today]);
-    let statusHadir = '⚪ Belum ada catatan scan hari ini';
+    let statusHadir = '⚪ Belum ada scan hari ini';
     if (logRes.rows.length > 0) {
       const scanTime = new Date(logRes.rows[0].timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace('.', ':');
-      statusHadir = `🟢 Hadir (Scan: ${scanTime} WIB)`;
+      statusHadir = `🟢 Hadir (pk ${scanTime} WIB)`;
     }
 
-    await _sendMessage(chatId,
-      `👨‍🏫 <b>PROFIL GURU: ${escapeHtml(name)}</b>\n\n` +
-      `• <b>Kode Guru:</b> <code>${escapeHtml(code)}</code>\n` +
-      `• <b>NIP:</b> <code>${escapeHtml(nip)}</code>\n` +
-      `• <b>Mata Pelajaran:</b> ${escapeHtml(subject)}\n` +
-      `• <b>Kontak WhatsApp:</b> <code>${escapeHtml(phone)}</code>\n` +
-      `• <b>Presensi Hari Ini:</b> ${statusHadir}\n`,
-      { isHtml: true }
+    teacherReports.push(
+      `👨‍🏫 <b>${escapeHtml(name)}</b> [${escapeHtml(role)}]\n` +
+      `   • <b>Kode / NIP:</b> <code>${escapeHtml(code)}</code> ${nip !== '-' ? `(NIP: ${escapeHtml(nip)})` : ''}\n` +
+      `   • <b>Bidang / Mapel:</b> ${escapeHtml(subject)}\n` +
+      `   • <b>Kontak WhatsApp:</b> <code>${escapeHtml(phone)}</code>\n` +
+      `   • <b>Presensi Hari Ini:</b> ${statusHadir}`
     );
   }
+
+  const resultMsg = 
+    `🔍 <b>HASIL PENCARIAN GURU & STAF (${rows.length})</b>\n` +
+    `Kata kunci: <i>"${escapeHtml(q)}"</i>\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    teacherReports.join('\n\n') +
+    `\n\n━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💡 <i>Ketik <b>/guru [nama]</b> untuk mencari nama lain atau <b>/menu</b> ke menu utama.</i>`;
+
+  await _sendMessage(chatId, resultMsg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
 }
 
 /**
@@ -2457,7 +2429,7 @@ async function _handleSmartAssistant(chatId, queryText) {
   }
 
   // ── 17. Mesin Hikvision & Koneksi Hardware ──
-  if (q.includes('setting mesin') || q.includes('tambah mesin') || q.includes('mesin mati') || q.includes('hikvision') || q.includes('koneksi mesin') || q.includes('status mesin') || q.includes('perangkat')) {
+  if (/\bmesin\b/i.test(q) || q.includes('kondisi mesin') || q.includes('keadaan mesin') || q.includes('setting mesin') || q.includes('tambah mesin') || q.includes('mesin mati') || q.includes('hikvision') || q.includes('koneksi mesin') || q.includes('status mesin') || q.includes('perangkat')) {
     await _cmdStatusMesin(chatId);
     return;
   }
@@ -2955,13 +2927,14 @@ async function _cmdDaftarKelas(chatId) {
   groupXII.sort(sortAlpha);
   groupOther.sort(sortAlpha);
 
-  let msg = `🏫 <b>DAFTAR KELAS KURMON (${classes.length} KELAS)</b>\n\n`;
-  msg += `<i>Ketuk salah satu perintah di bawah ini untuk melihat detail absensi kelas:</i>\n\n`;
+  let msg = `🏫 <b>DAFTAR KELAS AKTIF (${classes.length} KELAS)</b>\n` +
+            `━━━━━━━━━━━━━━━━━━━━━\n` +
+            `<i>Ketuk salah satu tautan di bawah ini untuk melihat presensi detail:</i>\n\n`;
 
   if (groupX.length > 0) {
     msg += `<b>📌 KELAS X:</b>\n`;
     groupX.forEach(name => {
-      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+      msg += `• /absen_${name.replace(/\s+/g, '_')} — <b>${escapeHtml(name)}</b>\n`;
     });
     msg += `\n`;
   }
@@ -2969,7 +2942,7 @@ async function _cmdDaftarKelas(chatId) {
   if (groupXI.length > 0) {
     msg += `<b>📌 KELAS XI:</b>\n`;
     groupXI.forEach(name => {
-      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+      msg += `• /absen_${name.replace(/\s+/g, '_')} — <b>${escapeHtml(name)}</b>\n`;
     });
     msg += `\n`;
   }
@@ -2977,7 +2950,7 @@ async function _cmdDaftarKelas(chatId) {
   if (groupXII.length > 0) {
     msg += `<b>📌 KELAS XII:</b>\n`;
     groupXII.forEach(name => {
-      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+      msg += `• /absen_${name.replace(/\s+/g, '_')} — <b>${escapeHtml(name)}</b>\n`;
     });
     msg += `\n`;
   }
@@ -2985,12 +2958,13 @@ async function _cmdDaftarKelas(chatId) {
   if (groupOther.length > 0) {
     msg += `<b>📌 LAINNYA:</b>\n`;
     groupOther.forEach(name => {
-      msg += `• /absen_${name.replace(/\s+/g, '_')} (<code>/absen ${name}</code>)\n`;
+      msg += `• /absen_${name.replace(/\s+/g, '_')} — <b>${escapeHtml(name)}</b>\n`;
     });
     msg += `\n`;
   }
 
-  msg += `💡 <i>Tip: Anda juga bisa mengetik langsung <b>/absen [nama_kelas]</b>, contoh: <code>/absen X TKJ 1</code></i>`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━\n` +
+         `💡 <i>Tip: Anda juga bisa mengetik <b>/absen [nama_kelas]</b>, contoh: <code>/absen X TKJ 1</code></i>`;
 
   await _sendMessage(chatId, msg, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
 }
@@ -3751,7 +3725,62 @@ export function formatMessageToHtml(rawText) {
 }
 
 /**
- * Kirim pesan ke Telegram dengan auto-split untuk pesan > 4000 karakter,
+ * Memecah pesan HTML menjadi beberapa chunk aman tanpa merusak tag HTML Telegram
+ */
+function _splitHtmlMessage(text, maxChunk = 3800) {
+  if (text.length <= maxChunk) return [text];
+
+  const lines = text.split('\n');
+  const chunks = [];
+  let current = '';
+  let openTags = [];
+  const TAG_REGEX = /<\/?([a-z0-9]+)[^>]*>/gi;
+
+  for (const line of lines) {
+    if ((current + '\n' + line).length > maxChunk) {
+      if (current) {
+        let safeChunk = current;
+        for (let i = openTags.length - 1; i >= 0; i--) {
+          safeChunk += `</${openTags[i]}>`;
+        }
+        chunks.push(safeChunk);
+        current = openTags.map(t => `<${t}>`).join('') + line;
+      } else {
+        chunks.push(line);
+        current = '';
+      }
+    } else {
+      current = current ? (current + '\n' + line) : line;
+    }
+
+    let match;
+    const tagMatches = [];
+    while ((match = TAG_REGEX.exec(line)) !== null) {
+      tagMatches.push(match[0]);
+    }
+    for (const tagStr of tagMatches) {
+      const isClosing = tagStr.startsWith('</');
+      const tagName = tagStr.replace(/[<>/]/g, '').trim().toLowerCase();
+      if (['b', 'strong', 'i', 'em', 'code', 'pre', 'u', 's', 'a'].includes(tagName)) {
+        if (isClosing) {
+          const idx = openTags.lastIndexOf(tagName);
+          if (idx !== -1) openTags.splice(idx, 1);
+        } else {
+          openTags.push(tagName);
+        }
+      }
+    }
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
+}
+
+/**
+ * Kirim pesan ke Telegram dengan auto-split aman untuk pesan > 3800 karakter,
  * fallback plain-text otomatis jika format HTML ditolak, dan timeout proteksi
  */
 async function _sendMessage(chatId, text, options = {}) {
@@ -3759,22 +3788,15 @@ async function _sendMessage(chatId, text, options = {}) {
   const str = String(text);
   if (!str.trim()) return;
 
-  // Batas maksimal Telegram adalah 4096 karakter per pesan.
-  // Jika lebih panjang, potong per baris agar tidak ditolak oleh Telegram (Error 400 MESSAGE_TOO_LONG)
   const MAX_CHUNK = 3800;
   if (str.length > MAX_CHUNK) {
-    const lines = str.split('\n');
-    let chunk = '';
-    for (const line of lines) {
-      if ((chunk + '\n' + line).length > MAX_CHUNK) {
-        if (chunk) await _sendSingleMessage(chatId, chunk, { ...options, reply_markup: undefined });
-        chunk = line;
-      } else {
-        chunk = chunk ? (chunk + '\n' + line) : line;
-      }
-    }
-    if (chunk) {
-      return await _sendSingleMessage(chatId, chunk, options);
+    const chunks = _splitHtmlMessage(str, MAX_CHUNK);
+    for (let i = 0; i < chunks.length; i++) {
+      const isLast = i === chunks.length - 1;
+      await _sendSingleMessage(chatId, chunks[i], {
+        ...options,
+        reply_markup: isLast ? options.reply_markup : undefined
+      });
     }
     return;
   }
