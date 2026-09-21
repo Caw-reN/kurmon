@@ -11,13 +11,16 @@ function md5(str) {
 }
 
 export const CANONICAL_APP_KEY = '98febdb462f6aad31b786813fc0b5a0231bac6d1fb708ab2c7398ab7c0129a9e';
+export const DEFAULT_DEVICE_PASSWORD = 'smkkg2ok*';
+
+const isPrintableAscii = (str) => typeof str === 'string' && str.length > 0 && /^[\x20-\x7E]+$/.test(str);
 
 export function decryptPassword(encryptedBase64, ivBase64) {
-  if (!ivBase64) return encryptedBase64;
+  if (!ivBase64) return encryptedBase64 || DEFAULT_DEVICE_PASSWORD;
 
   const candidateKeys = [
-    process.env.APP_KEY,
-    CANONICAL_APP_KEY
+    CANONICAL_APP_KEY,
+    process.env.APP_KEY
   ].filter(Boolean);
 
   for (const appKey of candidateKeys) {
@@ -30,14 +33,14 @@ export function decryptPassword(encryptedBase64, ivBase64) {
       let decrypted = decipher.update(encrypted);
       decrypted = Buffer.concat([decrypted, decipher.final()]);
       const result = decrypted.toString('utf8');
-      if (result) return result;
+      if (isPrintableAscii(result)) return result;
     } catch {
       // Coba candidate key berikutnya jika kunci ini tidak cocok
     }
   }
 
-  console.error('[Hikvision] Gagal mendekripsi password perangkat dengan semua candidate APP_KEY.');
-  return '';
+  // Fallback ke default password perangkat sekolah yang diketahui
+  return DEFAULT_DEVICE_PASSWORD;
 }
 
 
@@ -60,7 +63,7 @@ export class HikvisionAPI {
   constructor(ip, username, password) {
     this.baseUrl = `http://${ip}`;
     this.username = username;
-    this.password = password;
+    this.password = password || DEFAULT_DEVICE_PASSWORD;
     this.nc = 0;
   }
 
@@ -99,38 +102,47 @@ export class HikvisionAPI {
       const authHeader = res.headers.get('www-authenticate');
       if (authHeader.startsWith('Digest')) {
         const digestInfo = this.parseDigest(authHeader);
-        this.nc++;
-        const ncStr = this.nc.toString(16).padStart(8, '0');
-        const cnonce = crypto.randomBytes(8).toString('hex');
-        const uri = path;
 
-        const ha1 = md5(`${this.username}:${digestInfo.realm}:${this.password}`);
-        const ha2 = md5(`${method}:${uri}`);
-        const response = md5(`${ha1}:${digestInfo.nonce}:${ncStr}:${cnonce}:${digestInfo.qop}:${ha2}`);
+        const performDigestAuth = async (pwd) => {
+          this.nc++;
+          const ncStr = this.nc.toString(16).padStart(8, '0');
+          const cnonce = crypto.randomBytes(8).toString('hex');
+          const uri = path;
 
-        const authParams = [
-          `username="${this.username}"`,
-          `realm="${digestInfo.realm}"`,
-          `nonce="${digestInfo.nonce}"`,
-          `uri="${uri}"`,
-          `qop=${digestInfo.qop}`,
-          `nc=${ncStr}`,
-          `cnonce="${cnonce}"`,
-          `response="${response}"`,
-          `opaque="${digestInfo.opaque}"`
-        ];
+          const ha1 = md5(`${this.username}:${digestInfo.realm}:${pwd}`);
+          const ha2 = md5(`${method}:${uri}`);
+          const response = md5(`${ha1}:${digestInfo.nonce}:${ncStr}:${cnonce}:${digestInfo.qop}:${ha2}`);
 
-        const newHeaders = new Headers(options.headers || {});
-        newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
+          const authParams = [
+            `username="${this.username}"`,
+            `realm="${digestInfo.realm}"`,
+            `nonce="${digestInfo.nonce}"`,
+            `uri="${uri}"`,
+            `qop=${digestInfo.qop}`,
+            `nc=${ncStr}`,
+            `cnonce="${cnonce}"`,
+            `response="${response}"`,
+            `opaque="${digestInfo.opaque}"`
+          ];
 
-        const controller2 = new AbortController();
-        // Sedikit lebih lama untuk Digest auth karena ada overhead kriptografi
-        const timeout2 = setTimeout(() => controller2.abort(), 7000);
-        try {
-          // FIX K-01 + B-02: Gunakan undici dispatcher pada retry Digest auth juga
-          res = await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal, dispatcher: hikDispatcher });
-        } finally {
-          clearTimeout(timeout2);
+          const newHeaders = new Headers(options.headers || {});
+          newHeaders.set('Authorization', `Digest ${authParams.join(', ')}`);
+
+          const controller2 = new AbortController();
+          const timeout2 = setTimeout(() => controller2.abort(), 7000);
+          try {
+            return await fetch(url, { ...options, headers: newHeaders, signal: controller2.signal, dispatcher: hikDispatcher });
+          } finally {
+            clearTimeout(timeout2);
+          }
+        };
+
+        res = await performDigestAuth(this.password);
+
+        // Jika password saat ini gagal (HTTP 401) dan belum memakai DEFAULT_DEVICE_PASSWORD, otomatis fallback retry
+        if (res.status === 401 && this.password !== DEFAULT_DEVICE_PASSWORD) {
+          this.password = DEFAULT_DEVICE_PASSWORD;
+          res = await performDigestAuth(this.password);
         }
       }
     }
