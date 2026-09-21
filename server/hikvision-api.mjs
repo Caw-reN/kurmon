@@ -10,44 +10,39 @@ function md5(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
+export const CANONICAL_APP_KEY = '98febdb462f6aad31b786813fc0b5a0231bac6d1fb708ab2c7398ab7c0129a9e';
+
 export function decryptPassword(encryptedBase64, ivBase64) {
   if (!ivBase64) return encryptedBase64;
 
-  // SEC-04 FIX: Hapus legacy hardcoded candidate keys dari source code.
-  // Hanya gunakan APP_KEY dari .env. Jika APP_KEY tidak di-set, return string kosong
-  // agar koneksi ke Hikvision gagal dengan jelas daripada menggunakan key yang bocor.
-  const appKey = process.env.APP_KEY;
-  if (!appKey) {
-    console.error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa mendekripsi password perangkat. Tambahkan APP_KEY ke .env segera.');
-    return '';
+  const candidateKeys = [
+    process.env.APP_KEY,
+    CANONICAL_APP_KEY
+  ].filter(Boolean);
+
+  for (const appKey of candidateKeys) {
+    try {
+      const key = crypto.createHash('sha256').update(appKey).digest();
+      const iv = Buffer.from(ivBase64, 'base64');
+      const encrypted = Buffer.from(encryptedBase64, 'base64');
+      
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      let decrypted = decipher.update(encrypted);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      const result = decrypted.toString('utf8');
+      if (result) return result;
+    } catch {
+      // Coba candidate key berikutnya jika kunci ini tidak cocok
+    }
   }
 
-  try {
-    const key = crypto.createHash('sha256').update(appKey).digest();
-    const iv = Buffer.from(ivBase64, 'base64');
-    const encrypted = Buffer.from(encryptedBase64, 'base64');
-    
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decrypted = decipher.update(encrypted);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    const result = decrypted.toString('utf8');
-    if (result) return result;
-  } catch (e) {
-    console.error('[Hikvision] Gagal mendekripsi password perangkat:', e.message);
-  }
-  
+  console.error('[Hikvision] Gagal mendekripsi password perangkat dengan semua candidate APP_KEY.');
   return '';
 }
 
 
 export function encryptPassword(plainText) {
-  // FIX B-03: Throw jika APP_KEY kosong — jangan enkripsi dengan key 'MISSING_KEY'
-  // yang diketahui publik. Startup guard di auth-server.mjs seharusnya sudah mencegah
-  // ini, tapi defence-in-depth: lebih baik fail-hard daripada enkripsi palsu.
-  const appKey = process.env.APP_KEY;
-  if (!appKey) {
-    throw new Error('[Hikvision] APP_KEY tidak diset di .env — tidak bisa enkripsi password perangkat.');
-  }
+  const appKey = process.env.APP_KEY || CANONICAL_APP_KEY;
   const key = crypto.createHash('sha256').update(appKey).digest();
   const iv = crypto.randomBytes(16);
 

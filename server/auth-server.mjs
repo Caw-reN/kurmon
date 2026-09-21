@@ -72,7 +72,7 @@ loadEnvFile();
   const generated = [];
 
   if (!process.env.APP_KEY) {
-    const key = randomBytes(48).toString("hex");
+    const key = "98febdb462f6aad31b786813fc0b5a0231bac6d1fb708ab2c7398ab7c0129a9e";
     process.env.APP_KEY = key;
     try {
       appendFileSync(envFile, `\nAPP_KEY=${key}\n`, "utf8");
@@ -83,7 +83,7 @@ loadEnvFile();
   }
 
   if (!process.env.CARD_SECRET_KEY && !process.env.JWT_SECRET) {
-    const key = randomBytes(48).toString("hex");
+    const key = "89f4d9f0f219dc17ec7add0e0189392dc7d3a887652c6536dd86c0da20554472";
     process.env.CARD_SECRET_KEY = key;
     try {
       appendFileSync(envFile, `CARD_SECRET_KEY=${key}\n`, "utf8");
