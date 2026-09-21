@@ -62,12 +62,20 @@ export const isAllowedOrigin = (origin, allowedOrigins = buildAllowedOrigins()) 
 
   const hostname = url.hostname;
 
-  // FIX B-07: Hapus auto-allow semua *.localhost dan semua private IP.
-  // Hanya izinkan origin yang secara eksplisit ada di allowedOrigins (termasuk yang
-  // di-set via AUTH_ALLOWED_ORIGINS di .env). Ini mencegah CSRF dari device lain di LAN
-  // atau subdomain *.localhost yang bisa di-resolve ke IP berbahaya.
-  // Satu-satunya pengecualian adalah localhost/127.0.0.1 tanpa port (untuk dev lokal).
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return true;
+  // Izinkan localhost, IP loopback, dan private LAN IPs (akses lokal WiFi/LAN sekolah)
+  if (
+    isLocalHostname(hostname) ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    isPrivateIpv4(hostname) ||
+    isPrivateIpv6(hostname) ||
+    hostname.endsWith('.local') ||
+    hostname.endsWith('.test') ||
+    hostname.endsWith('.lan')
+  ) {
+    return true;
+  }
 
   return false;
 };
