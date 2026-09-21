@@ -176,7 +176,15 @@ export class HikvisionAPI {
         body: JSON.stringify(payload)
       });
       
-      if (!res.ok) break;
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error(`Autentikasi gagal (HTTP 401). Pastikan APP_KEY di .env sama dengan server utama atau password mesin benar.`);
+        }
+        if (res.status === 403) {
+          throw new Error(`Akses ditolak oleh perangkat (HTTP 403 Forbidden).`);
+        }
+        break;
+      }
       
       try {
           const data = await res.json();
@@ -210,7 +218,15 @@ export class HikvisionAPI {
         body: JSON.stringify(payload)
       });
       
-      if (!res.ok) break;
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error(`Autentikasi gagal (HTTP 401). Pastikan APP_KEY di .env sama dengan server utama atau password mesin benar.`);
+        }
+        if (res.status === 403) {
+          throw new Error(`Akses ditolak oleh perangkat (HTTP 403 Forbidden).`);
+        }
+        break;
+      }
 
       try {
           const data = await res.json();

@@ -278,6 +278,11 @@ export async function pullHikvisionLogs(force = false) {
       const dtype = device.device_type || 'siswa';
       try {
         const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
+        if (!plainPassword && device.encrypted_password) {
+          console.error(`[Hikvision Cron] Device ${device.ip_address}: Gagal mendekripsi password. Pastikan APP_KEY di file .env sama dengan server utama.`);
+          failedDevices.push({ ip: device.ip_address, reason: 'Gagal mendekripsi password (APP_KEY tidak cocok)' });
+          continue;
+        }
         const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
 
         const lastLogRes = await dbPool.query('SELECT MAX(timestamp) as last_ts FROM hikvision_logs WHERE device_id = $1', [device.id]);

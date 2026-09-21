@@ -655,6 +655,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const dtype = device.device_type || 'siswa';
           try {
             const plainPassword = decryptPassword(device.encrypted_password, device.iv_vector);
+            if (!plainPassword && device.encrypted_password) {
+              throw new Error(`Gagal mendekripsi password perangkat. Pastikan nilai APP_KEY di file .env server ini sama persis dengan server lokal/asal.`);
+            }
             const api = new HikvisionAPI(device.ip_address, device.username, plainPassword);
             
             // Auto-sync jam mesin ke waktu server (WIB) agar tidak ada pergeseran waktu
@@ -986,6 +989,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         for (const dev of devices) {
           try {
             const plainPass = decryptPassword(dev.encrypted_password, dev.iv_vector);
+            if (!plainPass && dev.encrypted_password) {
+              throw new Error(`Gagal mendekripsi password perangkat. Periksa kesamaan APP_KEY di .env.`);
+            }
             const api = new HikvisionAPI(dev.ip_address, dev.username, plainPass);
             const putRes = await api.request('/ISAPI/System/time', {
               method: 'PUT',
