@@ -32,6 +32,8 @@ services:
       - NODE_ENV=production
       - TZ=Asia/Jakarta
     volumes:
+      # Mount direktori server agar perubahan kode (git pull) langsung aktif di container
+      - ./server:/app/server
       # Mount direktori data agar file yang digenerate backend tersimpan
       - ./data:/app/data
       # Mount .env agar semua variabel (AUTH_ALLOWED_ORIGINS, DEFAULT_ADMIN_PASSWORD, dll) terbaca backend
