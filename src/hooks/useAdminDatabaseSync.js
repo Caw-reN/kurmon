@@ -117,7 +117,15 @@ export function useAdminDatabaseSync({
     if (!databaseHydrated || databaseHydrationFailedRef.current) {
       throw new Error(`Tunggu database selesai sinkron sebelum ${actionLabel}.`);
     }
-    await saveToServerNow(fullPayload, currentUser.authToken);
+    const roleStr = String(currentUser?.role || '').toLowerCase().trim();
+    const isAllowedToSaveData = [
+      'admin', 'superadmin', 'tu', 'tata_usaha',
+      'waka', 'waka_kurikulum', 'kepsek'
+    ].includes(roleStr);
+
+    if (isAllowedToSaveData) {
+      await saveToServerNow(fullPayload, currentUser.authToken);
+    }
     setDatabaseSnapshot(fullPayload);
     return fullPayload;
   }, [buildDatabasePayload, currentUser, databaseHydrated]);
@@ -165,14 +173,16 @@ export function useAdminDatabaseSync({
         if (cancelled) return;
 
         // Auto retry up to 4 times with progressive backoff for transient network glitch / server locks
-        if (retries > 0 && error?.status !== 403) {
+        if (retries > 0 && error?.status !== 403 && error?.status !== 401) {
           const backoffDelay = (5 - retries) * 1000;
           console.log(`Mencoba ulang memuat database dari server dalam ${backoffDelay}ms (${retries} percobaan tersisa)...`);
           await new Promise(resolve => setTimeout(resolve, backoffDelay));
           return hydrateFullDatabase(retries - 1);
         }
 
-        if (error?.status === 403) {
+        const errMsg = String(error?.serverMessage || error?.message || '').toLowerCase();
+        const isSessionExpired = error?.status === 401 || (error?.status === 403 && (errMsg.includes("sesi") || errMsg.includes("login diperlukan")));
+        if (isSessionExpired) {
           const message = getDatabaseLoadErrorMessage(error);
           writeSessionUser(null);
           setCurrentUser(null);
@@ -198,6 +208,16 @@ export function useAdminDatabaseSync({
   useEffect(() => {
     if (!authHydrated) return;
 
+    // CEK HAK AKSES: Hanya admin, superadmin, TU, waka, atau kepsek yang berhak auto-save ke master /api/data/save.
+    // Guru, siswa, dan staf biasa tidak mengelola data master sekolah secara global.
+    // Tanpa filter ini, browser guru akan mencoba auto-save ke /api/data/save, mendapat HTTP 403 Forbidden,
+    // lalu salah dideteksi sebagai sesi kedaluwarsa dan di-logout otomatis!
+    const roleStr = String(currentUser?.role || '').toLowerCase().trim();
+    const isAllowedToSaveData = [
+      'admin', 'superadmin', 'tu', 'tata_usaha',
+      'waka', 'waka_kurikulum', 'kepsek'
+    ].includes(roleStr);
+
     const timer = setTimeout(() => {
       try {
         const fullPayload = buildDatabasePayload();
@@ -207,6 +227,9 @@ export function useAdminDatabaseSync({
           lastPersistedPayloadRef.current = serializedPayload;
           setDatabaseSnapshot(fullPayload);
         }
+
+        // Jika bukan peran pengelola data master, cukup simpan snapshot lokal dan jangan tembak ke /api/data/save
+        if (!isAllowedToSaveData) return;
 
         if (currentUser?.authToken && (!databaseHydrated || databaseHydrationFailedRef.current)) return;
 
@@ -228,7 +251,9 @@ export function useAdminDatabaseSync({
                 pendingServerPayloadRef.current = '';
               }
               const message = getDatabaseSaveErrorMessage(error);
-              if (error?.status === 403) {
+              const errMsg = String(error?.serverMessage || error?.message || '').toLowerCase();
+              const isSessionExpired = error?.status === 401 || (error?.status === 403 && (errMsg.includes("sesi") || errMsg.includes("login diperlukan")));
+              if (isSessionExpired && !errMsg.includes("hanya admin") && !errMsg.includes("hanya tata usaha")) {
                 writeSessionUser(null);
                 setCurrentUser(null);
                 setLoginError(message);

@@ -2141,6 +2141,8 @@ export default function App() {
       console.warn("Sinkronisasi auth ditahan sampai database lengkap siap.");
       return;
     }
+    const roleStr = String(currentUser?.role || '').toLowerCase().trim();
+    if (!['admin', 'superadmin', 'tu', 'tata_usaha'].includes(roleStr)) return;
     try {
       await syncAuthSnapshotToServer({
         adminUser: nextAdminUser,
@@ -2149,7 +2151,8 @@ export default function App() {
       });
     } catch (error) {
       console.warn("Sinkronisasi auth ke server gagal", error);
-      if (error?.status === 403) {
+      const errMsg = String(error?.serverMessage || error?.message || '').toLowerCase();
+      if (error?.status === 401 || (error?.status === 403 && (errMsg.includes("sesi") || errMsg.includes("login diperlukan")))) {
         writeSessionUser(null);
         setCurrentUser(null);
         setLoginError("Sesi login kedaluwarsa. Silakan login ulang untuk sinkronisasi guru.");
@@ -2159,6 +2162,8 @@ export default function App() {
   const syncAuthSnapshotNow = async (nextAdminUser = adminUser, nextTeachers = teachers, nextStaffs = staffs, actionLabel = "menyinkronkan akun") => {
     if (!currentUser?.authToken) return;
     if (!databaseHydrated) return;
+    const roleStr = String(currentUser?.role || '').toLowerCase().trim();
+    if (!['admin', 'superadmin', 'tu', 'tata_usaha'].includes(roleStr)) return;
     try {
       await syncAuthSnapshotToServer({
         adminUser: nextAdminUser,

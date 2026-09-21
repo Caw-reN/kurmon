@@ -309,13 +309,16 @@ export const getDatabaseSaveErrorMessage = error => {
   if (detail.includes("akses database ditolak") || detail.includes("database belum aktif") || detail.includes("database tidak ditemukan") || detail.includes("data utama di database rusak")) {
     return rawDetail;
   }
-  if (error?.status === 403) {
+  if (detail.includes("hanya admin") || detail.includes("hanya tata usaha") || detail.includes("hanya waka") || detail.includes("hak akses")) {
+    return rawDetail || "Anda tidak memiliki hak akses untuk menyimpan data sistem.";
+  }
+  if (error?.status === 401 || (error?.status === 403 && (detail.includes("sesi") || detail.includes("login")))) {
     return "Sesi login kedaluwarsa. Silakan login ulang agar perubahan tersimpan.";
   }
   if (error?.status >= 500) {
     return "Gagal menyimpan karena server/database bermasalah. Jangan refresh dulu sampai tersimpan.";
   }
-  return "Gagal menyimpan ke server. Data belum aman tersimpan, jangan refresh dulu.";
+  return rawDetail || "Gagal menyimpan ke server. Data belum aman tersimpan, jangan refresh dulu.";
 };
 export const updateRoomLayoutMajor = (rows, oldMajor, nextMajor, nextMajorRoomId) => rows.map(row => {
   const major = replaceCsvValue(row.major, oldMajor, nextMajor);
