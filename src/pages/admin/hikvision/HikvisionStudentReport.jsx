@@ -48,11 +48,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const defaultClassName = 
     (routeTab === "walas_report" && user?.walasClass) 
       ? user.walasClass 
-      : isKesiswaanOrAdmin 
-        ? "all" 
-        : (user?.isWalas && user.walasClass) 
-          ? user.walasClass 
-          : "none";
+      : (user?.isWalas && user.walasClass) 
+        ? user.walasClass 
+        : "all";
 
   const [filter, setFilter] = useState({
     month: new Date().getMonth() + 1,
@@ -66,8 +64,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   React.useEffect(() => {
     if (routeTab === "walas_report" && user?.walasClass) {
       setFilter(f => ({ ...f, class_name: user.walasClass }));
+    } else if (!filter.class_name || filter.class_name === "none") {
+      setFilter(f => ({ ...f, class_name: user?.walasClass || "all" }));
     }
-  }, [routeTab, user?.walasClass]);
+  }, [routeTab, user?.walasClass, filter.class_name]);
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
@@ -371,6 +371,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const fetchData = useCallback(async (isManualRefresh = false) => {
     setLoading(true);
     try {
+      const targetClass = (!filter.class_name || filter.class_name === 'none') ? (user?.walasClass || 'all') : filter.class_name;
       const res = await fetch("/api/hikvision/report/matrix", {
         method:'POST',
         headers: {
@@ -378,7 +379,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           "Content-Type":"application/json",
           ...(isManualRefresh ? { "Cache-Control": "no-cache" } : {})
         },
-        body: JSON.stringify({ ...filter, force: Boolean(isManualRefresh) })
+        body: JSON.stringify({ ...filter, class_name: targetClass, type: 'siswa', force: Boolean(isManualRefresh) })
       });
       const json = await res.json();
       if (json.ok) {
@@ -1919,31 +1920,27 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
-        {isKesiswaanOrAdmin ? (
+        {(routeTab !== "walas_report" || !user?.walasClass) ? (
           <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
             <CustomSelect 
-              value={filter.class_name} 
+              value={filter.class_name || "all"} 
               onChange={val => setFilter({ ...filter, class_name: val })}
               options={[
                 { value: "all", label: "Semua Kelas" },
                 ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
-                ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas })).filter(c => c.value !== user?.walasClass)
+                ...((classes && classes.length > 0)
+                  ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
+                  : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
+                )
               ]}
             />
           </div>
-        ) : user?.isWalas && user?.walasClass ? (
+        ) : (
           <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Kelas Binaan</label>
             <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800">
               {user.walasClass}
-            </div>
-          </div>
-        ) : (
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status Akses</label>
-            <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-500">
-              Akses khusus Wali Kelas / Kesiswaan
             </div>
           </div>
         )}
@@ -2365,6 +2362,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
                 {/* JML HADIR */}
                 <tr className="bg-emerald-100/90 border-b border-emerald-200 text-emerald-950">
+                  <td className="px-2.5 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold text-xs">-</td>
                   <td className="px-4 py-2 sticky left-0 bg-emerald-100 z-10 border-r border-emerald-300 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
                   <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
                   <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
@@ -2385,6 +2383,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 </tr>
                 {/* JML TERLAMBAT */}
                 <tr className="bg-rose-100/90 border-b border-rose-200 text-rose-950">
+                  <td className="px-2.5 py-2 text-center border-r border-rose-300 text-rose-300 font-bold text-xs">-</td>
                   <td className="px-4 py-2 sticky left-0 bg-rose-100 z-10 border-r border-rose-300 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
                   <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
@@ -2405,6 +2404,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 </tr>
                 {/* JML IZIN */}
                 <tr className="bg-indigo-100/90 border-b border-indigo-200 text-indigo-950">
+                  <td className="px-2.5 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold text-xs">-</td>
                   <td className="px-4 py-2 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
                   <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
@@ -2425,6 +2425,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 </tr>
                 {/* JML SAKIT */}
                 <tr className="bg-amber-100/90 border-b border-amber-200 text-amber-950">
+                  <td className="px-2.5 py-2 text-center border-r border-amber-300 text-amber-300 font-bold text-xs">-</td>
                   <td className="px-4 py-2 sticky left-0 bg-amber-100 z-10 border-r border-amber-300 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
                   <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
@@ -2445,6 +2446,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 </tr>
                 {/* JML ALPA */}
                 <tr className="bg-slate-900 text-white border-b border-slate-800">
+                  <td className="px-2.5 py-2 text-center border-r border-slate-700 text-slate-500 font-bold text-xs">-</td>
                   <td className="px-4 py-2 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-black text-[10px] uppercase text-white">TOTAL ALPA (ALP)</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
                   <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>

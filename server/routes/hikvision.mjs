@@ -930,8 +930,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           await dbPool.query(insertQuery, params);
         }
 
-        // Invalidate dashboard cache and update device online status cache
+        // Invalidate dashboard cache, matrix cache, and update device online status cache
         global._hikvDashCache = null;
+        global._matrixCache = {};
         global._deviceOnlineStatus = global._deviceOnlineStatus || {};
         for (const r of syncResults) {
           const isFail = String(r.status).toLowerCase().includes('error') || String(r.status).toLowerCase().includes('gagal');
@@ -1598,6 +1599,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         }
 
         global._dashLogsCache = { time: 0, data: null };
+        global._matrixCache = {};
 
         send(req, res, 200, { ok: true, message: `Koreksi jam absensi untuk ${personName || personId} berhasil disimpan.` });
       } catch (err) {
@@ -1927,14 +1929,45 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const reportType = body.type || 'siswa'; // siswa | guru | karyawan | staff
         const isForceRefresh = Boolean(body.force || body.refresh || req.headers['cache-control']?.includes('no-cache'));
 
+        const session = getSession(req);
+        const roleStr = String(session?.role || '').toLowerCase();
+        const subroleStr = String(session?.subrole || '').toLowerCase();
+        const divisionStr = String(session?.division || '').toLowerCase();
+
+        // Semua peran staf sekolah berhak melihat matriks kehadiran siswa di Laporan Kehadiran
+        const isFullAccess = 
+          ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek', 'guru', 'teacher', 'karyawan', 'staff', 'piket', 'kurikulum', 'kaprog', 'hubin', 'sarpras'].includes(roleStr) ||
+          roleStr.startsWith('waka') ||
+          roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
+          subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') ||
+          divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
+          Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan) ||
+          roleStr !== 'siswa';
+
+        let targetClassName = className;
+        if (!targetClassName || targetClassName === 'none') {
+          targetClassName = (session?.isWalas && session?.walasClass) ? session.walasClass : 'all';
+        }
+        if (reportType === 'siswa' && !isFullAccess) {
+          if (session?.isWalas && session?.walasClass) {
+            targetClassName = session.walasClass;
+          } else if (roleStr === 'siswa') {
+            return send(req, res, 200, { ok: true, data: [], daysInMonth: 31 });
+          } else {
+            targetClassName = 'all';
+          }
+        }
+
         // === SERVER-SIDE CACHE ===
-        // Bulan berjalan: cache 3 menit. Bulan lalu: 15 menit. (Bypass jika isForceRefresh)
+        // Bulan berjalan: TTL 10 detik saat jam aktif agar tap mesin terkini langsung tampil. Bulan lalu: 15 menit. (Bypass jika isForceRefresh)
         const nowTs = Date.now();
         const todayJkt = new Date(nowTs + 7 * 3600000);
         const isCurrentMonth = (month === todayJkt.getUTCMonth() + 1 && year === todayJkt.getUTCFullYear());
-        const cacheTtl = isCurrentMonth ? 3 * 60 * 1000 : 15 * 60 * 1000;
+        const currentHour = todayJkt.getUTCHours();
+        const isSchoolHours = currentHour >= 5 && currentHour <= 18;
+        const cacheTtl = isCurrentMonth ? (isSchoolHours ? 10 * 1000 : 60 * 1000) : 15 * 60 * 1000;
         global._matrixCache = global._matrixCache || {};
-        const cacheKey = `${reportType}_${year}_${month}_${className}`;
+        const cacheKey = `${reportType}_${year}_${month}_${targetClassName}`;
         if (isForceRefresh) {
           delete global._matrixCache[cacheKey];
         } else {
@@ -1942,28 +1975,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           if (cached && (nowTs - cached.time) < cacheTtl) {
             try { res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate'); } catch {}
             return send(req, res, 200, cached.data);
-          }
-        }
-
-        const session = getSession(req);
-        const roleStr = String(session?.role || '').toLowerCase();
-        const subroleStr = String(session?.subrole || '').toLowerCase();
-        const divisionStr = String(session?.division || '').toLowerCase();
-
-        const isFullAccess = 
-          ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
-          roleStr.startsWith('waka') ||
-          roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
-          subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') ||
-          divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
-          Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
-
-        let targetClassName = className;
-        if (reportType === 'siswa' && !isFullAccess) {
-          if (session?.isWalas && session?.walasClass) {
-            targetClassName = session.walasClass;
-          } else {
-            return send(req, res, 200, { ok: true, data: [], daysInMonth: 31 });
           }
         }
 

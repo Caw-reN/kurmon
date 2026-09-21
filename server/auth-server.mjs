@@ -414,6 +414,9 @@ export async function pullHikvisionLogs(force = false) {
     } catch (linkErr) {
       console.warn("[Hikvision] autoLink warning:", linkErr.message);
     }
+    if (totalSaved > 0) {
+      global._matrixCache = {};
+    }
   } catch (err) {
     console.error("Error in pullHikvisionLogs:", err);
   }
