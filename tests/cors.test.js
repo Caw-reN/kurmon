@@ -29,6 +29,7 @@ test("isAllowedOrigin accepts localhost and private LAN IPs", () => {
   assert.equal(isAllowedOrigin("http://localhost:6677", allowed), true);
   assert.equal(isAllowedOrigin("http://192.168.1.20:6677", allowed), true);
   assert.equal(isAllowedOrigin("http://10.1.2.3:6677", allowed), true);
+  assert.equal(isAllowedOrigin("http://40.47.197.202:6677", allowed), true);
 });
 
 test("isAllowedOrigin rejects untrusted public origins unless explicitly allowed", () => {

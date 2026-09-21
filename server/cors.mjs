@@ -62,12 +62,13 @@ export const isAllowedOrigin = (origin, allowedOrigins = buildAllowedOrigins()) 
 
   const hostname = url.hostname;
 
-  // Izinkan localhost, IP loopback, dan private LAN IPs (akses lokal WiFi/LAN sekolah)
+  // Izinkan localhost, IP loopback, semua IP address (akses langsung IP di jaringan LAN/sekolah), dan private hostnames
   if (
     isLocalHostname(hostname) ||
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
     hostname === '::1' ||
+    Boolean(isIP(hostname)) ||
     isPrivateIpv4(hostname) ||
     isPrivateIpv6(hostname) ||
     hostname.endsWith('.local') ||
