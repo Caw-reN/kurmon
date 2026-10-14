@@ -36,6 +36,8 @@ const ALL_TABS_METADATA = {
   jurusan: { label: 'Data Jurusan / Program Keahlian', desc: 'Manajemen konsentrasi keahlian' },
   mapel: { label: 'Mata Pelajaran', desc: 'Daftar mata pelajaran kurikulum merdeka/nasional' },
   generate: { label: 'Jadwal Mengajar (KBM Otomatis)', desc: 'Pembuatan & modifikasi jadwal pelajaran mingguan' },
+  ketersediaan: { label: 'Ketersediaan Waktu Guru', desc: 'Kelola kesediaan waktu mengajar dan jadwal kosong guru' },
+  beban: { label: 'Beban Mengajar Guru (JP)', desc: 'Distribusi jam mengajar guru dan plotting mata pelajaran' },
 
   // Silabus & Mengajar
   silabus: { label: 'Silabus Akademik (Waka Kurikulum)', desc: 'Monitoring capaian silabus seluruh mata pelajaran' },
@@ -48,6 +50,8 @@ const ALL_TABS_METADATA = {
   absensiguru: { label: 'Absen Mandiri Guru (KBM)', desc: 'Absensi mandiri guru di lokasi sekolah' },
   kedisiplinan_absensi: { label: 'Izin & Sakit Siswa', desc: 'Pengajuan & persetujuan surat izin, sakit, dan dispensasi siswa' },
   hikvision_report_siswa: { label: 'Presensi Siswa', desc: 'Rekap matriks presensi harian per kelas' },
+  hikvision_report_guru: { label: 'Presensi Guru & Staf', desc: 'Matriks kehadiran mesin/GPS guru dan karyawan' },
+  laporan_absensi: { label: 'Rekap Laporan Kehadiran', desc: 'Laporan kehadiran guru dan karyawan per bulan/semester' },
 
   // Sarpras & Administrasi
   ruangan: { label: 'Data Ruangan & Lab', desc: 'Manajemen ruang teori, bengkel praktikum, dan lab' },
@@ -71,9 +75,9 @@ const PERMISSION_GROUPS = [
   { key: 'utama', label: 'Utama & Dashboard', color: 'bg-indigo-500', tabs: ['dashboard', 'pesan', 'tampilan'] },
   { key: 'siswa', label: 'Siswa & Bimbingan', color: 'bg-emerald-500', tabs: ['siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk'] },
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
-  { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate'] },
+  { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate', 'ketersediaan', 'beban'] },
   { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian'] },
-  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'hikvision_report_siswa'] },
+  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
   { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'esurat', 'kartu_pelajar'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
 ];

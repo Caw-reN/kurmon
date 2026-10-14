@@ -245,7 +245,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       // GET — ambil catatan (filter by siswa, kelas, teacher)
       if (req.method === 'GET') {
         const role = session?.role || '';
-        const isKesiswaan = ['admin', 'superadmin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) || (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan');
+        const isKesiswaan = ['admin', 'superadmin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
+          (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
+          (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
         const filterSiswa = url.searchParams.get('siswa_nis') || '';
         const filterKelas = url.searchParams.get('kelas') || '';
         const filterTeacher = url.searchParams.get('teacher_code') || '';
@@ -295,7 +297,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
 
         if (body.action === 'delete') {
           const role = session?.role || '';
-          const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) || (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan');
+          const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
+            (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
+            (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
           if (isAdmin) {
             await dbPool.query('DELETE FROM catatan_walikelas WHERE id = $1', [body.id]);
           } else {
@@ -305,7 +309,9 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           // Update
           // BUG-A FIX: Tambahkan cek kepemilikan record (BOLA) — walikelas hanya bisa
           // edit catatan miliknya sendiri. Admin/Kesiswaan bisa edit semua.
-          const isAdminEdit = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(session?.role || '') || (session?.role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan');
+          const isAdminEdit = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(session?.role || '') ||
+            (session?.role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
+            (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
           const updateResult = await dbPool.query(`
             UPDATE catatan_walikelas
             SET siswa_nis = $1, siswa_name = $2, tanggal = $3, jenis_catatan = $4,

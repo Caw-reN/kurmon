@@ -137,7 +137,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
         "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules"
       ];
-      if ((roleKey === "waka" && division === "kurikulum") || roleKey === "kurikulum") {
+      if ((roleKey === "waka" && division === "kurikulum") || roleKey === "kurikulum" || roleKey === "waka_kurikulum" || currentUser?.subrole === "waka_kurikulum") {
         if (kurikulumTabs.includes(tabKey)) return false;
       }
 
@@ -146,7 +146,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
         "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
       ];
-      if ((roleKey === "waka" && division === "kesiswaan") || roleKey === "kesiswaan") {
+      if ((roleKey === "waka" && division === "kesiswaan") || roleKey === "kesiswaan" || roleKey === "waka_kesiswaan" || currentUser?.subrole === "waka_kesiswaan") {
         if (kesiswaanTabs.includes(tabKey)) return false;
       }
 

@@ -2354,7 +2354,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>
                                 {d.class_name || 'Tanpa Kelas'} {d.nis ? `• ${d.nis}` : ''}
                               </div>
-                              {['admin', 'tata_usaha', 'tu', 'waka_kesiswaan', 'kesiswaan'].includes(user?.role) && (
+                              {isKesiswaanOrAdmin && (
                                 <button 
                                   type="button"
                                   onClick={(e) => { e.stopPropagation(); setTargetDeleteStudent(d); }}

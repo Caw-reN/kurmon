@@ -200,6 +200,52 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     dashboard: "otomatis", ruangan: "view", denah: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
   },
+
+  // ─── ALIASES FOR DIRECT DIVISION ROLE KEYS ──────────────────────────────────
+  tata_usaha: {
+    dashboard: "otomatis", generate: "view", absensi: "otomatis", esurat: "otomatis",
+    kartu_pelajar: "otomatis", kedisiplinan_absensi: "otomatis", siswa: "otomatis",
+    guru: "view", karyawan: "view", laporan_absensi: "otomatis",
+    hikvision_report_guru: "view", hikvision_report_karyawan: "view",
+    hikvision_report_siswa: "view", riwayat_prestasi: "view",
+    siswa_keluar: "view", akademik: "view", pesan: "view",
+    data_pegawai: "view", kelas: "view", jurusan: "view",
+    absensiguru: "otomatis",
+  },
+  kesiswaan: {
+    ...BASE_GURU_PERMISSIONS,
+    dashboard: "otomatis", absensi: "nonaktif", akademik: "view", pesan: "otomatis",
+    absensiguru: "otomatis",
+    kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
+    riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
+    siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
+    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view"
+  },
+  kurikulum: {
+    ...BASE_GURU_PERMISSIONS,
+    dashboard: "otomatis", generate: "otomatis", ketersediaan: "otomatis",
+    beban: "otomatis", silabus: "otomatis", akademik: "otomatis", kelas: "otomatis",
+    siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
+    modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
+    pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis",
+    hikvision_report_guru: "view", data_pegawai: "view",
+    laporan_absensi: "view", kedisiplinan_absensi: "view",
+  },
+  sarpras: {
+    ...BASE_GURU_PERMISSIONS,
+    dashboard: "otomatis", ruangan: "otomatis", denah: "otomatis", kelas: "view",
+    siswa: "view", generate: "view", akademik: "view", pesan: "view",
+    walas_report: "view", catatan_walikelas: "view"
+  },
+  hubin: {
+    ...BASE_GURU_PERMISSIONS,
+    dashboard: "otomatis", pkl_dashboard: "otomatis", pkl_data_siswa: "otomatis",
+    pkl_data_perusahaan: "otomatis", pkl_penugasan: "otomatis",
+    pkl_administrasi: "otomatis", pkl_jurnal: "otomatis", pkl_laporan: "otomatis",
+    pkl_absensi_setting: "otomatis", pesan: "otomatis",
+    walas_report: "view", catatan_walikelas: "view", akademik: "view",
+    hikvision_report_siswa: "otomatis", laporan_absensi: "view",
+  },
 };
 
 
